@@ -1,7 +1,5 @@
 // news.js
 (async () => {
-    // 既存の静的プレースホルダーを即時クリア（古いSNSポスト等の残存防止）
-    try { document.querySelectorAll('.card-list').forEach(el => el.innerHTML = ''); } catch {}
     const fetchJSON = async (url) => {
       const r = await fetch(url, { cache: 'no-store' });
       if (!r.ok) throw new Error('failed:' + r.status);
@@ -49,6 +47,8 @@
       const list = document.querySelector(`#${id} .card-list`);
       if (!list) return;
       const items = (data.sections&&data.sections[id])? data.sections[id] : [];
+      // データが無い場合は静的プレースホルダーを維持
+      if (!items || items.length === 0) return;
 
       let shown = Math.min(INITIAL_COUNT, items.length);
       const renderSlice = () => {
@@ -60,7 +60,7 @@
       const container = document.getElementById(id);
       if (!container) return;
       let moreBtn = container.querySelector('.more-btn');
-      if (!moreBtn) {
+      if (!moreBtn && items.length > INITIAL_COUNT) {
         moreBtn = document.createElement('button');
         moreBtn.className = 'more-btn';
         moreBtn.textContent = 'もっと見る';
@@ -68,6 +68,7 @@
         container.appendChild(moreBtn);
       }
       const updateBtn = () => {
+        if (!moreBtn) return;
         if (shown >= items.length) {
           moreBtn.style.display = 'none';
         } else {
@@ -75,11 +76,13 @@
         }
       };
       updateBtn();
-      moreBtn.addEventListener('click', () => {
-        shown = Math.min(items.length, shown + INITIAL_COUNT);
-        renderSlice();
-        updateBtn();
-      });
+      if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          shown = Math.min(items.length, shown + INITIAL_COUNT);
+          renderSlice();
+          updateBtn();
+        });
+      }
     });
   
     const f = document.querySelector('footer p');
