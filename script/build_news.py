@@ -9,8 +9,14 @@ import tldextract
 from bs4 import BeautifulSoup
 from dateutil import parser as dateparser
 import trafilatura
+import csv
 
 JST = timezone(timedelta(hours=9))
+FAST_MODE = os.getenv('NEWS_FAST_MODE') == '1'
+try:
+    GLOBAL_TIMEOUT_SEC = int(os.getenv('NEWS_GLOBAL_TIMEOUT_SEC', '60'))
+except Exception:
+    GLOBAL_TIMEOUT_SEC = 60
 ROOT = os.path.dirname(os.path.dirname(__file__))
 NEWS_DIR = os.path.join(ROOT, 'news')
 SOURCES_YAML = os.path.join(ROOT, 'sources.yaml')
@@ -51,12 +57,25 @@ def load_sources():
     import yaml
     with open(SOURCES_YAML, 'r', encoding='utf-8') as f:
         y = yaml.safe_load(f)
-    return y.get('feeds', []), y.get('x_accounts', []), y.get('x_rss_base'), y.get('x_rss_accounts', [])
+    return (
+        y.get('feeds', []),
+        y.get('x_accounts', []),
+        y.get('x_rss_base'),
+        y.get('x_rss_accounts', []),
+        y.get('sheets', [])
+    )
 
 # --- fetch -------------------------------------------------
 
 def head_ok(url: str) -> bool:
     try:
+        # 一部SNS/大手はHEAD拒否が多い→許可ドメインは常にTrue
+        host = urlparse(url).netloc.lower()
+        allow_hosts = ['x.com', 'twitter.com', 'nitter.net']
+        if any(h == host or host.endswith('.'+h) for h in allow_hosts):
+            return True
+        if FAST_MODE:
+            return True
         r = requests.head(url, headers=UA, timeout=8, allow_redirects=True)
         if r.status_code >= 400:
             # 一部サイトはHEAD拒否 → GETで再確認
@@ -68,7 +87,24 @@ def head_ok(url: str) -> bool:
 
 def fetch_feed(url: str):
     log('feed:', url)
-    d = feedparser.parse(url)
+    d = None
+    try:
+        if FAST_MODE:
+            rr = requests.get(url, headers=UA, timeout=8)
+            rr.raise_for_status()
+            d = feedparser.parse(rr.text)
+        else:
+            rr = requests.get(url, headers=UA, timeout=15)
+            rr.raise_for_status()
+            d = feedparser.parse(rr.text)
+    except Exception:
+        # フォールバック: feedparserにURLを直接渡す（内部で取得）
+        try:
+            d = feedparser.parse(url)
+        except Exception:
+            d = {'entries': []}
+    if not d:
+        d = {'entries': []}
     items = []
     for e in d.entries:
         title = e.get('title', '').strip()
@@ -113,9 +149,14 @@ def fetch_x_api(usernames):
         try:
             u = requests.get(f'https://api.x.com/2/users/by/username/{name}', headers=headers, timeout=10).json()
             uid = u.get('data',{}).get('id')
+            display = u.get('data',{}).get('name')
             if not uid:
                 continue
-            t = requests.get(f'https://api.x.com/2/users/{uid}/tweets', params={'max_results': 10, 'tweet.fields': 'created_at'}, headers=headers, timeout=10).json()
+            t = requests.get(
+                f'https://api.x.com/2/users/{uid}/tweets',
+                params={'max_results': 10, 'tweet.fields': 'created_at'},
+                headers=headers, timeout=10
+            ).json()
             for tw in t.get('data', []):
                 url = f'https://x.com/{name}/status/{tw.get("id")}'
                 out.append({
@@ -123,7 +164,9 @@ def fetch_x_api(usernames):
                     'url': url,
                     'summary': tw.get('text') or '',
                     'published': dateparser.parse(tw.get('created_at')).astimezone(JST).isoformat(),
-                    'source_name': 'x.com'
+                    'source_name': 'x.com',
+                    'author_handle': name,
+                    'author_display': display
                 })
         except Exception as ex:
             log('x api error', name, ex)
@@ -141,15 +184,73 @@ def fetch_x_rss(base, accounts):
                 # NitterのリンクをX公式に正規化
                 e['url'] = re.sub(r'^https?://[^/]+/([^/]+)/status/(\d+).*', r'https://x.com/\1/status/\2', e['url'])
                 e['source_name'] = 'x.com'
+                e['author_handle'] = name
                 out.append(e)
         except Exception as ex:
             log('x rss error', name, ex)
+    return out
+
+# --- google sheets -----------------------------------------
+
+def fetch_google_sheet_csv(sheet_id: str, gid: str|int = 0, timeout_sec: int = 20):
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+    log('sheet:', url)
+    try:
+        r = requests.get(url, headers=UA, timeout=timeout_sec)
+        r.raise_for_status()
+        r.encoding = 'utf-8'
+        text = r.text
+    except Exception as ex:
+        log('sheet err', ex)
+        return []
+
+    rows = []
+    for row in csv.reader(text.splitlines()):
+        rows.append(row)
+    return rows
+
+
+def rows_to_items_from_sheet(rows, mapping=None):
+    # mapping: dict with keys: date, handle, text, url. Values are column indices (0-based)
+    # default assumes: A=date(0) B=handle(1) D=text(3) F=url(5)
+    m = mapping or {'date': 0, 'handle': 1, 'text': 3, 'url': 5}
+    out = []
+    for r in rows:
+        try:
+            dt_raw = (r[m['date']] if len(r) > m['date'] else '').strip()
+            handle = (r[m['handle']] if len(r) > m['handle'] else '').strip()
+            text = (r[m['text']] if len(r) > m['text'] else '').strip()
+            url = canon_url((r[m['url']] if len(r) > m['url'] else '').strip())
+            if not text or not url:
+                continue
+            # parse date
+            dt = None
+            if dt_raw:
+                try:
+                    dt = dateparser.parse(dt_raw)
+                except Exception:
+                    dt = None
+            if not dt:
+                dt = datetime.now(timezone.utc)
+            src_name = 'x.com' if 'x.com/' in url or 'twitter.com/' in url else tldextract.extract(url).registered_domain
+            out.append({
+                'title': text.split('\n')[0][:90],
+                'url': url,
+                'summary': text,
+                'published': dt.astimezone(JST).isoformat(),
+                'source_name': src_name or 'sheet',
+                'author_handle': handle.lstrip() if handle else ''
+            })
+        except Exception:
+            continue
     return out
 
 # --- extraction -------------------------------------------
 
 def extract_text(url: str) -> str:
     try:
+        if FAST_MODE:
+            return ''
         downloaded = trafilatura.fetch_url(url)
         if not downloaded:
             return ''
@@ -255,18 +356,37 @@ URL: {url}
 
 def main():
     os.makedirs(NEWS_DIR, exist_ok=True)
-    feeds, x_users, x_rss_base, x_rss_users = load_sources()
+    feeds, x_users, x_rss_base, x_rss_users, sheets = load_sources()
+    start_time = time.time()
 
     items = []
-    for f in feeds:
-        try:
-            items.extend(fetch_feed(f))
-        except Exception as ex:
-            log('feed err', f, ex)
+    only_sheets = os.getenv('NEWS_ONLY_SHEETS') == '1'
+    if not only_sheets:
+        for f in feeds:
+            try:
+                items.extend(fetch_feed(f))
+            except Exception as ex:
+                log('feed err', f, ex)
+            if time.time() - start_time > GLOBAL_TIMEOUT_SEC:
+                break
 
     # SNS
-    items.extend(fetch_x_api(x_users))
-    items.extend(fetch_x_rss(x_rss_base, x_rss_users))
+    if not only_sheets:
+        if time.time() - start_time <= GLOBAL_TIMEOUT_SEC:
+            items.extend(fetch_x_api(x_users))
+        if time.time() - start_time <= GLOBAL_TIMEOUT_SEC:
+            items.extend(fetch_x_rss(x_rss_base, x_rss_users))
+
+    # Google Sheets
+    for s in (sheets or []):
+        try:
+            sid = s.get('id')
+            gid = s.get('gid', 0)
+            mapping = s.get('mapping')
+            rows = fetch_google_sheet_csv(sid, gid)
+            items.extend(rows_to_items_from_sheet(rows, mapping))
+        except Exception as ex:
+            log('sheet fetch fail', ex)
 
     # dedup by URL & title
     uniq = []
@@ -278,16 +398,24 @@ def main():
             continue
         seen.add(key)
         uniq.append(it)
+        if FAST_MODE and len(uniq) >= 120:
+            break
 
     # title-similarity prune
     pruned = []
-    for it in uniq:
-        if any(very_similar(it['title'], p['title']) for p in pruned):
-            continue
-        pruned.append(it)
+    if FAST_MODE:
+        # 類似判定はスキップして速度優先
+        pruned = uniq[:]
+    else:
+        for it in uniq:
+            if any(very_similar(it['title'], p['title']) for p in pruned):
+                continue
+            pruned.append(it)
+            if time.time() - start_time > GLOBAL_TIMEOUT_SEC:
+                break
 
     # verify links quickly
-    verified = [it for it in pruned if head_ok(it['url'])]
+    verified = pruned if FAST_MODE else [it for it in pruned if head_ok(it['url'])]
 
     # enrich with text, llm/fallback summary, score, category
     enriched = []
@@ -296,14 +424,33 @@ def main():
         llm = llm_summarize(it['title'], body or it['summary'], it['url'])
         cats = classify(it)
         base, stars = score(it)
-        enriched.append({
+        category = (llm and llm.get('category')) or cats[0]
+        item_out = {
             'title': it['title'],
             'blurb': (llm and llm.get('blurb')) or (body[:120] + '…' if body else it['summary'][:120]),
-            'category': (llm and llm.get('category')) or cats[0],
+            'category': category,
             'date': it['published'][:10],
             'stars': int((llm and llm.get('stars')) or stars),
             'source': {'name': it['source_name'], 'url': it['url']}
-        })
+        }
+        # SNS向けの明示的な著者情報
+        if category == 'sns' or (it.get('source_name') == 'x.com'):
+            handle = it.get('author_handle') or re.sub(r'^https?://x\.com/([^/]+)/.*', r'\1', it['url'])
+            if handle and not handle.startswith('@'):
+                handle = '@' + handle
+            item_out['sns'] = {
+                'handle': handle,
+                'display_name': it.get('author_display') or '',
+                'posted_at': it.get('published')
+            }
+            # 出典の表示名はハンドルに
+            item_out['source'] = {'name': handle or 'X', 'url': it['url']}
+            item_out['category'] = 'sns'
+        enriched.append(item_out)
+        if FAST_MODE and len(enriched) >= 80:
+            break
+        if time.time() - start_time > GLOBAL_TIMEOUT_SEC:
+            break
 
     # score again using produced blurb/title
     for it in enriched:
@@ -330,8 +477,9 @@ def main():
     for k in sections:
         sections[k] = sorted(sections[k], key=sortkey)[:max_per]
 
-    # highlight = 全体から最高スコア
-    all_items = sorted(enriched, key=lambda x: (-x['stars']))
+    # highlight = SNSを除く全体から最高スコア
+    non_sns_items = [x for x in enriched if x.get('category') != 'sns']
+    all_items = sorted(non_sns_items, key=lambda x: (-x['stars']))
     hl = all_items[0] if all_items else None
     highlight = None
     if hl:

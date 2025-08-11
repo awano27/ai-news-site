@@ -1,5 +1,7 @@
 // news.js
 (async () => {
+    // 既存の静的プレースホルダーを即時クリア（古いSNSポスト等の残存防止）
+    try { document.querySelectorAll('.card-list').forEach(el => el.innerHTML = ''); } catch {}
     const fetchJSON = async (url) => {
       const r = await fetch(url, { cache: 'no-store' });
       if (!r.ok) throw new Error('failed:' + r.status);
