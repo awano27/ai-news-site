@@ -6,7 +6,11 @@
       return r.json();
     };
     const data = await fetchJSON('news/latest.json').catch(() => null);
-    if (!data) return;
+    if (!data) {
+      const el = document.querySelector('.highlight-section');
+      if (el) el.innerHTML = `<div class="highlight-card"><h2>本日の更新はまだありません</h2><p>しばらくしてから再読み込みしてください。</p></div>`;
+      return;
+    }
   
     const starStr = n => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
     const esc = (s) => (s || '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\\':'\\'}[c]));
