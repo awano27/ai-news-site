@@ -457,9 +457,27 @@ def main():
         base, stars = score({'title': it['title'], 'summary': it['blurb'], 'published': it['date'], 'source_name': it['source']['name']})
         it['stars'] = max(it['stars'], stars)
 
+    # age-based filter for freshness (default 24h, widen to 48h if empty)
+    def hours_since(datestr: str) -> float:
+        try:
+            dt = dateparser.parse(datestr).astimezone(JST)
+        except Exception:
+            dt = datetime.now(JST)
+        return max(0.0, (datetime.now(JST) - dt).total_seconds()/3600)
+
+    try:
+        max_age_h = float(os.getenv('NEWS_MAX_AGE_HOURS', '24'))
+    except Exception:
+        max_age_h = 24.0
+
+    fresh = [it for it in enriched if hours_since(it['date']) <= max_age_h]
+    if not fresh and enriched:
+        # widen once to 48h if nothing fresh
+        fresh = [it for it in enriched if hours_since(it['date']) <= 48.0]
+
     # split into sections and pick上位
     sections = {'business': [], 'tools': [], 'company': [], 'sns': []}
-    for it in enriched:
+    for it in (fresh or enriched):
         sections.setdefault(it['category'], sections['company']).append(it)
 
     # 並べ替え（stars→新しさ）
@@ -477,8 +495,8 @@ def main():
     for k in sections:
         sections[k] = sorted(sections[k], key=sortkey)[:max_per]
 
-    # highlight = SNSを除く全体から最高スコア
-    non_sns_items = [x for x in enriched if x.get('category') != 'sns']
+    # highlight = SNSを除く全体から最高スコア（鮮度フィルタ後）
+    non_sns_items = [x for x in (fresh or enriched) if x.get('category') != 'sns']
     all_items = sorted(non_sns_items, key=lambda x: (-x['stars']))
     hl = all_items[0] if all_items else None
     highlight = None
