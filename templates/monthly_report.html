@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIニュース月次レポート - {{ year }}年{{ month_name_ja }}</title>
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/theme/white.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Custom styles -->
+    <style>
+        .reveal .slides section {
+            text-align: left;
+        }
+        .reveal h1, .reveal h2 {
+            text-align: center;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        .highlight-box {
+            background: #f0f8ff;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .article-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .score-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            float: right;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007acc;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- タイトルスライド -->
+            <section>
+                <h1>AIニュース月次レポート</h1>
+                <h2>{{ year }}年{{ month_name_ja }}</h2>
+                <div class="highlight-box">
+                    <p><strong>分析期間:</strong> {{ year }}年{{ month }}月</p>
+                    <p><strong>総記事数:</strong> {{ trends.total_articles }}件</p>
+                    <p><strong>レポート生成日:</strong> {{ generation_date }}</p>
+                </div>
+            </section>
+
+            <!-- サマリー統計 -->
+            <section>
+                <h2>📊 月次統計サマリー</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ trends.total_articles }}</div>
+                        <div>総記事数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ "%.1f"|format(trends.average_daily) }}</div>
+                        <div>1日平均記事数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ trends.high_quality_articles|length }}</div>
+                        <div>高品質記事数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ trends.sources|length }}</div>
+                        <div>情報源数</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- カテゴリ分析 -->
+            <section>
+                <h2>🏷️ カテゴリ別分析</h2>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="highlight-box">
+                    <h3>主要トレンド</h3>
+                    <ul>
+                        {% for category, count in trends.categories.items()[:3] %}
+                        <li><strong>{{ category }}:</strong> {{ count }}件 ({{ "%.1f"|format(count/trends.total_articles*100) }}%)</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 時系列分析 -->
+            <section>
+                <h2>📈 時系列分析</h2>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+                <div class="highlight-box">
+                    <h3>活動パターン</h3>
+                    <p>月間を通じて安定した情報収集活動が確認できます。</p>
+                    <p>平日により多くの記事が収集される傾向があります。</p>
+                </div>
+            </section>
+
+            <!-- 高品質記事ハイライト -->
+            <section>
+                <h2>⭐ 注目記事 Top 5</h2>
+                {% for article in trends.high_quality_articles[:5] %}
+                <div class="article-card">
+                    <div class="score-badge">{{ "%.2f"|format(article.evaluation.overall_score) }}</div>
+                    <h3>{{ article.title }}</h3>
+                    <p><strong>ソース:</strong> {{ article.source }} | <strong>日付:</strong> {{ article.date }}</p>
+                    <p>{{ article.summary[:150] }}...</p>
+                    <a href="{{ article.url }}" target="_blank">詳細を見る</a>
+                </div>
+                {% endfor %}
+            </section>
+
+            <!-- 情報源分析 -->
+            <section>
+                <h2>📰 情報源分析</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div>
+                        <h3>主要情報源</h3>
+                        <ul>
+                            {% for source, count in trends.sources.items()[:8] %}
+                            <li>{{ source }}: {{ count }}件</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="highlight-box">
+                            <h3>信頼性評価</h3>
+                            <p>Tier 1 (高信頼): 学術論文、公式ブログ</p>
+                            <p>Tier 2 (中信頼): 技術メディア、業界誌</p>
+                            <p>Tier 3 (参考): SNS、個人ブログ</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- まとめとNext Steps -->
+            <section>
+                <h2>📝 まとめ & Next Steps</h2>
+                <div class="highlight-box">
+                    <h3>{{ month_name_ja }}のキーインサイト</h3>
+                    <ul>
+                        <li>総計{{ trends.total_articles }}件の記事を分析</li>
+                        <li>{{ trends.categories|list|first }}分野が最も活発（{{ trends.categories[trends.categories|list|first] }}件）</li>
+                        <li>高品質記事は{{ trends.high_quality_articles|length }}件を選定</li>
+                        <li>{{ trends.sources|length }}の多様な情報源を活用</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>🎯 来月の注目ポイント</h3>
+                    <ul>
+                        <li>継続的なトレンド監視と分析精度向上</li>
+                        <li>新興技術分野への対応拡大</li>
+                        <li>ビジネス応用事例の収集強化</li>
+                    </ul>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide'
+        });
+
+        // カテゴリチャート
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_data.categories|safe }},
+                datasets: [{
+                    data: {{ chart_data.category_counts|safe }},
+                    backgroundColor: [
+                        '#007acc', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // 時系列チャート
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_data.daily_labels|safe }},
+                datasets: [{
+                    label: '記事数',
+                    data: {{ chart_data.daily_values|safe }},
+                    borderColor: '#007acc',
+                    backgroundColor: 'rgba(0, 122, 204, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 10
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

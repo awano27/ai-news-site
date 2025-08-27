@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2025年8月23日 - DeepSeek V3.1：オープンソースAIの新基準</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/theme/white.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0f172a;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --light-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+        .reveal {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .reveal .slides section {
+            text-align: left;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .reveal .title-slide {
+            background: var(--gradient-bg);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reveal .title-slide::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .reveal .title-slide .content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .reveal .title-slide h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .reveal .title-slide .subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+            color: #94a3b8;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .content-slide {
+            background: var(--light-gradient);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .highlight-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid var(--accent-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .highlight-box h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card h4 {
+            color: var(--accent-color);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: var(--accent-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .impact-card {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .impact-score {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .arch-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .arch-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: block;
+        }
+
+        /* Quick navigation removed to prevent overlap issues */
+
+        /* Hide default reveal.js controls completely to prevent overlap */
+        .reveal .controls {
+            display: none !important;
+        }
+        
+        /* Progress bar stays at bottom */
+        .reveal .progress {
+            bottom: 0 !important;
+            height: 4px !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .reveal .progress span {
+            background: #3b82f6 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Quick navigation removed to prevent overlap issues -->
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <div class="content">
+                    <h1>2025年8月23日</h1>
+                    <div class="subtitle">DeepSeek V3.1：オープンソースAIの新基準</div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 15px; margin: 2rem 0;">
+                        671Bパラメータで GPT-4o・Claude 3.5に匹敵する性能を無料提供
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number">671B</span>
+                            <span class="stat-label">総パラメータ</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">37B</span>
+                            <span class="stat-label">アクティブ</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">4.5/5</span>
+                            <span class="stat-label">実用性スコア</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 1: ニュース概要 -->
+            <section class="content-slide">
+                <h2>🚀 DeepSeek V3.1 リリースの衝撃</h2>
+                
+                <div class="highlight-box">
+                    <h3>🎯 今日の最大ニュース</h3>
+                    <p><strong>中国DeepSeekが671BパラメータのMixture-of-Experts (MoE) モデルを無料公開</strong></p>
+                    <p>コーディング・数学分野でGPT-4oやClaude 3.5に匹敵する性能を実現</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>📊 技術仕様</h4>
+                        <p>総671Bパラメータ（アクティブ37B）<br>コンテキスト長128Kトークン</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🆓 オープンソース</h4>
+                        <p>MITライセンス<br>Hugging Faceから即時ダウンロード可能</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚡ ハイブリッドモード</h4>
+                        <p>思考モード・非思考モード切り替え<br>複雑推論と高速応答を両立</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🛠️ ツール強化</h4>
+                        <p>エージェントタスク対応<br>コード生成・検索統合機能</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: 技術的詳細 -->
+            <section class="content-slide">
+                <h2>⚙️ 技術アーキテクチャ詳細</h2>
+
+                <div class="architecture-grid">
+                    <div class="arch-card">
+                        <span class="arch-number">671B</span>
+                        <p>総パラメータ数</p>
+                    </div>
+                    <div class="arch-card">
+                        <span class="arch-number">37B</span>
+                        <p>アクティブパラメータ</p>
+                    </div>
+                    <div class="arch-card">
+                        <span class="arch-number">128K</span>
+                        <p>コンテキスト長</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>🧠 Mixture-of-Experts (MoE) アーキテクチャ</h3>
+                    <ul>
+                        <li><strong>効率的計算</strong>: 671Bの巨大モデルながら37Bだけをアクティブ化</li>
+                        <li><strong>専門化</strong>: タスク別に最適なエキスパートを選択</li>
+                        <li><strong>スケーラビリティ</strong>: 高性能と実行効率を両立</li>
+                    </ul>
+                </div>
+
+                <table class="comparison-table">
+                    <tr>
+                        <th>機能</th>
+                        <th>DeepSeek V3</th>
+                        <th>DeepSeek V3.1</th>
+                        <th>改善点</th>
+                    </tr>
+                    <tr>
+                        <td>思考モード</td>
+                        <td>基本実装</td>
+                        <td>ハイブリッド対応</td>
+                        <td>柔軟な切り替え</td>
+                    </tr>
+                    <tr>
+                        <td>ツール呼び出し</td>
+                        <td>限定的</td>
+                        <td>強化版</td>
+                        <td>エージェント機能向上</td>
+                    </tr>
+                    <tr>
+                        <td>コード生成</td>
+                        <td>79.8%</td>
+                        <td>84.6%</td>
+                        <td>+4.8%向上</td>
+                    </tr>
+                    <tr>
+                        <td>数学問題解決</td>
+                        <td>88.3%</td>
+                        <td>92.4%</td>
+                        <td>+4.1%向上</td>
+                    </tr>
+                </table>
+            </section>
+
+            <!-- Section 3: ベンチマーク比較 -->
+            <section class="content-slide">
+                <h2>📊 競合モデルとの性能比較</h2>
+
+                <table class="comparison-table">
+                    <tr>
+                        <th>ベンチマーク</th>
+                        <th>DeepSeek V3.1</th>
+                        <th>GPT-4o</th>
+                        <th>Claude 3.5</th>
+                        <th>アドバンテージ</th>
+                    </tr>
+                    <tr>
+                        <td>MMLU-Redux</td>
+                        <td><strong>87.1%</strong></td>
+                        <td>~86%</td>
+                        <td>~86%</td>
+                        <td>🟢 僅差優位</td>
+                    </tr>
+                    <tr>
+                        <td>LiveCodeBench</td>
+                        <td><strong>84.6%</strong></td>
+                        <td>~83%</td>
+                        <td>~81%</td>
+                        <td>🟢 コード生成優秀</td>
+                    </tr>
+                    <tr>
+                        <td>AIME 2024</td>
+                        <td><strong>92.4%</strong></td>
+                        <td>~90%</td>
+                        <td>~91%</td>
+                        <td>🟢 数学問題最強</td>
+                    </tr>
+                    <tr>
+                        <td>SWE Verified</td>
+                        <td><strong>80.2%</strong></td>
+                        <td>~78%</td>
+                        <td>~77%</td>
+                        <td>🟢 エージェント優位</td>
+                    </tr>
+                    <tr>
+                        <td>BrowseComp</td>
+                        <td><strong>78.3%</strong></td>
+                        <td>~74%</td>
+                        <td>~75%</td>
+                        <td>🟢 検索エージェント</td>
+                    </tr>
+                </table>
+
+                <div class="highlight-box">
+                    <h3>🏆 主要な優位性</h3>
+                    <ul>
+                        <li><strong>コード生成</strong>: GPT-4oを1.6%上回る業界最高水準</li>
+                        <li><strong>数学推論</strong>: AIME 2024で92.4%の高スコア</li>
+                        <li><strong>エージェント機能</strong>: ツール統合でタスク自動化に優秀</li>
+                        <li><strong>無料アクセス</strong>: 商用モデル並み性能を0円で提供</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 4: 実用性評価 -->
+            <section class="content-slide">
+                <h2>🛠️ 実用性KPI評価</h2>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>🔧 エンジニア即時活用性</h4>
+                        <div class="impact-score" style="font-size: 2rem; color: #10b981;">4.5/5</div>
+                        <p><strong>Hugging Faceから即ダウンロード可能</strong></p>
+                        <p>Pythonでローカル実行、コード生成・エージェント構築に即時活用</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💼 ビジネス業務効率化</h4>
+                        <div class="impact-score" style="font-size: 2rem; color: #10b981;">4.0/5</div>
+                        <p><strong>API経由で明日から活用可能</strong></p>
+                        <p>データ分析・レポート自動化、コストゼロで業務効率化</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>✅ 即時活用例</h3>
+                    <ul>
+                        <li><strong>エンジニア</strong>: ローカル環境でコード生成ツール構築</li>
+                        <li><strong>データサイエンティスト</strong>: 分析スクリプト自動生成</li>
+                        <li><strong>ビジネスアナリスト</strong>: レポート作成の自動化</li>
+                        <li><strong>研究者</strong>: 論文執筆支援とデータ処理</li>
+                    </ul>
+                </div>
+
+                <table class="comparison-table">
+                    <tr>
+                        <th>利用方法</th>
+                        <th>必要リソース</th>
+                        <th>導入難易度</th>
+                        <th>即時性</th>
+                    </tr>
+                    <tr>
+                        <td>ローカル実行</td>
+                        <td>高性能GPU必要</td>
+                        <td>中程度</td>
+                        <td>🟢 即時可能</td>
+                    </tr>
+                    <tr>
+                        <td>API経由</td>
+                        <td>低リソース</td>
+                        <td>簡単</td>
+                        <td>🟢 即時可能</td>
+                    </tr>
+                    <tr>
+                        <td>クラウド実行</td>
+                        <td>中程度</td>
+                        <td>簡単</td>
+                        <td>🟢 即時可能</td>
+                    </tr>
+                </table>
+            </section>
+
+            <!-- Section 5: 業界への影響 -->
+            <section class="content-slide">
+                <h2>🌍 AI業界への戦略的インパクト</h2>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>🆓 オープンソース革命</h4>
+                        <p>商用モデル並み性能を無料提供<br>AI民主化の加速</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🇨🇳 中国AI勢の台頭</h4>
+                        <p>OpenAI・Anthropicに対抗<br>技術覇権争いの新局面</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💰 コスト革命</h4>
+                        <p>中小企業のAI採用を促進<br>ビジネス参入障壁の低下</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🚀 イノベーション促進</h4>
+                        <p>開発者コミュニティの活性化<br>新たなAIアプリケーション創出</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>📈 X(Twitter)での反応分析</h3>
+                    <ul>
+                        <li><strong>開発者コミュニティ</strong>: 「15分でアイデアをコードに変換」との報告</li>
+                        <li><strong>研究者</strong>: 「ゲームチェンジャー」として評価</li>
+                        <li><strong>ビジネス界</strong>: 「OpenAIのオープンソース対抗馬」と位置づけ</li>
+                        <li><strong>投資家</strong>: AI業界の競争激化を予測</li>
+                    </ul>
+                </div>
+
+                <div class="impact-card">
+                    <div class="impact-score">8.5/10</div>
+                    <h3>総合業界インパクトスコア</h3>
+                    <p>高い実用性と無料アクセスがAI業界に革命をもたらす</p>
+                </div>
+            </section>
+
+            <!-- Section 6: まとめと展望 -->
+            <section class="content-slide">
+                <h2>🎯 総括：オープンソースAI新時代の幕開け</h2>
+
+                <div class="highlight-box">
+                    <h3>🚀 キーポイント</h3>
+                    <ul>
+                        <li><strong>性能革命</strong>: 無料でGPT-4o・Claude 3.5レベルの性能を実現</li>
+                        <li><strong>即時活用</strong>: エンジニア・ビジネスマンが今日から使える実用性</li>
+                        <li><strong>技術民主化</strong>: 高性能AIへのアクセス障壁を完全撤廃</li>
+                        <li><strong>競争激化</strong>: 商用AI企業のビジネスモデルに挑戦</li>
+                    </ul>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>⚡ 短期的影響（1-3ヶ月）</h4>
+                        <p>• 開発者の大量導入<br>• 商用AI企業の価格競争激化<br>• 新AIスタートアップの増加</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔮 長期的展望（6-12ヶ月）</h4>
+                        <p>• AIアプリケーションの爆発的増加<br>• 中小企業のAI標準装備<br>• 技術革新の加速</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>⚠️ 注意点とリスク</h3>
+                    <ul>
+                        <li><strong>プライバシー</strong>: 中国開発モデルのデータプライバシー懸念</li>
+                        <li><strong>バイアス</strong>: モデルの偏見リスクの検証必要</li>
+                        <li><strong>リソース要件</strong>: ローカル実行には高性能インフラが必要</li>
+                        <li><strong>技術サポート</strong>: 企業レベルの技術支援体制の確認</li>
+                    </ul>
+                </div>
+
+                <div class="impact-card">
+                    <div style="background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);">
+                        <h3>🌟 DeepSeek V3.1の革命的意義</h3>
+                        <p>AI技術の完全民主化により、誰もが世界最高水準のAIを無料で活用できる新時代が到来</p>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 2rem; font-weight: 600; color: var(--accent-color);">
+                    オープンソース×超高性能AI：技術革新の新たな地平線 🚀
+                </p>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/plugin/highlight/highlight.js"></script>
+    
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: false,  // Disable controls to prevent overlap
+            progress: true,
+            center: true,
+            transition: 'slide',
+            plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'h' || event.key === 'H') {
+                window.location.href = '../index.html';
+            }
+            if (event.key === 'd' || event.key === 'D') {
+                window.location.href = '../day_slides_index.html';
+            }
+        });
+    </script>
+</body>
+</html>
