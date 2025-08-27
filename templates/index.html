@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIニュース プレゼンテーション一覧</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom styles -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #007acc, #0056b3);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .badge-monthly {
+            background-color: #007acc;
+        }
+        .badge-daily {
+            background-color: #28a745;
+        }
+        .presentation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .filter-buttons {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .filter-btn {
+            margin: 0 10px;
+            padding: 8px 20px;
+            border: 2px solid #007acc;
+            background: transparent;
+            color: #007acc;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: #007acc;
+            color: white;
+        }
+        .stats-summary {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007acc;
+            display: block;
+        }
+        .generate-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- ヘッダー -->
+    <div class="header-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="display-4 mb-3">🤖 AIニュース インテリジェンス</h1>
+                    <p class="lead">Daily AI News System v2.0 - プレゼンテーション一覧</p>
+                    <p>最新のAI技術動向を分析・可視化したプレゼンテーション資料</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- 統計サマリー -->
+        <div class="stats-summary">
+            <h2 class="text-center mb-4">📊 プレゼンテーション統計</h2>
+            <div class="row">
+                <div class="col-md-3 stat-item">
+                    <span class="stat-number" id="total-presentations">{{ presentations|length }}</span>
+                    <span>総プレゼンテーション数</span>
+                </div>
+                <div class="col-md-3 stat-item">
+                    <span class="stat-number" id="monthly-count">{{ presentations|selectattr("type", "equalto", "monthly")|list|length }}</span>
+                    <span>月次レポート</span>
+                </div>
+                <div class="col-md-3 stat-item">
+                    <span class="stat-number" id="daily-count">{{ presentations|selectattr("type", "equalto", "daily")|list|length }}</span>
+                    <span>日次レポート</span>
+                </div>
+                <div class="col-md-3 stat-item">
+                    <span class="stat-number">{{ presentations|map(attribute="date")|list|unique|list|length if presentations else 0 }}</span>
+                    <span>カバー期間（日）</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成機能 -->
+        <div class="generate-section">
+            <h2 class="text-center mb-4">🛠️ プレゼンテーション生成</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">📈 月次レポート生成</h5>
+                            <p class="card-text">指定された月の全データを分析し、トレンドレポートを生成します。</p>
+                            <div class="mb-3">
+                                <label class="form-label">年月を選択:</label>
+                                <input type="month" class="form-control" id="monthInput" 
+                                       value="{{ 'now'|strftime('%Y-%m') }}">
+                            </div>
+                            <button class="btn btn-primary" onclick="generateMonthlyReport()">
+                                月次レポート生成
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">📅 日次レポート生成</h5>
+                            <p class="card-text">指定された日の注目記事をピックアップしたスライドを生成します。</p>
+                            <div class="mb-3">
+                                <label class="form-label">日付を選択:</label>
+                                <input type="date" class="form-control" id="dateInput" 
+                                       value="{{ 'now'|strftime('%Y-%m-%d') }}">
+                            </div>
+                            <button class="btn btn-success" onclick="generateDailySlide()">
+                                日次レポート生成
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    生成には数秒かかる場合があります。生成後、ページを更新して新しいプレゼンテーションを確認してください。
+                </small>
+            </div>
+        </div>
+
+        <!-- フィルターボタン -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">すべて</button>
+            <button class="filter-btn" data-filter="monthly">月次レポート</button>
+            <button class="filter-btn" data-filter="daily">日次レポート</button>
+        </div>
+
+        <!-- プレゼンテーション一覧 -->
+        <div id="presentations-container">
+            {% if presentations %}
+            <div class="presentation-grid">
+                {% for presentation in presentations %}
+                <div class="card presentation-item" data-type="{{ presentation.type }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title">
+                                {% if presentation.type == 'monthly' %}
+                                📈 {{ presentation.year }}年{{ presentation.month_name }}レポート
+                                {% else %}
+                                📅 {{ presentation.date_formatted }}
+                                {% endif %}
+                            </h5>
+                            <span class="badge badge-{{ presentation.type }}">
+                                {% if presentation.type == 'monthly' %}月次{% else %}日次{% endif %}
+                            </span>
+                        </div>
+                        
+                        <p class="card-text text-muted">
+                            {% if presentation.type == 'monthly' %}
+                            {{ presentation.year }}年{{ presentation.month }}月の全AI技術動向を総合的に分析
+                            {% else %}
+                            {{ presentation.date_formatted }}の注目AI記事をピックアップ
+                            {% endif %}
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    {% if presentation.type == 'monthly' %}
+                                    📊 月次分析・トレンド・統計
+                                    {% else %}
+                                    📰 厳選記事・詳細分析
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div>
+                                <a href="{{ presentation.file }}" class="btn btn-primary btn-sm">
+                                    プレゼンテーション表示
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <h3>📝 プレゼンテーションがありません</h3>
+                <p>上記の生成機能を使用して、最初のプレゼンテーションを作成してください。</p>
+                <p><strong>推奨:</strong> まず今月の月次レポートを生成してみてください。</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- フッター -->
+        <div style="margin-top: 60px; padding: 40px 0; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d;">
+            <p><strong>Daily AI News System v2.0</strong></p>
+            <p>多層評価システム | ハイブリッド検索エンジン | Gemini URL Context分析</p>
+            <p><small>Last updated: {{ 'now'|strftime('%Y年%m月%d日 %H:%M') }}</small></p>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // フィルター機能
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const presentationItems = document.querySelectorAll('.presentation-item');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // アクティブボタンの更新
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // プレゼンテーション項目の表示/非表示
+                    presentationItems.forEach(item => {
+                        const itemType = item.getAttribute('data-type');
+                        if (filter === 'all' || filter === itemType) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // 統計の更新
+                    updateFilterStats(filter);
+                });
+            });
+        });
+        
+        function updateFilterStats(filter) {
+            const allItems = document.querySelectorAll('.presentation-item');
+            const visibleItems = Array.from(allItems).filter(item => {
+                return filter === 'all' || item.getAttribute('data-type') === filter;
+            });
+            
+            // 統計数値の更新（簡易版）
+            document.getElementById('total-presentations').textContent = visibleItems.length;
+        }
+        
+        // 生成機能（プレースホルダー）
+        function generateMonthlyReport() {
+            const monthInput = document.getElementById('monthInput').value;
+            if (!monthInput) {
+                alert('年月を選択してください。');
+                return;
+            }
+            
+            const [year, month] = monthInput.split('-');
+            
+            // 実際の実装では、サーバーサイドAPIを呼び出すか、
+            // PythonスクリプトをトリガーするJavaScriptを実行
+            alert(`${year}年${month}月の月次レポート生成を開始します。\\n\\n` +
+                  `コマンド例:\\n` +
+                  `python -c "from src.generators.slide_generator import SlideGenerator; ` +
+                  `SlideGenerator().generate_monthly_slides(${year}, ${parseInt(month)})"`);
+        }
+        
+        function generateDailySlide() {
+            const dateInput = document.getElementById('dateInput').value;
+            if (!dateInput) {
+                alert('日付を選択してください。');
+                return;
+            }
+            
+            // 実際の実装では、サーバーサイドAPIを呼び出すか、
+            // PythonスクリプトをトリガーするJavaScriptを実行
+            alert(`${dateInput}の日次レポート生成を開始します。\\n\\n` +
+                  `コマンド例:\\n` +
+                  `python -c "from src.generators.slide_generator import SlideGenerator; ` +
+                  `SlideGenerator().generate_daily_slide('${dateInput}')"`);
+        }
+        
+        // ページ読み込み時の統計表示
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('AIニュース プレゼンテーションシステム v2.0 準備完了');
+            
+            // 簡易的なインタラクション追加
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
