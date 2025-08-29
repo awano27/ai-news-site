@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>統合レポート（ランキング＋詳細）</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #3b82f6;
+      --light: #f8fafc;
+      --border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      color: var(--text-primary);
+      background: white;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .header {
+      background: linear-gradient(135deg, var(--primary), #1e293b);
+      color: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .header h1 { font-size: 1.4rem; margin: 0 0 6px; }
+    .muted { color: #cbd5e1; font-size: 0.9rem; }
+    .usage {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0 20px;
+    }
+    .usage h2 { font-size: 1rem; margin: 0 0 10px; color: var(--primary); }
+    .usage ul { margin: 0; padding-left: 18px; color: var(--text-secondary); }
+    .tabs { display: flex; gap: 8px; margin: 8px 0 16px; }
+    .tab-btn {
+      padding: 8px 12px; border: 1px solid var(--border); background: white; color: var(--text-secondary);
+      border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+    }
+    .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .layout-toggle { margin-left: auto; display: flex; gap: 8px; }
+    .toolbar { display: flex; align-items: center; gap: 8px; }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pane { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: white; }
+    iframe { width: 100%; height: calc(100vh - 280px); border: 0; background: white; }
+    @media (max-width: 1024px) {
+      .panes { grid-template-columns: 1fr; }
+      iframe { height: calc(100vh - 320px); }
+    }
+    .note { font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; }
+  </style>
+  <script>
+    function setMode(mode) {
+      const rank = document.getElementById('rankPane');
+      const detail = document.getElementById('detailPane');
+      const both = document.getElementById('bothPane');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (mode === 'ranking') {
+        document.getElementById('btnRanking').classList.add('active');
+        rank.style.display = 'block';
+        detail.style.display = 'none';
+        both.style.display = 'none';
+      } else if (mode === 'detail') {
+        document.getElementById('btnDetail').classList.add('active');
+        rank.style.display = 'none';
+        detail.style.display = 'block';
+        both.style.display = 'none';
+      } else {
+        document.getElementById('btnBoth').classList.add('active');
+        rank.style.display = 'none';
+        detail.style.display = 'none';
+        both.style.display = 'grid';
+      }
+      try { localStorage.setItem('integrated_mode', mode); } catch(e){}
+    }
+    function reloadFrames() {
+      ['rankFrame','detailFrame'].forEach(id => {
+        const el = document.getElementById(id);
+        const src = el.getAttribute('src');
+        el.setAttribute('src', src);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = (localStorage.getItem('integrated_mode')||'both');
+      setMode(saved);
+    });
+  </script>
+  <meta name="robots" content="noindex" />
+  <!-- This page composes two independently generated reports via iframes. -->
+  </head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>統合レポート（ランキング＋詳細）</h1>
+      <div class="muted">過去30日を俯瞰→一次情報で検証のワンストップビュー</div>
+    </div>
+
+    <div class="usage">
+      <h2>使い方（役割と推奨フロー）</h2>
+      <ul>
+        <li><strong>ランキングレポート:</strong> 過去30日の主要技術を「エンジニア活用×ビジネス効率」でスコア化。優先順位付けや意思決定の起点に。</li>
+        <li><strong>詳細レポート:</strong> ニュース項目ごとの一次ソース・検証観点・スコアの詳細。実装検討や深掘り調査に。</li>
+        <li><strong>推奨フロー:</strong> 1) ランキングで全体把握 → 2) 気になる項目を詳細で検証 → 3) 関連スライド（日次）で導入イメージ。</li>
+      </ul>
+      <div class="note">最新データに追随するよう、下のタブから表示を切替できます。右上の更新で再読込します。</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="tabs">
+        <button id="btnBoth" class="tab-btn" onclick="setMode('both')">横並び表示</button>
+        <button id="btnRanking" class="tab-btn" onclick="setMode('ranking')">ランキングのみ</button>
+        <button id="btnDetail" class="tab-btn" onclick="setMode('detail')">詳細のみ</button>
+      </div>
+      <div class="layout-toggle">
+        <button class="tab-btn" onclick="reloadFrames()">🔄 再読込</button>
+      </div>
+    </div>
+
+    <!-- Single-pane views -->
+    <div id="rankPane" class="pane" style="display:none">
+      <iframe id="rankFrame" src="ai_ranking_report_latest.html" title="ランキングレポート"></iframe>
+    </div>
+    <div id="detailPane" class="pane" style="display:none">
+      <iframe id="detailFrame" src="daily_ai_news_report_latest.html" title="詳細レポート"></iframe>
+    </div>
+
+    <!-- Two-pane view -->
+    <div id="bothPane" class="panes" style="display:none">
+      <div class="pane">
+        <iframe id="rankFrame" src="ai_ranking_report_latest.html" title="ランキングレポート"></iframe>
+      </div>
+      <div class="pane">
+        <iframe id="detailFrame" src="daily_ai_news_report_latest.html" title="詳細レポート"></iframe>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+
