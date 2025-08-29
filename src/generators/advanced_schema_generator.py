@@ -13,6 +13,7 @@ from typing import Dict, List, Any, Optional, Tuple
 from collections import Counter, defaultdict
 import calendar
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+from src.utils.sanitize import sanitize_html
 
 
 class AdvancedSchemaGenerator:
@@ -175,6 +176,7 @@ class AdvancedSchemaGenerator:
         try:
             # HTMLの生成
             html_content = template.render(**template_data)
+            html_content = sanitize_html(html_content)
             
             # ファイル出力
             output_file = self.output_dir / f"advanced_intelligence_report_{date_indexed}.html"

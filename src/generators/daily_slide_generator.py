@@ -10,6 +10,7 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from jinja2 import Environment, FileSystemLoader
+from src.utils.sanitize import sanitize_html
 import re
 
 class DailySlideGenerator:
@@ -132,7 +133,7 @@ class DailySlideGenerator:
             output_path = self.output_dir / filename
             
             with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(slide_html)
+                f.write(sanitize_html(slide_html))
             
             generated_slides[slide_date] = filename
             self.logger.info(f"Generated daily slide: {filename}")
@@ -217,8 +218,9 @@ def main():
         # Generate slide index
         index_html = generator.generate_slide_index(generated_slides, monthly_data)
         index_path = Path("presentations/daily_slides_index.html")
+        from src.utils.sanitize import sanitize_html
         with open(index_path, 'w', encoding='utf-8') as f:
-            f.write(index_html)
+            f.write(sanitize_html(index_html))
         print(f"Generated slide index: {index_path}")
         
         # Create link integration data

@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+from src.utils.sanitize import sanitize_html
 
 
 class StructuredSlideGenerator:
@@ -86,6 +87,7 @@ class StructuredSlideGenerator:
         try:
             # HTMLの生成
             html_content = template.render(**template_data)
+            html_content = sanitize_html(html_content)
             
             # ファイル出力
             output_file = self.output_dir / f"structured_presentation_{date_indexed}.html"

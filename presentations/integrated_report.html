@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>統合レポート（ランキング＋詳細）</title>
+  <title>レポート（ランキング）</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -39,110 +39,46 @@
       margin: 16px 0 20px;
     }
     .usage h2 { font-size: 1rem; margin: 0 0 10px; color: var(--primary); }
-    .usage ul { margin: 0; padding-left: 18px; color: var(--text-secondary); }
-    .tabs { display: flex; gap: 8px; margin: 8px 0 16px; }
-    .tab-btn {
-      padding: 8px 12px; border: 1px solid var(--border); background: white; color: var(--text-secondary);
-      border-radius: 8px; cursor: pointer; font-size: 0.9rem;
-    }
-    .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-    .layout-toggle { margin-left: auto; display: flex; gap: 8px; }
-    .toolbar { display: flex; align-items: center; gap: 8px; }
-    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .usage p { margin: 0; color: var(--text-secondary); }
+    .toolbar { display: flex; align-items: center; gap: 8px; margin: 8px 0 12px; }
+    .btn { padding: 8px 12px; border: 1px solid var(--border); background: white; color: var(--text-secondary); border-radius: 8px; cursor: pointer; font-size: 0.9rem; text-decoration: none; }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
     .pane { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: white; }
-    iframe { width: 100%; height: calc(100vh - 280px); border: 0; background: white; }
-    @media (max-width: 1024px) {
-      .panes { grid-template-columns: 1fr; }
-      iframe { height: calc(100vh - 320px); }
-    }
+    iframe { width: 100%; height: calc(100vh - 240px); border: 0; background: white; }
+    @media (max-width: 1024px) { iframe { height: calc(100vh - 260px); } }
     .note { font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; }
   </style>
   <script>
-    function setMode(mode) {
-      const rank = document.getElementById('rankPane');
-      const detail = document.getElementById('detailPane');
-      const both = document.getElementById('bothPane');
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      if (mode === 'ranking') {
-        document.getElementById('btnRanking').classList.add('active');
-        rank.style.display = 'block';
-        detail.style.display = 'none';
-        both.style.display = 'none';
-      } else if (mode === 'detail') {
-        document.getElementById('btnDetail').classList.add('active');
-        rank.style.display = 'none';
-        detail.style.display = 'block';
-        both.style.display = 'none';
-      } else {
-        document.getElementById('btnBoth').classList.add('active');
-        rank.style.display = 'none';
-        detail.style.display = 'none';
-        both.style.display = 'grid';
-      }
-      try { localStorage.setItem('integrated_mode', mode); } catch(e){}
+    function reloadFrame() {
+      const el = document.getElementById('rankFrame');
+      el.src = el.src;
     }
-    function reloadFrames() {
-      ['rankFrame','detailFrame'].forEach(id => {
-        const el = document.getElementById(id);
-        const src = el.getAttribute('src');
-        el.setAttribute('src', src);
-      });
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      const saved = (localStorage.getItem('integrated_mode')||'both');
-      setMode(saved);
-    });
   </script>
   <meta name="robots" content="noindex" />
-  <!-- This page composes two independently generated reports via iframes. -->
+  <!-- Simplified: single ranking report view with optional link to full detail page. -->
   </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>統合レポート（ランキング＋詳細）</h1>
-      <div class="muted">過去30日を俯瞰→一次情報で検証のワンストップビュー</div>
+      <h1>レポート（ランキング）</h1>
+      <div class="muted">過去30日の主要技術を簡潔に俯瞰するサマリー</div>
     </div>
 
     <div class="usage">
-      <h2>使い方（役割と推奨フロー）</h2>
-      <ul>
-        <li><strong>ランキングレポート:</strong> 過去30日の主要技術を「エンジニア活用×ビジネス効率」でスコア化。優先順位付けや意思決定の起点に。</li>
-        <li><strong>詳細レポート:</strong> ニュース項目ごとの一次ソース・検証観点・スコアの詳細。実装検討や深掘り調査に。</li>
-        <li><strong>推奨フロー:</strong> 1) ランキングで全体把握 → 2) 気になる項目を詳細で検証 → 3) 関連スライド（日次）で導入イメージ。</li>
-      </ul>
-      <div class="note">最新データに追随するよう、下のタブから表示を切替できます。右上の更新で再読込します。</div>
+      <h2>見方</h2>
+      <p>エンジニア活用度 × ビジネス効率の二軸でスコア化した「優先順位付きリスト」を表示します。深掘りは下の「詳細レポート」ボタンから別ページで確認できます。</p>
+      <div class="note">このページは読みやすさのため、ランキングのみを表示します。</div>
     </div>
 
     <div class="toolbar">
-      <div class="tabs">
-        <button id="btnBoth" class="tab-btn" onclick="setMode('both')">横並び表示</button>
-        <button id="btnRanking" class="tab-btn" onclick="setMode('ranking')">ランキングのみ</button>
-        <button id="btnDetail" class="tab-btn" onclick="setMode('detail')">詳細のみ</button>
-      </div>
-      <div class="layout-toggle">
-        <button class="tab-btn" onclick="reloadFrames()">🔄 再読込</button>
-      </div>
+      <a class="btn" href="daily_ai_news_report_latest.html" target="_blank" rel="noopener">📰 詳細レポート（別ページ）</a>
+      <button class="btn primary" onclick="reloadFrame()">🔄 再読込</button>
     </div>
 
-    <!-- Single-pane views -->
-    <div id="rankPane" class="pane" style="display:none">
+    <div class="pane">
       <iframe id="rankFrame" src="ai_ranking_report_latest.html" title="ランキングレポート"></iframe>
-    </div>
-    <div id="detailPane" class="pane" style="display:none">
-      <iframe id="detailFrame" src="daily_ai_news_report_latest.html" title="詳細レポート"></iframe>
-    </div>
-
-    <!-- Two-pane view -->
-    <div id="bothPane" class="panes" style="display:none">
-      <div class="pane">
-        <iframe id="rankFrame" src="ai_ranking_report_latest.html" title="ランキングレポート"></iframe>
-      </div>
-      <div class="pane">
-        <iframe id="detailFrame" src="daily_ai_news_report_latest.html" title="詳細レポート"></iframe>
-      </div>
     </div>
 
   </div>
 </body>
 </html>
-

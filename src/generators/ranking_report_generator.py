@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from collections import Counter, defaultdict
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+from src.utils.sanitize import sanitize_html
 
 
 class RankingReportGenerator:
@@ -194,6 +195,7 @@ class RankingReportGenerator:
         try:
             # HTMLの生成
             html_content = template.render(**template_data)
+            html_content = sanitize_html(html_content)
             
             # ファイル出力
             output_file = self.output_dir / f"ai_ranking_report_{datetime.now().strftime('%Y%m%d')}.html"

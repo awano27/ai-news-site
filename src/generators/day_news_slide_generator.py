@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from jinja2 import Environment, FileSystemLoader
+from src.utils.sanitize import sanitize_html
 import json
 
 class DayNewsSlideGenerator:
@@ -49,6 +50,11 @@ class DayNewsSlideGenerator:
                 date_str = datetime.now().strftime('%Y-%m-%d')
                 formatted_date = datetime.now().strftime('%Y年%m月%d日')
             
+            # Normalize formatted date to ensure proper Japanese format
+            try:
+                formatted_date = datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y年%m月%d日')
+            except Exception:
+                pass
             # Parse the content structure
             parsed_data = self._parse_news_content(content, date_str, formatted_date)
             
@@ -329,7 +335,7 @@ class DayNewsSlideGenerator:
                 output_path = self.output_dir / filename
                 
                 with open(output_path, 'w', encoding='utf-8') as f:
-                    f.write(slide_html)
+                    f.write(sanitize_html(slide_html))
                 
                 generated_slides[day_data['date']] = {
                     'filename': filename,
@@ -394,7 +400,7 @@ def main():
         index_html = generator.generate_index_page(generated_slides)
         index_path = Path("presentations/day_slides_index.html")
         with open(index_path, 'w', encoding='utf-8') as f:
-            f.write(index_html)
+            f.write(sanitize_html(index_html))
         print(f"Generated index page: {index_path}")
         
         print("\nGenerated slides:")

@@ -14,6 +14,7 @@ from collections import Counter, defaultdict
 import calendar
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from src.utils.sanitize import sanitize_html
 
 
 class SlideGenerator:
@@ -134,6 +135,7 @@ class SlideGenerator:
         try:
             template = self.jinja_env.get_template('monthly_report.html')
             html_content = template.render(**template_data)
+            html_content = sanitize_html(html_content)
             
             # ファイル出力
             output_file = self.output_dir / f"monthly_report_{year:04d}_{month:02d}.html"
@@ -174,6 +176,7 @@ class SlideGenerator:
             
             template = self.jinja_env.get_template('daily_slide.html')
             html_content = template.render(**template_data)
+            html_content = sanitize_html(html_content)
             
             output_file = self.output_dir / f"daily_slide_{date}.html"
             with open(output_file, 'w', encoding='utf-8') as f:
@@ -229,6 +232,7 @@ class SlideGenerator:
         try:
             template = self.jinja_env.get_template('index.html')
             html_content = template.render(presentations=presentations)
+            html_content = sanitize_html(html_content)
             
             index_file = self.output_dir / "index.html"
             with open(index_file, 'w', encoding='utf-8') as f:
