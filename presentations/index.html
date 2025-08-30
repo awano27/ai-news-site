@@ -820,32 +820,56 @@
 
         async function populateDailySlides() {
             try {
-                const res = await fetch('day_slides_index.html', { cache: 'no-store' });
-                if (!res.ok) return;
-                const html = await res.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const links = Array.from(doc.querySelectorAll('aside.sidebar a.nav-item[href^="day_slides/day_slide_"]'));
+                // Prefer machine-readable JSON if available
+                let items = null;
+                try {
+                    const rj = await fetch('day_slides/list.json', { cache: 'no-store' });
+                    if (rj.ok) items = await rj.json();
+                } catch(e) {}
+                let links = [];
+                if (!items) {
+                    const res = await fetch('day_slides_index.html', { cache: 'no-store' });
+                    if (!res.ok) return;
+                    const html = await res.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    links = Array.from(doc.querySelectorAll('aside.sidebar a.nav-item[href^="day_slides/day_slide_"]'));
+                }
                 const listEl = document.getElementById('dailySlidesList');
                 listEl.innerHTML = '';
                 const maxItems = 20;
                 let count = 0;
-                for (const a of links) {
-                    const href = a.getAttribute('href') || '';
-                    const m = href.match(/day_slide_(\d{4})_(\d{2})_(\d{2})\.html/);
-                    if (!m) continue;
-                    const date = `${m[1]}-${m[2]}-${m[3]}`;
-                    const label = (a.textContent || '').trim() || `${m[2]}/${m[3]}`;
-                    const item = document.createElement('div');
-                    item.className = 'nav-item';
-                    item.setAttribute('data-slide', date);
-                    item.innerHTML = `<span class="nav-icon">📊</span><span>${label}</span>`;
-                    item.addEventListener('click', () => loadSlide(date));
-                    listEl.appendChild(item);
-                    count++;
-                    if (count >= maxItems) break;
+                if (items) {
+                    for (const it of items) {
+                        const date = it.date;
+                        const label = it.label;
+                        const item = document.createElement('div');
+                        item.className = 'nav-item';
+                        item.setAttribute('data-slide', date);
+                        item.innerHTML = `<span class="nav-icon">📊</span><span>${label}</span>`;
+                        item.addEventListener('click', () => loadSlide(date));
+                        listEl.appendChild(item);
+                        count++;
+                        if (count >= maxItems) break;
+                    }
+                } else {
+                    for (const a of links) {
+                        const href = a.getAttribute('href') || '';
+                        const m = href.match(/day_slide_(\d{4})_(\d{2})_(\d{2})\.html/);
+                        if (!m) continue;
+                        const date = `${m[1]}-${m[2]}-${m[3]}`;
+                        const label = (a.textContent || '').trim() || `${m[2]}/${m[3]}`;
+                        const item = document.createElement('div');
+                        item.className = 'nav-item';
+                        item.setAttribute('data-slide', date);
+                        item.innerHTML = `<span class="nav-icon">📊</span><span>${label}</span>`;
+                        item.addEventListener('click', () => loadSlide(date));
+                        listEl.appendChild(item);
+                        count++;
+                        if (count >= maxItems) break;
+                    }
                 }
-                const total = links.length;
+                const total = items ? items.length : links.length;
                 const countEl = document.getElementById('allSlidesCount');
                 if (countEl) countEl.textContent = total ? `All Slides (${total})` : 'All Slides';
             } catch (e) {
