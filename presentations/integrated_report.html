@@ -51,8 +51,28 @@
   <script>
     function reloadFrame() {
       const el = document.getElementById('rankFrame');
-      el.src = el.src;
+      const u = new URL(el.getAttribute('data-src') || el.src, location.href);
+      u.searchParams.set('v', Date.now().toString());
+      el.src = u.pathname + u.search;
     }
+    // Cache-bust initial load so Pages/CDN変更が即反映される
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('rankFrame');
+      if (el) {
+        const base = 'ai_ranking_report_latest.html';
+        el.setAttribute('data-src', base);
+        const u = new URL(base, location.href);
+        u.searchParams.set('v', Date.now().toString());
+        el.src = u.pathname + u.search;
+      }
+      // also cache-bust detail link
+      const a = document.querySelector('a.btn[href^="ai_news_detail_latest.html"]');
+      if (a) {
+        const u = new URL(a.getAttribute('href'), location.href);
+        u.searchParams.set('v', Date.now().toString());
+        a.setAttribute('href', u.pathname + u.search);
+      }
+    });
   </script>
   <meta name="robots" content="noindex" />
   <!-- Simplified: single ranking report view with optional link to full detail page. -->
