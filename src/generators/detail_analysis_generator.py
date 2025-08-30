@@ -29,6 +29,29 @@ class DetailAnalysisGenerator:
         with open(news_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
+    def load_daily_news_files(self, limit: int = 45) -> list[tuple[str, dict]]:
+        """Load per-day news JSON files and return list of (date, data).
+        Only files matching YYYY-MM-DD.json are considered. Sorted desc.
+        """
+        news_dir = self.root / 'news'
+        out: list[tuple[str, dict]] = []
+        if not news_dir.exists():
+            return out
+        files: list[tuple[str, Path]] = []
+        for p in news_dir.glob('*.json'):
+            m = re.match(r'^(\d{4}-\d{2}-\d{2})\.json$', p.name)
+            if m:
+                files.append((m.group(1), p))
+        files.sort(key=lambda x: x[0], reverse=True)
+        for date, path in files[:limit]:
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                out.append((date, data))
+            except Exception:
+                continue
+        return out
+
     def find_daily_slides(self) -> dict[str, str]:
         """Return map: 'YYYY-MM-DD' -> relative URL to slide HTML"""
         mapping: dict[str, str] = {}
@@ -66,10 +89,19 @@ class DetailAnalysisGenerator:
         return items
 
     def analyze(self, data: dict, slide_map: dict[str, str]) -> dict:
-        items = self._flatten_items(data)
+        # Prefer aggregating from per-day files for robust counts
+        daily_files = self.load_daily_news_files(limit=45)
+        agg_items: list[dict] = []
+        for day, d in daily_files:
+            for it in self._flatten_items(d):
+                if not it.get('date'):
+                    it['date'] = day
+                agg_items.append(it)
+        if not agg_items:
+            agg_items = self._flatten_items(data)
         # timeline
         timeline = Counter()
-        for it in items:
+        for it in agg_items:
             date = it.get('date')
             if not date:
                 continue
@@ -77,11 +109,11 @@ class DetailAnalysisGenerator:
         timeline_sorted = sorted(timeline.items())
 
         # categories
-        cat_counter = Counter(it.get('category') or 'other' for it in items)
+        cat_counter = Counter(it.get('category') or 'other' for it in agg_items)
 
         # sources
         src_counter = Counter()
-        for it in items:
+        for it in agg_items:
             src = (it.get('source') or {}).get('name') or 'unknown'
             src_counter[src] += 1
 
@@ -93,7 +125,7 @@ class DetailAnalysisGenerator:
                 return 0
         def _date_key(it):
             return it.get('date') or ''
-        top_items = sorted(items, key=lambda x: (_stars(x), _date_key(x)), reverse=True)[:12]
+        top_items = sorted(agg_items, key=lambda x: (_stars(x), _date_key(x)), reverse=True)[:12]
 
         # per-day slide links
         day_entries = []
@@ -106,7 +138,7 @@ class DetailAnalysisGenerator:
             day_entries.append(entry)
 
         return {
-            'item_count': len(items),
+            'item_count': len(agg_items),
             'timeline': timeline_sorted,
             'categories': cat_counter.most_common(),
             'sources': src_counter.most_common(12),
@@ -291,4 +323,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

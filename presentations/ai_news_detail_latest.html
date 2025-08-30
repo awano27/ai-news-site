@@ -78,13 +78,12 @@
     const fetchJSON = async (u) => { const r = await fetch(u, { cache:'no-store' }); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); };
     const buildStar = n => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5-n);
     const dailySlideUrl = (date) => {
-      // try daily_slides first, then day_slides
+      // Prefer day_slides (豊富に存在) を優先
       const [y,m,d] = date.split('-');
-      return [
-        `daily_slides/daily_slide_${y}_${m}_${d}.html`,
-        `day_slides/day_slide_${y}_${m}_${d}.html`
-      ];
+      return `day_slides/day_slide_${y}_${m}_${d}.html`;
     };
+    const ymd = (d) => d.toISOString().slice(0,10);
+    const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 
     (async () => {
       try {
@@ -95,17 +94,36 @@
         if (!items.length) { document.getElementById('emptyMsg').style.display = ''; return; }
 
         // Stats
-        const dates = items.map(it => it.date).filter(Boolean);
+        // 直近30日分のnews/日別JSONを試行取得して集計（なければlatest.jsonのデータで代替）
+        const base = data.generated_at ? new Date(data.generated_at) : new Date();
+        const dayJsons = [];
+        for (let i=0;i<31;i++) {
+          const d = ymd(addDays(base, -i));
+          try {
+            const dj = await fetchJSON(`../news/${d}.json`);
+            dayJsons.push([d, dj]);
+          } catch(e) { /* ignore missing day */ }
+        }
+
+        const allItems = [];
+        for (const [d, dj] of dayJsons) {
+          const sec = dj.sections || {};
+          const its = ['business','tools','company','sns'].flatMap(k => (sec[k]||[]).map(it => ({...it, category: it.category||k, date: it.date || d})));
+          allItems.push(...its);
+        }
+        const itemsForStats = allItems.length ? allItems : items;
+
+        const dates = itemsForStats.map(it => it.date).filter(Boolean);
         const uniqDays = [...new Set(dates)];
         const cats = [...new Set(items.map(it => it.category||'other'))];
-        document.getElementById('statCount').textContent = items.length;
+        document.getElementById('statCount').textContent = itemsForStats.length;
         document.getElementById('statDays').textContent = uniqDays.length;
         document.getElementById('statCats').textContent = cats.length;
 
         // Charts data
-        const catCount = cats.map(c => items.filter(it => (it.category||'other')===c).length);
+        const catCount = cats.map(c => itemsForStats.filter(it => (it.category||'other')===c).length);
         const srcMap = new Map();
-        for (const it of items) { const n=(it.source&&it.source.name)||'unknown'; srcMap.set(n,(srcMap.get(n)||0)+1); }
+        for (const it of itemsForStats) { const n=(it.source&&it.source.name)||'unknown'; srcMap.set(n,(srcMap.get(n)||0)+1); }
         const srcArr = [...srcMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
         const srcLabels = srcArr.map(([k])=>k), srcValues = srcArr.map(([,v])=>v);
         const tlMap = new Map();
@@ -118,7 +136,7 @@
         new Chart(document.getElementById('tlChart').getContext('2d'), {type:'line', data:{labels:tlLabels, datasets:[{label:'件数', data:tlValues, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.12)', tension:0.35, fill:true}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}});
 
         // Top items by stars desc
-        const byStars = [...items].sort((a,b)=> (b.stars||0) - (a.stars||0));
+        const byStars = [...itemsForStats].sort((a,b)=> (b.stars||0) - (a.stars||0));
         const top = byStars.slice(0, 12);
         const topEl = document.getElementById('topItems');
         topEl.innerHTML = top.map(it => {
@@ -137,9 +155,7 @@
         const dayEl = document.getElementById('dayRows');
         dayEl.innerHTML = uniqDays.sort().reverse().map(d => {
           const cnt = tlMap.get(d) || 0;
-          const urls = dailySlideUrl(d);
-          // Prefer first existing (cannot HEAD due to CORS on GH pages → just build links, user can click)
-          const link = `<a href="${urls[0]}" target="_blank" rel="noopener">スライド</a>`;
+          const link = `<a href="${dailySlideUrl(d)}" target="_blank" rel="noopener">スライド</a>`;
           return `<tr><td>${d}</td><td style="text-align:right">${cnt}</td><td style="text-align:center">${link}</td></tr>`;
         }).join('');
       } catch (e) {
@@ -150,4 +166,3 @@
   </script>
 </body>
 </html>
-
