@@ -77,11 +77,24 @@
     const esc = s => (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
     const fetchJSON = async (u) => { const r = await fetch(u, { cache:'no-store' }); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); };
     const buildStar = n => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5-n);
-    const dailySlideUrl = (date) => {
-      // Prefer day_slides (豊富に存在) を優先
+    const slideCandidates = (date) => {
       const [y,m,d] = date.split('-');
-      return `day_slides/day_slide_${y}_${m}_${d}.html`;
+      return [
+        `daily_slides/daily_slide_${y}_${m}_${d}.html`, // sanitized (優先)
+        `day_slides/day_slide_${y}_${m}_${d}.html`      // legacy (文字化けの可能性)
+      ];
     };
+    async function pickSlideUrl(date) {
+      const urls = slideCandidates(date);
+      for (const u of urls) {
+        try {
+          // HEAD が通らないケースもあるので GET で軽く確認
+          const r = await fetch(u, { cache: 'no-store' });
+          if (r.ok) return u;
+        } catch(e) { /* ignore */ }
+      }
+      return null;
+    }
     const ymd = (d) => d.toISOString().slice(0,10);
     const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 
@@ -153,11 +166,14 @@
 
         // Day rows with slide links
         const dayEl = document.getElementById('dayRows');
-        dayEl.innerHTML = uniqDays.sort().reverse().map(d => {
+        const rows = await Promise.all(uniqDays.sort().reverse().map(async d => {
           const cnt = tlMap.get(d) || 0;
-          const link = `<a href="${dailySlideUrl(d)}" target="_blank" rel="noopener">スライド</a>`;
-          return `<tr><td>${d}</td><td style="text-align:right">${cnt}</td><td style="text-align:center">${link}</td></tr>`;
-        }).join('');
+          const url = await pickSlideUrl(d);
+          if (!url) return `<tr><td>${d}</td><td style=\"text-align:right\">${cnt}</td><td style=\"text-align:center;color:#94a3b8\">-</td></tr>`;
+          const label = url.includes('/day_slides/') ? '旧スライド' : 'スライド';
+          return `<tr><td>${d}</td><td style=\"text-align:right\">${cnt}</td><td style=\"text-align:center\"><a href=\"${url}\" target=\"_blank\" rel=\"noopener\">${label}</a></td></tr>`;
+        }));
+        dayEl.innerHTML = rows.join('');
       } catch (e) {
         document.getElementById('emptyMsg').style.display = '';
         console.error('detail latest load error', e);
