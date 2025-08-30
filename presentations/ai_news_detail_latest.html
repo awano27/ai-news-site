@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIニュース 詳細分析レポート（最新）</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <style>
+    :root { --primary:#0f172a; --accent:#3b82f6; --light:#f8fafc; --border:#e2e8f0; --muted:#64748b; }
+    * { box-sizing: border-box; }
+    body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; margin:0; background:#fff; color:var(--primary) }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .header { background: linear-gradient(135deg,#0f172a,#1e293b); color:#fff; border-radius:12px; padding:20px 24px; margin-bottom:16px }
+    .header h1 { margin:0 0 6px; font-size:1.4rem }
+    .muted { color:#cbd5e1; font-size:.9rem }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap:16px; margin:16px 0 }
+    .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.03) }
+    .stats { display:flex; gap:16px }
+    .stat { flex:1; text-align:center; background:#0f172a; color:#fff; border-radius:8px; padding:14px }
+    .stat .v { font-weight:700; font-size:1.3rem }
+    .category { background:#eef2ff; color:#4338ca; padding:2px 8px; border-radius:12px; font-size:.8rem }
+    .stars { float:right; color:#f59e0b }
+    .meta { color:#64748b; font-size:.9rem; margin-top:6px }
+    .source-link { margin-left:8px }
+    table { width:100%; border-collapse: collapse }
+    th,td { padding:8px 10px; border-bottom:1px solid var(--border) }
+    th { background:#0f172a; color:#fff; text-align:left }
+    .chart { position:relative; height:340px }
+    .notice { padding:10px 12px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; color:#334155 }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>AIニュース 詳細分析レポート（最新）</h1>
+      <div id="ts" class="muted">更新: -</div>
+    </div>
+
+    <div id="emptyMsg" class="notice" style="display:none">データがまだありません。しばらくして再読み込みしてください。</div>
+
+    <div class="grid">
+      <div class="card stats">
+        <div class="stat"><div id="statCount" class="v">0</div><div>ニュース件数</div></div>
+        <div class="stat"><div id="statDays" class="v">0</div><div>日数</div></div>
+        <div class="stat"><div id="statCats" class="v">0</div><div>カテゴリ</div></div>
+      </div>
+      <div class="card">
+        <h3>カテゴリ分布</h3>
+        <div class="chart"><canvas id="catChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>ソースTop</h3>
+        <div class="chart"><canvas id="srcChart"></canvas></div>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <h3>タイムライン（過去30日）</h3>
+        <div class="chart"><canvas id="tlChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>深掘り（スコア上位）</h3>
+      <div id="topItems" class="grid"></div>
+    </div>
+
+    <div class="card">
+      <h3>日次一覧（スライド連携）</h3>
+      <table>
+        <thead><tr><th>日付</th><th style="text-align:right">件数</th><th style="text-align:center">スライド</th></tr></thead>
+        <tbody id="dayRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const esc = s => (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    const fetchJSON = async (u) => { const r = await fetch(u, { cache:'no-store' }); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); };
+    const buildStar = n => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5-n);
+    const dailySlideUrl = (date) => {
+      // try daily_slides first, then day_slides
+      const [y,m,d] = date.split('-');
+      return [
+        `daily_slides/daily_slide_${y}_${m}_${d}.html`,
+        `day_slides/day_slide_${y}_${m}_${d}.html`
+      ];
+    };
+
+    (async () => {
+      try {
+        const data = await fetchJSON('../news/latest.json');
+        document.getElementById('ts').textContent = '更新: ' + (data.generated_at || '—');
+        const sections = data.sections || {};
+        const items = ['business','tools','company','sns'].flatMap(k => (sections[k]||[]).map(it => ({...it, category: it.category || k})));
+        if (!items.length) { document.getElementById('emptyMsg').style.display = ''; return; }
+
+        // Stats
+        const dates = items.map(it => it.date).filter(Boolean);
+        const uniqDays = [...new Set(dates)];
+        const cats = [...new Set(items.map(it => it.category||'other'))];
+        document.getElementById('statCount').textContent = items.length;
+        document.getElementById('statDays').textContent = uniqDays.length;
+        document.getElementById('statCats').textContent = cats.length;
+
+        // Charts data
+        const catCount = cats.map(c => items.filter(it => (it.category||'other')===c).length);
+        const srcMap = new Map();
+        for (const it of items) { const n=(it.source&&it.source.name)||'unknown'; srcMap.set(n,(srcMap.get(n)||0)+1); }
+        const srcArr = [...srcMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
+        const srcLabels = srcArr.map(([k])=>k), srcValues = srcArr.map(([,v])=>v);
+        const tlMap = new Map();
+        for (const d of dates) { if(!d) continue; tlMap.set(d,(tlMap.get(d)||0)+1); }
+        const tlArr = [...tlMap.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+        const tlLabels = tlArr.map(([d])=>d.slice(5)), tlValues = tlArr.map(([,v])=>v);
+
+        new Chart(document.getElementById('catChart').getContext('2d'), {type:'pie', data:{labels:cats, datasets:[{data:catCount, backgroundColor:['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#94a3b8']}]} , options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}});
+        new Chart(document.getElementById('srcChart').getContext('2d'), {type:'bar', data:{labels:srcLabels, datasets:[{data:srcValues, backgroundColor:'#3b82f6'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}}}});
+        new Chart(document.getElementById('tlChart').getContext('2d'), {type:'line', data:{labels:tlLabels, datasets:[{label:'件数', data:tlValues, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.12)', tension:0.35, fill:true}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}});
+
+        // Top items by stars desc
+        const byStars = [...items].sort((a,b)=> (b.stars||0) - (a.stars||0));
+        const top = byStars.slice(0, 12);
+        const topEl = document.getElementById('topItems');
+        topEl.innerHTML = top.map(it => {
+          const srcName = (it.source&&it.source.name)||'link';
+          const srcUrl = (it.source&&it.source.url)||'#';
+          return `<article class="card">
+            <span class="category">${esc(it.category||'')}</span>
+            <span class="stars">${buildStar(it.stars||0)}</span>
+            <h3>${esc(it.title||'')}</h3>
+            <p>${esc(it.blurb||'')}</p>
+            <div class="meta"><span>${esc(it.date||'')}</span> <a class="source-link" href="${esc(srcUrl)}" target="_blank" rel="noopener">出典: ${esc(srcName)}</a></div>
+          </article>`;
+        }).join('');
+
+        // Day rows with slide links
+        const dayEl = document.getElementById('dayRows');
+        dayEl.innerHTML = uniqDays.sort().reverse().map(d => {
+          const cnt = tlMap.get(d) || 0;
+          const urls = dailySlideUrl(d);
+          // Prefer first existing (cannot HEAD due to CORS on GH pages → just build links, user can click)
+          const link = `<a href="${urls[0]}" target="_blank" rel="noopener">スライド</a>`;
+          return `<tr><td>${d}</td><td style="text-align:right">${cnt}</td><td style="text-align:center">${link}</td></tr>`;
+        }).join('');
+      } catch (e) {
+        document.getElementById('emptyMsg').style.display = '';
+        console.error('detail latest load error', e);
+      }
+    })();
+  </script>
+</body>
+</html>
+
