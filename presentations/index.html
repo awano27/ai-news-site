@@ -414,45 +414,10 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">DAILY SLIDES</div>
-                <div class="nav-item" data-slide="2025-08-30">
-                    <span class="nav-icon">🌐</span>
-                    <span>8/30 - Claude Chrome拡張</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-29">
-                    <span class="nav-icon">🚀</span>
-                    <span>8/29 - Grok Code Fast 1</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-28">
-                    <span class="nav-icon">💻</span>
-                    <span>8/28 - OpenAI Codex</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-27">
-                    <span class="nav-icon">🤖</span>
-                    <span>8/27 - NEC AI Agent</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-26">
-                    <span class="nav-icon">📊</span>
-                    <span>8/26 - Latest Report</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-25">
-                    <span class="nav-icon">💼</span>
-                    <span>8/25 - Excel COPILOT</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-24">
-                    <span class="nav-icon">🔮</span>
-                    <span>8/24 - Future Synthesis</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-23">
-                    <span class="nav-icon">🌐</span>
-                    <span>8/23 - Global Impact</span>
-                </div>
-                <div class="nav-item" data-slide="2025-08-08">
-                    <span class="nav-icon">🚀</span>
-                    <span>8/8 - GPT-5 Release</span>
-                </div>
+                <div id="dailySlidesList"></div>
                 <div class="nav-item" id="allSlidesBtn">
                     <span class="nav-icon">📅</span>
-                    <span>All Slides (27)</span>
+                    <span id="allSlidesCount">All Slides</span>
                 </div>
             </div>
 
@@ -780,6 +745,9 @@
                 loadPage('slides');
             });
 
+            // Populate DAILY SLIDES dynamically
+            populateDailySlides();
+
             // View toggle handlers
             document.getElementById('frameView').addEventListener('click', function() {
                 setView('frame');
@@ -845,8 +813,44 @@
             document.getElementById('dashboardContent').style.display = 'none';
             const frame = document.getElementById('contentFrame');
             frame.style.display = 'block';
-            frame.src = slideMap[slideDate];
+            const mapped = slideMap[slideDate];
+            frame.src = mapped ? mapped : (`day_slides/day_slide_${slideDate.replace(/-/g, '_')}.html`);
             frame.onload = hideLoading;
+        }
+
+        async function populateDailySlides() {
+            try {
+                const res = await fetch('day_slides_index.html', { cache: 'no-store' });
+                if (!res.ok) return;
+                const html = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const links = Array.from(doc.querySelectorAll('aside.sidebar a.nav-item[href^="day_slides/day_slide_"]'));
+                const listEl = document.getElementById('dailySlidesList');
+                listEl.innerHTML = '';
+                const maxItems = 20;
+                let count = 0;
+                for (const a of links) {
+                    const href = a.getAttribute('href') || '';
+                    const m = href.match(/day_slide_(\d{4})_(\d{2})_(\d{2})\.html/);
+                    if (!m) continue;
+                    const date = `${m[1]}-${m[2]}-${m[3]}`;
+                    const label = (a.textContent || '').trim() || `${m[2]}/${m[3]}`;
+                    const item = document.createElement('div');
+                    item.className = 'nav-item';
+                    item.setAttribute('data-slide', date);
+                    item.innerHTML = `<span class="nav-icon">📊</span><span>${label}</span>`;
+                    item.addEventListener('click', () => loadSlide(date));
+                    listEl.appendChild(item);
+                    count++;
+                    if (count >= maxItems) break;
+                }
+                const total = links.length;
+                const countEl = document.getElementById('allSlidesCount');
+                if (countEl) countEl.textContent = total ? `All Slides (${total})` : 'All Slides';
+            } catch (e) {
+                console.warn('Failed to populate daily slides', e);
+            }
         }
 
         function setView(view) {
