@@ -470,21 +470,7 @@
                         </div>
                     </div>
 
-                    <div class="dashboard-card" onclick="loadPage('slides')">
-                        <div class="card-icon">🎯</div>
-                        <div class="card-title">Daily AI News Slides</div>
-                        <div class="card-description">毎日の重要AIニュースをプレゼンテーション形式で</div>
-                        <div class="card-stats">
-                            <div class="card-stat">
-                                <div class="stat-value">27</div>
-                                <div class="stat-label">Slides</div>
-                            </div>
-                            <div class="card-stat">
-                                <div class="stat-value">81.3</div>
-                                <div class="stat-label">Impact Score</div>
-                            </div>
-                        </div>
-                    </div>
+                    
 
                     
 
@@ -842,11 +828,12 @@
                 if (items) {
                     for (const it of items) {
                         const date = it.date;
-                        const label = it.label;
+                        let label = it.label || '';
+                        label = label.replace(/^📊\s*/, '').trim();
                         const item = document.createElement('div');
                         item.className = 'nav-item';
                         item.setAttribute('data-slide', date);
-                        item.innerHTML = `<span class="nav-icon">📊</span><span>${label}</span>`;
+                        item.textContent = label;
                         item.addEventListener('click', () => loadSlide(date));
                         listEl.appendChild(item);
                         count++;
@@ -858,11 +845,12 @@
                         const m = href.match(/day_slide_(\d{4})_(\d{2})_(\d{2})\.html/);
                         if (!m) continue;
                         const date = `${m[1]}-${m[2]}-${m[3]}`;
-                        const label = (a.textContent || '').trim() || `${m[2]}/${m[3]}`;
+                        let label = (a.textContent || '').trim() || `${m[2]}/${m[3]}`;
+                        label = label.replace(/^📊\s*/, '').trim();
                         const item = document.createElement('div');
                         item.className = 'nav-item';
                         item.setAttribute('data-slide', date);
-                        item.innerHTML = `<span class="nav-icon">📊</span><span>${label}</span>`;
+                        item.textContent = label;
                         item.addEventListener('click', () => loadSlide(date));
                         listEl.appendChild(item);
                         count++;
