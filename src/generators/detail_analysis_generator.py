@@ -53,28 +53,17 @@ class DetailAnalysisGenerator:
         return out
 
     def find_daily_slides(self) -> dict[str, str]:
-        """Return map: 'YYYY-MM-DD' -> relative URL to slide HTML"""
+        """Return map: 'YYYY-MM-DD' -> relative URL to slide HTML (day_slides only)"""
         mapping: dict[str, str] = {}
-        # Pattern: presentations/daily_slides/daily_slide_YYYY_MM_DD.html
-        slides_dir = self.root / 'presentations' / 'daily_slides'
-        if slides_dir.exists():
-            for p in slides_dir.glob('daily_slide_*.html'):
-                m = re.match(r'daily_slide_(\d{4})_(\d{2})_(\d{2})\.html$', p.name)
-                if not m:
-                    continue
-                y, mth, d = m.groups()
-                date = f"{y}-{mth}-{d}"
-                mapping[date] = f"daily_slides/{p.name}"
-        # Also support older path: presentations/day_slides/day_slide_YYYY_MM_DD.html
-        alt_dir = self.root / 'presentations' / 'day_slides'
-        if alt_dir.exists():
-            for p in alt_dir.glob('day_slide_*.html'):
+        day_dir = self.root / 'presentations' / 'day_slides'
+        if day_dir.exists():
+            for p in day_dir.glob('day_slide_*.html'):
                 m = re.match(r'day_slide_(\d{4})_(\d{2})_(\d{2})\.html$', p.name)
                 if not m:
                     continue
                 y, mth, d = m.groups()
                 date = f"{y}-{mth}-{d}"
-                mapping.setdefault(date, f"day_slides/{p.name}")
+                mapping[date] = f"day_slides/{p.name}"
         return mapping
 
     # ---------- analysis ----------
