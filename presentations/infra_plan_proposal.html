@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>提案書 | WordPress + API基盤 + 生成AI(LLM) 小規模導入</title>
+    <style>
+      :root {
+        --bg: #fff;
+        --fg: #0b1221;
+        --muted: #5b667a;
+        --primary: #0f62fe;
+        --surface: #f6f8fb;
+        --border: #e5e9f1;
+        --ok: #0e9f6e;
+        --warn: #c77700;
+        --danger: #d92d20;
+        /* Provider accents */
+        --prov-gcp: #1a73e8;    /* Google Cloud */
+        --prov-azure: #0078d4;  /* Microsoft Azure */
+        --prov-rental: #f59e0b; /* Shared hosting / rental */
+        --prov-ai: #9333ea;     /* AI accent (optional) */
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b1221;
+          --fg: #e8edf7;
+          --muted: #a9b3c6;
+          --primary: #78a6ff;
+          --surface: #0f172a;
+          --border: #1e293b;
+          --ok: #22c55e;
+          --warn: #f59e0b;
+          --danger: #ef4444;
+        }
+      }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
+        line-height: 1.6;
+      }
+      .container { max-width: 1040px; margin: 0 auto; padding: 32px 20px 80px; }
+      header h1 { margin: 0 0 8px; font-size: 28px; }
+      header p { margin: 0; color: var(--muted); }
+      .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 12px;
+        margin-right: 6px;
+      }
+      section { margin-top: 28px; }
+      h2 { font-size: 20px; margin: 0 0 12px; }
+      h3 { font-size: 16px; margin: 16px 0 8px; color: var(--muted); }
+      .card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 16px 18px;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+      }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+      ul { margin: 8px 0 0 20px; }
+      .table-wrap {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: auto;
+        background: var(--bg);
+      }
+      table { width: 100%; border-collapse: collapse; min-width: 860px; }
+      th, td { padding: 12px 12px; vertical-align: top; }
+      thead th { position: sticky; top: 0; background: var(--surface); text-align: left; border-bottom: 1px solid var(--border); }
+      tbody tr { border-bottom: 1px solid var(--border); }
+      tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace; font-size: 90%; }
+      .badge {
+        display: inline-block;
+        width: 24px; height: 24px; line-height: 24px; text-align: center;
+        border-radius: 6px; font-weight: 700; color: #fff; background: var(--primary);
+        margin-right: 6px;
+      }
+      .ok { color: var(--ok); }
+      .warn { color: var(--warn); }
+      .danger { color: var(--danger); }
+      .callout { border-left: 4px solid var(--primary); padding: 10px 12px; background: var(--surface); border-radius: 6px; }
+      .footnote { color: var(--muted); font-size: 12px; }
+      .small { font-size: 13px; color: var(--muted); }
+      .right { text-align: right; }
+      .mt8 { margin-top: 8px; }
+      .mt12 { margin-top: 12px; }
+      .mt16 { margin-top: 16px; }
+      .mt24 { margin-top: 24px; }
+      .mt28 { margin-top: 28px; }
+      .mt32 { margin-top: 32px; }
+      .nowrap { white-space: nowrap; }
+      /* Pros/Cons lists */
+      .pro-list, .con-list { list-style: none; padding: 0; margin: 0; }
+      .pro-list li, .con-list li { display: flex; align-items: flex-start; gap: 6px; }
+      .pro-list li::before { content: "✓"; color: var(--ok); font-weight: 700; margin-top: 1px; }
+      .con-list li::before { content: "✕"; color: var(--danger); font-weight: 700; margin-top: 1px; }
+      /* Recommended highlight */
+      tbody tr.recommended { background: color-mix(in srgb, var(--ok) 6%, transparent); }
+      tbody tr.recommended td:first-child { position: relative; }
+      tbody tr.recommended td:first-child .pill { position: relative; top: -2px; margin-left: 6px; border-color: color-mix(in srgb, var(--ok) 30%, var(--border)); color: var(--ok); }
+      /* Decision card */
+      .decision { border-left: 4px solid var(--ok); background: color-mix(in srgb, var(--ok) 6%, var(--surface)); }
+      /* Chips for legend and inline labels */
+      .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); font-size: 12px; }
+      .chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+      .chip.gcp .dot { background: var(--prov-gcp); }
+      .chip.azure .dot { background: var(--prov-azure); }
+      .chip.rental .dot { background: var(--prov-rental); }
+      .legend { display: flex; gap: 10px; flex-wrap: wrap; color: var(--muted); }
+      /* Diagram styles */
+      svg.diagram { width: 100%; height: auto; }
+      svg .node { fill: var(--bg); stroke: var(--border); stroke-width: 2; }
+      svg .node.rental { fill: color-mix(in srgb, var(--prov-rental) 8%, var(--bg)); stroke: var(--prov-rental); }
+      svg .node.gcp { fill: color-mix(in srgb, var(--prov-gcp) 8%, var(--bg)); stroke: var(--prov-gcp); }
+      svg .node.azure { fill: color-mix(in srgb, var(--prov-azure) 8%, var(--bg)); stroke: var(--prov-azure); }
+      svg .edge { stroke: color-mix(in srgb, var(--muted) 70%, transparent); stroke-width: 2; }
+      svg text { font-size: 12px; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif; }
+      .provider-gcp { border-top: 3px solid var(--prov-gcp); }
+      .provider-azure { border-top: 3px solid var(--prov-azure); }
+      .provider-rental { border-top: 3px solid var(--prov-rental); }
+      @media print {
+        .pill { display: none; }
+        header { break-inside: avoid; }
+        .table-wrap { overflow: visible; }
+        table { min-width: 0; }
+        a { color: inherit; text-decoration: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <span class="pill">提案書</span>
+        <span class="pill">小規模導入</span>
+        <h1>WordPress + API基盤 + 生成AI(LLM) 導入提案</h1>
+        <p class="small">前提: WP=1万PV/月, Cloud Run=1万req/月 / 最安構成の比較と推奨</p>
+      </header>
+
+      <section class="mt16">
+        <div class="card decision">
+          <h2>結論（おすすめ構成）</h2>
+          <p class="mt8"><span class="badge">B</span><b>ConoHa WING + Cloud Run</b> を推奨します。</p>
+          <ul class="pro-list mt8">
+            <li>自動バックアップ（14日）が標準で、復旧が簡単</li>
+            <li>月額は <span class="nowrap">¥660 + $0 + ($1.3〜$5)</span> のレンジで予測しやすい</li>
+            <li>APIはGoogleの無料枠（Cloud Run）を活用し低コスト</li>
+          </ul>
+          <ul class="con-list mt8">
+            <li>キャンペーン終了後は通常料金に上がる可能性</li>
+          </ul>
+          <p class="small mt8">補足: 最安重視なら<span class="mono">A</span>、ゼロ課金挑戦なら<span class="mono">C1</span>、統一運用なら<span class="mono">C2/D</span>が適します。</p>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid">
+          <div class="card">
+            <h2>目的</h2>
+            <ul>
+              <li>最安〜省力運用までの実現可能な選択肢を比較</li>
+              <li>運用負荷とコストのバランスが取れた推奨案を提示</li>
+              <li>初期導入から安定運用までのロードマップを明確化</li>
+            </ul>
+          </div>
+          <div class="card">
+        <h2>前提・定義</h2>
+        <ul>
+          <li><span class="mono">Always Free</span>: クラウドの無料利用枠（毎月）</li>
+          <li>生成AIの費用目安: 10k回の呼び出しで軽量（入500/出200 tokens）≈ <span class="mono">$1.3</span>、中量（入1k/出1k）≈ <span class="mono">$5</span></li>
+          <li>Cloud Runは無料枠内想定（実トラフィックで変動）</li>
+          <li>レンタルサーバー＝低価格の共有サーバー（管理は事業者が実施）</li>
+          <li>サーバーレス＝使う時だけ自動で動く実行環境（従量課金）</li>
+          <li>マネージド＝日々の運用（更新/故障対応等）をクラウドが担う</li>
+        </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt16">
+        <h2>構成図（各パターン）</h2>
+        <div class="legend mt8">
+          <span class="chip rental"><span class="dot"></span>レンタルサーバー</span>
+          <span class="chip gcp"><span class="dot"></span>Google Cloud</span>
+          <span class="chip azure"><span class="dot"></span>Microsoft Azure</span>
+          <span class="small">矢印＝主な通信の向き</span>
+        </div>
+        <div class="grid mt8">
+          <div class="card provider-rental">
+            <h3><span class="badge">A</span> ロリポップ! + Cloud Run</h3>
+            <svg class="diagram" viewBox="0 0 800 220" role="img" aria-label="A構成図">
+              <defs>
+                <marker id="arrowA" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" style="fill: color-mix(in srgb, var(--muted) 70%, transparent);" />
+                </marker>
+              </defs>
+              <rect class="node" x="20" y="80" width="180" height="56" rx="8"/>
+              <text x="30" y="110" style="fill: var(--fg); font-size: 12px;">利用者のブラウザ</text>
+
+              <rect class="node rental" x="240" y="30" width="200" height="56" rx="8"/>
+              <text x="250" y="58" style="fill: var(--fg); font-size: 12px;">ロリポップ!（WordPress）</text>
+              <text x="250" y="76" style="fill: var(--muted); font-size: 11px;">任意: 自動バックアップ +¥440</text>
+
+              <rect class="node gcp" x="240" y="130" width="200" height="56" rx="8"/>
+              <text x="250" y="158" style="fill: var(--fg); font-size: 12px;">Cloud Run（API）</text>
+
+              <rect class="node gcp" x="480" y="80" width="200" height="56" rx="8"/>
+              <text x="490" y="108" style="fill: var(--fg); font-size: 12px;">Gemini API（生成AI）</text>
+
+              <line class="edge" x1="200" y1="108" x2="240" y2="58" marker-end="url(#arrowA)"/>
+              <line class="edge" x1="200" y1="108" x2="240" y2="158" marker-end="url(#arrowA)"/>
+              <line class="edge" x1="440" y1="158" x2="480" y2="108" marker-end="url(#arrowA)"/>
+            </svg>
+          </div>
+
+          <div class="card provider-rental">
+            <h3><span class="badge">B</span> ConoHa WING + Cloud Run</h3>
+            <svg class="diagram" viewBox="0 0 800 220" role="img" aria-label="B構成図">
+              <defs>
+                <marker id="arrowB" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" style="fill: color-mix(in srgb, var(--muted) 70%, transparent);" />
+                </marker>
+              </defs>
+              <rect class="node" x="20" y="80" width="180" height="56" rx="8"/>
+              <text x="30" y="110" style="fill: var(--fg); font-size: 12px;">利用者のブラウザ</text>
+
+              <rect class="node rental" x="240" y="30" width="220" height="56" rx="8"/>
+              <text x="250" y="58" style="fill: var(--fg); font-size: 12px;">ConoHa WING（WordPress）</text>
+              <text x="250" y="76" style="fill: var(--muted); font-size: 11px;">自動バックアップ（14日）標準</text>
+
+              <rect class="node gcp" x="240" y="130" width="200" height="56" rx="8"/>
+              <text x="250" y="158" style="fill: var(--fg); font-size: 12px;">Cloud Run（API）</text>
+
+              <rect class="node gcp" x="480" y="80" width="200" height="56" rx="8"/>
+              <text x="490" y="108" style="fill: var(--fg); font-size: 12px;">Gemini API（生成AI）</text>
+
+              <line class="edge" x1="200" y1="108" x2="240" y2="58" marker-end="url(#arrowB)"/>
+              <line class="edge" x1="200" y1="108" x2="240" y2="158" marker-end="url(#arrowB)"/>
+              <line class="edge" x1="440" y1="158" x2="480" y2="108" marker-end="url(#arrowB)"/>
+            </svg>
+          </div>
+
+          <div class="card provider-gcp">
+            <h3><span class="badge">C1</span> 全てGoogleクラウド（自前サーバー）</h3>
+            <svg class="diagram" viewBox="0 0 800 220" role="img" aria-label="C1構成図">
+              <defs>
+                <marker id="arrowC1" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" style="fill: color-mix(in srgb, var(--muted) 70%, transparent);" />
+                </marker>
+              </defs>
+              <rect class="node" x="20" y="80" width="180" height="56" rx="8"/>
+              <text x="30" y="110" style="fill: var(--fg); font-size: 12px;">利用者のブラウザ</text>
+
+              <rect class="node gcp" x="240" y="30" width="230" height="56" rx="8"/>
+              <text x="250" y="56" style="fill: var(--fg); font-size: 12px;">GCE e2‑micro VM</text>
+              <text x="250" y="74" style="fill: var(--muted); font-size: 11px;">WordPress + MySQL（同居）</text>
+
+              <rect class="node gcp" x="240" y="130" width="200" height="56" rx="8"/>
+              <text x="250" y="158" style="fill: var(--fg); font-size: 12px;">Cloud Run（API）</text>
+
+              <rect class="node gcp" x="500" y="80" width="200" height="56" rx="8"/>
+              <text x="510" y="108" style="fill: var(--fg); font-size: 12px;">Gemini API（生成AI）</text>
+
+              <line class="edge" x1="200" y1="108" x2="240" y2="58" marker-end="url(#arrowC1)"/>
+              <line class="edge" x1="200" y1="108" x2="240" y2="158" marker-end="url(#arrowC1)"/>
+              <line class="edge" x1="440" y1="158" x2="500" y2="108" marker-end="url(#arrowC1)"/>
+            </svg>
+          </div>
+
+          <div class="card provider-gcp">
+            <h3><span class="badge">C2</span> 全てGoogleクラウド（マネージドDB）</h3>
+            <svg class="diagram" viewBox="0 0 800 220" role="img" aria-label="C2構成図">
+              <defs>
+                <marker id="arrowC2" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" style="fill: color-mix(in srgb, var(--muted) 70%, transparent);" />
+                </marker>
+              </defs>
+              <rect class="node" x="20" y="80" width="180" height="56" rx="8"/>
+              <text x="30" y="110" style="fill: var(--fg); font-size: 12px;">利用者のブラウザ</text>
+
+              <rect class="node gcp" x="240" y="30" width="210" height="56" rx="8"/>
+              <text x="250" y="58" style="fill: var(--fg); font-size: 12px;">GCE（WordPress）</text>
+
+              <rect class="node gcp" x="470" y="30" width="190" height="56" rx="8"/>
+              <text x="480" y="58" style="fill: var(--fg); font-size: 12px;">Cloud SQL（DB）</text>
+
+              <rect class="node gcp" x="240" y="130" width="200" height="56" rx="8"/>
+              <text x="250" y="158" style="fill: var(--fg); font-size: 12px;">Cloud Run（API）</text>
+
+              <rect class="node gcp" x="500" y="130" width="200" height="56" rx="8"/>
+              <text x="510" y="158" style="fill: var(--fg); font-size: 12px;">Gemini API（生成AI）</text>
+
+              <line class="edge" x1="200" y1="108" x2="240" y2="58" marker-end="url(#arrowC2)"/>
+              <line class="edge" x1="350" y1="58" x2="470" y2="58" marker-end="url(#arrowC2)"/>
+              <line class="edge" x1="200" y1="108" x2="240" y2="158" marker-end="url(#arrowC2)"/>
+              <line class="edge" x1="440" y1="158" x2="500" y2="158" marker-end="url(#arrowC2)"/>
+            </svg>
+          </div>
+
+          <div class="card provider-azure">
+            <h3><span class="badge">D</span> 全てMicrosoft Azure</h3>
+            <svg class="diagram" viewBox="0 0 800 220" role="img" aria-label="D構成図">
+              <defs>
+                <marker id="arrowD" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" style="fill: color-mix(in srgb, var(--muted) 70%, transparent);" />
+                </marker>
+              </defs>
+              <rect class="node" x="20" y="80" width="180" height="56" rx="8"/>
+              <text x="30" y="110" style="fill: var(--fg); font-size: 12px;">利用者のブラウザ</text>
+
+              <rect class="node azure" x="240" y="30" width="240" height="56" rx="8"/>
+              <text x="250" y="58" style="fill: var(--fg); font-size: 12px;">Azure App Service（WordPress）</text>
+
+              <rect class="node azure" x="500" y="30" width="220" height="56" rx="8"/>
+              <text x="510" y="58" style="fill: var(--fg); font-size: 12px;">Azure MySQL Flexible（DB）</text>
+
+              <rect class="node azure" x="240" y="130" width="240" height="56" rx="8"/>
+              <text x="250" y="158" style="fill: var(--fg); font-size: 12px;">Azure Functions / Container（API）</text>
+
+              <rect class="node gcp" x="520" y="130" width="200" height="56" rx="8"/>
+              <text x="530" y="158" style="fill: var(--fg); font-size: 12px;">Gemini API（生成AI）</text>
+
+              <line class="edge" x1="200" y1="108" x2="240" y2="58" marker-end="url(#arrowD)"/>
+              <line class="edge" x1="460" y1="58" x2="500" y2="58" marker-end="url(#arrowD)"/>
+              <line class="edge" x1="200" y1="108" x2="240" y2="158" marker-end="url(#arrowD)"/>
+              <line class="edge" x1="480" y1="158" x2="520" y2="158" marker-end="url(#arrowD)"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt16">
+        <h2>選定候補のコストとメリット/デメリット</h2>
+        <div class="table-wrap mt8">
+          <table>
+            <colgroup>
+              <col style="width: 120px;" />
+              <col style="width: 36%;" />
+              <col style="width: 160px;" />
+              <col />
+              <col />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>パターン</th>
+                <th>構成概要</th>
+                <th>月額(概算)</th>
+                <th>メリット</th>
+                <th>デメリット</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge">A</span>ロリポップ! + Cloud Run</td>
+                <td>
+                  ロリポップ!（ライト）＋Cloud Run（Googleのサーバーレス）＋生成AI（軽量）
+                </td>
+                <td class="nowrap">¥264 + $0 + ($1.3〜$5)</td>
+                <td>
+                  <ul class="pro-list">
+                    <li>最安帯のコスト</li>
+                    <li>SSLとWAFが利用可能</li>
+                    <li>必要なら自動バックアップを追加可能</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul class="con-list">
+                    <li>バックアップはオプション</li>
+                    <li>性能・拡張は上位プランで調整</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr class="recommended">
+                <td><span class="badge">B</span>ConoHa WING + Cloud Run <span class="pill">おすすめ</span></td>
+                <td>
+                  ConoHa WING（レンタルサーバー）＋Cloud Run（サーバーレス）＋生成AI（軽量）
+                </td>
+                <td class="nowrap">¥660 + $0 + ($1.3〜$5)</td>
+                <td>
+                  <ul class="pro-list">
+                    <li>自動バックアップ（14日）標準</li>
+                    <li>復旧が簡単で運用負荷が軽い</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul class="con-list">
+                    <li>価格はキャンペーン依存</li>
+                    <li>通常料金に切替時はコスト上昇</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge">C1</span>全てGoogleクラウド（自前サーバー）</td>
+                <td>
+                  無料枠VMにWordPress+データベース同居＋Cloud Run（サーバーレス）＋生成AI（軽量）
+                </td>
+                <td class="nowrap">ほぼ$0（無料ディスク30GB／少量の通信無料）</td>
+                <td>
+                  <ul class="pro-list">
+                    <li>実質ゼロコストに近い</li>
+                    <li>柔軟なカスタマイズが可能</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul class="con-list">
+                    <li>更新・監視・バックアップを自前対応</li>
+                    <li>単一障害点で停止リスクあり</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge">C2</span>全てGoogleクラウド（マネージドDB）</td>
+                <td>
+                  小型VM＋Cloud SQL（マネージドDB）＋Cloud Run（サーバーレス）＋生成AI（軽量）
+                </td>
+                <td class="nowrap">DB ≈ $65/月〜 + ストレージ</td>
+                <td>
+                  <ul class="pro-list">
+                    <li>監視・構成管理を一元化できる</li>
+                    <li>可用性と拡張性が高い</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul class="con-list">
+                    <li>小規模では割高</li>
+                    <li>固定費が発生</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge">D</span>全てMicrosoft Azure</td>
+                <td>
+                  Azureアプリ基盤（小規模）＋MySQL（マネージド）＋サーバーレス/コンテナ＋生成AI（軽量）
+                </td>
+                <td class="nowrap">概算 ~$25.5/月〜 + ストレージ</td>
+                <td>
+                  <ul class="pro-list">
+                    <li>Azure資産との親和性が高い</li>
+                    <li>運用管理をAzureに集約可能</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul class="con-list">
+                    <li>地域/料金により変動</li>
+                    <li>最小構成でも固定費あり</li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="footnote mt8">注: 生成AIの費用は 10k req &lt;= 軽量(入力500/出力200 tokens)で ≈ $1.3、
+          中量(1k/1k)で ≈ $5 の目安。Cloud Runは無料枠内想定（実利用で超過課金の可能性）。
+        </p>
+      </section>
+
+      <section class="mt16">
+        <h2>推奨構成（用途別）</h2>
+        <div class="grid mt8">
+          <div class="card">
+            <h3>最安重視</h3>
+            <div class="callout">A（必要に応じて自動バックアップ +¥440）— 数百円 + 数ドルの運用レンジ。</div>
+            <ul class="mt8">
+              <li>前提: PV/reqは小規模、停止リスクは許容</li>
+              <li>WAF/SSLは提供に依存、改ざん監視は軽量導入</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>運用省力</h3>
+            <div class="callout">B（自動バックアップ標準/復旧手順が簡単）。</div>
+            <ul class="mt8">
+              <li>障害時のRPO/RTOをシンプルに維持</li>
+              <li>価格はキャンペーン期間後の通常料金も確認</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>ゼロ課金挑戦</h3>
+            <div class="callout">C1（技術工数と可用性を自前で担保できるなら）。</div>
+            <ul class="mt8">
+              <li>OS/ミドル更新・監視・バックアップの自動化が必須</li>
+              <li>負荷上昇時はC2等へスムーズに移行できる設計</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>GCP/Azureで統一</h3>
+            <div class="callout">C2 / D（監視/構成管理は楽だが固定費が乗る）。</div>
+            <ul class="mt8">
+              <li>共通監視/セキュリティ監視/権限管理をクラウド標準に統合</li>
+              <li>コスト上振れには上限/予算アラートを併用</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt16">
+        <h2>リスクと対策</h2>
+        <div class="grid mt8">
+          <div class="card">
+            <h3>セキュリティ</h3>
+            <ul>
+              <li>WAF/SSL: 共有サービスの設定確認と最小化方針</li>
+              <li>WordPress: 最小権限・不要プラグイン排除・自動更新</li>
+              <li>API: 認証・レート制限・WAFでの攻撃遮断（SQLインジェクション等）</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>バックアップ/復旧</h3>
+            <ul>
+              <li>ファイル/DBの世代管理（最短日次）と復旧手順の検証</li>
+              <li>運用省力重視はBを選択（自動バックアップ14日）</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>スケール/コスト</h3>
+            <ul>
+              <li>無料枠超過の上限設定と予算アラート</li>
+              <li>LLMは入出力トークン増で逓増：プロンプト設計最適化</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>可用性</h3>
+            <ul>
+              <li>C1はSPOF/運用負荷を許容できる場合のみ</li>
+              <li>可用性優先はC2/D（マネージドDB/スケール設計）</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt16">
+        <h2>導入ロードマップ（例）</h2>
+        <ol class="mt8">
+          <li>要件確定・構成選定（A/B/C1/C2/D）</li>
+          <li>ドメイン/SSL・監視/通知方針・予算アラート設定</li>
+          <li>WordPress構築（テーマ/プラグイン方針・権限/更新）</li>
+          <li>API基盤（Cloud Run）デプロイ・レート制限</li>
+          <li>生成AI連携（APIキー保護、可観測性/ログ）</li>
+          <li>バックアップ/復旧演習・WAFチューニング</li>
+          <li>パフォーマンス/キャッシュ最適化（Cloud CDN等）</li>
+        </ol>
+      </section>
+
+      <section class="mt16">
+        <h2>出典・根拠（抜粋）</h2>
+        <ul class="mt8">
+          <li>Cloud Run 無料枠: 200万 req/月・180k vCPU-s・360k GiB-s</li>
+          <li>GCE e2-micro Always Free: VM1台 + PD 30GB + 北米1GB出</li>
+          <li>Cloud SQL 料金例: vCPU $0.0413/h, Memory $0.007/GB-h, SSD $0.17/GB-月</li>
+          <li>ロリポ「ライト」¥264/月、ConoHa WING キャンペーン例 ¥660/月（自動バックアップ14日）</li>
+          <li>Azure App Service B1(Linux) + MySQL Flexible B1ms ≈ $25.5+/月</li>
+          <li>Gemini API: 2.5 Flash-Lite $0.10/M入・$0.40/M出、Flash $0.30/$2.50</li>
+        </ul>
+        <p class="footnote mt12">実価格はリージョン/為替/キャンペーンで変動します。最新の公式料金をご確認ください。</p>
+      </section>
+
+      <section class="mt28 small">
+        <div class="right">v1.0 — 本文は <span class="mono">Carreahorizon-infra/plan.txt</span> を要約・整形</div>
+      </section>
+    </div>
+  </body>
+  </html>
