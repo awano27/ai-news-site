@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 from jinja2 import Template, select_autoescape
+import re
 
 from src.generators.ranking_report_generator import RankingReportGenerator
 
@@ -67,6 +68,10 @@ def main() -> int:
     template_content = gen._get_requirements_doc_style_template()
     template = Template(template_content, autoescape=select_autoescape(['html', 'xml']))
     html = template.render(**template_data)
+
+    # Normalize footer generation timestamp and item count in <p id="gen-ts">...</p>
+    footer_text = f"{template_data['generation_timestamp']} | Based on {template_data['total_items']} AI technologies analysis"
+    html = re.sub(r'(\<p id="gen-ts"\>).*?(\</p\>)', rf"\1{footer_text}\2", html, flags=re.S)
 
     # Write outputs
     dated = out_dir / f"ai_ranking_report_{datetime.now().strftime('%Y%m%d')}.html"
