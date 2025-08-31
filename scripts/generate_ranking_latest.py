@@ -191,13 +191,13 @@ def main() -> int:
     quad_block = (
         "quadrantChart\n"
         "        title AIテクノロジー活用戦略\n"
-        "        x-axis \"ビジネス効率\" --> \"高効率\"\n"
-        "        y-axis \"エンジニア活用度\" --> \"高活用度\"\n"
-        "        quadrant-1 \"戦略的投資領域\"\n"
-        "        quadrant-2 \"優先導入領域\"\n"
-        "        quadrant-3 \"検討領域\"\n"
-        "        quadrant-4 \"ビジネス特化領域\"\n"
-        + ("\n".join(points) if points else "        \"No Data\": [10,10]")
+        "        x-axis ビジネス効率 --> 高効率\n"
+        "        y-axis エンジニア活用度 --> 高活用度\n"
+        "        quadrant-1 戦略的投資領域\n"
+        "        quadrant-2 優先導入領域\n"
+        "        quadrant-3 検討領域\n"
+        "        quadrant-4 ビジネス特化領域\n"
+        + ("\n".join(points) if points else "        \"No Data\": [10, 10]")
         + "\n"
     )
 
