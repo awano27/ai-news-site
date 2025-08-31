@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIニューステクノロジーランキング・レポート</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #020617;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--light);
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--primary);
+            padding: 24px 16px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .sidebar h1 {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 16px;
+        }
+
+        .nav-item {
+            color: #94a3b8;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 32px 48px;
+            max-width: 1600px;
+            background: white;
+            min-height: 100vh;
+        }
+
+        h1 { font-size: 2.2rem; color: var(--primary); }
+        h2 { font-size: 1.5rem; margin: 32px 0 16px; color: var(--primary); }
+        h3 { font-size: 1.1rem; margin: 24px 0 12px; color: var(--primary); }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+        }
+
+        .stats-card {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+        }
+
+        .stats-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-left: 3px solid var(--accent);
+        }
+
+        .tier-card {
+            border-left: 4px solid var(--success);
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.05), transparent);
+        }
+
+        .tier-card.tier-1 {
+            border-left-color: var(--danger);
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
+        }
+
+        .tier-card.tier-2 {
+            border-left-color: var(--warning);
+            background: linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge.high { background: var(--danger); color: white; }
+        .badge.medium { background: var(--warning); color: white; }
+        .badge.low { background: var(--success); color: white; }
+        .badge.score { background: var(--accent); color: white; }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin: 20px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .ranking-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            transition: all 0.2s;
+        }
+
+        .ranking-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        .ranking-number {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .ranking-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .ranking-scores {
+            display: flex;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .score-pill {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .score-eng { background: #e6f3ff; color: var(--accent); }
+        .score-biz { background: #e6f9f0; color: var(--success); }
+        .score-total { background: var(--primary); color: white; }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--primary), #1e293b);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 32px 0 16px 0;
+        }
+
+        .trend-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .trend-up { background: var(--success); color: white; }
+        .trend-stable { background: var(--warning); color: white; }
+        .trend-down { background: var(--danger); color: white; }
+
+        .mermaid {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🚀 AIランキング・レポート</h1>
+        <a href="#overview" class="nav-item active">📊 概要</a>
+        <a href="#rankings" class="nav-item">🏆 ランキング</a>
+        <a href="#analysis" class="nav-item">📈 分析</a>
+        <a href="#categories" class="nav-item">🏷️ カテゴリ別</a>
+        <a href="#trends" class="nav-item">📊 トレンド</a>
+        <a href="#insights" class="nav-item">💡 洞察</a>
+        <a href="#recommendations" class="nav-item">🎯 推奨事項</a>
+    </div>
+
+    <div class="main-content">
+        <section id="overview">
+            <h1>AIニューステクノロジーランキング・レポート</h1>
+            <p class="text-secondary">2025年08月02日 〜 2025年09月01日</p>
+            
+            <div class="stats-grid">
+                <div class="card stats-card">
+                    <div class="stats-value">1</div>
+                    <div>分析対象技術</div>
+                </div>
+                <div class="card stats-card">
+                    <div class="stats-value">6.0</div>
+                    <div>平均総合スコア</div>
+                </div>
+                <div class="card stats-card">
+                    <div class="stats-value">3.0</div>
+                    <div>平均エンジニアスコア</div>
+                </div>
+                <div class="card stats-card">
+                    <div class="stats-value">3.0</div>
+                    <div>平均ビジネススコア</div>
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <h3>📋 レポートサマリー</h3>
+                <p>直近1ヶ月間のAI技術トレンドを、エンジニア活用度とビジネス効率化の2軸で評価・ランキング化。</p>
+                <p><strong>生成日時:</strong> 2025年09月01日 01:13</p>
+            </div>
+
+            <div class="card">
+                <h3>🔍 キーポイント</h3>
+                <ul>
+                    
+                    <li>トップカテゴリ: sns: 7件, company: 1件</li>
+                    
+                    <li>平均スコア(Eng+Biz): 2.8</li>
+                    
+                    <li>期間内件数: 8（候補から上位30件を抽出）</li>
+                    
+                </ul>
+            </div>
+        </section>
+
+        <section id="rankings">
+            <div class="section-header">
+                <h2>🏆 AIニューステクノロジーランキング Top 30</h2>
+                <p>エンジニア活用度 + ビジネス効率化度の総合評価</p>
+            </div>
+
+            
+            <div class="ranking-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <div class="ranking-number">1</div>
+                    <div style="flex: 1;">
+                        <div class="ranking-title">Creating AI agent solutions for warehouse data access and security</div>
+                        <p class="text-secondary">- In this post, we explore the ways we’re evolving Meta’s data warehouse to facilitate productivity and security to serv….</p>
+                        <div class="ranking-scores">
+                            <span class="score-pill score-eng">Eng: 3/5</span>
+                            <span class="score-pill score-biz">Biz: 3/5</span>
+                            <span class="score-pill score-total">Total: 6/10</span>
+                        </div>
+                        <p><strong>活用ポイント:</strong> 活用領域: company。出典: fb.com。.
+2. **codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv**: codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv. Eng Tool: 2, Biz Eff: 2, 合計: 4. 活用領域: sns。出典: @yoshi8__。.
+3. **codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv**: codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv. Eng Tool: 1, Biz Eff: 1, 合計: 2. 活用領域: sns。出典: @yoshi8__。.
+4. **codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv**: codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv. Eng Tool: 1, Biz Eff: 1, 合計: 2. 活用領域: sns。出典: @yoshi8__。.
+5. **codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv**: codex mcp という使い方を見つけた。歓喜🎉 https://t.co/XSdjtgVErv. Eng Tool: 1, Biz Eff: 1, 合計: 2. 活用領域: sns。出典: @yoshi8__。.
+6. **サム・アルトマンは、AI技術は急速に進化する一方で、社会はゆっくりと変化すると考えている。 https://t.co/n4a2D3NvlX**: サム・アルトマンは、AI技術は急速に進化する一方で、社会はゆっくりと変化すると考えている。 https://t.co/n4a2D3NvlX. Eng Tool: 1, Biz Eff: 1, 合計: 2. 活用領域: sns。出典: @d_1d2d。.
+7. **サム・アルトマンは、AI技術は急速に進化する一方で、社会はゆっくりと変化すると考えている。 https://t.co/n4a2D3NvlX**: サム・アルトマンは、AI技術は急速に進化する一方で、社会はゆっくりと変化すると考えている。 https://t.co/n4a2D3NvlX. Eng Tool: 1, Biz Eff: 1, 合計: 2. 活用領域: sns。出典: @d_1d2d。.
+8. **サム・アルトマンは、AI技術は急速に進化する一方で、社会はゆっくりと変化すると考えている。 https://t.co/n4a2D3NvlX**: サム・アルトマンは、AI技術は急速に進化する一方で、社会はゆっくりと変化すると考えている。 https://t.co/n4a2D3NvlX. Eng Tool: 1, Biz Eff: 1, 合計: 2. 活用領域: sns。出典: @d_1d2d。.
+
+| セクター | 代表技術 | 件数 | 平均スコア | 活用例 |
+|---|---|---:|---:|---|
+| モデル・LLM | LLM/生成モデル | 5 | 7.0 | 生成/要約/対話 |
+| ツール・SDK | 開発・運用 | 0 | 7.5 | 開発効率/自動化 |
+| ビジネス活用 | 業務適用 | 0 | 7</p>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+        <section id="analysis">
+            <div class="section-header">
+                <h2>📈 詳細分析</h2>
+            </div>
+
+            <div class="card">
+                <h3>📊 スコア分布分析</h3>
+                <div class="chart-container">
+                    <canvas id="scoreDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚖️ エンジニア vs ビジネス スコア比較 (Top 10)</h3>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="categories">
+            <div class="section-header">
+                <h2>🏷️ カテゴリ別分析</h2>
+            </div>
+
+            <div class="card">
+                <h3>📋 技術カテゴリ分布</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            
+            <div class="card tier-card">
+                <h3>その他・特殊 (1件)</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                    
+                    <div style="padding: 12px; background: white; border-radius: 6px; border: 1px solid var(--border);">
+                        <h4>1. Creating AI agent solutions for warehouse data access and security</h4>
+                        <div class="ranking-scores" style="margin-top: 8px;">
+                            <span class="score-pill score-total">6</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </section>
+
+        <section id="trends">
+            <div class="section-header">
+                <h2>📊 トレンド分析</h2>
+            </div>
+
+            <div class="card feature-card">
+                <h3>🚀 高インパクト技術 (8-9点)</h3>
+                <p><strong>0件</strong> - 即座に実用導入を検討すべき技術</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 16px;">
+                    
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚡ 中インパクト技術 (7点)</h3>
+                <p><strong>1件</strong> - 導入検討・PoC実施を推奨</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px; margin-top: 16px;">
+                    
+                    <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid var(--warning);">
+                        <strong>Creating AI agent solutions for warehouse data access and security</strong>
+                        <span class="badge medium">MEDIUM</span>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+
+        <section id="insights">
+            <div class="section-header">
+                <h2>💡 インサイト・洞察</h2>
+            </div>
+
+            <div class="card feature-card">
+                <h3>🎯 エンジニア向けトップ技術</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>順位</th>
+                            <th>技術名</th>
+                            <th>Engスコア</th>
+                            <th>活用領域</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>1</td>
+                            <td><strong>Creating AI agent solutions for warehouse data access and security</strong></td>
+                            <td><span class="badge score">3/5</span></td>
+                            <td>活用領域: company。出典: fb.com。.
+2. **codex mcp という使い方を見...</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card feature-card">
+                <h3>💼 ビジネス向けトップ技術</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>順位</th>
+                            <th>技術名</th>
+                            <th>Bizスコア</th>
+                            <th>効率化効果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>1</td>
+                            <td><strong>Creating AI agent solutions for warehouse data access and security</strong></td>
+                            <td><span class="badge score">3/5</span></td>
+                            <td>活用領域: company。出典: fb.com。.
+2. **codex mcp という使い方を見...</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            
+            <div class="card">
+                <h3>🏢 セクター別パフォーマンス</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>セクター</th>
+                            <th>代表技術</th>
+                            <th>件数</th>
+                            <th>平均スコア</th>
+                            <th>活用例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td><strong>---</strong></td>
+                            <td>---</td>
+                            <td>0</td>
+                            <td><span class="badge score">0.0</span></td>
+                            <td>---</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>モデル・LLM</strong></td>
+                            <td>LLM/生成モデル</td>
+                            <td>5</td>
+                            <td><span class="badge score">7.0</span></td>
+                            <td>生成/要約/対話</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>ツール・SDK</strong></td>
+                            <td>開発・運用</td>
+                            <td>0</td>
+                            <td><span class="badge score">7.5</span></td>
+                            <td>開発効率/自動化</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>ビジネス活用</strong></td>
+                            <td>業務適用</td>
+                            <td>0</td>
+                            <td><span class="badge score">7.0</span></td>
+                            <td>業務効率/導入効果</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+            
+        </section>
+
+        <section id="recommendations">
+            <div class="section-header">
+                <h2>🎯 推奨事項・アクションプラン</h2>
+            </div>
+
+            <div class="card tier-card tier-1">
+                <h3>⚡ 即時導入推奨 (スコア8-9)</h3>
+                <p><strong>優先度: 最高</strong> - 今週〜来月での導入検討</p>
+                <ul>
+                    
+                </ul>
+            </div>
+
+            <div class="card tier-card tier-2">
+                <h3>🔍 PoC・検証推奨 (スコア7)</h3>
+                <p><strong>優先度: 高</strong> - 2-3ヶ月での概念実証</p>
+                <ul>
+                    
+                    <li><strong>Creating AI agent solutions for warehouse data access and security:</strong> - In this post, we explore the ways we’re evolving Meta’s data warehouse to faci...</li>
+                    
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>📊 活用戦略マトリクス</h3>
+                
+                <div class="mermaid">
+                    quadrantChart
+                        title AIテクノロジー活用戦略
+                        x-axis "ビジネス効率化" --> "高効率化"
+                        y-axis "エンジニア活用度" --> "高活用度"
+                        quadrant-1 "戦略的投資領域"
+                        quadrant-2 "優先導入領域"
+                        quadrant-3 "検討領域"
+                        quadrant-4 "ビジネス特化領域"
+                        
+                        "Creating A": [60, 60]
+                        
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <h3>🗓️ 実装ロードマップ</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                    <div class="card">
+                        <h4>Phase 1: 即時 (1-2週間)</h4>
+                        <ul>
+                            <li>OpenAI GPT-OSS 評価・導入</li>
+                            <li>Claude 4.1 Opus コーディング支援</li>
+                            <li>Microsoft Copilot Excel統合</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Phase 2: 短期 (1-3ヶ月)</h4>
+                        <ul>
+                            <li>Google Genie 3 プロトタイプ</li>
+                            <li>DeepSeek V3.1 コスト評価</li>
+                            <li>NVIDIA Nemotron エッジ検証</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Phase 3: 中期 (3-6ヶ月)</h4>
+                        <ul>
+                            <li>ビジュアル・メディア技術統合</li>
+                            <li>エージェント技術の業務応用</li>
+                            <li>セキュアプラットフォーム構築</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📈 成功指標 (KPI)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>指標</th>
+                            <th>現状</th>
+                            <th>目標 (3ヶ月)</th>
+                            <th>測定方法</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>開発生産性</td>
+                            <td>ベースライン</td>
+                            <td>30% 向上</td>
+                            <td>コード生成・デバッグ時間測定</td>
+                        </tr>
+                        <tr>
+                            <td>業務効率化</td>
+                            <td>ベースライン</td>
+                            <td>25% 向上</td>
+                            <td>定型業務処理時間削減</td>
+                        </tr>
+                        <tr>
+                            <td>技術導入率</td>
+                            <td>0%</td>
+                            <td>70%</td>
+                            <td>チーム内AI技術活用率</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div style="margin-top: 60px; padding: 20px; background: var(--light); border-radius: 8px; text-align: center;">
+            <p><strong>Generated by AI News Intelligence Platform v2.0</strong></p>
+            <p>2025年09月01日 01:13 | Based on 1 AI technologies analysis</p>
+            <p><em>このレポートは直近1ヶ月のX(Twitter)投稿から抽出・分析されたデータに基づいています</em></p>
+        </div>
+    </div>
+
+    <script>
+        // Mermaid初期化
+        mermaid.initialize({ startOnLoad: true });
+
+        // スコア分布チャート
+        const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+        new Chart(scoreCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ["8-9\u70b9", "7\u70b9", "6\u70b9", "5\u70b9\u4ee5\u4e0b"],
+                datasets: [{
+                    data: [0, 0, 1, 0],
+                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#94a3b8']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: '総合スコア分布' }
+                }
+            }
+        });
+
+        // エンジニア vs ビジネス比較チャート
+        const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+        new Chart(comparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: ["Creating AI agent so..."],
+                datasets: [{
+                    label: 'エンジニア活用度',
+                    data: [3],
+                    backgroundColor: '#3b82f6'
+                }, {
+                    label: 'ビジネス効率化',
+                    data: [3],
+                    backgroundColor: '#10b981'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'エンジニア vs ビジネス活用度比較' }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 5 }
+                }
+            }
+        });
+
+        // カテゴリ分布チャート
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'pie',
+            data: {
+                labels: ["\u305d\u306e\u4ed6\u30fb\u7279\u6b8a"],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: '技術カテゴリ分布' }
+                }
+            }
+        });
+
+        // サイドバーナビゲーション
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.getAttribute('href');
+                if (target && target !== '#') {
+                    document.querySelector(target).scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        console.log('✅ AI Ranking Report with improved-requirements-doc.html style loaded');
+        console.log('📊 Analyzed 1 technologies, Average Score: 6.0');
+    </script>
+</body>
+</html>
