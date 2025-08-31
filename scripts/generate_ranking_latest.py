@@ -168,6 +168,43 @@ def main() -> int:
     footer_text = f"{template_data['generation_timestamp']} | Based on {template_data['total_items']} AI technologies analysis"
     html = re.sub(r'(\<p id="gen-ts"\>).*?(\</p\>)', rf"\1{footer_text}\2", html, flags=re.S)
 
+    # Ensure Mermaid quadrantChart has safe labels and plotted points
+    def _sanitize_label(s: str) -> str:
+        s = (s or '').strip()
+        # Remove quotes and control characters
+        s = s.replace('"', '').replace("'", '')
+        s = re.sub(r"[\r\n\t]+", " ", s)
+        # Trim length to avoid overflow
+        return s[:20]
+
+    overall = analysis.get('top_performers', {}).get('overall') if analysis else None
+    items_for_quad = overall or sorted(data['ranking_items'], key=lambda x: x.get('total_score', 0), reverse=True)
+    points = []
+    for it in items_for_quad[:8]:
+        label = _sanitize_label(it.get('name', '')) or 'Item'
+        x = int(it.get('biz_eff', 0)) * 20
+        y = int(it.get('eng_tool', 0)) * 20
+        if x == 0 and y == 0:
+            continue
+        points.append(f'        "{label}": [{x}, {y}]')
+
+    quad_block = (
+        "quadrantChart\n"
+        "        title AIテクノロジー活用戦略\n"
+        "        x-axis \"ビジネス効率\" --> \"高効率\"\n"
+        "        y-axis \"エンジニア活用度\" --> \"高活用度\"\n"
+        "        quadrant-1 \"戦略的投資領域\"\n"
+        "        quadrant-2 \"優先導入領域\"\n"
+        "        quadrant-3 \"検討領域\"\n"
+        "        quadrant-4 \"ビジネス特化領域\"\n"
+        + ("\n".join(points) if points else "        \"No Data\": [10,10]")
+        + "\n"
+    )
+
+    # Replace existing quadrantChart block within the mermaid div
+    html = re.sub(r'(\<div class=\"mermaid\"\>)[\s\S]*?quadrantChart[\s\S]*?(\</div\>)',
+                  rf"\1\n{quad_block}\2", html)
+
     # Write outputs
     dated = out_dir / f"ai_ranking_report_{datetime.now().strftime('%Y%m%d')}.html"
     latest = out_dir / "ai_ranking_report_latest.html"
