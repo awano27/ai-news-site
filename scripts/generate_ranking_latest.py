@@ -44,12 +44,13 @@ def main() -> int:
         if struct_file.exists():
             try:
                 raw = struct_file.read_text(encoding='utf-8')
-                # Extract JSON object at the beginning (until the first standalone closing brace)
-                json_end = raw.find('\n}') + 2
-                if json_end <= 1:
-                    json_end = raw.find('}') + 1
                 import json as _json
-                j = _json.loads(raw[:json_end])
+                try:
+                    j = _json.loads(raw)
+                except Exception:
+                    # Fallback: try to heuristically trim trailing non-JSON content
+                    json_end = raw.rfind('}') + 1
+                    j = _json.loads(raw[:json_end])
                 items = j.get('items', [])
 
                 # Build ranking_items from structured items with heuristics
