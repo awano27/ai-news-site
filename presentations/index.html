@@ -833,12 +833,7 @@
                 const frame = document.getElementById('contentFrame');
                 frame.style.display = 'block';
                 frame.src = pageMap[page];
-                frame.onload = hideLoading;
-                // show external open link for embedded destinations
-                const wrap = document.getElementById('externalFallbackWrap');
-                const link = document.getElementById('externalFallbackLink');
-                if (pageMap[page]) { link.href = pageMap[page]; wrap.style.display = 'block'; } else { wrap.style.display = 'none'; }
-            }
+                frame.onload = hideLoading;\n                // external link fallback display\n                const wrap = document.getElementById('externalFallbackWrap');\n                const link = document.getElementById('externalFallbackLink');\n                if (pageMap[page]) { link.href = pageMap[page]; wrap.style.display = 'block'; } else { wrap.style.display = 'none'; }\n\n                // Robust fallback: if iframe fails or remains empty (X-Frame-Options/CSP), redirect in new navigation\n                if (page === 'dailyNews') {\n                    setTimeout(() => {\n                        try {\n                            const doc = frame.contentDocument;\n                            const ok = doc && doc.body && doc.body.children && doc.body.children.length > 0;\n                            if (!ok) { window.location.href = pageMap[page]; }\n                        } catch(e) {\n                            window.location.href = pageMap[page];\n                        }\n                    }, 1000);\n                }\n            }
         }
 
         function loadSlide(slideDate) {
@@ -1046,6 +1041,7 @@
     </script>
 </body>
 </html>
+
 
 
 
