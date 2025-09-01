@@ -174,8 +174,10 @@
 
         .content-frame {
             width: 100%;
-            height: 100%;
+            height: calc(100vh - 64px);
+            min-height: 70vh;
             border: none;
+            background: #fff;
         }
 
         /* Hero */
@@ -550,7 +552,10 @@
                 </div>
 
                 <!-- iframe Container (Hidden by default) -->
-                <iframe class="content-frame" id="contentFrame" style="display: none;"></iframe>
+                <iframe class="content-frame" id="contentFrame" title="Embedded content" style="display: none;"></iframe>
+                <div id="externalFallbackWrap" style="display:none; padding: 8px 32px 24px;">
+                    <a id="externalFallbackLink" href="#" target="_blank" rel="noopener noreferrer" style="font-weight: 700; color: var(--accent); text-decoration: none;">新しいタブで開く →</a>
+                </div>
             </div>
         </div>
     </div>
@@ -826,6 +831,7 @@
             if (page === 'dashboard') {
                 document.getElementById('dashboardContent').style.display = 'grid';
                 document.getElementById('contentFrame').style.display = 'none';
+                document.getElementById('externalFallbackWrap').style.display = 'none';
             } else {
                 showLoading();
                 document.getElementById('dashboardContent').style.display = 'none';
@@ -833,6 +839,10 @@
                 frame.style.display = 'block';
                 frame.src = pageMap[page];
                 frame.onload = hideLoading;
+                // show external open link for embedded destinations
+                const wrap = document.getElementById('externalFallbackWrap');
+                const link = document.getElementById('externalFallbackLink');
+                if (pageMap[page]) { link.href = pageMap[page]; wrap.style.display = 'block'; } else { wrap.style.display = 'none'; }
             }
         }
 
