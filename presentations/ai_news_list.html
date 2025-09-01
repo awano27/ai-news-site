@@ -45,6 +45,22 @@
     .actions { margin-top: 10px; display:flex; gap:10px; align-items:center; }
     .btn { appearance: none; border: 1px solid var(--border); background: var(--surface); padding: 8px 10px; border-radius: 10px; color: var(--accent); font-weight: 800; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
     .empty { text-align: center; color: var(--muted); padding: 24px 0; }
+
+    /* Info-dense enhancements */
+    .meta .favicon { width:16px; height:16px; border-radius:4px; vertical-align:-3px; }
+    .label-pill { display:inline-block; padding:4px 8px; border-radius:9999px; font-weight:800; font-size:12px; margin-left:6px; }
+    .label-must { background:#ef4444; color:#fff; }
+    .label-rec { background:#f59e0b; color:#111; }
+    .label-consid { background:#10b981; color:#fff; }
+    .points { margin-top:8px; font-size:13px; color:var(--muted); }
+    .points li { margin-left: 1em; list-style: disc; }
+
+    /* Compact density */
+    .density { margin-left:auto; }
+    .density .btn { padding:6px 10px; }
+    .compact .grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    @media (max-width: 1100px) { .compact .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    .compact .card { padding: 12px; }
   </style>
 </head>
 <body>
@@ -57,7 +73,7 @@
   <div class="wrap">
     <div class="header">
       <h1>AIニュース一覧</h1>
-      <p>スコア順で主だったニュースをハイライト。検索やスコア帯のチップで絞り込めます。</p>
+      <p>スコア順で主だったニュースをハイライト。検索・スコア帯・ラベルで絞り込みできます。</p>
     </div>
     <div class="controls">
       <label class="field">
@@ -70,12 +86,16 @@
         <output id="minVal">0</output>
       </label>
       <div class="count"><span id="cnt">0</span> 件</div>
+      <div class="density"><button id="densityToggle" class="btn" type="button">密度: 標準</button></div>
     </div>
     <div class="chips" role="tablist" aria-label="スコア帯">
       <button class="chip active" data-band="all" role="tab" aria-selected="true">すべて</button>
       <button class="chip" data-band="90">90+</button>
       <button class="chip" data-band="80">80+</button>
       <button class="chip" data-band="70">70+</button>
+      <button class="chip" data-band="must">必読</button>
+      <button class="chip" data-band="rec">注目</button>
+      <button class="chip" data-band="consid">参考</button>
     </div>
     <section id="featured" class="featured" hidden>
       <article class="hero" id="hero-main"></article>
@@ -94,6 +114,8 @@
   function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t??''; return d.innerHTML; }
   function domain(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
   function relTime(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return s; const diff=(Date.now()-d)/1000; if(diff<3600) return `${Math.floor(diff/60)}分前`; if(diff<86400) return `${Math.floor(diff/3600)}時間前`; return d.toLocaleDateString('ja-JP'); }
+  function labelFor(score){ if(score>=90) return 'must'; if(score>=80) return 'rec'; if(score>=70) return 'consid'; return ''; }
+  function labelName(lbl){ return lbl==='must'?'必読':lbl==='rec'?'注目':lbl==='consid'?'参考':''; }
 
   function parseItems(html){
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -112,7 +134,9 @@
       let summary = '';
       const pAfter = row.querySelector('p');
       if (pAfter) summary = pAfter.textContent.trim();
-      return { title, score, rank, url, summary, date };
+      const points = Array.from(row.querySelectorAll('ul li')).slice(0,3).map(li=>li.textContent.trim()).filter(Boolean);
+      const label = labelFor(score);
+      return { title, score, rank, url, summary, date, points, label };
     });
     return items.sort((a,b)=> b.score - a.score || a.rank - b.rank);
   }
@@ -126,6 +150,7 @@
       <h3 class="title">${escapeHtml(it.title)}</h3>
       <div class="meta"><span>${it.date? relTime(it.date): ''}</span><span>順位: ${it.rank}</span></div>
       ${sum ? `<div class="summary">${sum}</div>`:''}
+      ${it.points && it.points.length ? `<ul class="points">${it.points.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul>`:''}
       <div class="actions"><a class="btn" href="${it.url}" target="_blank" rel="noopener">読む →</a><a class="btn" href="${SRC}" target="_blank" rel="noopener">詳細</a></div>
     `;
   }
@@ -136,9 +161,10 @@
     return `
       <article class="card">
         <div class="score">${it.score}</div>
-        <h3 class="title">${escapeHtml(it.title)}</h3>
-        <div class="meta">${dom?`<span>${dom}</span>`:''}<span>${it.date? relTime(it.date): ''}</span><span>順位:${it.rank}</span></div>
+        <h3 class="title">${escapeHtml(it.title)} ${it.label?`<span class="label-pill label-${it.label}">${labelName(it.label)}</span>`:''}</h3>
+        <div class="meta">${dom?`<img class="favicon" src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(dom)}&sz=32" alt=""> <span>${dom}</span>`:''}<span>${it.date? relTime(it.date): ''}</span><span>順位:${it.rank}</span></div>
         ${sum?`<div class="summary">${sum}</div>`:''}
+        ${it.points && it.points.length ? `<ul class="points">${it.points.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul>`:''}
         <div class="actions">${it.url?`<a class="btn" href="${it.url}" target="_blank" rel="noopener">開く →</a>`:''}<a class="btn" href="${SRC}" target="_blank" rel="noopener">詳細レポート</a></div>
       </article>`;
   }
@@ -169,7 +195,8 @@
       if (it.score < min) return false;
       if (band !== 'all') {
         const b = parseInt(band,10);
-        if (isFinite(b) && it.score < b) return false;
+        if (isFinite(b)) { if (it.score < b) return false; }
+        else { if (it.label !== band) return false; }
       }
       if (q) {
         const text = `${it.title}\n${it.summary}`.toLowerCase();
@@ -195,6 +222,11 @@
     const upd = ()=>{ state.min = parseInt(r.value||'0',10); rv.value = String(state.min); applyFilters(); };
     r.addEventListener('input', upd); upd();
     $$('.chip').forEach(ch => ch.addEventListener('click', ()=>{ $$('.chip').forEach(c=>c.classList.toggle('active', c===ch)); state.band = ch.dataset.band || 'all'; applyFilters(); }));
+    const densityBtn = document.getElementById('densityToggle');
+    densityBtn.addEventListener('click', ()=>{
+      const body = document.body; const compact = body.classList.toggle('compact');
+      densityBtn.textContent = compact ? '密度: 高' : '密度: 標準';
+    });
   }
 
   document.addEventListener('DOMContentLoaded', init);
