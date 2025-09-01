@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIニュース一覧 — Presentations</title>
+  <meta name="description" content="発表用に最適化したAIニュース一覧。大きく見やすいカード、わかりやすいラベル、素早いフィルター。" />
+  <link rel="preconnect" href="https://www.google.com" crossorigin>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="p-header" role="banner">
+    <div class="p-container">
+      <h1 class="p-title">AIニュース一覧</h1>
+      <p class="p-subtitle">Presentations向け — 読みやすさ最優先のカードレイアウト</p>
+      <div class="p-controls">
+        <div class="p-persona" role="group" aria-label="表示モード">
+          <button class="p-btn p-btn-toggle is-active" data-persona="engineer">技術向け</button>
+          <button class="p-btn p-btn-toggle" data-persona="business">ビジネス向け</button>
+        </div>
+        <div class="p-meta">
+          <span id="p-count">0件</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="p-filters" aria-label="フィルター">
+    <div class="p-container">
+      <div class="p-filter-row">
+        <div class="p-chips" role="tablist" aria-label="推奨度">
+          <button class="p-chip is-active" data-label="all" role="tab" aria-selected="true">すべて <span class="p-chip-count" data-count="all">0</span></button>
+          <button class="p-chip p-chip-x" data-label="x" role="tab" aria-selected="false">X最新 <span class="p-chip-count" data-count="x">0</span></button>
+          <button class="p-chip p-chip-must" data-label="must_read" role="tab" aria-selected="false">必読 <span class="p-chip-count" data-count="must_read">0</span></button>
+          <button class="p-chip p-chip-rec" data-label="recommended" role="tab" aria-selected="false">注目 <span class="p-chip-count" data-count="recommended">0</span></button>
+          <button class="p-chip p-chip-con" data-label="consider" role="tab" aria-selected="false">参考 <span class="p-chip-count" data-count="consider">0</span></button>
+          <button class="p-chip p-chip-skip" data-label="skip" role="tab" aria-selected="false">見送り <span class="p-chip-count" data-count="skip">0</span></button>
+        </div>
+        <div class="p-inputs">
+          <label class="p-field">
+            <span class="p-label">ソース</span>
+            <select id="p-tier">
+              <option value="all">すべて</option>
+              <option value="1">高信頼</option>
+              <option value="2">一般</option>
+            </select>
+          </label>
+          <label class="p-field p-search">
+            <span class="p-label">検索</span>
+            <input id="p-search" type="search" placeholder="タイトル・要約で検索" />
+          </label>
+          <label class="p-field p-range">
+            <span class="p-label">最低スコア</span>
+            <input id="p-minscore" type="range" min="0" max="100" step="5" value="0" />
+            <output id="p-minscore-val" for="p-minscore">0</output>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="p-main" id="main">
+    <div class="p-container">
+      <div id="p-list" class="p-grid" aria-live="polite" aria-busy="true"></div>
+      <p id="p-empty" class="p-empty" hidden>該当するニュースがありません。</p>
+    </div>
+  </main>
+
+  <footer class="p-footer">
+    <div class="p-container">
+      <small>データ: docs/data/latest.json または docs/data/news.generated.json</small>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+<style>
+/* Small inline fix for emoji spacing on some Windows fonts */
+.p-chip::after, .p-btn-toggle::after { content: '' }
+</style>
+</html>
+
