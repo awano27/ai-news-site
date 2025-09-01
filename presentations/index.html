@@ -1,16 +1,14 @@
-﻿<!DOCTYPE html>
-<html lang="ja">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Intelligence Platform - 邨ｱ蜷医ム繝・す繝･繝懊・繝・/title>
+  <title>AI Intelligence Platform - Dashboard</title>
   <style>
-    :root{
-      --primary:#0f172a;--accent:#3b82f6;--surface:#ffffff;--bg:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans JP',sans-serif;background:linear-gradient(180deg,#f8fafc 0%,var(--bg) 100%);color:var(--text)}
+    :root{--primary:#0f172a;--accent:#3b82f6;--surface:#ffffff;--bg:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b}
+    *{box-sizing:border-box}html,body{height:100%;margin:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:linear-gradient(180deg,#f8fafc 0%,var(--bg) 100%);color:var(--text)}
     .app{display:flex;min-height:100vh}
     .sidebar{width:240px;background:var(--primary);color:#e5e7eb;padding:20px 14px}
     .sidebar h1{font-size:16px;margin:0 0 16px;font-weight:800;letter-spacing:.02em}
@@ -21,22 +19,13 @@
     .top{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
     .crumb{color:var(--muted);font-weight:600}
     .content{flex:1;overflow:auto}
-    /* Hero banner (modern, subtle glow) */
-    .hero-banner{position:relative;margin:16px 20px;padding:28px 24px;border-radius:18px;overflow:hidden;color:#eaf2ff;background:radial-gradient(1200px 400px at -10% -40%,rgba(59,130,246,.35),transparent 60%),radial-gradient(900px 380px at 120% -50%,rgba(30,64,175,.5),transparent 60%),linear-gradient(135deg,#0b1222 0%,#0f172a 55%,#0b1324 100%);box-shadow:0 20px 40px rgba(2,6,23,.35);border:1px solid rgba(148,163,184,.18)}
-    .hero-banner::after{content:'';position:absolute;inset:0;background:radial-gradient(800px 200px at 30% 0%,rgba(99,102,241,.25),transparent 60%);pointer-events:none}
-    .hero-title{font-size:28px;font-weight:900;letter-spacing:.01em;margin:0 0 6px}
-    .hero-sub{color:#bfd5ff;margin:0 0 16px}
-    .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-    .btn{appearance:none;border:1px solid rgba(148,163,184,.35);color:#eaf2ff;background:rgba(255,255,255,.04);padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease,background .12s ease,border-color .12s ease;cursor:pointer}
+    .hero{position:relative;margin:16px 20px;padding:24px 20px;border-radius:14px;background:linear-gradient(135deg,#0b1222 0%,#0f172a 55%,#0b1324 100%);color:#eaf2ff;box-shadow:0 20px 40px rgba(2,6,23,.35);border:1px solid rgba(148,163,184,.18)}
+    .hero h2{margin:0 0 6px;font-size:24px;font-weight:900;letter-spacing:.01em}
+    .hero p{margin:0 0 12px;color:#bfd5ff}
+    .cta{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid rgba(148,163,184,.35);color:#eaf2ff;background:rgba(255,255,255,.04);padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease,background .12s ease}
     .btn:hover{transform:translateY(-1px);background:rgba(99,102,241,.14);border-color:rgba(147,197,253,.55)}
     .btn.primary{background:linear-gradient(135deg,#2563eb,#1e40af);border-color:transparent}
-    .btn.primary:hover{filter:brightness(1.05)}
-    /* Glass KPIs */
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
-    .kpi{backdrop-filter:saturate(160%) blur(10px);background:rgba(15,23,42,.45);border:1px solid rgba(148,163,184,.22);border-radius:12px;padding:12px 14px;color:#e7eefc}
-    .kpi-label{color:#9fb7e8;font-size:12px}
-    .kpi-value{font-weight:900;font-size:22px;letter-spacing:.02em}
-    /* Cards */
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;padding:12px 20px 28px}
     .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.06);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;overflow:hidden}
     .card::before{content:'';position:absolute;inset:auto auto 0 0;height:3px;width:100%;background:linear-gradient(90deg,#60a5fa,#22d3ee,#a78bfa);opacity:.85;transition:transform .25s ease;transform:translateX(-100%)}
@@ -44,18 +33,17 @@
     .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.12);border-color:#cfe0ff}
     .card .title{font-size:18px;font-weight:900;color:var(--primary);margin:8px 0;letter-spacing:.01em}
     .card .desc{color:var(--muted)}
-    /* Frame */
     .frame{width:100%;height:calc(100vh - 60px);border:none;display:none;background:var(--surface)}
     .external{display:none;padding:8px 20px}
     .external a{color:var(--accent);font-weight:800;text-decoration:none}
     .external a:hover{text-decoration:underline}
-    @media (max-width: 880px){.sidebar{display:none}.top{padding:0 12px}}
+    @media (max-width:880px){.sidebar{display:none}.top{padding:0 12px}}
   </style>
   <script>
     const pageMap={dashboard:null,integrated:'integrated_report.html',ranking:'ai_ranking_interactive.html',slides:'day_slides_index.html',news:'daily_ai_news_report_latest.html',dailyNews:'https://awano27.github.io/daily-ai-news-pages/'};
-    function setActive(page){document.querySelectorAll('.nav a[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));document.getElementById('crumb').textContent=(page==='dashboard'?'Dashboard':page==='integrated'?'繝ｬ繝昴・繝・:page==='ranking'?'繧､繝ｳ繧ｿ繝ｩ繧ｯ繝・ぅ繝悶Λ繝ｳ繧ｭ繝ｳ繧ｰ':page==='slides'?'豈取律繧ｹ繝ｩ繧､繝・:page==='news'?'隧ｳ邏ｰ繝ｬ繝昴・繝・:page==='dailyNews'?'AI繝九Η繝ｼ繧ｹ荳隕ｧ':page)}
+    function setActive(p){document.querySelectorAll('.nav a[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===p));document.getElementById('crumb').textContent=(p==='dashboard'?'Dashboard':p==='integrated'?'Report':p==='ranking'?'Interactive Ranking':p==='slides'?'Daily Slides':p==='news'?'Detailed Report':p==='dailyNews'?'AI News':'Page')}
     function showDashboard(){document.getElementById('dashboard').style.display='block';const f=document.getElementById('frame');f.style.display='none';f.removeAttribute('src');document.getElementById('external').style.display='none';setActive('dashboard')}
-    function loadPage(page){if(page==='dashboard')return showDashboard();const url=pageMap[page];const dash=document.getElementById('dashboard');const f=document.getElementById('frame');const ex=document.getElementById('external');dash.style.display='none';f.style.display='block';f.src=url||'';setActive(page);if(url&&url.startsWith('http')){ex.style.display='block';document.getElementById('external-link').href=url;setTimeout(()=>{try{const ok=f.contentDocument&&f.contentDocument.body&&f.contentDocument.body.children.length>0;if(!ok)window.location.href=url}catch(e){window.location.href=url}},1000)}else{ex.style.display='none'}}
+    function loadPage(p){if(p==='dashboard')return showDashboard();const url=pageMap[p];const dash=document.getElementById('dashboard');const f=document.getElementById('frame');const ex=document.getElementById('external');dash.style.display='none';f.style.display='block';f.src=url||'';setActive(p);if(url&&url.startsWith('http')){ex.style.display='block';document.getElementById('external-link').href=url;setTimeout(()=>{try{const ok=f.contentDocument&&f.contentDocument.body&&f.contentDocument.body.children.length>0;if(!ok)window.location.href=url}catch(e){window.location.href=url}},800)}else{ex.style.display='none'}}
     document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.nav a[data-page]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();loadPage(a.dataset.page)}));showDashboard()});
   </script>
 </head>
@@ -64,61 +52,52 @@
     <aside class="sidebar">
       <h1>Presentations</h1>
       <nav class="nav">
-        <a href="#" data-page="dashboard" class="active">匠 Dashboard</a>
-        <a href="#" data-page="integrated">ｧｭ 繝ｬ繝昴・繝・/a>
-        <a href="#" data-page="ranking">嶋 繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</a>
-        <a href="#" data-page="slides">搭 豈取律繧ｹ繝ｩ繧､繝・/a>
-        <a href="#" data-page="dailyNews">堂 AI繝九Η繝ｼ繧ｹ荳隕ｧ</a>
-        <a href="#" data-page="news">淘 隧ｳ邏ｰ繝ｬ繝昴・繝・/a>
+        <a href="#" data-page="dashboard" class="active">🏠 Dashboard</a>
+        <a href="#" data-page="integrated">🧭 Report</a>
+        <a href="#" data-page="ranking">📈 Ranking</a>
+        <a href="#" data-page="slides">📋 Daily Slides</a>
+        <a href="#" data-page="dailyNews">📰 AI News</a>
+        <a href="#" data-page="news">📑 Detailed Report</a>
       </nav>
     </aside>
     <main class="main">
       <div class="top"><div class="crumb" id="crumb">Dashboard</div></div>
       <div class="content">
         <section id="dashboard">
-          <div class="hero-banner">
-            <h2 class="hero-title">邨ｱ蜷医ム繝・す繝･繝懊・繝・/h2>
-            <p class="hero-sub">譛譁ｰ縺ｮAI繝九Η繝ｼ繧ｹ縲√Ξ繝昴・繝医∵律谺｡繧ｹ繝ｩ繧､繝峨ｒ繝ｯ繝ｳ繧ｯ繝ｪ繝・け縺ｧ縲・/p>
-            <div class="hero-cta">
-              <a class="btn primary" href="#" onclick="loadPage('dailyNews');return false;">堂 繝九Η繝ｼ繧ｹ繧定ｦ九ｋ</a>
-              <a class="btn" href="#" onclick="loadPage('integrated');return false;">ｧｭ 繝ｬ繝昴・繝・/a>
-              <a class="btn" href="#" onclick="loadPage('slides');return false;">搭 豈取律繧ｹ繝ｩ繧､繝・/a>
-            <a class="btn" href="ai_news_list.html">📄 内部版（簡易）</a></div>
-            <div class="kpis" aria-label="讎りｦ∵欠讓・>
-              <div class="kpi"><div class="kpi-label">譛ｬ譌･縺ｮ險倅ｺ・/div><div class="kpi-value">75</div></div>
-              <div class="kpi"><div class="kpi-label">鬮倅ｿ｡鬆ｼ繧ｽ繝ｼ繧ｹ</div><div class="kpi-value">12</div></div>
-              <div class="kpi"><div class="kpi-label">蟷ｳ蝮・せ繧ｳ繧｢</div><div class="kpi-value">82%</div></div>
-              <div class="kpi"><div class="kpi-label">譛邨よ峩譁ｰ</div><div class="kpi-value">莉頑律</div></div>
+          <div class="hero">
+            <h2>AI Intelligence Dashboard</h2>
+            <p>Quick access to reports, news, and daily slides.</p>
+            <div class="cta">
+              <a class="btn primary" href="#" onclick="loadPage('dailyNews');return false;">Open News</a>
+              <a class="btn" href="#" onclick="loadPage('integrated');return false;">Open Report</a>
+              <a class="btn" href="#" onclick="loadPage('slides');return false;">Open Slides</a>
+              <a class="btn" href="ai_news_list.html">Internal List</a>
             </div>
           </div>
           <div class="grid">
             <div class="card" onclick="loadPage('integrated')">
-              <div class="title">ｧｭ 繝ｬ繝昴・繝・/div>
-              <div class="desc">荳ｻ隕√ヨ繝斐ャ繧ｯ繧剃ｿｯ迸ｰ縺吶ｋ隕∫ｴ・Ξ繝昴・繝・/div>
+              <div class="title">🧭 Report</div>
+              <div class="desc">Overview of key topics and insights.</div>
             </div>
             <div class="card" onclick="loadPage('slides')">
-              <div class="title">搭 豈取律繧ｹ繝ｩ繧､繝・/div>
-              <div class="desc">譌･豈弱・繧ｹ繝ｩ繧､繝我ｸ隕ｧ縺ｫ繧｢繧ｯ繧ｻ繧ｹ</div>
+              <div class="title">📋 Daily Slides</div>
+              <div class="desc">Browse slides generated each day.</div>
             </div>
             <div class="card" onclick="loadPage('dailyNews')">
-              <div class="title">堂 AI繝九Η繝ｼ繧ｹ荳隕ｧ</div>
-              <div class="desc">譛譁ｰ縺ｮAI繝九Η繝ｼ繧ｹ・亥､夜Κ繝壹・繧ｸ・・/div>
+              <div class="title">📰 AI News</div>
+              <div class="desc">Latest AI news (external).</div>
             </div>
             <div class="card" onclick="loadPage('ranking')">
-              <div class="title">嶋 繧､繝ｳ繧ｿ繝ｩ繧ｯ繝・ぅ繝悶Λ繝ｳ繧ｭ繝ｳ繧ｰ</div>
-              <div class="desc">繧ｹ繧ｳ繧｢縺ｫ蝓ｺ縺･縺上Λ繝ｳ繧ｭ繝ｳ繧ｰ繝繝・す繝･繝懊・繝・/div>
+              <div class="title">📈 Interactive Ranking</div>
+              <div class="desc">Ranking dashboard based on scores.</div>
             </div>
           </div>
         </section>
         <iframe id="frame" class="frame" title="Content"></iframe>
-        <div id="external" class="external">螟夜Κ縺ｧ髢九￥: <a id="external-link" href="#" target="_blank" rel="noopener noreferrer">繝ｪ繝ｳ繧ｯ</a></div>
+        <div id="external" class="external">Open externally: <a id="external-link" href="#" target="_blank" rel="noopener noreferrer">link</a></div>
       </div>
     </main>
   </div>
 </body>
 </html>
-
-
-
-
 
