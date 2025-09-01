@@ -128,8 +128,17 @@
   async function tryFetch(path){ try{ const res=await fetch(path,{cache:'no-store'}); if(!res.ok) return null; return await res.json(); } catch(e){ return null; } }
 
   async function load(){
-    // Try multiple data sources under docs/data
-    const candidates = [ '../data/news.generated.json', '../data/latest.json', '../data/news.json', '../data/news.enriched.json' ];
+    // Try multiple data sources (relative first, then absolute fallbacks)
+    const candidates = [
+      '../data/news.generated.json',
+      '../data/latest.json',
+      '../data/news.json',
+      '../data/news.enriched.json',
+      // absolute fallbacks in case of path/baseurl issues or cache delays
+      'https://awano27.github.io/ai-news-site/docs/data/news.generated.json',
+      'https://awano27.github.io/ai-news-site/docs/data/latest.json',
+      'https://awano27.github.io/new-ai-news-site/data/news.generated.json'
+    ];
     let data=null;
     for (const p of candidates){ data = await tryFetch(p); if (data) { break; } }
     const items = coerceArray(data);
@@ -140,4 +149,3 @@
 
   document.addEventListener('DOMContentLoaded', load);
 })();
-
