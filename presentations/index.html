@@ -15,10 +15,13 @@
             --danger: #ef4444;
             --dark: #020617;
             --light: #f8fafc;
+            --surface: #ffffff;
             --border: #e2e8f0;
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --text-muted: #94a3b8;
+            --ring: rgba(59,130,246,.25);
+            --shadow-soft: 0 8px 24px rgba(0,0,0,.06);
         }
 
         * {
@@ -32,7 +35,7 @@
             font-size: 14px;
             line-height: 1.6;
             color: var(--text-primary);
-            background: var(--light);
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
             overflow: hidden;
         }
 
@@ -110,8 +113,8 @@
 
         /* Top Bar */
         .top-bar {
-            height: 60px;
-            background: white;
+            height: 64px;
+            background: var(--surface);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
@@ -166,7 +169,7 @@
         .content-area {
             flex: 1;
             overflow-y: auto;
-            background: white;
+            background: transparent;
         }
 
         .content-frame {
@@ -174,6 +177,17 @@
             height: 100%;
             border: none;
         }
+
+        /* Hero */
+        .hero { padding: 28px 32px 8px; }
+        .hero-title { font-size: 1.6rem; font-weight: 800; letter-spacing: .01em; margin-bottom: 6px; color: var(--primary); }
+        .hero-desc { color: var(--text-secondary); }
+
+        /* KPI tiles */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 16px 32px 8px; }
+        .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow-soft); }
+        .kpi-label { color: var(--text-muted); font-size: .85rem; }
+        .kpi-value { font-size: 1.4rem; font-weight: 900; color: var(--primary); }
 
         /* Tab System */
         .tab-container {
@@ -274,20 +288,21 @@
         /* Dashboard Grid */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            padding: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 16px 32px 32px;
         }
 
         .dashboard-card {
-            background: white;
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s;
+            border-radius: 14px;
+            padding: 22px;
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--shadow-soft);
         }
 
         .dashboard-card::before {
@@ -296,14 +311,12 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: var(--accent);
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #60a5fa);
         }
 
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
+        .dashboard-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(0,0,0,.10); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+        .dashboard-card:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
 
         .card-icon {
             font-size: 2rem;
@@ -327,6 +340,18 @@
             gap: 24px;
             padding-top: 16px;
             border-top: 1px solid var(--border);
+        }
+
+        .card-cta { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--accent); }
+        .card-cta .arr { transition: transform .15s ease; }
+        .dashboard-card:hover .card-cta .arr { transform: translateX(3px); }
+
+        @media (max-width: 900px) {
+            .top-bar { padding: 0 16px; }
+            .tab-container { padding: 16px; }
+            .hero { padding: 16px; }
+            .kpi-grid { padding: 8px 16px 0; }
+            .dashboard-grid { padding: 8px 16px 24px; }
         }
 
         .card-stat {
@@ -457,6 +482,16 @@
             <!-- Content Area -->
             <div class="content-area" id="contentArea">
                 <!-- Dashboard View (Default) -->
+                <section class="hero">
+                    <h2 class="hero-title">ダッシュボード</h2>
+                    <p class="hero-desc">レポート、デイリーニュース、スライドへ素早くアクセス。視覚的に分かりやすいカードで操作できます。</p>
+                </section>
+                <section class="kpi-grid" aria-label="概要指標">
+                    <div class="kpi"><div class="kpi-label">ニュース件数</div><div class="kpi-value">75</div></div>
+                    <div class="kpi"><div class="kpi-label">高信頼ソース</div><div class="kpi-value">12</div></div>
+                    <div class="kpi"><div class="kpi-label">平均スコア</div><div class="kpi-value">82%</div></div>
+                    <div class="kpi"><div class="kpi-label">更新</div><div class="kpi-value">今日</div></div>
+                </section>
                 <div class="dashboard-grid" id="dashboardContent">
                     <div class="dashboard-card" onclick="loadPage('integrated')">
                         <div class="card-icon">🧭</div>
@@ -472,6 +507,7 @@
                                 <div class="stat-label">Avg Score</div>
                             </div>
                         </div>
+                        <div class="card-cta">レポートを開く <span class="arr">→</span></div>
                     </div>
 
                     
@@ -492,6 +528,7 @@
                                 <div class="stat-label">High Priority</div>
                             </div>
                         </div>
+                        <div class="card-cta">ニュース一覧を開く <span class="arr">→</span></div>
                     </div>
 
                     <div class="dashboard-card" onclick="showQuickAccess()">
@@ -508,6 +545,7 @@
                                 <div class="stat-label">Reports</div>
                             </div>
                         </div>
+                        <div class="card-cta">クイックアクセス <span class="arr">→</span></div>
                     </div>
                 </div>
 
