@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AIニュース一覧</title>
+  <title>Daily AI News — List</title>
   <style>
-    :root { --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --accent:#2563eb; --ok:#10b981; }
+    :root { --bg:#f6f7f8; --surface:#ffffff; --text:#0f172a; --muted:#607086; --border:#e5e7eb; --accent:#ff3b00; --ok:#0ea5a7; }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif; }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
-    .header { background: linear-gradient(135deg,#b3c2ff 0%,#d6e0ff 100%); color: #0b1222; border-radius: 14px; padding: 18px; margin-bottom: 16px; }
-    .header h1 { margin: 0 0 6px; font-size: 22px; font-weight: 900; letter-spacing: .01em; }
-    .header p { margin: 0; color: #1e293b; opacity: .85; }
-    .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end; margin: 12px 0 8px; }
+    .mast { background:#111; color:#fff; }
+    .mast .inner { max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
+    .mast .brand { font-weight:900; letter-spacing:.02em; }
+    .mast .nav a { color:#ffb199; text-decoration:none; margin-left:14px; font-weight:700; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px 24px; }
+    .header { border-bottom: 3px solid var(--accent); padding: 18px 0 8px; }
+    .header h1 { margin: 12px 0 4px; font-size: 24px; font-weight: 900; letter-spacing: .01em; }
+    .header p { margin: 0; color: var(--muted); }
+    .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end; margin: 14px 0 8px; }
     @media (max-width: 800px) { .controls { grid-template-columns: 1fr; } }
     .field { display: grid; gap: 6px; }
     .label { font-size: 12px; color: var(--muted); }
@@ -20,23 +24,40 @@
     .range { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
     input[type="range"] { width: 180px; }
     .count { color: var(--muted); font-weight: 700; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 10px; }
-    .card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 8px 22px rgba(0,0,0,.06); transition: transform .15s ease, box-shadow .15s ease; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+    .chip { border:1px solid var(--border); background:#fff; color:#111; padding:6px 10px; border-radius:9999px; font-weight:800; cursor:pointer; }
+    .chip.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px rgba(255,59,0,.15); }
+    .featured { display:grid; grid-template-columns: 1.15fr 1fr; gap:16px; margin-top: 10px; }
+    @media (max-width: 900px) { .featured { grid-template-columns: 1fr; } }
+    .hero { position:relative; background: #fff; border:1px solid var(--border); border-radius: 14px; padding:18px; box-shadow: 0 12px 26px rgba(0,0,0,.06); }
+    .hero .score { position:absolute; top:14px; right:14px; background: var(--accent); color:#fff; font-weight:900; border-radius:9999px; padding:6px 10px; }
+    .hero .title { font-size: 22px; font-weight: 900; margin: 4px 0 8px; }
+    .hero .kicker { color: var(--accent); font-weight:800; font-size:12px; letter-spacing:.06em; }
+    .hero .summary { color: var(--muted); line-height:1.7; margin-top: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.05); transition: transform .15s ease, box-shadow .15s ease; }
     .card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.10); }
-    .score { position: absolute; top: 12px; right: 12px; background: var(--ok); color: #fff; font-weight: 900; border-radius: 9999px; padding: 6px 10px; }
-    .title { font-size: 18px; font-weight: 900; margin: 6px 0 6px; }
-    .meta { display:flex; gap:8px; flex-wrap:wrap; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .score { position: absolute; top: 12px; right: 12px; background: var(--accent); color: #fff; font-weight: 900; border-radius: 9999px; padding: 6px 10px; }
+    .title { font-size: 18px; font-weight: 900; margin: 4px 0 6px; }
+    .meta { display:flex; gap:10px; flex-wrap:wrap; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
     .summary { color: var(--muted); line-height: 1.6; }
-    .actions { margin-top: 10px; display:flex; gap:10px; }
+    .actions { margin-top: 10px; display:flex; gap:10px; align-items:center; }
     .btn { appearance: none; border: 1px solid var(--border); background: var(--surface); padding: 8px 10px; border-radius: 10px; color: var(--accent); font-weight: 800; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
     .empty { text-align: center; color: var(--muted); padding: 24px 0; }
   </style>
 </head>
 <body>
+  <header class="mast">
+    <div class="inner">
+      <div class="brand">Daily AI News</div>
+      <nav class="nav"><a href="./">Presentations</a><a href="daily_ai_news_report_latest.html">Report</a></nav>
+    </div>
+  </header>
   <div class="wrap">
     <div class="header">
       <h1>AIニュース一覧</h1>
-      <p>最新のAIニュースをスコア順で表示。検索とスコア絞り込みに対応。</p>
+      <p>スコア順で主だったニュースをハイライト。検索やスコア帯のチップで絞り込めます。</p>
     </div>
     <div class="controls">
       <label class="field">
@@ -50,16 +71,29 @@
       </label>
       <div class="count"><span id="cnt">0</span> 件</div>
     </div>
+    <div class="chips" role="tablist" aria-label="スコア帯">
+      <button class="chip active" data-band="all" role="tab" aria-selected="true">すべて</button>
+      <button class="chip" data-band="90">90+</button>
+      <button class="chip" data-band="80">80+</button>
+      <button class="chip" data-band="70">70+</button>
+    </div>
+    <section id="featured" class="featured" hidden>
+      <article class="hero" id="hero-main"></article>
+      <article class="hero" id="hero-side"></article>
+    </section>
     <div id="list" class="grid" aria-live="polite"></div>
     <div id="empty" class="empty" hidden>該当するニュースがありません。</div>
   </div>
 
   <script>
   const SRC = 'daily_ai_news_report_latest.html';
-  const state = { items: [], filtered: [], q: '', min: 0 };
+  const state = { items: [], filtered: [], q: '', min: 0, band: 'all' };
   const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
   function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t??''; return d.innerHTML; }
+  function domain(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
+  function relTime(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return s; const diff=(Date.now()-d)/1000; if(diff<3600) return `${Math.floor(diff/60)}分前`; if(diff<86400) return `${Math.floor(diff/3600)}時間前`; return d.toLocaleDateString('ja-JP'); }
 
   function parseItems(html){
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -72,29 +106,57 @@
       const metaText = row.querySelector('.news-meta')?.textContent || '';
       const m = metaText.match(/URL\s*=\s*([^,\s]+)/);
       if (m) url = m[1];
+      let date = '';
+      const md = metaText.match(/投稿日=([^,]+)/);
+      if (md) date = md[1].trim();
       let summary = '';
       const pAfter = row.querySelector('p');
       if (pAfter) summary = pAfter.textContent.trim();
-      return { title, score, rank, url, summary };
+      return { title, score, rank, url, summary, date };
     });
     return items.sort((a,b)=> b.score - a.score || a.rank - b.rank);
+  }
+
+  function heroHTML(it){
+    const dom = domain(it.url);
+    const sum = it.summary ? escapeHtml(it.summary.slice(0,220)) + (it.summary.length>220?'…':'') : '';
+    return `
+      <div class="score">${it.score}</div>
+      <div class="kicker">${dom ? dom : 'featured'}</div>
+      <h3 class="title">${escapeHtml(it.title)}</h3>
+      <div class="meta"><span>${it.date? relTime(it.date): ''}</span><span>順位: ${it.rank}</span></div>
+      ${sum ? `<div class="summary">${sum}</div>`:''}
+      <div class="actions"><a class="btn" href="${it.url}" target="_blank" rel="noopener">読む →</a><a class="btn" href="${SRC}" target="_blank" rel="noopener">詳細</a></div>
+    `;
+  }
+
+  function cardHTML(it){
+    const dom = domain(it.url);
+    const sum = it.summary ? escapeHtml(it.summary.slice(0,160)) + (it.summary.length>160?'…':'') : '';
+    return `
+      <article class="card">
+        <div class="score">${it.score}</div>
+        <h3 class="title">${escapeHtml(it.title)}</h3>
+        <div class="meta">${dom?`<span>${dom}</span>`:''}<span>${it.date? relTime(it.date): ''}</span><span>順位:${it.rank}</span></div>
+        ${sum?`<div class="summary">${sum}</div>`:''}
+        <div class="actions">${it.url?`<a class="btn" href="${it.url}" target="_blank" rel="noopener">開く →</a>`:''}<a class="btn" href="${SRC}" target="_blank" rel="noopener">詳細レポート</a></div>
+      </article>`;
   }
 
   function render(){
     const list = $('#list');
     const empty = $('#empty');
-    list.innerHTML = state.filtered.map(it => `
-      <article class="card">
-        <div class="score">${it.score}</div>
-        <h3 class="title">${escapeHtml(it.title)}</h3>
-        <div class="meta">${it.url ? `<span>ソース: ${escapeHtml(new URL(it.url).hostname)}</span>`:''}<span>順位: ${it.rank}</span></div>
-        ${it.summary ? `<div class="summary">${escapeHtml(it.summary.slice(0,180))}${it.summary.length>180?'…':''}</div>`:''}
-        <div class="actions">
-          ${it.url ? `<a class="btn" href="${it.url}" target="_blank" rel="noopener noreferrer">開く →</a>`:''}
-          <a class="btn" href="${SRC}" target="_blank" rel="noopener noreferrer">詳細レポート</a>
-        </div>
-      </article>
-    `).join('');
+    const feat = state.filtered.slice(0,2);
+    const featWrap = $('#featured');
+    if (feat.length) {
+      featWrap.hidden = false;
+      $('#hero-main').innerHTML = heroHTML(feat[0]);
+      $('#hero-side').innerHTML = feat[1] ? heroHTML(feat[1]) : '';
+    } else {
+      featWrap.hidden = true;
+    }
+    const rest = state.filtered.slice(2);
+    list.innerHTML = rest.map(cardHTML).join('');
     $('#cnt').textContent = String(state.filtered.length);
     empty.hidden = state.filtered.length !== 0;
   }
@@ -102,8 +164,13 @@
   function applyFilters(){
     const q = state.q.trim().toLowerCase();
     const min = state.min;
+    const band = state.band;
     state.filtered = state.items.filter(it => {
       if (it.score < min) return false;
+      if (band !== 'all') {
+        const b = parseInt(band,10);
+        if (isFinite(b) && it.score < b) return false;
+      }
       if (q) {
         const text = `${it.title}\n${it.summary}`.toLowerCase();
         if (!text.includes(q)) return false;
@@ -127,10 +194,10 @@
     q.addEventListener('input', ()=>{ state.q = q.value || ''; applyFilters(); });
     const upd = ()=>{ state.min = parseInt(r.value||'0',10); rv.value = String(state.min); applyFilters(); };
     r.addEventListener('input', upd); upd();
+    $$('.chip').forEach(ch => ch.addEventListener('click', ()=>{ $$('.chip').forEach(c=>c.classList.toggle('active', c===ch)); state.band = ch.dataset.band || 'all'; applyFilters(); }));
   }
 
   document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
-
