@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIニュース一覧</title>
+  <style>
+    :root { --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --accent:#2563eb; --ok:#10b981; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    .header { background: linear-gradient(135deg,#b3c2ff 0%,#d6e0ff 100%); color: #0b1222; border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+    .header h1 { margin: 0 0 6px; font-size: 22px; font-weight: 900; letter-spacing: .01em; }
+    .header p { margin: 0; color: #1e293b; opacity: .85; }
+    .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end; margin: 12px 0 8px; }
+    @media (max-width: 800px) { .controls { grid-template-columns: 1fr; } }
+    .field { display: grid; gap: 6px; }
+    .label { font-size: 12px; color: var(--muted); }
+    input[type="search"], select { border: 2px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 10px 12px; }
+    .range { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+    input[type="range"] { width: 180px; }
+    .count { color: var(--muted); font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 10px; }
+    .card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 8px 22px rgba(0,0,0,.06); transition: transform .15s ease, box-shadow .15s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.10); }
+    .score { position: absolute; top: 12px; right: 12px; background: var(--ok); color: #fff; font-weight: 900; border-radius: 9999px; padding: 6px 10px; }
+    .title { font-size: 18px; font-weight: 900; margin: 6px 0 6px; }
+    .meta { display:flex; gap:8px; flex-wrap:wrap; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .summary { color: var(--muted); line-height: 1.6; }
+    .actions { margin-top: 10px; display:flex; gap:10px; }
+    .btn { appearance: none; border: 1px solid var(--border); background: var(--surface); padding: 8px 10px; border-radius: 10px; color: var(--accent); font-weight: 800; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+    .empty { text-align: center; color: var(--muted); padding: 24px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1>AIニュース一覧</h1>
+      <p>最新のAIニュースをスコア順で表示。検索とスコア絞り込みに対応。</p>
+    </div>
+    <div class="controls">
+      <label class="field">
+        <span class="label">検索</span>
+        <input id="q" type="search" placeholder="タイトル・要約で検索" />
+      </label>
+      <label class="field range">
+        <span class="label">最低スコア</span>
+        <input id="min" type="range" min="0" max="100" step="5" value="0" />
+        <output id="minVal">0</output>
+      </label>
+      <div class="count"><span id="cnt">0</span> 件</div>
+    </div>
+    <div id="list" class="grid" aria-live="polite"></div>
+    <div id="empty" class="empty" hidden>該当するニュースがありません。</div>
+  </div>
+
+  <script>
+  const SRC = 'daily_ai_news_report_latest.html';
+  const state = { items: [], filtered: [], q: '', min: 0 };
+  const $ = (s, r=document) => r.querySelector(s);
+
+  function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t??''; return d.innerHTML; }
+
+  function parseItems(html){
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const rows = Array.from(doc.querySelectorAll('.news-item'));
+    const items = rows.map((row, idx) => {
+      const title = row.querySelector('.news-title')?.textContent?.trim() || '';
+      const score = parseInt(row.querySelector('.news-score')?.textContent || '0', 10) || 0;
+      const rank = parseInt(row.querySelector('.news-rank')?.textContent || String(idx+1), 10) || (idx+1);
+      let url = '';
+      const metaText = row.querySelector('.news-meta')?.textContent || '';
+      const m = metaText.match(/URL\s*=\s*([^,\s]+)/);
+      if (m) url = m[1];
+      let summary = '';
+      const pAfter = row.querySelector('p');
+      if (pAfter) summary = pAfter.textContent.trim();
+      return { title, score, rank, url, summary };
+    });
+    return items.sort((a,b)=> b.score - a.score || a.rank - b.rank);
+  }
+
+  function render(){
+    const list = $('#list');
+    const empty = $('#empty');
+    list.innerHTML = state.filtered.map(it => `
+      <article class="card">
+        <div class="score">${it.score}</div>
+        <h3 class="title">${escapeHtml(it.title)}</h3>
+        <div class="meta">${it.url ? `<span>ソース: ${escapeHtml(new URL(it.url).hostname)}</span>`:''}<span>順位: ${it.rank}</span></div>
+        ${it.summary ? `<div class="summary">${escapeHtml(it.summary.slice(0,180))}${it.summary.length>180?'…':''}</div>`:''}
+        <div class="actions">
+          ${it.url ? `<a class="btn" href="${it.url}" target="_blank" rel="noopener noreferrer">開く →</a>`:''}
+          <a class="btn" href="${SRC}" target="_blank" rel="noopener noreferrer">詳細レポート</a>
+        </div>
+      </article>
+    `).join('');
+    $('#cnt').textContent = String(state.filtered.length);
+    empty.hidden = state.filtered.length !== 0;
+  }
+
+  function applyFilters(){
+    const q = state.q.trim().toLowerCase();
+    const min = state.min;
+    state.filtered = state.items.filter(it => {
+      if (it.score < min) return false;
+      if (q) {
+        const text = `${it.title}\n${it.summary}`.toLowerCase();
+        if (!text.includes(q)) return false;
+      }
+      return true;
+    });
+    render();
+  }
+
+  async function init(){
+    try {
+      const res = await fetch(SRC, { cache: 'no-store' });
+      const html = await res.text();
+      state.items = parseItems(html);
+      state.filtered = [...state.items];
+      render();
+    } catch (e) {
+      console.error('Failed to load source', e);
+    }
+    const q = $('#q'); const r = $('#min'); const rv = $('#minVal');
+    q.addEventListener('input', ()=>{ state.q = q.value || ''; applyFilters(); });
+    const upd = ()=>{ state.min = parseInt(r.value||'0',10); rv.value = String(state.min); applyFilters(); };
+    r.addEventListener('input', upd); upd();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
+
