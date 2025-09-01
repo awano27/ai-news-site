@@ -5,105 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AI Intelligence Platform - 統合ダッシュボード</title>
   <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #3b82f6;
-      --surface: #ffffff;
-      --bg: #f1f5f9;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
+    :root{
+      --primary:#0f172a;--accent:#3b82f6;--surface:#ffffff;--bg:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif; background: linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%); color: var(--text); }
-    .app { display: flex; min-height: 100vh; }
-    .sidebar { width: 240px; background: var(--primary); color: #e5e7eb; padding: 20px 14px; }
-    .sidebar h1 { font-size: 16px; margin: 0 0 16px; font-weight: 800; letter-spacing: .02em; }
-    .nav { display: grid; gap: 6px; }
-    .nav a { display: block; padding: 10px 12px; border-radius: 8px; color: #cbd5e1; text-decoration: none; }
-    .nav a:hover, .nav a.active { background: #1e293b; color: #fff; }
-    .main { flex: 1; display: flex; flex-direction: column; }
-    .top { height: 60px; background: var(--surface); border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding: 0 16px; }
-    .crumb { color: var(--muted); font-weight: 600; }
-    .content { flex: 1; overflow: auto; }
-    .hero { padding: 20px 20px 6px; }
-    .hero h2 { margin: 0 0 6px; font-size: 20px; font-weight: 900; color: var(--primary); }
-    .hero p { margin: 0; color: var(--muted); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 12px 20px 24px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.06); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.10); }
-    .card .title { font-size: 16px; font-weight: 800; color: var(--primary); margin: 8px 0; }
-    .card .desc { color: var(--muted); }
-    .frame { width: 100%; height: calc(100vh - 60px); border: none; display: none; background: var(--surface); }
-    .external { display:none; padding: 8px 20px; }
-    .external a { color: var(--accent); font-weight: 800; text-decoration: none; }
-    .external a:hover { text-decoration: underline; }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans JP',sans-serif;background:linear-gradient(180deg,#f8fafc 0%,var(--bg) 100%);color:var(--text)}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--primary);color:#e5e7eb;padding:20px 14px}
+    .sidebar h1{font-size:16px;margin:0 0 16px;font-weight:800;letter-spacing:.02em}
+    .nav{display:grid;gap:6px}
+    .nav a{display:block;padding:10px 12px;border-radius:8px;color:#cbd5e1;text-decoration:none}
+    .nav a:hover,.nav a.active{background:#1e293b;color:#fff}
+    .main{flex:1;display:flex;flex-direction:column}
+    .top{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+    .crumb{color:var(--muted);font-weight:600}
+    .content{flex:1;overflow:auto}
+    /* Hero banner (modern, subtle glow) */
+    .hero-banner{position:relative;margin:16px 20px;padding:28px 24px;border-radius:18px;overflow:hidden;color:#eaf2ff;background:radial-gradient(1200px 400px at -10% -40%,rgba(59,130,246,.35),transparent 60%),radial-gradient(900px 380px at 120% -50%,rgba(30,64,175,.5),transparent 60%),linear-gradient(135deg,#0b1222 0%,#0f172a 55%,#0b1324 100%);box-shadow:0 20px 40px rgba(2,6,23,.35);border:1px solid rgba(148,163,184,.18)}
+    .hero-banner::after{content:'';position:absolute;inset:0;background:radial-gradient(800px 200px at 30% 0%,rgba(99,102,241,.25),transparent 60%);pointer-events:none}
+    .hero-title{font-size:28px;font-weight:900;letter-spacing:.01em;margin:0 0 6px}
+    .hero-sub{color:#bfd5ff;margin:0 0 16px}
+    .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .btn{appearance:none;border:1px solid rgba(148,163,184,.35);color:#eaf2ff;background:rgba(255,255,255,.04);padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease,background .12s ease,border-color .12s ease;cursor:pointer}
+    .btn:hover{transform:translateY(-1px);background:rgba(99,102,241,.14);border-color:rgba(147,197,253,.55)}
+    .btn.primary{background:linear-gradient(135deg,#2563eb,#1e40af);border-color:transparent}
+    .btn.primary:hover{filter:brightness(1.05)}
+    /* Glass KPIs */
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+    .kpi{backdrop-filter:saturate(160%) blur(10px);background:rgba(15,23,42,.45);border:1px solid rgba(148,163,184,.22);border-radius:12px;padding:12px 14px;color:#e7eefc}
+    .kpi-label{color:#9fb7e8;font-size:12px}
+    .kpi-value{font-weight:900;font-size:22px;letter-spacing:.02em}
+    /* Cards */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;padding:12px 20px 28px}
+    .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.06);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;overflow:hidden}
+    .card::before{content:'';position:absolute;inset:auto auto 0 0;height:3px;width:100%;background:linear-gradient(90deg,#60a5fa,#22d3ee,#a78bfa);opacity:.85;transition:transform .25s ease;transform:translateX(-100%)}
+    .card:hover::before{transform:translateX(0%)}
+    .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.12);border-color:#cfe0ff}
+    .card .title{font-size:18px;font-weight:900;color:var(--primary);margin:8px 0;letter-spacing:.01em}
+    .card .desc{color:var(--muted)}
+    /* Frame */
+    .frame{width:100%;height:calc(100vh - 60px);border:none;display:none;background:var(--surface)}
+    .external{display:none;padding:8px 20px}
+    .external a{color:var(--accent);font-weight:800;text-decoration:none}
+    .external a:hover{text-decoration:underline}
+    @media (max-width: 880px){.sidebar{display:none}.top{padding:0 12px}}
   </style>
   <script>
-    const pageMap = {
-      dashboard: null,
-      integrated: 'integrated_report.html',
-      ranking: 'ai_ranking_interactive.html',
-      slides: 'day_slides_index.html',
-      news: 'daily_ai_news_report_latest.html',
-      dailyNews: 'https://awano27.github.io/daily-ai-news-pages/'
-    };
-
-    function setActive(page) {
-      document.querySelectorAll('.nav a[data-page]').forEach(a => a.classList.toggle('active', a.dataset.page === page));
-      document.getElementById('crumb').textContent = (
-        page === 'dashboard' ? 'Dashboard' :
-        page === 'integrated' ? 'レポート' :
-        page === 'ranking' ? 'インタラクティブランキング' :
-        page === 'slides' ? '毎日スライド' :
-        page === 'news' ? '詳細レポート' :
-        page === 'dailyNews' ? 'AIニュース一覧' : page
-      );
-    }
-
-    function showDashboard() {
-      document.getElementById('dashboard').style.display = 'block';
-      const frame = document.getElementById('frame');
-      frame.style.display = 'none';
-      frame.removeAttribute('src');
-      document.getElementById('external').style.display = 'none';
-      setActive('dashboard');
-    }
-
-    function loadPage(page) {
-      if (page === 'dashboard') return showDashboard();
-      const url = pageMap[page];
-      const dash = document.getElementById('dashboard');
-      const frame = document.getElementById('frame');
-      const external = document.getElementById('external');
-      dash.style.display = 'none';
-      frame.style.display = 'block';
-      frame.src = url || '';
-      setActive(page);
-      if (url && url.startsWith('http')) {
-        external.style.display = 'block';
-        document.getElementById('external-link').href = url;
-        // Fallback: open new navigation if blocked
-        setTimeout(() => {
-          try {
-            const ok = frame.contentDocument && frame.contentDocument.body && frame.contentDocument.body.children.length > 0;
-            if (!ok) window.location.href = url;
-          } catch (e) {
-            window.location.href = url;
-          }
-        }, 1000);
-      } else {
-        external.style.display = 'none';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.nav a[data-page]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); loadPage(a.dataset.page); }));
-      showDashboard();
-    });
+    const pageMap={dashboard:null,integrated:'integrated_report.html',ranking:'ai_ranking_interactive.html',slides:'day_slides_index.html',news:'daily_ai_news_report_latest.html',dailyNews:'https://awano27.github.io/daily-ai-news-pages/'};
+    function setActive(page){document.querySelectorAll('.nav a[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));document.getElementById('crumb').textContent=(page==='dashboard'?'Dashboard':page==='integrated'?'レポート':page==='ranking'?'インタラクティブランキング':page==='slides'?'毎日スライド':page==='news'?'詳細レポート':page==='dailyNews'?'AIニュース一覧':page)}
+    function showDashboard(){document.getElementById('dashboard').style.display='block';const f=document.getElementById('frame');f.style.display='none';f.removeAttribute('src');document.getElementById('external').style.display='none';setActive('dashboard')}
+    function loadPage(page){if(page==='dashboard')return showDashboard();const url=pageMap[page];const dash=document.getElementById('dashboard');const f=document.getElementById('frame');const ex=document.getElementById('external');dash.style.display='none';f.style.display='block';f.src=url||'';setActive(page);if(url&&url.startsWith('http')){ex.style.display='block';document.getElementById('external-link').href=url;setTimeout(()=>{try{const ok=f.contentDocument&&f.contentDocument.body&&f.contentDocument.body.children.length>0;if(!ok)window.location.href=url}catch(e){window.location.href=url}},1000)}else{ex.style.display='none'}}
+    document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.nav a[data-page]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();loadPage(a.dataset.page)}));showDashboard()});
   </script>
-  <!-- No external fonts/scripts to avoid blocking -->
 </head>
 <body>
   <div class="app">
@@ -122,25 +76,36 @@
       <div class="top"><div class="crumb" id="crumb">Dashboard</div></div>
       <div class="content">
         <section id="dashboard">
-          <div class="hero">
-            <h2>統合ダッシュボード</h2>
-            <p>レポート・ニュース・スライドへ素早く移動できます。</p>
+          <div class="hero-banner">
+            <h2 class="hero-title">統合ダッシュボード</h2>
+            <p class="hero-sub">最新のAIニュース、レポート、日次スライドをワンクリックで。</p>
+            <div class="hero-cta">
+              <a class="btn primary" href="#" onclick="loadPage('dailyNews');return false;">📰 ニュースを見る</a>
+              <a class="btn" href="#" onclick="loadPage('integrated');return false;">🧭 レポート</a>
+              <a class="btn" href="#" onclick="loadPage('slides');return false;">📋 毎日スライド</a>
+            </div>
+            <div class="kpis" aria-label="概要指標">
+              <div class="kpi"><div class="kpi-label">本日の記事</div><div class="kpi-value">75</div></div>
+              <div class="kpi"><div class="kpi-label">高信頼ソース</div><div class="kpi-value">12</div></div>
+              <div class="kpi"><div class="kpi-label">平均スコア</div><div class="kpi-value">82%</div></div>
+              <div class="kpi"><div class="kpi-label">最終更新</div><div class="kpi-value">今日</div></div>
+            </div>
           </div>
           <div class="grid">
             <div class="card" onclick="loadPage('integrated')">
-              <div class="title">レポート</div>
+              <div class="title">🧭 レポート</div>
               <div class="desc">主要トピックを俯瞰する要約レポート</div>
             </div>
             <div class="card" onclick="loadPage('slides')">
-              <div class="title">毎日スライド</div>
+              <div class="title">📋 毎日スライド</div>
               <div class="desc">日毎のスライド一覧にアクセス</div>
             </div>
             <div class="card" onclick="loadPage('dailyNews')">
-              <div class="title">AIニュース一覧</div>
+              <div class="title">📰 AIニュース一覧</div>
               <div class="desc">最新のAIニュース（外部ページ）</div>
             </div>
             <div class="card" onclick="loadPage('ranking')">
-              <div class="title">インタラクティブランキング</div>
+              <div class="title">📈 インタラクティブランキング</div>
               <div class="desc">スコアに基づくランキングダッシュボード</div>
             </div>
           </div>
