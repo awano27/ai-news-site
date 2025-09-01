@@ -46,6 +46,11 @@
     .btn { appearance: none; border: 1px solid var(--border); background: var(--surface); padding: 8px 10px; border-radius: 10px; color: var(--accent); font-weight: 800; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
     .empty { text-align: center; color: var(--muted); padding: 24px 0; }
 
+    /* Thumbnails (generated SVGs) */
+    .thumb { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; display: block; background: #eceff3; }
+    .hero .thumb { aspect-ratio: 16 / 8; border-radius: 14px; margin-bottom: 10px; }
+    .card .thumb { margin-bottom: 8px; }
+
     /* Info-dense enhancements */
     .meta .favicon { width:16px; height:16px; border-radius:4px; vertical-align:-3px; }
     .label-pill { display:inline-block; padding:4px 8px; border-radius:9999px; font-weight:800; font-size:12px; margin-left:6px; }
@@ -117,6 +122,46 @@
   function labelFor(score){ if(score>=90) return 'must'; if(score>=80) return 'rec'; if(score>=70) return 'consid'; return ''; }
   function labelName(lbl){ return lbl==='must'?'必読':lbl==='rec'?'注目':lbl==='consid'?'参考':''; }
 
+  // Deterministic gradient + overlay text -> SVG data URL
+  function hash32(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  function paletteFrom(key){ const h = hash32(key) % 360; const h2 = (h + 35 + (key.length%20)) % 360; return [`hsl(${h} 75% 58%)`,`hsl(${h2} 72% 54%)`]; }
+  function svgEscapeText(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function makeThumbData(it, w, h){
+    const key = domain(it.url) || it.title || 'news';
+    const [c1,c2] = paletteFrom(key);
+    const title = svgEscapeText((it.title||'').slice(0,36));
+    const dom = svgEscapeText(domain(it.url)||'');
+    const score = (it.score||0);
+    const lbl = labelName(it.label||labelFor(score));
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>
+  <defs>
+    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='${c1}' />
+      <stop offset='100%' stop-color='${c2}' />
+    </linearGradient>
+    <filter id='s' x='-10%' y='-10%' width='120%' height='120%'>
+      <feDropShadow dx='0' dy='3' stdDeviation='6' flood-opacity='.25' />
+    </filter>
+  </defs>
+  <rect x='0' y='0' width='${w}' height='${h}' fill='url(#g)'/>
+  <g filter='url(#s)'>
+    <rect x='16' y='16' rx='10' ry='10' width='${w-32}' height='${h-32}' fill='rgba(255,255,255,0.12)' />
+  </g>
+  <text x='28' y='${Math.round(h*0.45)}' font-family='Segoe UI, Arial, sans-serif' font-weight='900' font-size='${Math.max(20,Math.round(w*0.05))}' fill='#ffffff'>${title}</text>
+  <text x='28' y='${Math.round(h*0.65)}' font-family='Segoe UI, Arial, sans-serif' font-weight='700' font-size='${Math.max(12,Math.round(w*0.035))}' fill='rgba(255,255,255,0.9)'>${dom}</text>
+  <g>
+    <circle cx='${w-56}' cy='40' r='22' fill='rgba(255,255,255,0.95)' />
+    <text x='${w-56}' y='46' text-anchor='middle' font-family='Segoe UI, Arial, sans-serif' font-weight='900' font-size='18' fill='${c2}'>${score}</text>
+  </g>
+  ${lbl?`<g>
+    <rect x='28' y='${Math.round(h*0.7)}' rx='8' ry='8' width='92' height='24' fill='rgba(0,0,0,0.35)' />
+    <text x='74' y='${Math.round(h*0.7)+17}' text-anchor='middle' font-family='Segoe UI, Arial, sans-serif' font-weight='800' font-size='12' fill='#fff'>${svgEscapeText(lbl)}</text>
+  </g>`:''}
+</svg>`;
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  }
+
   function parseItems(html){
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const rows = Array.from(doc.querySelectorAll('.news-item'));
@@ -145,6 +190,7 @@
     const dom = domain(it.url);
     const sum = it.summary ? escapeHtml(it.summary.slice(0,220)) + (it.summary.length>220?'…':'') : '';
     return `
+      <img class="thumb" src="${makeThumbData(it, 800, 400)}" alt="">
       <div class="score">${it.score}</div>
       <div class="kicker">${dom ? dom : 'featured'}</div>
       <h3 class="title">${escapeHtml(it.title)}</h3>
@@ -160,6 +206,7 @@
     const sum = it.summary ? escapeHtml(it.summary.slice(0,160)) + (it.summary.length>160?'…':'') : '';
     return `
       <article class="card">
+        <img class="thumb" src="${makeThumbData(it, 640, 360)}" alt="">
         <div class="score">${it.score}</div>
         <h3 class="title">${escapeHtml(it.title)} ${it.label?`<span class="label-pill label-${it.label}">${labelName(it.label)}</span>`:''}</h3>
         <div class="meta">${dom?`<img class="favicon" src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(dom)}&sz=32" alt=""> <span>${dom}</span>`:''}<span>${it.date? relTime(it.date): ''}</span><span>順位:${it.rank}</span></div>
