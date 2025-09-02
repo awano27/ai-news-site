@@ -31,26 +31,51 @@
     return !!document.querySelector('.reveal');
   }
 
+  // Helper: detect if the page background is light
+  function parseRGBA(str) {
+    // expected forms: rgb(r, g, b) or rgba(r, g, b, a)
+    const m = /rgba?\(([^)]+)\)/.exec(str || '');
+    if (!m) return { r: 255, g: 255, b: 255, a: 1 };
+    const parts = m[1].split(',').map(s => parseFloat(s.trim()));
+    const [r, g, b, a] = [parts[0]||255, parts[1]||255, parts[2]||255, parts.length>3?parts[3]:1];
+    return { r, g, b, a: (isNaN(a)?1:a) };
+  }
+  function relLuminance(r, g, b) {
+    const srgb = [r, g, b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
+  }
+  function isLightBackground() {
+    const bg = getComputedStyle(document.body).backgroundColor;
+    const { r, g, b, a } = parseRGBA(bg);
+    // Transparent -> assume light UA default
+    if (a === 0) return true;
+    return relLuminance(r, g, b) >= 0.6; // threshold for lightness
+  }
+
   // Build navigation root path relative to this script (it sits in presentations/assets/)
   const root = new URL('../', base); // presentations/
 
   // Inject CSS theme
   ensureStylesheet(new URL('xai-theme.css', base).href, 'xai-theme-css');
 
-  // Enable body flags and background layers
+  // Enable body flags and optional background layers
   function attachBackground() {
     document.body.classList.add('xai-enabled');
     if (isRevealPage()) document.body.classList.add('reveal-page');
-    // background layers (placed once)
-    if (!document.querySelector('.xai-bg')) {
-      const bg = document.createElement('div');
-      bg.className = 'xai-bg';
-      document.body.appendChild(bg);
-    }
-    if (!document.querySelector('.xai-grid')) {
-      const grid = document.createElement('div');
-      grid.className = 'xai-grid';
-      document.body.appendChild(grid);
+    const light = isLightBackground();
+    if (!light) {
+      // page is already dark; enable dark skin and optional ambient layers
+      document.body.classList.add('xai-dark');
+      if (!document.querySelector('.xai-bg')) {
+        const bg = document.createElement('div');
+        bg.className = 'xai-bg';
+        document.body.appendChild(bg);
+      }
+      if (!document.querySelector('.xai-grid')) {
+        const grid = document.createElement('div');
+        grid.className = 'xai-grid';
+        document.body.appendChild(grid);
+      }
     }
   }
 
@@ -124,4 +149,3 @@
     init();
   }
 })();
-
