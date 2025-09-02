@@ -45,6 +45,21 @@
     function setActive(p){document.querySelectorAll('.nav a[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===p));document.getElementById('crumb').textContent=(p==='dashboard'?'Dashboard':p==='integrated'?'Report':p==='ranking'?'Interactive Ranking':p==='slides'?'Daily Slides':p==='news'?'Detailed Report':p==='dailyNews'?'AI News':'Page')}
     function showDashboard(){document.getElementById('dashboard').style.display='block';const f=document.getElementById('frame');f.style.display='none';f.removeAttribute('src');document.getElementById('external').style.display='none';setActive('dashboard')}
     function loadPage(p){if(p==='dashboard')return showDashboard();const url=pageMap[p];const dash=document.getElementById('dashboard');const f=document.getElementById('frame');const ex=document.getElementById('external');dash.style.display='none';f.style.display='block';f.src=url||'';setActive(p);if(url&&url.startsWith('http')){ex.style.display='block';document.getElementById('external-link').href=url;setTimeout(()=>{try{const ok=f.contentDocument&&f.contentDocument.body&&f.contentDocument.body.children.length>0;if(!ok)window.location.href=url}catch(e){window.location.href=url}},800)}else{ex.style.display='none'}}
+    // Generated SVG thumbnails for dashboard cards
+    function h32(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0}
+    function pal(key){const hh=h32(key)%360;const h2=(hh+40+(key.length%30))%360;return ["hsl("+hh+" 75% 58%)","hsl("+h2+" 72% 54%)"];}
+    function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+    function makeCardThumb(title,kicker,w=640,h=360){var p=pal(title),c1=p[0],c2=p[1];var t=esc((title||'').slice(0,24));var k=esc(kicker||'');
+      var svg = "<?xml version='1.0' encoding='UTF-8'?>"+
+        "<svg xmlns='http://www.w3.org/2000/svg' width='"+w+"' height='"+h+"' viewBox='0 0 "+w+" "+h+"'>"+
+        "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='"+c1+"'/><stop offset='100%' stop-color='"+c2+"'/></linearGradient></defs>"+
+        "<rect width='"+w+"' height='"+h+"' fill='url(#g)'/>"+
+        "<text x='24' y='"+Math.round(h*0.55)+"' font-family='Segoe UI, Arial, sans-serif' font-weight='900' font-size='"+Math.max(20,Math.round(w*0.06))+"' fill='#fff'>"+t+"</text>"+
+        (k?"<text x='24' y='"+Math.round(h*0.75)+"' font-family='Segoe UI, Arial, sans-serif' font-weight='700' font-size='"+Math.max(12,Math.round(w*0.035))+"' fill='rgba(255,255,255,0.92)'>"+k+"</text>":"")+
+        "</svg>";
+      return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+    }
+    function setCardThumbs(){var cards=document.querySelectorAll('#dashboard .grid .card'); cards.forEach(function(card){var titleEl=card.querySelector('.title'); var descEl=card.querySelector('.desc'); var title=(titleEl&&titleEl.textContent||'Section').trim(); var desc=(descEl&&descEl.textContent||'').trim(); if(card.querySelector('img.thumb')) return; var img=document.createElement('img'); img.className='thumb'; img.alt=''; img.loading='lazy'; img.referrerPolicy='no-referrer'; img.src=makeCardThumb(title,desc); card.insertBefore(img, card.firstChild); });}
     document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.nav a[data-page]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();loadPage(a.dataset.page)}));showDashboard();setCardThumbs()});
   </script>
 </head>
