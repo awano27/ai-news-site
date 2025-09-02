@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AIニュース 詳細分析レポート（最新）</title>
+  <title>AI繝九Η繝ｼ繧ｹ 隧ｳ邏ｰ蛻・梵繝ｬ繝昴・繝茨ｼ域怙譁ｰ・・/title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
   <style>
@@ -29,45 +29,46 @@
     .chart { position:relative; height:340px }
     .notice { padding:10px 12px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; color:#334155 }
   </style>
+<script src="assets/xai-init.js" defer></script>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>AIニュース 詳細分析レポート（最新）</h1>
-      <div id="ts" class="muted">更新: -</div>
+      <h1>AI繝九Η繝ｼ繧ｹ 隧ｳ邏ｰ蛻・梵繝ｬ繝昴・繝茨ｼ域怙譁ｰ・・/h1>
+      <div id="ts" class="muted">譖ｴ譁ｰ: -</div>
     </div>
 
-    <div id="emptyMsg" class="notice" style="display:none">データがまだありません。しばらくして再読み込みしてください。</div>
+    <div id="emptyMsg" class="notice" style="display:none">繝・・繧ｿ縺後∪縺縺ゅｊ縺ｾ縺帙ｓ縲ゅ＠縺ｰ繧峨￥縺励※蜀崎ｪｭ縺ｿ霎ｼ縺ｿ縺励※縺上□縺輔＞縲・/div>
 
     <div class="grid">
       <div class="card stats">
-        <div class="stat"><div id="statCount" class="v">0</div><div>ニュース件数</div></div>
-        <div class="stat"><div id="statDays" class="v">0</div><div>日数</div></div>
-        <div class="stat"><div id="statCats" class="v">0</div><div>カテゴリ</div></div>
+        <div class="stat"><div id="statCount" class="v">0</div><div>繝九Η繝ｼ繧ｹ莉ｶ謨ｰ</div></div>
+        <div class="stat"><div id="statDays" class="v">0</div><div>譌･謨ｰ</div></div>
+        <div class="stat"><div id="statCats" class="v">0</div><div>繧ｫ繝・ざ繝ｪ</div></div>
       </div>
       <div class="card">
-        <h3>カテゴリ分布</h3>
+        <h3>繧ｫ繝・ざ繝ｪ蛻・ｸ・/h3>
         <div class="chart"><canvas id="catChart"></canvas></div>
       </div>
       <div class="card">
-        <h3>ソースTop</h3>
+        <h3>繧ｽ繝ｼ繧ｹTop</h3>
         <div class="chart"><canvas id="srcChart"></canvas></div>
       </div>
       <div class="card" style="grid-column:1/-1">
-        <h3>タイムライン（過去30日）</h3>
+        <h3>繧ｿ繧､繝繝ｩ繧､繝ｳ・磯℃蜴ｻ30譌･・・/h3>
         <div class="chart"><canvas id="tlChart"></canvas></div>
       </div>
     </div>
 
     <div class="card">
-      <h3>深掘り（スコア上位）</h3>
+      <h3>豺ｱ謗倥ｊ・医せ繧ｳ繧｢荳贋ｽ搾ｼ・/h3>
       <div id="topItems" class="grid"></div>
     </div>
 
     <div class="card">
-      <h3>日次一覧（スライド連携）</h3>
+      <h3>譌･谺｡荳隕ｧ・医せ繝ｩ繧､繝蛾｣謳ｺ・・/h3>
       <table>
-        <thead><tr><th>日付</th><th style="text-align:right">件数</th><th style="text-align:center">スライド</th></tr></thead>
+        <thead><tr><th>譌･莉・/th><th style="text-align:right">莉ｶ謨ｰ</th><th style="text-align:center">繧ｹ繝ｩ繧､繝・/th></tr></thead>
         <tbody id="dayRows"></tbody>
       </table>
     </div>
@@ -76,20 +77,17 @@
   <script>
     const esc = s => (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
     const fetchJSON = async (u) => { const r = await fetch(u, { cache:'no-store' }); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); };
-    const buildStar = n => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5-n);
+    const buildStar = n => '笘・・笘・・笘・.slice(0, n) + '笘・・笘・・笘・.slice(0, 5-n);
     const slideCandidates = (date) => {
       const [y,m,d] = date.split('-');
       return [
-        `day_slides/day_slide_${y}_${m}_${d}.html`,      // 現行（優先）
-        `daily_slides/daily_slide_${y}_${m}_${d}.html`   // 旧（削除予定）
-      ];
+        `day_slides/day_slide_${y}_${m}_${d}.html`,      // 迴ｾ陦鯉ｼ亥━蜈茨ｼ・        `daily_slides/daily_slide_${y}_${m}_${d}.html`   // 譌ｧ・亥炎髯､莠亥ｮ夲ｼ・      ];
     };
     async function pickSlideUrl(date) {
       const urls = slideCandidates(date);
       for (const u of urls) {
         try {
-          // HEAD が通らないケースもあるので GET で軽く確認
-          const r = await fetch(u, { cache: 'no-store' });
+          // HEAD 縺碁壹ｉ縺ｪ縺・こ繝ｼ繧ｹ繧ゅ≠繧九・縺ｧ GET 縺ｧ霆ｽ縺冗｢ｺ隱・          const r = await fetch(u, { cache: 'no-store' });
           if (r.ok) return u;
         } catch(e) { /* ignore */ }
       }
@@ -101,14 +99,13 @@
     (async () => {
       try {
         const data = await fetchJSON('../news/latest.json');
-        document.getElementById('ts').textContent = '更新: ' + (data.generated_at || '—');
+        document.getElementById('ts').textContent = '譖ｴ譁ｰ: ' + (data.generated_at || '窶・);
         const sections = data.sections || {};
         const items = ['business','tools','company','sns'].flatMap(k => (sections[k]||[]).map(it => ({...it, category: it.category || k})));
         if (!items.length) { document.getElementById('emptyMsg').style.display = ''; return; }
 
         // Stats
-        // 直近30日分のnews/日別JSONを試行取得して集計（なければlatest.jsonのデータで代替）
-        const base = data.generated_at ? new Date(data.generated_at) : new Date();
+        // 逶ｴ霑・0譌･蛻・・news/譌･蛻･JSON繧定ｩｦ陦悟叙蠕励＠縺ｦ髮・ｨ茨ｼ医↑縺代ｌ縺ｰlatest.json縺ｮ繝・・繧ｿ縺ｧ莉｣譖ｿ・・        const base = data.generated_at ? new Date(data.generated_at) : new Date();
         const dayJsons = [];
         for (let i=0;i<31;i++) {
           const d = ymd(addDays(base, -i));
@@ -146,7 +143,7 @@
 
         new Chart(document.getElementById('catChart').getContext('2d'), {type:'pie', data:{labels:cats, datasets:[{data:catCount, backgroundColor:['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#94a3b8']}]} , options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}});
         new Chart(document.getElementById('srcChart').getContext('2d'), {type:'bar', data:{labels:srcLabels, datasets:[{data:srcValues, backgroundColor:'#3b82f6'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}}}});
-        new Chart(document.getElementById('tlChart').getContext('2d'), {type:'line', data:{labels:tlLabels, datasets:[{label:'件数', data:tlValues, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.12)', tension:0.35, fill:true}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}});
+        new Chart(document.getElementById('tlChart').getContext('2d'), {type:'line', data:{labels:tlLabels, datasets:[{label:'莉ｶ謨ｰ', data:tlValues, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.12)', tension:0.35, fill:true}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}});
 
         // Top items by stars desc
         const byStars = [...itemsForStats].sort((a,b)=> (b.stars||0) - (a.stars||0));
@@ -160,7 +157,7 @@
             <span class="stars">${buildStar(it.stars||0)}</span>
             <h3>${esc(it.title||'')}</h3>
             <p>${esc(it.blurb||'')}</p>
-            <div class="meta"><span>${esc(it.date||'')}</span> <a class="source-link" href="${esc(srcUrl)}" target="_blank" rel="noopener">出典: ${esc(srcName)}</a></div>
+            <div class="meta"><span>${esc(it.date||'')}</span> <a class="source-link" href="${esc(srcUrl)}" target="_blank" rel="noopener">蜃ｺ蜈ｸ: ${esc(srcName)}</a></div>
           </article>`;
         }).join('');
 
@@ -170,7 +167,7 @@
           const cnt = tlMap.get(d) || 0;
           const url = await pickSlideUrl(d);
           if (!url) return `<tr><td>${d}</td><td style=\"text-align:right\">${cnt}</td><td style=\"text-align:center;color:#94a3b8\">-</td></tr>`;
-          const label = 'スライド';
+          const label = '繧ｹ繝ｩ繧､繝・;
           return `<tr><td>${d}</td><td style=\"text-align:right\">${cnt}</td><td style=\"text-align:center\"><a href=\"${url}\" target=\"_blank\" rel=\"noopener\">${label}</a></td></tr>`;
         }));
         dayEl.innerHTML = rows.join('');
@@ -182,3 +179,4 @@
   </script>
 </body>
 </html>
+
