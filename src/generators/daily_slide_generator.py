@@ -1,4 +1,4 @@
-"""
+﻿"""
 Daily AI News Slide Generator v2.0
 Generates individual daily slides from structured JSON data with Reveal.js
 Supports linking from main HTML reports to daily slide presentations
@@ -235,3 +235,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
