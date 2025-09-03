@@ -1,4 +1,4 @@
-"""
+﻿"""
 Utilities to sanitize text and HTML output across generators.
 
 Goals:
@@ -51,8 +51,9 @@ def sanitize_html(html: str) -> str:
     # Fix specific corrupted date pattern: YYYY年MM朁EDD日 -> YYYY年MM月DD日
     out = re.sub(r"(\d{4})年(\d{1,2})朁E(\d{1,2})日", lambda m: f"{m.group(1)}年{int(m.group(2)):02d}月{int(m.group(3)):02d}日", out)
     # Fix standalone month name like '8朁E' -> '8月' (avoid touching adjacent digits)
-    out = re.sub(r"(?<!\d)([1-9]|1[0-2])朁E(?!\d)", lambda m: f"{int(m.group(1))}月", out)
+    out = re.sub(r"(?<!\d)([1-9]|(?<!\\d)([1-9]|1[0-2])朁E(?!\\d)", lambda m: f"{int(m.group(1))}月", out)
     # Ensure meta charset tag exists and is utf-8 (idempotent)
     if '<meta charset="' not in out:
         out = out.replace('<head>', '<head>\n    <meta charset="utf-8"/>', 1)
     return out
+
