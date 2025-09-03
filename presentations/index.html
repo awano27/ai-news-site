@@ -1,132 +1,116 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Intelligence Platform - Dashboard</title>
-  <style>
-    :root{--primary:#0f172a;--accent:#3b82f6;--surface:#ffffff;--bg:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b}
-    *{box-sizing:border-box}html,body{height:100%;margin:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:linear-gradient(180deg,#f8fafc 0%,var(--bg) 100%);color:var(--text)}
-    .app{display:flex;min-height:100vh}
-    .sidebar{width:240px;background:var(--primary);color:#e5e7eb;padding:20px 14px}
-    .sidebar h1{font-size:16px;margin:0 0 16px;font-weight:800;letter-spacing:.02em}
-    .nav{display:grid;gap:6px}
-    .nav a{display:block;padding:10px 12px;border-radius:8px;color:#cbd5e1;text-decoration:none}
-    .nav a:hover,.nav a.active{background:#1e293b;color:#fff}
-    .main{flex:1;display:flex;flex-direction:column}
-    .top{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
-    .crumb{color:var(--muted);font-weight:600}
-    .content{flex:1;overflow:auto}
-    .hero{position:relative;margin:16px 20px;padding:24px 20px;border-radius:14px;background:linear-gradient(135deg,#0b1222 0%,#0f172a 55%,#0b1324 100%);color:#eaf2ff;box-shadow:0 20px 40px rgba(2,6,23,.35);border:1px solid rgba(148,163,184,.18)}
-    .hero h2{margin:0 0 6px;font-size:24px;font-weight:900;letter-spacing:.01em}
-    .hero p{margin:0 0 12px;color:#bfd5ff}
-    .cta{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{appearance:none;border:1px solid rgba(148,163,184,.35);color:#eaf2ff;background:rgba(255,255,255,.04);padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease,background .12s ease}
-    .btn:hover{transform:translateY(-1px);background:rgba(99,102,241,.14);border-color:rgba(147,197,253,.55)}
-    .btn.primary{background:linear-gradient(135deg,#2563eb,#1e40af);border-color:transparent}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;padding:12px 20px 28px}
-    .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.06);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;overflow:hidden}
-    .card::before{content:'';position:absolute;inset:auto auto 0 0;height:3px;width:100%;background:linear-gradient(90deg,#60a5fa,#22d3ee,#a78bfa);opacity:.85;transition:transform .25s ease;transform:translateX(-100%)}
-    .card:hover::before{transform:translateX(0%)}
-    .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.12);border-color:#cfe0ff}
-    .card .title{font-size:18px;font-weight:900;color:var(--primary);margin:8px 0;letter-spacing:.01em}
-    .card .desc{color:var(--muted)}
-    .frame{width:100%;height:calc(100vh - 60px);border:none;display:none;background:var(--surface)}
-    .external{display:none;padding:8px 20px}
-    .external a{color:var(--accent);font-weight:800;text-decoration:none}
-    .external a:hover{text-decoration:underline}
-    @media (max-width:880px){.sidebar{display:none}.top{padding:0 12px}}
-    .thumb{width:100%;aspect-ratio:16/9;border-radius:12px;display:block;margin-bottom:8px;background:#eceff3}
-  </style>
-  <script>
-    const pageMap={dashboard:null,integrated:'integrated_report.html',ranking:'ai_ranking_interactive.html',slides:'day_slides_index.html',news:'daily_ai_news_report_latest.html',dailyNews:'https://awano27.github.io/daily-ai-news-pages/'};
-    function setActive(p){document.querySelectorAll('.nav a[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===p));document.getElementById('crumb').textContent=(p==='dashboard'?'Dashboard':p==='integrated'?'Report':p==='ranking'?'Interactive Ranking':p==='slides'?'Daily Slides':p==='news'?'Detailed Report':p==='dailyNews'?'AI News':'Page')}
-    function showDashboard(){document.getElementById('dashboard').style.display='block';const f=document.getElementById('frame');f.style.display='none';f.removeAttribute('src');document.getElementById('external').style.display='none';setActive('dashboard')}
-    function loadPage(p){if(p==='dashboard')return showDashboard();const url=pageMap[p];const dash=document.getElementById('dashboard');const f=document.getElementById('frame');const ex=document.getElementById('external');dash.style.display='none';f.style.display='block';f.src=url||'';setActive(p);if(url&&url.startsWith('http')){ex.style.display='block';document.getElementById('external-link').href=url;setTimeout(()=>{try{const ok=f.contentDocument&&f.contentDocument.body&&f.contentDocument.body.children.length>0;if(!ok)window.location.href=url}catch(e){window.location.href=url}},800)}else{ex.style.display='none'}}
-    // Generated SVG thumbnails for dashboard cards
-    function h32(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0}
-    function pal(key){const hh=h32(key)%360;const h2=(hh+40+(key.length%30))%360;return ["hsl("+hh+" 75% 58%)","hsl("+h2+" 72% 54%)"];}
-    function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-    function makeCardThumb(title,kicker,w=640,h=360){var p=pal(title),c1=p[0],c2=p[1];var t=esc((title||'').slice(0,24));var k=esc(kicker||'');
-      var svg = "<?xml version='1.0' encoding='UTF-8'?>"+
-        "<svg xmlns='http://www.w3.org/2000/svg' width='"+w+"' height='"+h+"' viewBox='0 0 "+w+" "+h+"'>"+
-        "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='"+c1+"'/><stop offset='100%' stop-color='"+c2+"'/></linearGradient></defs>"+
-        "<rect width='"+w+"' height='"+h+"' fill='url(#g)'/>"+
-        "<text x='24' y='"+Math.round(h*0.55)+"' font-family='Segoe UI, Arial, sans-serif' font-weight='900' font-size='"+Math.max(20,Math.round(w*0.06))+"' fill='#fff'>"+t+"</text>"+
-        (k?"<text x='24' y='"+Math.round(h*0.75)+"' font-family='Segoe UI, Arial, sans-serif' font-weight='700' font-size='"+Math.max(12,Math.round(w*0.035))+"' fill='rgba(255,255,255,0.92)'>"+k+"</text>":"")+
-        "</svg>";
-      return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
-    }
-    function setCardThumbs(){var cards=document.querySelectorAll('#dashboard .grid .card'); cards.forEach(function(card){var titleEl=card.querySelector('.title'); var descEl=card.querySelector('.desc'); var title=(titleEl&&titleEl.textContent||'Section').trim(); var desc=(descEl&&descEl.textContent||'').trim(); if(card.querySelector('img.thumb')) return; var img=document.createElement('img'); img.className='thumb'; img.alt=''; img.loading='lazy'; img.referrerPolicy='no-referrer'; img.src=makeCardThumb(title,desc); card.insertBefore(img, card.firstChild); });}
-    document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.nav a[data-page]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();loadPage(a.dataset.page)}));showDashboard();setCardThumbs()});
-  </script>
-<script src="assets/xai-init.js" defer></script>
+  <title>Presentations | AI Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/presentations.css">
 </head>
-<body>
-  <div class="app">
-    <aside class="sidebar">
-      <h1>Presentations</h1>
-      <nav class="nav">
-        <a href="#" data-page="dashboard" class="active">Dashboard</a>
-        <a href="#" data-page="integrated">Report</a>
-        <a href="#" data-page="ranking">Ranking</a>
-        <a href="#" data-page="slides">Daily Slides</a>
-        <a href="#" data-page="dailyNews">AI News</a>
-        <a href="#" data-page="news">Detailed Report</a>
+<body class="ntt">
+  <header class="ntt-header header" role="banner">
+    <div class="ntt-nav" role="navigation" aria-label="主要ナビゲーション">
+      <a class="ntt-brand" href="index.html"><span class="ntt-mark" aria-hidden="true"></span><span class="ntt-title">AI Intelligence Presentations</span></a>
+      <nav class="ntt-links" aria-label="メニュー">
+        <a class="ntt-link" href="index.html">Dashboard</a>
+        <a class="ntt-link" href="integrated_report.html">Report</a>
+        <a class="ntt-link" href="day_slides_index.html">Daily Slides</a>
+        <a class="ntt-link" href="https://awano27.github.io/daily-ai-news-pages/" target="_blank" rel="noopener noreferrer">AI News</a>
+        <a class="ntt-link" href="daily_ai_news_report_latest.html">Detailed Report</a>
       </nav>
-    </aside>
-    <main class="main">
-      <div class="top"><div class="crumb" id="crumb">Dashboard</div></div>
-      <div class="content">
-        <section id="dashboard">
-          <div class="hero">
-            <h2>AI Intelligence Dashboard</h2>
-            <p>Quick access to reports, news, and daily slides.</p>
-            <div class="cta">
-              <a class="btn primary" href="#" onclick="loadPage('dailyNews');return false;">Open News</a>
-              <a class="btn" href="#" onclick="loadPage('integrated');return false;">Open Report</a>
-              <a class="btn" href="#" onclick="loadPage('slides');return false;">Open Slides</a>
-              <a class="btn" href="ai_news_list.html">Internal List</a>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="card" onclick="loadPage('integrated')">
-              <div class="title">Report</div>
-              <div class="desc">Overview of key topics and insights.</div>
-            </div>
-            <div class="card" onclick="loadPage('slides')">
-              <div class="title">Daily Slides</div>
-              <div class="desc">Browse slides generated each day.</div>
-            </div>
-            <div class="card" onclick="loadPage('dailyNews')">
-              <div class="title">AI News</div>
-              <div class="desc">Latest AI news (external).</div>
-            </div>
-            <div class="card" onclick="loadPage('ranking')">
-              <div class="title">Ranking</div>
-              <div class="desc">Ranking dashboard based on scores.</div>
-            </div>
-          </div>
-        </section>
-        <iframe id="frame" class="frame" title="Content"></iframe>
-        <div id="external" class="external">Open externally: <a id="external-link" href="#" target="_blank" rel="noopener noreferrer">link</a></div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <!-- Hero -->
+    <section class="ntt-hero" aria-labelledby="hero-title">
+      <div class="ntt-hero-inner">
+        <div class="ntt-eyebrow">Spotlight</div>
+        <h1 id="hero-title">生成AIの活用で未来を切り拓く</h1>
+        <p>ダークテーマとアクセントカラーで刷新された企業サイト調UI。レポート、日別スライド、AIニュースへの導線を明快にご提供します。</p>
+        <div class="ntt-cta">
+          <a class="ntt-btn primary" href="integrated_report.html">最新レポートを見る</a>
+          <a class="ntt-btn" href="https://awano27.github.io/daily-ai-news-pages/" target="_blank" rel="noopener">AIニュースを開く</a>
+        </div>
       </div>
-    </main>
-  </div>
+    </section>
+
+    <!-- Spotlight -->
+    <section class="ntt-section" aria-labelledby="spotlight-title">
+      <div class="ntt-section-header">
+        <h2 id="spotlight-title" class="ntt-section-title">Spotlight</h2>
+        <a class="ntt-section-cta" href="integrated_report.html">詳しくはこちら</a>
+      </div>
+      <div class="ntt-grid spotlight">
+        <article class="ntt-card">
+          <img class="ntt-thumb" alt="" loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230f2347'/%3E%3Cstop offset='100%25' stop-color='%230b1d3a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E">
+          <div class="ntt-tag">Report</div>
+          <h3 class="ntt-card-title">統合レポート</h3>
+          <p class="ntt-card-desc">重要トピックを俯瞰し、意思決定を支援するハイライトを収録。</p>
+          <p><a class="ntt-inline" href="integrated_report.html">レポートを読む</a></p>
+        </article>
+        <article class="ntt-card">
+          <img class="ntt-thumb" alt="" loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230b1d3a'/%3E%3Cstop offset='100%25' stop-color='%2310244b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E">
+          <div class="ntt-tag">Ranking</div>
+          <h3 class="ntt-card-title">インタラクティブ・ランキング</h3>
+          <p class="ntt-card-desc">スコアに基づくランキングを可視化し、トレンドを素早く把握。</p>
+          <p><a class="ntt-inline" href="ai_ranking_interactive.html">ダッシュボードを開く</a></p>
+        </article>
+        <article class="ntt-card">
+          <img class="ntt-thumb" alt="" loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230c1a36'/%3E%3Cstop offset='100%25' stop-color='%230f2347'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E">
+          <div class="ntt-tag">News</div>
+          <h3 class="ntt-card-title">AIニュース詳細レポート</h3>
+          <p class="ntt-card-desc">最新ニュースを深掘り解説。重要アナウンスや発表を整理。</p>
+          <p><a class="ntt-inline" href="daily_ai_news_report_latest.html">最新を表示</a></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Reports & Columns -->
+    <section class="ntt-section" aria-labelledby="reports-title">
+      <div class="ntt-section-header">
+        <h2 id="reports-title" class="ntt-section-title">レポート &amp; コラム</h2>
+        <a class="ntt-section-cta" href="ai_news_list.html">ニュース一覧へ</a>
+      </div>
+      <div class="ntt-grid">
+        <article class="ntt-card">
+          <div class="ntt-tag">Report</div>
+          <h3 class="ntt-card-title">AIランキングレポート（最新）</h3>
+          <p class="ntt-card-desc">主要テーマの相対評価と推移を収録。</p>
+          <p><a class="ntt-inline" href="ai_ranking_report_latest.html">最新を表示</a></p>
+        </article>
+        <article class="ntt-card">
+          <div class="ntt-tag">List</div>
+          <h3 class="ntt-card-title">AIニュース一覧</h3>
+          <p class="ntt-card-desc">過去のニュースをアーカイブ形式で参照。</p>
+          <p><a class="ntt-inline" href="ai_news_list.html">一覧を見る</a></p>
+        </article>
+        <article class="ntt-card">
+          <div class="ntt-tag">Analysis</div>
+          <h3 class="ntt-card-title">高度知能レポート（最新）</h3>
+          <p class="ntt-card-desc">先端研究や大規模モデルの動向を分析。</p>
+          <p><a class="ntt-inline" href="advanced_intelligence_report_latest.html">レポートを読む</a></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Recent Daily Slides -->
+    <section class="ntt-section" aria-labelledby="slides-title">
+      <div class="ntt-section-header">
+        <h2 id="slides-title" class="ntt-section-title">日別スライド</h2>
+        <a class="ntt-section-cta" href="day_slides_index.html">一覧を見る</a>
+      </div>
+      <div id="recent-slides" class="ntt-slides" aria-live="polite">
+        <!-- JSが直近のスライドを自動挿入 -->
+      </div>
+    </section>
+
+    <footer class="ntt-footer">
+      <div>© 2025 AI Intelligence. 本ページはダークテーマとアクセントカラーで最適化されています。</div>
+    </footer>
+  </main>
+
+  <script src="assets/presentations.js" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
