@@ -1,5 +1,5 @@
 // presentations/assets/presentations.js
-// Minimal JS: nav state + recent slides list (UTF-8 safe strings)
+// Nav state + recent slides list (UTF-8 safe)
 (function(){
   const bySel = (sel, root=document) => root.querySelector(sel);
   const bySelAll = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -36,11 +36,17 @@
       const d = document.implementation.createHTMLDocument('slides');
       d.documentElement.innerHTML = html;
       const links = bySelAll('a[href*="day_slides/day_slide_"], a[href*="day_slides\\/day_slide_"]', d);
+
+      const looksMojibake = (s) => /\uFFFD|朁E|蟷ｴ|譛・|譌･|E\/[a-z]/i.test(s||'');
+
       const items = links.map(a => {
         const href = a.getAttribute('href');
+        const text = (a.textContent||'').trim();
         const m = /day_slide_(\d{4})_(\d{2})_(\d{2})/.exec(href||'');
         const date = m ? `${m[1]}-${m[2]}-${m[3]}` : '';
-        return { href, date, ts: m ? Date.parse(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`) : 0 };
+        const dateLabel = m ? `${m[1]}/${m[2]}/${m[3]}` : '最新';
+        const title = (looksMojibake(text) || text.length < 2) ? (date || 'Daily Slide') : text;
+        return { href, title, date, dateLabel, ts: m ? Date.parse(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`) : 0 };
       }).filter(x => x.href).sort((a,b)=> b.ts - a.ts).slice(0, 8);
 
       const frag = document.createDocumentFragment();
@@ -49,10 +55,10 @@
         a.className = 'ntt-slide';
         a.href = it.href;
         a.innerHTML = `
-          <img class="ntt-slide-thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="${makeThumb(it.date||'最新')}"/>
+          <img class="ntt-slide-thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="${makeThumb(it.title||it.date)}"/>
           <div>
-            <span class="ntt-badge">${(it.date||'最新')}</span>
-            <div class="ntt-slide-title">${esc(it.date||'Daily Slide')}</div>
+            <span class="ntt-badge">${esc(it.dateLabel||'最新')}</span>
+            <div class="ntt-slide-title">${esc(it.title||'Daily Slide')}</div>
             <div class="ntt-slide-meta">日別スライド・最新のダイジェスト</div>
           </div>`;
         frag.appendChild(a);
