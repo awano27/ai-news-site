@@ -1,0 +1,49 @@
+name: Mojibake Guard
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for mojibake patterns
+        run: |
+          python - <<'PY'
+          import sys, re, pathlib
+
+          roots = ['presentations']
+          targets = []
+          for root in roots:
+              p = pathlib.Path(root)
+              if p.exists():
+                  targets.extend(p.rglob('*.html'))
+
+          bad = {
+              'replacement_char': re.compile('\uFFFD'),
+              'mojibake_朁E': re.compile('朁E'),
+              'broken_close': re.compile(r'E/(?:h[1-6]|div|span|p|button|a|li|ul|ol|section|strong|em)>'),
+          }
+
+          found = []
+          for path in targets:
+              try:
+                  text = path.read_text(encoding='utf-8', errors='ignore')
+              except Exception:
+                  continue
+              for name, rx in bad.items():
+                  for m in rx.finditer(text):
+                      line = text.count('\n', 0, m.start()) + 1
+                      found.append((str(path), line, name))
+
+          if found:
+              print('Found mojibake-like patterns:')
+              for pth, ln, nm in found[:200]:
+                  print(f'- {pth}:{ln} [{nm}]')
+              print(f'Total issues: {len(found)}')
+              sys.exit(1)
+          else:
+              print('No mojibake patterns found.')
+          PY
