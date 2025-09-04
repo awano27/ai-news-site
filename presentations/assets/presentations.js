@@ -18,6 +18,15 @@
   function h32(str){ let h = 2166136261>>>0; for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h>>>0; }
   function pal(key){ const hh=h32(key)%360; const h2=(hh+40+(key.length%30))%360; return [ `hsl(${hh} 75% 58%)`, `hsl(${h2} 72% 54%)` ]; }
   function esc(s){ return (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  // Heuristic detection of mojibake in text fetched from index
+  function looksMojibake(s){
+    if (!s) return false;
+    return /\uFFFD/.test(s)       // Unicode replacement char
+        || s.includes('朁E')      // artifact observed in repo
+        || /[^\x00-\x7F]E/.test(s) // stray ASCII 'E' after multibyte
+        || /E\/[a-z]/i.test(s)    // fragments like 'E/h3>'
+        || /�/.test(s);
+  }
   function makeThumb(title,w=320,h=180){ const [c1,c2]=pal(title||'Slide'); const t=esc((title||'').slice(0,22));
     const svg = `<?xml version='1.0' encoding='UTF-8'?>`
       +`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>`
@@ -41,7 +50,7 @@
       const links = bySelAll('a[href*="day_slides/day_slide_"], a[href*="day_slides\\/day_slide_"]', d);
       const items = links.map(a => {
         const href = a.getAttribute('href');
-        const text = a.textContent.trim();
+        const text = (a.textContent||'').trim();
         const m = /day_slide_(\d{4})_(\d{2})_(\d{2})/.exec(href||'');
         const date = m ? `${m[1]}-${m[2]}-${m[3]}` : '';
         return { href, text, date, ts: m ? Date.parse(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`) : 0 };
@@ -50,22 +59,23 @@
       // Build cards
       const frag = document.createDocumentFragment();
       items.forEach(it => {
+        const safeTitle = looksMojibake(it.text) ? '日別スライド' : it.text;
         const a = document.createElement('a');
         a.className = 'ntt-slide';
         a.href = it.href;
         a.innerHTML = `
-          <img class="ntt-slide-thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="${makeThumb(it.text||it.date)}"/>
+          <img class="ntt-slide-thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="${makeThumb(safeTitle||it.date)}"/>
           <div>
-            <span class="ntt-badge">${(it.date||'最新')}</span>
-            <div class="ntt-slide-title">${esc(it.text||'Daily Slide')}</div>
-            <div class="ntt-slide-meta">日別スライド・最新のダイジェスト</div>
+            <span class="ntt-badge">${(it.date||'&#x6700;&#x65B0;')}</span>
+            <div class="ntt-slide-title">${esc(safeTitle||'Daily Slide')}</div>
+            <div class="ntt-slide-meta">&#x65E5;&#x5225;&#x30B9;&#x30E9;&#x30A4;&#x30C9;&#x30FB;&#x6700;&#x65B0;&#x306E;&#x30C0;&#x30A4;&#x30B8;&#x30A7;&#x30B9;&#x30C8;</div>
           </div>`;
         frag.appendChild(a);
       });
       host.replaceChildren(frag);
     } catch (e) {
       // Graceful fallback
-      host.innerHTML = '<div class="ntt-card">最新スライドの取得に失敗しました。<a class="ntt-inline" href="day_slides_index.html">一覧を見る</a></div>';
+      host.innerHTML = '<div class="ntt-card">&#x6700;&#x65B0;&#x30B9;&#x30E9;&#x30A4;&#x30C9;&#x306E;&#x53D6;&#x5F97;&#x306B;&#x5931;&#x6557;&#x3057;&#x307E;&#x3057;&#x305F;&#x3002;<a class="ntt-inline" href="day_slides_index.html">&#x4E00;&#x89A7;&#x3092;&#x898B;&#x308B;</a></div>';
     }
   }
 
@@ -78,4 +88,3 @@
     document.addEventListener('DOMContentLoaded', init, { once:true });
   } else { init(); }
 })();
-
