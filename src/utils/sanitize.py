@@ -35,6 +35,8 @@ def _fix_date_mojibake(s: str) -> str:
     s = re.sub(r'(\d{1,2})朁E(\d{1,2})日',
                lambda m: f"{int(m.group(1)):02d}月{int(m.group(2)):02d}日", s)
     s = re.sub(r'(?<=\d)朁E(?=\d{1,2}(?:日|\b))', '月', s)
+    # Shift_JIS→UTF-8 文字化けパターンの代表格（年/月/日）
+    s = s.replace('蟷ｴ', '年').replace('譛・', '月').replace('譌･', '日')
     return s
 
 
@@ -73,4 +75,3 @@ def sanitize_html(html: str) -> str:
     if '<meta charset="' not in out:
         out = out.replace('<head>', '<head>\n    <meta charset="utf-8"/>', 1)
     return out
-
