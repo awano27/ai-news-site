@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Intelligence 窶・Dashboard (RESN窶訴nspired)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#07090f; --ink:#f5f7ff; --muted:#9aa3b2; --line:#1b2030;
+      --primary:#7c3aed; --secondary:#22c55e; --accent:#06b6d4;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+
+    /* Background layers */
+    .bg-gradient{position:fixed;inset:0;z-index:-3;background:radial-gradient(1200px 600px at 20% 10%, #0b1222 0%, transparent 60%), radial-gradient(1000px 500px at 80% 20%, #11162a 0%, transparent 60%), radial-gradient(1200px 800px at 50% 100%, #0a1020 0%, transparent 60%)}
+    canvas#flow{position:fixed;inset:0;z-index:-2;opacity:.6}
+    .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0 .05 .12 .18 .12 .05 0 0"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>');opacity:.15;mix-blend-mode:overlay}
+
+    /* Layout */
+    .shell{position:relative;display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.2px}
+    .brand-badge{width:28px;height:28px;border-radius:8px;background:conic-gradient(from 180deg at 50% 50%, var(--primary), var(--accent), var(--secondary), var(--primary));box-shadow:0 0 30px rgba(124,58,237,.35)}
+    .nav{display:flex;gap:16px}
+    .nav a{color:var(--muted);text-decoration:none;font-weight:600;padding:8px 12px;border-radius:10px;border:1px solid transparent;transition:.2s}
+    .nav a:hover{color:var(--ink);border-color:#262b3d;background:#0c1220}
+
+    /* Hero */
+    .hero{display:grid;grid-template-columns:1.15fr 1fr;gap:36px;align-items:center;padding:56px 28px 28px;max-width:1400px;margin:0 auto;width:100%}
+    .kicker{color:var(--muted);font-weight:600;letter-spacing:.16em;font-size:.8rem;margin-bottom:10px}
+    h1{font-size:clamp(36px,6vw,72px);line-height:1.05;letter-spacing:-.02em;font-weight:900}
+    .lead{color:var(--muted);margin-top:14px;max-width:52ch}
+    .cta{display:flex;gap:14px;margin-top:28px}
+    .btn{position:relative;display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;border:1px solid #273045;background:#0e1422;color:var(--ink);font-weight:700;cursor:pointer;transition:.2s}
+    .btn:hover{transform:translateY(-1px);border-color:#33405e}
+    .btn.primary{background:linear-gradient(135deg, rgba(124,58,237,.25), rgba(6,182,212,.25));border-color:rgba(124,58,237,.4)}
+    .btn.primary::after{content:'';position:absolute;inset:-1px;border-radius:12px;pointer-events:none;background:linear-gradient(135deg, rgba(124,58,237,.6), rgba(6,182,212,.6));mix-blend-mode:soft-light;opacity:.35}
+
+    /* Cards */
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:18px}
+    .card{position:relative;border-radius:16px;border:1px solid #1f2536;background:linear-gradient(180deg, rgba(14,20,34,.6), rgba(14,20,34,.25));padding:18px;min-height:160px;overflow:hidden;transform-style:preserve-3d;will-change:transform}
+    .card h3{font-size:1.05rem;letter-spacing:.2px}
+    .card p{color:var(--muted);margin-top:8px}
+    .card .tag{position:absolute;top:14px;right:14px;font-size:.75rem;color:#cbd5e1;border:1px solid #2a3247;border-radius:999px;padding:4px 10px;background:#0b1120}
+    .card:hover{outline:1px solid #2b3350}
+
+    /* Footer mini */
+    footer{padding:14px 28px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted)}
+
+    /* Cursor */
+    .cursor{position:fixed;inset:0;pointer-events:none;z-index:50}
+    .cursor .dot{position:absolute;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff 0%, #bbb 60%, transparent 100%);mix-blend-mode:screen;opacity:.8}
+    .cursor .ring{position:absolute;width:36px;height:36px;border:1px solid rgba(200,200,220,.45);border-radius:50%;transform:translate(-50%,-50%);transition:width .15s,height .15s,border-color .2s}
+
+    @media (max-width: 960px){
+      .hero{grid-template-columns:1fr;gap:28px;padding:36px 16px 18px}
+      .grid{grid-template-columns:1fr}
+      header{padding:14px 16px}
+      footer{padding:12px 16px}
+    }
+  </style>
+  <script>
+    // small helpers
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+  </script>
+<script src="assets/xai-init.js" defer></script>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <canvas id="flow"></canvas>
+  <div class="grain"></div>
+
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-badge"></div>
+        <div>AI Intelligence</div>
+      </div>
+      <nav class="nav">
+        <a href="#" data-link="integrated">繝ｬ繝昴・繝・/a>
+        <a href="#" data-link="ranking">繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</a>
+        <a href="#" data-link="slides">日谺｡繧ｹ繝ｩ繧､繝・/a>
+        <a href="integrated_report.html" target="_self" style="color:#e2e8f0">Open</a>
+      </nav>
+    </header>
+
+    <main class="hero">
+      <section>
+        <div class="kicker">NEXT窶賎EN DASHBOARD</div>
+        <h1>豢槫ｯ溘ｒ蜉騾溘☆繧九・
+          譁ｰ縺励＞繧､繝ｳ繧ｿ繝ｩ繧ｯ繧ｷ繝ｧ繝ｳ縲・
+        </h1>
+        <p class="lead">RESN 縺ｮ貍泌・縺九ｉ逹諠ｳ繧貞ｾ励◆縲√ム繝ｼ繧ｯ縺ｧ繝ｪ繝・メ縺ｪ菴馴ｨ薙らｲ貞ｭ舌→繝輔Ο繝ｼ繝輔ぅ繝ｼ繝ｫ繝峨′蜻ｼ蜷ｸ縺吶ｋ閭梧勹縺ｮ荳翫↓縲√ぎ繝ｩ繧ｹ雉ｪ諢溘・繧ｫ繝ｼ繝峨ｒ驟咲ｽｮ縲ゆｸｻ隕√ン繝･繝ｼ縺ｸ譛遏ｭ縺ｧ繧｢繧ｯ繧ｻ繧ｹ縺ｧ縺阪∪縺吶・/p>
+        <div class="cta">
+          <a class="btn primary magnet" href="integrated_report.html">ｧｭ 邨ｱ蜷医Ξ繝昴・繝・/a>
+          <a class="btn magnet" href="ai_ranking_interactive.html">醇 繧､繝ｳ繧ｿ繝ｩ繧ｯ繝・ぅ繝悶Λ繝ｳ繧ｭ繝ｳ繧ｰ</a>
+          <a class="btn magnet" href="day_slides_index.html">套 日谺｡繧ｹ繝ｩ繧､繝・/a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <a class="card magnet" href="integrated_report.html">
+          <span class="tag">LIVE</span>
+          <h3>邨ｱ蜷医Ξ繝昴・繝・/h3>
+          <p>驕主悉30日縺ｮ荳ｻ隕√ヨ繝斐ャ繧ｯ繧剃ｿｯ迸ｰ縲・繝壹・繧ｸ縺ｧ隕∫せ繧呈滑謠｡縲・/p>
+        </a>
+        <a class="card magnet" href="ai_ranking_interactive.html">
+          <span class="tag">V2</span>
+          <h3>AI繝九Η繝ｼ繧ｹ繝ｻ繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</h3>
+          <p>謖・ｨ吶・驥阪∩莉倥￠繧定ｪｿ謨ｴ縺励※縲∵怙驕ｩ縺ｪ荳ｦ縺ｳ繧剃ｽ懈・繝ｻ蜈ｱ譛峨・/p>
+        </a>
+        <a class="card magnet" href="day_slides_index.html">
+          <span class="tag">Daily</span>
+          <h3>日谺｡繧ｹ繝ｩ繧､繝・/h3>
+          <p>繝薙ず繝･繧｢繝ｫ縺ｧ謖ｯ繧願ｿ斐ｋ豈取律縺ｮ荳ｻ隕√ル繝･繝ｼ繧ｹ縲ょ叉繝励Ξ繧ｼ繝ｳ蜿ｯ閭ｽ縲・/p>
+        </a>
+      </section>
+    </main>
+
+    <footer>
+      <div>ﾂｩ AI Intelligence</div>
+      <div>Press F11 縺ｧ蜈ｨ逕ｻ髱｢ | 鬮倬滓緒逕ｻ繝｢繝ｼ繝・ 閾ｪ蜍・/div>
+    </footer>
+  </div>
+
+  <!-- Custom cursor -->
+  <div class="cursor"><div class="ring"></div><div class="dot"></div></div>
+
+  <script>
+    // Flow field background (lightweight, GPU friendly)
+    (function(){
+      const c = document.getElementById('flow');
+      const ctx = c.getContext('2d');
+      let w, h, t=0; const DPR = Math.min(2, window.devicePixelRatio||1);
+      function resize(){ w= c.width = Math.floor(innerWidth*DPR); h = c.height = Math.floor(innerHeight*DPR); ctx.scale(DPR, DPR);} resize();
+      window.addEventListener('resize', resize);
+      const lines = Array.from({length: 140}, ()=>({x:Math.random()*innerWidth, y:Math.random()*innerHeight, a:Math.random()*Math.PI*2}));
+      function loop(){ t+=0.003; ctx.clearRect(0,0,innerWidth,innerHeight); ctx.lineWidth=1; ctx.strokeStyle='rgba(180,200,255,0.08)';
+        lines.forEach(p=>{ const n = Math.sin(p.x*0.002+t)+Math.cos(p.y*0.002-t); p.a += n*0.02; p.x += Math.cos(p.a)*0.6; p.y += Math.sin(p.a)*0.6; if(p.x<0)p.x=innerWidth; if(p.x>innerWidth)p.x=0; if(p.y<0)p.y=innerHeight; if(p.y>innerHeight)p.y=0; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+Math.cos(p.a)*8, p.y+Math.sin(p.a)*8); ctx.stroke(); });
+        requestAnimationFrame(loop);
+      }
+      loop();
+    })();
+
+    // Magnetic + tilt interactions
+    (function(){
+      const magnets = $$('.magnet');
+      magnets.forEach(el=>{
+        el.addEventListener('mousemove', e=>{
+          const r = el.getBoundingClientRect();
+          const cx = r.left + r.width/2, cy = r.top + r.height/2;
+          const dx = (e.clientX - cx)/r.width, dy = (e.clientY - cy)/r.height;
+          el.style.transform = `translate3d(${dx*8}px, ${dy*8}px, 0) rotateX(${dy*-4}deg) rotateY(${dx*6}deg)`;
+        });
+        el.addEventListener('mouseleave', ()=>{ el.style.transform='translate3d(0,0,0)'; });
+      });
+    })();
+
+    // Custom cursor
+    (function(){
+      const root = document.querySelector('.cursor');
+      const dot = root.querySelector('.dot');
+      const ring = root.querySelector('.ring');
+      let x=innerWidth/2, y=innerHeight/2, tx=x, ty=y;
+      function move(e){ tx = e.clientX; ty = e.clientY; dot.style.transform = `translate(${tx-4}px, ${ty-4}px)`; }
+      window.addEventListener('mousemove', move);
+      function loop(){ x += (tx-x)*0.15; y += (ty-y)*0.15; ring.style.transform = `translate(${x}px, ${y}px)`; requestAnimationFrame(loop); }
+      loop();
+      // hover states
+      ['a','.btn','.card'].forEach(sel=>{
+        document.querySelectorAll(sel).forEach(el=>{
+          el.addEventListener('mouseenter', ()=>{ ring.style.width='48px'; ring.style.height='48px'; ring.style.borderColor='rgba(124,58,237,.6)'; });
+          el.addEventListener('mouseleave', ()=>{ ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(200,200,220,.45)'; });
+        });
+      });
+    })();
+
+    // Top nav link routing
+    (function(){
+      const map = { integrated:'integrated_report.html', ranking:'ai_ranking_interactive.html', slides:'day_slides_index.html' };
+      document.querySelectorAll('a[data-link]').forEach(a=>{
+        a.addEventListener('click', e=>{ e.preventDefault(); const k=a.getAttribute('data-link'); const href = map[k]; if(href) location.href = href; });
+      });
+    })();
+  </script>
+</body>
+</html>
+
+

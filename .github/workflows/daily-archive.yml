@@ -1,0 +1,72 @@
+name: Daily Archive and Build
+
+on:
+  schedule:
+    # 00:05 JST daily (15:05 UTC)
+    - cron: '5 15 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps (minimal)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || pip install ftfy requests beautifulsoup4
+
+      - name: Archive daily AI news (JST)
+        run: |
+          python tools/archive_daily_ai_news.py || true
+
+      - name: Normalize archive JSON
+        run: |
+          python tools/normalize_archive_json.py
+
+      - name: Build advanced report
+        run: |
+          python tools/build_advanced_report.py
+
+      - name: Rebuild day slides index (best-effort)
+        run: |
+          python tools/rebuild_day_slides_index_quick.py || true
+
+      - name: Validate archive data
+        run: |
+          python tools/validate_archive_data.py
+
+      - name: Write version.json (cache buster)
+        run: |
+          mkdir -p public-pages
+          echo "{\n  \"sha\": \"${GITHUB_SHA}\",\n  \"ts\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n}" > public-pages/version.json
+
+      - name: Link check (lychee)
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --no-progress --max-concurrency 8 --exclude-mail presentations/**/*.html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public-pages/news/*.json public-pages/news/*.html public-pages/news/archive_index.json || true
+          git add public-pages/version.json presentations/advanced_intelligence_report_latest.html presentations/day_slides_index.html || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Daily archive + build: $(date -u +%Y-%m-%d)"
+            git push
+          else
+            echo "No changes to commit"
+          fi

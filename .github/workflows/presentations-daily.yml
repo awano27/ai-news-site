@@ -1,0 +1,55 @@
+name: Update presentations (detail + latest)
+
+on:
+  schedule:
+    # Run after ai-news (23:50 UTC) → 00:05 UTC
+    - cron: '5 0 * * *'
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'news/**'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fix mojibake in day_slides (UTF-8 sanitize)
+        run: |
+          python script/fix_day_slides_mojibake.py
+
+      - name: Build day_slides JSON index
+        run: |
+          python script/build_day_slides_json.py
+
+      - name: Build detail analysis report from news+slides
+        run: |
+          python -m pip install -U pip
+          # No extra deps required; generator uses stdlib
+          python src/generators/detail_analysis_generator.py
+
+      - name: Refresh latest aliases
+        run: |
+          python script/update_presentations_latest.py
+
+      - name: Commit changes
+        run: |
+          if [ -n "$(git status --porcelain presentations)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add presentations/*.html presentations/day_slides/list.json || true
+            git commit -m "chore(presentations): refresh latest report aliases"
+            git push
+          else
+            echo "No changes to commit"
+          fi

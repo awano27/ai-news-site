@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>2025/09/06 - EmbeddingGemma まとめ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/theme/white.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; overflow-y: auto !important; overflow-x: hidden; }
+    .reveal { position: relative !important; height: auto !important; min-height: 100vh; overflow: visible !important; font-family: 'Inter', system-ui, sans-serif; }
+    .reveal .slides { position: relative !important; width: 100% !important; height: auto !important; padding: 20px !important; text-align: center !important; overflow: visible !important; transform: none !important; }
+    .reveal .slides section { position: relative !important; width: 100% !important; max-width: 1200px !important; height: auto !important; margin: 0 auto 30px auto !important; padding: 20px !important; display: block !important; overflow: visible !important; transform: none !important; opacity: 1 !important; visibility: visible !important; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.12); text-align: left; }
+    .reveal .controls,.reveal .progress,.reveal .playback,.reveal .slide-number { display: none !important; }
+    :root { --primary:#2d3748; --blue:#4285f4; --red:#ea4335; --yellow:#fbbc04; --green:#34a853; }
+    body { background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: var(--primary); line-height: 1.7; font-size: 17px; }
+    .title-slide { text-align: center !important; background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%) !important; color: #fff !important; }
+    h1 { font-size: 2.8em !important; font-weight: 700 !important; margin-bottom: .3em !important; }
+    h2 { font-size: 2em !important; font-weight: 600 !important; color: var(--primary) !important; margin-bottom: .5em !important; padding-bottom: .3em; border-bottom: 2px solid #93c5fd; }
+    .impact-badge { display: inline-block; background: linear-gradient(135deg, var(--blue), #5e9cff); color: #fff; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: .9em; margin: 5px; }
+    .feature-box { background: linear-gradient(to bottom right, #e8f0fe, #e6f4ea); border: 2px solid var(--blue); border-radius: 12px; padding: 18px 20px; margin: 16px 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.2rem 0 .8rem; }
+    .stat-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; text-align: center; }
+    .stat-number { font-size: 1.6em; font-weight: 800; color: var(--blue); display: block; }
+    .stat-label { font-size: .9em; color: #4b5563; }
+    ul { margin-left: 1.2rem; } li { margin: .25rem 0; }
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 12px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
+    .card h3 { margin: 0 0 8px 0; font-size: 1.05em; }
+    .note { font-size: .96em; color: #374151; }
+    .callout { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 12px 14px; border-radius: 8px; color: #7c2d12; }
+    .links a { display: inline-block; margin: 6px 8px 0 0; padding: 8px 14px; border-radius: 999px; color: #fff; text-decoration: none; }
+    .links .primary { background: var(--blue); }
+    .links .success { background: var(--green); }
+    /* clickable links on reveal */
+    .reveal a { pointer-events: auto !important; position: relative; z-index: 999; }
+    .reveal a[target="_blank"] { cursor: pointer !important; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section class="title-slide">
+        <h1>EmbeddingGemma</h1>
+        <h2 style="color:#fff !important; border:none;">Gemma Embedding API 概要と活用ポイント（2025/09/06）</h2>
+        <div style="margin:18px 0;">
+          <span class="impact-badge">軽量 ~300M</span>
+          <span class="impact-badge">100+ 言語</span>
+          <span class="impact-badge">オンデバイス/オフライン</span>
+          <span class="impact-badge">MRL: 768→128</span>
+        </div>
+      </section>
+
+      <section>
+        <h2>概要とポイント</h2>
+        <div class="feature-box">
+          <p class="note" style="margin-bottom:8px;">
+            要約: EmbeddingGemma は Google の多言語・軽量な埋め込みモデル。最大約 2K 入力、
+            Matryoshka Representation Learning により 768→128 次元へ可変、量子化で RAM &lt; 200MB、
+            EdgeTPU で ~20ms 級の推論事例。RAG/検索/類似性/分類/クラスタリングに即投入しやすい一方、
+            量子化時の精度低下や一部端末の制約には注意。
+          </p>
+          <ul>
+            <li>100 以上の言語に対応し、モバイル/PC でのオフライン実行を想定。</li>
+            <li>MRL により出力次元をタスク/リソースに合わせて調整（768/512/256/128）。</li>
+            <li>低メモリ・低遅延でプライバシーに配慮したオンデバイス検索/RAG を実現。</li>
+            <li>Sentence Transformers 等のエコシステムと親和性が高く、導入が容易。</li>
+          </ul>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item"><span class="stat-number">~300M</span><span class="stat-label">パラメータ</span></div>
+          <div class="stat-item"><span class="stat-number">~2K</span><span class="stat-label">入力トークン</span></div>
+          <div class="stat-item"><span class="stat-number">&lt;200MB</span><span class="stat-label">量子化 RAM 目安</span></div>
+          <div class="stat-item"><span class="stat-number">~20ms</span><span class="stat-label">Edge 推論例</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>技術と使いどころ</h2>
+        <div class="two-col">
+          <div class="card"><h3>オンデバイス検索/RAG</h3><div class="note">端末内ドキュメントのベクトル検索、FAQ、簡易 RAG。低遅延・プライバシー保持。</div></div>
+          <div class="card"><h3>多言語ドメイン検索</h3><div class="note">金融/医療等の分野で類似検索・分類・監査ログ照会を高速化。</div></div>
+          <div class="card"><h3>エコシステム連携</h3><div class="note">Sentence Transformers / LangChain / LlamaIndex / Transformers.js と容易に統合。</div></div>
+          <div class="card"><h3>チューニング指針</h3><div class="note">MRL 次元・量子化・正規化（小文字化/句読点）で精度/速度/容量のバランス最適化。</div></div>
+        </div>
+        <div class="callout" style="margin-top:12px;">注意: デバイス/量子化条件で精度が変動します。現場データでの PoC 検証を推奨。</div>
+      </section>
+
+      <section>
+        <h2>導入手順（最短）</h2>
+        <div class="feature-box">
+          <ol>
+            <li>Python と <code>sentence-transformers</code> を準備（<code>pip install -U sentence-transformers</code>）。</li>
+            <li>モデルをロード：<code>SentenceTransformer("google/embeddinggemma-300m")</code>。</li>
+            <li>コーパスを正規化し、埋め込みを生成・格納（例：FAISS など）。</li>
+            <li>類似検索/RAG の精度・レイテンシ・メモリを測定し、MRL 次元と量子化を調整。</li>
+          </ol>
+        </div>
+      </section>
+
+      <section>
+        <h2>参考リンク / ソース</h2>
+        <div class="feature-box">
+          <ul>
+            <li><a href="https://ai.google.dev/gemma/docs/embeddinggemma" target="_blank" rel="noopener">https://ai.google.dev/gemma/docs/embeddinggemma</a></li>
+            <li><a href="https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers" target="_blank" rel="noopener">https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers</a></li>
+            <li><a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card" target="_blank" rel="noopener">https://ai.google.dev/gemma/docs/embeddinggemma/model_card</a></li>
+            <li><a href="https://developers.googleblog.com/en/introducing-embeddinggemma/" target="_blank" rel="noopener">https://developers.googleblog.com/en/introducing-embeddinggemma/</a></li>
+            <li><a href="https://huggingface.co/blog/embeddinggemma" target="_blank" rel="noopener">https://huggingface.co/blog/embeddinggemma</a></li>
+            <li><a href="https://arxiv.org/abs/2205.13147" target="_blank" rel="noopener">https://arxiv.org/abs/2205.13147</a></li>
+            <li><a href="https://ai.google.dev/gemini-api/docs/embeddings" target="_blank" rel="noopener">https://ai.google.dev/gemini-api/docs/embeddings</a></li>
+          </ul>
+        </div>
+        <div class="links" style="text-align:center;margin-top:8px;">
+          <a class="primary" href="../day_slides_index.html">日次スライド一覧</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({ embedded: true, width: '100%', height: '100%', margin: 0, minScale: 1, maxScale: 1, hash: false, controls: false, progress: false, center: false, transition: 'none' });
+  </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI繝九Η繝ｼ繧ｹ 隧ｳ邏ｰ蛻・梵繝ｬ繝昴・繝茨ｼ域怙譁ｰ・・/title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <style>
+    :root { --primary:#0f172a; --accent:#3b82f6; --light:#f8fafc; --border:#e2e8f0; --muted:#64748b; }
+    * { box-sizing: border-box; }
+    body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; margin:0; background:#fff; color:var(--primary) }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .header { background: linear-gradient(135deg,#0f172a,#1e293b); color:#fff; border-radius:12px; padding:20px 24px; margin-bottom:16px }
+    .header h1 { margin:0 0 6px; font-size:1.4rem }
+    .muted { color:#cbd5e1; font-size:.9rem }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap:16px; margin:16px 0 }
+    .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.03) }
+    .stats { display:flex; gap:16px }
+    .stat { flex:1; text-align:center; background:#0f172a; color:#fff; border-radius:8px; padding:14px }
+    .stat .v { font-weight:700; font-size:1.3rem }
+    .category { background:#eef2ff; color:#4338ca; padding:2px 8px; border-radius:12px; font-size:.8rem }
+    .stars { float:right; color:#f59e0b }
+    .meta { color:#64748b; font-size:.9rem; margin-top:6px }
+    .source-link { margin-left:8px }
+    table { width:100%; border-collapse: collapse }
+    th,td { padding:8px 10px; border-bottom:1px solid var(--border) }
+    th { background:#0f172a; color:#fff; text-align:left }
+    .chart { position:relative; height:340px }
+    .notice { padding:10px 12px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; color:#334155 }
+  </style>
+<script src="assets/xai-init.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>AI繝九Η繝ｼ繧ｹ 隧ｳ邏ｰ蛻・梵繝ｬ繝昴・繝茨ｼ域怙譁ｰ・・/h1>
+      <div id="ts" class="muted">譖ｴ譁ｰ: -</div>
+    </div>
+
+    <div id="emptyMsg" class="notice" style="display:none">繝・・繧ｿ縺後∪縺縺ゅｊ縺ｾ縺帙ｓ縲ゅ＠縺ｰ繧峨￥縺励※蜀崎ｪｭ縺ｿ霎ｼ縺ｿ縺励※縺上□縺輔＞縲・/div>
+
+    <div class="grid">
+      <div class="card stats">
+        <div class="stat"><div id="statCount" class="v">0</div><div>繝九Η繝ｼ繧ｹ莉ｶ謨ｰ</div></div>
+        <div class="stat"><div id="statDays" class="v">0</div><div>日謨ｰ</div></div>
+        <div class="stat"><div id="statCats" class="v">0</div><div>繧ｫ繝・ざ繝ｪ</div></div>
+      </div>
+      <div class="card">
+        <h3>繧ｫ繝・ざ繝ｪ蛻・ｸ・/h3>
+        <div class="chart"><canvas id="catChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>繧ｽ繝ｼ繧ｹTop</h3>
+        <div class="chart"><canvas id="srcChart"></canvas></div>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <h3>繧ｿ繧､繝繝ｩ繧､繝ｳ・磯℃蜴ｻ30日・・/h3>
+        <div class="chart"><canvas id="tlChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>豺ｱ謗倥ｊ・医せ繧ｳ繧｢荳贋ｽ搾ｼ・/h3>
+      <div id="topItems" class="grid"></div>
+    </div>
+
+    <div class="card">
+      <h3>日谺｡荳隕ｧ・医せ繝ｩ繧､繝蛾｣謳ｺ・・/h3>
+      <table>
+        <thead><tr><th>日莉・/th><th style="text-align:right">莉ｶ謨ｰ</th><th style="text-align:center">繧ｹ繝ｩ繧､繝・/th></tr></thead>
+        <tbody id="dayRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const esc = s => (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    const fetchJSON = async (u) => { const r = await fetch(u, { cache:'no-store' }); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); };
+    const buildStar = n => '笘・・笘・・笘・.slice(0, n) + '笘・・笘・・笘・.slice(0, 5-n);
+    const slideCandidates = (date) => {
+      const [y,m,d] = date.split('-');
+      return [
+        `day_slides/day_slide_${y}_${m}_${d}.html`,      // 迴ｾ陦鯉ｼ亥━蜈茨ｼ・        `daily_slides/daily_slide_${y}_${m}_${d}.html`   // 譌ｧ・亥炎髯､莠亥ｮ夲ｼ・      ];
+    };
+    async function pickSlideUrl(date) {
+      const urls = slideCandidates(date);
+      for (const u of urls) {
+        try {
+          // HEAD 縺碁壹ｉ縺ｪ縺・こ繝ｼ繧ｹ繧ゅ≠繧九・縺ｧ GET 縺ｧ霆ｽ縺冗｢ｺ隱・          const r = await fetch(u, { cache: 'no-store' });
+          if (r.ok) return u;
+        } catch(e) { /* ignore */ }
+      }
+      return null;
+    }
+    const ymd = (d) => d.toISOString().slice(0,10);
+    const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+
+    (async () => {
+      try {
+        const data = await fetchJSON('../news/latest.json');
+        document.getElementById('ts').textContent = '譖ｴ譁ｰ: ' + (data.generated_at || '窶・);
+        const sections = data.sections || {};
+        const items = ['business','tools','company','sns'].flatMap(k => (sections[k]||[]).map(it => ({...it, category: it.category || k})));
+        if (!items.length) { document.getElementById('emptyMsg').style.display = ''; return; }
+
+        // Stats
+        // 逶ｴ霑・0日蛻・・news/日蛻･JSON繧定ｩｦ陦悟叙蠕励＠縺ｦ髮・ｨ茨ｼ医↑縺代ｌ縺ｰlatest.json縺ｮ繝・・繧ｿ縺ｧ莉｣譖ｿ・・        const base = data.generated_at ? new Date(data.generated_at) : new Date();
+        const dayJsons = [];
+        for (let i=0;i<31;i++) {
+          const d = ymd(addDays(base, -i));
+          try {
+            const dj = await fetchJSON(`../news/${d}.json`);
+            dayJsons.push([d, dj]);
+          } catch(e) { /* ignore missing day */ }
+        }
+
+        const allItems = [];
+        for (const [d, dj] of dayJsons) {
+          const sec = dj.sections || {};
+          const its = ['business','tools','company','sns'].flatMap(k => (sec[k]||[]).map(it => ({...it, category: it.category||k, date: it.date || d})));
+          allItems.push(...its);
+        }
+        const itemsForStats = allItems.length ? allItems : items;
+
+        const dates = itemsForStats.map(it => it.date).filter(Boolean);
+        const uniqDays = [...new Set(dates)];
+        const cats = [...new Set(items.map(it => it.category||'other'))];
+        document.getElementById('statCount').textContent = itemsForStats.length;
+        document.getElementById('statDays').textContent = uniqDays.length;
+        document.getElementById('statCats').textContent = cats.length;
+
+        // Charts data
+        const catCount = cats.map(c => itemsForStats.filter(it => (it.category||'other')===c).length);
+        const srcMap = new Map();
+        for (const it of itemsForStats) { const n=(it.source&&it.source.name)||'unknown'; srcMap.set(n,(srcMap.get(n)||0)+1); }
+        const srcArr = [...srcMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
+        const srcLabels = srcArr.map(([k])=>k), srcValues = srcArr.map(([,v])=>v);
+        const tlMap = new Map();
+        for (const d of dates) { if(!d) continue; tlMap.set(d,(tlMap.get(d)||0)+1); }
+        const tlArr = [...tlMap.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+        const tlLabels = tlArr.map(([d])=>d.slice(5)), tlValues = tlArr.map(([,v])=>v);
+
+        new Chart(document.getElementById('catChart').getContext('2d'), {type:'pie', data:{labels:cats, datasets:[{data:catCount, backgroundColor:['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#94a3b8']}]} , options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}});
+        new Chart(document.getElementById('srcChart').getContext('2d'), {type:'bar', data:{labels:srcLabels, datasets:[{data:srcValues, backgroundColor:'#3b82f6'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}}}});
+        new Chart(document.getElementById('tlChart').getContext('2d'), {type:'line', data:{labels:tlLabels, datasets:[{label:'莉ｶ謨ｰ', data:tlValues, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.12)', tension:0.35, fill:true}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}});
+
+        // Top items by stars desc
+        const byStars = [...itemsForStats].sort((a,b)=> (b.stars||0) - (a.stars||0));
+        const top = byStars.slice(0, 12);
+        const topEl = document.getElementById('topItems');
+        topEl.innerHTML = top.map(it => {
+          const srcName = (it.source&&it.source.name)||'link';
+          const srcUrl = (it.source&&it.source.url)||'#';
+          return `<article class="card">
+            <span class="category">${esc(it.category||'')}</span>
+            <span class="stars">${buildStar(it.stars||0)}</span>
+            <h3>${esc(it.title||'')}</h3>
+            <p>${esc(it.blurb||'')}</p>
+            <div class="meta"><span>${esc(it.date||'')}</span> <a class="source-link" href="${esc(srcUrl)}" target="_blank" rel="noopener">蜃ｺ蜈ｸ: ${esc(srcName)}</a></div>
+          </article>`;
+        }).join('');
+
+        // Day rows with slide links
+        const dayEl = document.getElementById('dayRows');
+        const rows = await Promise.all(uniqDays.sort().reverse().map(async d => {
+          const cnt = tlMap.get(d) || 0;
+          const url = await pickSlideUrl(d);
+          if (!url) return `<tr><td>${d}</td><td style=\"text-align:right\">${cnt}</td><td style=\"text-align:center;color:#94a3b8\">-</td></tr>`;
+          const label = '繧ｹ繝ｩ繧､繝・;
+          return `<tr><td>${d}</td><td style=\"text-align:right\">${cnt}</td><td style=\"text-align:center\"><a href=\"${url}\" target=\"_blank\" rel=\"noopener\">${label}</a></td></tr>`;
+        }));
+        dayEl.innerHTML = rows.join('');
+      } catch (e) {
+        document.getElementById('emptyMsg').style.display = '';
+        console.error('detail latest load error', e);
+      }
+    })();
+  </script>
+</body>
+</html>
+
