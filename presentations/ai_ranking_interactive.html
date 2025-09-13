@@ -41,17 +41,16 @@
       <div class="controls">
         <label>データソース:
           <select id="dataSource">
-            <option value="../public-pages/news/2025-09-13_github.json">GitHub統合データ（427件）</option>
-            <option value="../public-pages/news/2025-09-13.json">2025-09-13</option>
-            <option value="../public-pages/news/2025-09-12.json">2025-09-12</option>
-            <option value="../public-pages/news/2025-09-07.json">2025-09-07</option>
+            <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-13_github.json">GitHub統合データ（427件）</option>
+            <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-13.json">2025-09-13</option>
+            <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-12.json">2025-09-12</option>
+            <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-07.json">2025-09-07</option>
           </select>
         </label>
-        <label><input type="checkbox" class="cat" value="AI Model" checked> AI Model</label>
-        <label><input type="checkbox" class="cat" value="Business" checked> Business</label>
-        <label><input type="checkbox" class="cat" value="Research" checked> Research</label>
-        <label><input type="checkbox" class="cat" value="Product" checked> Product</label>
-        <label><input type="checkbox" class="cat" value="Hardware" checked> Hardware</label>
+        <label><input type="checkbox" class="cat" value="テクノロジー・ツール" checked> テクノロジー・ツール</label>
+        <label><input type="checkbox" class="cat" value="ビジネス・投資" checked> ビジネス・投資</label>
+        <label><input type="checkbox" class="cat" value="SNS・論文" checked> SNS・論文</label>
+        <label><input type="checkbox" class="cat" value="AI Technology" checked> AI Technology</label>
       </div>
       <div class="desc" id="meta"></div>
     </div>
@@ -87,8 +86,26 @@
     function extractItems(data, cats){
       const items=[];
       
-      // アーカイブ形式の場合（items配列）
-      if(data.items && Array.isArray(data.items)){
+      // GitHub統合データの場合（raw_github_data配列）
+      if(data.raw_github_data && Array.isArray(data.raw_github_data)){
+        data.raw_github_data.forEach(it=>{
+          if(!cats.length || cats.includes(it.category)){
+            items.push({
+              date: it.timestamp||data.date||'',
+              title: sanitize(it.title),
+              stars: it.score||it.importance_score||0,
+              category: sanitize(it.category||'Other'),
+              source: {
+                name: it.source || 'ソース',
+                url: it.url
+              }
+            });
+          }
+        });
+      }
+      
+      // 通常のアーカイブ形式の場合（items配列）
+      else if(data.items && Array.isArray(data.items)){
         data.items.forEach(it=>{
           if(!cats.length || cats.includes(it.category)){
             items.push({
@@ -130,6 +147,7 @@
       if(data.count) parts.push(`件数: ${data.count}件`);
       if(data.generated_at) parts.push(`生成: ${data.generated_at}`);
       if(data.source && data.source.includes('GitHub')) parts.push('ソース: GitHub統合');
+      if(data.raw_github_data) parts.push(`GitHub統合データ: ${data.raw_github_data.length}件`);
       el.textContent = parts.join(' | ');
     }
 
