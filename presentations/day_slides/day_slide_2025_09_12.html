@@ -19,9 +19,11 @@
     p, li { color:#0f172a; }
     .badge { display:inline-block; background:#3b82f6; color:#fff; font-weight:800; border-radius:999px; padding:4px 10px; font-size:.9em; }
     ul { margin-left:1.2em; }
-    .links a { display:inline-block; margin:6px 8px 0 0; padding:8px 12px; border-radius:999px; background:#0f172a; color:#fff; text-decoration:none; cursor:pointer; z-index:999; position:relative; }
+    .links a { display:inline-block; margin:6px 8px 0 0; padding:8px 12px; border-radius:999px; background:#0f172a; color:#fff; text-decoration:none; cursor:pointer; z-index:9999 !important; position:relative !important; pointer-events:auto !important; }
     .links a:hover { background:#374151; transform:translateY(-1px); }
     .links a:active { transform:translateY(0); }
+    .reveal .slides section .links { pointer-events:auto !important; }
+    .reveal .slides section .links a { pointer-events:auto !important; }
   </style>
   <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@4.4.0/dist/reveal.js"></script>
 </head>
@@ -111,6 +113,18 @@
         keyboard:false
       });
     }
+    
+    // リンクのクリックイベントを強制的に有効にする
+    document.addEventListener('DOMContentLoaded', function() {
+      const links = document.querySelectorAll('.links a');
+      links.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          window.open(this.href, '_blank');
+        }, true);
+      });
+    });
   </script>
   <noscript>
     <div style="max-width:1100px;margin:12px auto;padding:12px;color:#334155;border:1px solid #e5e7eb;border-radius:8px;">
