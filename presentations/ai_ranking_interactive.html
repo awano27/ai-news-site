@@ -34,20 +34,24 @@
     <div class="header">
       <h1>AIニュース ランキング（インタラクティブ）</h1>
       <div class="desc">
-        このページは、ニュースJSON（例: <code>news/latest.json</code>）を読み込み、
-        スコア（stars）順にランキングとチャートを表示します。下の「データソース」を切り替えると内容が更新されます。
+        このページは、アーカイブされたニュースJSONを読み込み、
+        スコア順にランキングとチャートを表示します。下の「データソース」を切り替えると内容が更新されます。
+        GitHub統合データには427件の豊富なニュース情報が含まれています。
       </div>
       <div class="controls">
         <label>データソース:
           <select id="dataSource">
-            <option value="../news/latest.json">最新（news/latest.json）</option>
-            <option value="../news/2025-09-08.json">2025-09-08</option>
+            <option value="../public-pages/news/2025-09-13_github.json">GitHub統合データ（427件）</option>
+            <option value="../public-pages/news/2025-09-13.json">2025-09-13</option>
+            <option value="../public-pages/news/2025-09-12.json">2025-09-12</option>
+            <option value="../public-pages/news/2025-09-07.json">2025-09-07</option>
           </select>
         </label>
-        <label><input type="checkbox" class="cat" value="company" checked> company</label>
-        <label><input type="checkbox" class="cat" value="business" checked> business</label>
-        <label><input type="checkbox" class="cat" value="tools" checked> tools</label>
-        <label><input type="checkbox" class="cat" value="sns" checked> sns</label>
+        <label><input type="checkbox" class="cat" value="AI Model" checked> AI Model</label>
+        <label><input type="checkbox" class="cat" value="Business" checked> Business</label>
+        <label><input type="checkbox" class="cat" value="Research" checked> Research</label>
+        <label><input type="checkbox" class="cat" value="Product" checked> Product</label>
+        <label><input type="checkbox" class="cat" value="Hardware" checked> Hardware</label>
       </div>
       <div class="desc" id="meta"></div>
     </div>
@@ -80,37 +84,73 @@
     function byStarsDesc(a,b){return (b.stars||0)-(a.stars||0)}
     function sanitize(s){return (s||'').toString()}
 
-    function sectionsToItems(sections, cats){
+    function extractItems(data, cats){
       const items=[];
-      for(const cat of cats){
-        (sections[cat]||[]).forEach(it=>{
-          items.push({
-            date: it.date||'',
-            title: sanitize(it.title),
-            stars: it.stars||0,
-            category: cat,
-            source: it.source||{}
-          });
-        })
+      
+      // アーカイブ形式の場合（items配列）
+      if(data.items && Array.isArray(data.items)){
+        data.items.forEach(it=>{
+          if(!cats.length || cats.includes(it.category)){
+            items.push({
+              date: it.date||data.date||'',
+              title: sanitize(it.title),
+              stars: it.score||it.stars||0,
+              category: sanitize(it.category||'Other'),
+              source: {
+                name: it.url ? 'リンク' : 'ソース',
+                url: it.url
+              }
+            });
+          }
+        });
       }
+      
+      // 従来のsections形式の場合
+      else if(data.sections){
+        for(const cat of cats){
+          (data.sections[cat]||[]).forEach(it=>{
+            items.push({
+              date: it.date||'',
+              title: sanitize(it.title),
+              stars: it.stars||0,
+              category: cat,
+              source: it.source||{}
+            });
+          });
+        }
+      }
+      
       return items;
     }
 
-    function renderMeta(meta){
+    function renderMeta(data){
       const el=document.getElementById('meta');
-      el.textContent = meta ? `生成日時: ${meta}` : '';
+      const parts=[];
+      if(data.date) parts.push(`日付: ${data.date}`);
+      if(data.count) parts.push(`件数: ${data.count}件`);
+      if(data.generated_at) parts.push(`生成: ${data.generated_at}`);
+      if(data.source && data.source.includes('GitHub')) parts.push('ソース: GitHub統合');
+      el.textContent = parts.join(' | ');
     }
 
-    function renderHighlight(hl){
+    function renderHighlight(items){
       const el=document.getElementById('highlight');
-      if(!hl){ el.textContent='ハイライト項目はありません。'; return; }
-      const title = sanitize(hl.title);
-      const summary = sanitize(hl.summary);
-      const links = (hl.sources||[]).map(s=>`<a href="${s.url}" target="_blank" rel="noopener">${sanitize(s.name||'link')}</a>`).join(' ');
+      if(!items || !items.length){ 
+        el.textContent='ハイライト項目はありません。'; 
+        return; 
+      }
+      
+      // 最高スコアのアイテムをハイライトとして表示
+      const top = items[0];
+      const title = sanitize(top.title);
+      const summary = sanitize(top.summary || `スコア: ${top.stars}`);
+      const linkHtml = top.source?.url ? 
+        `<a href="${top.source.url}" target="_blank" rel="noopener">${sanitize(top.source.name||'リンク')}</a>` : '';
+      
       el.innerHTML = `
-        <div style="margin-bottom:6px"><span class="pill">${sanitize(hl.category||'highlight')}</span> <strong>${title}</strong></div>
+        <div style="margin-bottom:6px"><span class="pill">${sanitize(top.category||'top')}</span> <strong>${title}</strong></div>
         <div class="muted" style="margin-bottom:6px">${summary}</div>
-        <div class="source">${links}</div>
+        <div class="source">${linkHtml}</div>
       `;
     }
 
@@ -143,10 +183,10 @@
         const res=await fetch(url,{cache:'no-store'});
         if(!res.ok) throw new Error('fetch failed');
         const json=await res.json();
-        renderMeta(json.generated_at||'');
-        renderHighlight(json.highlight);
+        renderMeta(json);
         const cats=[...document.querySelectorAll('.cat:checked')].map(x=>x.value);
-        const items=sectionsToItems(json.sections||{}, cats).sort(byStarsDesc);
+        const items=extractItems(json, cats).sort(byStarsDesc);
+        renderHighlight(items);
         renderTable(items);
         renderBar(items);
       }catch(e){
