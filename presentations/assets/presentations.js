@@ -30,25 +30,31 @@
   async function renderRecentSlides(){
     const host = bySel('#recent-slides'); if (!host) return;
     try {
-      const res = await fetch('day_slides_index.html', { credentials: 'omit' });
+      const res = await fetch('./day_slides_index.html', { credentials: 'omit' });
       if (!res.ok) throw new Error('index fetch failed');
       const html = await res.text();
       const d = document.implementation.createHTMLDocument('slides');
       d.documentElement.innerHTML = html;
       const links = bySelAll('ul.slides a', d);
 
-      const looksMojibake = (s) => /\uFFFD|\?|朁E|蟷|譛|譌|E\/[a-z]/i.test(s||'');
+      const looksMojibake = (s) => /\uFFFD|\?{3,}|朁E|蟷|譛|譌|E\/[a-z]|研究概要:\s*この論文は/i.test(s||'');
 
       const items = links.map(a => {
         const href = a.getAttribute('href') || '';
         const dateEl = a.querySelector('.date');
         const dateLabel = (dateEl ? dateEl.textContent : '').trim();
         const fullText = (a.textContent||'').trim();
-        const text = dateLabel ? fullText.replace(dateLabel,'').trim() : fullText;
+        let text = dateLabel ? fullText.replace(dateLabel,'').trim() : fullText;
+        
+        // 長すぎるテキストや文字化けテキストの処理
+        if (text.length > 50) {
+          text = text.substring(0, 47) + '...';
+        }
+        
         const m = /day_slide_(\d{4})_(\d{2})_(\d{2})/.exec(href);
         const date = m ? `${m[1]}-${m[2]}-${m[3]}` : '';
-        const fallbackTitle = dateLabel ? `${dateLabel} - Daily Slide` : 'Daily Slide';
-        const title = (looksMojibake(text) || text.length < 2) ? fallbackTitle : text;
+        const fallbackTitle = dateLabel ? `${dateLabel.replace(/\//g, '/')} のスライド` : 'Daily Slide';
+        const title = (looksMojibake(text) || text.length < 3) ? fallbackTitle : text;
         return { href, title, date, dateLabel, ts: m ? Date.parse(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`) : 0 };
       }).filter(x => x.href).sort((a,b)=> b.ts - a.ts).slice(0, 8);
 
@@ -56,7 +62,7 @@
       items.forEach(it => {
         const a = document.createElement('a');
         a.className = 'ntt-slide';
-        a.href = it.href;
+        a.href = './day_slides/' + it.href.split('/').pop();
         a.innerHTML = `
           <img class="ntt-slide-thumb" alt="" loading="lazy" referrerpolicy="no-referrer" src="${makeThumb(it.title||it.date)}"/>
           <div>
@@ -68,7 +74,8 @@
       });
       host.replaceChildren(frag);
     } catch (e){
-      host.innerHTML = '<div class="ntt-card">Failed to load recent slides. <a class="ntt-inline" href="day_slides_index.html">Open list</a></div>';
+      console.error('Failed to load recent slides:', e);
+      host.innerHTML = '<div class="ntt-card"><div class="ntt-tag">Notice</div><h3 class="ntt-card-title">最新スライドの読み込みに失敗しました</h3><p class="ntt-card-desc">最新のスライド情報を取得できませんでした。</p><p><a class="ntt-inline" href="./day_slides_index.html">スライド一覧を開く</a></p></div>';
     }
   }
 
