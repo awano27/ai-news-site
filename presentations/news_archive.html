@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIニュースアーカイブ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f14; --surface:#10161d; --text:#e6edf3; --muted:#8aa0b2; --border:#1b2530; --accent:#67e8f9; }
+    *{ box-sizing:border-box }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans JP',sans-serif }
+    header{ position:sticky; top:0; background:linear-gradient(180deg,#0b0f14 0%,#0a0e13 100%); border-bottom:1px solid var(--border); padding:12px 16px; z-index:10 }
+    .wrap{ max-width:1100px; margin:0 auto; padding:0 16px 28px }
+    h1{ margin:12px 0 6px; font-size:24px; font-weight:900 }
+    .controls{ display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:end }
+    .controls .field{ display:grid; gap:6px }
+    .label{ font-size:12px; color:var(--muted) }
+    input[type="search"], select{ border:2px solid var(--border); background:var(--surface); color:var(--text); border-radius:10px; padding:10px 12px }
+    .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:16px }
+    .card{ position:relative; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.25) }
+    .title{ font-size:18px; font-weight:900; margin:4px 0 6px }
+    .meta{ display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:13px; margin-bottom:6px }
+    .score{ position:absolute; top:12px; right:12px; background:var(--accent); color:#0b0f14; font-weight:900; border-radius:9999px; padding:6px 10px }
+    .btn{ appearance:none; border:1px solid var(--border); background:var(--surface); padding:8px 10px; border-radius:10px; color:var(--accent); font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:6px }
+    .notice{ margin-top:12px; padding:10px 12px; background:#0f172a; border:1px solid var(--border); border-radius:8px; color:#cbd5e1 }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap"><strong>AIニュースアーカイブ</strong></div>
+  </header>
+  <main class="wrap">
+    <div class="controls" role="region" aria-label="検索と絞り込み">
+      <label class="field"><span class="label">日付</span><select id="date" aria-label="日付"></select></label>
+      <label class="field"><span class="label">検索</span><input id="q" type="search" placeholder="キーワードで絞り込み" aria-label="検索"></label>
+      <div class="field"><span class="label">件数</span><div id="cnt" class="label">0 件</div></div>
+    </div>
+    <div id="msg" class="notice" style="display:none"></div>
+    <div id="list" class="grid" aria-live="polite"></div>
+  </main>
+  <script>
+    // Resolve site root robustly (GitHub Pages, local root, nested path) and fallback to relative
+    async function pickRoot() {
+      const parts = location.pathname.split('/').filter(Boolean);
+      const cand = [
+        `${location.origin}/ai-news-site/`,      // GH Pages
+        `${location.origin}/`,                    // root
+        `${location.origin}/${parts[0]||''}/`     // first segment
+      ].filter((v,i,arr)=>v && arr.indexOf(v)===i);
+
+      for (const base of cand) {
+        try {
+          const r = await fetch(`${base}public-pages/version.json`, { cache:'no-store' });
+          if (r.ok) return base;
+        } catch (_) { /* try next */ }
+      }
+      // Final fallback: use relative resolution from this page
+      try {
+        const r = await fetch(`../public-pages/version.json`, { cache:'no-store' });
+        if (r.ok) return '';
+      } catch(_) {}
+      return cand[1] || '/';
+    }
+
+    const $  = (s,r=document)=>r.querySelector(s);
+    const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+
+    function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t??''; return d.innerHTML; }
+    function stripTags(t){ return (t||'').replace(/<[^>]+>/g,' ').replace(/[\u00A0\u2000-\u200B\u3000]/g,' ').replace(/\s+/g,' ').trim(); }
+    function stripStrayE(t){ let out=''; for(let i=0;i<t.length;i++){ const c=t[i]; if(c==='E' && i>0 && i<t.length-1 && t.charCodeAt(i-1)>0x7f && t.charCodeAt(i+1)>0x7f) continue; out+=c; } return out; }
+    function sanitizeJP(t){ if(!t) return ''; let s=String(t); s=s.replace(/\uFFFD/g,''); s=stripStrayE(s); return s; }
+    function cleanTitle(t){ return sanitizeJP(stripTags(t)) || 'タイトル（自動修復）'; }
+    function normDate(s){ if(!s) return ''; const m=String(s).match(/(\d{4})[./-]?(\d{1,2})[./-]?(\d{1,2})/); if(!m) return s; const y=+m[1],mo=+m[2],d=+m[3]; return `${String(y).padStart(4,'0')}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+
+    async function getVersion(base){
+      const url = base ? `${base}public-pages/version.json` : `../public-pages/version.json`;
+      try { const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw 0; const v=await r.json(); return v.sha||v.version||String(Date.now()); }
+      catch(_) { return String(Date.now()); }
+    }
+
+    async function loadDay(base, file, v){
+      const abs = base ? `${base}public-pages/news/${file}?v=${encodeURIComponent(v)}`
+                       : `../public-pages/news/${file}?v=${encodeURIComponent(v)}`;
+      const res = await fetch(abs, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return await res.json();
+    }
+
+    function cardHTML(it, idx){
+      const title = cleanTitle(it.title||'');
+      const sumraw = stripTags(it.summary||'');
+      const summary = sanitizeJP(sumraw);
+      const showSummary = !!summary;
+      const psrc = (it.points||[]).slice(0,3).map(p=>sanitizeJP(p)).filter(Boolean);
+      const pts = psrc.length ? `<ul>${psrc.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul>` : '';
+      const more = `presentations/ai_news_item.html?idx=${idx}`;
+      return `
+        <article class="card">
+          <div class="score">${it.score??''}</div>
+          <h3 class="title">${escapeHtml(title)}</h3>
+          <div class="meta"><span>${normDate(it.date||'')}</span><span>Rank ${it.rank??''}</span></div>
+          ${showSummary?`<div class="summary">${escapeHtml(summary.slice(0,160))}${summary.length>160?'…':''}</div>`:''}
+          ${pts}
+          <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="btn" href="${more}">詳細（最新ソース基準）</a>
+            ${it.url?`<a class="btn" href="${it.url}" target="_blank" rel="noopener">記事を開く</a>`:''}
+          </div>
+        </article>`;
+    }
+
+    async function init(){
+      const sel = $('#date'); const list=$('#list'); const cnt=$('#cnt'); const msg=$('#msg'); const q=$('#q');
+      const BASE = await pickRoot();
+      let v = await getVersion(BASE);
+      let idx = [];
+      try {
+        const idxUrl = BASE ? `${BASE}public-pages/news/archive_index.json?v=${encodeURIComponent(v)}`
+                            : `../public-pages/news/archive_index.json?v=${encodeURIComponent(v)}`;
+        const r = await fetch(idxUrl, {cache:'no-store'});
+        if(!r.ok) throw 0; idx = await r.json();
+      } catch(_) {
+        msg.style.display='block';
+        msg.textContent = 'アーカイブの読み込みに失敗しました。時間をおいて再読み込みしてください。';
+        return;
+      }
+      sel.appendChild(Object.assign(document.createElement('option'),{value:'__ALL__',textContent:'全期間（結合）'}));
+      idx.forEach(en=>{ const o=document.createElement('option'); o.value=en.file; o.textContent=`${en.date} (${en.count})`; sel.appendChild(o); });
+
+      async function render(){
+        msg.style.display='none';
+        try {
+          let data;
+          if(sel.value==='__ALL__'){
+            const listArr = await Promise.all(idx.map(en=>loadDay(BASE, en.file, v)));
+            data = { items: listArr.flatMap(x=>x.items||[]) };
+          } else {
+            data = await loadDay(BASE, sel.value, v);
+          }
+          const kw=(q.value||'').trim().toLowerCase();
+          const filtered = (data.items||[]).filter(it=>!kw || (`${stripTags(it.title)}\n${stripTags(it.summary)}`.toLowerCase().includes(kw)));
+          list.innerHTML = filtered.map((it,i)=>cardHTML(it,i)).join('');
+          cnt.textContent = `${filtered.length} 件`;
+        } catch (e) {
+          list.innerHTML = '';
+          cnt.textContent = '0 件';
+          msg.style.display='block';
+          msg.textContent = 'データの取得に失敗しました。ネットワークを確認してください。';
+        }
+      }
+
+      sel.addEventListener('change', render);
+      q.addEventListener('input', render);
+      sel.value = sel.value || '__ALL__';
+      render();
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init, {once:true}); else init();
+  </script>
+</body>
+</html>

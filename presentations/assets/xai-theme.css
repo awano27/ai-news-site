@@ -1,0 +1,113 @@
+/* xai-theme.css — site-wide x.ai-inspired styling (non-invasive) */
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+:root {
+  --x-bg: #0b0f14;
+  --x-panel: rgba(255,255,255,0.04);
+  --x-border: rgba(255,255,255,0.10);
+  --x-soft-border: rgba(148,163,184,0.20);
+  --x-text: #e6e8ef;
+  --x-muted: #9aa4b2;
+  --x-accent-1: #8b5cf6; /* violet */
+  --x-accent-2: #22d3ee; /* cyan */
+  --x-shadow: 0 8px 30px rgba(0,0,0,0.45);
+}
+
+/* Enable theme fonts; do not force dark background globally */
+body.xai-enabled {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  position: relative;
+}
+
+/* Only enable dark color-scheme when explicitly set */
+body.xai-dark {
+  color-scheme: dark;
+  background: var(--x-bg);
+}
+
+/* Ambient gradient background orbs */
+.xai-bg {
+  position: fixed;
+  inset: -20% -10% -10% -10%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(800px 800px at 85% -5%, rgba(139,92,246,0.18), transparent 55%),
+    radial-gradient(600px 600px at 12% 6%, rgba(34,211,238,0.12), transparent 50%),
+    radial-gradient(500px 500px at 50% 115%, rgba(34,211,238,0.08), transparent 60%);
+  filter: saturate(1.05);
+}
+
+/* Subtle moving grid overlay (very light to avoid distraction) */
+.xai-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: xai-grid-move 24s linear infinite;
+}
+@keyframes xai-grid-move { to { transform: translate3d(48px,48px,0); } }
+
+/* Top navigation (glassmorphism) */
+.xai-nav {
+  position: fixed;
+  top: 12px; left: 50%; transform: translateX(-50%);
+  width: min(1180px, calc(100% - 24px));
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(6,10,20,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--x-border);
+  border-radius: 14px;
+  box-shadow: var(--x-shadow);
+  z-index: 10000;
+}
+.xai-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--x-text); font-weight: 800; letter-spacing: 0.2px; text-decoration: none; }
+.xai-dot { width: 18px; height: 18px; border-radius: 999px; background: linear-gradient(135deg, var(--x-accent-1), var(--x-accent-2)); box-shadow: 0 0 24px rgba(34,211,238,0.45); }
+.xai-title { color: #fff; font-weight: 800; font-size: 14px; opacity: 0.95; }
+.xai-links { display: flex; align-items: center; gap: 6px; }
+.xai-link { color: var(--x-text); text-decoration: none; font-weight: 600; font-size: 13px; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; transition: all 160ms ease; opacity: 0.95; }
+.xai-link:hover { border-color: var(--x-soft-border); background: rgba(255,255,255,0.04); }
+.xai-link.active { background: linear-gradient(135deg, rgba(139,92,246,0.20), rgba(34,211,238,0.20)); color: #fff; border-color: rgba(148,163,184,0.35); }
+
+/* Body offset when nav is present */
+body.xai-padding { padding-top: 76px; }
+body.reveal-page.xai-padding { padding-top: 88px; }
+
+/* Floating corner action for pages with their own sticky header */
+.xai-fab {
+  position: fixed; top: 14px; right: 14px; z-index: 10000;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 999px;
+  background: rgba(6,10,20,0.55);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--x-border);
+  color: var(--x-text); text-decoration: none; font-weight: 700; font-size: 12px;
+}
+.xai-fab .xai-dot { width: 12px; height: 12px; box-shadow: 0 0 14px rgba(34,211,238,0.5); }
+.xai-fab:hover { background: rgba(15,23,42,0.65); border-color: var(--x-soft-border); }
+
+/* Links, selections, focus ring */
+/* Do not change global link colors; keep nav scoped via .xai-link */
+::selection { background: rgba(34,211,238,0.25); color: #fff; }
+:focus-visible { outline: 2px solid rgba(34,211,238,0.65); outline-offset: 2px; border-radius: 6px; }
+
+/* Keep Reveal.js slides readable while adopting background + spacing */
+body.xai-enabled .reveal .slides section { scroll-margin-top: 90px; }
+body.xai-enabled .reveal { z-index: 1; position: relative; }
+
+/* Do not override page-specific cards; lightly enhance generic white boxes */
+body.xai-enabled .card, body.xai-enabled .content-card, body.xai-enabled .control-panel {
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  border-color: rgba(148,163,184,0.25) !important;
+}
+
+/* Optional footer breathing room */
+body.xai-enabled { padding-bottom: 40px; }

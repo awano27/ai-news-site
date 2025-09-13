@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIニュース ランキング（インタラクティブ）</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <style>
+    :root{--bg:#f8fafc;--fg:#0f172a;--accent:#3b82f6;--border:#e2e8f0;--muted:#64748b;--ok:#10b981}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+    .header{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+    .header h1{margin:0 0 6px 0;font-size:22px}
+    .header .desc{color:var(--muted);font-size:14px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .controls select,.controls input[type="checkbox"]{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff}
+    .layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+    .card h2{margin:0 0 10px 0;font-size:16px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid var(--border);padding:8px;text-align:left;font-size:14px}
+    th{font-weight:800}
+    .pill{display:inline-block;background:var(--accent);color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800}
+    .muted{color:var(--muted)}
+    .source a{color:var(--accent);text-decoration:none}
+    .source a:hover{text-decoration:underline}
+    @media (max-width:960px){.layout{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>AIニュース ランキング（インタラクティブ）</h1>
+      <div class="desc">
+        このページは、ニュースJSON（例: <code>news/latest.json</code>）を読み込み、
+        スコア（stars）順にランキングとチャートを表示します。下の「データソース」を切り替えると内容が更新されます。
+      </div>
+      <div class="controls">
+        <label>データソース:
+          <select id="dataSource">
+            <option value="../news/latest.json">最新（news/latest.json）</option>
+            <option value="../news/2025-09-08.json">2025-09-08</option>
+          </select>
+        </label>
+        <label><input type="checkbox" class="cat" value="company" checked> company</label>
+        <label><input type="checkbox" class="cat" value="business" checked> business</label>
+        <label><input type="checkbox" class="cat" value="tools" checked> tools</label>
+        <label><input type="checkbox" class="cat" value="sns" checked> sns</label>
+      </div>
+      <div class="desc" id="meta"></div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <h2>上位トピック（棒グラフ）</h2>
+        <canvas id="bar"></canvas>
+      </div>
+      <div class="card">
+        <h2>ハイライト</h2>
+        <div id="highlight" class="muted">読み込み中…</div>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <h2>ランキング一覧（stars順）</h2>
+        <table>
+          <thead>
+            <tr><th>日付</th><th>タイトル</th><th>カテゴリ</th><th>stars</th><th>ソース</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const COLORS=['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#0ea5e9','#84cc16'];
+    let barChart=null;
+
+    function byStarsDesc(a,b){return (b.stars||0)-(a.stars||0)}
+    function sanitize(s){return (s||'').toString()}
+
+    function sectionsToItems(sections, cats){
+      const items=[];
+      for(const cat of cats){
+        (sections[cat]||[]).forEach(it=>{
+          items.push({
+            date: it.date||'',
+            title: sanitize(it.title),
+            stars: it.stars||0,
+            category: cat,
+            source: it.source||{}
+          });
+        })
+      }
+      return items;
+    }
+
+    function renderMeta(meta){
+      const el=document.getElementById('meta');
+      el.textContent = meta ? `生成日時: ${meta}` : '';
+    }
+
+    function renderHighlight(hl){
+      const el=document.getElementById('highlight');
+      if(!hl){ el.textContent='ハイライト項目はありません。'; return; }
+      const title = sanitize(hl.title);
+      const summary = sanitize(hl.summary);
+      const links = (hl.sources||[]).map(s=>`<a href="${s.url}" target="_blank" rel="noopener">${sanitize(s.name||'link')}</a>`).join(' ');
+      el.innerHTML = `
+        <div style="margin-bottom:6px"><span class="pill">${sanitize(hl.category||'highlight')}</span> <strong>${title}</strong></div>
+        <div class="muted" style="margin-bottom:6px">${summary}</div>
+        <div class="source">${links}</div>
+      `;
+    }
+
+    function renderTable(items){
+      const tbody=document.getElementById('rows');
+      tbody.innerHTML= items.map(it=>{
+        const srcName = sanitize(it.source?.name);
+        const srcUrl  = it.source?.url ? `<a href="${it.source.url}" target="_blank" rel="noopener">${srcName||'link'}</a>` : '';
+        return `<tr>
+          <td>${sanitize(it.date)}</td>
+          <td>${sanitize(it.title)}</td>
+          <td>${sanitize(it.category)}</td>
+          <td>${it.stars||0}</td>
+          <td class="source">${srcUrl}</td>
+        </tr>`
+      }).join('');
+    }
+
+    function renderBar(items){
+      const ctx=document.getElementById('bar');
+      const top=items.slice(0,7);
+      const labels=top.map(x=>x.title.slice(0,24)+(x.title.length>24?'…':''));
+      const data=top.map(x=>x.stars||0);
+      if(barChart){barChart.destroy()}
+      barChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'stars',data,backgroundColor:COLORS}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:(c)=>`stars: ${c.parsed.y}`}}},scales:{y:{beginAtZero:true}}}});
+    }
+
+    async function loadAndRender(url){
+      try{
+        const res=await fetch(url,{cache:'no-store'});
+        if(!res.ok) throw new Error('fetch failed');
+        const json=await res.json();
+        renderMeta(json.generated_at||'');
+        renderHighlight(json.highlight);
+        const cats=[...document.querySelectorAll('.cat:checked')].map(x=>x.value);
+        const items=sectionsToItems(json.sections||{}, cats).sort(byStarsDesc);
+        renderTable(items);
+        renderBar(items);
+      }catch(e){
+        document.getElementById('highlight').textContent='データの読み込みに失敗しました。ファイルの存在とCORS設定を確認してください。';
+        document.getElementById('rows').innerHTML='';
+        if(barChart){barChart.destroy();}
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      const sel=document.getElementById('dataSource');
+      const reload=()=>loadAndRender(sel.value);
+      sel.addEventListener('change',reload);
+      document.querySelectorAll('.cat').forEach(cb=>cb.addEventListener('change',reload));
+      reload();
+    });
+  </script>
+</body>
+</html>
+

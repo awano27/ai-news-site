@@ -1,0 +1,1011 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Intelligence Platform - Next Generation Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #020617;
+            --light: #f8fafc;
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        /* Animated Gradient Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(125deg, #000428 0%, #004e92 100%);
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background: linear-gradient(125deg, #000428 0%, #004e92 100%);
+            }
+            25% {
+                background: linear-gradient(125deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            }
+            50% {
+                background: linear-gradient(125deg, #141e30 0%, #243b55 100%);
+            }
+            75% {
+                background: linear-gradient(125deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
+            }
+            100% {
+                background: linear-gradient(125deg, #000428 0%, #004e92 100%);
+            }
+        }
+
+        /* Particle Animation Canvas */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        /* Animated Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        /* Layout Container */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Modern Glassmorphism Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 32px 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .sidebar h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        .nav-section {
+            margin-bottom: 36px;
+        }
+
+        .nav-section-title {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            margin-bottom: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            font-weight: 500;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* Main Content Area */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Modern Top Bar */
+        .top-bar {
+            height: 70px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: relative;
+        }
+
+        .top-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .breadcrumb-item:hover {
+            color: white;
+        }
+
+        .breadcrumb-separator {
+            opacity: 0.3;
+        }
+
+        /* Modern View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .view-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Modern Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            padding: 8px;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 60px rgba(102, 126, 234, 0.2);
+        }
+
+        .dashboard-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-stat {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 30px rgba(102, 126, 234, 0.5),
+                0 0 50px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 
+                    0 10px 30px rgba(102, 126, 234, 0.5),
+                    0 0 0 0 rgba(102, 126, 234, 0.7);
+            }
+            70% {
+                box-shadow: 
+                    0 10px 30px rgba(102, 126, 234, 0.5),
+                    0 0 0 20px rgba(102, 126, 234, 0);
+            }
+            100% {
+                box-shadow: 
+                    0 10px 30px rgba(102, 126, 234, 0.5),
+                    0 0 0 0 rgba(102, 126, 234, 0);
+            }
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 
+                0 15px 40px rgba(102, 126, 234, 0.6),
+                0 0 80px rgba(118, 75, 162, 0.4);
+        }
+
+        /* Modern Quick Access Panel */
+        .quick-access {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(102, 126, 234, 0.2);
+            z-index: 1001;
+            min-width: 320px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .quick-access.show {
+            display: block;
+        }
+
+        .quick-access-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quick-access-title {
+            font-weight: 700;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .quick-access-close {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            transition: all 0.2s;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .quick-access-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+
+        .quick-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(8px);
+        }
+
+        .quick-link-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2000;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 240px;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-container {
+                margin-left: 0;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+<script src="assets/xai-init.js" defer></script>
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="background-container"></div>
+    <div class="grid-overlay"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="app-container">
+        <!-- Modern Sidebar -->
+        <aside class="sidebar">
+            <h1>
+                <span>噫</span>
+                <span class="logo-gradient">AI Intelligence</span>
+            </h1>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">MAIN NAVIGATION</div>
+                <div class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">匠</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-page="integrated">
+                    <span class="nav-icon">ｧｭ</span>
+                    <span>繝ｬ繝昴・繝・/span>
+                </div>
+                <div class="nav-item" data-page="slides">
+                    <span class="nav-icon">識</span>
+                    <span>豈取律繧ｹ繝ｩ繧､繝・/span>
+                </div>
+                <div class="nav-item" data-page="ranking">
+                    <span class="nav-icon">醇</span>
+                    <span>繧､繝ｳ繧ｿ繝ｩ繧ｯ繝・ぅ繝悶Λ繝ｳ繧ｭ繝ｳ繧ｰ</span>
+                </div>
+                <div class="nav-item" data-page="dailyNews">
+                    <span class="nav-icon">搭</span>
+                    <span>AI繝九Η繝ｼ繧ｹ荳隕ｧ</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">RECENT SLIDES</div>
+                <div id="dailySlidesList"></div>
+                <div class="nav-item" id="allSlidesBtn">
+                    <span class="nav-icon">套</span>
+                    <span id="allSlidesCount">All Slides</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">QUICK ACTIONS</div>
+                <div class="nav-item" id="quickAccessBtn">
+                    <span class="nav-icon">笞｡</span>
+                    <span>Quick Access</span>
+                </div>
+                <div class="nav-item" id="fullscreenBtn">
+                    <span class="nav-icon">筏</span>
+                    <span>Fullscreen</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Modern Top Bar -->
+            <div class="top-bar">
+                <div class="breadcrumb">
+                    <span class="breadcrumb-item" onclick="loadPage('dashboard')">Home</span>
+                    <span class="breadcrumb-separator">窶ｺ</span>
+                    <span class="breadcrumb-item" id="currentPage">Dashboard</span>
+                </div>
+                
+                <div class="view-toggle">
+                    <button class="view-btn active" id="frameView">Frame View</button>
+                    <button class="view-btn" id="tabView">Tab View</button>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area" id="contentArea">
+                <!-- Modern Dashboard Grid -->
+                <div class="dashboard-grid" id="dashboardContent">
+                    <div class="dashboard-card" onclick="loadPage('integrated')">
+                        <div class="card-icon">ｧｭ</div>
+                        <div class="card-title">繧､繝ｳ繝・Μ繧ｸ繧ｧ繝ｳ繧ｹ繝ｬ繝昴・繝・/div>
+                        <div class="card-description">驕主悉30日縺ｮ荳ｻ隕、I謚陦薙ｒ蛹・峡逧・↓蛻・梵繝ｻ蜿ｯ隕門喧</div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="stat-value">30</div>
+                                <div class="stat-label">Technologies</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="stat-value">85%</div>
+                                <div class="stat-label">Avg Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card" onclick="loadPage('slides')">
+                        <div class="card-icon">識</div>
+                        <div class="card-title">繝・う繝ｪ繝ｼ繧ｹ繝ｩ繧､繝・/div>
+                        <div class="card-description">豈取律縺ｮ驥崎ｦ、I繝九Η繝ｼ繧ｹ繧偵ン繧ｸ繝･繧｢繝ｫ繝励Ξ繧ｼ繝ｳ繝・・繧ｷ繝ｧ繝ｳ</div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="stat-value">27</div>
+                                <div class="stat-label">Slides</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="stat-value">94.2</div>
+                                <div class="stat-label">Impact</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card" onclick="loadPage('ranking')">
+                        <div class="card-icon">醇</div>
+                        <div class="card-title">繧､繝ｳ繧ｿ繝ｩ繧ｯ繝・ぅ繝悶Λ繝ｳ繧ｭ繝ｳ繧ｰ</div>
+                        <div class="card-description">繝ｪ繧｢繝ｫ繧ｿ繧､繝蛻・梵縺ｨ繧ｫ繧ｹ繧ｿ繝槭う繧ｺ蜿ｯ閭ｽ縺ｪ隧穂ｾ｡繧ｷ繧ｹ繝・Β</div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="stat-value">5</div>
+                                <div class="stat-label">Metrics</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="stat-value">竏・/div>
+                                <div class="stat-label">Custom</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card" onclick="loadPage('dailyNews')">
+                        <div class="card-icon">投</div>
+                        <div class="card-title">AI繝九Η繝ｼ繧ｹ繝輔ぅ繝ｼ繝・/div>
+                        <div class="card-description">75莉ｶ縺ｮ譛譁ｰAI繝九Η繝ｼ繧ｹ繧貞━蜈亥ｺｦ蛻･縺ｫ繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ陦ｨ遉ｺ</div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="stat-value">75</div>
+                                <div class="stat-label">Articles</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="stat-value">24/7</div>
+                                <div class="stat-label">Updates</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card" onclick="showQuickAccess()">
+                        <div class="card-icon">笞｡</div>
+                        <div class="card-title">繧ｯ繧､繝・け繧｢繧ｯ繧ｻ繧ｹ</div>
+                        <div class="card-description">繧医￥菴ｿ縺・ｩ溯・縺ｨ繧ｹ繝ｩ繧､繝峨∈縺ｮ鬮倬溘リ繝薙ご繝ｼ繧ｷ繝ｧ繝ｳ</div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="stat-value">10</div>
+                                <div class="stat-label">Shortcuts</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="stat-value">0.1s</div>
+                                <div class="stat-label">Access</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card" onclick="showAnalytics()">
+                        <div class="card-icon">嶋</div>
+                        <div class="card-title">繧｢繝翫Μ繝・ぅ繧ｯ繧ｹ</div>
+                        <div class="card-description">AI讌ｭ逡後ヨ繝ｬ繝ｳ繝峨→蟶ょｴ繧､繝ｳ繧ｵ繧､繝医・隧ｳ邏ｰ蛻・梵</div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="stat-value">360ﾂｰ</div>
+                                <div class="stat-label">View</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="stat-value">ML</div>
+                                <div class="stat-label">Powered</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- iframe Container -->
+                <iframe class="content-frame" id="contentFrame" style="display: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Quick Access Panel -->
+    <div class="quick-access" id="quickAccess">
+        <div class="quick-access-header">
+            <span class="quick-access-title">笞｡ Quick Access</span>
+            <span class="quick-access-close" onclick="hideQuickAccess()">ﾃ・/span>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <!-- Quick links will be populated here -->
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="showQuickAccess()">
+        笞｡
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Particle Animation
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // Animate particles
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Draw connections
+            particles.forEach((particle, index) => {
+                for (let j = index + 1; j < particles.length; j++) {
+                    const dx = particles[j].x - particle.x;
+                    const dy = particles[j].y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 100) {
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / 100)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particle.x, particle.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(animateParticles);
+        }
+
+        animateParticles();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Page mapping
+        const pageMap = {
+            'dashboard': null,
+            'integrated': 'integrated_report.html',
+            'ranking': 'ai_ranking_interactive.html',
+            'slides': 'day_slides_index.html',
+            'dailyNews': 'https://awano27.github.io/daily-ai-news-pages/'
+        };
+
+        // Navigation functions
+        function loadPage(page) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+            document.getElementById('currentPage').textContent = 
+                page === 'dashboard' ? 'Dashboard' :
+                page === 'integrated' ? '繝ｬ繝昴・繝・ :
+                page === 'ranking' ? '繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ' :
+                page === 'slides' ? '繧ｹ繝ｩ繧､繝・ :
+                page === 'dailyNews' ? '繝九Η繝ｼ繧ｹ' : page;
+
+            if (page === 'dashboard') {
+                document.getElementById('dashboardContent').style.display = 'grid';
+                document.getElementById('contentFrame').style.display = 'none';
+            } else {
+                showLoading();
+                document.getElementById('dashboardContent').style.display = 'none';
+                const frame = document.getElementById('contentFrame');
+                frame.style.display = 'block';
+                frame.src = pageMap[page];
+                frame.onload = hideLoading;
+            }
+        }
+
+        function showQuickAccess() {
+            document.getElementById('quickAccess').classList.add('show');
+        }
+
+        function hideQuickAccess() {
+            document.getElementById('quickAccess').classList.remove('show');
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            setTimeout(() => {
+                document.getElementById('loading').classList.remove('show');
+            }, 300);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function showAnalytics() {
+            // Placeholder for analytics feature
+            loadPage('ranking');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+                item.addEventListener('click', function() {
+                    loadPage(this.dataset.page);
+                });
+            });
+
+            document.getElementById('quickAccessBtn').addEventListener('click', showQuickAccess);
+            document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+        });
+    </script>
+</body>
+</html>
