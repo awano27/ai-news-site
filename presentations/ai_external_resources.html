@@ -5,8 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>外部AIサイト集 | AI Intelligence Hub</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/presentations.css">
   <style>
+    /* CSS Variables */
+    :root {
+      --ntt-bg: #0b1d3a;
+      --ntt-surface: #0f2347;
+      --ntt-surface-2: #0c1a36;
+      --ntt-text: #e6edf6;
+      --ntt-muted: #9fb3d1;
+      --ntt-accent: #ffd200;
+      --ntt-accent-2: #8ab4ff;
+      --ntt-border: rgba(255,255,255,0.08);
+      --ntt-border-strong: rgba(255,255,255,0.14);
+      --ntt-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    }
+
+    body.ntt {
+      margin: 0;
+      color: var(--ntt-text);
+      background: var(--ntt-bg);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.6;
+    }
     .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
     h1 { margin: 6px 0 8px 0; font-size: 28px; font-weight: 800; color: var(--ntt-text); }
     p.lead { margin: 0 0 32px 0; color: var(--ntt-muted); font-size: 16px; }
@@ -346,64 +366,29 @@
   </main>
 
   <script>
-    // Tab functionality
-    (function() {
-      function initTabs() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get all tab buttons and content areas
+      const buttons = document.querySelectorAll('.tab-btn');
+      const contents = document.querySelectorAll('.tab-content');
 
-        if (tabButtons.length === 0 || tabContents.length === 0) {
-          console.error('Tabs not found');
-          return;
-        }
+      // Add click event to each button
+      buttons.forEach(function(button) {
+        button.addEventListener('click', function() {
+          const tabId = this.getAttribute('data-tab');
 
-        // Function to switch tabs
-        function switchTab(tabName) {
-          // Hide all tab contents
-          tabContents.forEach(content => {
-            content.classList.remove('active');
-            content.style.display = 'none';
-          });
+          // Remove active class from all buttons and contents
+          buttons.forEach(function(btn) { btn.classList.remove('active'); });
+          contents.forEach(function(content) { content.classList.remove('active'); });
 
-          // Remove active class from all buttons
-          tabButtons.forEach(btn => {
-            btn.classList.remove('active');
-          });
-
-          // Show selected tab content
-          const selectedContent = document.getElementById(tabName);
-          const selectedButton = document.querySelector(`[data-tab="${tabName}"]`);
-
-          if (selectedContent && selectedButton) {
-            selectedContent.classList.add('active');
-            selectedContent.style.display = 'block';
-            selectedButton.classList.add('active');
+          // Add active class to clicked button and corresponding content
+          this.classList.add('active');
+          const targetContent = document.getElementById(tabId);
+          if (targetContent) {
+            targetContent.classList.add('active');
           }
-        }
-
-        // Add click event to each tab button
-        tabButtons.forEach(button => {
-          button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const targetTab = this.getAttribute('data-tab');
-            if (targetTab) {
-              switchTab(targetTab);
-            }
-          });
         });
-
-        // Initialize first tab as active
-        switchTab('japanese');
-      }
-
-      // Initialize when DOM is ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTabs);
-      } else {
-        initTabs();
-      }
-    })();
+      });
+    });
   </script>
 </body>
 </html>
