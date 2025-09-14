@@ -367,26 +367,55 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, initializing tabs');
+
       // Get all tab buttons and content areas
       const buttons = document.querySelectorAll('.tab-btn');
       const contents = document.querySelectorAll('.tab-content');
 
+      console.log('Found buttons:', buttons.length);
+      console.log('Found contents:', contents.length);
+
       // Add click event to each button
-      buttons.forEach(function(button) {
-        button.addEventListener('click', function() {
+      buttons.forEach(function(button, index) {
+        console.log(`Button ${index}: data-tab="${button.getAttribute('data-tab')}"`);
+
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Tab clicked:', this.getAttribute('data-tab'));
+
           const tabId = this.getAttribute('data-tab');
 
           // Remove active class from all buttons and contents
-          buttons.forEach(function(btn) { btn.classList.remove('active'); });
-          contents.forEach(function(content) { content.classList.remove('active'); });
+          buttons.forEach(function(btn) {
+            btn.classList.remove('active');
+            console.log('Removed active from button:', btn.getAttribute('data-tab'));
+          });
+          contents.forEach(function(content) {
+            content.classList.remove('active');
+            console.log('Removed active from content:', content.id);
+          });
 
           // Add active class to clicked button and corresponding content
           this.classList.add('active');
+          console.log('Added active to button:', tabId);
+
           const targetContent = document.getElementById(tabId);
           if (targetContent) {
             targetContent.classList.add('active');
+            console.log('Added active to content:', tabId);
+          } else {
+            console.error('Content not found for tab:', tabId);
           }
         });
+      });
+
+      // Verify all tab mappings
+      console.log('Verifying tab mappings:');
+      buttons.forEach(function(button) {
+        const tabId = button.getAttribute('data-tab');
+        const targetContent = document.getElementById(tabId);
+        console.log(`${tabId}: ${targetContent ? 'found' : 'NOT FOUND'}`);
       });
     });
   </script>
