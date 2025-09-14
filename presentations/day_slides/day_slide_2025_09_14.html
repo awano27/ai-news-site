@@ -2,736 +2,351 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GPT-5とAI業界の最新動向 - 2025年9月14日</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>2025年09月14日 - VaultGemma：世界初の差分プライバシー対応LLM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* 改善された配色・コントラストシステム */
-    :root {
-      --primary-bg: #1a2332;        /* 濃紺背景 - 目に優しい */
-      --secondary-bg: #243447;      /* 少し明るい濃紺 */
-      --accent-primary: #4ade80;    /* メインアクセント - 緑 */
-      --accent-secondary: #06b6d4;  /* サブアクセント - シアン */
-      --text-primary: #f8fafc;      /* プライマリテキスト - 薄いグレー */
-      --text-secondary: #cbd5e1;    /* セカンダリテキスト */
-      --text-muted: #94a3b8;        /* 補助テキスト */
-      --highlight: #fbbf24;         /* ハイライト - アンバー */
-      --border: rgba(203, 213, 225, 0.2);
-      --card-bg: rgba(36, 52, 71, 0.8);
-      --success: #10b981;
-      --warning: #f59e0b;
-    }
+    /* シンプルな静的レイアウト */
+    html, body { margin:0; padding:0; background:#fff; font-family:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    .container { max-width: 1100px; margin:0 auto; padding:20px; }
+    section { margin:0 auto 28px; padding:20px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.08); text-align:left; }
+    h1 { font-size:2.4em !important; font-weight:800 !important; letter-spacing:-.02em; margin:.2em 0 .1em; color:#0f172a; }
+    h2 { font-size:1.6em !important; font-weight:700 !important; color:#0f172a !important; border-bottom:3px solid #3b82f6; padding-bottom:.25em; margin-bottom:.5em; }
+    h3 { font-size:1.3em !important; font-weight:600 !important; color:#0f172a !important; margin:.8em 0 .4em; }
+    p, li { color:#0f172a; line-height:1.6; }
+    .badge { display:inline-block; background:#3b82f6; color:#fff; font-weight:800; border-radius:999px; padding:4px 10px; font-size:.9em; }
+    .hot-badge { background:#ef4444; }
+    .new-badge { background:#10b981; }
+    .oss-badge { background:#9333ea; }
+    .privacy-badge { background:#0891b2; }
+    ul { margin-left:1.2em; }
+    .links a { display:inline-block; margin:6px 8px 0 0; padding:8px 12px; border-radius:999px; background:#0f172a; color:#fff; text-decoration:none; cursor:pointer; }
+    .links a:hover { background:#374151; transform:translateY(-1px); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:16px 0; }
+    .card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; }
+    .highlight { background:#fef3c7; padding:2px 6px; border-radius:4px; }
+    .price { background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-weight:600; }
+    .performance { background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:4px; font-weight:600; }
+    .trend { background:#fce7f3; color:#be185d; padding:2px 6px; border-radius:4px; font-weight:600; }
+    .tech { background:#f3e8ff; color:#7c3aed; padding:2px 6px; border-radius:4px; font-weight:600; }
+    .warning { background:#fef2f2; color:#dc2626; padding:2px 6px; border-radius:4px; font-weight:600; }
+    .privacy { background:#ecfdf5; color:#047857; padding:2px 6px; border-radius:4px; font-weight:600; }
 
-    .reveal {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
-      color: var(--text-primary);
-    }
+    /* Summary and collapsible content */
+    .summary-section { background:#f0f9ff; border:1px solid #0ea5e9; border-radius:12px; padding:20px; margin:20px 0; }
+    .summary-tags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .summary-tag { background:#0ea5e9; color:#fff; padding:4px 8px; border-radius:6px; font-size:0.8em; font-weight:600; }
+    .key-points { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-top:12px; }
+    .collapsible { cursor:pointer; user-select:none; }
+    .collapsible:hover { background:#f8fafc; }
+    .collapsible::after { content:"▼"; float:right; transition:transform 0.3s; }
+    .collapsible.active::after { transform:rotate(180deg); }
+    .collapsible-content { display:none; overflow:hidden; }
+    .collapsible-content.active { display:block; }
 
-    .reveal .slides section {
-      text-align: left;
-      padding: 40px;
-      line-height: 1.6;
-    }
-
-    /* 改善されたタイポグラフィ */
-    .reveal h1 {
-      font-size: 2.2em;
-      font-weight: 700;
-      color: var(--text-primary);
-      text-align: center;
-      margin-bottom: 0.8em;
-      letter-spacing: -0.02em;
-    }
-
-    .reveal h2 {
-      font-size: 1.6em;
-      font-weight: 600;
-      color: var(--accent-primary);
-      margin: 1.2em 0 0.8em 0;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 0.5em;
-    }
-
-    .reveal h3 {
-      font-size: 1.2em;
-      font-weight: 600;
-      color: var(--accent-secondary);
-      margin: 1em 0 0.5em 0;
-    }
-
-    .reveal p, .reveal li {
-      font-size: 1em;
-      line-height: 1.7;
-      margin: 0.7em 0;
-      color: var(--text-secondary);
-    }
-
-    /* 改善されたカード・レイアウト */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1.5em;
-      margin: 2em 0;
-    }
-
-    .stat-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2em 1.5em;
-      text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    .stat-number {
-      font-size: 2.2em;
-      font-weight: 800;
-      color: var(--accent-primary);
-      margin-bottom: 0.3em;
-    }
-
-    .stat-label {
-      font-size: 0.9em;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* 改善されたコンテンツボックス */
-    .content-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 2em;
-      margin: 1.5em 0;
-      backdrop-filter: blur(10px);
-    }
-
-    .summary-card {
-      background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(16, 185, 129, 0.05));
-      border-left: 4px solid var(--accent-primary);
-    }
-
-    .highlight-card {
-      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05));
-      border-left: 4px solid var(--highlight);
-    }
-
-    /* 視覚化要素 */
-    .progress-bar {
-      height: 8px;
-      background: var(--border);
-      border-radius: 4px;
-      margin: 0.5em 0;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-      border-radius: 4px;
-      transition: width 1s ease;
-    }
-
-    /* 改善されたタグ */
-    .topic-tag {
-      display: inline-block;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-      color: var(--primary-bg);
-      padding: 0.4em 1em;
-      border-radius: 20px;
-      font-size: 0.8em;
-      font-weight: 600;
-      margin: 0.3em 0.3em 0.3em 0;
-    }
-
-    /* 日付表示 */
-    .date-badge {
-      display: inline-block;
-      background: var(--secondary-bg);
-      color: var(--text-muted);
-      padding: 0.5em 1.2em;
-      border-radius: 25px;
-      font-size: 0.9em;
-      font-weight: 500;
-      margin-bottom: 1.5em;
-    }
-
-    /* アイコンスタイル */
-    .icon {
-      font-size: 1.5em;
-      margin-right: 0.5em;
-      vertical-align: middle;
-    }
-
-    /* チャート要素 */
-    .chart-container {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 1.5em;
-      margin: 1.5em 0;
-    }
-
-    .bar-chart {
-      display: flex;
-      align-items: end;
-      height: 150px;
-      gap: 1em;
-      margin: 1em 0;
-    }
-
-    .bar {
-      flex: 1;
-      background: linear-gradient(to top, var(--accent-secondary), var(--accent-primary));
-      border-radius: 4px 4px 0 0;
-      position: relative;
-      min-height: 20px;
-    }
-
-    .bar-label {
-      position: absolute;
-      bottom: -25px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.8em;
-      color: var(--text-muted);
-      text-align: center;
-      width: 100%;
-    }
-
-    .bar-value {
-      position: absolute;
-      top: -25px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.9em;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    /* モバイル対応 */
-    @media (max-width: 768px) {
-      .reveal .slides section {
-        padding: 20px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 1em;
-      }
-
-      .reveal h1 {
-        font-size: 1.8em;
-      }
-
-      .reveal h2 {
-        font-size: 1.4em;
-      }
-    }
+    /* 差分プライバシー専用スタイル */
+    .dp-params { background:#f0fdf4; border:2px solid #22c55e; border-radius:8px; padding:12px; margin:8px 0; text-align:center; }
+    .dp-value { font-size:1.2em; font-weight:800; color:#16a34a; }
   </style>
 </head>
 <body>
-  <div class="reveal">
-    <div class="slides">
+  <div class="container">
+    <section class="title">
+      <span class="badge hot-badge">2025/09/14</span>
+      <h1>🔒 VaultGemma：世界初の差分プライバシー対応LLM</h1>
+      <p style="color:#475569">日次AIニューススライド（要点ダイジェスト）</p>
 
-      <!-- タイトルスライド -->
-      <section>
-        <div style="text-align: center;">
-          <span class="date-badge">2025年9月14日</span>
-          <h1><span class="icon">🤖</span>AI業界の最新動向</h1>
-          <p style="font-size: 1.2em; color: var(--text-muted); margin: 1em 0;">
-            GPT-5展開から欧州投資まで - 今日の重要ニュースを5分で
-          </p>
+      <!-- Summary Section -->
+      <div class="summary-section">
+        <div class="summary-tags">
+          <span class="summary-tag">Google Research</span>
+          <span class="summary-tag">差分プライバシー</span>
+          <span class="summary-tag">LLM</span>
+          <span class="summary-tag">セキュリティ</span>
+          <span class="summary-tag">医療・金融</span>
         </div>
-      </section>
-
-      <!-- 今日のアジェンダ -->
-      <section>
-        <h2><span class="icon">📋</span>今日のアジェンダ</h2>
-        <div class="content-card summary-card">
-          <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr); text-align: center;">
-            <div>
-              <div class="icon" style="font-size: 2em;">🚀</div>
-              <h3 style="margin: 0.5em 0; font-size: 1em;">GPT-5</h3>
-              <p style="font-size: 0.9em; margin: 0;">性能大幅向上</p>
-            </div>
-            <div>
-              <div class="icon" style="font-size: 2em;">💰</div>
-              <h3 style="margin: 0.5em 0; font-size: 1em;">投資</h3>
-              <p style="font-size: 0.9em; margin: 0;">€1.7B欧州投資</p>
-            </div>
-            <div>
-              <div class="icon" style="font-size: 2em;">🏛️</div>
-              <h3 style="margin: 0.5em 0; font-size: 1em;">政府</h3>
-              <p style="font-size: 0.9em; margin: 0;">米連邦AI導入</p>
-            </div>
-            <div>
-              <div class="icon" style="font-size: 2em;">⚖️</div>
-              <h3 style="margin: 0.5em 0; font-size: 1em;">規制</h3>
-              <p style="font-size: 0.9em; margin: 0;">著作権・倫理</p>
-            </div>
-            <div>
-              <div class="icon" style="font-size: 2em;">🔬</div>
-              <h3 style="margin: 0.5em 0; font-size: 1em;">技術</h3>
-              <p style="font-size: 0.9em; margin: 0;">革新的ブレークスルー</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- GPT-5メインニュース -->
-      <section>
-        <h2><span class="icon">🚀</span>GPT-5 - 次世代AI性能のブレークスルー</h2>
-        <div class="topic-tag">OpenAI</div>
-
-        <div class="content-card">
-          <h3 style="text-align: center; margin-bottom: 1.5em;">パフォーマンス指標の大幅向上</h3>
-
-          <!-- 視覚化されたパフォーマンスチャート -->
-          <div class="chart-container">
-            <div class="bar-chart">
-              <div class="bar" style="height: 94.6%;">
-                <div class="bar-value">94.6%</div>
-                <div class="bar-label">数学<br>(AIME 2025)</div>
-              </div>
-              <div class="bar" style="height: 74.9%;">
-                <div class="bar-value">74.9%</div>
-                <div class="bar-label">コーディング<br>(SWE-bench)</div>
-              </div>
-              <div class="bar" style="height: 84.2%;">
-                <div class="bar-value">84.2%</div>
-                <div class="bar-label">マルチモーダル<br>(MMMU)</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 週間ユーザー数の特別表示 -->
-          <div style="text-align: center; margin: 2em 0;">
-            <div class="stat-card" style="max-width: 300px; margin: 0 auto;">
-              <div class="stat-number" style="color: var(--highlight);">700M</div>
-              <div class="stat-label" style="font-size: 1em;">週間ChatGPTユーザー</div>
-              <div class="progress-bar" style="margin-top: 1em;">
-                <div class="progress-fill" style="width: 90%;"></div>
-              </div>
-              <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0.5em;">前年同期比 +180%</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- GPT-5の主要改善点 -->
-      <section>
-        <h2><span class="icon">🔧</span>GPT-5の革新機能</h2>
-
-        <div class="stats-grid">
-          <div class="content-card highlight-card">
-            <h3 style="color: var(--highlight);">🎯 精度向上</h3>
-            <p><strong>幻覚の大幅減少</strong></p>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 85%;"></div>
-            </div>
-            <p style="font-size: 0.9em; margin-top: 0.5em;">従来比85%改善</p>
-          </div>
-
-          <div class="content-card highlight-card">
-            <h3 style="color: var(--highlight);">💻 コーディング</h3>
-            <p><strong>1プロンプト開発</strong></p>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 95%;"></div>
-            </div>
-            <p style="font-size: 0.9em; margin-top: 0.5em;">美しいアプリを瞬時生成</p>
-          </div>
-
-          <div class="content-card highlight-card">
-            <h3 style="color: var(--highlight);">🎙️ 音声対話</h3>
-            <p><strong>リアルタイム処理</strong></p>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 90%;"></div>
-            </div>
-            <p style="font-size: 0.9em; margin-top: 0.5em;">gpt-realtimeで自然対話</p>
-          </div>
-
-          <div class="content-card highlight-card">
-            <h3 style="color: var(--highlight);">🏢 企業展開</h3>
-            <p><strong>段階的ロールアウト</strong></p>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 60%;"></div>
-            </div>
-            <p style="font-size: 0.9em; margin-top: 0.5em;">Team/Enterprise順次対応</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 欧州AI投資 -->
-      <section>
-        <h2><span class="icon">🇪🇺</span>欧州AI大型投資 - €1.7B調達</h2>
-        <div class="topic-tag">ASML</div>
-        <div class="topic-tag">Mistral AI</div>
-
-        <div class="content-card highlight-card" style="text-align: center; margin: 2em 0;">
-          <div class="stat-number" style="font-size: 3em; color: var(--highlight);">€1.7B</div>
-          <div class="stat-label" style="font-size: 1.2em; margin: 0.5em 0;">Mistral AI 資金調達総額</div>
-          <div class="progress-bar" style="margin: 1em auto; max-width: 300px;">
-            <div class="progress-fill" style="width: 100%;"></div>
-          </div>
-          <p style="color: var(--text-muted);">ASML主導 €1.3B投資</p>
-        </div>
-
-        <div class="stats-grid">
-          <div class="content-card">
-            <h3 style="color: var(--accent-primary);">🏭 ASML投資</h3>
-            <p><strong>オランダ半導体装置大手</strong></p>
-            <p>最大規模のAI投資を決定</p>
-          </div>
-          <div class="content-card">
-            <h3 style="color: var(--accent-secondary);">🎯 戦略意図</h3>
-            <p><strong>欧州AI競争力強化</strong></p>
-            <p>米中に対抗する技術基盤</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 米政府AI契約 -->
-      <section>
-        <h2><span class="icon">🏛️</span>米政府AI大規模導入</h2>
-        <div class="topic-tag">Microsoft</div>
-        <div class="topic-tag">連邦政府</div>
-
-        <div class="content-card summary-card">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-number">数百万人</div>
-              <div class="stat-label">対象連邦職員</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number" style="color: var(--success);">$3.1B</div>
-              <div class="stat-label">初年度節約見込み</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number">1年間</div>
-              <div class="stat-label">無料提供期間</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="content-card highlight-card">
-          <h3 style="color: var(--highlight);">📊 提供内容</h3>
+        <div class="key-points">
+          <h4>📝 重要ポイント</h4>
           <ul>
-            <li><strong>Microsoft 365 Copilot</strong> - 全連邦職員向け</li>
-            <li><strong>Azureサービス</strong> - 大幅割引適用</li>
-            <li><strong>データ転送</strong> - 無料提供</li>
+            <li><strong>世界初</strong>: 差分プライバシー対応の大規模言語モデル（1Bパラメータ）</li>
+            <li><strong>厳格保証</strong>: ε≤2.0, δ≤1.1×10⁻¹⁰の数学的プライバシー保証</li>
+            <li><strong>訓練データ保護</strong>: 記憶リスクを根本から排除する革新技術</li>
+            <li><strong>実用化</strong>: 医療・金融・法務分野での機密データ処理が可能</li>
           </ul>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Google Genie 3 -->
-      <section>
-        <h2><span class="icon">🌍</span>Google Genie 3 - 汎用世界モデル</h2>
-        <div class="topic-tag">Google DeepMind</div>
+    <section>
+      <h2>🔥 今日のハイライト</h2>
+      <ul>
+        <li><strong>VaultGemma 1B</strong> - <span class="privacy">世界初のDP対応LLM</span>がGoogle Researchから発表</li>
+        <li><strong>数学的保証</strong> - <span class="performance">ε≤2.0, δ≤1.1×10⁻¹⁰</span>の厳格なプライバシー保護</li>
+        <li><strong>オープンソース</strong> - <span class="oss-badge">Hugging Face・Kaggle</span>で公開、商用利用可能</li>
+        <li><strong>実用性</strong> - <span class="tech">医療・金融分野</span>での安全なAI活用を実現</li>
+      </ul>
+    </section>
 
-        <div class="content-card summary-card" style="text-align: center;">
-          <h3 style="margin-bottom: 1em;">🎮 テキスト → インタラクティブ環境</h3>
-          <div class="progress-bar" style="margin: 1em auto; max-width: 400px;">
-            <div class="progress-fill" style="width: 95%;"></div>
+    <section>
+      <h2 class="collapsible">🛡️ 差分プライバシー保証の詳細</h2>
+
+      <div class="collapsible-content">
+      <div class="grid">
+        <div class="card">
+          <h3>📊 DPパラメータ</h3>
+          <div class="dp-params">
+            <div class="dp-value">ε ≤ 2.0</div>
+            <div class="dp-value">δ ≤ 1.1×10⁻¹⁰</div>
+            <p style="margin-top:8px; font-size:0.9em;">1024トークン単位での保証</p>
           </div>
-          <p style="color: var(--text-secondary); margin-top: 1em;">テキストプロンプトから多様な3D環境を瞬時生成</p>
-        </div>
-
-        <div class="stats-grid">
-          <div class="content-card">
-            <h3 style="color: var(--accent-primary);">🎯 応用分野</h3>
-            <ul>
-              <li>ゲーム開発</li>
-              <li>シミュレーション</li>
-              <li>教育・トレーニング</li>
-            </ul>
-          </div>
-          <div class="content-card">
-            <h3 style="color: var(--accent-secondary);">⚡ 革新性</h3>
-            <p><strong>汎用世界AIモデル</strong></p>
-            <p>DeepMind最新ブレークスルー</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Nvidia Robotics -->
-      <section>
-        <h2><span class="icon">🤖</span>Nvidia - ロボット用「脳」開発</h2>
-        <div class="topic-tag">Nvidia</div>
-        <div class="topic-tag">Graphics 3.0</div>
-
-        <div class="content-card highlight-card">
-          <div class="stats-grid">
-            <div style="text-align: center;">
-              <div class="icon" style="font-size: 3em; color: var(--highlight);">🧠</div>
-              <h3 style="margin: 0.5em 0;">AI + Hardware</h3>
-              <p>新ハードウェア × 生成AI</p>
-            </div>
-            <div style="text-align: center;">
-              <div class="icon" style="font-size: 3em; color: var(--accent-primary);">⚡</div>
-              <h3 style="margin: 0.5em 0;">リアルタイム処理</h3>
-              <p>瞬時の意思決定・行動</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="content-card">
-          <h3 style="color: var(--accent-secondary);">🎯 Graphics 3.0ビジョン</h3>
-          <p>ロボット知能の加速とリアルタイム意思決定の実現</p>
-        </div>
-      </section>
-
-      <!-- Apertus オープンソース -->
-      <section>
-        <h2><span class="icon">🇨🇭</span>Apertus - 欧州オープンソースLLM</h2>
-        <div class="topic-tag">EPFL</div>
-        <div class="topic-tag">ETH Zurich</div>
-
-        <div class="content-card summary-card">
-          <div class="stats-grid" style="text-align: center;">
-            <div class="stat-card">
-              <div class="stat-number">15T</div>
-              <div class="stat-label">トークン訓練</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number">1000+</div>
-              <div class="stat-label">対応言語</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number" style="color: var(--success);">100%</div>
-              <div class="stat-label">オープンソース</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="content-card highlight-card">
-          <h3 style="color: var(--highlight);">🎯 特徴</h3>
           <ul>
-            <li><strong>EU準拠</strong> - 透明性とプライバシー保護</li>
-            <li><strong>アクセス可能</strong> - SwisscomとPublic AI経由</li>
-            <li><strong>多言語対応</strong> - 世界最大級の言語カバレッジ</li>
+            <li><strong>DP-SGD</strong>でノイズ付加訓練</li>
+            <li>Poissonサンプリング適用</li>
           </ul>
         </div>
-      </section>
 
-      <!-- Apple著作権訴訟 -->
-      <section>
-        <h2><span class="icon">📚</span>Apple著作権訴訟 - AI訓練争点</h2>
-        <div class="topic-tag">Apple</div>
-        <div class="topic-tag">著作権</div>
-
-        <div class="content-card highlight-card">
-          <div style="text-align: center; margin-bottom: 2em;">
-            <div class="icon" style="font-size: 3em; color: var(--warning);">⚖️</div>
-            <h3 style="color: var(--warning);">著作者3名 vs Apple</h3>
-            <p>許可なしAI訓練での書籍使用を告発</p>
-          </div>
-
-          <div class="stats-grid">
-            <div class="content-card">
-              <h3 style="color: var(--accent-primary);">🎯 争点</h3>
-              <p><strong>OpenAIパートナーシップ</strong></p>
-              <p>大規模言語モデル訓練プロセス</p>
-            </div>
-            <div class="content-card">
-              <h3 style="color: var(--accent-secondary);">📈 影響</h3>
-              <p><strong>業界全体への波及</strong></p>
-              <p>AI著作権問題の拡大</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- AI規制の課題 -->
-      <section>
-        <h2><span class="icon">🛡️</span>AI規制の限界 - 人権保護不足</h2>
-        <div class="topic-tag">Charles Darwin大学</div>
-        <div class="topic-tag">AI倫理</div>
-
-        <div class="content-card summary-card">
-          <h3 style="text-align: center; color: var(--warning);">⚠️ 規制の遅れが深刻化</h3>
-          <div class="progress-bar" style="margin: 1em 0;">
-            <div class="progress-fill" style="width: 30%; background: var(--warning);"></div>
-          </div>
-          <p style="text-align: center; color: var(--text-muted);">AI技術発展 vs 法整備スピード</p>
+        <div class="card">
+          <h3>🔍 記憶テスト結果</h3>
+          <ul>
+            <li><strong>50トークン再現テスト</strong>で<span class="privacy">記憶検出なし</span></li>
+            <li>訓練データの影響を完全に遮断</li>
+            <li><span class="performance">プライバシー・バイ・デザイン</span>を実現</li>
+            <li>従来LLMの記憶リスクを根本解決</li>
+          </ul>
         </div>
 
-        <div class="stats-grid">
-          <div class="content-card highlight-card">
-            <h3 style="color: var(--warning);">🚨 保護不足分野</h3>
-            <ul>
-              <li><strong>プライバシー権</strong></li>
-              <li><strong>個人の自律性</strong></li>
-              <li><strong>差別防止</strong></li>
-            </ul>
-          </div>
-          <div class="content-card highlight-card">
-            <h3 style="color: var(--warning);">📊 研究警告</h3>
-            <p><strong>Charles Darwin大学</strong></p>
-            <p>「人間の尊厳保護に不十分」</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- IBM テニス実況AI -->
-      <section>
-        <h2><span class="icon">🎾</span>IBM - AI実況システム</h2>
-        <div class="topic-tag">IBM</div>
-        <div class="topic-tag">スポーツAI</div>
-
-        <div class="content-card summary-card">
-          <div style="text-align: center; margin-bottom: 1.5em;">
-            <div class="icon" style="font-size: 3em; color: var(--accent-primary);">🎙️</div>
-            <h3>コンピュータビジョン × 音声AI</h3>
-          </div>
-
-          <div class="stats-grid">
-            <div class="content-card highlight-card">
-              <h3 style="color: var(--highlight);">👁️ 視覚分析</h3>
-              <p><strong>リアルタイム試合解析</strong></p>
-              <p>プレーヤー動作・ボール軌道</p>
-            </div>
-            <div class="content-card highlight-card">
-              <h3 style="color: var(--highlight);">🎵 音声調整</h3>
-              <p><strong>興奮度連動</strong></p>
-              <p>トーン・音量・熱量を自動制御</p>
-            </div>
-          </div>
+        <div class="card">
+          <h3>⚙️ 技術革新</h3>
+          <ul>
+            <li><strong>DPスケーリング則</strong>の確立</li>
+            <li>ノイズ倍率とバッチサイズ最適化</li>
+            <li><span class="tech">TPU v6e × 2048枚</span>で訓練</li>
+            <li>バッチサイズ51.8万トークンで効率化</li>
+          </ul>
         </div>
 
-        <div class="content-card">
-          <h3 style="color: var(--accent-secondary);">🚀 革新性</h3>
-          <p>スポーツエンターテインメントの新境地を開拓</p>
+        <div class="card">
+          <h3>🌍 オープンアクセス</h3>
+          <ul>
+            <li><strong>Hugging Face</strong>で公開中</li>
+            <li><strong>Kaggle</strong>からも入手可能</li>
+            <li><span class="oss-badge">オープンウェイト</span>で商用利用OK</li>
+            <li>研究・教育利用を促進</li>
+          </ul>
         </div>
-      </section>
+      </div>
+      </div>
+    </section>
 
-      <!-- MIT AI創薬 -->
-      <section>
-        <h2><span class="icon">💊</span>MIT - AI創薬ブレークスルー</h2>
-        <div class="topic-tag">MIT</div>
-        <div class="topic-tag">医療AI</div>
-
-        <div class="content-card highlight-card">
-          <div style="text-align: center; margin-bottom: 2em;">
-            <div class="stat-number" style="color: var(--success);">MRSA</div>
-            <div class="stat-label" style="font-size: 1.1em;">対薬剤耐性菌で有効性確認</div>
-            <div class="progress-bar" style="margin: 1em auto; max-width: 300px;">
-              <div class="progress-fill" style="width: 90%; background: var(--success);"></div>
-            </div>
-          </div>
-
-          <div class="stats-grid">
-            <div class="content-card">
-              <h3 style="color: var(--accent-primary);">🎯 手法</h3>
-              <p><strong>2つの異なるAIアプローチ</strong></p>
-              <p>新型抗生物質設計</p>
-            </div>
-            <div class="content-card">
-              <h3 style="color: var(--accent-secondary);">🔬 対象</h3>
-              <p><strong>メチシリン耐性黄色ブドウ球菌</strong></p>
-              <p>薬剤耐性菌の新たな克服</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 今日の重要ポイント -->
-      <section>
-        <h2><span class="icon">📊</span>今日の重要ポイント</h2>
-
-        <div class="stats-grid">
-          <div class="content-card summary-card">
-            <h3 style="color: var(--accent-primary);">🚀 技術革新</h3>
-            <p><strong>GPT-5完全展開</strong></p>
-            <p>AI性能ベンチマーク大幅更新</p>
-          </div>
-          <div class="content-card summary-card">
-            <h3 style="color: var(--highlight);">💰 大規模投資</h3>
-            <p><strong>ASML→Mistral €1.7B</strong></p>
-            <p>欧州AI競争力向上</p>
-          </div>
+    <section>
+      <h2 class="collapsible">⚙️ 技術仕様・アーキテクチャ</h2>
+      <div class="collapsible-content">
+      <div class="grid">
+        <div class="card">
+          <h3>🏗️ モデル構成</h3>
+          <ul>
+            <li><strong>パラメータ数</strong>: <span class="performance">1Bパラメータ</span></li>
+            <li><strong>層数</strong>: 26層デコーダ専用Transformer</li>
+            <li><strong>コンテキスト長</strong>: 1024トークン</li>
+            <li><strong>語彙サイズ</strong>: 256K（Gemma2と同じ）</li>
+          </ul>
         </div>
 
-        <div class="stats-grid">
-          <div class="content-card summary-card">
-            <h3 style="color: var(--success);">🏛️ 政府採用</h3>
-            <p><strong>米連邦政府導入</strong></p>
-            <p>AI社会実装加速</p>
-          </div>
-          <div class="content-card summary-card">
-            <h3 style="color: var(--warning);">⚖️ 法的課題</h3>
-            <p><strong>著作権・倫理問題</strong></p>
-            <p>規制対応本格化</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 展望とアクション -->
-      <section>
-        <h2><span class="icon">🎆</span>明日への展望とアクション</h2>
-
-        <div class="content-card highlight-card" style="text-align: center; margin: 2em 0;">
-          <h3 style="color: var(--highlight); margin-bottom: 1em;">🚀 AI活用の新段階へ</h3>
-          <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1.5em; margin: 1.5em 0;">
-            <div>
-              <div class="icon" style="font-size: 2.5em; color: var(--accent-primary);">📊</div>
-              <p><strong>技術革新</strong><br>GPT-5等新技術の積極活用</p>
-            </div>
-            <div>
-              <div class="icon" style="font-size: 2.5em; color: var(--highlight);">💰</div>
-              <p><strong>投資戦略</strong><br>AIスタートアップ投資機会</p>
-            </div>
-            <div>
-              <div class="icon" style="font-size: 2.5em; color: var(--success);">⚖️</div>
-              <p><strong>コンプライアンス</strong><br>法的リスク管理強化</p>
-            </div>
-          </div>
+        <div class="card">
+          <h3>🔧 技術要素</h3>
+          <ul>
+            <li><strong>GeGLU活性化</strong>関数採用</li>
+            <li><strong>RMSNorm</strong>で正規化</li>
+            <li><strong>Multi-Query Attention</strong></li>
+            <li>大きなバッチサイズに最適化</li>
+          </ul>
         </div>
 
-        <div class="content-card summary-card">
-          <h3 style="color: var(--accent-primary); text-align: center;">💯 今すぐ取るべき3つのアクション</h3>
-          <div class="stats-grid" style="margin-top: 1.5em;">
-            <div class="content-card highlight-card">
-              <h4 style="color: var(--highlight);">1. 情報収集</h4>
-              <p>GPT-5の最新機能をチェックし、自社業務への応用可能性を検討</p>
-            </div>
-            <div class="content-card highlight-card">
-              <h4 style="color: var(--highlight);">2. 法務確認</h4>
-              <p>著作権・プライバシーに関する社内ポリシー見直し</p>
-            </div>
-            <div class="content-card highlight-card">
-              <h4 style="color: var(--highlight);">3. 投資計画</h4>
-              <p>AIツール・インフラ投資の優先順位を整理し予算確保</p>
-            </div>
-          </div>
+        <div class="card">
+          <h3>🚀 訓練設定</h3>
+          <ul>
+            <li><strong>TPU v6e</strong> × 2048枚</li>
+            <li><strong>100kステップ</strong>の学習</li>
+            <li><strong>ノイズ倍率</strong>: 0.614</li>
+            <li><span class="tech">約51.8万トークン</span>バッチ</li>
+          </ul>
         </div>
 
-        <div style="text-align: center; margin-top: 2.5em; padding: 2em; background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(16, 185, 129, 0.05)); border-radius: 16px;">
-          <div class="icon" style="font-size: 3em; color: var(--accent-primary); margin-bottom: 0.5em;">🎆</div>
-          <h3 style="color: var(--accent-primary); margin-bottom: 0.8em;">🤖 AIが変える明日を、今日から準備しましょう</h3>
-          <p style="color: var(--text-secondary); font-size: 1.1em; max-width: 600px; margin: 0 auto;">
-            技術革新、大規模投資、規制対応の3軸で動く新時代。<br>
-            <strong>企業の競争力は、AI活用のスピードと質で決まります。</strong>
-          </p>
+        <div class="card">
+          <h3>📐 設計思想</h3>
+          <ul>
+            <li>Gemmaファミリーを基盤</li>
+            <li><span class="privacy">プライバシー・ファースト</span>設計</li>
+            <li>オンプレミス展開対応</li>
+            <li>エッジデバイス実行可能</li>
+          </ul>
         </div>
-      </section>
-    </div>
+      </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">📊 性能評価とトレードオフ</h2>
+      <div class="collapsible-content">
+      <div class="grid">
+        <div class="card">
+          <h3>📈 ベンチマーク結果</h3>
+          <ul>
+            <li><strong>ARC-C</strong>、<strong>PIQA</strong>等で評価</li>
+            <li><span class="warning">非DPモデルより低スコア</span></li>
+            <li><span class="performance">5年前の非DP同等</span>性能</li>
+            <li>実務上は十分な精度を提供</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>⚖️ プライバシー税</h3>
+          <ul>
+            <li><strong>性能低下</strong>は避けられない現象</li>
+            <li>SOTA（Llama 3.1等）より劣る</li>
+            <li><span class="highlight">安全性と性能のトレードオフ</span></li>
+            <li>機密データでは<span class="privacy">安全性優先</span></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🆚 他LLMとの違い</h3>
+          <ul>
+            <li><strong>フルDP事前学習</strong>が特徴</li>
+            <li>微調整のみDPではない</li>
+            <li><span class="tech">形式的保証公開</span></li>
+            <li>監査・法的説明に対応</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🎯 最適用途</h3>
+          <ul>
+            <li><span class="warning">長文処理</span>には不向き（1024トークン）</li>
+            <li><strong>機密データ処理</strong>に最適</li>
+            <li>規制要件対応が必要な業界</li>
+            <li>プライバシー重視のアプリ</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">🏥 想定応用分野</h2>
+      <div class="collapsible-content">
+      <div class="grid">
+        <div class="card">
+          <h3>🏥 医療分野</h3>
+          <ul>
+            <li><strong>電子カルテ</strong>の安全な要約</li>
+            <li><strong>診断支援</strong>でのプライバシー保護</li>
+            <li><span class="privacy">患者情報漏洩リスク排除</span></li>
+            <li>HIPAA等規制要件に完全対応</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>💰 金融分野</h3>
+          <ul>
+            <li><strong>取引記録</strong>のプライベート分析</li>
+            <li><strong>リスク評価</strong>での機密情報保護</li>
+            <li><span class="price">顧客データ</span>の安全処理</li>
+            <li>金融規制コンプライアンス</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>⚖️ 法務分野</h3>
+          <ul>
+            <li><strong>契約書</strong>の機密文書生成</li>
+            <li><strong>法的文書</strong>要約・分析</li>
+            <li><span class="tech">弁護士秘匿特権</span>保護</li>
+            <li>法的責任リスクの最小化</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🔬 研究・教育</h3>
+          <ul>
+            <li><strong>DPスケーリング則</strong>研究基盤</li>
+            <li><strong>プライバシーAI</strong>教育ツール</li>
+            <li><span class="oss-badge">オープンソース</span>で知識共有</li>
+            <li>次世代DPモデル開発促進</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">🚀 将来展望と課題</h2>
+      <div class="collapsible-content">
+      <ul>
+        <li><strong>性能向上</strong>: より大規模なDPモデルの開発進行中</li>
+        <li><strong>アルゴリズム改良</strong>: <span class="tech">プライバシー税削減</span>の新手法研究</li>
+        <li><strong>フレームワーク拡張</strong>: より長いコンテキスト対応予定</li>
+        <li><strong>産業採用</strong>: <span class="performance">医療・金融業界</span>での実用化加速</li>
+        <li><strong>規制対応</strong>: 世界各国のプライバシー法制に準拠</li>
+        <li><strong>コミュニティ</strong>: <span class="oss-badge">オープンソース</span>開発者エコシステム形成</li>
+      </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>🎯 まとめ・注目ポイント</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>🏆 歴史的意義</h3>
+          <p><strong>世界初のDP対応LLM</strong><br>
+          プライバシー保護AIの新時代</p>
+        </div>
+        <div class="card">
+          <h3>🔒 革新技術</h3>
+          <p><strong>数学的プライバシー保証</strong><br>
+          記憶リスクの根本的解決</p>
+        </div>
+        <div class="card">
+          <h3>💼 ビジネス価値</h3>
+          <p><strong>機密データ安全処理</strong><br>
+          医療・金融分野への本格展開</p>
+        </div>
+        <div class="card">
+          <h3>⚠️ 今後の課題</h3>
+          <p><strong>性能向上とコスト削減</strong><br>
+          プライバシー税の最小化</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>🔗 参考リンク</h2>
+      <div class="links">
+        <a href="https://research.google" target="_blank">Google Research公式</a>
+        <a href="https://huggingface.co" target="_blank">Hugging Face (VaultGemma)</a>
+        <a href="https://kaggle.com" target="_blank">Kaggle Dataset</a>
+        <a href="https://marktechpost.com" target="_blank">MarktechPost記事</a>
+        <a href="https://arxiv.org" target="_blank">研究論文 (arXiv)</a>
+        <a href="https://github.com" target="_blank">関連コード</a>
+      </div>
+    </section>
+
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
   <script>
-    Reveal.initialize({
-      hash: true,
-      controls: true,
-      progress: true,
-      center: false,
-      transition: 'slide'
+    // Collapsible sections functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const collapsibles = document.querySelectorAll('.collapsible');
+
+      collapsibles.forEach(function(collapsible) {
+        collapsible.addEventListener('click', function() {
+          this.classList.toggle('active');
+          const content = this.nextElementSibling;
+          if (content && content.classList.contains('collapsible-content')) {
+            content.classList.toggle('active');
+          }
+        });
+      });
     });
   </script>
 </body>
