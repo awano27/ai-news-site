@@ -9,35 +9,145 @@
   <style>
     .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
     h1 { margin: 6px 0 8px 0; font-size: 28px; font-weight: 800; color: var(--ntt-text); }
-    p.lead { margin: 0 0 20px 0; color: var(--ntt-muted); font-size: 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 20px; }
-    .resource-card { 
+    p.lead { margin: 0 0 32px 0; color: var(--ntt-muted); font-size: 16px; }
+
+    /* Tabs */
+    .tabs-container { margin: 24px 0; }
+    .tabs-nav {
+      display: flex;
+      gap: 2px;
+      background: var(--ntt-surface);
+      border-radius: 12px;
+      padding: 4px;
+      border: 1px solid var(--ntt-border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      flex: 1;
+      min-width: fit-content;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: var(--ntt-muted);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--ntt-accent), var(--ntt-accent-2));
+      color: #0b1d3a;
+      font-weight: 800;
+    }
+    .tab-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.04);
+      color: var(--ntt-text);
+    }
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Category headers */
+    .category-header {
+      margin: 32px 0 16px 0;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, var(--ntt-surface), var(--ntt-surface-2));
+      border: 1px solid var(--ntt-border);
+      border-radius: 12px;
+    }
+    .category-header h2 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ntt-text);
+    }
+    .category-desc {
+      margin: 0;
+      color: var(--ntt-muted);
+      font-size: 14px;
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 16px 0; }
+    .resource-card {
       background: linear-gradient(180deg, var(--ntt-surface), var(--ntt-surface-2));
-      border: 1px solid var(--ntt-border); border-radius: 16px; padding: 16px; 
+      border: 1px solid var(--ntt-border); border-radius: 16px; padding: 20px;
       box-shadow: var(--ntt-shadow); display: flex; flex-direction: column;
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
     .resource-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,.55); border-color: var(--ntt-border-strong); }
-    .resource-card h3 { margin: 2px 0 8px 0; font-size: 18px; font-weight: 800; color: var(--ntt-text); }
-    .meta { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px 0; }
-    .pill { display: inline-block; background: var(--ntt-accent); color: #0b1d3a; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 800; }
+    .resource-card h3 { margin: 2px 0 12px 0; font-size: 18px; font-weight: 800; color: var(--ntt-text); }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px 0; }
+    .pill { display: inline-block; background: var(--ntt-accent); color: #0b1d3a; border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 800; }
     .pill.ok { background: var(--ntt-accent-2); color: #0b1d3a; }
-    .desc { color: var(--ntt-muted); font-size: 14px; margin: 0 0 12px 0; line-height: 1.5; }
+    .pill.english { background: #6366f1; color: white; }
+    .pill.japanese { background: #10b981; color: white; }
+    .pill.daily { background: #f59e0b; color: white; }
+    .pill.weekly { background: #8b5cf6; color: white; }
+    .desc { color: var(--ntt-muted); font-size: 14px; margin: 0 0 16px 0; line-height: 1.6; }
     .actions { margin-top: auto; }
-    .btn { 
+    .btn {
       appearance: none; border: 1px solid var(--ntt-border-strong);
-      background: rgba(255,255,255,0.04); color: var(--ntt-accent-2); 
-      border-radius: 10px; padding: 10px 14px; text-decoration: none; font-weight: 800;
+      background: rgba(255,255,255,0.04); color: var(--ntt-accent-2);
+      border-radius: 10px; padding: 12px 16px; text-decoration: none; font-weight: 800;
       transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      font-size: 14px;
     }
     .btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); }
-    .nav-link { 
-      display: inline-block; margin: 0 0 20px 0; padding: 10px 16px; 
+    .nav-link {
+      display: inline-block; margin: 0 0 20px 0; padding: 12px 20px;
       background: linear-gradient(135deg, var(--ntt-surface), var(--ntt-surface-2));
-      border: 1px solid var(--ntt-border); border-radius: 12px; 
+      border: 1px solid var(--ntt-border); border-radius: 12px;
       color: var(--ntt-accent-2); text-decoration: none; font-weight: 700;
     }
     .nav-link:hover { background: rgba(255,255,255,0.06); border-color: var(--ntt-border-strong); }
+
+    /* Statistics */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, var(--ntt-accent), var(--ntt-accent-2));
+      color: #0b1d3a;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .tabs-nav {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .tab-btn {
+        flex: none;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
   <!-- note: keep content strictly UTF-8; no transformation tools -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; style-src 'self' https: 'unsafe-inline';">
@@ -46,53 +156,149 @@
 <body class="ntt">
   <main class="wrap">
     <a class="nav-link" href="index.html">← ホームに戻る</a>
-    <h1>外部AIサイト集</h1>
-    <p class="lead">信頼できるAIニュース／ブログ／コミュニティなど、情報収集に役立つ外部サイトへのリンクです。</p>
+    <h1>🌐 外部AIサイト集</h1>
+    <p class="lead">信頼できるAIニュース、ブログ、コミュニティなど、情報収集に役立つ外部サイトを厳選してカテゴリ別に整理しました。</p>
 
-    <section class="grid">
-      <!-- 日本語圏・コミュニティ / トレンド -->
-      <article class="resource-card"><h3>Solomaker.dev</h3><div class="meta"><span class="pill">日本語</span><span class="pill ok">毎日</span></div><p class="desc">個人開発者向けコミュニティ。生成AI活用のプロダクト投稿や議論が活発。</p><div class="actions"><a class="btn" href="https://solomaker.dev" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>TechWordSpikes</h3><div class="meta"><span class="pill">日本語</span><span class="pill ok">毎日</span></div><p class="desc">Qiita記事の単語出現を集計し、伸び率で急上昇ワードを可視化。</p><div class="actions"><a class="btn" href="https://tech-word-spikes.vercel.app" target="_blank" rel="noopener">サイトを開く</a></div></article>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number">47</div>
+        <div class="stat-label">厳選サイト</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">6</div>
+        <div class="stat-label">カテゴリ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">28</div>
+        <div class="stat-label">毎日更新</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">19</div>
+        <div class="stat-label">英語サイト</div>
+      </div>
+    </div>
 
-      <!-- 日本語メディア -->
-      <article class="resource-card"><h3>Ledge.ai</h3><div class="meta"><span class="pill">日本語</span><span class="pill ok">ほぼ毎日</span></div><p class="desc">国内大手のAI特化メディア。導入事例や技術トレンドが充実。</p><div class="actions"><a class="btn" href="https://ledge.ai" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>SHIFT AI TIMES</h3><div class="meta"><span class="pill">日本語</span><span class="pill ok">毎日</span></div><p class="desc">生成AIのビジネス活用に特化。導入事例と実践ノウハウを日次配信。</p><div class="actions"><a class="btn" href="https://shift-ai.co.jp/ai-times" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Publickey</h3><div class="meta"><span class="pill">日本語</span><span class="pill">週数回</span></div><p class="desc">エンタープライズITに強い独立系ブログ。AI×クラウド／OSS動向。</p><div class="actions"><a class="btn" href="https://www.publickey1.jp" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>AINOW</h3><div class="meta"><span class="pill">日本語</span><span class="pill">週数回</span></div><p class="desc">AIツール紹介や入門解説が充実。業務改善に役立つ具体情報を提供。</p><div class="actions"><a class="btn" href="https://ainow.ai" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>AIsmiley</h3><div class="meta"><span class="pill">日本語</span><span class="pill ok">ほぼ毎日</span></div><p class="desc">国内最大級のAI製品・サービス集約ポータル。カテゴリ別ニュースと事例。</p><div class="actions"><a class="btn" href="https://aismiley.co.jp" target="_blank" rel="noopener">サイトを開く</a></div></article>
+    <div class="tabs-container">
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="japanese">🇯🇵 日本語サイト</button>
+        <button class="tab-btn" data-tab="international">🌎 海外メディア</button>
+        <button class="tab-btn" data-tab="research">🔬 研究・公式</button>
+        <button class="tab-btn" data-tab="community">👥 コミュニティ</button>
+        <button class="tab-btn" data-tab="enterprise">🏢 企業ブログ</button>
+        <button class="tab-btn" data-tab="newsletter">📧 ニュースレター</button>
+      </div>
 
-      <!-- 海外メディア（速報/解説） -->
-      <article class="resource-card"><h3>TechCrunch（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">スタートアップ・資金調達・新サービスの速報に強い。</p><div class="actions"><a class="btn" href="https://techcrunch.com/tag/artificial-intelligence/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>The Verge（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">製品動向や業界ニュースをわかりやすく解説。</p><div class="actions"><a class="btn" href="https://www.theverge.com/artificial-intelligence" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>VentureBeat（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">企業導入・製品リリース・業界分析が豊富。</p><div class="actions"><a class="btn" href="https://venturebeat.com/category/ai/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>WIRED（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill">週数回</span></div><p class="desc">テクノロジーの社会・文化的影響を深掘り。</p><div class="actions"><a class="btn" href="https://www.wired.com/tag/artificial-intelligence/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Reuters（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">高頻度</span></div><p class="desc">一次情報に強い国際通信社のAI特集。事実確認に適する。</p><div class="actions"><a class="btn" href="https://www.reuters.com/technology/artificial-intelligence/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Bloomberg（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">高頻度</span></div><p class="desc">金融・投資の観点からAI産業動向をカバー。</p><div class="actions"><a class="btn" href="https://www.bloomberg.com/ai" target="_blank" rel="noopener">サイトを開く</a></div></article>
+      <!-- Japanese Sites Tab -->
+      <div class="tab-content active" id="japanese">
+        <div class="category-header">
+          <h2>🇯🇵 日本語AIサイト・メディア</h2>
+          <p class="category-desc">国内のAI情報をいち早く収集できる日本語サイトを集めました。</p>
+        </div>
+        <section class="grid">
+          <article class="resource-card"><h3>Solomaker.dev</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill daily">毎日</span></div><p class="desc">個人開発者向けコミュニティ。生成AI活用のプロダクト投稿や議論が活発。</p><div class="actions"><a class="btn" href="https://solomaker.dev" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>TechWordSpikes</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill daily">毎日</span></div><p class="desc">Qiita記事の単語出現を集計し、伸び率で急上昇ワードを可視化。</p><div class="actions"><a class="btn" href="https://tech-word-spikes.vercel.app" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Ledge.ai</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill daily">ほぼ毎日</span></div><p class="desc">国内大手のAI特化メディア。導入事例や技術トレンドが充実。</p><div class="actions"><a class="btn" href="https://ledge.ai" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>SHIFT AI TIMES</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill daily">毎日</span></div><p class="desc">生成AIのビジネス活用に特化。導入事例と実践ノウハウを日次配信。</p><div class="actions"><a class="btn" href="https://shift-ai.co.jp/ai-times" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Publickey</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill weekly">週数回</span></div><p class="desc">エンタープライズITに強い独立系ブログ。AI×クラウド／OSS動向。</p><div class="actions"><a class="btn" href="https://www.publickey1.jp" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>AINOW</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill weekly">週数回</span></div><p class="desc">AIツール紹介や入門解説が充実。業務改善に役立つ具体情報を提供。</p><div class="actions"><a class="btn" href="https://ainow.ai" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>AIsmiley</h3><div class="meta"><span class="pill japanese">日本語</span><span class="pill daily">ほぼ毎日</span></div><p class="desc">国内最大級のAI製品・サービス集約ポータル。カテゴリ別ニュースと事例。</p><div class="actions"><a class="btn" href="https://aismiley.co.jp" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+        </section>
+      </div>
 
-      <!-- 研究・専業／一次ソース -->
-      <article class="resource-card"><h3>OpenAI Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill">不定期</span></div><p class="desc">ChatGPT/GPTシリーズなど一次発表のプライマリソース。</p><div class="actions"><a class="btn" href="https://openai.com/blog" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Google AI Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill">週1回程度</span></div><p class="desc">研究成果や製品への適用事例を研究者が解説。</p><div class="actions"><a class="btn" href="https://ai.googleblog.com" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Google Research Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill">週数回</span></div><p class="desc">Google Researchの最新成果と背景。</p><div class="actions"><a class="btn" href="https://research.google/blog/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>DeepMind Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill">月数回</span></div><p class="desc">強化学習から創薬まで、最先端研究の成果を発信。</p><div class="actions"><a class="btn" href="https://www.deepmind.com/blog" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Anthropic News / Research</h3><div class="meta"><span class="pill">英語</span><span class="pill">不定期</span></div><p class="desc">Claude関連の公式アップデートを直接確認。</p><div class="actions"><a class="btn" href="https://www.anthropic.com/news" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Hugging Face Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill">週数回</span></div><p class="desc">OSSモデル・コミュニティ情報、実務寄りの更新。</p><div class="actions"><a class="btn" href="https://huggingface.co/blog" target="_blank" rel="noopener">サイトを開く</a></div></article>
+      <!-- International Media Tab -->
+      <div class="tab-content" id="international">
+        <div class="category-header">
+          <h2>🌎 海外メディア・ニュースサイト</h2>
+          <p class="category-desc">世界のAI動向をいち早くキャッチする海外の主要メディアです。</p>
+        </div>
+        <section class="grid">
+          <article class="resource-card"><h3>TechCrunch（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">スタートアップ・資金調達・新サービスの速報に強い。</p><div class="actions"><a class="btn" href="https://techcrunch.com/tag/artificial-intelligence/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>The Verge（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">製品動向や業界ニュースをわかりやすく解説。</p><div class="actions"><a class="btn" href="https://www.theverge.com/artificial-intelligence" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>VentureBeat（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">企業導入・製品リリース・業界分析が豊富。</p><div class="actions"><a class="btn" href="https://venturebeat.com/category/ai/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>WIRED（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill weekly">週数回</span></div><p class="desc">テクノロジーの社会・文化的影響を深掘り。</p><div class="actions"><a class="btn" href="https://www.wired.com/tag/artificial-intelligence/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Reuters（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">高頻度</span></div><p class="desc">一次情報に強い国際通信社のAI特集。事実確認に適する。</p><div class="actions"><a class="btn" href="https://www.reuters.com/technology/artificial-intelligence/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Bloomberg（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">高頻度</span></div><p class="desc">金融・投資の観点からAI産業動向をカバー。</p><div class="actions"><a class="btn" href="https://www.bloomberg.com/ai" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+        </section>
+      </div>
 
-      <!-- ダイジェスト／コミュニティ／研究→実装 -->
-      <article class="resource-card"><h3>TLDR（AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">忙しい人向けの短時間ダイジェスト。毎朝の把握に最適。</p><div class="actions"><a class="btn" href="https://tldr.tech/ai" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>AI News（smol.ai）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">Reddit／X／Discordを横断収集し自動要約。日次トレンド把握。</p><div class="actions"><a class="btn" href="https://news.smol.ai" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Hacker News</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">随時</span></div><p class="desc">エンジニア主導のリンク共有。バズの初動検知に有効。</p><div class="actions"><a class="btn" href="https://news.ycombinator.com/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Reddit / r/MachineLearning</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">随時</span></div><p class="desc">研究・実装の生の反応や議論をすばやく追える。</p><div class="actions"><a class="btn" href="https://www.reddit.com/r/MachineLearning/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Papers with Code（Trends）</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">論文→コードの動向をトレンド一覧で把握。</p><div class="actions"><a class="btn" href="https://paperswithcode.com/trends" target="_blank" rel="noopener">サイトを開く</a></div></article>
+      <!-- Research & Official Tab -->
+      <div class="tab-content" id="research">
+        <div class="category-header">
+          <h2>🔬 研究機関・公式ブログ</h2>
+          <p class="category-desc">AI研究の最前線と公式発表を直接確認できます。</p>
+        </div>
+        <section class="grid">
+          <article class="resource-card"><h3>OpenAI Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill">不定期</span></div><p class="desc">ChatGPT/GPTシリーズなど一次発表のプライマリソース。</p><div class="actions"><a class="btn" href="https://openai.com/blog" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Google AI Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill weekly">週1回程度</span></div><p class="desc">研究成果や製品への適用事例を研究者が解説。</p><div class="actions"><a class="btn" href="https://ai.googleblog.com" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Google Research Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill weekly">週数回</span></div><p class="desc">Google Researchの最新成果と背景。</p><div class="actions"><a class="btn" href="https://research.google/blog/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>DeepMind Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill">月数回</span></div><p class="desc">強化学習から創薬まで、最先端研究の成果を発信。</p><div class="actions"><a class="btn" href="https://www.deepmind.com/blog" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Anthropic News / Research</h3><div class="meta"><span class="pill english">英語</span><span class="pill">不定期</span></div><p class="desc">Claude関連の公式アップデートを直接確認。</p><div class="actions"><a class="btn" href="https://www.anthropic.com/news" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Hugging Face Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill weekly">週数回</span></div><p class="desc">OSSモデル・コミュニティ情報、実務寄りの更新。</p><div class="actions"><a class="btn" href="https://huggingface.co/blog" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+        </section>
+      </div>
 
-      <!-- 公式ベンダーブログ（実装/エコシステム） -->
-      <article class="resource-card"><h3>Microsoft AI Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">高頻度</span></div><p class="desc">MicrosoftのAI製品・研究・エコシステム情報。</p><div class="actions"><a class="btn" href="https://www.microsoft.com/en-us/ai/blog/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>NVIDIA Blog</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">高頻度</span></div><p class="desc">AIハード／プラットフォームの一次情報と導入事例。</p><div class="actions"><a class="btn" href="https://blogs.nvidia.com/" target="_blank" rel="noopener">サイトを開く</a></div></article>
+      <!-- Community Tab -->
+      <div class="tab-content" id="community">
+        <div class="category-header">
+          <h2>👥 コミュニティ・議論サイト</h2>
+          <p class="category-desc">開発者・研究者コミュニティで生の反応と議論を追えます。</p>
+        </div>
+        <section class="grid">
+          <article class="resource-card"><h3>TLDR（AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">忙しい人向けの短時間ダイジェスト。毎朝の把握に最適。</p><div class="actions"><a class="btn" href="https://tldr.tech/ai" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>AI News（smol.ai）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">Reddit／X／Discordを横断収集し自動要約。日次トレンド把握。</p><div class="actions"><a class="btn" href="https://news.smol.ai" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Hacker News</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">随時</span></div><p class="desc">エンジニア主導のリンク共有。バズの初動検知に有効。</p><div class="actions"><a class="btn" href="https://news.ycombinator.com/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Reddit / r/MachineLearning</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">随時</span></div><p class="desc">研究・実装の生の反応や議論をすばやく追える。</p><div class="actions"><a class="btn" href="https://www.reddit.com/r/MachineLearning/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Papers with Code（Trends）</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">論文→コードの動向をトレンド一覧で把握。</p><div class="actions"><a class="btn" href="https://paperswithcode.com/trends" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+        </section>
+      </div>
 
-      <!-- ニュースレター -->
-      <article class="resource-card"><h3>The Batch（DeepLearning.AI）</h3><div class="meta"><span class="pill">英語</span><span class="pill">週1回</span></div><p class="desc">Andrew Ngの人気ニュースレター。技術から社会影響まで。</p><div class="actions"><a class="btn" href="https://www.deeplearning.ai/thebatch/" target="_blank" rel="noopener">サイトを開く</a></div></article>
-      <article class="resource-card"><h3>Ben’s Bites</h3><div class="meta"><span class="pill">英語</span><span class="pill ok">毎日</span></div><p class="desc">5分で読めるAIニュースレター。日々の要点を短時間で。</p><div class="actions"><a class="btn" href="https://www.bensbites.co" target="_blank" rel="noopener">サイトを開く</a></div></article>
-    </section>
+      <!-- Enterprise Blog Tab -->
+      <div class="tab-content" id="enterprise">
+        <div class="category-header">
+          <h2>🏢 企業・ベンダーブログ</h2>
+          <p class="category-desc">AI業界の主要企業から製品・技術情報を直接入手できます。</p>
+        </div>
+        <section class="grid">
+          <article class="resource-card"><h3>Microsoft AI Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">高頻度</span></div><p class="desc">MicrosoftのAI製品・研究・エコシステム情報。</p><div class="actions"><a class="btn" href="https://www.microsoft.com/en-us/ai/blog/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>NVIDIA Blog</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">高頻度</span></div><p class="desc">AIハード／プラットフォームの一次情報と導入事例。</p><div class="actions"><a class="btn" href="https://blogs.nvidia.com/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+        </section>
+      </div>
+
+      <!-- Newsletter Tab -->
+      <div class="tab-content" id="newsletter">
+        <div class="category-header">
+          <h2>📧 ニュースレター・定期配信</h2>
+          <p class="category-desc">メール配信で定期的に情報を受け取れるサービスです。</p>
+        </div>
+        <section class="grid">
+          <article class="resource-card"><h3>The Batch（DeepLearning.AI）</h3><div class="meta"><span class="pill english">英語</span><span class="pill weekly">週1回</span></div><p class="desc">Andrew Ngの人気ニュースレター。技術から社会影響まで。</p><div class="actions"><a class="btn" href="https://www.deeplearning.ai/thebatch/" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+          <article class="resource-card"><h3>Ben's Bites</h3><div class="meta"><span class="pill english">英語</span><span class="pill daily">毎日</span></div><p class="desc">5分で読めるAIニュースレター。日々の要点を短時間で。</p><div class="actions"><a class="btn" href="https://www.bensbites.co" target="_blank" rel="noopener">🔗 サイトを開く</a></div></article>
+        </section>
+      </div>
+    </div>
   </main>
+
+  <script>
+    // Tab functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const targetTab = button.dataset.tab;
+
+          // Remove active class from all buttons and contents
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          tabContents.forEach(content => content.classList.remove('active'));
+
+          // Add active class to clicked button and corresponding content
+          button.classList.add('active');
+          document.getElementById(targetTab).classList.add('active');
+        });
+      });
+    });
+  </script>
 </body>
 </html>
 
