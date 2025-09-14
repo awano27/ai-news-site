@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIニュース検索可能アーカイブ - AI Intelligence Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+      --primary: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+      color: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      text-decoration: none;
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav a:hover {
+      color: white;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .page-title h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+      color: var(--primary);
+    }
+
+    .page-title p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .search-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .search-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .search-input-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      background: white;
+      color: var(--text);
+      transition: border-color 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .search-btn {
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .filters {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-size: 14px;
+      min-width: 120px;
+    }
+
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--accent);
+      color: white;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .filter-tag .remove {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .clear-btn {
+      padding: 6px 12px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .results-section {
+      margin-bottom: 32px;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .results-count {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sort-select {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-size: 14px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .result-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .result-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .result-date {
+      background: var(--accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .result-category {
+      background: var(--surface);
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .result-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+    }
+
+    .result-title a {
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .result-title a:hover {
+      color: var(--accent);
+    }
+
+    .result-summary {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .result-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .result-tag {
+      background: var(--surface);
+      color: var(--text);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .result-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .view-btn:hover {
+      background: #2563eb;
+    }
+
+    .result-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted);
+    }
+
+    .no-results-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .page-title h1 {
+        font-size: 2rem;
+      }
+
+      .search-form {
+        grid-template-columns: 1fr;
+      }
+
+      .search-input-group {
+        flex-direction: column;
+      }
+
+      .filters {
+        justify-content: center;
+      }
+
+      .results-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">🤖 AI Intelligence Hub</a>
+      <nav class="nav">
+        <a href="index.html">ホーム</a>
+        <a href="https://awano27.github.io/daily-ai-news-pages/" target="_blank">最新AIニュース</a>
+        <a href="day_slides_index.html">日次スライド</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-title">
+      <h1>🔍 AIニュース検索可能アーカイブ</h1>
+      <p>過去のAIニュースとレポートを検索・フィルタして探すことができます</p>
+    </div>
+
+    <div class="search-section">
+      <form class="search-form" id="searchForm">
+        <div class="search-input-group">
+          <input
+            type="text"
+            class="search-input"
+            id="searchInput"
+            placeholder="キーワードで検索（例: Claude, GPT, オープンソース）"
+            autocomplete="off"
+          >
+        </div>
+        <button type="submit" class="search-btn">🔍 検索</button>
+      </form>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label for="dateFilter">期間:</label>
+          <select id="dateFilter" class="filter-select">
+            <option value="">すべての期間</option>
+            <option value="2025-09">2025年9月</option>
+            <option value="2025-08">2025年8月</option>
+            <option value="2025-07">2025年7月</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="categoryFilter">カテゴリ:</label>
+          <select id="categoryFilter" class="filter-select">
+            <option value="">すべてのカテゴリ</option>
+            <option value="tools">AIツール</option>
+            <option value="business">ビジネス</option>
+            <option value="research">研究・論文</option>
+            <option value="opensource">オープンソース</option>
+            <option value="technology">技術革新</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="sortFilter">並び順:</label>
+          <select id="sortFilter" class="filter-select">
+            <option value="date-desc">日付（新しい順）</option>
+            <option value="date-asc">日付（古い順）</option>
+            <option value="title-asc">タイトル（昇順）</option>
+          </select>
+        </div>
+
+        <button type="button" class="clear-btn" id="clearFilters">🗑️ クリア</button>
+      </div>
+
+      <div id="activeFilters" class="filters" style="margin-top: 16px;"></div>
+    </div>
+
+    <div class="results-section">
+      <div class="results-header">
+        <div class="results-count" id="resultsCount">検索結果を読み込み中...</div>
+        <div class="sort-controls">
+          <span>表示数:</span>
+          <select id="limitSelect" class="sort-select">
+            <option value="12">12件</option>
+            <option value="24">24件</option>
+            <option value="48">48件</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="loadingIndicator" class="loading">
+        <div class="loading-spinner"></div>
+        <p>データを読み込んでいます...</p>
+      </div>
+
+      <div class="results-grid" id="resultsGrid"></div>
+
+      <div id="noResults" class="no-results" style="display: none;">
+        <div class="no-results-icon">📭</div>
+        <h3>検索結果が見つかりませんでした</h3>
+        <p>検索条件を変更してお試しください。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let allSlides = [];
+    let filteredSlides = [];
+    let currentFilters = {
+      search: '',
+      date: '',
+      category: '',
+      sort: 'date-desc'
+    };
+
+    // Sample data structure - in reality this would come from the slides
+    const slideDatabase = [
+      {
+        date: '2025-09-13',
+        filename: 'day_slide_2025_09_13.html',
+        title: 'Open Lovable v2：AIウェブクローン革命',
+        summary: 'URL入力のみで完全なReact/Next.jsアプリを自動生成するオープンソースツール',
+        category: 'tools',
+        tags: ['AI開発ツール', 'オープンソース', 'ウェブクローン', 'React/Next.js'],
+        keywords: ['Open Lovable', 'クローン', 'React', 'Next.js', 'オープンソース', 'MIT License']
+      },
+      {
+        date: '2025-09-12',
+        filename: 'day_slide_2025_09_12.html',
+        title: 'AI業界動向レポート',
+        summary: '最新のAI技術トレンドと市場分析',
+        category: 'business',
+        tags: ['市場分析', 'トレンド', '業界動向'],
+        keywords: ['AI', '市場', 'トレンド', '分析']
+      },
+      {
+        date: '2025-09-11',
+        filename: 'day_slide_2025_09_11.html',
+        title: 'Claude 3.5とGPT-4比較研究',
+        summary: '大規模言語モデルの性能比較と特徴分析',
+        category: 'research',
+        tags: ['LLM', '比較研究', '性能分析'],
+        keywords: ['Claude', 'GPT-4', '比較', 'LLM', '性能']
+      },
+      {
+        date: '2025-09-10',
+        filename: 'day_slide_2025_09_10.html',
+        title: 'オープンソースAI新展開',
+        summary: 'HuggingFaceとMeta AI新モデルの詳細解析',
+        category: 'opensource',
+        tags: ['オープンソース', 'HuggingFace', 'Meta AI'],
+        keywords: ['オープンソース', 'HuggingFace', 'Meta', 'Llama']
+      }
+    ];
+
+    // DOM elements
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const dateFilter = document.getElementById('dateFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const activeFiltersDiv = document.getElementById('activeFilters');
+    const resultsCount = document.getElementById('resultsCount');
+    const resultsGrid = document.getElementById('resultsGrid');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const noResults = document.getElementById('noResults');
+    const limitSelect = document.getElementById('limitSelect');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSlideData();
+      bindEvents();
+    });
+
+    function bindEvents() {
+      searchForm.addEventListener('submit', handleSearch);
+      searchInput.addEventListener('input', debounce(handleInstantSearch, 300));
+      dateFilter.addEventListener('change', handleFilterChange);
+      categoryFilter.addEventListener('change', handleFilterChange);
+      sortFilter.addEventListener('change', handleFilterChange);
+      limitSelect.addEventListener('change', handleFilterChange);
+      clearFiltersBtn.addEventListener('click', clearAllFilters);
+    }
+
+    function loadSlideData() {
+      // For demo purposes, use the sample data
+      // In a real implementation, this would fetch from actual slide files
+      setTimeout(() => {
+        allSlides = slideDatabase;
+        filteredSlides = [...allSlides];
+        hideLoading();
+        renderResults();
+      }, 1000);
+    }
+
+    function handleSearch(e) {
+      e.preventDefault();
+      applyFilters();
+    }
+
+    function handleInstantSearch() {
+      applyFilters();
+    }
+
+    function handleFilterChange() {
+      applyFilters();
+    }
+
+    function applyFilters() {
+      // Update current filters
+      currentFilters.search = searchInput.value.toLowerCase().trim();
+      currentFilters.date = dateFilter.value;
+      currentFilters.category = categoryFilter.value;
+      currentFilters.sort = sortFilter.value;
+
+      // Filter slides
+      filteredSlides = allSlides.filter(slide => {
+        // Search filter
+        if (currentFilters.search && !matchesSearch(slide, currentFilters.search)) {
+          return false;
+        }
+
+        // Date filter
+        if (currentFilters.date && !slide.date.startsWith(currentFilters.date)) {
+          return false;
+        }
+
+        // Category filter
+        if (currentFilters.category && slide.category !== currentFilters.category) {
+          return false;
+        }
+
+        return true;
+      });
+
+      // Sort slides
+      sortSlides();
+
+      // Update UI
+      updateActiveFilters();
+      renderResults();
+    }
+
+    function matchesSearch(slide, searchTerm) {
+      const searchableContent = [
+        slide.title,
+        slide.summary,
+        ...slide.tags,
+        ...slide.keywords
+      ].join(' ').toLowerCase();
+
+      return searchableContent.includes(searchTerm);
+    }
+
+    function sortSlides() {
+      filteredSlides.sort((a, b) => {
+        switch (currentFilters.sort) {
+          case 'date-desc':
+            return new Date(b.date) - new Date(a.date);
+          case 'date-asc':
+            return new Date(a.date) - new Date(b.date);
+          case 'title-asc':
+            return a.title.localeCompare(b.title, 'ja');
+          default:
+            return 0;
+        }
+      });
+    }
+
+    function updateActiveFilters() {
+      const activeFilters = [];
+
+      if (currentFilters.search) {
+        activeFilters.push({
+          type: 'search',
+          label: `検索: "${currentFilters.search}"`,
+          value: currentFilters.search
+        });
+      }
+
+      if (currentFilters.date) {
+        activeFilters.push({
+          type: 'date',
+          label: `期間: ${currentFilters.date}`,
+          value: currentFilters.date
+        });
+      }
+
+      if (currentFilters.category) {
+        const categoryLabel = getCategoryLabel(currentFilters.category);
+        activeFilters.push({
+          type: 'category',
+          label: `カテゴリ: ${categoryLabel}`,
+          value: currentFilters.category
+        });
+      }
+
+      activeFiltersDiv.innerHTML = activeFilters.map(filter => `
+        <div class="filter-tag">
+          ${filter.label}
+          <span class="remove" onclick="removeFilter('${filter.type}')">&times;</span>
+        </div>
+      `).join('');
+    }
+
+    function removeFilter(type) {
+      switch (type) {
+        case 'search':
+          searchInput.value = '';
+          break;
+        case 'date':
+          dateFilter.value = '';
+          break;
+        case 'category':
+          categoryFilter.value = '';
+          break;
+      }
+      applyFilters();
+    }
+
+    function clearAllFilters() {
+      searchInput.value = '';
+      dateFilter.value = '';
+      categoryFilter.value = '';
+      sortFilter.value = 'date-desc';
+      applyFilters();
+    }
+
+    function renderResults() {
+      const limit = parseInt(limitSelect.value);
+      const displaySlides = filteredSlides.slice(0, limit);
+
+      // Update results count
+      resultsCount.textContent = `${filteredSlides.length}件の結果が見つかりました`;
+
+      // Show/hide no results message
+      if (filteredSlides.length === 0) {
+        resultsGrid.style.display = 'none';
+        noResults.style.display = 'block';
+        return;
+      } else {
+        resultsGrid.style.display = 'grid';
+        noResults.style.display = 'none';
+      }
+
+      // Render slide cards
+      resultsGrid.innerHTML = displaySlides.map(slide => `
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-date">${formatDate(slide.date)}</div>
+            <div class="result-category">${getCategoryLabel(slide.category)}</div>
+          </div>
+
+          <h3 class="result-title">
+            <a href="day_slides/${slide.filename}" target="_blank">
+              ${highlightSearchTerm(slide.title, currentFilters.search)}
+            </a>
+          </h3>
+
+          <p class="result-summary">
+            ${highlightSearchTerm(slide.summary, currentFilters.search)}
+          </p>
+
+          <div class="result-tags">
+            ${slide.tags.map(tag => `<span class="result-tag">${tag}</span>`).join('')}
+          </div>
+
+          <div class="result-actions">
+            <a href="day_slides/${slide.filename}" target="_blank" class="view-btn">
+              📖 スライドを見る
+            </a>
+            <div class="result-meta">
+              ${slide.date}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function highlightSearchTerm(text, searchTerm) {
+      if (!searchTerm) return text;
+      const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+      return text.replace(regex, '<mark style="background:#fef08a;padding:0 2px;">$1</mark>');
+    }
+
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function formatDate(dateStr) {
+      const [year, month, day] = dateStr.split('-');
+      return `${year}/${month}/${day}`;
+    }
+
+    function getCategoryLabel(category) {
+      const labels = {
+        'tools': 'AIツール',
+        'business': 'ビジネス',
+        'research': '研究・論文',
+        'opensource': 'オープンソース',
+        'technology': '技術革新'
+      };
+      return labels[category] || category;
+    }
+
+    function hideLoading() {
+      loadingIndicator.style.display = 'none';
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+  </script>
+</body>
+</html>
