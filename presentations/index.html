@@ -1,156 +1,568 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI最新動向のハブ | AI Intelligence</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/presentations.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Intelligence Hub - プレゼンテーション・レポート総合ポータル</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #020617;
+      --light: #f8fafc;
+      --border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--light);
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav a:hover, .nav a.active {
+      color: var(--accent);
+    }
+
+    /* Hero Section */
+    .hero {
+      background: var(--gradient);
+      color: white;
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      margin-bottom: 32px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .btn-primary {
+      background: white;
+      color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 20px;
+    }
+
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .section-description {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Feature Cards */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-top: 48px;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+    }
+
+    .feature-card:hover::before {
+      transform: translateX(0);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .feature-description {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .feature-badge {
+      display: inline-block;
+      background: var(--success);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .feature-badge.hot {
+      background: var(--danger);
+    }
+
+    .feature-badge.new {
+      background: var(--accent);
+    }
+
+    /* Stats Section */
+    .stats {
+      background: var(--primary);
+      color: white;
+      padding: 64px 0;
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      padding: 16px;
+    }
+
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--accent);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      opacity: 0.8;
+      margin-top: 8px;
+    }
+
+    /* Quick Links */
+    .quick-links {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+    }
+
+    .link-item:hover {
+      background: var(--light);
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    .link-icon {
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .link-content {
+      flex: 1;
+    }
+
+    .link-title {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .link-description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--primary);
+      color: white;
+      padding: 48px 0 24px;
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .nav {
+        display: none;
+      }
+    }
+  </style>
 </head>
-<body class="ntt">
-  <header class="ntt-header header" role="banner">
-    <div class="ntt-nav" role="navigation" aria-label="&#x4E3B;&#x8981;&#x30CA;&#x30D3;&#x30B2;&#x30FC;&#x30B7;&#x30E7;&#x30F3;">
-      <a class="ntt-brand" href="index.html"><span class="ntt-mark" aria-hidden="true"></span><span class="ntt-title">AI Intelligence Presentations</span></a>
-      <nav class="ntt-links" aria-label="&#x30E1;&#x30CB;&#x30E5;&#x30FC;">
-        <a class="ntt-link" href="index.html">ホーム</a>
-        <a class="ntt-link" href="integrated_report.html">総合AIレポート</a>
-        <a class="ntt-link" href="day_slides_index.html">日次スライド</a>
-        <a class="ntt-link" href="ai_external_resources.html">AI情報源</a>
-        <a class="ntt-link" href="https://awano27.github.io/daily-ai-news-pages/" target="_blank" rel="noopener noreferrer">AIニュース</a>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="#" class="logo">🤖 AI Intelligence Hub</a>
+      <nav class="nav">
+        <a href="#features" class="active">コンテンツ</a>
+        <a href="#quick-access">クイックアクセス</a>
+        <a href="../index.html">サイトホーム</a>
       </nav>
     </div>
   </header>
 
-  <main id="main" role="main">
-    <section class="ntt-hero" aria-labelledby="hero-title">
-      <div class="ntt-hero-inner">
-        <div class="ntt-eyebrow">Spotlight</div>
-        <h1 id="hero-title">AI最新動向のハブ</h1>
-        <p>AIニュース・ランキング・レポートの総合プラットフォーム。最新動向をわかりやすくお届けします。</p>
-        <div class="ntt-cta">
-          <a class="ntt-btn" href="https://awano27.github.io/daily-ai-news-pages/" target="_blank" rel="noopener" style="background:#2563eb;color:#fff;border-color:#2563eb;">AIニュースを開く</a>
-          <a class="ntt-btn" href="integrated_report.html">最新レポートを見る</a>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>AI Intelligence Presentations</h1>
+      <p class="hero-subtitle">AIニュース、ランキング、レポートの総合プレゼンテーション・プラットフォーム<br>427件のデータと42の日次レポートをお届け</p>
+      <div class="hero-buttons">
+        <a href="day_slides/day_slide_2025_09_13.html" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-size: 1.1rem;">
+          🆕 本日の注目スライド (9/13)
+        </a>
+        <a href="ai_ranking_interactive.html" class="btn btn-secondary">ランキングを見る</a>
+        <a href="news_archive.html" class="btn btn-secondary">アーカイブ検索</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-value">427</span>
+          <div class="stat-label">総ニュース数</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">42</span>
+          <div class="stat-label">日次レポート</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">4</span>
+          <div class="stat-label">カテゴリ</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">最新</span>
+          <div class="stat-label">2025/09/13</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Latest Slide Highlight -->
+    <section style="margin-bottom: 48px;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 40px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+        <h2 style="font-size: 2rem; margin-bottom: 16px; font-weight: 800;">🌐 本日の注目トピック (9/13)</h2>
+        <h3 style="font-size: 1.5rem; margin-bottom: 16px;">Open Lovable v2：AIウェブクローン革命</h3>
+        <p style="margin-bottom: 24px; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto;">
+          URL入力だけでReact/Next.jsアプリを自動生成。開発効率10倍向上の実証済み、MIT Licenseで完全無料
+        </p>
+        <a href="day_slides/day_slide_2025_09_13.html" class="btn" style="background: white; color: #667eea; padding: 14px 36px; font-weight: 700; display: inline-block; text-decoration: none; border-radius: 8px;">
+          詳細スライドを見る →
+        </a>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+      <div class="section-header">
+        <h2 class="section-title">📊 主要コンテンツ</h2>
+        <p class="section-description">AI業界の最新動向を分析・可視化した包括的なコンテンツライブラリ</p>
+      </div>
+      
+      <div class="features-grid">
+        <a href="ai_ranking_interactive.html" class="feature-card">
+          <span class="feature-icon">🏆</span>
+          <h3 class="feature-title">AIランキングダッシュボード</h3>
+          <p class="feature-description">スコアに基づいたトレンド可視化。427件のニュースを4つのカテゴリでインタラクティブに表示・分析できます。</p>
+          <span class="feature-badge new">更新済み</span>
+        </a>
+
+        <a href="news_archive.html" class="feature-card">
+          <span class="feature-icon">🗄️</span>
+          <h3 class="feature-title">AIニュースアーカイブ</h3>
+          <p class="feature-description">過去のニュース記事を日付・カテゴリ別に検索可能。GitHubデータと統合した427件の豊富なデータベース。</p>
+          <span class="feature-badge hot">人気</span>
+        </a>
+
+        <a href="day_slides_list.html" class="feature-card">
+          <span class="feature-icon">📅</span>
+          <h3 class="feature-title">日次スライド一覧</h3>
+          <p class="feature-description">毎日更新される詳細なAIニューススライド。ビジュアル重視のプレゼンテーション形式で42件のレポート。</p>
+          <span class="feature-badge">完全版</span>
+        </a>
+
+        <a href="ai_external_resources.html" class="feature-card">
+          <span class="feature-icon">🔗</span>
+          <h3 class="feature-title">外部AI情報源</h3>
+          <p class="feature-description">厳選されたニュース・ブログ・コミュニティへのリンク集。日本語・英語リソースを用途別に整理。</p>
+          <span class="feature-badge">厳選</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Quick Access Section -->
+    <section id="quick-access" class="section">
+      <div class="section-header">
+        <h2 class="section-title">⚡ クイックアクセス</h2>
+        <p class="section-description">よく使用される機能とページへの直接リンク</p>
+      </div>
+      
+      <div class="quick-links">
+        <div class="links-grid">
+          <a href="day_slides/day_slide_2025_09_13.html" class="link-item">
+            <span class="link-icon">🛠️</span>
+            <div class="link-content">
+              <div class="link-title">最新スライド (9/13)</div>
+              <div class="link-description">Open Lovable v2：AIウェブクローン革命</div>
+            </div>
+          </a>
+          
+          <a href="day_slides/day_slide_2025_09_11_detailed.html" class="link-item">
+            <span class="link-icon">🤖</span>
+            <div class="link-content">
+              <div class="link-title">Claude機能拡張 (9/11)</div>
+              <div class="link-description">ファイル作成・編集対応</div>
+            </div>
+          </a>
+          
+          <a href="https://github.com/awano27/daily-ai-news" class="link-item" target="_blank">
+            <span class="link-icon">📊</span>
+            <div class="link-content">
+              <div class="link-title">GitHub データソース</div>
+              <div class="link-description">427件のオープンソースデータ</div>
+            </div>
+          </a>
+          
+          <a href="day_slides/day_slide_2025_09_10.html" class="link-item">
+            <span class="link-icon">🔍</span>
+            <div class="link-content">
+              <div class="link-title">Google AIモード (9/10)</div>
+              <div class="link-description">日本語対応開始</div>
+            </div>
+          </a>
         </div>
       </div>
     </section>
+  </div>
 
-    <section class="ntt-section" aria-labelledby="spotlight-title">
-      <div class="ntt-section-header">
-        <h2 id="spotlight-title" class="ntt-section-title">特集</h2>
-        <a class="ntt-section-cta" href="integrated_report.html">&#x8A73;&#x3057;&#x304F;&#x306F;&#x3053;&#x3061;&#x3089;</a>
-      </div>
-      <div class="ntt-grid spotlight">
-        <article class="ntt-card">
-          <img class="ntt-thumb" alt="" loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230f2347'/%3E%3Cstop offset='100%25' stop-color='%230b1d3a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E">
-          <div class="ntt-tag">Report</div>
-          <h3 class="ntt-card-title">総合AIレポート</h3>
-          <p class="ntt-card-desc">重要トピックを俯瞰し、意思決定を支援するハイライトを収録。</p>
-          <p><a class="ntt-inline" href="integrated_report.html">レポートを読む</a></p>
-        </article>
-        <article class="ntt-card">
-          <img class="ntt-thumb" alt="" loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230b1d3a'/%3E%3Cstop offset='100%25' stop-color='%2310244b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E">
-          <div class="ntt-tag">Ranking</div>
-          <h3 class="ntt-card-title">AIランキングダッシュボード</h3>
-          <p class="ntt-card-desc">スコアに基づくランキングを可視化し、トレンドを素早く把握。</p>
-          <p><a class="ntt-inline" href="ai_ranking_interactive.html">ダッシュボードを開く</a></p>
-        </article>
-        <article class="ntt-card">
-          <img class="ntt-thumb" alt="" loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230c1a36'/%3E%3Cstop offset='100%25' stop-color='%230f2347'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E">
-          <div class="ntt-tag">News</div>
-          <h3 class="ntt-card-title">AIニュース解説レポート</h3>
-          <p class="ntt-card-desc">最新ニュースを深掘りし、重要アナウンスの要点を整理。</p>
-          <p><a class="ntt-inline" href="daily_ai_news_report_latest.html">最新を表示</a></p>
-        </article>
-      </div>
-    </section>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 AI Intelligence Hub. データ統合・分析・可視化プラットフォーム</p>
+      <p style="margin-top: 8px; opacity: 0.7;">GitHub統合データ • 日次更新 • インタラクティブ分析</p>
+    </div>
+  </footer>
 
-    <section class="ntt-section" aria-labelledby="reports-title">
-      <div class="ntt-section-header">
-        <h2 id="reports-title" class="ntt-section-title">レポート &amp; コラム</h2>
-        <a class="ntt-section-cta" href="news_archive.html">&#x30CB;&#x30E5;&#x30FC;&#x30B9;&#x4E00;&#x89A7;&#x3078;</a>
-      </div>
-      <div class="ntt-grid">
-        <article class="ntt-card">
-          <div class="ntt-tag">Report</div>
-          <h3 class="ntt-card-title">最新AIランキングレポート</h3>
-          <p class="ntt-card-desc">&#x4E3B;&#x8981;&#x30C6;&#x30FC;&#x30DE;&#x306E;&#x76F8;&#x5BFE;&#x8A55;&#x4FA1;&#x3068;&#x63A8;&#x79FB;&#x3092;&#x53CE;&#x9332;&#x3002;</p>
-          <p><a class="ntt-inline" href="ai_ranking_report_latest.html">&#x6700;&#x65B0;&#x3092;&#x8868;&#x793A;</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">List</div>
-          <h3 class="ntt-card-title">AIニュースアーカイブ</h3>
-          <p class="ntt-card-desc">&#x904E;&#x53BB;&#x306E;&#x30CB;&#x30E5;&#x30FC;&#x30B9;&#x3092;&#x30A2;&#x30FC;&#x30AB;&#x30A4;&#x30D6;&#x5F62;&#x5F0F;&#x3067;&#x53C2;&#x7167;&#x3002;</p>
-          <p><a class="ntt-inline" href="news_archive.html">&#x4E00;&#x89A7;&#x3092;&#x898B;&#x308B;</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">Analysis</div>
-          <h3 class="ntt-card-title">先端AI研究レポート（最新）</h3>
-          <p class="ntt-card-desc">&#x5148;&#x7AEF;&#x7814;&#x7A76;&#x3084;&#x5927;&#x898F;&#x6A21;&#x30E2;&#x30C7;&#x30EB;&#x306E;&#x52D5;&#x5411;&#x3092;&#x5206;&#x6790;&#x3002;</p>
-          <p><a class="ntt-inline" href="advanced_intelligence_report_latest.html">&#x30EC;&#x30DD;&#x30FC;&#x30C8;&#x3092;&#x8AAD;&#x3080;</a></p>
-        </article>
-      </div>
-    </section>
+  <script>
+    // 統計情報の自動更新
+    async function updateStats() {
+      try {
+        const response = await fetch('../public-pages/news/version.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.total_entries) {
+            const statValue = document.querySelector('.stat-value');
+            if (statValue) {
+              statValue.textContent = data.github_integration?.items_synced || data.total_entries;
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Stats update skipped');
+      }
+    }
 
-    <section class="ntt-section" aria-labelledby="slides-title">
-      <div class="ntt-section-header">
-        <h2 id="slides-title" class="ntt-section-title">日次AIニューススライド</h2>
-        <a class="ntt-section-cta" href="day_slides_index.html">&#x4E00;&#x89A7;&#x3092;&#x898B;&#x308B;</a>
-      </div>
-      <div id="recent-slides" class="ntt-slides" aria-live="polite"></div>
-    </section>
+    // スムーズスクロール
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
 
-    <section class="ntt-section" aria-labelledby="resources-title">
-      <div class="ntt-section-header">
-        <h2 id="resources-title" class="ntt-section-title">おすすめAI情報源</h2>
-        <a class="ntt-section-cta" href="ai_external_resources.html">&#x5168;&#x4E00;&#x89A7;&#x3092;&#x898B;&#x308B;</a>
-      </div>
-      <div class="ntt-grid">
-        <article class="ntt-card">
-          <div class="ntt-tag">日本語</div>
-          <h3 class="ntt-card-title">Ledge.ai</h3>
-          <p class="ntt-card-desc">国内大手のAI特化メディア。導入事例や技術トレンドが充実。</p>
-          <p><a class="ntt-inline" href="https://ledge.ai" target="_blank" rel="noopener">サイトを開く</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">英語</div>
-          <h3 class="ntt-card-title">OpenAI Blog</h3>
-          <p class="ntt-card-desc">ChatGPT/GPTシリーズなど一次発表のプライマリソース。</p>
-          <p><a class="ntt-inline" href="https://openai.com/blog" target="_blank" rel="noopener">サイトを開く</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">英語</div>
-          <h3 class="ntt-card-title">TLDR AI</h3>
-          <p class="ntt-card-desc">忙しい人向けの短時間ダイジェスト。毎朝の把握に最適。</p>
-          <p><a class="ntt-inline" href="https://tldr.tech/ai" target="_blank" rel="noopener">サイトを開く</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">日本語</div>
-          <h3 class="ntt-card-title">Solomaker.dev</h3>
-          <p class="ntt-card-desc">個人開発者向けコミュニティ。生成AI活用のプロダクト投稿や議論が活発。</p>
-          <p><a class="ntt-inline" href="https://solomaker.dev" target="_blank" rel="noopener">サイトを開く</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">英語</div>
-          <h3 class="ntt-card-title">Hugging Face Blog</h3>
-          <p class="ntt-card-desc">OSSモデル・コミュニティ情報、実務寄りの更新。</p>
-          <p><a class="ntt-inline" href="https://huggingface.co/blog" target="_blank" rel="noopener">サイトを開く</a></p>
-        </article>
-        <article class="ntt-card">
-          <div class="ntt-tag">英語</div>
-          <h3 class="ntt-card-title">Papers with Code</h3>
-          <p class="ntt-card-desc">論文→コードの動向をトレンド一覧で把握。</p>
-          <p><a class="ntt-inline" href="https://paperswithcode.com/trends" target="_blank" rel="noopener">サイトを開く</a></p>
-        </article>
-      </div>
-    </section>
-
-    <footer class="ntt-footer">
-      <div>&#xA9; 2025 AI Intelligence. &#x3053;&#x306E;&#x30DA;&#x30FC;&#x30B8;&#x306F;&#x30C0;&#x30FC;&#x30AF;&#x30C6;&#x30FC;&#x30DE;&#x3068;&#x30A2;&#x30AF;&#x30BB;&#x30F3;&#x30C8;&#x30AB;&#x30E9;&#x30FC;&#x3067;&#x6700;&#x9069;&#x5316;&#x3055;&#x308C;&#x3066;&#x3044;&#x307E;&#x3059;&#x3002;</div>
-    </footer>
-  </main>
-
-  <script src="assets/presentations.js" defer></script>
+    // ページ読み込み時に統計を更新
+    document.addEventListener('DOMContentLoaded', updateStats);
+  </script>
 </body>
 </html>
-
-
