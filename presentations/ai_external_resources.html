@@ -347,24 +347,63 @@
 
   <script>
     // Tab functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const tabButtons = document.querySelectorAll('.tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
+    (function() {
+      function initTabs() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-      tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const targetTab = button.dataset.tab;
+        if (tabButtons.length === 0 || tabContents.length === 0) {
+          console.error('Tabs not found');
+          return;
+        }
 
-          // Remove active class from all buttons and contents
-          tabButtons.forEach(btn => btn.classList.remove('active'));
-          tabContents.forEach(content => content.classList.remove('active'));
+        // Function to switch tabs
+        function switchTab(tabName) {
+          // Hide all tab contents
+          tabContents.forEach(content => {
+            content.classList.remove('active');
+            content.style.display = 'none';
+          });
 
-          // Add active class to clicked button and corresponding content
-          button.classList.add('active');
-          document.getElementById(targetTab).classList.add('active');
+          // Remove active class from all buttons
+          tabButtons.forEach(btn => {
+            btn.classList.remove('active');
+          });
+
+          // Show selected tab content
+          const selectedContent = document.getElementById(tabName);
+          const selectedButton = document.querySelector(`[data-tab="${tabName}"]`);
+
+          if (selectedContent && selectedButton) {
+            selectedContent.classList.add('active');
+            selectedContent.style.display = 'block';
+            selectedButton.classList.add('active');
+          }
+        }
+
+        // Add click event to each tab button
+        tabButtons.forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const targetTab = this.getAttribute('data-tab');
+            if (targetTab) {
+              switchTab(targetTab);
+            }
+          });
         });
-      });
-    });
+
+        // Initialize first tab as active
+        switchTab('japanese');
+      }
+
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTabs);
+      } else {
+        initTabs();
+      }
+    })();
   </script>
 </body>
 </html>
