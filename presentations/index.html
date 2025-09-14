@@ -437,15 +437,15 @@
 
   <!-- Main Content -->
   <div class="container">
-    <!-- Latest Slide Highlight -->
-    <section style="margin-bottom: 48px;">
+    <!-- Latest Slide Highlight - Dynamic -->
+    <section id="latest-highlight" style="margin-bottom: 48px;">
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 40px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
-        <h2 style="font-size: 2rem; margin-bottom: 16px; font-weight: 800;">🌐 本日の注目トピック (9/14)</h2>
-        <h3 style="font-size: 1.5rem; margin-bottom: 16px;">GPT-5とAI業界の最新動向</h3>
-        <p style="margin-bottom: 24px; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto;">
-          OpenAI GPT-5の完全展開、€1.7B欧州AI投資、米政府Copilot導入、技術革新と規制課題の最新まとめ
+        <h2 id="highlight-date" style="font-size: 2rem; margin-bottom: 16px; font-weight: 800;">🌐 本日の注目トピック</h2>
+        <h3 id="highlight-title" style="font-size: 1.5rem; margin-bottom: 16px;">読み込み中...</h3>
+        <p id="highlight-description" style="margin-bottom: 24px; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto;">
+          最新のAI業界動向を確認しています...
         </p>
-        <a href="day_slides/day_slide_2025_09_14.html" class="btn" style="background: white; color: #667eea; padding: 14px 36px; font-weight: 700; display: inline-block; text-decoration: none; border-radius: 8px;">
+        <a id="highlight-link" href="#" class="btn" style="background: white; color: #667eea; padding: 14px 36px; font-weight: 700; display: inline-block; text-decoration: none; border-radius: 8px;">
           詳細スライドを見る →
         </a>
       </div>
@@ -568,8 +568,63 @@
       });
     });
 
-    // ページ読み込み時に統計を更新
-    document.addEventListener('DOMContentLoaded', updateStats);
+    // 最新スライド情報を取得・更新
+    async function updateLatestSlide() {
+      try {
+        // day_slides_index.htmlから最新スライド情報を取得
+        const response = await fetch('day_slides_index.html');
+        if (response.ok) {
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+
+          // 最初のスライドエントリを取得
+          const firstSlide = doc.querySelector('.slides li:first-child a');
+          if (firstSlide) {
+            const dateElement = firstSlide.querySelector('.date');
+            const titleElement = firstSlide.querySelector('.slide-title');
+            const href = firstSlide.getAttribute('href');
+
+            if (dateElement && titleElement) {
+              const date = dateElement.textContent.trim();
+              const title = titleElement.textContent.trim();
+              const formattedDate = date.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1年$2月$3日');
+
+              // ハイライトセクションを更新
+              document.getElementById('highlight-date').textContent = `🌐 ${formattedDate}の注目トピック`;
+              document.getElementById('highlight-title').textContent = title;
+              document.getElementById('highlight-description').textContent =
+                'AI業界の最新動向と技術革新をお届けします。差分プライバシー技術とLLMの融合など、注目すべき発展をご確認ください。';
+              document.getElementById('highlight-link').setAttribute('href', href);
+              document.getElementById('highlight-link').textContent = 'スライドを見る →';
+
+              // Quick Linksセクションの最新スライドリンクも更新
+              const quickLinkSlide = document.querySelector('.link-item[href*="day_slide_2025_09_14"]');
+              if (quickLinkSlide) {
+                const linkTitle = quickLinkSlide.querySelector('.link-title');
+                const linkDesc = quickLinkSlide.querySelector('.link-description');
+                if (linkTitle && linkDesc) {
+                  linkTitle.textContent = `最新スライド (${date.substring(5)})`;
+                  linkDesc.textContent = title.length > 30 ? title.substring(0, 30) + '...' : title;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Latest slide update skipped:', e);
+        // フォールバック表示
+        document.getElementById('highlight-date').textContent = '🌐 本日の注目トピック';
+        document.getElementById('highlight-title').textContent = 'AI業界最新動向';
+        document.getElementById('highlight-description').textContent = 'AIテクノロジーの最新情報をお届けします。';
+      }
+    }
+
+    // ページ読み込み時に統計と最新スライドを更新
+    document.addEventListener('DOMContentLoaded', () => {
+      updateStats();
+      updateLatestSlide();
+    });
   </script>
 </body>
 </html>
