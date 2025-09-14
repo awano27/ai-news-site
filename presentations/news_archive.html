@@ -3,157 +3,324 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AIニュースアーカイブ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <title>AIニュースアーカイブ - Daily AI News統合版</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#0b0f14; --surface:#10161d; --text:#e6edf3; --muted:#8aa0b2; --border:#1b2530; --accent:#67e8f9; }
-    *{ box-sizing:border-box }
-    body{ margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans JP',sans-serif }
-    header{ position:sticky; top:0; background:linear-gradient(180deg,#0b0f14 0%,#0a0e13 100%); border-bottom:1px solid var(--border); padding:12px 16px; z-index:10 }
-    .wrap{ max-width:1100px; margin:0 auto; padding:0 16px 28px }
-    h1{ margin:12px 0 6px; font-size:24px; font-weight:900 }
-    .controls{ display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:end }
-    .controls .field{ display:grid; gap:6px }
-    .label{ font-size:12px; color:var(--muted) }
-    input[type="search"], select{ border:2px solid var(--border); background:var(--surface); color:var(--text); border-radius:10px; padding:10px 12px }
-    .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:16px }
-    .card{ position:relative; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,.25) }
-    .title{ font-size:18px; font-weight:900; margin:4px 0 6px }
-    .meta{ display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:13px; margin-bottom:6px }
-    .score{ position:absolute; top:12px; right:12px; background:var(--accent); color:#0b0f14; font-weight:900; border-radius:9999px; padding:6px 10px }
-    .btn{ appearance:none; border:1px solid var(--border); background:var(--surface); padding:8px 10px; border-radius:10px; color:var(--accent); font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:6px }
-    .notice{ margin-top:12px; padding:10px 12px; background:#0f172a; border:1px solid var(--border); border-radius:8px; color:#cbd5e1 }
+    :root {
+      --bg: #0b0f14;
+      --surface: #10161d;
+      --text: #e6edf3;
+      --muted: #8aa0b2;
+      --border: #1b2530;
+      --accent: #67e8f9;
+      --primary: #3b82f6;
+      --success: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif;
+      line-height: 1.5;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(180deg, #0b0f14 0%, #0a0e13 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav a:hover {
+      color: var(--accent);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 16px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 32px auto;
+    }
+
+    .redirect-notice {
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 48px;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .redirect-notice h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: white;
+    }
+
+    .redirect-notice p {
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: white;
+      color: var(--primary);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .archive-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .archive-section h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: var(--accent);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .feature-description {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .countdown {
+      background: var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .nav {
+        gap: 16px;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .container {
+        padding: 24px 16px;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap"><strong>AIニュースアーカイブ</strong></div>
-  </header>
-  <main class="wrap">
-    <div class="controls" role="region" aria-label="検索と絞り込み">
-      <label class="field"><span class="label">日付</span><select id="date" aria-label="日付"></select></label>
-      <label class="field"><span class="label">検索</span><input id="q" type="search" placeholder="キーワードで絞り込み" aria-label="検索"></label>
-      <div class="field"><span class="label">件数</span><div id="cnt" class="label">0 件</div></div>
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">🤖 AI Intelligence Hub</a>
+      <nav class="nav">
+        <a href="index.html">ホーム</a>
+        <a href="https://awano27.github.io/daily-ai-news-pages/" target="_blank">最新AIニュース</a>
+        <a href="day_slides_index.html">日次スライド</a>
+      </nav>
     </div>
-    <div id="msg" class="notice" style="display:none"></div>
-    <div id="list" class="grid" aria-live="polite"></div>
-  </main>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <h1>📰 AIニュースアーカイブ</h1>
+      <p>最新のAI業界ニュースとトレンド分析を提供する統合プラットフォーム</p>
+    </div>
+
+    <div class="redirect-notice">
+      <h2>🔄 新しいAIニュースプラットフォームへ移行しました</h2>
+      <p>より充実した機能と最新のニュース配信のため、専用のDaily AI Newsプラットフォームへ移行しました。<br>
+      リアルタイム更新、検索機能、カテゴリフィルタなどの新機能をご利用いただけます。</p>
+      <a href="https://awano27.github.io/daily-ai-news-pages/" class="btn" target="_blank">
+        新しいAIニュースプラットフォームへ →
+      </a>
+      <div class="countdown">
+        自動リダイレクト: <span id="countdown">10</span>秒後
+      </div>
+    </div>
+
+    <div class="archive-section">
+      <h3>📊 Daily AI News プラットフォームの特徴</h3>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">🔍</span>
+          <div class="feature-title">高度な検索機能</div>
+          <div class="feature-description">キーワード、日付、重要度による詳細検索が可能。AI関連の最新情報を素早く発見できます。</div>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">📈</span>
+          <div class="feature-title">リアルタイム更新</div>
+          <div class="feature-description">AIビジネス、技術革新、研究開発の最新動向を毎日更新。業界のトレンドを見逃しません。</div>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">🎯</span>
+          <div class="feature-description">ビジネス、ツール、研究の3つのカテゴリで整理。目的に応じた情報収集が効率的に行えます。</div>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">🌐</span>
+          <div class="feature-title">多様な情報ソース</div>
+          <div class="feature-description">TechCrunch、Reddit、学術論文、SNSなど幅広いソースから厳選された情報を提供。</div>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">📱</span>
+          <div class="feature-title">レスポンシブ対応</div>
+          <div class="feature-description">PC、タブレット、スマートフォンでの快適な閲覧体験を提供。いつでもどこでもアクセス可能。</div>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">🚀</span>
+          <div class="feature-title">日本語最適化</div>
+          <div class="feature-description">日本のAI業界に特化した情報と、海外情報の日本語対応で包括的な情報収集をサポート。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="archive-section">
+      <h3>🔗 関連リンク</h3>
+      <p>AI業界の情報収集にお役立てください：</p>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px;">
+        <a href="day_slides_index.html" class="btn" style="background: var(--surface); color: var(--accent); border: 1px solid var(--border);">
+          📊 日次スライド
+        </a>
+        <a href="ai_ranking_interactive.html" class="btn" style="background: var(--surface); color: var(--accent); border: 1px solid var(--border);">
+          🏆 AIランキング
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Resolve site root robustly (GitHub Pages, local root, nested path) and fallback to relative
-    async function pickRoot() {
-      const parts = location.pathname.split('/').filter(Boolean);
-      const cand = [
-        `${location.origin}/ai-news-site/`,      // GH Pages
-        `${location.origin}/`,                    // root
-        `${location.origin}/${parts[0]||''}/`     // first segment
-      ].filter((v,i,arr)=>v && arr.indexOf(v)===i);
+    // 10秒後に自動リダイレクト
+    let countdown = 10;
+    const countdownElement = document.getElementById('countdown');
 
-      for (const base of cand) {
-        try {
-          const r = await fetch(`${base}public-pages/version.json`, { cache:'no-store' });
-          if (r.ok) return base;
-        } catch (_) { /* try next */ }
+    const timer = setInterval(() => {
+      countdown--;
+      countdownElement.textContent = countdown;
+
+      if (countdown <= 0) {
+        clearInterval(timer);
+        window.open('https://awano27.github.io/daily-ai-news-pages/', '_blank');
       }
-      // Final fallback: use relative resolution from this page
-      try {
-        const r = await fetch(`../public-pages/version.json`, { cache:'no-store' });
-        if (r.ok) return '';
-      } catch(_) {}
-      return cand[1] || '/';
-    }
+    }, 1000);
 
-    const $  = (s,r=document)=>r.querySelector(s);
-    const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
-
-    function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t??''; return d.innerHTML; }
-    function stripTags(t){ return (t||'').replace(/<[^>]+>/g,' ').replace(/[\u00A0\u2000-\u200B\u3000]/g,' ').replace(/\s+/g,' ').trim(); }
-    function stripStrayE(t){ let out=''; for(let i=0;i<t.length;i++){ const c=t[i]; if(c==='E' && i>0 && i<t.length-1 && t.charCodeAt(i-1)>0x7f && t.charCodeAt(i+1)>0x7f) continue; out+=c; } return out; }
-    function sanitizeJP(t){ if(!t) return ''; let s=String(t); s=s.replace(/\uFFFD/g,''); s=stripStrayE(s); return s; }
-    function cleanTitle(t){ return sanitizeJP(stripTags(t)) || 'タイトル（自動修復）'; }
-    function normDate(s){ if(!s) return ''; const m=String(s).match(/(\d{4})[./-]?(\d{1,2})[./-]?(\d{1,2})/); if(!m) return s; const y=+m[1],mo=+m[2],d=+m[3]; return `${String(y).padStart(4,'0')}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-
-    async function getVersion(base){
-      const url = base ? `${base}public-pages/version.json` : `../public-pages/version.json`;
-      try { const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw 0; const v=await r.json(); return v.sha||v.version||String(Date.now()); }
-      catch(_) { return String(Date.now()); }
-    }
-
-    async function loadDay(base, file, v){
-      const abs = base ? `${base}public-pages/news/${file}?v=${encodeURIComponent(v)}`
-                       : `../public-pages/news/${file}?v=${encodeURIComponent(v)}`;
-      const res = await fetch(abs, {cache:'no-store'});
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      return await res.json();
-    }
-
-    function cardHTML(it, idx){
-      const title = cleanTitle(it.title||'');
-      const sumraw = stripTags(it.summary||'');
-      const summary = sanitizeJP(sumraw);
-      const showSummary = !!summary;
-      const psrc = (it.points||[]).slice(0,3).map(p=>sanitizeJP(p)).filter(Boolean);
-      const pts = psrc.length ? `<ul>${psrc.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul>` : '';
-      const more = `presentations/ai_news_item.html?idx=${idx}`;
-      return `
-        <article class="card">
-          <div class="score">${it.score??''}</div>
-          <h3 class="title">${escapeHtml(title)}</h3>
-          <div class="meta"><span>${normDate(it.date||'')}</span><span>Rank ${it.rank??''}</span></div>
-          ${showSummary?`<div class="summary">${escapeHtml(summary.slice(0,160))}${summary.length>160?'…':''}</div>`:''}
-          ${pts}
-          <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">
-            <a class="btn" href="${more}">詳細（最新ソース基準）</a>
-            ${it.url?`<a class="btn" href="${it.url}" target="_blank" rel="noopener">記事を開く</a>`:''}
-          </div>
-        </article>`;
-    }
-
-    async function init(){
-      const sel = $('#date'); const list=$('#list'); const cnt=$('#cnt'); const msg=$('#msg'); const q=$('#q');
-      const BASE = await pickRoot();
-      let v = await getVersion(BASE);
-      let idx = [];
-      try {
-        const idxUrl = BASE ? `${BASE}public-pages/news/archive_index.json?v=${encodeURIComponent(v)}`
-                            : `../public-pages/news/archive_index.json?v=${encodeURIComponent(v)}`;
-        const r = await fetch(idxUrl, {cache:'no-store'});
-        if(!r.ok) throw 0; idx = await r.json();
-      } catch(_) {
-        msg.style.display='block';
-        msg.textContent = 'アーカイブの読み込みに失敗しました。時間をおいて再読み込みしてください。';
-        return;
-      }
-      sel.appendChild(Object.assign(document.createElement('option'),{value:'__ALL__',textContent:'全期間（結合）'}));
-      idx.forEach(en=>{ const o=document.createElement('option'); o.value=en.file; o.textContent=`${en.date} (${en.count})`; sel.appendChild(o); });
-
-      async function render(){
-        msg.style.display='none';
-        try {
-          let data;
-          if(sel.value==='__ALL__'){
-            const listArr = await Promise.all(idx.map(en=>loadDay(BASE, en.file, v)));
-            data = { items: listArr.flatMap(x=>x.items||[]) };
-          } else {
-            data = await loadDay(BASE, sel.value, v);
-          }
-          const kw=(q.value||'').trim().toLowerCase();
-          const filtered = (data.items||[]).filter(it=>!kw || (`${stripTags(it.title)}\n${stripTags(it.summary)}`.toLowerCase().includes(kw)));
-          list.innerHTML = filtered.map((it,i)=>cardHTML(it,i)).join('');
-          cnt.textContent = `${filtered.length} 件`;
-        } catch (e) {
-          list.innerHTML = '';
-          cnt.textContent = '0 件';
-          msg.style.display='block';
-          msg.textContent = 'データの取得に失敗しました。ネットワークを確認してください。';
-        }
-      }
-
-      sel.addEventListener('change', render);
-      q.addEventListener('input', render);
-      sel.value = sel.value || '__ALL__';
-      render();
-    }
-    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init, {once:true}); else init();
+    // 即座に新しいタブで開く選択肢も提供
+    document.addEventListener('DOMContentLoaded', () => {
+      // ページロード時に新しいタブでDaily AI Newsを開く（オプション）
+      // window.open('https://awano27.github.io/daily-ai-news-pages/', '_blank');
+    });
   </script>
 </body>
 </html>
