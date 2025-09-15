@@ -586,13 +586,21 @@
               // ハイライトセクションを更新
               document.getElementById('highlight-date').textContent = `🌐 ${formattedDate}の注目トピック`;
               document.getElementById('highlight-title').textContent = title;
-              document.getElementById('highlight-description').textContent =
-                'AI業界の最新動向と技術革新をお届けします。差分プライバシー技術とLLMの融合など、注目すべき発展をご確認ください。';
+              // タイトルに基づいて動的な説明文を生成
+              let description = 'AI業界の最新動向と技術革新をお届けします。';
+              if (title.includes('Grok')) {
+                description = 'xAIの最新高速AIモデルGrok 4 Fastが日本で本格展開。最大10倍の速度向上を実現。';
+              } else if (title.includes('VaultGemma')) {
+                description = '世界初の差分プライバシー対応LLM VaultGemmaの技術詳細と実用化への道筋。';
+              } else if (title.includes('プライバシー')) {
+                description = '差分プライバシー技術とLLMの融合など、注目すべき発展をご確認ください。';
+              }
+              document.getElementById('highlight-description').textContent = description;
               document.getElementById('highlight-link').setAttribute('href', href);
               document.getElementById('highlight-link').textContent = 'スライドを見る →';
 
               // Quick Linksセクションの最新スライドリンクも更新
-              const quickLinkSlide = document.querySelector('.link-item[href*="day_slide_2025_09_14"]');
+              const quickLinkSlide = document.querySelector('.links-grid .link-item:first-child');
               if (quickLinkSlide) {
                 const linkTitle = quickLinkSlide.querySelector('.link-title');
                 const linkDesc = quickLinkSlide.querySelector('.link-description');
