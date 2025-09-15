@@ -564,8 +564,8 @@
     // 最新スライド情報を取得・更新
     async function updateLatestSlide() {
       try {
-        // day_slides_index.htmlから最新スライド情報を取得
-        const response = await fetch('day_slides_index.html');
+        // day_slides_index.htmlから最新スライド情報を取得（キャッシュバスター付き）
+        const response = await fetch(`day_slides_index.html?t=${Date.now()}`);
         if (response.ok) {
           const html = await response.text();
           const parser = new DOMParser();
@@ -618,10 +618,10 @@
         }
       } catch (e) {
         console.log('Latest slide update skipped:', e);
-        // フォールバック表示
-        document.getElementById('highlight-date').textContent = '🌐 本日の注目トピック';
-        document.getElementById('highlight-title').textContent = 'AI業界最新動向';
-        document.getElementById('highlight-description').textContent = 'AIテクノロジーの最新情報をお届けします。';
+        // フォールバック表示（9/16の情報を直接設定）
+        document.getElementById('highlight-date').textContent = '🌐 2025年09月16日の注目トピック';
+        document.getElementById('highlight-title').textContent = 'GPT-5-Codex：OpenAIの新コーディング特化モデル';
+        document.getElementById('highlight-description').textContent = 'OpenAIの新コーディング特化モデルGPT-5-Codex。誤指摘率68%削減、リファクタリング精度51%向上を実現。';
       }
     }
 
