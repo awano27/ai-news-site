@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025/09/26 - Factory AI Droid：Terminal-Benchトップ58.8%達成</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .date {
+            font-size: 1.2em;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+            border-left: 5px solid #7c3aed;
+            padding: 25px;
+            margin-bottom: 40px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .summary-box h2 {
+            color: #5b21b6;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .summary-box h2::before {
+            content: '🏆';
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+
+        .benchmark-results {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .score-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .score-card.winner {
+            border-color: #7c3aed;
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .score-card.winner::before {
+            content: '🥇';
+            position: absolute;
+            top: -15px;
+            right: -10px;
+            font-size: 2em;
+        }
+
+        .score-card:hover {
+            transform: scale(1.05);
+        }
+
+        .score-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #7c3aed;
+            margin-bottom: 5px;
+        }
+
+        .score-label {
+            color: #6b7280;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .score-sublabel {
+            color: #9ca3af;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .section {
+            margin: 40px 0;
+            padding: 25px;
+            background: #f9fafb;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            background: #f3f4f6;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #1f2937;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            color: #6b7280;
+            transition: transform 0.3s ease;
+        }
+
+        .section-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active .section-content {
+            display: block;
+        }
+
+        .section.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .comparison-table th {
+            background: #7c3aed;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .comparison-table .winner-row {
+            background: #ede9fe;
+            font-weight: 600;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: #7c3aed;
+        }
+
+        .feature-card h3 {
+            color: #1f2937;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-card-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .enterprise-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .enterprise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .enterprise-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #fbbf24;
+        }
+
+        .enterprise-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #d97706;
+            margin-bottom: 5px;
+        }
+
+        .key-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .key-points li {
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-left: 4px solid #7c3aed;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .key-points li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning-box h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .warning-box h4::before {
+            content: '⚠️';
+            margin-right: 10px;
+        }
+
+        .funding-section {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .funding-amount {
+            font-size: 3em;
+            font-weight: bold;
+            color: #065f46;
+            margin: 20px 0;
+        }
+
+        .investors {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .investor-badge {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .footer {
+            background: #1f2937;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-top: 3px solid #7c3aed;
+        }
+
+        .footer a {
+            color: #93c5fd;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .score-grid,
+            .feature-grid,
+            .enterprise-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <div class="header">
+            <h1>🏆 Factory AI Droid</h1>
+            <div class="date">2025年9月26日 - Terminal-Benchトップ58.8%達成</div>
+        </div>
+
+        <div class="content">
+            <div class="summary-box">
+                <h2>エグゼクティブサマリー</h2>
+                <p style="font-size: 1.1em; line-height: 1.8; color: #374151;">
+                    Factory AIの<strong>「Droid」</strong>が、ターミナル操作タスクのベンチマーク
+                    <strong>Terminal-Bench</strong>で<strong>58.8%（±0.9）</strong>を記録し、
+                    リーダーボード首位を獲得しました。Anthropic公式のClaude Code（43.2%）や
+                    OpenAIのCodex CLI（42.8%）を大きく上回る結果です。
+                    また、Factory AIは<strong>5,000万ドルのSeries B資金調達</strong>（評価額3億ドル）を実施し、
+                    <strong>「any model / any interface」</strong>戦略でエンタープライズ市場に本格参入しています。
+                </p>
+            </div>
+
+            <div class="benchmark-results">
+                <h2 style="color: #1f2937; margin-bottom: 20px; text-align: center;">📊 Terminal-Bench スコア比較</h2>
+                <div class="score-grid">
+                    <div class="score-card winner">
+                        <div class="score-value">58.8%</div>
+                        <div class="score-label">Factory Droid</div>
+                        <div class="score-sublabel">(Opus 4.1) ±0.9</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">52.5%</div>
+                        <div class="score-label">Droid GPT-5</div>
+                        <div class="score-sublabel">±2.1</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">50.5%</div>
+                        <div class="score-label">Droid Sonnet 4</div>
+                        <div class="score-sublabel">±1.4</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">43.2%</div>
+                        <div class="score-label">Claude Code</div>
+                        <div class="score-sublabel">(Opus 4)</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">42.8%</div>
+                        <div class="score-label">Codex CLI</div>
+                        <div class="score-sublabel">(OpenAI)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="funding-section">
+                <h2 style="color: #065f46; margin-bottom: 20px;">💰 資金調達</h2>
+                <div class="funding-amount">$50M</div>
+                <div style="color: #065f46; font-size: 1.2em; margin-bottom: 20px;">
+                    Series B ラウンド（評価額 $300M）
+                </div>
+                <div class="investors">
+                    <span class="investor-badge">NEA</span>
+                    <span class="investor-badge">Sequoia</span>
+                    <span class="investor-badge">J.P. Morgan</span>
+                    <span class="investor-badge">NVIDIA</span>
+                </div>
+            </div>
+
+            <div class="section" onclick="toggleSection(this)">
+                <div class="section-header">
+                    <h2><span class="section-icon">📋</span>Terminal-Benchとは</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <p style="line-height: 1.8; color: #374151; margin-bottom: 20px;">
+                        Terminal-Benchは、スタンフォード大学とLaudeのコラボレーションによる、
+                        ターミナル環境での実作業タスクを対象としたAIエージェント評価ベンチマークです。
+                        現行バージョンはv0.1.1（Core 80タスク）で、実運用に近い複雑なタスクを評価します。
+                    </p>
+                    <ul class="key-points">
+                        <li><strong>Linuxカーネルのビルド：</strong>実際の開発ワークフローを再現</li>
+                        <li><strong>Git Webサーバ構築：</strong>複数ツールの連携が必要</li>
+                        <li><strong>OpenSSL自己署名証明書作成：</strong>セキュリティ関連タスク</li>
+                        <li><strong>FastText機械学習：</strong>データサイエンスワークフロー</li>
+                        <li><strong>Docker化された評価環境：</strong>再現性の高い検証</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section" onclick="toggleSection(this)">
+                <div class="section-header">
+                    <h2><span class="section-icon">🎯</span>スコアの実務的意味</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>比較項目</th>
+                                <th>スコア差</th>
+                                <th>相対改善率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="winner-row">
+                                <td>Droid vs Claude Code</td>
+                                <td>+15.6pt</td>
+                                <td>+36%</td>
+                            </tr>
+                            <tr>
+                                <td>Droid vs Codex CLI</td>
+                                <td>+16.0pt</td>
+                                <td>+37%</td>
+                            </tr>
+                            <tr>
+                                <td>Droid vs Warp</td>
+                                <td>+6.8pt</td>
+                                <td>+13%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 20px; color: #374151; line-height: 1.8;">
+                        単一モデル×単一エージェント設計でこの改善率を実現している点が注目されます。
+                        ただし、上位でも60%未満という天井感は、実運用では人間の監督とガードレールが
+                        不可欠な状況を示しています。
+                    </p>
+                </div>
+            </div>
+
+            <div class="section" onclick="toggleSection(this)">
+                <div class="section-header">
+                    <h2><span class="section-icon">✨</span>Factory AIの戦略的強み</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h3><span class="feature-card-icon">🔄</span>モデル非依存</h3>
+                            <p>"Any Model"戦略により、Anthropic（Opus/Sonnet 4）とOpenAI（GPT-5）の両方で上位達成。
+                            エージェント側の設計（探索・ツール設計・プロンプト最適化）が優れていることを実証。</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3><span class="feature-card-icon">🖥️</span>インターフェース非依存</h3>
+                            <p>CLI・IDE・Slack・Linear・Browserに対応。モバイルやSlackからでもコーディング作業が可能な
+                            マルチプラットフォーム設計。</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3><span class="feature-card-icon">🏢</span>エンタープライズ実績</h3>
+                            <p>MongoDB・EY・Bayer・Zapier・Clariなどの大手企業での導入実績。
+                            31倍の高速化、96.1%の移行時間短縮などの効果を実現。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" onclick="toggleSection(this)">
+                <div class="section-header">
+                    <h2><span class="section-icon">📈</span>エンタープライズ効果指標</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="enterprise-section">
+                        <div class="enterprise-grid">
+                            <div class="enterprise-card">
+                                <div class="enterprise-value">31倍</div>
+                                <div style="color: #92400e; font-weight: 600;">機能提供速度</div>
+                            </div>
+                            <div class="enterprise-card">
+                                <div class="enterprise-value">96.1%</div>
+                                <div style="color: #92400e; font-weight: 600;">移行時間短縮</div>
+                            </div>
+                            <div class="enterprise-card">
+                                <div class="enterprise-value">95.8%</div>
+                                <div style="color: #92400e; font-weight: 600;">オンコール短縮</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 20px; color: #92400e; text-align: center;">
+                            ※ ベンダー自己申告値。導入企業ごとに効果は異なる可能性があります
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section" onclick="toggleSection(this)">
+                <div class="section-header">
+                    <h2><span class="section-icon">🆚</span>競合比較</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <ul class="key-points">
+                        <li><strong>Claude Code (Anthropic)：</strong>43.2%。長時間タスク耐性やSWE-benchで強いが、
+                        Terminal-BenchではDroidに劣後</li>
+                        <li><strong>OpenAI Codex CLI：</strong>42.8%。CLIエージェントスタックは活発化しているが、
+                        現時点ではDroid（GPT-5版）が上位互換のスコア</li>
+                        <li><strong>他エージェント（OB-1, Warpなど）：</strong>56.7%、52.0%。マルチモデルやデスクトップ統合の
+                        工夫で強いが、Droidの単一モデル構成が総合で上回る</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>注意点と実務への適用</h4>
+                <ul style="margin-left: 20px; color: #92400e;">
+                    <li><strong>ベンチマーク更新の可能性：</strong>実行条件（バージョン、リトライ、best-of-k）で順位が変動する可能性</li>
+                    <li><strong>共通の失敗モード：</strong>待機不足、ターミナルクラッシュ、エッジケース未対応が弱点</li>
+                    <li><strong>人間の監督が必須：</strong>環境の安全策（権限管理、サンドボックス、ロールバック）が不可欠</li>
+                    <li><strong>社内環境での再検証：</strong>モノレポ、レガシーCI、ネットワーク制約など本番固有の摩擦は別途評価が必要</li>
+                </ul>
+            </div>
+
+            <div class="section" onclick="toggleSection(this)">
+                <div class="section-header">
+                    <h2><span class="section-icon">🌟</span>市場への影響</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <ul class="key-points">
+                        <li><strong>投資トレンド：</strong>5,000万ドル調達と大手投資家の参画は、AIソフトウェア開発自動化市場の
+                        成長を示す明確なシグナル</li>
+                        <li><strong>ベンダーロックイン回避：</strong>「any model / any interface」戦略は、企業のLLM調達・
+                        切替戦略にフィットする設計思想</li>
+                        <li><strong>エンタープライズ採用加速：</strong>実績ある大手企業での導入事例が、他企業の採用を後押し</li>
+                        <li><strong>ベンチマーク標準化の進展：</strong>Terminal-Benchのような実務寄りベンチマークが
+                        業界標準として定着する可能性</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🔗 関連リンク：
+                <a href="https://www.factory.ai/" target="_blank">Factory AI公式</a> |
+                <a href="https://terminal-bench.github.io/" target="_blank">Terminal-Bench</a> |
+                <a href="https://www.anthropic.com/" target="_blank">Anthropic</a>
+            </p>
+            <p style="margin-top: 15px; opacity: 0.8;">© 2025 AI Intelligence Hub - Daily AI News Slides</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(section) {
+            section.classList.toggle('active');
+        }
+
+        // 初期状態で最初の2つのセクションを開く
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            if (sections.length > 0) sections[0].classList.add('active');
+            if (sections.length > 1) sections[1].classList.add('active');
+        });
+    </script>
+</body>
+</html>
