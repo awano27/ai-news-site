@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT Pulse - 毎朝届くAIダイジェスト機能 | 2025/09/27</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #10a37f 0%, #1a7f64 50%, #0d8a6f 100%);
+      color: #ffffff;
+      line-height: 1.8;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      padding-bottom: 30px;
+      border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      font-weight: 500;
+      margin-top: 15px;
+    }
+
+    .date {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 8px 20px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-top: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    section {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      margin: 25px 0 15px 0;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .tldr {
+      background: rgba(255, 255, 255, 0.25);
+      border-left: 5px solid #ffffff;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      line-height: 1.9;
+      font-weight: 500;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 25px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .feature-desc {
+      font-size: 1rem;
+      line-height: 1.7;
+      opacity: 0.95;
+    }
+
+    .spec-table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+    }
+
+    .spec-table td {
+      padding: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .spec-table td:first-child {
+      font-weight: 700;
+      width: 35%;
+      color: #fff;
+    }
+
+    .spec-table td:last-child {
+      opacity: 0.95;
+    }
+
+    .workflow-steps {
+      display: grid;
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .workflow-step {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px 25px;
+      border-radius: 12px;
+      border-left: 5px solid #ffffff;
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
+
+    .step-number {
+      background: #ffffff;
+      color: #10a37f;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .step-content h4 {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .step-content p {
+      opacity: 0.95;
+      line-height: 1.7;
+    }
+
+    .use-cases {
+      display: grid;
+      gap: 18px;
+      margin: 25px 0;
+    }
+
+    .use-case {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid #ffffff;
+    }
+
+    .use-case-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .limitations {
+      background: rgba(255, 255, 255, 0.25);
+      padding: 25px;
+      border-radius: 12px;
+      border-left: 5px solid #fbbf24;
+    }
+
+    .limitations h3 {
+      color: #fef3c7;
+      margin-top: 0;
+    }
+
+    .limitations ul {
+      margin-left: 20px;
+      margin-top: 15px;
+    }
+
+    .limitations li {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+
+    ul, ol {
+      margin-left: 25px;
+      margin-top: 15px;
+    }
+
+    li {
+      margin-bottom: 12px;
+      line-height: 1.8;
+    }
+
+    .source-links {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 30px;
+    }
+
+    .source-links h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    .source-links a {
+      color: #fef3c7;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 10px;
+      padding: 8px 0;
+      transition: opacity 0.3s;
+      word-break: break-all;
+    }
+
+    .source-links a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .collapsible {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .collapsible::after {
+      content: '▼';
+      font-size: 1.2rem;
+      transition: transform 0.3s;
+    }
+
+    .collapsible.active::after {
+      transform: rotate(-180deg);
+    }
+
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease-out;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 15px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+      }
+
+      section {
+        padding: 25px 20px;
+      }
+
+      h2 {
+        font-size: 1.6rem;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .spec-table td:first-child {
+        width: 40%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💬 ChatGPT Pulse<br>毎朝届くAIダイジェスト機能</h1>
+      <p class="subtitle">過去のチャット・メモリから自動生成される<br>ビジュアルカード型の朝のブリーフィング</p>
+      <span class="date">📅 2025年9月27日</span>
+    </header>
+
+    <div class="tldr">
+      <strong>📌 TL;DR</strong><br>
+      ChatGPTの新機能「<strong>Pulse</strong>」は、過去のチャット・メモリ・（任意で）Gmail／Googleカレンダーをもとに、<strong>毎朝1回</strong>の"ビジュアルカード型"ダイジェストを<strong>モバイルのChatGPTアプリ</strong>で届けるプレビュー機能。現在は<strong>Proプラン限定（iOS/Android）</strong>で、Web/デスクトップ未対応。カードは<strong>その日限り</strong>で、保存や追いかけ質問で深掘りでき、<strong>「Curate（見たいテーマ指定）」や👍/👎で翌日の精度が上がる</strong>。将来的にはPlus→全ユーザーへ拡大予定。
+    </div>
+
+    <section>
+      <h2 class="collapsible">🎯 製品概要</h2>
+      <div class="collapsible-content">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title">📱 製品名</div>
+            <div class="feature-desc">ChatGPT <strong>Pulse</strong><br>チャットに"先回り"で話題を持ち込む新体験</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">📊 配信形式</div>
+            <div class="feature-desc"><strong>毎朝</strong>、トピックごとの<strong>カード</strong>を提示<br>スキャン→展開→保存→追問可能</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">🎨 設計思想</div>
+            <div class="feature-desc">受動的な"スクロール"ではなく<br>"必要な情報だけ受け取って仕事に戻る"設計</div>
+          </div>
+        </div>
+
+        <table class="spec-table">
+          <tr>
+            <td>対象プラン</td>
+            <td><strong>ChatGPT Pro</strong>限定プレビュー（$200/月）<br>将来：Plus → 全ユーザーへ段階的拡大予定</td>
+          </tr>
+          <tr>
+            <td>対応デバイス</td>
+            <td><strong>iOS/Androidアプリのみ</strong><br>Web/デスクトップは未対応</td>
+          </tr>
+          <tr>
+            <td>必須設定</td>
+            <td><strong>Memory ON</strong>（メモリがOFFだとPulse機能も停止）</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">⚙️ 仕組みと情報ソース</h2>
+      <div class="collapsible-content">
+        <h3>🌙 非同期リサーチ</h3>
+        <p><strong>夜間</strong>に、あなたの<strong>メモリ</strong>（Saved memories/Chat履歴）と<strong>フィードバック</strong>を学習して翌朝に要約を作成。</p>
+
+        <h3>📚 情報ソース</h3>
+        <ul>
+          <li><strong>ChatGPTメモリ</strong>＋<strong>チャット履歴</strong>（Memory要ON）</li>
+          <li><strong>Curate入力</strong>（「明日はテニスのニュースに集中して」等のテーマ指定）</li>
+          <li><strong>カード操作信号</strong>（👍/👎、詳細メニューの「Give feedback」）</li>
+          <li><strong>コネクタ</strong>（任意）：<strong>Gmail</strong>／<strong>Googleカレンダー</strong>を「Allow proactive activity」で許可した場合のみ背景で参照（デフォルトOFF）</li>
+          <li><strong>News & trends</strong>（関連トピックの発見性も考慮）</li>
+        </ul>
+
+        <div class="workflow-steps">
+          <div class="workflow-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Curate指定</h4>
+              <p>22:00（ローカル時間）までに見たいテーマを入力すると翌朝に反映（変動あり）</p>
+            </div>
+          </div>
+          <div class="workflow-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>夜間処理</h4>
+              <p>メモリ、履歴、フィードバックを解析してカード生成</p>
+            </div>
+          </div>
+          <div class="workflow-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>朝の配信</h4>
+              <p>モバイルアプリに複数のトピックカードが表示される</p>
+            </div>
+          </div>
+          <div class="workflow-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4>インタラクション</h4>
+              <p>カードのスキャン、展開、保存、追問、フィードバック（👍/👎）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">💼 ビジネス活用例</h2>
+      <div class="collapsible-content">
+        <div class="use-cases">
+          <div class="use-case">
+            <div class="use-case-title">📅 会議前の要点カード</div>
+            その日の会議予定をもとに、<strong>アジェンダ素案・関連資料の要点</strong>を提示（Calendar接続時）
+          </div>
+          <div class="use-case">
+            <div class="use-case-title">✈️ 出張・移動の直前確認</div>
+            フライト/ホテル/現地レストラン候補や<strong>移動の注意点</strong>をワンカードで提示（Gmail旅程の認識は任意許可時）
+          </div>
+          <div class="use-case">
+            <div class="use-case-title">📋 継続タスクの"次の一手"</div>
+            前日の議論を踏まえた<strong>実行可能な次アクション</strong>（例：ドラフトの叩き台、レビュー観点リスト）
+          </div>
+          <div class="use-case">
+            <div class="use-case-title">📈 インサイトの継続フォロー</div>
+            継続的に追っている市場・製品・技術トピックの<strong>フォローアップ</strong>（Curateでテーマ指定）
+          </div>
+          <div class="use-case">
+            <div class="use-case-title">🏠 ワークライフの軽量支援</div>
+            <strong>誕生日ギフトのリマインド</strong>や<strong>夕食の簡単レシピ</strong>など、負担を減らす小さな提案
+          </div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 12px; margin-top: 20px; border-left: 4px solid #fbbf24;">
+          <strong>💡 活用例：</strong><br>
+          「明日は<strong>生成AI採用の国内ニュース要約</strong>と、<strong>来週の顧客A社向け提案の叩き台</strong>を中心に」→ Curateで指定（～22:00）。翌朝、<strong>2枚のカード</strong>（ニュース要約／提案骨子）＋関連ドキュメントの確認ポイントが届く。
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">🔒 セキュリティ・プライバシー</h2>
+      <div class="collapsible-content">
+        <table class="spec-table">
+          <tr>
+            <td>コネクタの学習</td>
+            <td><strong>Gmail/Calendarの内容は学習に使われない</strong><br>いつでも切断可能</td>
+          </tr>
+          <tr>
+            <td>学習同意</td>
+            <td>「<strong>Improve the model for everyone</strong>」をONにしている場合に限り、Pulseから<strong>会話履歴に入ったやり取り</strong>が改善に利用され得る</td>
+          </tr>
+          <tr>
+            <td>カードの寿命</td>
+            <td>Pulseのカード自体は<strong>当日限り</strong><br>ただし<strong>保存</strong>や<strong>追問</strong>したものは<strong>会話履歴</strong>として残り、通常の方法で削除可能</td>
+          </tr>
+          <tr>
+            <td>表示制御</td>
+            <td>設定で<strong>Pulse自体のOFF</strong>や<strong>新規チャット画面からの非表示</strong>が可能</td>
+          </tr>
+          <tr>
+            <td>安全対策</td>
+            <td>表示前に<strong>ポリシー準拠の安全チェック</strong>を実施</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="limitations">
+        <h3>⚠️ 制限・注意点</h3>
+        <ul>
+          <li><strong>プレビュー品質</strong>：外す提案もあり得る（完了済み案件のTipsが出る等）。都度の指示・👍/👎で調整</li>
+          <li><strong>対応範囲</strong>：現時点は<strong>Pro×モバイル限定</strong>。Plus/FreeやWeb/デスクトップは今後の拡大見込み</li>
+          <li><strong>依存条件</strong>：<strong>Memoryが必須</strong>。OFFにするとPulseも機能しない（設定で切替可能）</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="collapsible">🚀 ロードマップと将来展望</h2>
+      <div class="collapsible-content">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title">📈 提供拡大</div>
+            <div class="feature-desc"><strong>Pro → Plus → 全ユーザー</strong>へ段階的拡大の方針</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">🔗 連携強化</div>
+            <div class="feature-desc">今後、<strong>利用アプリの追加連携</strong>や、<strong>一日の"適切な瞬間"に出す配信最適化</strong>を検討中</div>
+          </div>
+        </div>
+
+        <h3>📋 最低限の導入要件</h3>
+        <ul>
+          <li><strong>プラン</strong>：ChatGPT Pro（$200/月）</li>
+          <li><strong>環境</strong>：iOS/AndroidのChatGPT公式アプリ</li>
+          <li><strong>設定</strong>：Memory ON、（必要に応じて）Gmail/Calendarコネクタで「Allow proactive activity」を許可</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="source-links">
+      <h3>🔗 参考リンク（一次情報）</h3>
+      <a href="https://openai.com/index/introducing-chatgpt-pulse/" target="_blank">📄 OpenAI公式発表「Introducing ChatGPT Pulse」</a>
+      <a href="https://help.openai.com/en/articles/12293630-chatgpt-pulse" target="_blank">📖 OpenAI Help Center「ChatGPT Pulse」</a>
+      <a href="https://chatgpt.com/pricing" target="_blank">💰 ChatGPT Pricing（Proプラン価格）</a>
+      <a href="https://help.openai.com/en/articles/11487775-connectors-in-chatgpt" target="_blank">🔌 Connectors in ChatGPT（Gmail/Calendar連携）</a>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.collapsible').forEach(button => {
+      button.addEventListener('click', function() {
+        this.classList.toggle('active');
+        const content = this.nextElementSibling;
+        if (content.style.maxHeight) {
+          content.style.maxHeight = null;
+        } else {
+          content.style.maxHeight = content.scrollHeight + 'px';
+        }
+      });
+    });
+
+    document.querySelectorAll('.collapsible-content').forEach(content => {
+      content.style.maxHeight = content.scrollHeight + 'px';
+    });
+    document.querySelectorAll('.collapsible').forEach(button => {
+      button.classList.add('active');
+    });
+  </script>
+</body>
+</html>
