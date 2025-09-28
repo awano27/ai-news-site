@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIニュース 日次バックアップアーカイブ - AI Intelligence Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      margin-bottom: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .nav-links {
+      margin-top: 16px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .nav-links a:hover {
+      background: var(--bg);
+    }
+
+    /* カレンダー形式のスタイル */
+    .calendar-container {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+    }
+
+    .month-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .month-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .month-nav {
+      display: flex;
+      gap: 12px;
+    }
+
+    .month-nav button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .month-nav button:hover {
+      background: #2563eb;
+    }
+
+    .month-nav button:disabled {
+      background: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .day-header {
+      text-align: center;
+      font-weight: 700;
+      color: var(--text-secondary);
+      padding: 8px;
+      font-size: 0.9rem;
+    }
+
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .day-cell:hover {
+      background: var(--surface);
+      border-color: var(--accent);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .day-cell.has-data {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border-color: var(--accent);
+    }
+
+    .day-cell.today {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      font-weight: 700;
+    }
+
+    .day-cell.today .day-number {
+      color: white;
+    }
+
+    .day-cell.empty {
+      background: transparent;
+      border: none;
+      cursor: default;
+    }
+
+    .day-cell.empty:hover {
+      transform: none;
+      background: transparent;
+    }
+
+    .day-number {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .news-count {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .news-indicator {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    /* ニュース詳細表示 */
+    .news-detail {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    .news-detail.active {
+      display: block;
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .detail-date {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .close-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: #dc2626;
+    }
+
+    .news-categories {
+      display: grid;
+      gap: 24px;
+    }
+
+    .category-section {
+      padding: 20px;
+      background: var(--bg);
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .category-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-icon {
+      font-size: 1.2rem;
+    }
+
+    .news-item {
+      padding: 12px;
+      margin-bottom: 12px;
+      background: var(--surface);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .news-item:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .news-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .news-summary {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .news-source {
+      display: inline-block;
+      color: var(--accent);
+      font-size: 0.85rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .news-source:hover {
+      text-decoration: underline;
+    }
+
+    .stars {
+      color: var(--warning);
+      margin-left: 8px;
+    }
+
+    /* 統計情報 */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+      .calendar-grid {
+        gap: 4px;
+      }
+
+      .day-cell {
+        font-size: 0.9rem;
+      }
+
+      .day-number {
+        font-size: 1rem;
+      }
+
+      .month-nav {
+        flex-direction: column;
+      }
+    }
+
+    /* ローディング */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .loading::after {
+      content: '読み込み中...';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '読み込み中.'; }
+      40% { content: '読み込み中..'; }
+      60%, 100% { content: '読み込み中...'; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>📚 AIニュース 日次バックアップアーカイブ</h1>
+      <p class="subtitle">毎日のAIニュースを完全保存 - いつでも過去の情報にアクセス可能</p>
+      <div class="nav-links">
+        <a href="index.html">← ホームに戻る</a>
+        <a href="day_slides_list.html">📊 日次スライド</a>
+        <a href="ai_external_resources.html">🌐 外部リソース</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 統計情報 -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-number" id="totalDays">0</div>
+        <div class="stat-label">保存日数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalNews">0</div>
+        <div class="stat-label">総ニュース数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="currentMonth">9月</div>
+        <div class="stat-label">現在の月</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="todayCount">0</div>
+        <div class="stat-label">本日のニュース</div>
+      </div>
+    </div>
+
+    <!-- カレンダー表示 -->
+    <div class="calendar-container">
+      <div class="month-header">
+        <h2 class="month-title" id="monthTitle">2025年9月</h2>
+        <div class="month-nav">
+          <button id="prevMonth" onclick="changeMonth(-1)">← 前月</button>
+          <button id="nextMonth" onclick="changeMonth(1)">次月 →</button>
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+        <!-- 曜日ヘッダー -->
+        <div class="day-header">日</div>
+        <div class="day-header">月</div>
+        <div class="day-header">火</div>
+        <div class="day-header">水</div>
+        <div class="day-header">木</div>
+        <div class="day-header">金</div>
+        <div class="day-header">土</div>
+        <!-- カレンダーの日付はJavaScriptで動的に生成 -->
+      </div>
+    </div>
+
+    <!-- ニュース詳細表示エリア -->
+    <div class="news-detail" id="newsDetail">
+      <div class="detail-header">
+        <h3 class="detail-date" id="detailDate">日付</h3>
+        <button class="close-btn" onclick="closeDetail()">閉じる ×</button>
+      </div>
+      <div class="news-categories" id="newsContent">
+        <!-- ニュース内容はJavaScriptで動的に生成 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // グローバル変数
+    let currentMonth = 9; // 現在の月
+    let currentYear = 2025; // 現在の年
+    let newsData = {}; // ニュースデータのキャッシュ
+
+    // 利用可能なニュースファイルのリスト
+    const availableFiles = [
+      '2025-08-11', '2025-08-26', '2025-08-28', '2025-08-29', '2025-08-30', '2025-08-31',
+      '2025-09-01', '2025-09-02', '2025-09-03', '2025-09-04', '2025-09-05', '2025-09-06',
+      '2025-09-07', '2025-09-08', '2025-09-09', '2025-09-10', '2025-09-11', '2025-09-12',
+      '2025-09-13', '2025-09-14', '2025-09-15', '2025-09-16', '2025-09-17', '2025-09-18'
+    ];
+
+    // ページ読み込み時の初期化
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadAllNewsData();
+      updateStats();
+      renderCalendar();
+    });
+
+    // すべてのニュースデータを事前読み込み
+    async function loadAllNewsData() {
+      const loadPromises = availableFiles.map(async (dateStr) => {
+        try {
+          const response = await fetch(`../news/${dateStr}.json`);
+          if (response.ok) {
+            const data = await response.json();
+            newsData[dateStr] = data;
+          }
+        } catch (error) {
+          console.log(`Failed to load ${dateStr}.json`);
+        }
+      });
+
+      await Promise.all(loadPromises);
+    }
+
+    // 統計情報の更新
+    function updateStats() {
+      const totalDays = Object.keys(newsData).length;
+      let totalNews = 0;
+      let todayCount = 0;
+
+      const today = new Date().toISOString().split('T')[0];
+
+      for (const [date, data] of Object.entries(newsData)) {
+        const sections = data.sections || {};
+        for (const category of Object.values(sections)) {
+          if (Array.isArray(category)) {
+            totalNews += category.length;
+            if (date === today) {
+              todayCount += category.length;
+            }
+          }
+        }
+      }
+
+      document.getElementById('totalDays').textContent = totalDays;
+      document.getElementById('totalNews').textContent = totalNews;
+      document.getElementById('todayCount').textContent = todayCount;
+
+      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+      document.getElementById('currentMonth').textContent = monthNames[currentMonth - 1];
+    }
+
+    // カレンダーの描画
+    function renderCalendar() {
+      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+      document.getElementById('monthTitle').textContent = `${currentYear}年${monthNames[currentMonth - 1]}`;
+
+      const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+
+      const grid = document.querySelector('.calendar-grid');
+      // 曜日ヘッダーを保持して、日付セルのみクリア
+      const headers = grid.querySelectorAll('.day-header');
+      grid.innerHTML = '';
+      headers.forEach(header => grid.appendChild(header));
+
+      // 月初の空白セル
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'day-cell empty';
+        grid.appendChild(emptyCell);
+      }
+
+      // 日付セル
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+
+        // データがある日付はハイライト
+        if (newsData[dateStr]) {
+          cell.classList.add('has-data');
+          cell.onclick = () => showNewsDetail(dateStr);
+
+          // ニュース数を計算
+          let newsCount = 0;
+          const sections = newsData[dateStr].sections || {};
+          for (const category of Object.values(sections)) {
+            if (Array.isArray(category)) {
+              newsCount += category.length;
+            }
+          }
+
+          cell.innerHTML = `
+            <div class="day-number">${day}</div>
+            ${newsCount > 0 ? `<div class="news-count">${newsCount}件</div>` : ''}
+            <div class="news-indicator"></div>
+          `;
+        } else {
+          cell.innerHTML = `<div class="day-number">${day}</div>`;
+        }
+
+        // 今日の日付は特別なスタイル
+        if (dateStr === todayStr) {
+          cell.classList.add('today');
+        }
+
+        grid.appendChild(cell);
+      }
+
+      // ナビゲーションボタンの状態更新
+      document.getElementById('prevMonth').disabled = (currentYear === 2025 && currentMonth === 8);
+      document.getElementById('nextMonth').disabled = (currentYear === 2025 && currentMonth === 9);
+    }
+
+    // 月の変更
+    function changeMonth(delta) {
+      currentMonth += delta;
+
+      if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+      } else if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear--;
+      }
+
+      renderCalendar();
+    }
+
+    // ニュース詳細の表示
+    function showNewsDetail(dateStr) {
+      const data = newsData[dateStr];
+      if (!data) return;
+
+      const date = new Date(dateStr);
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      const formattedDate = date.toLocaleDateString('ja-JP', options);
+
+      document.getElementById('detailDate').textContent = `📅 ${formattedDate}`;
+
+      const contentDiv = document.getElementById('newsContent');
+      contentDiv.innerHTML = '';
+
+      // ハイライトニュースがあれば最初に表示
+      if (data.highlight) {
+        const highlightSection = createCategorySection('🌟 ハイライト', [data.highlight]);
+        contentDiv.appendChild(highlightSection);
+      }
+
+      // カテゴリ別にニュースを表示
+      const categoryIcons = {
+        business: '💼',
+        tools: '🔧',
+        company: '🏢',
+        sns: '💬'
+      };
+
+      const categoryNames = {
+        business: 'ビジネス・投資',
+        tools: 'AIツール',
+        company: '企業ニュース',
+        sns: 'SNS・コミュニティ'
+      };
+
+      const sections = data.sections || {};
+      for (const [category, items] of Object.entries(sections)) {
+        if (Array.isArray(items) && items.length > 0) {
+          const icon = categoryIcons[category] || '📰';
+          const name = categoryNames[category] || category;
+          const section = createCategorySection(`${icon} ${name}`, items);
+          contentDiv.appendChild(section);
+        }
+      }
+
+      // 詳細エリアを表示
+      document.getElementById('newsDetail').classList.add('active');
+
+      // スクロール位置を調整
+      document.getElementById('newsDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // カテゴリセクションの作成
+    function createCategorySection(title, items) {
+      const section = document.createElement('div');
+      section.className = 'category-section';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'category-title';
+      titleDiv.textContent = title;
+      section.appendChild(titleDiv);
+
+      items.forEach(item => {
+        const newsItem = document.createElement('div');
+        newsItem.className = 'news-item';
+
+        const stars = item.stars ? '⭐'.repeat(item.stars) : '';
+        const sourceUrl = item.source?.url || item.sources?.[0]?.url || '#';
+        const sourceName = item.source?.name || item.sources?.[0]?.name || 'Unknown';
+
+        newsItem.innerHTML = `
+          <div class="news-title">
+            ${item.title || 'タイトルなし'}
+            ${stars ? `<span class="stars">${stars}</span>` : ''}
+          </div>
+          ${item.summary || item.blurb ? `<div class="news-summary">${item.summary || item.blurb}</div>` : ''}
+          <a href="${sourceUrl}" target="_blank" class="news-source">📌 ${sourceName}</a>
+        `;
+
+        section.appendChild(newsItem);
+      });
+
+      return section;
+    }
+
+    // 詳細を閉じる
+    function closeDetail() {
+      document.getElementById('newsDetail').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
