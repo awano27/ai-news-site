@@ -1,0 +1,245 @@
+Claude Sonnet 4.5 – 主な改良点と前バージョンからの進化
+SWE-bench Verifiedでの性能向上
+Claude Sonnet 4.5はソフトウェア開発における実問題解決能力を評価するSWE-bench Verifiedで77.2%という高い正答率を達成し、同系統の旧モデルを大きく上回りました
+inc.com
+。このスコアは、Anthropicの前世代モデルClaude Opus 4.1（74.5%）を上回り、OpenAIの最新モデルさえ凌駕する最先端の性能です
+inc.com
+。特にSonnet 4.5は、ツールの活用と自己テストを重視する工夫で大幅な改善を実現しています。Anthropicによれば、外部ツール（bashコマンドやファイル編集）の積極利用や「自前のテストを先に作成してから問題に取り組む」というプロンプト追加により、500問から成るSWE-bench Verified全体で77.2%の解答成功率を得たとしています
+anthropic.com
+anthropic.com
+。さらに、200kトークンもの長い「思考」コンテキストを使ってモデルに深く考えさせたことも高スコアに寄与しました
+anthropic.com
+（1Mトークン設定では78.2%に達しましたが、推論問題により公式には200k設定の77.2%を採用
+anthropic.com
+）。また、並列実行や複数試行から最適解を選ぶハイコンピュート設定では82.0%というさらに高いスコアも記録されています
+anthropic.com
+。これらの改善の背景には、新モデルの高度なコード理解能力と問題解決のための推論力向上があります。事実、Claude Sonnet 4.5は**「世界最高のコーディングモデル」とうたわれ
+inc.com
+、小さな改良点の指摘から大規模なコード改変提案まで、前バージョンより的確に行えるようになりました
+inc.com
+。前モデルClaude Sonnet 3.7（Claude 3.5の強化版）で約62〜70%とされていたSWE-benchスコアが
+deeplearning.ai
+、4.5では約77%まで向上したことになります。この飛躍はハイブリッド推論**（即時回答と深く考えるモードの統合）やマルチステップ思考の発達によるものです
+anthropic.com
+anthropic.com
+。
+OSWorldベンチマークでのパフォーマンス改善
+OSWorldはブラウザ操作やソフトウェアツールの使用など、AIが実際にコンピュータを操作してタスクをこなす能力を測るベンチマークですが、Claude Sonnet 4.5はこの分野でも飛躍的な向上を示しました。Sonnet 4.5はOSWorldで61.4%のスコアを記録し、前バージョンから約19ポイントもの大幅アップでトップに立っています
+anthropic.com
+。Anthropicによれば、4ヶ月前にはSonnet 4（前世代モデル）が42.2%でリーダーだったものが、4.5では一挙に約1.5倍にまで向上したことになります
+anthropic.com
+。この約「3倍」に迫る向上は、モデルのツール使用能力と安定した長時間実行能力の進歩によるものです。実際、Sonnet 3.5は「フロンティアAIモデルとして初めてコンピュータを操作できるようになった」モデルでしたが、4.5では**「さらに正確かつ確実にコンピュータを使いこなす」よう改良されました
+anthropic.com
+。Anthropicは、この分野での能力向上を活かし、Chrome拡張機能などを通じてブラウザ上での自動操作（サイトのナビゲーションやフォーム入力、スプレッドシートの記入など）を実演しています
+anthropic.com
+。Sonnet 4.5の並列化やエージェント機構の改良により、複雑なブラウザ操作やマルチステップのコンピュータ作業も、以前より少ない試行回数で成功するようになったと報告されています
+anthropic.com
+。こうした性能向上によって、Sonnet 4.5は「世界で最もコンピュータを使いこなせるモデル」**との評価を得ています
+anthropic.com
+。
+長時間の自律動作と高度なエージェント構築能力
+Claude Sonnet 4.5の大きな特徴の一つは、長時間にわたって自律的に動作し続けられる能力と、それを支える新技術です。Anthropicのテストでは、Sonnet 4.5に大規模なアプリケーション開発タスクを与えた際、30時間以上もの間途切れることなく動作を継続し、性能が劣化しなかったことが確認されています
+inc.com
+。これは競合モデルを大きく上回る持久力であり、例えばOpenAIの最新コード特化モデルGPT-5-Codexは7時間程度であったと報告されています
+inc.com
+。Sonnet 4.5がこうした長時間実行を可能にした背景には、大容量コンテキスト（最大200kトークン）での推論やメモリ管理手法の改良があります。加えて、AnthropicはClaude Agent SDKという開発キットを新たに公開し、同社内部でClaude Code（後述）に使ってきたエージェント構築基盤を開発者にも提供しました
+inc.com
+。Claude Agent SDKを用いることで、開発者はSonnet 4.5の高度なエージェント機能を活かした独自システムを構築できます。このSDKには、長時間タスクのためのコンテキスト管理、ユーザーの許可範囲内で動作する権限システム、複数のサブエージェントを協調させてゴールを達成するマルチエージェント調整などが盛り込まれています
+inc.com
+。具体的に、Sonnet 4.5搭載エージェントはファイルの読書き、コードの実行、ウェブ検索、タスク間でのコンテキスト引き継ぎ、並行する複数エージェントの協調といったアクションを自律的に組み合わせることができます
+inc.com
+。またモデル自体の改良点として、並列的な思考プロセスで複数のアプローチを同時進行し最適解を選ぶ能力（スマートなパラレル化）や、計画立案能力の強化が挙げられています
+anthropic.com
+。これにより複雑なエージェントタスクでも必要な反復回数が減少し、より効率的に問題解決ができるようになっています
+anthropic.com
+。現に、ある開発者向けAIプラットフォームではSonnet 4.5へのアップデートにより「指示遵守の精度向上、計画力の強化、並列化の賢さ向上で、最も要求の厳しいエージェントワークフローにおける反復回数が減った」と評価されています
+anthropic.com
+。さらにパートナー企業からは「30時間以上の自律コーディングを実現し、大規模コードベースの複雑な設計作業を大幅に高速化した」との報告もあり
+anthropic.com
+、Claude Sonnet 4.5はエンジニアを長時間の単調作業から解放する強力な自律コーディングエージェントとして期待されています。
+専門領域（金融・サイバーセキュリティ）の評価とユースケース
+Claude Sonnet 4.5は専門ドメイン知識や分野特化タスクにおいても、前モデルから飛躍的な向上を示しています。Anthropicは「金融、法律、医学、STEMの各分野の専門家による評価で、Sonnet 4.5は旧モデル（Opus 4.1など）よりも大幅に優れた専門知識と推論力を示した」と述べています
+anthropic.com
+。特に金融とサイバーセキュリティでの改善は顕著です。Sonnet 4.5はスタートアップVals AIが策定したFinanceAgentベンチマーク（エントリーレベルの金融アナリスト業務をエージェントが遂行できるか測るもの）において新記録を樹立しました
+inc.com
+。これは財務データ分析やリスク評価、予測といった金融タスクへの適性が向上したことを示します。また、「従来は手作業で行っていた規制変更のモニタリングやコンプライアンス対応を、Claudeが自動で先回り対応できる」という評価もあり、機関投資家向けの分析に一段深みを与える進歩だと捉えられています
+anthropic.com
+anthropic.com
+。一方、サイバーセキュリティ分野でも専門家から高評価を得ています。Anthropicのパートナー企業では、Sonnet 4.5を用いたセキュリティエージェントが脆弱性の処理時間を平均44%短縮し、精度も25%向上させたと報告されています
+anthropic.com
+。Sonnet 4.5は攻撃シナリオの自動生成によるレッドチーム演習にも有望であり、従来の手法では考えつかない創造的な手口を提示して防御力強化に貢献できるとの声があります
+anthropic.com
+。また、Sonnet 4.5とClaude Codeを組み合わせれば、脆弱性を発見次第に自律的にパッチ適用するエージェントを構築することも可能で、受け身の検知から積極的防御への転換が期待されています
+anthropic.com
+。実際、AnthropicはSonnet 4.5について「リスク、複雑な金融商品、ポートフォリオスクリーニングといった金融分析において、人間のレビュー負担を減らしつつ投資グレードの洞察を出力できる」
+anthropic.com
+、「脆弱性のプロアクティブな修正を行い、リアクティブな検知から一歩進んだ防御の自動化を実現する」
+anthropic.com
+など、各分野での応用例を示しています。これらの強化により、Claude Sonnet 4.5は金融サービスやサイバー防衛といった専門領域でも実運用に耐えるAIエージェントの基盤として注目されています。
+ClaudeCodeにおけるSonnet 4.5の対応状況
+ClaudeCodeはAnthropicが提供するコーディング支援用の対話型エージェント機能ですが、このClaudeCodeでもSonnet 4.5へのアップグレードがすでに行われています。Anthropicは「Sonnet 4.5は本日よりあらゆる場で利用可能」であり、開発者はAPIでclaude-sonnet-4-5モデルを指定するだけで従来と同価格で性能向上を享受できると案内しています
+anthropic.com
+。特にClaude Codeでは既存ユーザー全員にアップデートが適用されており、Sonnet 4.5はドロップインで旧モデルと置き換わっています
+anthropic.com
+。Inc.の報道によれば、新モデルSonnet 4.5はClaude Code（開発者がターミナルから利用するコードエージェント）上で既に利用可能であり
+inc.com
+、開発者は何も意識せずとも強化されたモデルによるコード支援を受けられる状態です。また、このアップデートに合わせてClaude Code自体にもUI刷新や新機能追加が行われました。中でも**「チェックポイント」機能は多くの開発者が待ち望んだ改善で、エージェントがコードにバグや不要な変更を加えた場合でも以前の状態にロールバックできるようになっています
+inc.com
+。さらにVS Code用拡張機能のリリースや、Claudeアプリ上でのコード実行・ファイル生成機能の統合など、開発体験を高めるアップデートも行われました
+anthropic.com
+。Claude Sonnet 4.5はClaude Codeにおいて既存のワークフローをそのままに性能と信頼性を向上**させており、Anthropicは「より長い文脈でより自律的に動作するコードエージェント」の実現に向け今後もモデルとツールの両面から改良を続けていく見込みです
+anthropic.com
+anthropic.com
+。
+引用
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Claude 3.7 Sonnet Introduces Hybrid Reasoning and Extended Thinking
+
+https://www.deeplearning.ai/the-batch/claude-3-7-sonnet-introduces-hybrid-reasoning-and-extended-thinking/
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/claude/sonnet
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Anthropic Says Its Latest Claude AI Is 'the Best Coding Model in the World'
+
+https://www.inc.com/ben-sherry/anthropic-says-its-latest-claude-ai-is-the-best-coding-model-in-the-world/91245438
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+
+Introducing Claude Sonnet 4.5 \ Anthropic
+
+https://www.anthropic.com/news/claude-sonnet-4-5
+すべての情報源
+
+inc
+
+anthropic
+
+deeplearning
