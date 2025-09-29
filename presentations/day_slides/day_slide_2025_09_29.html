@@ -1,410 +1,578 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025年9月29日 - AIニュース</title>
-    <link rel="stylesheet" href="../../css/reveal.css">
-    <link rel="stylesheet" href="../../css/theme/white.css" id="theme">
-    <link rel="stylesheet" href="../../lib/css/zenburn.css">
-    <style>
-        .reveal .slides section {
-            text-align: left;
-        }
-        .reveal h1, .reveal h2, .reveal h3 {
-            text-align: center;
-        }
-        .reveal .slides section ul {
-            margin-left: 1em;
-        }
-        .reveal .slides section li {
-            margin-bottom: 0.5em;
-        }
-        .highlight {
-            background-color: #ffff99;
-            padding: 2px 4px;
-        }
-        .source-link {
-            font-size: 0.7em;
-            color: #666;
-            margin-top: 1em;
-            text-align: center;
-        }
-        .source-link a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
-        .benchmark-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1em;
-            margin: 1em 0;
-        }
-        .benchmark-item {
-            background: #f5f5f5;
-            padding: 1em;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .score {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #4CAF50;
-        }
-        .api-pricing {
-            background: #e8f5e8;
-            padding: 1em;
-            border-left: 4px solid #4CAF50;
-            margin: 1em 0;
-        }
-        .feature-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1em;
-            margin: 1em 0;
-        }
-        .feature-card {
-            background: #f9f9f9;
-            padding: 1em;
-            border-radius: 8px;
-            border-left: 3px solid #2196F3;
-        }
-        .collapsible {
-            background-color: #f1f1f1;
-            color: black;
-            cursor: pointer;
-            padding: 10px;
-            width: 100%;
-            border: none;
-            text-align: left;
-            outline: none;
-            font-size: 15px;
-            margin: 5px 0;
-        }
-        .collapsible:after {
-            content: '\002B';
-            color: black;
-            font-weight: bold;
-            float: right;
-            margin-left: 5px;
-        }
-        .active:after {
-            content: "\2212";
-        }
-        .content-collapse {
-            padding: 0 18px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-            background-color: #f9f9f9;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek V3.2 - 最新AIモデルの完全解析 | 2025/09/29</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+      color: #ffffff;
+      line-height: 1.8;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      padding-bottom: 30px;
+      border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      font-weight: 500;
+      margin-top: 15px;
+    }
+
+    .date {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 8px 20px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-top: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    section {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      margin: 25px 0 15px 0;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .tldr {
+      background: rgba(255, 255, 255, 0.25);
+      border-left: 5px solid #ffffff;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      line-height: 1.9;
+      font-weight: 500;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-card h3 {
+      margin-top: 0;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+    }
+
+    .benchmark-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .benchmark-item {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .score {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #FFD700;
+      display: block;
+      margin: 10px 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .benchmark-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .api-pricing {
+      background: rgba(34, 197, 94, 0.2);
+      border-left: 5px solid #22c55e;
+      padding: 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+    }
+
+    .collapsible {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      cursor: pointer;
+      padding: 15px 20px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 10px 0;
+      border-radius: 10px;
+      transition: background 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .collapsible:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .collapsible:after {
+      content: '\002B';
+      color: white;
+      font-weight: bold;
+      float: right;
+      margin-left: 5px;
+      font-size: 1.2rem;
+    }
+
+    .collapsible.active:after {
+      content: "\2212";
+    }
+
+    .content-collapse {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0 0 10px 10px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    .content-collapse.active {
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-top: none;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      margin: 15px 0;
+    }
+
+    li {
+      margin: 8px 0;
+      font-size: 1.05rem;
+    }
+
+    strong {
+      font-weight: 700;
+      color: #FFD700;
+    }
+
+    .highlight {
+      background: rgba(255, 215, 0, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin: 30px 0;
+      border: 2px solid rgba(255, 215, 0, 0.5);
+    }
+
+    .source-link {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .source-link a {
+      color: #FFD700;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .source-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 15px;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      h2 {
+        font-size: 1.6rem;
+      }
+
+      .feature-grid, .benchmark-grid {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 25px 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="reveal">
-        <div class="slides">
+  <div class="container">
+    <header>
+      <h1>🧠 DeepSeek V3.2</h1>
+      <div class="subtitle">最新AIモデルの完全解析</div>
+      <div class="date">2025年9月29日</div>
+    </header>
 
-            <!-- タイトルスライド -->
-            <section>
-                <h1>AIニュース</h1>
-                <h2>2025年9月29日</h2>
-                <h3>DeepSeek V3.2 - 最新AIモデルの完全解析</h3>
-                <p class="source-link">
-                    <a href="https://awano27.github.io/ai-news-site/" target="_blank">AI News Site</a>
-                </p>
-            </section>
+    <section class="tldr">
+      <strong>📋 要約</strong><br>
+      DeepSeek V3.2は、業界最高水準のベンチマーク性能（MMLU ~87%, HumanEval ~91%, GSM8K ~89%）を達成した最新AIモデル。高度なプログラミング能力、リアルタイム検索機能、コスト効率的なAPI（$0.28/$0.42 per 100万トークン）でMITライセンスを採用。AI開発の新たな可能性を示す重要なマイルストーン。
+    </section>
 
-            <!-- DeepSeek V3.2 概要 -->
-            <section>
-                <h2>DeepSeek V3.2 概要</h2>
-                <div class="feature-list">
-                    <div class="feature-card">
-                        <h3>🚀 最新リリース</h3>
-                        <p>DeepSeekの最新大規模言語モデル</p>
-                        <p>従来モデルからの大幅な性能向上を実現</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>🎯 主な特徴</h3>
-                        <ul>
-                            <li>高度なプログラミング能力</li>
-                            <li>多言語対応</li>
-                            <li>リアルタイム検索機能</li>
-                            <li>コスト効率的なAPI</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ベンチマーク性能 -->
-            <section>
-                <h2>ベンチマーク性能</h2>
-                <div class="benchmark-grid">
-                    <div class="benchmark-item">
-                        <h3>MMLU</h3>
-                        <div class="score">~87%</div>
-                        <p>多分野理解能力</p>
-                    </div>
-                    <div class="benchmark-item">
-                        <h3>HumanEval</h3>
-                        <div class="score">~91%</div>
-                        <p>プログラミング精度</p>
-                    </div>
-                    <div class="benchmark-item">
-                        <h3>GSM8K</h3>
-                        <div class="score">~89%</div>
-                        <p>数学的推論</p>
-                    </div>
-                    <div class="benchmark-item">
-                        <h3>総合評価</h3>
-                        <div class="score">高性能</div>
-                        <p>業界最高水準</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- プログラミング機能 -->
-            <section>
-                <h2>プログラミング機能</h2>
-
-                <button class="collapsible">対応言語・フレームワーク</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>プログラミング言語：</strong>Python, JavaScript, Java, C++, Go, Rust, TypeScript</li>
-                        <li><strong>フレームワーク：</strong>React, Vue.js, Django, Flask, Node.js</li>
-                        <li><strong>データベース：</strong>SQL, MongoDB, Redis</li>
-                        <li><strong>クラウド：</strong>AWS, GCP, Azure</li>
-                        <li><strong>DevOps：</strong>Docker, Kubernetes, CI/CD</li>
-                    </ul>
-                </div>
-
-                <button class="collapsible">コード生成能力</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li>複雑なアルゴリズムの実装</li>
-                        <li>API設計とドキュメント生成</li>
-                        <li>テストコード自動作成</li>
-                        <li>リファクタリング支援</li>
-                        <li>デバッグとエラー解析</li>
-                    </ul>
-                </div>
-
-                <button class="collapsible">開発支援機能</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li>コードレビューと最適化提案</li>
-                        <li>アーキテクチャ設計支援</li>
-                        <li>セキュリティ脆弱性チェック</li>
-                        <li>パフォーマンス最適化</li>
-                        <li>技術選定のアドバイス</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- 検索機能 -->
-            <section>
-                <h2>リアルタイム検索機能</h2>
-                <div class="feature-list">
-                    <div class="feature-card">
-                        <h3>🔍 Web検索統合</h3>
-                        <ul>
-                            <li>最新情報のリアルタイム取得</li>
-                            <li>複数ソースからの情報統合</li>
-                            <li>信頼性の高い情報源の優先</li>
-                        </ul>
-                    </div>
-                    <div class="feature-card">
-                        <h3>📊 情報処理</h3>
-                        <ul>
-                            <li>検索結果の要約と整理</li>
-                            <li>関連情報の自動収集</li>
-                            <li>多角的な視点での分析</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <button class="collapsible">検索活用例</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>技術調査：</strong>最新のライブラリやフレームワーク情報</li>
-                        <li><strong>市場分析：</strong>業界トレンドと競合他社動向</li>
-                        <li><strong>学術研究：</strong>論文検索と研究動向把握</li>
-                        <li><strong>ニュース分析：</strong>最新ニュースの背景と影響分析</li>
-                        <li><strong>問題解決：</strong>技術的課題の解決策検索</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- API・料金情報 -->
-            <section>
-                <h2>API・料金情報</h2>
-                <div class="api-pricing">
-                    <h3>💰 料金体系</h3>
-                    <ul>
-                        <li><strong>入力トークン：</strong>$0.28 / 100万トークン</li>
-                        <li><strong>出力トークン：</strong>$0.42 / 100万トークン</li>
-                        <li><strong>コスト効率：</strong>業界最高水準の価格対性能比</li>
-                    </ul>
-                </div>
-
-                <button class="collapsible">API仕様</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>レスポンス時間：</strong>高速処理（平均1-3秒）</li>
-                        <li><strong>同時接続：</strong>大規模並列処理対応</li>
-                        <li><strong>データ形式：</strong>JSON, REST API</li>
-                        <li><strong>認証：</strong>APIキーベース</li>
-                        <li><strong>制限：</strong>レート制限とクォータ管理</li>
-                    </ul>
-                </div>
-
-                <button class="collapsible">統合・サポート</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>SDK：</strong>Python, Node.js, Java対応</li>
-                        <li><strong>ドキュメント：</strong>詳細なAPI仕様書</li>
-                        <li><strong>サンプル：</strong>豊富な実装例</li>
-                        <li><strong>サポート：</strong>技術サポートチーム</li>
-                        <li><strong>コミュニティ：</strong>開発者フォーラム</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- ライセンス・利用条件 -->
-            <section>
-                <h2>ライセンス・利用条件</h2>
-                <div class="feature-list">
-                    <div class="feature-card">
-                        <h3>📜 MITライセンス</h3>
-                        <ul>
-                            <li>商用利用可能</li>
-                            <li>自由な再配布</li>
-                            <li>修正・改変許可</li>
-                            <li>オープンソース準拠</li>
-                        </ul>
-                    </div>
-                    <div class="feature-card">
-                        <h3>🛡️ 利用制限</h3>
-                        <ul>
-                            <li>責任制限条項</li>
-                            <li>著作権表示義務</li>
-                            <li>特許関連制限</li>
-                            <li>免責事項</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <button class="collapsible">企業利用時の注意点</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>コンプライアンス：</strong>社内ポリシーとの整合性確認</li>
-                        <li><strong>データ保護：</strong>機密情報の取り扱い注意</li>
-                        <li><strong>リスク管理：</strong>依存度と代替案検討</li>
-                        <li><strong>品質保証：</strong>出力結果の検証体制</li>
-                        <li><strong>継続性：</strong>長期利用の計画策定</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- 実用例・活用シーン -->
-            <section>
-                <h2>実用例・活用シーン</h2>
-
-                <button class="collapsible">ソフトウェア開発</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>プロトタイプ開発：</strong>迅速なPoC作成</li>
-                        <li><strong>コードレビュー：</strong>品質向上と学習促進</li>
-                        <li><strong>文書化：</strong>技術仕様書とユーザーマニュアル</li>
-                        <li><strong>テスト：</strong>自動テストケース生成</li>
-                        <li><strong>保守：</strong>レガシーコードの理解と改修</li>
-                    </ul>
-                </div>
-
-                <button class="collapsible">研究・分析</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>文献調査：</strong>関連研究の網羅的調査</li>
-                        <li><strong>データ分析：</strong>統計解析とパターン発見</li>
-                        <li><strong>レポート作成：</strong>構造化された分析報告</li>
-                        <li><strong>仮説検証：</strong>多角的な検証アプローチ</li>
-                        <li><strong>予測モデル：</strong>トレンド分析と将来予測</li>
-                    </ul>
-                </div>
-
-                <button class="collapsible">業務効率化</button>
-                <div class="content-collapse">
-                    <ul>
-                        <li><strong>自動化：</strong>定型業務の自動化スクリプト</li>
-                        <li><strong>意思決定：</strong>データに基づく判断支援</li>
-                        <li><strong>コミュニケーション：</strong>多言語対応と翻訳</li>
-                        <li><strong>教育・研修：</strong>カスタマイズされた学習コンテンツ</li>
-                        <li><strong>品質管理：</strong>チェックリストと検証項目</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- 今後の展望 -->
-            <section>
-                <h2>今後の展望</h2>
-                <div class="feature-list">
-                    <div class="feature-card">
-                        <h3>🔮 技術発展</h3>
-                        <ul>
-                            <li>モデル性能の継続的向上</li>
-                            <li>新しい能力の追加</li>
-                            <li>効率性の改善</li>
-                            <li>特殊分野への対応</li>
-                        </ul>
-                    </div>
-                    <div class="feature-card">
-                        <h3>🌍 市場影響</h3>
-                        <ul>
-                            <li>AI開発の民主化</li>
-                            <li>生産性向上の加速</li>
-                            <li>新しいサービス創出</li>
-                            <li>競争環境の変化</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="highlight" style="text-align: center; margin-top: 2em; padding: 1em;">
-                    <strong>DeepSeek V3.2は、AI技術の新たな可能性を示す重要なマイルストーンです</strong>
-                </div>
-            </section>
-
+    <!-- DeepSeek V3.2 概要 -->
+    <section>
+      <h2>🚀 DeepSeek V3.2 概要</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>🎯 最新リリース</h3>
+          <p>DeepSeekの最新大規模言語モデル</p>
+          <p>従来モデルからの大幅な性能向上を実現</p>
         </div>
+        <div class="feature-card">
+          <h3>⭐ 主な特徴</h3>
+          <ul>
+            <li>高度なプログラミング能力</li>
+            <li>多言語対応</li>
+            <li>リアルタイム検索機能</li>
+            <li>コスト効率的なAPI</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ベンチマーク性能 -->
+    <section>
+      <h2>📊 ベンチマーク性能</h2>
+      <div class="benchmark-grid">
+        <div class="benchmark-item">
+          <div class="benchmark-label">MMLU</div>
+          <div class="score">~87%</div>
+          <p>多分野理解能力</p>
+        </div>
+        <div class="benchmark-item">
+          <div class="benchmark-label">HumanEval</div>
+          <div class="score">~91%</div>
+          <p>プログラミング精度</p>
+        </div>
+        <div class="benchmark-item">
+          <div class="benchmark-label">GSM8K</div>
+          <div class="score">~89%</div>
+          <p>数学的推論</p>
+        </div>
+        <div class="benchmark-item">
+          <div class="benchmark-label">総合評価</div>
+          <div class="score">高性能</div>
+          <p>業界最高水準</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- プログラミング機能 -->
+    <section>
+      <h2>💻 プログラミング機能</h2>
+
+      <button class="collapsible">対応言語・フレームワーク</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>プログラミング言語：</strong>Python, JavaScript, Java, C++, Go, Rust, TypeScript</li>
+          <li><strong>フレームワーク：</strong>React, Vue.js, Django, Flask, Node.js</li>
+          <li><strong>データベース：</strong>SQL, MongoDB, Redis</li>
+          <li><strong>クラウド：</strong>AWS, GCP, Azure</li>
+          <li><strong>DevOps：</strong>Docker, Kubernetes, CI/CD</li>
+        </ul>
+      </div>
+
+      <button class="collapsible">コード生成能力</button>
+      <div class="content-collapse">
+        <ul>
+          <li>複雑なアルゴリズムの実装</li>
+          <li>API設計とドキュメント生成</li>
+          <li>テストコード自動作成</li>
+          <li>リファクタリング支援</li>
+          <li>デバッグとエラー解析</li>
+        </ul>
+      </div>
+
+      <button class="collapsible">開発支援機能</button>
+      <div class="content-collapse">
+        <ul>
+          <li>コードレビューと最適化提案</li>
+          <li>アーキテクチャ設計支援</li>
+          <li>セキュリティ脆弱性チェック</li>
+          <li>パフォーマンス最適化</li>
+          <li>技術選定のアドバイス</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 検索機能 -->
+    <section>
+      <h2>🔍 リアルタイム検索機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>🌐 Web検索統合</h3>
+          <ul>
+            <li>最新情報のリアルタイム取得</li>
+            <li>複数ソースからの情報統合</li>
+            <li>信頼性の高い情報源の優先</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>📊 情報処理</h3>
+          <ul>
+            <li>検索結果の要約と整理</li>
+            <li>関連情報の自動収集</li>
+            <li>多角的な視点での分析</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="collapsible">検索活用例</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>技術調査：</strong>最新のライブラリやフレームワーク情報</li>
+          <li><strong>市場分析：</strong>業界トレンドと競合他社動向</li>
+          <li><strong>学術研究：</strong>論文検索と研究動向把握</li>
+          <li><strong>ニュース分析：</strong>最新ニュースの背景と影響分析</li>
+          <li><strong>問題解決：</strong>技術的課題の解決策検索</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- API・料金情報 -->
+    <section>
+      <h2>💰 API・料金情報</h2>
+      <div class="api-pricing">
+        <h3>💵 料金体系</h3>
+        <ul>
+          <li><strong>入力トークン：</strong>$0.28 / 100万トークン</li>
+          <li><strong>出力トークン：</strong>$0.42 / 100万トークン</li>
+          <li><strong>コスト効率：</strong>業界最高水準の価格対性能比</li>
+        </ul>
+      </div>
+
+      <button class="collapsible">API仕様</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>レスポンス時間：</strong>高速処理（平均1-3秒）</li>
+          <li><strong>同時接続：</strong>大規模並列処理対応</li>
+          <li><strong>データ形式：</strong>JSON, REST API</li>
+          <li><strong>認証：</strong>APIキーベース</li>
+          <li><strong>制限：</strong>レート制限とクォータ管理</li>
+        </ul>
+      </div>
+
+      <button class="collapsible">統合・サポート</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>SDK：</strong>Python, Node.js, Java対応</li>
+          <li><strong>ドキュメント：</strong>詳細なAPI仕様書</li>
+          <li><strong>サンプル：</strong>豊富な実装例</li>
+          <li><strong>サポート：</strong>技術サポートチーム</li>
+          <li><strong>コミュニティ：</strong>開発者フォーラム</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ライセンス・利用条件 -->
+    <section>
+      <h2>📜 ライセンス・利用条件</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>⚖️ MITライセンス</h3>
+          <ul>
+            <li>商用利用可能</li>
+            <li>自由な再配布</li>
+            <li>修正・改変許可</li>
+            <li>オープンソース準拠</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>🛡️ 利用制限</h3>
+          <ul>
+            <li>責任制限条項</li>
+            <li>著作権表示義務</li>
+            <li>特許関連制限</li>
+            <li>免責事項</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="collapsible">企業利用時の注意点</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>コンプライアンス：</strong>社内ポリシーとの整合性確認</li>
+          <li><strong>データ保護：</strong>機密情報の取り扱い注意</li>
+          <li><strong>リスク管理：</strong>依存度と代替案検討</li>
+          <li><strong>品質保証：</strong>出力結果の検証体制</li>
+          <li><strong>継続性：</strong>長期利用の計画策定</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 実用例・活用シーン -->
+    <section>
+      <h2>🚀 実用例・活用シーン</h2>
+
+      <button class="collapsible">ソフトウェア開発</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>プロトタイプ開発：</strong>迅速なPoC作成</li>
+          <li><strong>コードレビュー：</strong>品質向上と学習促進</li>
+          <li><strong>文書化：</strong>技術仕様書とユーザーマニュアル</li>
+          <li><strong>テスト：</strong>自動テストケース生成</li>
+          <li><strong>保守：</strong>レガシーコードの理解と改修</li>
+        </ul>
+      </div>
+
+      <button class="collapsible">研究・分析</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>文献調査：</strong>関連研究の網羅的調査</li>
+          <li><strong>データ分析：</strong>統計解析とパターン発見</li>
+          <li><strong>レポート作成：</strong>構造化された分析報告</li>
+          <li><strong>仮説検証：</strong>多角的な検証アプローチ</li>
+          <li><strong>予測モデル：</strong>トレンド分析と将来予測</li>
+        </ul>
+      </div>
+
+      <button class="collapsible">業務効率化</button>
+      <div class="content-collapse">
+        <ul>
+          <li><strong>自動化：</strong>定型業務の自動化スクリプト</li>
+          <li><strong>意思決定：</strong>データに基づく判断支援</li>
+          <li><strong>コミュニケーション：</strong>多言語対応と翻訳</li>
+          <li><strong>教育・研修：</strong>カスタマイズされた学習コンテンツ</li>
+          <li><strong>品質管理：</strong>チェックリストと検証項目</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 今後の展望 -->
+    <section>
+      <h2>🔮 今後の展望</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>🚀 技術発展</h3>
+          <ul>
+            <li>モデル性能の継続的向上</li>
+            <li>新しい能力の追加</li>
+            <li>効率性の改善</li>
+            <li>特殊分野への対応</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>🌍 市場影響</h3>
+          <ul>
+            <li>AI開発の民主化</li>
+            <li>生産性向上の加速</li>
+            <li>新しいサービス創出</li>
+            <li>競争環境の変化</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <strong>DeepSeek V3.2は、AI技術の新たな可能性を示す重要なマイルストーンです</strong>
+      </div>
+    </section>
+
+    <div class="source-link">
+      <a href="https://awano27.github.io/ai-news-site/" target="_blank">AI Intelligence Hub →</a>
     </div>
+  </div>
 
-    <script src="../../lib/js/head.min.js"></script>
-    <script src="../../js/reveal.js"></script>
-    <script>
-        Reveal.initialize({
-            controls: false,
-            progress: true,
-            center: true,
-            transition: 'slide',
-            dependencies: [
-                { src: '../../lib/js/classList.js', condition: function() { return !document.body.classList; } },
-                { src: '../../plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
-                { src: '../../plugin/notes/notes.js', async: true }
-            ]
+  <script>
+    // Collapsible sections
+    document.addEventListener('DOMContentLoaded', function() {
+      var collapsibles = document.getElementsByClassName("collapsible");
+
+      for (let i = 0; i < collapsibles.length; i++) {
+        collapsibles[i].addEventListener("click", function() {
+          this.classList.toggle("active");
+          var content = this.nextElementSibling;
+
+          if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+            content.classList.remove("active");
+          } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+            content.classList.add("active");
+          }
         });
-
-        // Collapsible sections
-        var coll = document.getElementsByClassName("collapsible");
-        var i;
-
-        for (i = 0; i < coll.length; i++) {
-            coll[i].addEventListener("click", function() {
-                this.classList.toggle("active");
-                var content = this.nextElementSibling;
-                if (content.style.maxHeight){
-                    content.style.maxHeight = null;
-                } else {
-                    content.style.maxHeight = content.scrollHeight + "px";
-                }
-            });
-        }
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>
