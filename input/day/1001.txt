@@ -1,0 +1,185 @@
+TL;DR: 2025-09-29〜30ごろ、Cursorにブラウザ制御（Browser / Computer Use）の早期プレビューが追加され、Agent（例：Claude Sonnet 4.5）がローカルのChromeを使ってページ遷移・スクリーンショット取得・UIデバッグ等を実行できるようになりました。Early Access（ベータ）チャネル限定で有効化でき、Chatのツールトレイ（@ メニュー）や新設のBrowserボタンから呼び出せます。WSL2など一部環境では動作要件（Chromeのインストール、Xサーバ等）に注意が必要。実運用では、Playwright/Puppeteer等のMCPサーバ連携と組み合わせると安定性と機能が拡張できます。
+Cursor - Community Forum
++2
+Cursor - Community Forum
++2
+
+1. 何が「新しく」なったのか（直近の変更点）
+
+Browser（Computer Use）機能の早期プレビュー
+
+Cursorが公式に「ブラウザを制御できる（スクショ取得・UI改善・クライアントデバッグ）」と発表。現時点ではEarly Accessチャネルでの提供で、対応モデルとしてSonnet 4.5が案内されています。
+Cursor - Community Forum
+
+UI上の呼び出し点
+
+Chatに**“Browser”ボタンが追加（ベータ版で確認報告）。また、@（Add context）メニュー**からもBrowserを追加可能とのユーザー報告があります。
+Cursor - Community Forum
+
+要件
+
+Google Chromeが必須（未インストール時にエラー）。WSL2ではヘッド付きモードにXサーバが必要など、環境依存の注意点が報告されています。
+Cursor - Community Forum
+
+注：公式の恒久ドキュメントや安定版のChangelogにはまだ詳細が少なく、早期プレビュー段階の機能です（Changelogは最近も頻繁に更新されていますが、この件はForum/告知ベースの情報が中心）。
+Cursor
++1
+
+2. 仕組み（公開情報ベース）
+
+CursorのAgentがローカルChromeを操作する形で、ページ操作やスクリーンショット取得を行います（Chrome必須の挙動から推測／Forum報告で裏付け）。現状は公式実装詳細は未公開ですが、一般的にはChrome DevTools Protocol等を介した自動化が想定されます。
+Cursor - Community Forum
+
+なお、より高度な自動化・計測が必要な場合は、Cursorがサポートする**MCP（Model Context Protocol）**でPlaywright/PuppeteerやBrowser-Toolsを追加する設計が標準です。
+Cursor
+
+3. 有効化手順（Early Access）
+
+Early Accessに切替
+
+Settings → Beta → Update Access を Early Access に変更。
+Cursor
+
+Browser（ベータ）を有効化
+
+Settings 内の Beta/Features セクションにある Browser をオン（Forumで案内されている導線）。
+Cursor - Community Forum
+
+Chatでの利用
+
+Chat入力欄のツールトレイ／@メニューで Browser を追加。「このURLを開いて→要素を操作→スクショ取得→結果要約」といった指示が可能（リンクオープン等の挙動は早期段階で不安定な報告あり）。
+Cursor - Community Forum
+
+4. できること（現状の範囲感）
+
+スクリーンショット取得／UIの改善指示／クライアント不具合のデバッグ（公式アナウンス文言）。
+Cursor - Community Forum
+
+ページ遷移やリンクオープン（ユーザー報告に基づく実挙動。リンクが開けない等の事象も報告あり）。
+Cursor - Community Forum
+
+現段階では**「プレビュー品質」**。大規模なE2E操作や本番リリース前の確実な検証には、次項のMCP連携を推奨。
+
+5. 実運用での拡張：MCPサーバ連携（推奨）
+
+Playwright MCP（Microsoft公式）
+
+Settings → MCP → Add new MCP Server で npx @playwright/mcp@latest を追加。クロスブラウザ自動化やテストが安定。
+GitHub
+
+Puppeteer MCP
+
+Puppeteerベースの自動化。各種MCPディレクトリや実装が公開。
+cursor.directory
++1
+
+Browser-Tools MCP（AgentDeskAI）
+
+拡張＋ローカルサーバ＋MCPサーバ構成。**コンソール／ネットワークログ収集、スクショ、Lighthouse監査（SEO/性能/アクセシビリティ/Best Practices）**などをCursorから実行可能。クッキーや機微ヘッダの除去も実装。
+
+セットアップ例：
+
+Chrome拡張を導入 → npx @agentdeskai/browser-tools-server@latest を起動 → npx @agentdeskai/browser-tools-mcp@latest をCursorに登録。
+GitHub
+
+6. 検証レシピ（最小構成の例）
+
+環境準備：Early AccessでBrowserを有効化、Google Chromeをインストール。
+Cursor
++1
+
+Chatで実行：
+
+プロンプト例：
+
+ブラウザを有効化して次を行ってください：
+1) https://example.com を開く
+2) ページの <h1> テキストを抽出
+3) スクリーンショットを1枚撮って添付
+4) 結果を要約
+
+
+期待値：Agentの出力にスクショと抽出テキスト、要約が含まれる。
+
+失敗時の切り分け：
+
+「Chrome Required」表示→Chromeのインストール／パス設定（CHROME_EXECUTABLE）を再確認。WSL2の場合はXサーバ有無やAgent Windowの利用を検討。
+Cursor - Community Forum
++1
+
+7. 既知の制限・課題（2025-10-02時点）
+
+提供範囲：Early Access限定・プレビュー段階（安定版の公式Changelog未掲載）。
+Cursor - Community Forum
++1
+
+依存関係：Chrome必須、WSL2のヘッド付き動作はXサーバ要件の報告。
+Cursor - Community Forum
+
+ドキュメント：現時点で正式Docsが少ないため、Forum・告知・コミュニティ資料に依存。
+Cursor - Community Forum
++1
+
+8. セキュリティ／プライバシー観点の補足
+
+プレビュー段階のため、業務機密や個人情報を含むサイトに対する自動操作は隔離プロファイルや検証環境での運用を推奨。
+
+MCP連携の一部（Browser-Tools MCP）はローカルでログを処理し、クッキーや機微ヘッダを除去する設計が明記されています（内製Browser機能と同一ではない点に注意）。
+GitHub
+
+9. 代替・補完の選択肢（ユースケース別）
+
+UI回帰やE2Eテストを強固に：Playwright MCP（Microsoft公式）を基本に。
+GitHub
+
+SEO/性能/アクセシビリティ監査も：Browser-Tools MCPのLighthouse連携。
+GitHub
+
+軽量なページ操作：Puppeteer MCPで必要最小限の操作を提供。
+cursor.directory
+
+10. 参考・一次情報
+
+公式告知（Forum経由）：Cursor「ブラウザ制御」早期プレビュー（Sonnet 4.5対応、設定→Betaで有効化）
+Cursor - Community Forum
+
+有効化：Early Access手順（Docs）
+Cursor
+
+ベータUI挙動・既知事象（Forum）：Browserボタン追加、@メニューからの追加、Chrome必須、WSL2/Xサーバ要件など
+Cursor - Community Forum
+
+MCPの公式概念（Docs）
+Cursor
+
+Playwright MCP（Microsoft公式）
+GitHub
+
+Browser-Tools MCP（GitHub/ドキュメント）
+GitHub
+
+Puppeteer MCP（ディレクトリ）
+cursor.directory
+
+補足（エンジニア向け最短レシピ：MCP追加の最小例）
+
+Playwright MCPを追加（プロジェクト共通にしたい場合はグローバル設定）
+
+Settings → MCP → Add new MCP Server
+Type: command
+Command: npx @playwright/mcp@latest
+
+
+利点：安定したブラウザ操作、CI/E2E連携のしやすさ。
+GitHub
+
+Browser-Tools MCPを追加（監査・ログ収集を含む）
+
+1) Chrome拡張を導入
+2) ターミナルで: npx @agentdeskai/browser-tools-server@latest
+3) Settings → MCP → Add new MCP Server
+   Command: npx @agentdeskai/browser-tools-mcp@latest
+
+
+利点：Lighthouse監査、ネットワーク/コンソールログの収集、スクショの自動貼付など。
+GitHub
