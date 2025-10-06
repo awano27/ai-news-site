@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenAI DevDay 2025：新機能・ツール総まとめ | AI日次レポート 2025/10/07</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #1a1a1a;
+      background: linear-gradient(135deg, #10a37f 0%, #1a7f64 50%, #15503f 100%);
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 0 60px rgba(0,0,0,0.3);
+      min-height: 100vh;
+    }
+
+    .nav {
+      padding: 30px 50px 0 50px;
+      text-align: center;
+      background: white;
+    }
+
+    .nav a {
+      color: #10a37f;
+      text-decoration: none;
+      font-weight: 500;
+      margin: 0 12px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+
+    .nav a:hover {
+      background: #10a37f;
+      color: white;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%);
+      color: white;
+      padding: 60px 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.05)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .date {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+      opacity: 0.95;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 2.8em;
+      margin-bottom: 30px;
+      font-weight: 800;
+      line-height: 1.3;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .subtitle {
+      font-size: 1.3em;
+      opacity: 0.95;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .content {
+      padding: 50px;
+    }
+
+    .section {
+      margin-bottom: 50px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .section:hover {
+      box-shadow: 0 8px 24px rgba(16,163,127,0.15);
+      transform: translateY(-2px);
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%);
+      color: white;
+      padding: 25px 35px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: all 0.3s;
+    }
+
+    .section-header:hover {
+      background: linear-gradient(135deg, #0d8a6a 0%, #15503f 100%);
+    }
+
+    .section-header h2 {
+      font-size: 1.6em;
+      font-weight: 700;
+    }
+
+    .toggle-icon {
+      font-size: 1.5em;
+      transition: transform 0.3s;
+      font-weight: bold;
+    }
+
+    .section.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      padding: 35px;
+      display: block;
+      background: #fafafa;
+    }
+
+    .section.collapsed .section-content {
+      display: none;
+    }
+
+    h3 {
+      color: #10a37f;
+      font-size: 1.4em;
+      margin: 30px 0 15px 0;
+      font-weight: 700;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #10a37f;
+    }
+
+    h4 {
+      color: #1a7f64;
+      font-size: 1.2em;
+      margin: 25px 0 12px 0;
+      font-weight: 600;
+    }
+
+    p {
+      margin-bottom: 20px;
+      color: #2d2d2d;
+      font-size: 1.05em;
+    }
+
+    ul, ol {
+      margin: 20px 0 20px 25px;
+    }
+
+    li {
+      margin-bottom: 12px;
+      color: #2d2d2d;
+      line-height: 1.8;
+    }
+
+    strong {
+      color: #10a37f;
+      font-weight: 700;
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, #e6f7f3 0%, #d4f0e8 100%);
+      border-left: 5px solid #10a37f;
+      padding: 25px;
+      margin: 25px 0;
+      border-radius: 8px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      text-align: center;
+      border: 2px solid #10a37f;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(16,163,127,0.2);
+    }
+
+    .stat-number {
+      font-size: 2.5em;
+      font-weight: 800;
+      color: #10a37f;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .stat-label {
+      font-size: 1em;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%);
+      color: white;
+      padding: 18px 15px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 1em;
+    }
+
+    .comparison-table td {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      color: #2d2d2d;
+    }
+
+    .comparison-table tr:hover {
+      background: #f0fdf9;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #1a7f64 0%, #15503f 100%);
+      color: white;
+      padding: 40px 50px;
+      text-align: center;
+    }
+
+    .footer-links {
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .footer-links a {
+      color: #a3e4d7;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 0.95em;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 40px 30px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      .subtitle {
+        font-size: 1.1em;
+      }
+
+      .content {
+        padding: 30px 25px;
+      }
+
+      .section-header {
+        padding: 20px 25px;
+      }
+
+      .section-header h2 {
+        font-size: 1.3em;
+      }
+
+      .section-content {
+        padding: 25px 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        padding: 20px 25px 0 25px;
+      }
+
+      .nav a {
+        display: block;
+        margin: 8px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <a href="../day_slides_list.html">← 日次スライド一覧</a>
+      <a href="../../index.html">🏠 ホーム</a>
+      <a href="https://openai.com/devday" target="_blank">🔗 OpenAI DevDay</a>
+    </div>
+
+    <div class="header">
+      <div class="header-content">
+        <div class="date">📅 2025年10月7日</div>
+        <h1>🚀 OpenAI DevDay 2025<br>新機能・ツール総まとめ</h1>
+        <p class="subtitle">ChatGPT内アプリ、Apps SDK、AgentKit、Codex GA、GPT-5 Pro、Sora 2など<br>開発者と利用者の体験を大きく変える発表内容を完全整理</p>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- セクション1: ChatGPT内アプリ -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>📱 ChatGPT内のアプリ (Apps in ChatGPT)</h2>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <h3>主要な特徴</h3>
+          <ul>
+            <li><strong>サードパーティーアプリの統合</strong>：Zillow、Spotify、Figma、Booking.com、Canvaなどをチャット内で直接利用可能</li>
+            <li><strong>対象プラン</strong>：Free、Go、Plus、Proプランで利用開始、Business/Enterprise/Eduは今後提供予定</li>
+            <li><strong>利用可能地域</strong>：EU以外の国で提供</li>
+          </ul>
+
+          <h3>使い方と仕組み</h3>
+          <div class="highlight-box">
+            <h4>💡 アプリ呼び出し方法</h4>
+            <ul>
+              <li>メッセージをアプリ名で開始（例：「Spotify ～」「Zillow ～」）→ChatGPTがアプリを提示</li>
+              <li>会話内容に応じて適切なアプリを自動推奨（例：家探しの話題でZillowを提案）</li>
+              <li>初回接続時に権限確認、データ共有に同意が必要</li>
+              <li>接続後は会話内でデータを受け渡しながらシームレスに操作</li>
+            </ul>
+          </div>
+
+          <h3>安全性とプライバシー</h3>
+          <ul>
+            <li><strong>透明なポリシー</strong>：アプリはOpenAIの使用ポリシーに準拠、最小限のデータ取得</li>
+            <li><strong>権限管理</strong>：ユーザーはいつでも連携を解除可能、今後より細かな権限管理を追加予定</li>
+            <li><strong>事前確認</strong>：利用開始前にプライバシーポリシーを確認推奨</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- セクション2: Apps SDK -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>🛠️ Apps SDK：ChatGPTアプリ開発プラットフォーム</h2>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <h3>概要と基盤技術</h3>
+          <p>Apps SDKはModel Context Protocol (MCP)を基盤とした開発キットのプレビュー版。カスタムアプリの作成を可能にし、ChatGPTエコシステムへの統合を簡素化します。</p>
+
+          <h3>開発の流れ</h3>
+          <ol>
+            <li><strong>開発者モードの有効化</strong>
+              <ul>
+                <li>組織管理者またはOpenAI担当者経由でアクセス申請</li>
+                <li>ChatGPT設定画面（設定 → 接続）で「Developer mode」をオンに</li>
+              </ul>
+            </li>
+            <li><strong>コネクタの作成</strong>
+              <ul>
+                <li>MCPサーバーを用意し、ツール名・説明・サーバーURLを記述</li>
+                <li>ChatGPTの「＋」ボタンからコネクタを追加、トグルで有効化</li>
+              </ul>
+            </li>
+            <li><strong>サーバー接続とテスト</strong>
+              <ul>
+                <li>MCP Inspectorツールで http://localhost:&lt;port&gt;/mcp にアクセスして確認</li>
+                <li>ngrokなどのトンネリングでHTTPSエンドポイントを外部公開</li>
+              </ul>
+            </li>
+            <li><strong>構成データの更新</strong>
+              <ul>
+                <li>メタデータ更新時は「Refresh metadata」操作で最新状態を読み込み</li>
+              </ul>
+            </li>
+            <li><strong>マルチデバイス利用</strong>
+              <ul>
+                <li>API Playground、ChatGPTモバイルアプリからも同じコネクタを利用可能</li>
+                <li>デスクトップ版で接続すれば他デバイスに自動同期</li>
+              </ul>
+            </li>
+          </ol>
+
+          <h3>MCPサーバーのセットアップ</h3>
+          <div class="highlight-box">
+            <h4>🔧 サーバー構築の主要ステップ</h4>
+            <ul>
+              <li><strong>SDK選択</strong>：Python SDKまたはTypeScript SDKを推奨（迅速な開発）</li>
+              <li><strong>ツール定義</strong>：機械可読の名前、タイトル、JSON Schema形式の引数、認証ヒントを記述</li>
+              <li><strong>出力テンプレート</strong>：HTMLテンプレートをツールメタデータの _meta の openai/outputTemplate で指定</li>
+              <li><strong>コンポーネント構築</strong>：structuredContent（構造化データ）、content（モデル向けテキスト）、_meta（付随データ）の3フィールドで構成</li>
+              <li><strong>認証と状態管理</strong>：OAuth 2.1フローやトークン検証を組み込み、ユーザー状態はデータベースで管理</li>
+            </ul>
+          </div>
+
+          <h3>設計ガイドラインと高度な設定</h3>
+          <ul>
+            <li><strong>ツールファースト設計</strong>：各ツールは単一の作業にフォーカス、入出力を明確に定義</li>
+            <li><strong>ウィジェット対応</strong>：openai/widgetAccessible: true フラグでウィジェットから直接呼び出し可能</li>
+            <li><strong>セキュリティ強化</strong>：サブドメイン指定、Content Security Policy設定</li>
+            <li><strong>多言語対応</strong>：openai/locale を利用してユーザーのロケールに合わせたUI提供</li>
+          </ul>
+
+          <h3>収益化：Agentic Commerce Protocol (ACP)</h3>
+          <p>OpenAIとStripeが共同策定したAIエージェント向け商品購入プロトコル。ChatGPT内の「Instant Checkout」はACPの最初の実装例です。</p>
+          <ul>
+            <li><strong>対象ユーザー</strong>：米国のChatGPT Plus/Pro/FreeユーザーがEtsyの商品をチャット内で購入可能</li>
+            <li><strong>手数料モデル</strong>：ユーザーへの追加料金なし、加盟店が少額の手数料を支払い</li>
+            <li><strong>オープンソース</strong>：開発者や加盟店はプロトコル仕様に従い商品フィードを作成して申請可能</li>
+            <li><strong>対応プラットフォーム</strong>：Web、iOS、Android、カード・Apple Payなど複数の決済方法に対応</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- セクション3: AgentKit -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>🤖 AgentKit：エージェント構築ツールセット</h2>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <h3>主要コンポーネント</h3>
+
+          <h4>🎨 Agent Builder</h4>
+          <ul>
+            <li>ノードベースのビジュアルキャンバスでドラッグ&ドロップでワークフロー設計</li>
+            <li>プレビュー実行、バージョン管理、評価機能を統合</li>
+            <li><strong>実績</strong>：Rampは数か月かかっていた買い手支援エージェントを数時間で構築</li>
+          </ul>
+
+          <h4>📦 Connector Registry</h4>
+          <ul>
+            <li>Dropbox、Google Driveなど複数のデータソースを一元管理</li>
+            <li>API利用者およびChatGPT Enterprise/Eduの一部顧客にベータ提供中</li>
+          </ul>
+
+          <h4>🛡️ Guardrails</h4>
+          <ul>
+            <li>オープンソースの安全フィルター</li>
+            <li>個人情報・機密情報のマスク、脱獄（Jailbreak）検知を実行</li>
+            <li>Python/JavaScriptライブラリとして提供</li>
+          </ul>
+
+          <h4>💬 ChatKit</h4>
+          <ul>
+            <li>独自アプリに会話型エージェントを組み込むツールキット</li>
+            <li>簡単に埋め込め、カスタマイズも柔軟</li>
+            <li><strong>実績</strong>：Canvaはサポートエージェントを数週間分の開発工数削減で導入</li>
+          </ul>
+
+          <h4>📊 Evals & RFT</h4>
+          <ul>
+            <li>エージェントの評価と最適化を支援</li>
+            <li>トレース評価、自動プロンプト調整、外部モデル対応</li>
+            <li>強化学習による微調整 (RFT)：OpenAI o4-mini向けGA、GPT-5向けプライベートベータ</li>
+            <li><strong>実績</strong>：Carlyleは精度向上と開発時間短縮を実感</li>
+          </ul>
+
+          <h3>料金と利用方法</h3>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-number">GA</span>
+              <span class="stat-label">ChatKit & Evals<br>すべての開発者</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">Beta</span>
+              <span class="stat-label">Agent Builder<br>順番待ち</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">Beta</span>
+              <span class="stat-label">Connector Registry<br>API/Enterprise/Edu</span>
+            </div>
+          </div>
+          <p style="text-align: center; margin-top: 20px;"><strong>追加費用なし：</strong>APIモデル料金に含まれて提供</p>
+        </div>
+      </div>
+
+      <!-- セクション4: Codex一般提供 -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>💻 Codex一般提供 (GA)</h2>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <p>CodexはOpenAIのコード実行エージェントで、DevDay 2025で研究プレビューから一般提供に移行しました。</p>
+
+          <h3>主なアップデート</h3>
+          <ul>
+            <li><strong>Slack統合</strong>
+              <ul>
+                <li>Slackで @Codex をタグ付けして自動化タスクを依頼</li>
+                <li>Slack内で直接コード実行やファイル変換などを実行可能</li>
+              </ul>
+            </li>
+            <li><strong>Codex SDK</strong>
+              <ul>
+                <li>GPT-5 Codexエージェントをカスタムアプリに組み込み可能</li>
+                <li>構造化出力、コンテキスト管理機能を提供</li>
+              </ul>
+            </li>
+            <li><strong>管理ダッシュボード</strong>
+              <ul>
+                <li>タスク実行状況の監視、利用制限設定が可能</li>
+              </ul>
+            </li>
+          </ul>
+
+          <h3>利用プランと料金</h3>
+          <div class="highlight-box">
+            <ul>
+              <li><strong>利用可能プラン</strong>：ChatGPT Plus、Pro、Business、Edu、Enterpriseの開発者</li>
+              <li><strong>管理機能</strong>：Business、Edu、Enterpriseプランに限定</li>
+              <li><strong>料金</strong>：2025年10月20日以降、クラウドタスク実行は利用量として計上</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション5: 新モデルとAPI -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>🧠 新モデルとAPI</h2>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <h3>GPT-5 ProとGPT-5ファミリー</h3>
+
+          <h4>GPT-5 Pro：深い推論能力</h4>
+          <ul>
+            <li>従来のo3-proを置き換える上位モデル</li>
+            <li>GPQAベンチマークでSOTA達成</li>
+            <li>GPT-5 Thinkingより優れた回答、重大エラーが22%減少</li>
+          </ul>
+
+          <h4>利用方法とプラン別アクセス</h4>
+          <ul>
+            <li><strong>デフォルトモデル</strong>：GPT-5がChatGPTの新しいデフォルトに</li>
+            <li><strong>推論モード切替</strong>：「もっと深く考えて」と指示するとGPT-5 Thinkingに切り替え</li>
+            <li><strong>Plus</strong>：デフォルトGPT-5を高いメッセージ上限で利用可能</li>
+            <li><strong>Pro</strong>：GPT-5利用回数無制限、GPT-5 Proにもアクセス可能</li>
+            <li><strong>無料ユーザー</strong>：一定上限までGPT-5を体験後、gpt-5-miniに切り替え</li>
+            <li><strong>Enterprise/Edu</strong>：翌週から利用可能</li>
+          </ul>
+
+          <h4>API料金</h4>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>モデル</th>
+                <th>入力（100万トークン）</th>
+                <th>出力（100万トークン）</th>
+                <th>特徴</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>gpt-5</strong></td>
+                <td>$1.25</td>
+                <td>$10</td>
+                <td>標準モデル</td>
+              </tr>
+              <tr>
+                <td><strong>gpt-5-mini</strong></td>
+                <td>$0.25</td>
+                <td>$2</td>
+                <td>軽量版</td>
+              </tr>
+              <tr>
+                <td><strong>gpt-5-nano</strong></td>
+                <td>$0.05</td>
+                <td>$0.40</td>
+                <td>超軽量版</td>
+              </tr>
+              <tr>
+                <td><strong>GPT-5 Pro</strong></td>
+                <td>$15</td>
+                <td>$120</td>
+                <td>推論特化、高価だが難問に強い</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Sora 2：動画生成モデル</h3>
+          <ul>
+            <li><strong>特徴</strong>：長尺・高解像度の動画生成、Sora 1 Turboの後継</li>
+            <li><strong>Sora 2 Pro</strong>：より高品質なモデルとして提供</li>
+            <li><strong>利用方法</strong>
+              <ul>
+                <li>iOSアプリとして配布、米国・カナダで段階的に招待制で提供</li>
+                <li>アプリダウンロード後、プッシュ通知に登録</li>
+                <li>招待受取後、sora.comからも利用可能</li>
+                <li>無料で十分な利用上限、Pro ユーザーはSora 2 Proにアクセス可能</li>
+              </ul>
+            </li>
+          </ul>
+
+          <h4>Sora 2 API料金（Video API）</h4>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>モデル</th>
+                <th>解像度</th>
+                <th>料金（秒あたり）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>sora-2</strong></td>
+                <td>標準解像度</td>
+                <td>$0.10/秒</td>
+              </tr>
+              <tr>
+                <td><strong>sora-2-pro</strong></td>
+                <td>標準解像度</td>
+                <td>$0.30/秒</td>
+              </tr>
+              <tr>
+                <td><strong>sora-2-pro</strong></td>
+                <td>高解像度 (1024×1792、1792×1024)</td>
+                <td>$0.50/秒</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>gpt-realtime-mini：音声モデル</h3>
+          <ul>
+            <li><strong>概要</strong>：低レイテンシーでリアルタイムな会話を可能にするAPI、音声・テキスト・画像など複数モーダル対応</li>
+            <li><strong>料金</strong>
+              <ul>
+                <li>gpt-realtime：入力$5.00/100万トークン</li>
+                <li>gpt-realtime-mini：入力$0.80/100万トークン（約70%安価）</li>
+                <li>キャッシュ済み入力：$0.08/100万トークン</li>
+                <li>出力：$2.4/100万トークン程度</li>
+              </ul>
+            </li>
+            <li><strong>利用開始</strong>：ベータからGAへ移行中、WebRTCやWebSocketで双方向ストリーム通信、APIキー保有者なら誰でも利用可能</li>
+          </ul>
+
+          <h3>gpt-image-1-mini：ビジョンモデル</h3>
+          <ul>
+            <li><strong>概要</strong>：画像理解と生成を行うモデル、gpt-image-1-miniは80%安価な廉価版</li>
+            <li><strong>用途</strong>：文書の図解、画像分析、UI生成など</li>
+            <li><strong>料金</strong>
+              <ul>
+                <li>gpt-image-1：入力$10/100万トークン、出力$40/100万トークン</li>
+                <li>gpt-image-1-mini：入力$2.50/100万トークン、出力$8/100万トークン（約80%安価）</li>
+                <li>キャッシュ済み入力：$0.25/100万トークン</li>
+              </ul>
+            </li>
+            <li><strong>利用開始</strong>：ChatGPT Plus/Proユーザーはメッセージ中で画像をアップロードして質問可能、APIは開発者向けに提供</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- セクション6: まとめ -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>📋 まとめ</h2>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <p>OpenAI DevDay 2025では、ChatGPTの機能拡張と開発者ツールが大幅に強化されました。</p>
+
+          <h3>主要なポイント</h3>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-number">📱</span>
+              <span class="stat-label">ChatGPT内アプリ<br>サードパーティー統合</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">🛠️</span>
+              <span class="stat-label">Apps SDK<br>MCP基盤の開発キット</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">🤖</span>
+              <span class="stat-label">AgentKit<br>エージェント構築簡素化</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">💻</span>
+              <span class="stat-label">Codex GA<br>コード実行エージェント</span>
+            </div>
+          </div>
+
+          <h3>新モデルの充実</h3>
+          <ul>
+            <li><strong>GPT-5 Pro</strong>：深い推論能力、重大エラー22%減少</li>
+            <li><strong>Sora 2</strong>：長尺・高解像度の動画生成</li>
+            <li><strong>gpt-realtime-mini</strong>：低レイテンシーでリアルタイムな会話、70%コスト削減</li>
+            <li><strong>gpt-image-1-mini</strong>：画像理解と生成、80%コスト削減</li>
+          </ul>
+
+          <h3>開発者エコシステムの進化</h3>
+          <div class="highlight-box">
+            <p><strong>Apps SDKとAgentic Commerce Protocol</strong>により、独自アプリの開発・収益化が容易に。開発者は自社サービスをChatGPTエコシステムへ統合し、ユーザーはより便利な体験を享受できるようになります。</p>
+            <p><strong>AgentKitのツール群</strong>により、エージェント構築・展開・評価が簡素化され、RampやCanvaなどの企業が大幅な開発工数削減を実現しています。</p>
+          </div>
+
+          <p style="margin-top: 30px;">これらの機能を活用することで、ユーザーはより便利な体験を享受し、開発者は自社サービスをChatGPTエコシステムへ統合しやすくなるでしょう。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><strong>情報源</strong></p>
+      <div class="footer-links">
+        <a href="https://openai.com/index/introducing-apps-in-chatgpt/" target="_blank">Introducing apps in ChatGPT</a>
+        <a href="https://developers.openai.com/apps-sdk/deploy/connect-chatgpt" target="_blank">Connect from ChatGPT</a>
+        <a href="https://openai.com/index/buy-it-in-chatgpt/" target="_blank">Buy it in ChatGPT</a>
+        <a href="https://openai.com/index/introducing-agentkit/" target="_blank">Introducing AgentKit</a>
+        <a href="https://openai.com/index/codex-now-generally-available/" target="_blank">Codex GA</a>
+        <a href="https://openai.com/ja-JP/index/introducing-gpt-5/" target="_blank">GPT-5 が登場</a>
+        <a href="https://openai.com/index/sora-2/" target="_blank">Sora 2</a>
+        <a href="https://openai.com/ja-JP/api/pricing/" target="_blank">料金</a>
+      </div>
+      <p style="margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.2);">
+        AI Intelligence Hub - 日次レポート<br>
+        © 2025 AI News Daily Slides
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      const section = header.parentElement;
+      section.classList.toggle('collapsed');
+    }
+
+    // 初期状態：すべてのセクションを展開
+    document.addEventListener('DOMContentLoaded', function() {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => {
+        section.classList.remove('collapsed');
+      });
+    });
+  </script>
+</body>
+</html>
