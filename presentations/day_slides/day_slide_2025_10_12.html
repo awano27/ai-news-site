@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Stitch徹底解析：UIデザインAI 4大ツール比較 - 2025/10/12</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
+      line-height: 1.8;
+      color: #1a1a2e;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc04 100%);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc04 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 15px;
+      font-weight: 800;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      font-weight: 500;
+    }
+
+    .nav {
+      background: #f8f9fa;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e9ecef;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav a {
+      color: #4285f4;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.3s;
+      display: inline-block;
+    }
+
+    .nav a:hover {
+      background: #4285f4;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .section {
+      margin-bottom: 35px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s;
+    }
+
+    .section:hover {
+      border-color: #4285f4;
+      box-shadow: 0 8px 16px rgba(66, 133, 244, 0.1);
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 20px 25px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.3rem;
+      user-select: none;
+    }
+
+    .section-header:hover {
+      background: linear-gradient(135deg, #3367d6 0%, #2d7d3e 100%);
+    }
+
+    .toggle-icon {
+      font-size: 1.5rem;
+      transition: transform 0.3s;
+      font-weight: bold;
+    }
+
+    .section-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      background: #ffffff;
+    }
+
+    .section-content.active {
+      max-height: 8000px;
+      transition: max-height 0.6s ease-in;
+    }
+
+    .section-body {
+      padding: 30px;
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, #e8f0fe 0%, #e6f4ea 100%);
+      border-left: 5px solid #4285f4;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+
+    .highlight-box strong {
+      color: #4285f4;
+      font-size: 1.1rem;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 0.9rem;
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .comparison-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comparison-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .tool-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+
+    .tool-card h4 {
+      color: #4285f4;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .badge-google {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+    }
+
+    .badge-free {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .badge-hot {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .key-point {
+      background: #fff9e6;
+      border-left: 4px solid #fbbc04;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 6px;
+    }
+
+    .key-point strong {
+      color: #d97706;
+    }
+
+    ul {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+
+    ul li {
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+
+    .link-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: all 0.3s;
+    }
+
+    .link-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.6rem;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .comparison-table {
+        font-size: 0.75rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎨 Google Stitch徹底解析</h1>
+      <p class="subtitle">UIデザインAI 4大ツール比較：Stitch vs Figma Make vs Framer vs Canva</p>
+      <p class="subtitle" style="margin-top: 10px; font-size: 0.95rem;">2025年10月12日 | 個人デザイナーのための選択ガイド</p>
+    </div>
+
+    <div class="nav">
+      <a href="../day_slides_list.html">← 日次スライド一覧</a>
+      <a href="../../index.html">🏠 ホーム</a>
+      <a href="https://developers.googleblog.com/ja/stitch-a-new-way-to-design-uis/" target="_blank">🔗 Stitch公式</a>
+    </div>
+
+    <div class="content">
+      <!-- セクション1: エグゼクティブサマリー -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <span>📊 エグゼクティブサマリー：Stitchとは何か</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content active">
+          <div class="section-body">
+            <div class="highlight-box">
+              <strong>🎯 Google Stitchとは</strong>
+              <p style="margin-top: 10px;">Googleが開発した実験的なUIデザイン支援ツール。テキストや画像プロンプトから数分でUIデザインとフロントエンドコードを生成。2025年Google I/Oで発表され、Gemini 2.5 Proを活用。現在は完全無料のβ版として提供中。</p>
+            </div>
+
+            <h3 style="color: #4285f4; margin: 25px 0 15px 0;">🚀 主要機能</h3>
+            <ul>
+              <li><strong>自然言語プロンプト対応</strong>：「ショッピングカート付きのモバイルアプリを作成したい」といった日本語説明からUI自動生成</li>
+              <li><strong>画像・ワイヤーフレーム入力</strong>：手描きスケッチやスクリーンショットをアップロードしてレイアウト解析</li>
+              <li><strong>デザイン反復生成</strong>：複数バリエーションを一度に提案、AIとの対話で細かな修正が可能</li>
+              <li><strong>コード&Figma連携</strong>：HTML/CSSコードを自動生成、Figmaへのコピーも対応</li>
+            </ul>
+
+            <div class="key-point">
+              <strong>⚠️ 重要な位置づけ</strong>
+              <p style="margin-top: 10px;">現状のStitchは「デザイン案の自動生成とコード化」というニッチを埋める先進的ツールだが、完全なプロダクション対応には至っておらず、既存ツールを補完する立ち位置。プロのデザイナーが初期デザイン作業を効率化する用途に適している。</p>
+            </div>
+
+            <h3 style="color: #4285f4; margin: 25px 0 15px 0;">🌐 日本語対応の現状</h3>
+            <ul>
+              <li><strong>プロンプト入力</strong>：日本語による指示が可能で、平易な説明からでもUI生成</li>
+              <li><strong>インターフェース</strong>：基本は英語だが、プロンプト内で「日本語にして」と指示すると一部日本語化</li>
+              <li><strong>最近のアップデート</strong>：日本語でデザイナーに指示するようにUI変更を加えられるようになり、英語が苦手でも利用しやすく進化</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション2: 4ツール比較表 -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <span>🔧 4大ツール徹底比較：機能・価格・操作性</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">ツール</th>
+                  <th style="width: 30%;">AI支援の特徴</th>
+                  <th style="width: 25%;">ノーコード性</th>
+                  <th style="width: 15%;">操作性</th>
+                  <th style="width: 15%;">価格</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Google Stitch</strong><span class="badge badge-free">β無料</span></td>
+                  <td>
+                    ・日本語/英語プロンプトから複数UI画面+コード自動生成<br>
+                    ・対話型チャットでデザイン編集・追記<br>
+                    ・HTML/CSSエクスポート、Figmaコピー対応
+                  </td>
+                  <td>
+                    ・生成コードはそのまま利用可能だが、ホスティング等は要準備<br>
+                    ・Figmaへ移行して本格編集が可能
+                  </td>
+                  <td>
+                    ・AIチャット形式で直観的<br>
+                    ・デザインツールより対話ツールに近い操作感
+                  </td>
+                  <td>
+                    無料（β版）<br>
+                    ※正式版で有料化の可能性あり
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Figma Make</strong><span class="badge badge-google">統合型</span></td>
+                  <td>
+                    ・Figma統合AIでプロンプトから動的UIプロトタイプ生成<br>
+                    ・既存Figmaコンポーネント組み込み可能<br>
+                    ・URL公開機能付き
+                  </td>
+                  <td>
+                    ・即実行可能なプロトタイプ+コード生成<br>
+                    ・コードは参考実装レベル、製品化には再実装必要
+                  </td>
+                  <td>
+                    ・Figma利用経験者には違和感なし<br>
+                    ・Proプラン以上でFigma本体で二次編集可能
+                  </td>
+                  <td>
+                    無料プランでMake利用可<br>
+                    Pro: $12/月（Figmaコピー機能）
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Framer</strong><span class="badge badge-hot">完結型</span></td>
+                  <td>
+                    ・プロンプトから実用レベルWebページを数秒で構築<br>
+                    ・テーマ選択、多言語対応、AIコピー生成<br>
+                    ・SEO最適化済み
+                  </td>
+                  <td>
+                    ・コード不要でサイト公開・運用可能<br>
+                    ・独自ドメイン設定、CMS完備<br>
+                    ・SEO最適化自動
+                  </td>
+                  <td>
+                    ・デザインキャンバス+サイト構築ツール融合<br>
+                    ・機能豊富で習熟に時間要
+                  </td>
+                  <td>
+                    Free: 1サイト、月1,000訪問<br>
+                    Basic: $15/月、Pro: $25/月
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Canva</strong><span class="badge badge-free">万能型</span></td>
+                  <td>
+                    ・Canva AIアシスタントがチャットでデザイン支援<br>
+                    ・Magic Designがレイアウト案提示<br>
+                    ・Canva Codeで簡易プログラム機能自動生成
+                  </td>
+                  <td>
+                    ・完全ノーコードで印刷物~Web掲載まで対応<br>
+                    ・Webサイト公開機能あり（独自ドメイン不可）<br>
+                    ・Canva内で閉じた環境
+                  </td>
+                  <td>
+                    ・シンプルUIで初心者も数分で習得可能<br>
+                    ・膨大なテンプレート、ドラッグ操作中心
+                  </td>
+                  <td>
+                    無料プランで大部分利用可<br>
+                    Pro: 約1,500円/月
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="highlight-box" style="margin-top: 25px;">
+              <strong>💡 比較サマリー</strong>
+              <ul style="margin-top: 10px;">
+                <li><strong>Stitch</strong>：無料で実験的、AI対話でアイデア出しに最適</li>
+                <li><strong>Figma Make</strong>：既存Figmaユーザーに最適、プロトタイプ高速化</li>
+                <li><strong>Framer</strong>：ノーコードで本格Webサイト構築・公開まで完結</li>
+                <li><strong>Canva</strong>：初心者向け万能ツール、デザイン全般をカバー</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション3: コストパフォーマンス分析 -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <span>💰 コストパフォーマンス：個人利用での費用対効果</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <div class="tool-card">
+              <h4>🆓 Google Stitch：完全無料</h4>
+              <ul>
+                <li><strong>現状</strong>：Googleアカウントさえあればフル機能を試せ、生成回数制限なし（2025年10月時点）</li>
+                <li><strong>コスパ評価</strong>：現状最も高いが、正式リリース時に有料化の可能性あり</li>
+                <li><strong>リスク</strong>：Googleが実験的プロジェクトを終了するリスクを考慮必要</li>
+                <li><strong>推奨</strong>：とりあえずAIデザインを体験したいなら費用ゼロで始められる点は魅力</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>🎨 Figma Make：無料~$12/月</h4>
+              <ul>
+                <li><strong>無料プラン</strong>：Make機能自体は追加料金なしで利用可能、プロトタイプ共有リンクで確認可</li>
+                <li><strong>有料プラン</strong>：月額約$12のProプランで生成デザインをFigma編集ファイルにコピー可能</li>
+                <li><strong>コスパ評価</strong>：日常的にFigmaを使う個人デザイナーには投資価値が高い（Make単体に課金は不要）</li>
+                <li><strong>推奨</strong>：Makeを試すだけなら無料、実際のプロジェクトに組み込むならProプラン推奨</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>🚀 Framer：$5~$25/月</h4>
+              <ul>
+                <li><strong>Freeプラン</strong>：1サイト・Framerサブドメイン・月1,000PV制限（ポートフォリオ程度なら可）</li>
+                <li><strong>有料プラン</strong>：Basic $5/月（年払い）でカスタムドメイン対応、Pro $15~$25/月でページ数・訪問者増対応</li>
+                <li><strong>コスパ評価</strong>：「レンタルサーバ+Web制作代行費」を浮かせる価値あり、無料では制限多い</li>
+                <li><strong>推奨</strong>：ノーコードWeb開発を完結したい場合、有料プランで真価発揮</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>✨ Canva：無料~1,500円/月</h4>
+              <ul>
+                <li><strong>無料プラン</strong>：数百万点の素材・テンプレート、多くのAI機能が利用可能で個人利用なら十分</li>
+                <li><strong>有料プラン</strong>：Pro（月額約1,500円）でプレミアム素材使い放題、背景透過、ブランドキット管理等</li>
+                <li><strong>コスパ評価</strong>：無料でも困らないレベル、クライアントワークで高品質素材を多用するならPro推奨</li>
+                <li><strong>推奨</strong>：まず無料→必要に応じて課金という段階的アプローチが適切</li>
+              </ul>
+            </div>
+
+            <div class="key-point">
+              <strong>💡 コストパフォーマンス総評</strong>
+              <ul style="margin-top: 10px;">
+                <li><strong>予算ゼロ</strong>：Stitch（完全無料、実験的）→ Canva無料版（汎用）</li>
+                <li><strong>月$10前後</strong>：Figma Pro $12（既存ユーザー向け）</li>
+                <li><strong>月$15-25</strong>：Framer Pro（本格Webサイト構築）</li>
+                <li><strong>月$13-15</strong>：Canva Pro（クリエイティブ全般）</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション4: 専門家レビュー -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <span>👨‍💻 専門家レビュー＆SNS評価</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <h3 style="color: #4285f4; margin: 0 0 15px 0;">📝 Stitchの専門家評価</h3>
+            <div class="tool-card">
+              <h4>✅ 高評価ポイント</h4>
+              <ul>
+                <li><strong>デザイン速度と反復性</strong>：「将来的には頭の中のイメージを伝えるだけで動くサイトができる可能性を感じた」</li>
+                <li><strong>プロトタイピング用途</strong>：「クライアントに"こんな感じです"とすぐ提示できる便利さ」で初期デザイン案作成時間を劇的短縮</li>
+                <li><strong>AIチャット形式</strong>：対話型で直感的、非エンジニアでもアイデアを形にしやすい</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>⚠️ 課題と注意点</h4>
+              <ul>
+                <li><strong>完結性の欠如</strong>：「非デザイナーがこれ一つで完結できるツールではない」、生成物はモックで最終実装が必要</li>
+                <li><strong>日本語精度</strong>：出力の日本語精度に改善余地あり、フォント選択等で課題も報告</li>
+                <li><strong>サービス継続性</strong>：「Googleが実験的プロジェクトを終了してしまうリスク」を考慮必要</li>
+              </ul>
+            </div>
+
+            <h3 style="color: #4285f4; margin: 25px 0 15px 0;">🗣️ SNS上のユーザー評価</h3>
+            <div class="tool-card">
+              <h4>🐦 Twitter(X)</h4>
+              <ul>
+                <li><strong>驚嘆の声</strong>：「たった20秒でUIデザイン完成？」「これは革命だ」「デザイナー職に衝撃」</li>
+                <li><strong>日本語対応歓迎</strong>：「Stitchがアップデートされて日本語で指示できるようになった」と日本ユーザーから歓迎</li>
+                <li><strong>冷静な意見</strong>：プロからは「出てきたデザインを結局手直しする必要はある」「様子見」という声も</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>🔴 Reddit</h4>
+              <ul>
+                <li><strong>驚きと失望の両方</strong>：「めちゃくちゃ高機能で正直怖い」vs「地図アプリ頼んだら壁に飾られた地図の絵が出てきた」</li>
+                <li><strong>Figma Make優位論</strong>：「Stitchは遅くて荒削り」「Figma Makeの方が遥かに進んでいる」</li>
+                <li><strong>Google不安論</strong>：「Googleはよくプロジェクトを潰すから、結局Figmaが生き残るのでは」</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>📰 Hacker News</h4>
+              <ul>
+                <li><strong>技術的分析</strong>：「Galileo AIを買収してStitchにした経緯」、Figma対抗戦略の分析</li>
+                <li><strong>懐疑的意見</strong>：「Googleのプロジェクトは続かない」「v0や他競合もいる中で追いつこうとしている印象」</li>
+                <li><strong>期待の声</strong>：「自社のUI制作フローに組み込みたい」「Figmaから乗り換え検討」</li>
+              </ul>
+            </div>
+
+            <div class="highlight-box">
+              <strong>📊 SNS評価総括</strong>
+              <p style="margin-top: 10px;">「画期的だ」「仕事が楽になる」というポジティブな反応と、「まだ荒削り」「本当に取って代われるか疑問」という慎重な反応が併存。共通しているのは関心の高さで、デザイン/開発コミュニティで熱心に議論されている。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション5: 他ツールの評価 -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <span>🏆 Figma Make・Framer・Canvaの評価</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <div class="tool-card">
+              <h4>🎨 Figma Makeの評価</h4>
+              <ul>
+                <li><strong>業界注目度</strong>：「FigmaはUI/UXの古典的手法をAIで刷新しようとしている」と専門家が評価</li>
+                <li><strong>統合の強み</strong>：デザインから実装・公開まで一気通貫で行う構想が進行中</li>
+                <li><strong>Stitch優位論</strong>：「Stitchよりも数段先を行っている」との声、既存ツールにAI付加のアドバンテージ</li>
+                <li><strong>課題</strong>：Figma自体の学習コスト、奇抜なレイアウトは苦手との指摘も</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>🚀 Framerの評価</h4>
+              <ul>
+                <li><strong>自由度の高さ</strong>：「Webflowと比較して高度にカスタマイズ可能」との評価</li>
+                <li><strong>革新性</strong>：「AIによるコピーライティングや多言語対応まで含めてサイト作成の概念を変える存在」</li>
+                <li><strong>価格懸念</strong>：他のAIサイトビルダーより高め（Proで月25ドル）</li>
+                <li><strong>学習曲線</strong>：「ある程度デザイン原則を知らないと細部調整は難しい」</li>
+                <li><strong>位置づけ</strong>：本格派向けのツール、時間とコストをかけても自由度の高いサイトを作りたい層に支持</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>✨ Canvaの評価</h4>
+              <ul>
+                <li><strong>民主化の体現</strong>：「デザインの民主化を体現したツール」として高評価</li>
+                <li><strong>AI統合</strong>：「断片化していた複数のAIツール体験を統合した、全てのクリエイターのための万能アシスタント」</li>
+                <li><strong>利便性</strong>：「とにかくスピーディにアウトプットを出すには代えがたい」</li>
+                <li><strong>制約</strong>：プロのデザイナーから見ると高度なブランディングには向かない面も</li>
+                <li><strong>用途</strong>：SNS用クリエイティブ制作や社内資料作成でAI自動提案が有効、補助輪として優秀</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション6: 選択ガイド -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <span>🎯 個人デザイナーへの選択ガイド：どのツールを選ぶべきか</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <h3 style="color: #4285f4; margin: 0 0 15px 0;">🔍 用途別推奨ツール</h3>
+
+            <div class="tool-card">
+              <h4>👨‍🎨 既にデザイン経験があり、既存ワークフローを強化したい</h4>
+              <p><strong>推奨：Figma Make</strong></p>
+              <ul>
+                <li>普段からFigmaを使っているなら、AIプロトタイプ生成機能追加で生産性向上</li>
+                <li>デザインの細部コントロールやチームコラボが従来通り可能</li>
+                <li>既存スキルを活かしつつAI恩恵を得られる</li>
+                <li>Stitchもアイデア出しに使えるが、現段階ではFigmaへのシームレス統合性でMakeが優位</li>
+                <li><strong>アプローチ</strong>：まず無料プランでMakeを試し、必要ならFigma Proに課金</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>🌐 コーディングせずに実際のWebサイトを作りたい</h4>
+              <p><strong>推奨：Framer</strong></p>
+              <ul>
+                <li>デザインから公開までノーコードで完遂、ポートフォリオサイトやスタートアップLPに最適</li>
+                <li>AIがベースのデザインを作成、デザイナーでも開発者でもない個人にも敷居が低い</li>
+                <li>後からカスタマイズすれば凝った表現も可能</li>
+                <li>無料プランの制約に注意、独自ドメインなどが必要なら月数百~数千円のコスト見込み</li>
+                <li><strong>強み</strong>：「完成品」を得ることを優先するなら強力な選択肢</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>🎨 デザイン初心者や手軽さ重視</h4>
+              <p><strong>推奨：Canva</strong></p>
+              <ul>
+                <li>最もハードルが低い、バナー画像やプレゼン資料、簡易Webページを素早く作成</li>
+                <li>AIアシスタントに「○○なデザインを作って」と頼めば雛形が出現、あとはテキスト修正程度で完成</li>
+                <li>個人ブログの挿絵やSNS投稿画像を量産する用途にピッタリ</li>
+                <li>UI作成ツールとしては高度なことはできないが、デザイン不慣れな個人が最初に触るにはうってつけ</li>
+                <li><strong>アプローチ</strong>：まず無料で使用、必要に応じProにアップグレード</li>
+              </ul>
+            </div>
+
+            <div class="tool-card">
+              <h4>💡 Stitchの活用法</h4>
+              <p><strong>位置づけ：発想段階のブレストツール、コード付きモック作成の実験ツール</strong></p>
+              <ul>
+                <li>「新規アプリの画面を思いついたけどデザインする時間が無い」場合にプロンプト投入で数分で具体的画面イメージ+コード断片入手</li>
+                <li>叩き台にFigmaで洗練させたり、コードを参考に実装する補助的使い方が現状賢明</li>
+                <li>日本語で指示を出せる点は魅力、アイデア出しのハードル低下</li>
+                <li><strong>注意</strong>：Stitchだけで完結するには限界あり、成果物の活用方法（デザイン仕上げや実装への引き継ぎ）まで考えて使用</li>
+              </ul>
+            </div>
+
+            <div class="highlight-box">
+              <strong>🎯 最終推奨：ハイブリッドアプローチ</strong>
+              <p style="margin-top: 10px;">Stitchは革新的だが、現時点では他ツールを置き換える存在ではない。「Googleはこの種のプロジェクトを数年で終了してしまうかも」という指摘も踏まえ、現段階ではStitchを試験的に活用しつつも、コアの制作フローは他ツール（FigmaやFramer等）で支えるハイブリッドなアプローチが望ましい。</p>
+            </div>
+
+            <div class="key-point">
+              <strong>💪 重要なのはAIを使いこなすこと</strong>
+              <p style="margin-top: 10px;">ツールの進化は目覚ましく、各社が競い合ってAI×デザイン機能を充実中。1〜2年先には情勢が変わる可能性もあるが、重要なのはデザイナー自身がAIツールを使いこなして主導権を握ること。便利なツールを待つより今ある手段で価値を提供しつつ、AIを自分のクリエイティブプロセスに組み込んでいく柔軟性が求められる。各ツールの強みを理解して適材適所で使い分け、個人デザイナーとしての生産性と表現力を最大化しよう。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      const content = header.nextElementSibling;
+      const icon = header.querySelector('.toggle-icon');
+
+      content.classList.toggle('active');
+      icon.style.transform = content.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    // 最初のセクションをデフォルトで開く
+    document.addEventListener('DOMContentLoaded', function() {
+      const firstSection = document.querySelector('.section-content');
+      if (firstSection) {
+        firstSection.classList.add('active');
+      }
+    });
+  </script>
+</body>
+</html>
