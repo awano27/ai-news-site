@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2025年スマホ×ローカルLLM最前線：会議メモと通話体験の進化 - 2025/10/13</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
+      line-height: 1.8;
+      color: #1a1a2e;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      color: #667eea;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      color: #764ba2;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .date {
+      font-size: 1rem;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .section:hover {
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 25px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1.3rem;
+    }
+
+    .toggle-icon {
+      transition: transform 0.3s ease;
+      font-size: 1.5rem;
+    }
+
+    .section-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+      padding: 0 25px;
+    }
+
+    .section-content.active {
+      max-height: 5000px;
+      padding: 25px;
+    }
+
+    .highlight {
+      background: linear-gradient(120deg, #f093fb15 0%, #667eea15 100%);
+      padding: 20px;
+      border-left: 4px solid #667eea;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .feature-card {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #e0e7ff;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.15);
+    }
+
+    .feature-card h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 15px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+
+    .comparison-table tr:hover {
+      background: #f8f9ff;
+    }
+
+    .platform-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .badge-pixel {
+      background: #4285f4;
+      color: white;
+    }
+
+    .badge-galaxy {
+      background: #5f7ceb;
+      color: white;
+    }
+
+    .badge-apple {
+      background: #000000;
+      color: white;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    .info-box {
+      background: #d1ecf1;
+      border-left: 4px solid #17a2b8;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    .tip-box {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    .security-alert {
+      background: #f8d7da;
+      border-left: 4px solid #dc3545;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    ul, ol {
+      margin-left: 25px;
+      margin-top: 15px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+
+    strong {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+
+    .nav {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #e0e7ff;
+      text-align: center;
+    }
+
+    .nav a {
+      display: inline-block;
+      margin: 0 15px;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav a:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-table {
+        font-size: 0.9rem;
+      }
+
+      .nav a {
+        display: block;
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📱 2025年スマホ×ローカルLLM最前線</h1>
+      <p class="subtitle">Pixel 10／Galaxy AI／Apple Intelligenceがつくる「会議メモと通話体験」アップデート</p>
+      <p class="date">2025年10月13日</p>
+    </div>
+
+    <!-- セクション1: エグゼクティブサマリー -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>📋 エグゼクティブサマリー：3大プラットフォームの現在地</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="highlight">
+          <p><strong>端末内AIの実戦配備が2025年の現実に</strong></p>
+          <p>通話翻訳・自動要約・会議メモが"その場"で完結する時代。ビジネス現場はプライバシー優先のハイブリッド運用へシフト。</p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4><span class="platform-badge badge-pixel">Pixel 10</span></h4>
+            <ul>
+              <li><strong>Magic Cue</strong>: アプリ横断で関連情報を先回り提示</li>
+              <li><strong>Voice Translate</strong>: 完全オンデバイス通話翻訳</li>
+              <li><strong>Call Notes</strong>: 通話要約＋次のアクション生成</li>
+              <li><strong>Take a Message</strong>: 不在電話の自動応答・転写</li>
+              <li><strong>Recorder要約</strong>: Gemini Nanoでオフライン処理</li>
+            </ul>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+              参照: <a href="https://blog.google/products/pixel/google-pixel-10-ai-features-updates/" target="_blank">Google Blog</a>
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="platform-badge badge-galaxy">Galaxy AI</span></h4>
+            <ul>
+              <li><strong>Live Translate</strong>: 通話の同時翻訳</li>
+              <li><strong>Interpreter</strong>: 対面での双方向翻訳</li>
+              <li><strong>Transcript/Note Assist</strong>: 録音→転写・要約・翻訳</li>
+              <li><strong>展開規模</strong>: 年内4億台への拡大計画</li>
+              <li><strong>料金</strong>: 2025年末まで無料（公式明記）</li>
+            </ul>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+              参照: <a href="https://www.samsung.com/us/support/answer/ANS10000935/" target="_blank">Samsung Support</a>
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h4><span class="platform-badge badge-apple">Apple Intelligence</span></h4>
+            <ul>
+              <li><strong>Notes/Phone統合</strong>: 録音→自動転写→要約</li>
+              <li><strong>通話録音</strong>: 相手への自動アナウンス付き</li>
+              <li><strong>PCC (Private Cloud Compute)</strong>: 個人データ非保持でクラウド処理</li>
+              <li><strong>透明性設計</strong>: 外部研究者がコード検証可能</li>
+            </ul>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+              参照: <a href="https://www.apple.com/newsroom/2024/06/introducing-apple-intelligence-for-iphone-ipad-and-mac/" target="_blank">Apple Newsroom</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション2: Pixel 10詳細 -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>🔵 Pixel 10：Tensor G5 × Gemini Nanoの実力</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <h3 style="color: #667eea; margin-bottom: 20px;">主要機能の詳細</h3>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>機能名</th>
+              <th>概要</th>
+              <th>処理方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Magic Cue</strong></td>
+              <td>Gmailやメッセージから必要情報を自動提示（注文番号、搭乗コード等）</td>
+              <td>オンデバイス（Tensor G5 + Gemini Nano）</td>
+            </tr>
+            <tr>
+              <td><strong>Voice Translate</strong></td>
+              <td>通話の双方向翻訳、話者の声質を保持</td>
+              <td>完全オンデバイス</td>
+            </tr>
+            <tr>
+              <td><strong>Call Notes</strong></td>
+              <td>通話の要点と次のアクションを自動生成</td>
+              <td>端末内保存・処理</td>
+            </tr>
+            <tr>
+              <td><strong>Take a Message</strong></td>
+              <td>不在着信に自動応答→リアルタイム転写→アクション提案</td>
+              <td>オンデバイス</td>
+            </tr>
+            <tr>
+              <td><strong>Recorder要約</strong></td>
+              <td>Gemini Nanoでオフライン要約、長尺対応強化</td>
+              <td>オンデバイス（AICore経由）</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="info-box">
+          <strong>🔧 技術的背景</strong>
+          <p>Gemini NanoはAndroidの<strong>AICore</strong>で常駐し、低遅延推論とモデル更新を担当。Pixel 9世代でマルチモーダル版が導入され、より長い録音や高品質要約に対応。</p>
+          <p style="margin-top: 10px;">
+            参照: <a href="https://developer.android.com/ai/gemini-nano" target="_blank">Android Developers - Gemini Nano</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション3: Galaxy AI vs Apple Intelligence -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>⚖️ Galaxy AI vs Apple Intelligence：アプローチの違い</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <h3 style="color: #667eea; margin-bottom: 20px;">機能比較</h3>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>カテゴリ</th>
+              <th>Galaxy AI</th>
+              <th>Apple Intelligence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>通話翻訳</strong></td>
+              <td>Live Translate（端末内）</td>
+              <td>Live Translation（段階展開中）</td>
+            </tr>
+            <tr>
+              <td><strong>対面翻訳</strong></td>
+              <td>Interpreter（双方向）</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td><strong>録音→要約</strong></td>
+              <td>Transcript/Note Assist（転写・要約・翻訳）</td>
+              <td>Notes/Phone統合（転写＋要約）</td>
+            </tr>
+            <tr>
+              <td><strong>クラウド処理</strong></td>
+              <td>一部機能でサーバー利用</td>
+              <td>PCC（個人データ非保持設計）</td>
+            </tr>
+            <tr>
+              <td><strong>展開規模</strong></td>
+              <td>年内4億台目標</td>
+              <td>iOS 18以降で段階展開</td>
+            </tr>
+            <tr>
+              <td><strong>料金</strong></td>
+              <td>2025年末まで無料（公式明記）</td>
+              <td>Apple Intelligence機能は無料</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight">
+          <h4 style="color: #667eea; margin-bottom: 15px;">🌟 Galaxy AIの強み</h4>
+          <ul>
+            <li><strong>展開規模</strong>: 年内4億台という圧倒的な導入計画</li>
+            <li><strong>無料明記</strong>: 2025年末まで無償提供を公式サポートで明示</li>
+            <li><strong>包括的機能</strong>: 通話・対面・ノート連携で翻訳〜要約を網羅</li>
+          </ul>
+          <p style="margin-top: 10px;">
+            参照: <a href="https://news.samsung.com/sg/samsung-continues-to-expand-galaxy-ai-as-consumers-show-increasing-reliance-on-mobile-ai" target="_blank">Samsung Newsroom</a>
+          </p>
+        </div>
+
+        <div class="highlight">
+          <h4 style="color: #667eea; margin-bottom: 15px;">🍎 Apple Intelligenceの設計思想</h4>
+          <ul>
+            <li><strong>プライバシー優先</strong>: PCCで個人データを見ない設計</li>
+            <li><strong>透明性</strong>: 外部研究者によるコード検証が可能</li>
+            <li><strong>法令遵守</strong>: 通話録音は自動アナウンス付き（地域法令対応）</li>
+          </ul>
+          <p style="margin-top: 10px;">
+            参照: <a href="https://support.apple.com/guide/iphone/apple-intelligence-and-privacy-iphe3f499e0e/ios" target="_blank">Apple Support - Privacy</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション4: 実務活用ガイド -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>💼 実務Tips：安全×実用のハイブリッド運用</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <h3 style="color: #667eea; margin-bottom: 20px;">シーン別の最適解</h3>
+
+        <div class="tip-box">
+          <h4><strong>✅ その場で完結させる場合</strong></h4>
+          <ul>
+            <li><strong>通話翻訳</strong>: Pixel 10のVoice Translate、GalaxyのLive Translate</li>
+            <li><strong>要点抽出</strong>: Pixel 10のCall Notes/Take a Message</li>
+            <li><strong>対面通訳</strong>: GalaxyのInterpreter</li>
+            <li><strong>会議メモ</strong>: Pixel RecorderやGalaxyのTranscript Assist</li>
+          </ul>
+          <p style="margin-top: 10px; font-weight: 600;">→ プライバシーと低遅延を重視する場面に最適</p>
+        </div>
+
+        <div class="tip-box">
+          <h4><strong>📝 厳密な議事録が必要な場合</strong></h4>
+          <ul>
+            <li><strong>下処理</strong>: 端末内で転写（Recorder、Notes等）</li>
+            <li><strong>深い要約</strong>: 必要時のみクラウド/PCCで処理</li>
+            <li><strong>話者分離</strong>: 長時間・多人数会議は端末資源の制約あり</li>
+            <li><strong>タスク抽出</strong>: サーバー級モデルが有利な場面も</li>
+          </ul>
+          <p style="margin-top: 10px; font-weight: 600;">→ ハイブリッド運用が現実的な解決策</p>
+        </div>
+
+        <div class="info-box">
+          <h4><strong>🔓 フルローカル運用（自前インフラ向き）</strong></h4>
+          <p>完全オフライン環境が必要な場合のOSS選択肢：</p>
+          <ul>
+            <li><strong>MLC LLM / MLC Chat</strong>: スマホでLLMをネイティブ実行</li>
+            <li><strong>Whisper.cpp</strong>: オープンな端末内音声認識エンジン</li>
+            <li><strong>Meetily</strong>: 100%ローカル処理の会議転写・要約（自ホスト型）</li>
+          </ul>
+          <p style="margin-top: 10px;">
+            参照: <a href="https://github.com/mlc-ai/mlc-llm" target="_blank">MLC LLM on GitHub</a>
+          </p>
+        </div>
+
+        <div class="warning-box">
+          <h4><strong>⚠️ ローカル実行の限界</strong></h4>
+          <ul>
+            <li>長時間録音（15分超）での話者分離精度</li>
+            <li>多人数会議での高度なセマンティック分析</li>
+            <li>NPU/メモリ容量による品質変動</li>
+            <li>サーバー級の巨大モデルが必要な深い要約</li>
+          </ul>
+          <p style="margin-top: 10px; font-weight: 600;">→ 用途に応じてクラウドとの使い分けが重要</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション5: セキュリティ要点 -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>🛡️ セキュリティ視点：ローカルでも"設計"が肝</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <h3 style="color: #667eea; margin-bottom: 20px;">LLM特有の脅威と対策</h3>
+
+        <div class="security-alert">
+          <h4><strong>🚨 主要な脅威</strong></h4>
+          <ul>
+            <li><strong>プロンプトインジェクション</strong>: 悪意ある入力でモデルの動作を操作</li>
+            <li><strong>出力ハンドリング不備</strong>: 生成結果の検証・サニタイズ不足</li>
+            <li><strong>データ汚染</strong>: 学習データへの不正混入</li>
+            <li><strong>間接プロンプトインジェクション</strong>: 2025年の高度化トレンド</li>
+          </ul>
+          <p style="margin-top: 15px; font-weight: 600;">
+            ⚠️ これらはローカル/クラウド問わず対策必須
+          </p>
+        </div>
+
+        <div class="tip-box">
+          <h4><strong>✅ 対策フレームワーク</strong></h4>
+          <ul>
+            <li><strong>OWASP LLM Top 10 (2025)</strong>: LLM特有の脅威リストと対策チートシート
+              <br><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank">→ OWASP公式サイト</a>
+            </li>
+            <li><strong>NIST AI RMF + GenAIプロファイル</strong>: 要件定義→運用監視までの統制フレーム
+              <br><a href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf" target="_blank">→ NIST Publications</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="info-box">
+          <h4><strong>🔐 実装時の必須対策</strong></h4>
+          <ul>
+            <li><strong>入力検証</strong>: 厳格なバリデーションと型チェック</li>
+            <li><strong>役割分離</strong>: 権限の最小化とサンドボックス化</li>
+            <li><strong>出力サニタイズ</strong>: 生成結果の検証とエスケープ処理</li>
+            <li><strong>E2E監査</strong>: ログ化と継続的監視体制</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション6: よくある誤解の訂正 -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>❌ よくある誤解の訂正</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="warning-box">
+          <h4><strong>誤解1: NotebookLMはオンデバイス機能</strong></h4>
+          <p><strong>✅ 正解</strong>: NotebookLMは<strong>クラウドベースのサービス</strong>（Gemini 1.5/2.x使用）</p>
+          <ul>
+            <li>Web/クラウド前提の製品</li>
+            <li>Enterprise版も同様にクラウド処理</li>
+            <li>Pixelの"オンデバイス"機能とは別系統</li>
+          </ul>
+          <p style="margin-top: 10px;">
+            参照: <a href="https://notebooklm.google/" target="_blank">Google NotebookLM</a>
+          </p>
+        </div>
+
+        <div class="warning-box">
+          <h4><strong>誤解2: Galaxy AIは恒久無料</strong></h4>
+          <p><strong>✅ 正解</strong>: 公式表記は<strong>「2025年末まで無料」</strong></p>
+          <ul>
+            <li>Samsung公式サポートで明記</li>
+            <li>2026年以降の扱いは未定</li>
+            <li>一部機能は条件付きの可能性あり</li>
+            <li>「恒久無料」は報道・解説系の見解</li>
+          </ul>
+          <p style="margin-top: 10px;">
+            参照: <a href="https://www.samsung.com/levant/galaxy-ai/" target="_blank">Samsung Galaxy AI</a>
+          </p>
+        </div>
+
+        <div class="warning-box">
+          <h4><strong>誤解3: ローカルLLMは長時間録音に弱い</strong></h4>
+          <p><strong>✅ 正解</strong>: 端末資源に依存するが、<strong>世代更新で長尺対応が向上</strong></p>
+          <ul>
+            <li>Gemini Nanoは世代ごとに長尺対応を強化</li>
+            <li>「10-15分超で精度低下」という断定は根拠不十分</li>
+            <li>品質は内容や端末スペックに依存</li>
+            <li>必要に応じてハイブリッド運用が現実的</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション7: 今後の注目ポイント -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span>🔮 これから3か月の注目ポイント</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>🔵 Pixel 10のNanoアップデート</h4>
+            <ul>
+              <li>AICore経由でのモデル継続更新</li>
+              <li>RecorderやCall Notesの長尺・多人数シナリオ対応</li>
+              <li>Tensor G5の性能最適化</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h4>💜 Galaxy AI "4億台"進捗</h4>
+            <ul>
+              <li>法人への導入実績</li>
+              <li>翻訳・議事録ワークフローの定着度</li>
+              <li>2026年以降の無償提供扱い</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h4>🍎 Apple Intelligenceの機能拡張</h4>
+            <ul>
+              <li>Notes/Phone録音要約の展開範囲拡大</li>
+              <li>Live Translationの地域展開</li>
+              <li>PCCの運用透明性追加発表</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <h4><strong>📊 市場動向</strong></h4>
+          <p>2025年は「オンデバイスAI元年」とも言える転換期。プライバシー意識の高まりと技術成熟により、端末内処理が主流化する見込み。</p>
+          <p style="margin-top: 10px;">企業導入では<strong>「機密はローカル、深い分析はクラウド」というハイブリッド運用</strong>がベストプラクティスとして確立していくでしょう。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ナビゲーション -->
+    <div class="nav">
+      <a href="../day_slides_list.html">📋 スライド一覧に戻る</a>
+      <a href="../../index.html">🏠 ホームへ</a>
+      <a href="https://blog.google/products/pixel/google-pixel-10-ai-features-updates/" target="_blank">📄 参照元（Google）</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      const content = header.nextElementSibling;
+      const icon = header.querySelector('.toggle-icon');
+
+      content.classList.toggle('active');
+      icon.style.transform = content.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+  </script>
+</body>
+</html>
