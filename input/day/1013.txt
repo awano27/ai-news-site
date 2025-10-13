@@ -1,0 +1,358 @@
+**TL;DR**:
+
+* **Pixel 10**はTensor G5＋**Gemini Nano**で「Magic Cue／Voice Translate（通話同時翻訳・**オンデバイス**）／Call Notes／Take a Message」を実装。**Recorder要約**もNanoで端末内処理に対応。([blog.google][1])
+* **Samsung Galaxy AI**は**Live Translate／Interpreter／Transcript/Note Assist**を提供し、**“2025年末まで無料”**の注意書きを公式に明示。**年内4億台**への展開目標も発表。([Samsung][2])
+* **Apple Intelligence**は**Notes/Phone**で録音→**転写→要約**を統合。重い処理は**Private Cloud Compute（PCC）**で“プライバシー保護型クラウド”に委譲。([Apple][3])
+* **実務ポイント**: ローカル実行はプライバシーと低遅延に強いが、**長時間・多人数の厳密議事録**はデバイス資源の制約が残る。OSSの**MLC LLM／Whisper.cpp／Meetily**など“フルローカル”系の選択肢も活用。([Android Developers][4])
+
+---
+
+## スライド用・完成原稿（コピペOK）
+
+### 1) 見出し／キャッチ
+
+**2025年スマホ×ローカルLLMの最前線**
+Pixel 10／Galaxy AI／Apple Intelligenceがつくる「会議メモと通話体験」アップデート
+
+> 端末内AIの熟成で、**通話の同時翻訳・自動要約・会議メモ**が“その場”で完結。ビジネス現場は**プライバシー優先のハイブリッド運用**へ。([blog.google][1])
+
+---
+
+### 2) エグゼクティブサマリー（配信用 3行）
+
+* **Pixel 10**：Magic Cue／Voice Translate／Call Notes／Take a Message。**Recorder要約**は**Gemini Nano**で**オンデバイス**。([blog.google][1])
+* **Galaxy**：通話・対面・ノート連携で**翻訳／転写／要約**を網羅。**2025年末まで無料**表記／**4億台**へ拡大。([Samsung][2])
+* **Apple**：**Notes/Phone**に録音・転写・要約。**PCC**で重いAI処理を“個人データ非保持”の設計で実行。([Apple][3])
+
+---
+
+### 3) Pixel 10の“いま”
+
+* **Magic Cue**：Gmailやメッセージから必要情報を**その場**で提示（注文番号／搭乗コード等）。Tensor G5＋Gemini Nano前提。([blog.google][1])
+* **Voice Translate（通話）**：**オンデバイス**で双方向翻訳。会話の流れを止めないリアルタイム性。([blog.google][5])
+* **Call Notes**：通話の要点／次のアクションを自動生成（**端末内保存**）。([Google Help][6])
+* **Take a Message**：不在着信に**端末内で自動応答→リアルタイム転写→次のアクション提案**。([blog.google][7])
+* **Recorderの要約**：**Gemini Nano**で**オフライン要約**に対応。最新Nano世代でさらなる品質・長尺対応の改善が進む。([Android Developers Blog][8])
+
+> 補足：Gemini NanoはAndroidの**AICore**で常駐し、低遅延推論とモデル更新を担う。([Android Developers][4])
+
+---
+
+### 4) Galaxy AIの“強み”
+
+* **Live Translate／Interpreter**：通話・対面の**同時翻訳**。([Samsung][2])
+* **Transcript／Note Assist**：録音→**転写・要約・翻訳**をメモに統合。([Samsung][9])
+* **無料提供の注記**：**「2025年末まで無料」**と公式サポートで明記（その後は未定／一部機能は条件あり）。([Samsung][10])
+* **展開規模**：**年内4億台**へ拡大と公式発表。([Samsung Newsroom][11])
+
+---
+
+### 5) Apple Intelligenceの“確からしさ”
+
+* **Notes／Phone**：録音→**自動転写→要約**。通話録音は相手へ**自動アナウンス**。([Apple][3])
+* **Private Cloud Compute（PCC）**：オンデバイスで賄えない処理のみ“**個人データ非保持**”でクラウド実行。**外部研究者がコード検証可能**という設計。([Apple Support][12])
+
+---
+
+### 6) 実務Tips：安全×実用の“ハイブリッド”
+
+* **その場で完結**：通話翻訳／要点抽出は**Pixel 10**（Voice Translate／Call Notes／Take a Message）や**Galaxy**（Live Translate／Transcript Assist）で即戦力。([blog.google][5])
+* **厳密な議事録**：端末内で**下処理（転写）**→必要時のみクラウド／PCCで**深い要約**が現実解。([Apple Support][12])
+* **フルローカル派**：**MLC LLM／Whisper.cpp／Meetily**で**完全オフライン**の会議ノート運用も可能（自前インフラ運用向き）。([GitHub][13])
+
+---
+
+### 7) セキュリティ要点（短縮版）
+
+* **LLM特有の脅威**：**プロンプトインジェクション／出力ハンドリング不備／データ汚染**ほか。**OWASP LLM Top 10**と**実装ガイド**を参照。([OWASP][14])
+* **運用フレーム**：**NIST AI RMF**＋**GenAIプロファイル**で要件定義→監査までの統制を。([NIST Publications][15])
+
+---
+
+### 8) よくある誤解の訂正
+
+* **NotebookLMは“オンデバイス”ではない**：**Web／クラウド**前提のサービス（Enterprise版も同様）。([Google NotebookLM][16])
+* **Galaxy AIの料金**：**公式は「2025年末まで無料」**と明記。**恒久無料**は“報道・解説系の見解”もあるが**公式の文言が基準**。([Samsung][10])
+
+---
+
+## 収録スライド向け「読み上げ例」（15秒）
+
+> 「今日は**端末内AIが“実戦配備”になった**話です。Pixel 10は**通話翻訳・要点抽出**までオンデバイス化。Galaxyは**翻訳〜ノート**を横断、Appleは**PCC**で“個人データ非保持”を貫きます。**機密会議はローカル処理→必要時だけクラウド**、が2025年の最適解です。」([blog.google][5])
+
+---
+
+## 主要ソース（一次情報中心）
+
+* **Google（Pixel 10公式ブログ）**：Magic Cue／Voice Translate／Call Notes／Take a Message。([blog.google][1])
+* **Android Developers**：**Gemini Nano**（AICore／オンデバイス）と**Recorder要約**の強化。([Android Developers][4])
+* **Samsung**：**Live Translate／Transcript/Note Assist**、**2025年末まで無料**表記、**4億台**展開。([Samsung][2])
+* **Apple**：**Notes/Phoneの録音・転写・要約**、**PCC**（プライバシー設計）。([Apple][3])
+* **OSS／ローカル実行**：**MLC LLM／MLC Chat**、**Whisper.cpp**、**Meetily**。([GitHub][13])
+* **セキュリティ基準**：**OWASP LLM Top 10**、**NIST AI RMF GenAIプロファイル**。([OWASP][14])
+
+---
+
+### スライド配置の提案（リンク先の体裁に合わせて）
+
+1. **タイトル＋日付**
+2. **エグゼクティブサマリー（3行）**
+3. **Pixel 10ハイライト**（各機能1行＋出典）
+4. **Galaxy／Appleの要点**（“何がローカルで何がクラウドか”を太字で強調）
+5. **実務Tips（ハイブリッド運用）**
+6. **セキュリティ注意（OWASP／NIST）**
+7. **誤解の訂正**
+8. **出典（短縮・一次情報）**
+
+
+
+[1]: https://blog.google/products/pixel/google-pixel-10-ai-features-updates/?utm_source=chatgpt.com "9 ways AI makes Pixel 10 our most helpful phone yet"
+[2]: https://www.samsung.com/us/support/answer/ANS10000935/?utm_source=chatgpt.com "Use Live Translate on Galaxy phones and tablets"
+[3]: https://www.apple.com/newsroom/2024/06/introducing-apple-intelligence-for-iphone-ipad-and-mac/?utm_source=chatgpt.com "Introducing Apple Intelligence for iPhone, iPad, and Mac"
+[4]: https://developer.android.com/ai/gemini-nano?utm_source=chatgpt.com "Gemini Nano | AI"
+[5]: https://blog.google/products/pixel/calling-updates-pixel-10/?utm_source=chatgpt.com "9 Pixel 10 features for even easier phone calls"
+[6]: https://support.google.com/phoneapp/answer/15257579?hl=en&utm_source=chatgpt.com "Use Call Notes in Phone app"
+[7]: https://blog.google/products/pixel/take-a-message-pixel-10/?utm_source=chatgpt.com "Take a Message is now available on Pixel 10 phones"
+[8]: https://android-developers.googleblog.com/2024/08/recorder-app-on-pixel-sees-boost-in-engagement-with-gemini-nano.html?utm_source=chatgpt.com "The Recorder app on Pixel sees a 24% boost in ..."
+[9]: https://www.samsung.com/us/support/answer/ANS10000941/?utm_source=chatgpt.com "Use Note Assist with Galaxy AI on Galaxy phones or tablets"
+[10]: https://www.samsung.com/levant/galaxy-ai/?utm_source=chatgpt.com "Discover the Future of Mobile With Galaxy AI"
+[11]: https://news.samsung.com/sg/samsung-continues-to-expand-galaxy-ai-as-consumers-show-increasing-reliance-on-mobile-ai?utm_source=chatgpt.com "Samsung continues to expand Galaxy AI as consumers ..."
+[12]: https://support.apple.com/guide/iphone/apple-intelligence-and-privacy-iphe3f499e0e/ios?utm_source=chatgpt.com "Apple Intelligence and privacy on iPhone"
+[13]: https://github.com/mlc-ai/mlc-llm?utm_source=chatgpt.com "mlc-ai/mlc-llm: Universal LLM Deployment Engine with ML ..."
+[14]: https://owasp.org/www-project-top-10-for-large-language-model-applications/?utm_source=chatgpt.com "OWASP Top 10 for Large Language Model Applications"
+[15]: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf?utm_source=chatgpt.com "Artificial Intelligence Risk Management Framework"
+[16]: https://notebooklm.google/?utm_source=chatgpt.com "Google NotebookLM | AI Research Tool & Thinking Partner"
+
+
+
+
+
+
+#詳細
+
+1. 直近ニュース・ハイライト（2025-10-13時点）
+
+Pixel 10のAI機能が本格稼働
+
+Magic Cue: チャットや通話中に関連情報をアプリ横断で“先回り提示”。Tensor G5＋Gemini Nanoのオンデバイスで動く前提。
+blog.google
++1
+
+Voice Translate（通話翻訳）: 完全オンデバイスで双方向の通話音声を翻訳。話者の声質を保ったまま自然に聞こえるよう生成。
+blog.google
+
+Call Notes（要約＋次のアクション）: 通話のポイントを生成し、後から見返せる。
+blog.google
++1
+
+Take a Message: 不在・拒否した電話に端末内で応答→リアルタイム文字起こしし、後でアクション提案まで。公式サポート／ブログで提供開始が明記。
+Google Help
++1
+
+Recorderの要約が強化
+
+Gemini Nano連携でオンデバイス要約。Pixel 9世代でマルチモーダル版Nanoが導入され、より長い録音や高品質要約に対応（Pixel 10にも同系統の恩恵）。
+Android Developers Blog
++1
+
+Samsung: Galaxy AIの拡大
+
+2025年末までに4億台へ展開方針を発表。
+Samsung Newsroom
+
+Live Translate（通話）、Interpreter（対面）、Transcript/Note Assist（録音→要約・翻訳）を提供。AI機能は2025年末まで無償と公式が案内。
+Samsung
++3
+Samsung
++3
+Samsung
++3
+
+Apple: Apple Intelligenceの実装が進展
+
+Notes/Phoneで録音→同時文字起こし→要約。地域法令に応じ通話録音は通知付き。PCCで重いAI処理を“個人データを見ない”設計で外部実行。
+Apple Security Research
++3
+Apple
++3
+Apple Support
++3
+
+2. ローカルLLM（端末内AI）の2025年のリアリティ
+
+AndroidのAICore×Gemini Nano
+
+低遅延・端末内推論を標準化。NanoはOSのAICoreでハードウェア最適化・モデル更新を受け持つ。
+Android Developers
+
+エコシステム（完全ローカル派）
+
+MLC LLM / MLC Chat: スマホでLLMをネイティブ実行するためのコンパイラ／実行系とアプリ。
+llm.mlc.ai
++1
+
+Whisper.cpp: オープンな端末内音声認識エンジン。自前アプリやMeetily等の自ホスト会議メモに採用。
+GitHub
++1
+
+Meetily: “100%ローカル処理”を掲げる会議転写・要約OSS（自ホスト）。仕様上はWhisper.cppやローカルLLM/Ollama等を組み合わせる。
+Meetily
++1
+
+現実チェック: ローカル実行はプライバシーと待ち時間に強い一方、長時間録音の話者分離や高度なセマンティック分析は機種のNPU/メモリに依存。サーバー級の巨大モデルが必要な場合は、各社とも選択的にクラウド側へ（AppleはPCC、GoogleはGeminiサーバーモデル）。
+Apple Security Research
+
+3. Pixel 10：できること／限界（要点のみ）
+
+できること
+
+Magic Cueによる“先回り”の文脈提示（サポート窓口通話で予約情報を自動提示、等）。
+blog.google
+
+Voice Translateで完全オンデバイスの通話翻訳。
+blog.google
+
+Recorderで端末内要約（Nano世代更新で長尺対応が進む）。
+Android Developers Blog
++1
+
+Call NotesやTake a Messageで通話後の要点抽出・次アクション。
+Google Help
++1
+
+限界・注意
+
+超長時間・多人数の厳密な議事録（話者ごとタスク抽出等）は、端末内LLMのトークン上限/メモリで品質変動。必要に応じ外部ワークフロー（自ホスト・オンプレやPCC/クラウド）とのハイブリッドが現実的。
+Android Developers
++1
+
+NotebookLMはクラウド製品（エンタープライズ版含む）で、Pixelの“オンデバイス”機能とは別系統。
+Google
++1
+
+4. Galaxy／iPhone／Pixel：実務での“違い”
+
+通話・対面のリアルタイム翻訳
+
+Pixel 10: Voice Translate（通話）＝完全オンデバイス。
+blog.google
+
+Samsung: Live Translate（通話）、Interpreter（対面）を端末内で運用。
+Samsung
++1
+
+Apple: Live TranslationをApple Intelligenceに統合（利用機能はデバイス/地域で段階展開）。
+Apple
+
+録音→転写→要約
+
+Pixel: Recorder（Nanoでオンデバイス要約）、Call Notes・Take a Message（電話要約・提案）。
+Android Developers Blog
++2
+Google Help
++2
+
+Samsung: Transcript/Note Assist（録音の文字起こし・要約・翻訳）。
+Samsung
+
+Apple: Notes/Phoneで録音→自動転写＋要約（通話録音は地域法令準拠のアナウンス付き）。
+Apple
++1
+
+エコシステムの規模
+
+Galaxy AIは年内4億台へ拡大計画。2025年末まで無償提供の明記も企業導入で追い風。
+Samsung Newsroom
++1
+
+5. セキュリティ視点（ローカルでも“設計”が肝）
+
+LLM特有の脅威: プロンプトインジェクション、出力ハンドリング不備、データ汚染などは実装形態（ローカル/クラウド）に関わらず対策必須。OWASPのLLM Top 10（2025）と対策チートシートを参照し、入力検証・役割分離・出力サニタイズを徹底。
+OWASP Gen AI Security Project
++1
+
+リスク管理の標準: NIST AI RMFおよび生成AI向けプロファイルをベースに、要件定義→運用監視（ログ化・監査）まで一貫統制。
+NIST Publications
+
+最新の脅威動向: 2025年は“間接プロンプトインジェクション”の高度化が注目（BH系トークや研究レポート）。設計上、最小権限・ツール呼び出しのサンドボックス・E2E監査を前提に。
+Kaspersky
+
+6. 元テキスト（60点案）からの正確性アップデート
+
+「NotebookLMはオンデバイス」→誤り：NotebookLMは**クラウド側（Gemini 1.5/2.x）**で処理されるサービス／エンタープライズ連携機能。
+Google
++1
+
+「Pixel 10は長時間（10–15分超）で要約精度が低下」→根拠不十分：むしろNanoの世代更新で長尺対応が拡充。品質は内容や端末資源に依存するが“分数しきい値”の断定は不可。
+Android Developers Blog
+
+「SamsungのMeeting Assistで“画面リアルタイム翻訳”」→表現の整理：公式機能名はLive Translate（通話）とInterpreter（対面）、録音はTranscript/Note Assist。ここに“会議資料の画面翻訳”までを含めるのは文脈上の総称で、公式名称ではない。
+Samsung
++2
+Samsung
++2
+
+7. これから3か月の注目ポイント
+
+Pixel 10のNanoアップデート：AICore経由でモデル更新が継続。RecorderやCall Notesの“長尺・多人数”シナリオの安定性に注目。
+Android Developers
+
+Galaxy AIの“4億台”進捗：法人への定着（翻訳・議事録ワークフロー）と無償提供の扱い変更有無を追跡。
+Samsung Newsroom
++1
+
+Apple Intelligenceの機能拡張：Notes/Phoneの録音要約やLive Translationの展開範囲、PCCの運用透明性の追加発表に注目。
+Apple
++2
+Apple
++2
+
+参考ソース（代表・一次情報優先）
+
+Google: Pixel 10のAI機能総覧／Tensor G5とMagic Cue/Voice Translate/Call Notes/Take a Message。
+blog.google
++3
+blog.google
++3
+blog.google
++3
+
+Android Developers: Gemini NanoとAICore、Recorderのオンデバイス要約強化。
+Android Developers
++1
+
+Samsung: Galaxy AIの4億台計画、Live Translate/Interpreter/Transcript & Note Assist、年内無償。
+Samsung
++4
+Samsung Newsroom
++4
+Samsung
++4
+
+Apple: Apple IntelligenceのNotes/Phone要約とPCC。
+Apple
++2
+Apple Support
++2
+
+OSS/ローカル実行: MLC LLM/Chat、Whisper.cpp、Meetily。
+Meetily
++3
+llm.mlc.ai
++3
+GitHub
++3
+
+セキュリティ標準: OWASP LLM Top 10（2025）、NIST AI RMF（生成AIプロファイル）。
+OWASP Gen AI Security Project
++1
+
+補足（読者の現場感に寄せて）
+
+端末内LLMの使い分け：通話翻訳・要約・スニペット抽出はPixel 10（Voice Translate/Call Notes/Take a Message）とGalaxy（Live Translate/Transcript Assist）が“即戦力”。厳密な議事録はローカル処理（Recorder/Meetily等）で下処理→必要時のみクラウド強化（PCCやGemini Pro/Ultra）というハイブリッドが安全・現実的です。
+Apple Security Research
++3
+blog.google
++3
+Google Help
++3
