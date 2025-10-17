@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自己適応AI革命：SEAL vs ReasoningBank - 2025/10/17</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: #1a1a1a;
+            line-height: 1.8;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            opacity: 0.95;
+            font-weight: 300;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .date {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 50px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border-left: 6px solid #667eea;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: -40px -40px 30px -40px;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
+            transform: translateX(5px);
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .section-header.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .section-content.active {
+            max-height: 15000px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 1.6rem;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #764ba2;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 5px solid #0284c7;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.15);
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-left: 5px solid #16a34a;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+            border-left: 5px solid #ca8a04;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(202, 138, 4, 0.15);
+        }
+
+        .danger-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 5px solid #dc2626;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+        }
+
+        .innovation-box {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-left: 5px solid #9333ea;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.15);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9ff;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            color: #667eea;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .process-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .process-step {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .process-step:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .process-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            line-height: 40px;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .vs-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .vs-divider {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .vs-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #667eea;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .vs-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        ul, ol {
+            margin: 20px 0 20px 30px;
+        }
+
+        li {
+            margin: 12px 0;
+            line-height: 1.8;
+        }
+
+        strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #dc2626;
+        }
+
+        .source-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: #e0f2fe;
+            border-radius: 6px;
+            margin: 5px 5px 5px 0;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .source-link:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(3px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .section {
+                padding: 25px 20px;
+            }
+
+            .section-header {
+                margin: -25px -20px 20px -20px;
+                padding: 15px 20px;
+            }
+
+            .section-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vs-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .vs-divider {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 自己適応AI革命</h1>
+            <p class="subtitle">MIT SEAL vs Google ReasoningBank - 2つのアプローチが切り開く自律進化の未来</p>
+            <p class="date">2025年10月17日</p>
+        </div>
+
+        <div class="content">
+            <!-- セクション1: エグゼクティブサマリー -->
+            <div class="section">
+                <div class="section-header active" onclick="toggleSection(this)">
+                    <h2><span>📊</span> エグゼクティブサマリー</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content active">
+                    <div class="innovation-box">
+                        <strong>🎯 自己適応AIとは:</strong> AIモデルが新たなタスクや知識に直面した際に、<strong>自ら学習データや手法を生成</strong>して自律的にモデルを適応（アップデート）させる能力。従来の人手による再訓練から、AIが自分で賢くなる時代へのパラダイムシフト。
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">40%↑</div>
+                            <div class="stat-label">SEAL 性能向上</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">34.2%↑</div>
+                            <div class="stat-label">ReasoningBank 成功率</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">72.5%</div>
+                            <div class="stat-label">RL適用後の成功率</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">16%↓</div>
+                            <div class="stat-label">対話ステップ削減</div>
+                        </div>
+                    </div>
+
+                    <h3>🔬 2つの先端的アプローチ</h3>
+                    <div class="vs-comparison">
+                        <div class="vs-card">
+                            <div class="vs-title">MIT SEAL</div>
+                            <p><strong>アプローチ:</strong> モデル自身が学習用の合成データと最適化指示を生成し、重みを恒久的に更新</p>
+                            <p><strong>特徴:</strong> 自己編集による継続的な微調整</p>
+                            <p><strong>効果:</strong> 知識が永続的に定着</p>
+                        </div>
+                        <div class="vs-divider">VS</div>
+                        <div class="vs-card">
+                            <div class="vs-title">Google ReasoningBank</div>
+                            <p><strong>アプローチ:</strong> 過去の成功・失敗から戦略レベルの記憶を抽出し、推論時に活用</p>
+                            <p><strong>特徴:</strong> 外部メモリによる自己進化</p>
+                            <p><strong>効果:</strong> 再訓練なしで賢くなる</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>✅ 実証された成果:</strong>
+                        <ul>
+                            <li><strong>SEAL:</strong> 質問応答正答率 33.5% → 47.0%（相対40%改善）、GPT-4.1の合成データを上回る自己生成データ</li>
+                            <li><strong>ReasoningBank:</strong> WebArena・SWE-Benchで最大34.2%性能向上、対話ステップ16.0%削減</li>
+                            <li><strong>共通点:</strong> 推論時（テスト時）に自分で賢くなる「Test-Time Scaling」の実現</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション2: MIT SEAL - 自己微調整による適応 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>🔧</span> MIT SEAL：自己編集による恒久的適応</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <h3>💡 SEALの基本コンセプト</h3>
+                    <div class="innovation-box">
+                        <strong>Self-Adapting LLMs (SEAL):</strong> モデル自身が<strong>「自己編集 (self-edit)」</strong>と呼ばれる指示を生成し、それに基づいて自身の重みを更新し続ける革新的枠組み。人間の介入なしに、モデルが自分で学習プランを立て、実行する。
+                    </div>
+
+                    <h3>🔄 SEAL の動作メカニズム</h3>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <span class="process-number">1</span>
+                            <strong>新情報の入力:</strong> 新しい入力や知識に対してモデルが「自己編集」テキストを出力
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">2</span>
+                            <strong>合成データ生成:</strong> 元情報を再構成した合成Q&Aデータを自律的に作成
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">3</span>
+                            <strong>最適化パラメータ設定:</strong> 「学習率は○○、エポック数は○エポック」等のハイパーパラメータを自己決定
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">4</span>
+                            <strong>追加微調整 (SFT):</strong> 自己生成した指示に従って追加の監督下微調整を実行
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">5</span>
+                            <strong>重みの恒久的更新:</strong> モデルの重みを永続的にアップデート（知識の定着）
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">6</span>
+                            <strong>強化学習による最適化:</strong> RL (ReST-EM) で有用な自己編集を作るポリシーを訓練
+                        </div>
+                    </div>
+
+                    <h3>📊 実証された性能向上</h3>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>評価項目</th>
+                                    <th>ベースライン</th>
+                                    <th>SEAL適用後</th>
+                                    <th>改善幅</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>SQuAD 質問応答</strong></td>
+                                    <td>33.5%</td>
+                                    <td><strong>47.0%</strong></td>
+                                    <td>✅ 相対40%改善</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Few-shot推論 (ARC)</strong></td>
+                                    <td>20%</td>
+                                    <td><strong>72.5%</strong></td>
+                                    <td>✅ 3.6倍の向上</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>In-Context Learning比較</strong></td>
+                                    <td>0%</td>
+                                    <td><strong>72.5%</strong></td>
+                                    <td>✅ 大きく引き離す</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>自己生成 vs GPT-4.1生成</strong></td>
+                                    <td>GPT-4.1データ</td>
+                                    <td><strong>自己生成データ</strong></td>
+                                    <td>✅ 上回る性能</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="success-box">
+                        <strong>🎯 重要な実証ポイント:</strong>
+                        <ul>
+                            <li>モデル自身が生成した合成データが、<strong>GPT-4.1が生成した合成データを上回る</strong>性能を達成</li>
+                            <li>強化学習で自己編集ポリシーを訓練したモデルは、In-Context Learningや未訓練の自己編集より高い成功率</li>
+                            <li>一度獲得した知識やスキルが<strong>永続的にモデルに定着</strong>する利点</li>
+                        </ul>
+                    </div>
+
+                    <h3>⚙️ 技術的な特徴</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">📝</div>
+                            <div class="feature-title">自然言語での学習プラン</div>
+                            <p>モデルが自然言語で学習用の合成データや最適化指示を生成。人間が読める形式で内部プロセスが透明。</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔄</div>
+                            <div class="feature-title">反復ループによる成長</div>
+                            <p>自己編集 → 重み更新 → 評価 → 次の自己編集の循環により、継続的に進化。</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎓</div>
+                            <div class="feature-title">LoRA活用の軽量更新</div>
+                            <p>Parameter-Efficient Fine-Tuning (PEFT) により、計算コストを抑えた効率的な更新を実現。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション3: Google ReasoningBank - 戦略レベル記憶による適応 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>🧠</span> Google ReasoningBank：記憶による自己進化</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <h3>💡 ReasoningBankの基本コンセプト</h3>
+                    <div class="innovation-box">
+                        <strong>ReasoningBank:</strong> 対話エージェントのメモリモジュールとして機能するフレームワーク。過去の試行（成功例・失敗例の両方）から、<strong>再利用可能な高レベルの推論戦略</strong>を抽出・整理し「メモリ項目」として蓄積。モデルの重み自体は変えずとも推論時にどんどん賢くなる。
+                    </div>
+
+                    <h3>🔄 ReasoningBankの動作メカニズム</h3>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <span class="process-number">1</span>
+                            <strong>経験の蓄積:</strong> エージェントが複数タスクを経験し、試行（成功例・失敗例）を記録
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">2</span>
+                            <strong>戦略の抽出:</strong> 再利用可能な高レベルの推論戦略を抽出・整理（タイトル、説明、内容）
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">3</span>
+                            <strong>メモリへの保存:</strong> 人間が読める形式でメモリバンクに汎用的な行動指針として保存
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">4</span>
+                            <strong>ベクトル検索:</strong> 新たなタスクに対し、類似した過去のケースをベクトル検索で取得
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">5</span>
+                            <strong>戦略の注入:</strong> 該当する戦略メモリをシステムプロンプトに注入して行動をガイド
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">6</span>
+                            <strong>自律評価:</strong> タスク完了後、LLMジャッジによって成功か失敗かを自動判定
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">7</span>
+                            <strong>継続的学習:</strong> 試行から学んだ教訓を新たな戦略メモリとして追加（過去→未来のループ）
+                        </div>
+                    </div>
+
+                    <h3>📊 実証された性能向上</h3>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>評価項目</th>
+                                    <th>ベースライン</th>
+                                    <th>ReasoningBank</th>
+                                    <th>改善効果</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>成功率向上</strong></td>
+                                    <td>記憶なし</td>
+                                    <td><strong>記憶あり</strong></td>
+                                    <td>✅ 最大34.2%相対向上</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>対話ステップ数</strong></td>
+                                    <td>通常</td>
+                                    <td><strong>最適化</strong></td>
+                                    <td>✅ 16.0%削減（効率改善）</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>WebArena</strong></td>
+                                    <td>ベース</td>
+                                    <td><strong>+MaTTS</strong></td>
+                                    <td>✅ 最良成績達成</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SWE-Bench</strong></td>
+                                    <td>ベース</td>
+                                    <td><strong>+MaTTS</strong></td>
+                                    <td>✅ 大幅向上</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="success-box">
+                        <strong>🎯 重要な実証ポイント:</strong>
+                        <ul>
+                            <li><strong>再トレーニングなし</strong>でエージェントが経験を積むほど賢くなる仕組みを実証</li>
+                            <li>失敗事例から教訓を抽出し、同じ誤りを繰り返す可能性を下げる</li>
+                            <li>Memory-aware Test-Time Scaling (MaTTS) により、試行錯誤を増やすほどメモリが充実する好循環</li>
+                        </ul>
+                    </div>
+
+                    <h3>🧩 メモリ項目の構造</h3>
+                    <div class="highlight-box">
+                        <strong>各メモリ項目は人間が読める形式:</strong>
+                        <ul>
+                            <li><strong>タイトル:</strong> 戦略の要旨（例: 「テスト実行時は-qオプションで要点確認」）</li>
+                            <li><strong>説明:</strong> 1文概要（例: 「最初のテスト失敗時にはpytest -qで結果を簡潔に表示」）</li>
+                            <li><strong>内容:</strong> 推論手順や注意点の詳細（例: 1) 依存関係エラー確認 → 2) -qフラグで再実行...）</li>
+                        </ul>
+                    </div>
+
+                    <h3>⚙️ MaTTS（Memory-aware Test-Time Scaling）</h3>
+                    <div class="innovation-box">
+                        <strong>MaTTS統合:</strong> 難しい問題では並列あるいは逐次的に複数回思考させることで経験を増幅。得られた多数の成功・失敗パターンから<strong>より質の高い戦略</strong>を学習。試行錯誤を増やすほどメモリが充実し、それがまた次の試行の効率を高める好循環を生み出す。
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション4: アーキテクチャ観点の比較 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>⚖️</span> アーキテクチャ観点の徹底比較</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <h3>🔄 持続性（効果の永続性）</h3>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>観点</th>
+                                    <th>SEAL</th>
+                                    <th>ReasoningBank</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>適応方法</strong></td>
+                                    <td>モデルの重みを書き換え</td>
+                                    <td>外部メモリに戦略を蓄積</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>効果の永続性</strong></td>
+                                    <td>✅ 永続的に定着</td>
+                                    <td>✅ メモリとして永続化</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>可逆性</strong></td>
+                                    <td>⚠️ 重み更新の巻き戻しが必要</td>
+                                    <td>✅ メモリ差し替えで即座に復元</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>干渉リスク</strong></td>
+                                    <td>⚠️ 新更新が過去能力に干渉</td>
+                                    <td>✅ 重みのドリフトなし</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>🛡️ 安全性</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">⚠️</div>
+                            <div class="feature-title">SEAL のリスク</div>
+                            <ul style="text-align: left;">
+                                <li>誤情報による知識汚染</li>
+                                <li>破滅的忘却（繰り返しで古いタスク性能低下）</li>
+                                <li>自己生成データの品質保証が課題</li>
+                            </ul>
+                            <p><strong>対策:</strong> 評価ゲーティング、LoRAによるロールバック、監査ログ</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">✅</div>
+                            <div class="feature-title">ReasoningBank の安全機構</div>
+                            <ul style="text-align: left;">
+                                <li>失敗から学ぶ教訓がガードレールに</li>
+                                <li>「○○すると失敗する」の蓄積</li>
+                                <li>幻覚的行動の自己評価・抑制</li>
+                            </ul>
+                            <p><strong>注意:</strong> メモリ内容のレビュー・フィルタリングは有益</p>
+                        </div>
+                    </div>
+
+                    <h3>💰 コストとレイテンシ</h3>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>項目</th>
+                                    <th>SEAL</th>
+                                    <th>ReasoningBank</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>追加計算コスト</strong></td>
+                                    <td>⚠️ 高い（微調整計算）</td>
+                                    <td>✅ 低い（ベクトル検索）</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>レイテンシ</strong></td>
+                                    <td>⚠️ 30〜45秒/更新</td>
+                                    <td>✅ 検索+注入のみ</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>総合効率</strong></td>
+                                    <td>資源追加投入型</td>
+                                    <td>✅ 探索効率化で削減</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>実用性</strong></td>
+                                    <td>非同期処理必要</td>
+                                    <td>✅ リアルタイム適用可能</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚡ パフォーマンストレードオフ:</strong>
+                        <ul>
+                            <li><strong>SEAL:</strong> 計算資源を追加投入して性能向上。高速な軽量更新手法（LoRA）を活用しつつも、効率的なインフラや非同期処理の導入が課題</li>
+                            <li><strong>ReasoningBank:</strong> 既存資源の再利用と探索効率化で性能向上。試行錯誤回数が減る（効率向上）ため、結果的に総合的な計算コストが削減される</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション5: SRE/プラットフォーム視点の実装プロトコル -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>🛠️</span> 実装プロトコル（最小構成）</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <h3>🔵 (A) ReasoningBank型実装（推論時自己改善）</h3>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <span class="process-number">1</span>
+                            <strong>トレース収集:</strong> 各タスク実行時の思考過程（プロンプト・応答・ツール操作ログ）を詳細記録。成功・失敗の両方を漏れなく保存
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">2</span>
+                            <strong>自己評価（LLMジャッジ）:</strong> タスク終了後、LLMをジャッジ役として成功/失敗を自動判定（人手ラベル不要）
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">3</span>
+                            <strong>戦略抽出:</strong> 軌跡から学ぶべきポイントを人間可読かつ再利用可能な戦略に要約・蒸留。成功ケースからは有効方策、失敗ケースからは落とし穴を抽出
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">4</span>
+                            <strong>メモリ格納:</strong> 抽出した戦略項目をベクトルDB（Faiss、pgvector等）に蓄積。タイムスタンプや評価スコアを付与して管理
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">5</span>
+                            <strong>メモリ検索・注入:</strong> 新タスクに対し、関連する過去戦略を検索。上位数件をシステムプロンプトに前置してエージェントに提供
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">6</span>
+                            <strong>試行拡張（MaTTS）:</strong> 難易度高いタスクでは試行回数を増加。並列実行でN通りのプロンプト展開、逐次実行で自己反省・修正ループ
+                        </div>
+                    </div>
+
+                    <h3>🟣 (B) SEAL型実装（自動SFTによる恒久適応）</h3>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <span class="process-number">1</span>
+                            <strong>自己編集生成:</strong> モデルが新情報・タスクに対し、自身をアップデートするためのプランと教材を自然言語で生成（例: 「合成QA○件作成、学習率1e-5で3エポック」）
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">2</span>
+                            <strong>軽量アップデート適用:</strong> LoRAや他PEFT手法で小規模な重み更新を実行。サンドボックス環境で適用し、ベースモデルとは分離したアダプタとして管理
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">3</span>
+                            <strong>評価ハーネス:</strong> アップデート後のモデル性能を即座に評価。既知の検証質問、禁則事項チェック、既存能力の回帰テストを実施
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">4</span>
+                            <strong>ゲーティング:</strong> 一定基準をクリアした更新のみ正式に本番モデルに昇格。問題検知時は更新棄却または人間レビュー
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">5</span>
+                            <strong>永続化とロールバック:</strong> 承認された更新をアダプタ適用で永続化。自己編集プラン・合成データ・性能ログを監査ログとして保存
+                        </div>
+                        <div class="process-step">
+                            <span class="process-number">6</span>
+                            <strong>モデルカード生成:</strong> いつ・どの自己編集で更新したかを列挙した署名付きモデルカードを作成（コンプライアンス対応）
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>🎯 実装の要点:</strong>
+                        <ul>
+                            <li><strong>ReasoningBank:</strong> 重み不変、外部メモリで管理、リアルタイム適用可能、可逆性高い</li>
+                            <li><strong>SEAL:</strong> 重み更新、永続的知識定着、LoRAで軽量化、評価ゲーティング必須</li>
+                            <li><strong>共通:</strong> 自律評価、監査ログ、段階的ロールアウト、人間監視の組み込み</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション6: リスクと対策 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>⚠️</span> リスクと対策（本番導入時のガードレール）</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <h3>🚨 1. データ汚染のリスク</h3>
+                    <div class="danger-box">
+                        <strong>リスク内容:</strong>
+                        <ul>
+                            <li>モデル自身が作る合成データや戦略メモリの品質が保証されない</li>
+                            <li>誤情報がモデル内部に取り込まれる</li>
+                            <li>偏った経験則ばかり学習してしまう</li>
+                        </ul>
+                    </div>
+                    <div class="success-box">
+                        <strong>対策:</strong>
+                        <ul>
+                            <li><strong>外部知識源の信頼度スコアリング:</strong> 出典が明確なデータのみ使用、複数ソースでクロスチェック</li>
+                            <li><strong>生成データの多様性制約:</strong> 同種の失敗例ばかり溜め込まない、多角的な問いを含める</li>
+                            <li><strong>内容監視:</strong> 自己学習データの偏りを防ぎ、定期的にレビュー</li>
+                        </ul>
+                    </div>
+
+                    <h3>🚨 2. モデル回帰のリスク</h3>
+                    <div class="danger-box">
+                        <strong>リスク内容:</strong>
+                        <ul>
+                            <li>繰り返しの自己適応で既存能力が劣化（回帰）</li>
+                            <li>SEALで特に顕著（破滅的忘却）</li>
+                            <li>ReasoningBankでも不適切な戦略混入で性能低下</li>
+                        </ul>
+                    </div>
+                    <div class="success-box">
+                        <strong>対策:</strong>
+                        <ul>
+                            <li><strong>固定の回帰ベンチマーク:</strong> 自動化されたテストで重要機能の精度を常時モニタリング</li>
+                            <li><strong>ウォッチドッグ:</strong> SWE-Bench-Verified等の自動採点可能な課題セットを組み込み</li>
+                            <li><strong>ロールバックルール:</strong> 一定以上のスコア低下で直近の適応を巻き戻し、人間検証</li>
+                            <li><strong>忘却ペナルティ付きRL:</strong> 過学習・忘却に強い報酬設計を研究段階から導入</li>
+                        </ul>
+                    </div>
+
+                    <h3>🚨 3. 過適合のリスク</h3>
+                    <div class="danger-box">
+                        <strong>リスク内容:</strong>
+                        <ul>
+                            <li>自己適応が進みすぎて限られた経験に過度に特化</li>
+                            <li>柔軟性を欠く</li>
+                            <li>SEALで合成データに過適合</li>
+                        </ul>
+                    </div>
+                    <div class="success-box">
+                        <strong>対策:</strong>
+                        <ul>
+                            <li><strong>ReasoningBankの抽象化:</strong> 個別具体的手順でなく抽象度の高い戦略を記憶</li>
+                            <li><strong>多様な状況の網羅:</strong> 合成データ生成段階で広範囲をカバー</li>
+                            <li><strong>RL報酬の汎化度組み込み:</strong> 一部の質問だけでなく広範囲で平均的に向上する編集を高評価</li>
+                            <li><strong>失敗から学ぶ仕組み:</strong> 誤った方向への過適応を防ぐ</li>
+                        </ul>
+                    </div>
+
+                    <h3>🚨 4. コンプライアンスと透明性</h3>
+                    <div class="danger-box">
+                        <strong>リスク内容:</strong>
+                        <ul>
+                            <li>モデルが自律的に更新され続けると追跡が困難</li>
+                            <li>「この知識はどこから来たのか？」を説明できない</li>
+                            <li>AIの出力責任を問う際の問題</li>
+                        </ul>
+                    </div>
+                    <div class="success-box">
+                        <strong>対策:</strong>
+                        <ul>
+                            <li><strong>全自己適応ログの保存:</strong> どのデータでどう更新したかを逐次記録・可視化</li>
+                            <li><strong>変更内容の承認記録:</strong> 社内ルールで自己適応ごとに承認プロセス</li>
+                            <li><strong>モデルカード更新:</strong> モデルのバージョンと紐付けた詳細記録</li>
+                            <li><strong>電子署名:</strong> 重要なアップデートに署名を付与して改ざん検知</li>
+                            <li><strong>定期評価:</strong> 不適切発言や偏向の検出と対処</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション7: 具体的なユースケース -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>💼</span> 具体的なユースケース</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <h3>🔄 ReasoningBank：失敗→学び→再挑戦</h3>
+                    <div class="innovation-box">
+                        <strong>シナリオ:</strong> ソフトウェアテスト実行での失敗
+
+                        <p style="margin-top: 15px;"><strong>初回の失敗:</strong></p>
+                        <ul>
+                            <li>エージェントがテスト実行時に<code>-q</code>オプションを付け忘れ</li>
+                            <li>大量のログ出力に埋もれて重要なエラーを見落とす</li>
+                        </ul>
+
+                        <p style="margin-top: 15px;"><strong>ReasoningBankの対応:</strong></p>
+                        <ol>
+                            <li><strong>戦略の蒸留・登録:</strong>
+                                <ul>
+                                    <li>タイトル: 「テスト実行時は-qオプションで要点確認」</li>
+                                    <li>説明: 「最初のテスト失敗時にはpytest -qで結果を簡潔に表示」</li>
+                                    <li>内容: 1) 依存関係エラー確認 → 2) -qフラグ再実行 → 3) 詳細ログ取得</li>
+                                </ul>
+                            </li>
+                            <li><strong>次回タスクでの活用:</strong>
+                                <ul>
+                                    <li>類似タスクで自動的にメモリ検索</li>
+                                    <li>システムプロンプトに戦略を注入</li>
+                                    <li>初回から<code>-q</code>オプション付与</li>
+                                </ul>
+                            </li>
+                            <li><strong>効率化の実現:</strong>
+                                <ul>
+                                    <li>8ラウンドかかっていたデバッグが数ラウンドで完了</li>
+                                    <li>対話回数の大幅短縮</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <h3>🔄 SEAL：新知識の自己取り込み</h3>
+                    <div class="innovation-box">
+                        <strong>シナリオ:</strong> API仕様変更への対応
+
+                        <p style="margin-top: 15px;"><strong>状況:</strong></p>
+                        <ul>
+                            <li>LLMが内部知識として<code>get_user()</code>で記憶</li>
+                            <li>最新版v2.1では<code>fetch_user()</code>に変更</li>
+                        </ul>
+
+                        <p style="margin-top: 15px;"><strong>SEALの対応:</strong></p>
+                        <ol>
+                            <li><strong>自己編集プランの生成:</strong>
+                                <ul>
+                                    <li>「API変更点の情報（get_user→fetch_user）」を解釈</li>
+                                    <li>「fetch_userを正しく使う合成Q&A対を数件生成」</li>
+                                    <li>「学習率1e-5、エポック3でLoRA微調整せよ」と指示</li>
+                                </ul>
+                            </li>
+                            <li><strong>合成データ生成:</strong>
+                                <ul>
+                                    <li>Q: ユーザー情報を取得するにはどの関数を使う?</li>
+                                    <li>A: <code>fetch_user()</code></li>
+                                    <li>複数のバリエーションを自動生成</li>
+                                </ul>
+                            </li>
+                            <li><strong>微調整の実行:</strong>
+                                <ul>
+                                    <li>自己生成データで素早く微調整</li>
+                                    <li>更新後、正しく<code>fetch_user()</code>を参照</li>
+                                </ul>
+                            </li>
+                            <li><strong>検証とロールバック:</strong>
+                                <ul>
+                                    <li>旧API名を誤って出力しないことを確認</li>
+                                    <li>問題なければLoRAを本番適用</li>
+                                    <li>不具合時はLoRAをオフで即座に復元</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="success-box">
+                        <strong>✅ 両アプローチの実用価値:</strong>
+                        <ul>
+                            <li><strong>ReasoningBank:</strong> エンジニアが後からレビューしても納得感がある、人間にも理解しやすい形式</li>
+                            <li><strong>SEAL:</strong> 人手を介さず最新知識を自己学習、コンテキストなしで質問に答えられる</li>
+                            <li><strong>共通:</strong> 従来の人手による再訓練から、AIが自分で賢くなる時代への移行を実証</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- セクション8: まとめと展望 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h2><span>📝</span> まとめ：自己適応AIの未来</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="innovation-box">
+                        <strong>🌟 自己適応AIがもたらすパラダイムシフト</strong>
+                        <ol>
+                            <li><strong>人手による再訓練からの解放:</strong> AIが自ら学習データを生成し、自律的に適応</li>
+                            <li><strong>推論時の自己進化:</strong> テスト時・運用時にどんどん賢くなる新しいAIの形</li>
+                            <li><strong>失敗からの学習:</strong> 成功だけでなく失敗経験も活かす包括的な学習システム</li>
+                        </ol>
+                    </div>
+
+                    <h3>🎯 2つのアプローチの使い分け</h3>
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ユースケース</th>
+                                    <th>SEAL が適する場合</th>
+                                    <th>ReasoningBank が適する場合</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>知識の永続性</strong></td>
+                                    <td>✅ 新知識を恒久的に定着させたい</td>
+                                    <td>⚠️ 柔軟な知識の差し替えが必要</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>計算リソース</strong></td>
+                                    <td>⚠️ 豊富なリソースがある</td>
+                                    <td>✅ リソースを抑えたい</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>レイテンシ</strong></td>
+                                    <td>⚠️ バッチ処理・非同期可</td>
+                                    <td>✅ リアルタイム応答必須</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>安全性・可逆性</strong></td>
+                                    <td>⚠️ ロールバック機構が必要</td>
+                                    <td>✅ 即座に元に戻せる</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>透明性</strong></td>
+                                    <td>⚠️ 監査ログ必須</td>
+                                    <td>✅ 人間が読める戦略形式</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>🚀 今後の展望</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🔗</div>
+                            <div class="feature-title">ハイブリッドアプローチ</div>
+                            <p>SEALとReasoningBankを組み合わせ、短期的な記憶（ReasoningBank）と長期的な知識定着（SEAL）を両立させる統合システムの実現</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🛡️</div>
+                            <div class="feature-title">安全性の向上</div>
+                            <p>忘却ペナルティ付きRL、多様性制約、自動評価ゲーティングなど、より堅牢な自己適応メカニズムの研究</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🌐</div>
+                            <div class="feature-title">マルチモーダル拡張</div>
+                            <p>テキストだけでなく、画像・音声・動画などのマルチモーダルデータに対する自己適応AIの実現</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">👥</div>
+                            <div class="feature-title">人間との協調</div>
+                            <p>AIの自律性を保ちつつ、人間の監督・フィードバックを効果的に組み込むハイブリッド学習システム</p>
+                        </div>
+                    </div>
+
+                    <div class="success-box">
+                        <strong>🎓 研究の意義:</strong>
+                        <ul>
+                            <li>MITとGoogleという2大機関が独立に類似の方向性を追求 → トレンドの確実性</li>
+                            <li>実証された数値（SEAL: 40%改善、ReasoningBank: 34.2%向上）は実用レベル</li>
+                            <li>オープンソース化により、研究コミュニティ全体での検証・発展が加速</li>
+                            <li>AIが「教えられて学ぶ」から「自分で学ぶ」への根本的な転換点</li>
+                        </ul>
+                    </div>
+
+                    <h3>🔗 参考リンク</h3>
+                    <a href="https://venturebeat.com/ai/self-improving-language-models-are-becoming-reality-with-mits-updated-seal" class="source-link" target="_blank">📄 MIT SEAL (VentureBeat)</a>
+                    <a href="https://ar5iv.labs.arxiv.org/html/2506.10943v2" class="source-link" target="_blank">📄 SEAL論文 (arXiv)</a>
+                    <a href="https://venturebeat.com/ai/new-memory-framework-builds-ai-agents-that-can-handle-the-real-worlds" class="source-link" target="_blank">📄 ReasoningBank (VentureBeat)</a>
+                    <a href="https://ar5iv.labs.arxiv.org/html/2509.25140" class="source-link" target="_blank">📄 ReasoningBank論文 (arXiv)</a>
+                    <a href="https://jyopari.github.io/posts/seal" class="source-link" target="_blank">🔬 SEAL 詳細解説</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const isActive = content.classList.contains('active');
+
+            // Toggle active state
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // デフォルトで最初のセクションを開く
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstSection = document.querySelector('.section-content');
+            if (firstSection && !firstSection.classList.contains('active')) {
+                firstSection.previousElementSibling.click();
+            }
+        });
+    </script>
+</body>
+</html>
