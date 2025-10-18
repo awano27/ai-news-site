@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日本AI基本計画2025 - 2025/10/19</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+      color: #1a1a1a;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.4rem;
+      opacity: 0.95;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .date {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 50px;
+    }
+
+    .section {
+      margin-bottom: 50px;
+      padding: 35px;
+      background: linear-gradient(to right, #f0f4ff 0%, #fff 100%);
+      border-radius: 15px;
+      border-left: 6px solid #2a5298;
+      box-shadow: 0 4px 15px rgba(42, 82, 152, 0.1);
+    }
+
+    .section h2 {
+      color: #1e3c72;
+      font-size: 2rem;
+      margin-bottom: 25px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section h2::after {
+      content: '▼';
+      font-size: 1.2rem;
+      transition: transform 0.3s;
+    }
+
+    .section h2.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .section-content.collapsed {
+      max-height: 0 !important;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 2px solid #f0f0f0;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(42, 82, 152, 0.2);
+      border-color: #2a5298;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1e3c72;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin: 25px 0;
+    }
+
+    .feature-box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      border: 2px solid #e8ecf7;
+      transition: all 0.3s;
+    }
+
+    .feature-box:hover {
+      border-color: #2a5298;
+      box-shadow: 0 6px 20px rgba(42, 82, 152, 0.15);
+      transform: translateY(-3px);
+    }
+
+    .feature-box h3 {
+      color: #1e3c72;
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .feature-box p, .feature-box ul {
+      color: #555;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .feature-box ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      padding: 18px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .comparison-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .comparison-table tr:hover {
+      background: #f8f9ff;
+    }
+
+    .comparison-table td:first-child {
+      font-weight: 600;
+      color: #1e3c72;
+      width: 25%;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .warning-box h4 {
+      color: #856404;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .warning-box p, .warning-box ul {
+      color: #856404;
+      line-height: 1.7;
+    }
+
+    .warning-box ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .danger-box {
+      background: #f8d7da;
+      border-left: 5px solid #dc3545;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .danger-box h4 {
+      color: #721c24;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .danger-box p, .danger-box ul {
+      color: #721c24;
+      line-height: 1.7;
+    }
+
+    .success-box {
+      background: #d4edda;
+      border-left: 5px solid #28a745;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .success-box h4 {
+      color: #155724;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .success-box p, .success-box ul {
+      color: #155724;
+      line-height: 1.7;
+    }
+
+    .success-box ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .info-box {
+      background: #d1ecf1;
+      border-left: 5px solid #17a2b8;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .info-box h4 {
+      color: #0c5460;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .info-box p, .info-box ul {
+      color: #0c5460;
+      line-height: 1.7;
+    }
+
+    .info-box ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .highlight {
+      background: linear-gradient(120deg, #cfe2ff 0%, #9ec5fe 100%);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    ul, ol {
+      margin-left: 25px;
+      margin-top: 15px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+
+    strong {
+      color: #1e3c72;
+      font-weight: 700;
+    }
+
+    .process-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 25px 0;
+      justify-content: center;
+    }
+
+    .process-step {
+      flex: 1;
+      min-width: 200px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid #e8ecf7;
+      position: relative;
+    }
+
+    .process-step::after {
+      content: '→';
+      position: absolute;
+      right: -25px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      color: #2a5298;
+      font-weight: bold;
+    }
+
+    .process-step:last-child::after {
+      display: none;
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      border-radius: 50%;
+      line-height: 45px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      font-size: 1.3rem;
+    }
+
+    .step-title {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .step-desc {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+      }
+
+      .content {
+        padding: 30px 20px;
+      }
+
+      .section {
+        padding: 25px 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .process-flow {
+        flex-direction: column;
+      }
+
+      .process-step::after {
+        display: none;
+      }
+
+      .comparison-table {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🇯🇵 日本AI基本計画2025</h1>
+      <p class="subtitle">政府「AIを使わないことが最大のリスク」宣言：4つの柱で描く戦略的反転攻勢</p>
+      <p class="date">2025年10月19日</p>
+    </div>
+
+    <div class="content">
+      <!-- セクション1: エグゼクティブサマリー -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">📊 エグゼクティブサマリー</h2>
+        <div class="section-content">
+          <p style="font-size: 1.15rem; margin-bottom: 25px; line-height: 1.8;">
+            政府が2025年10月に示したAI基本計画骨子案は、<span class="highlight">「AIを使わないことが最大のリスク」</span>という危機感を原点に、①使う、②創る、③信頼性、④協働の<strong>4方針</strong>で日本のAI利活用・投資の出遅れに対する戦略的反転攻勢を展開します。
+          </p>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-value">26.7%</span>
+              <div class="stat-label">個人の生成AI利用率<br>（米国68.8%）</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">14位</span>
+              <div class="stat-label">AI投資額ランキング<br>（約9億ドル）</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">55.2%</span>
+              <div class="stat-label">企業の業務利用率</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">年次更新</span>
+              <div class="stat-label">機動的政策<br>PDCAサイクル</div>
+            </div>
+          </div>
+
+          <div class="danger-box">
+            <h4>🚨 日本の現状：出遅れの深刻さ</h4>
+            <ul>
+              <li><strong>利活用の遅れ</strong>: 個人の生成AI利用経験26.7%（米国の約1/3）</li>
+              <li><strong>投資の停滞</strong>: 民間AI投資額で世界14位（約9億ドル）</li>
+              <li><strong>企業導入</strong>: 業務利用率55.2%と主要国に比べ低位</li>
+              <li><strong>政府認識</strong>: 「使わないリスクが最大」と明言</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション2: 3原則と4方針の骨格 -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🎯 3原則 × 4方針の戦略骨格</h2>
+        <div class="section-content">
+          <h3 style="color: #1e3c72; margin-bottom: 20px; font-size: 1.5rem;">3つの基本原則</h3>
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>⚖️ イノベーションとリスクの両立</h3>
+              <p>AI技術の急速な発展を促進しつつ、安全性・倫理面のリスクに適切に対応する。</p>
+            </div>
+            <div class="feature-box">
+              <h3>🔄 PDCA + アジャイル</h3>
+              <p>技術変化に合わせて政策を機動的に更新。年次見直しで常に最適化。</p>
+            </div>
+            <div class="feature-box">
+              <h3>🌐 内外一体</h3>
+              <p>国内政策と国際協調を接続。広島AIプロセス等で主導権を確保。</p>
+            </div>
+          </div>
+
+          <h3 style="color: #1e3c72; margin: 30px 0 20px; font-size: 1.5rem;">4つの基本方針</h3>
+          <div class="process-flow">
+            <div class="process-step">
+              <div class="step-number">1</div>
+              <div class="step-title">AIを使う</div>
+              <div class="step-desc">利活用の加速的推進</div>
+            </div>
+            <div class="process-step">
+              <div class="step-number">2</div>
+              <div class="step-title">AIを創る</div>
+              <div class="step-desc">開発力の戦略的強化</div>
+            </div>
+            <div class="process-step">
+              <div class="step-number">3</div>
+              <div class="step-title">信頼性を高める</div>
+              <div class="step-desc">ガバナンスの主導</div>
+            </div>
+            <div class="process-step">
+              <div class="step-number">4</div>
+              <div class="step-title">AIと協働する</div>
+              <div class="step-desc">継続的社会変革</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション3: 方針1 - AIを使う -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🚀 方針1：AIを使う（利活用の加速）</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            <strong>「まず使ってみる」</strong>を行政・社会で徹底。政府が先に使うことで信頼性・適正性の醸成と社会実装の突破口をつくる。
+          </p>
+
+          <div class="success-box">
+            <h4>✨ 主要施策</h4>
+            <ul>
+              <li><strong>政府・自治体のAI導入</strong>: ガバメントAI、業務最適化</li>
+              <li><strong>重点分野での実証</strong>: 医療・介護・教育・防災・農林水産・製造・建設</li>
+              <li><strong>AIエージェント/フィジカルAI</strong>: 開発・実証・導入支援</li>
+              <li><strong>中小企業支援</strong>: 地域産業での導入拡大、新事業創出</li>
+              <li><strong>規制・制度の見直し</strong>: AI利活用を前提に先導</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h4>🎯 ねらい</h4>
+            <p>
+              低い利用率のボトルネック（調達・ルール・人材）を解消し、データ循環の起点を作る。政府自らが先行導入することで、民間の導入障壁を下げ、社会全体の信頼醸成を図る。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション4: 方針2 - AIを創る -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🔧 方針2：AIを創る（開発力の戦略的強化）</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            アプリ／モデル／計算基盤の<strong>各層を同時に強化</strong>し、日本の「信頼できるAI」を国内で自走可能にし海外展開。
+          </p>
+
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>レイヤー</th>
+                <th>主要施策</th>
+                <th>目的</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>データ層</strong></td>
+                <td>高品質な日本語データ整備・拡充、評価基盤/テストベッド構築</td>
+                <td>日本語特化の競争力確保</td>
+              </tr>
+              <tr>
+                <td><strong>計算基盤層</strong></td>
+                <td>AIデータセンター、電力・通信（ワット・ビット連携）、高性能AI半導体、富岳NEXT</td>
+                <td>計算資源の国内確保</td>
+              </tr>
+              <tr>
+                <td><strong>モデル層</strong></td>
+                <td>モデル×アプリの多様なサービス創出、フィジカルAI、AI for Science</td>
+                <td>国産AIの多様化</td>
+              </tr>
+              <tr>
+                <td><strong>展開層</strong></td>
+                <td>海外展開と人材集約でエコシステム拡大</td>
+                <td>グローバル競争力</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="info-box">
+            <h4>🎯 ねらい</h4>
+            <p>
+              利活用の需要を<strong>国内供給力</strong>（モデル・ツール・計算）につなげ、<strong>好循環</strong>を作る。「国力を左右するAIを海外に過度に依存できない」という認識のもと、技術主権を確保。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション5: 方針3 - 信頼性を高める -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🛡️ 方針3：AIの信頼性を高める（ガバナンス主導）</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            <strong>PDCAで適正性を常時確保</strong>しつつ、国際協調（広島AIプロセス等）を主導。<strong>AISI（AIセーフティ・インスティテュート）</strong>の機能強化で評価機能を整備。
+          </p>
+
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>📜 AI法の3本柱</h3>
+              <ul>
+                <li><strong>第16条</strong>: 調査研究で変動するリスクを把握</li>
+                <li><strong>第13条</strong>: 指針等で適正性を担保</li>
+                <li><strong>第18条</strong>: AI基本計画で政府施策を束ねる</li>
+              </ul>
+            </div>
+            <div class="feature-box">
+              <h3>🔬 AISI強化</h3>
+              <ul>
+                <li>モデル評価の制度設計</li>
+                <li>生成AIコンテンツの判別技術開発</li>
+                <li>評価能力の整備と標準化</li>
+              </ul>
+            </div>
+            <div class="feature-box">
+              <h3>🌏 国際協調</h3>
+              <ul>
+                <li>広島AIプロセスで主導</li>
+                <li>GPAI東京センター活用</li>
+                <li>グローバルサウスも巻き込む</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <h4>⚠️ EU型規制との違い</h4>
+            <p>
+              日本のAI法は企業に網羅的義務を課す前置規制ではなく、<strong>政府の責務と指針整備を核とする基本法</strong>の色彩が強い。民間への直接的義務付けは限定的で、<strong>ガイドラインと評価能力（AISI）</strong>で担保するアプローチ。
+            </p>
+          </div>
+
+          <div class="info-box">
+            <h4>🎯 ねらい</h4>
+            <p>
+              <strong>国内外で互換性のある評価・標準</strong>を整え、日本を<strong>多様なAIの結節点</strong>にする。国際標準化で開発・市場の障壁を下げ、相互運用性を確保。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション6: 方針4 - AIと協働する -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🤝 方針4：AIと協働する（継続的社会変革）</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            産業構造・働き方・教育を<strong>AI前提</strong>にアップデート。「<strong>AI時代の人間力</strong>」を底上げ。
+          </p>
+
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>🏢 産業・組織の変革</h3>
+              <ul>
+                <li>AIトランスフォーメーション（組織・業務の再設計）</li>
+                <li>地域の雇用創出</li>
+                <li>新しい働き方の模索</li>
+              </ul>
+            </div>
+            <div class="feature-box">
+              <h3>📚 教育・リスキリング</h3>
+              <ul>
+                <li>AIリスキリング支援</li>
+                <li>デジタルスキル標準の改訂</li>
+                <li>初等中等～一般市民のAIリテラシー向上</li>
+              </ul>
+            </div>
+            <div class="feature-box">
+              <h3>👥 人間中心のAI社会</h3>
+              <ul>
+                <li>AI時代の教育のあり方検討</li>
+                <li>働き方改革の推進</li>
+                <li>社会的包摂の実現</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="success-box">
+            <h4>✅ 継続的変革のポイント</h4>
+            <ul>
+              <li><strong>教育改革</strong>: 初等中等から社会人まで一貫したAIリテラシー教育</li>
+              <li><strong>リスキリング</strong>: 持続的な人材育成と資金確保、効果測定</li>
+              <li><strong>雇用創出</strong>: AIによる新産業・新職種の創出支援</li>
+              <li><strong>包摂的社会</strong>: AI格差を生まない社会設計</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション7: 推進体制とスケジュール -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">⚙️ 推進体制とアジャイルPDCA</h2>
+        <div class="section-content">
+          <h3 style="color: #1e3c72; margin-bottom: 20px; font-size: 1.5rem;">年次更新でアジャイルに回す仕組み</h3>
+
+          <div class="info-box">
+            <h4>📅 スケジュールと体制</h4>
+            <ul>
+              <li><strong>AI法（2025年9月全面施行）</strong>: 政府にAI基本計画策定・指針整備・調査研究を定める基本法的枠組み</li>
+              <li><strong>年次更新</strong>: 技術の急速な変化を踏まえ、基本計画は当面毎年見直し</li>
+              <li><strong>推進体制</strong>: AI戦略本部/専門調査会を中核に、AISI連絡会議等で実装を下支え</li>
+              <li><strong>初期スケジュール</strong>: 2025年内に閣議決定、2026年から本格実施</li>
+            </ul>
+          </div>
+
+          <h3 style="color: #1e3c72; margin: 30px 0 20px; font-size: 1.5rem;">主要な検討論点</h3>
+          <div class="warning-box">
+            <h4>🔍 今後詰めるべき4つの論点</h4>
+            <ul>
+              <li><strong>1. 計算資源と電力</strong>: データセンター集積×再エネ・系統容量の同時最適化（ワット・ビット連携）の実効性</li>
+              <li><strong>2. 評価と責任分担</strong>: AISIの評価結果の使われ方（調達・監督・事故対応）、透明性と説明責任の線引き</li>
+              <li><strong>3. 国際整合</strong>: 広島AIプロセス/ISO/IEC等との基準整合、相互運用性の確保</li>
+              <li><strong>4. 人材・教育</strong>: 初等中等から社会人までのAIリテラシー/リスキリングの持続資金と効果測定</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション8: 石破首相の発言と政府の姿勢 -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🗣️ 石破首相CEATEC発言（2025/10/16）</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            2025年10月16日、石破茂首相が幕張メッセのCEATEC 2025視察後の記者会見でAI政策について言及。政府トップがAI技術を<strong>国家の最優先課題の一つ</strong>と位置付けていることを明示しました。
+          </p>
+
+          <div class="success-box">
+            <h4>💬 主要発言内容</h4>
+            <ul>
+              <li><strong>「イノベーションの加速とリスク対応の両立が必要」</strong></li>
+              <li><strong>「世界で最もAIを開発・活用しやすい国を目指す」</strong></li>
+              <li><strong>「この計画はぜひ新しい政権にも引き継いでほしい」</strong>（政権交代があっても継続推進）</li>
+              <li><strong>「大事なのは省庁横断的であること」</strong>（縦割り排除）</li>
+              <li><strong>「民間・政府・地域住民が一体となって新時代を切り拓こう」</strong></li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h4>🎯 社会的インパクト</h4>
+            <p>
+              首相の発言は、政府トップがAI技術を国家の最優先課題と位置付けていることを示すもの。省庁横断の取組みや次期政権への継承に言及した点から、<strong>継続性のある包括的なAI政策への決意</strong>が感じられます。技術開発面のみならず制度整備・人材育成・地域振興まで含めた広範な影響を与えるでしょう。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション9: エンジニア視点の読みどころ -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">💻 エンジニア視点の実務要点</h2>
+        <div class="section-content">
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>🔄 使う→創るの好循環設計</h3>
+              <p>行政・社会実装が<strong>評価データ</strong>と<strong>ユースケース</strong>を生み、国内開発力（モデル・半導体・HPC）への需要になる循環構造。</p>
+            </div>
+            <div class="feature-box">
+              <h3>📏 評価と国際整合の重要性</h3>
+              <p><strong>AISI評価×JTC1標準</strong>は、MLOps/Responsible AIの実務要件に直結。デプロイ容易性（海外市場）を左右する。</p>
+            </div>
+            <div class="feature-box">
+              <h3>⚡ ワット・ビット連携</h3>
+              <p>データセンター集積と電力・通信インフラの同時最適化。計算資源確保の実効性を左右する重要課題。</p>
+            </div>
+            <div class="feature-box">
+              <h3>🌏 相互運用性の確保</h3>
+              <p>広島AIプロセス、ISO/IEC標準との整合で、グローバル展開時の障壁を下げる。</p>
+            </div>
+          </div>
+
+          <div class="success-box">
+            <h4>✅ 実務への影響</h4>
+            <ul>
+              <li><strong>調達基準</strong>: AISI評価が政府調達の要件になる可能性</li>
+              <li><strong>開発プロセス</strong>: 国際標準対応がデフォルトに</li>
+              <li><strong>データ戦略</strong>: 高品質日本語データの重要性が増大</li>
+              <li><strong>人材戦略</strong>: AIリテラシーが全職種で必須スキルに</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      const content = header.nextElementSibling;
+      const isCollapsed = content.classList.contains('collapsed');
+
+      if (isCollapsed) {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        content.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+      } else {
+        content.style.maxHeight = '0';
+        content.classList.add('collapsed');
+        header.classList.add('collapsed');
+      }
+    }
+
+    // 初期状態で全セクションを展開
+    document.addEventListener('DOMContentLoaded', function() {
+      const allContents = document.querySelectorAll('.section-content');
+      allContents.forEach(content => {
+        content.style.maxHeight = content.scrollHeight + 'px';
+      });
+    });
+  </script>
+</body>
+</html>
