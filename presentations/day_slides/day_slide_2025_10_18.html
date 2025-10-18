@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Skills徹底ガイド - 2025/10/18</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      color: #1a1a1a;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.4rem;
+      opacity: 0.95;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .date {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 50px;
+    }
+
+    .section {
+      margin-bottom: 50px;
+      padding: 35px;
+      background: linear-gradient(to right, #f8f9ff 0%, #fff 100%);
+      border-radius: 15px;
+      border-left: 6px solid #667eea;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+    }
+
+    .section h2 {
+      color: #667eea;
+      font-size: 2rem;
+      margin-bottom: 25px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section h2::after {
+      content: '▼';
+      font-size: 1.2rem;
+      transition: transform 0.3s;
+    }
+
+    .section h2.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .section-content.collapsed {
+      max-height: 0 !important;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 2px solid #f0f0f0;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #667eea;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin: 25px 0;
+    }
+
+    .feature-box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      border: 2px solid #e8ecf7;
+      transition: all 0.3s;
+    }
+
+    .feature-box:hover {
+      border-color: #667eea;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+      transform: translateY(-3px);
+    }
+
+    .feature-box h3 {
+      color: #667eea;
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .feature-box p {
+      color: #555;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .process-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 25px 0;
+      justify-content: center;
+    }
+
+    .process-step {
+      flex: 1;
+      min-width: 200px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid #e8ecf7;
+      position: relative;
+    }
+
+    .process-step::after {
+      content: '→';
+      position: absolute;
+      right: -25px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .process-step:last-child::after {
+      display: none;
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border-radius: 50%;
+      line-height: 40px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .step-title {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .step-desc {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 18px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .comparison-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .comparison-table tr:hover {
+      background: #f8f9ff;
+    }
+
+    .comparison-table td:first-child {
+      font-weight: 600;
+      color: #667eea;
+      width: 30%;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .warning-box h4 {
+      color: #856404;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .warning-box ul {
+      margin-left: 20px;
+      color: #856404;
+    }
+
+    .success-box {
+      background: #d4edda;
+      border-left: 5px solid #28a745;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .success-box h4 {
+      color: #155724;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .success-box ul {
+      margin-left: 20px;
+      color: #155724;
+    }
+
+    .info-box {
+      background: #d1ecf1;
+      border-left: 5px solid #17a2b8;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .info-box h4 {
+      color: #0c5460;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .info-box p, .info-box ul {
+      color: #0c5460;
+    }
+
+    .code-block {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .highlight {
+      background: linear-gradient(120deg, #fef3c7 0%, #fde68a 100%);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    ul, ol {
+      margin-left: 25px;
+      margin-top: 15px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+
+    strong {
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+      }
+
+      .content {
+        padding: 30px 20px;
+      }
+
+      .section {
+        padding: 25px 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .process-flow {
+        flex-direction: column;
+      }
+
+      .process-step::after {
+        display: none;
+      }
+
+      .comparison-table {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💼 Claude Skills徹底ガイド</h1>
+      <p class="subtitle">ビジネスマン向け実践活用術：仕事の生産性を8倍に引き上げる方法</p>
+      <p class="date">2025年10月18日</p>
+    </div>
+
+    <div class="content">
+      <!-- セクション1: エグゼクティブサマリー -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">📊 エグゼクティブサマリー</h2>
+        <div class="section-content">
+          <p style="font-size: 1.15rem; margin-bottom: 25px; line-height: 1.8;">
+            Claude Skillsは、AIアシスタントに特定の作業手順を覚えさせ、<span class="highlight">生産性を8倍に向上</span>させるカスタムモジュール機能です。Box、楽天、Canvaなど先進企業が導入し、資料作成時間を1日→1時間に短縮する成果を実現しています。
+          </p>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-value">8倍</span>
+              <div class="stat-label">生産性向上</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">1日→1h</span>
+              <div class="stat-label">資料作成時間</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">8MB</span>
+              <div class="stat-label">スキルサイズ上限</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">最大8個</span>
+              <div class="stat-label">同時利用可能</div>
+            </div>
+          </div>
+
+          <div class="success-box">
+            <h4>✅ 主要導入企業</h4>
+            <ul>
+              <li><strong>Box</strong>: 文書管理自動化</li>
+              <li><strong>楽天</strong>: 業務プロセス効率化</li>
+              <li><strong>Canva</strong>: デザインワークフロー最適化</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション2: Claude Skillsとは -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🎯 Claude Skillsとは？</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            Claude Skillsは、AIアシスタントClaudeに<strong>特定の作業を覚えさせるためのカスタムモジュール</strong>です。指示書、テンプレート、実行コードをパッケージ化し、動的に読み込むことで業務の効率と再現性を向上させます。
+          </p>
+
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>📝 構成要素</h3>
+              <p>指示書（SKILL.md）、テンプレート、リソース、小規模な実行コードで構成されます。</p>
+            </div>
+            <div class="feature-box">
+              <h3>🔄 動的読み込み</h3>
+              <p>ユーザーのリクエストに応じて、適切なスキルを自動選択して読み込みます。</p>
+            </div>
+            <div class="feature-box">
+              <h3>✨ 一貫性の確保</h3>
+              <p>長い指示文なしで、同じ形式の資料を一貫した品質で生成できます。</p>
+            </div>
+            <div class="feature-box">
+              <h3>⚡ 効率化</h3>
+              <p>作業の再現性が向上し、トークン消費も抑制できます。</p>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <h4>💡 プログレッシブ・ディスクロージャー</h4>
+            <p>
+              Claudeはまずメタデータを読み込み、必要に応じて追加ファイル（テンプレートやスクリプト）を段階的にロード。大量の文脈を効率的に扱うことができます。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション3: 対応環境と利用ユーザー -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🌐 対応環境と利用ユーザー</h2>
+        <div class="section-content">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>環境</th>
+                <th>特徴</th>
+                <th>主な用途</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Web版 claude.ai</strong></td>
+                <td>チャット形式での対話に対応</td>
+                <td>日常業務、文書作成、データ分析</td>
+              </tr>
+              <tr>
+                <td><strong>Claude Code</strong></td>
+                <td>IDEやターミナル上でAIアシスタント</td>
+                <td>コード生成、開発支援、技術文書</td>
+              </tr>
+              <tr>
+                <td><strong>Claude API / Agent SDK</strong></td>
+                <td>自社アプリやワークフローに統合</td>
+                <td>業務自動化、カスタムツール開発</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning-box">
+            <h4>⚠️ 利用可能プラン</h4>
+            <ul>
+              <li><strong>対象プラン</strong>: Pro / Max / Team / Enterprise（有料プランのみ）</li>
+              <li><strong>設計思想</strong>: 企業の業務自動化と統制を重視</li>
+              <li><strong>無料プランでは利用不可</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション4: 実践ステップ -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🚀 今日から始める3つのステップ</h2>
+        <div class="section-content">
+          <div class="process-flow">
+            <div class="process-step">
+              <div class="step-number">1</div>
+              <div class="step-title">既存スキルを試す</div>
+              <div class="step-desc">Claude Console内のSkillsページでプリセットスキルを体験（PowerPoint、Excel、PDF要約など）</div>
+            </div>
+            <div class="process-step">
+              <div class="step-number">2</div>
+              <div class="step-title">独自スキルを作成</div>
+              <div class="step-desc">skill-creatorウィザードで質問に答えるだけでSKILL.mdのひな形を自動生成</div>
+            </div>
+            <div class="process-step">
+              <div class="step-number">3</div>
+              <div class="step-title">テストとガバナンス</div>
+              <div class="step-desc">サンプルデータでテスト、バージョン管理、レビュー・承認プロセスで品質担保</div>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <h4>📝 スキル作成時の重要ポイント</h4>
+            <ul>
+              <li><strong>いつ使うか</strong>: トリガー条件を明確化</li>
+              <li><strong>出力フォーマット</strong>: 期待する結果の形式を具体的に記述</li>
+              <li><strong>禁止事項</strong>: 実行してはいけない操作を明記</li>
+              <li><strong>ブランドルール</strong>: 自社の書式や機密指定を反映</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション5: 安全性とベストプラクティス -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🛡️ 安全性とベストプラクティス</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 25px;">
+            AIに追加権限を与えるスキル機能では、<strong>ガバナンスとコスト管理</strong>が重要です。以下の4つのポイントを押さえましょう。
+          </p>
+
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>🔒 コード実行の管理</h3>
+              <p>サンドボックス環境で実行し、内容をレビュー後、権限を限定。外部リソースアクセスは慎重に。</p>
+            </div>
+            <div class="feature-box">
+              <h3>✅ 信頼できるスキル</h3>
+              <p>サードパーティ製スキルはファイル監査を実施。機密データには組織承認済みスキルのみ使用。</p>
+            </div>
+            <div class="feature-box">
+              <h3>📊 利用履歴の記録</h3>
+              <p>使用スキルと出力内容をログ保存。社内ルールで重要出力の保存・レビューを組み込む。</p>
+            </div>
+            <div class="feature-box">
+              <h3>💰 コスト管理</h3>
+              <p>スキル利用でトークン消費削減も、外部ツール連携で別途費用発生。実行頻度を考慮した設計を。</p>
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <h4>⚠️ セキュリティチェックリスト</h4>
+            <ul>
+              <li>スクリプトを含むスキルは必ず隔離環境で実行</li>
+              <li>サードパーティ製スキルはフォルダ内ファイルを監査</li>
+              <li>機密データ処理には組織が署名・承認したスキルのみ</li>
+              <li>個人情報（PII）を含むデータは事前承認を必須化</li>
+              <li>重要な出力は保存とレビューを社内ルール化</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション6: 具体例：月次営業レポート作成スキル -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">📈 実践例：月次営業レポート作成スキル</h2>
+        <div class="section-content">
+          <p style="font-size: 1.1rem; margin-bottom: 20px;">
+            Claude Skillsを活用した具体的なアイデアとして、<strong>月次営業レポート作成の自動化</strong>を紹介します。
+          </p>
+
+          <div class="success-box">
+            <h4>✨ スキルの仕様</h4>
+            <ul>
+              <li><strong>概要</strong>: CSVデータから地域・商品カテゴリごとにピボットテーブル作成、前年比成長率計算、グラフ化、エグゼクティブサマリー生成</li>
+              <li><strong>出力形式</strong>: Sales_YYYY_MM.xlsx（ピボットシート、グラフシート、サマリーシート、メモシート）</li>
+              <li><strong>ブランドルール</strong>: ヘッダー・フッターに機密指定、数値フォーマット統一（小数点以下2桁、3桁区切り）</li>
+              <li><strong>安全条件</strong>: 個人情報（PII）を含むCSVは処理しない、または事前承認を要求</li>
+            </ul>
+          </div>
+
+          <div class="code-block">
+---
+name: monthly-sales-report
+description: 月次営業レポート自動生成
+trigger: "月次レポート"、"営業データ集計"
+---
+
+# 月次営業レポート作成スキル
+
+## 処理フロー
+1. CSVデータ読み込み
+2. 地域・商品カテゴリごとにピボットテーブル作成
+3. 前年比成長率計算: (今年-昨年)/昨年
+4. グラフ化（棒グラフ、折れ線グラフ）
+5. 重要ポイントをエグゼクティブサマリーに整理
+
+## 出力フォーマット
+- ファイル名: Sales_YYYY_MM.xlsx
+- シート構成: ピボット/グラフ/サマリー/メモ
+
+## ブランドルール
+- ヘッダー: [社名] 月次営業レポート - 社外秘
+- 数値: 小数点以下2桁、3桁区切り
+- フォント: MS Gothic 11pt
+          </div>
+
+          <p style="margin-top: 20px;">
+            こうしたスキルにより、データ加工やグラフ作成にかかる時間を<span class="highlight">大幅に削減</span>できます。Anthropic公式リポジトリには他にも多数の実例があります。
+          </p>
+        </div>
+      </div>
+
+      <!-- セクション7: 専門家視点：技術的詳細 -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">🔧 専門家視点：Agent Skillsの仕組みと運用</h2>
+        <div class="section-content">
+          <h3 style="color: #667eea; margin-bottom: 20px; font-size: 1.5rem;">Skillの階層構造と読み込み方式</h3>
+          <div class="info-box">
+            <p><strong>フォルダ構成</strong>: 各スキルはフォルダ単位で管理され、必ずSKILL.mdファイルを含みます。</p>
+            <p><strong>メタデータ</strong>: SKILL.md先頭のYAMLフロントマターがモデルのシステムプロンプトに読み込まれます。</p>
+            <p><strong>段階的ロード</strong>: Claudeはユーザー要求に応じてSKILL.md全文をロードし、必要に応じて追加ファイルを段階的に読み込みます。</p>
+          </div>
+
+          <h3 style="color: #667eea; margin: 30px 0 20px; font-size: 1.5rem;">環境ごとの制約差</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>環境</th>
+                <th>リソース</th>
+                <th>ネットワーク</th>
+                <th>共有範囲</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>API（コンテナ）</strong></td>
+                <td>1GiB RAM、5GiBストレージ</td>
+                <td>外部アクセス完全禁止</td>
+                <td>ワークスペース全体</td>
+              </tr>
+              <tr>
+                <td><strong>claude.ai（Web）</strong></td>
+                <td>サンドボックス環境</td>
+                <td>ホワイトリスト形式（npm、PyPIなど）</td>
+                <td>個人アカウントのみ</td>
+              </tr>
+              <tr>
+                <td><strong>Claude Code</strong></td>
+                <td>ローカル環境</td>
+                <td>制限なし</td>
+                <td>個人 / プロジェクト（Git共有可）</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 style="color: #667eea; margin: 30px 0 20px; font-size: 1.5rem;">リクエストとサイズの制約</h3>
+          <div class="warning-box">
+            <h4>⚠️ 技術的制限</h4>
+            <ul>
+              <li><strong>同時指定数</strong>: 1回のAPIリクエストで最大8スキルまで</li>
+              <li><strong>サイズ上限</strong>: スキルアップロードの合計8MBまで（SKILL.md含むすべてのファイル）</li>
+              <li><strong>複数スキル使用</strong>: 必要なスキルのみ選択して効率化</li>
+            </ul>
+          </div>
+
+          <h3 style="color: #667eea; margin: 30px 0 20px; font-size: 1.5rem;">MCPとCursor Rulesとの違い</h3>
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>🎯 Agent Skills</h3>
+              <p>手順や組織の流儀をパッケージ化。モデルに作業手順を与える仕組み。</p>
+            </div>
+            <div class="feature-box">
+              <h3>🔌 MCP</h3>
+              <p>Model Context Protocol。外部ツール接続のための標準プロトコル。</p>
+            </div>
+            <div class="feature-box">
+              <h3>📋 Cursor Rules</h3>
+              <p>IDE内のコード生成規範。生成スタイルや規約を定める。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- セクション8: 参考文献とリソース -->
+      <div class="section">
+        <h2 onclick="toggleSection(this)">📚 詳しい情報を知るための参考文献</h2>
+        <div class="section-content">
+          <div class="feature-grid">
+            <div class="feature-box">
+              <h3>📰 Anthropic公式ニュース</h3>
+              <p>「Claude Skills: Customize AI for your workflows」で機能概要と目的を解説</p>
+            </div>
+            <div class="feature-box">
+              <h3>❓ ヘルプセンター</h3>
+              <p>「What are Skills?」でSkillsの定義や運用FAQを整理</p>
+            </div>
+            <div class="feature-box">
+              <h3>💻 APIドキュメント</h3>
+              <p>「Using Agent Skills with the API」で開発者向け実装と注意点を詳述</p>
+            </div>
+            <div class="feature-box">
+              <h3>🔬 エンジニアリングブログ</h3>
+              <p>「Equipping agents for the real world」で設計思想と実例を紹介</p>
+            </div>
+          </div>
+
+          <div class="success-box" style="margin-top: 30px;">
+            <h4>🔗 主要リンク</h4>
+            <ul style="line-height: 2;">
+              <li><a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" target="_blank" style="color: #155724; text-decoration: underline;">Equipping agents for the real world with Agent Skills</a></li>
+              <li><a href="https://docs.claude.com/en/docs/claude-code/skills" target="_blank" style="color: #155724; text-decoration: underline;">Agent Skills - Claude Docs</a></li>
+              <li><a href="https://docs.claude.com/en/docs/agents-and-tools/tool-use/code-execution-tool" target="_blank" style="color: #155724; text-decoration: underline;">Code execution tool - Claude Docs</a></li>
+              <li><a href="https://docs.claude.com/en/api/skills-guide" target="_blank" style="color: #155724; text-decoration: underline;">Using Agent Skills with the API</a></li>
+              <li><a href="https://support.claude.com/en/articles/12111783-create-and-edit-files-with-claude" target="_blank" style="color: #155724; text-decoration: underline;">Create and edit files with Claude</a></li>
+              <li><a href="https://support.claude.com/en/articles/12512180-using-skills-in-claude" target="_blank" style="color: #155724; text-decoration: underline;">Using Skills in Claude</a></li>
+            </ul>
+          </div>
+
+          <p style="margin-top: 25px; font-size: 1.05rem; line-height: 1.8;">
+            最新の動向や導入事例も随時更新されているため、これらの<strong>公式ソース</strong>を確認することで、業務に最適な活用方法を見つけられるでしょう。
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      const content = header.nextElementSibling;
+      const isCollapsed = content.classList.contains('collapsed');
+
+      if (isCollapsed) {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        content.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+      } else {
+        content.style.maxHeight = '0';
+        content.classList.add('collapsed');
+        header.classList.add('collapsed');
+      }
+    }
+
+    // 初期状態で全セクションを展開
+    document.addEventListener('DOMContentLoaded', function() {
+      const allContents = document.querySelectorAll('.section-content');
+      allContents.forEach(content => {
+        content.style.maxHeight = content.scrollHeight + 'px';
+      });
+    });
+  </script>
+</body>
+</html>
