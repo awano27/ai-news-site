@@ -30,6 +30,10 @@ jobs:
         run: |
           python tools/archive_daily_ai_news.py || true
 
+      - name: Extract Daily AI News Pages data
+        run: |
+          python extract_daily_news.py || echo "Daily AI News extraction failed, continuing..."
+
       - name: Normalize archive JSON
         run: |
           python tools/normalize_archive_json.py
@@ -64,8 +68,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public-pages/news/*.json public-pages/news/*.html public-pages/news/archive_index.json || true
           git add public-pages/version.json presentations/advanced_intelligence_report_latest.html presentations/day_slides_index.html || true
+          git add presentations/ai_ranking_interactive.html || true
           if ! git diff --cached --quiet; then
-            git commit -m "Daily archive + build: $(date -u +%Y-%m-%d)"
+            git commit -m "chore: daily archive + Daily AI News data: $(date -u +%Y-%m-%d)"
             git push
           else
             echo "No changes to commit"

@@ -1,0 +1,105 @@
+name: Sync Daily AI News Archive
+
+on:
+  schedule:
+    # 毎日 01:00 JST (16:00 UTC前日) - Daily AI Newsが更新される頃
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if no changes'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-daily-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 || true
+
+      - name: Extract Daily AI News data
+        id: extract
+        run: |
+          echo "Starting Daily AI News data extraction..."
+          python extract_daily_news.py
+
+          # 抽出結果を確認
+          if [ -f "public-pages/news/$(date +%Y-%m-%d)_daily.json" ]; then
+            echo "extracted=true" >> $GITHUB_OUTPUT
+            echo "file_path=public-pages/news/$(date +%Y-%m-%d)_daily.json" >> $GITHUB_OUTPUT
+          else
+            echo "extracted=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Daily AI News data extraction failed or no new data"
+          fi
+
+      - name: Update ai_ranking_interactive.html data source
+        if: steps.extract.outputs.extracted == 'true'
+        run: |
+          echo "Updating data source in ai_ranking_interactive.html..."
+          TODAY=$(date +%Y-%m-%d)
+
+          # ai_ranking_interactive.htmlのデータソースを最新日付に更新
+          if [ -f "presentations/ai_ranking_interactive.html" ]; then
+            # 既存の_daily.jsonエントリを探して更新、なければ追加
+            sed -i "s|value=\"https://awano27.github.io/ai-news-site/public-pages/news/[0-9-]*_daily.json\"|value=\"https://awano27.github.io/ai-news-site/public-pages/news/${TODAY}_daily.json\"|g" presentations/ai_ranking_interactive.html
+            echo "✓ Updated ai_ranking_interactive.html with latest data source"
+          fi
+
+      - name: Commit and push changes
+        if: steps.extract.outputs.extracted == 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # 変更をステージング
+          git add public-pages/news/*_daily.json || true
+          git add presentations/ai_ranking_interactive.html || true
+
+          # 変更があればコミット
+          if ! git diff --cached --quiet; then
+            ARTICLE_COUNT=$(python -c "import json; data=json.load(open('${{ steps.extract.outputs.file_path }}')); print(data['metadata']['total_articles'])" 2>/dev/null || echo "N/A")
+            git commit -m "chore(archive): sync Daily AI News data (${ARTICLE_COUNT} articles) - $(date -u +%Y-%m-%d)"
+            git push
+            echo "✓ Changes committed and pushed successfully"
+          else
+            echo "ℹ️ No changes to commit"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 📊 Daily AI News Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.extract.outputs.extracted }}" == "true" ]; then
+            echo "✅ **Status**: Data extracted successfully" >> $GITHUB_STEP_SUMMARY
+            echo "📁 **File**: \`${{ steps.extract.outputs.file_path }}\`" >> $GITHUB_STEP_SUMMARY
+
+            # 記事統計を表示
+            if [ -f "${{ steps.extract.outputs.file_path }}" ]; then
+              TOTAL=$(python -c "import json; data=json.load(open('${{ steps.extract.outputs.file_path }}')); print(data['metadata']['total_articles'])" 2>/dev/null || echo "N/A")
+              echo "📰 **Total Articles**: ${TOTAL}" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ **Status**: No data extracted" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Archive URL**: [View Archive](https://awano27.github.io/ai-news-site/presentations/ai_ranking_interactive.html)" >> $GITHUB_STEP_SUMMARY
