@@ -35,12 +35,13 @@
       <h1>🔍 AIニュース アーカイブ検索</h1>
       <div class="desc">
         過去のAIニュースアーカイブを検索・閲覧できます。
-        データソースを切り替えて、日付別またはGitHub統合データ（427件）から情報を探索できます。
+        データソースを切り替えて、Daily AI News（最新36件）、日付別、またはGitHub統合データ（427件）から情報を探索できます。
         カテゴリフィルターで絞り込みも可能です。
       </div>
       <div class="controls">
         <label>データソース:
           <select id="dataSource">
+            <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-10-19_daily.json" selected>📰 Daily AI News（最新36件）</option>
             <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-13_github.json">GitHub統合データ（427件）</option>
             <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-13.json">2025-09-13</option>
             <option value="https://awano27.github.io/ai-news-site/public-pages/news/2025-09-12.json">2025-09-12</option>
@@ -113,8 +114,34 @@
         return Math.max(score, 1);
       }
 
+      // Daily AI News形式の場合（articles配列）
+      if(data.articles && Array.isArray(data.articles)){
+        // カテゴリマッピング（Daily AI Newsのカテゴリ→既存カテゴリ）
+        const catMap = {
+          'business': 'ビジネス・投資',
+          'tools': 'テクノロジー・ツール',
+          'posts': 'SNS・論文'
+        };
+
+        data.articles.forEach((it, index) => {
+          const mappedCat = catMap[it.category] || it.category;
+          if(!cats.length || cats.includes(mappedCat)){
+            items.push({
+              date: it.published_at || '',
+              title: sanitize(it.title),
+              stars: it.score || calculateScore(it, index),
+              category: sanitize(mappedCat),
+              source: {
+                name: it.source || 'ソース',
+                url: it.url
+              }
+            });
+          }
+        });
+      }
+
       // GitHub統合データの場合（raw_github_data配列）
-      if(data.raw_github_data && Array.isArray(data.raw_github_data)){
+      else if(data.raw_github_data && Array.isArray(data.raw_github_data)){
         data.raw_github_data.forEach((it, index) => {
           if(!cats.length || cats.includes(it.category)){
             items.push({
