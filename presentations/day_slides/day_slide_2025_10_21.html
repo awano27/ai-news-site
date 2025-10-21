@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code vs OpenAI Codex 徹底比較 - 2025/10/21</title>
+  <style>
+    :root {
+      --primary-claude: #8b5cf6;
+      --primary-openai: #10a37f;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --accent: #3b82f6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.05) 10px,
+        rgba(255,255,255,0.05) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .date {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-top: 16px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: var(--bg-dark);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--bg-dark);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .tool-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card.claude {
+      border-color: var(--primary-claude);
+    }
+
+    .tool-card.openai {
+      border-color: var(--primary-openai);
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+    }
+
+    .tool-card.claude::before {
+      background: linear-gradient(90deg, var(--primary-claude), #a78bfa);
+    }
+
+    .tool-card.openai::before {
+      background: linear-gradient(90deg, var(--primary-openai), #34d399);
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tool-icon {
+      font-size: 3rem;
+    }
+
+    .tool-title {
+      flex: 1;
+    }
+
+    .tool-title h4 {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+
+    .tool-subtitle {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    .feature-list li {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+      display: flex;
+      align-items: start;
+      gap: 12px;
+    }
+
+    .feature-list li strong {
+      min-width: 120px;
+      color: var(--bg-dark);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .comparison-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .comparison-table th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .comparison-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comparison-table tbody tr:hover {
+      background: var(--bg-light);
+    }
+
+    .comparison-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    .tag.web {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .tag.cli {
+      background: #fce7f3;
+      color: #9f1239;
+    }
+
+    .tag.api {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-left: 4px solid #3b82f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .info-box.warning {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-left-color: #f59e0b;
+    }
+
+    .info-box.success {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border-left-color: #10b981;
+    }
+
+    .info-box h4 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .pricing-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .pricing-card .price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin: 16px 0;
+    }
+
+    .pricing-card .plan-name {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .footer {
+      background: var(--bg-dark);
+      color: white;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .footer a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      header {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-table {
+        font-size: 0.9rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 12px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💻 Claude Code vs OpenAI Codex</h1>
+      <p class="subtitle">AIコーディング支援ツール徹底比較</p>
+      <div class="date">📅 2025年10月21日</div>
+    </header>
+
+    <div class="content">
+      <!-- エグゼクティブサマリー -->
+      <section class="section">
+        <h2>📋 エグゼクティブサマリー</h2>
+        <div class="info-box">
+          <h4>🎯 比較概要</h4>
+          <p>AnthropicのClaude CodeとOpenAIのCodexは、それぞれWeb版とCLI/API版を提供するAIコーディング支援ツール。Claude CodeはエージェントベースのWeb UIとCLI版、Codexは ChatGPT統合のWeb版とAPI版で展開。実行環境、料金体系、モデル性能に大きな違いがある。</p>
+        </div>
+
+        <div class="comparison-grid">
+          <div class="tool-card claude">
+            <div class="tool-header">
+              <div class="tool-icon">🤖</div>
+              <div class="tool-title">
+                <h4>Claude Code</h4>
+                <p class="tool-subtitle">Anthropic製 エージェント型コーディングAI</p>
+              </div>
+            </div>
+            <ul class="feature-list">
+              <li><strong>提供形式：</strong> Web版 + CLI版</li>
+              <li><strong>特徴：</strong> エージェント型、自律実装</li>
+              <li><strong>実行環境：</strong> クラウドサンドボックス</li>
+              <li><strong>モデル：</strong> Claude Opus / Sonnet</li>
+            </ul>
+          </div>
+
+          <div class="tool-card openai">
+            <div class="tool-header">
+              <div class="tool-icon">🔮</div>
+              <div class="tool-title">
+                <h4>OpenAI Codex</h4>
+                <p class="tool-subtitle">OpenAI製 GPT統合コーディングAI</p>
+              </div>
+            </div>
+            <ul class="feature-list">
+              <li><strong>提供形式：</strong> Web版 + API版</li>
+              <li><strong>特徴：</strong> ChatGPT統合、API提供</li>
+              <li><strong>実行環境：</strong> ローカル環境</li>
+              <li><strong>モデル：</strong> GPT-4 / Codex-1</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 詳細比較表 -->
+      <section class="section">
+        <h2>📊 詳細比較表</h2>
+
+        <h3>1️⃣ 提供元と使用形式</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>Claude Code</th>
+              <th>OpenAI Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>提供元</strong></td>
+              <td>Anthropic</td>
+              <td>OpenAI</td>
+            </tr>
+            <tr>
+              <td><strong>Web版</strong></td>
+              <td>claude.ai/code<br><span class="tag web">ブラウザUI</span></td>
+              <td>ChatGPT統合<br><span class="tag web">チャット形式</span></td>
+            </tr>
+            <tr>
+              <td><strong>CLI/API版</strong></td>
+              <td>CLI版（ターミナルツール）<br><span class="tag cli">コマンドライン</span></td>
+              <td>API版 + CLI ラッパー<br><span class="tag api">REST API</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2️⃣ 主な機能</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>機能</th>
+              <th>Claude Code</th>
+              <th>OpenAI Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Web版機能</strong></td>
+              <td>
+                • エージェント型コーディング<br>
+                • タスク自律実装<br>
+                • ブラウザ統合環境
+              </td>
+              <td>
+                • チャット形式コード生成<br>
+                • コード解説・修正提案<br>
+                • ChatGPTインターフェース
+              </td>
+            </tr>
+            <tr>
+              <td><strong>CLI/API機能</strong></td>
+              <td>
+                • ターミナル統合<br>
+                • ローカルファイル操作<br>
+                • Git統合
+              </td>
+              <td>
+                • REST API呼び出し<br>
+                • カスタム統合<br>
+                • CLI ラッパー利用
+              </td>
+            </tr>
+            <tr>
+              <td><strong>特徴的な機能</strong></td>
+              <td>
+                • 複数タスク並行処理<br>
+                • 自動エラー修正<br>
+                • リアルタイムプレビュー
+              </td>
+              <td>
+                • 大規模プロジェクト対応<br>
+                • 柔軟なAPI統合<br>
+                • エコシステム連携
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3️⃣ ユースケース</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>用途</th>
+              <th>Claude Code</th>
+              <th>OpenAI Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>最適な用途</strong></td>
+              <td>
+                • プロトタイプ開発<br>
+                • 個人プロジェクト<br>
+                • 学習・実験
+              </td>
+              <td>
+                • エンタープライズ開発<br>
+                • 既存ツール統合<br>
+                • カスタムワークフロー
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Web版推奨シーン</strong></td>
+              <td>
+                • 単一タスク実装<br>
+                • クイック開発<br>
+                • デモ作成
+              </td>
+              <td>
+                • コード質問・相談<br>
+                • 学習サポート<br>
+                • コードレビュー補助
+              </td>
+            </tr>
+            <tr>
+              <td><strong>CLI/API推奨シーン</strong></td>
+              <td>
+                • ローカル開発統合<br>
+                • バージョン管理連携<br>
+                • チーム開発補助
+              </td>
+              <td>
+                • CI/CD統合<br>
+                • 大規模自動化<br>
+                • カスタムツール開発
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4️⃣ 対応言語・フレームワーク</h3>
+        <div class="info-box">
+          <h4>🔧 両ツール共通サポート</h4>
+          <p>
+            <strong>言語：</strong> Python, JavaScript, TypeScript, Java, C++, C#, Ruby, Go, Rust, PHP, Swift, Kotlin など主要言語<br>
+            <strong>フレームワーク：</strong> React, Vue.js, Angular, Django, Flask, Express.js, Spring Boot, .NET, Rails など<br>
+            <strong>その他：</strong> SQL, HTML/CSS, Markdown, YAML, JSON, Docker, Kubernetes設定ファイル
+          </p>
+        </div>
+
+        <h3>5️⃣ 実行環境</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>環境</th>
+              <th>Claude Code</th>
+              <th>OpenAI Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Web版</strong></td>
+              <td>
+                クラウドサンドボックス<br>
+                <span class="tag web">隔離環境</span>
+              </td>
+              <td>
+                実行環境なし（コード生成のみ）<br>
+                <span class="tag web">生成特化</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>CLI/API版</strong></td>
+              <td>
+                ローカル環境（ユーザーマシン）<br>
+                <span class="tag cli">直接実行</span>
+              </td>
+              <td>
+                ローカル環境（API経由）<br>
+                <span class="tag api">ユーザー責任</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>セキュリティ</strong></td>
+              <td>
+                • Web: サンドボックス分離<br>
+                • CLI: ローカル権限依存
+              </td>
+              <td>
+                • Web: コード実行なし<br>
+                • API: ローカル実行リスク
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 料金体系 -->
+      <section class="section">
+        <h2>💰 料金体系</h2>
+
+        <h3>Claude Code 料金プラン</h3>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="plan-name">Free</div>
+            <div class="price">$0<span style="font-size: 1rem;">/月</span></div>
+            <p style="color: var(--text-light); margin-top: 12px;">
+              • 基本機能<br>
+              • 月間制限あり<br>
+              • Web版のみ
+            </p>
+          </div>
+          <div class="pricing-card">
+            <div class="plan-name">Pro</div>
+            <div class="price">$20<span style="font-size: 1rem;">/月</span></div>
+            <p style="color: var(--text-light); margin-top: 12px;">
+              • Web + CLI版<br>
+              • 優先アクセス<br>
+              • 拡張使用量
+            </p>
+          </div>
+          <div class="pricing-card">
+            <div class="plan-name">Team</div>
+            <div class="price">$30<span style="font-size: 1rem;">/月/ユーザー</span></div>
+            <p style="color: var(--text-light); margin-top: 12px;">
+              • チーム機能<br>
+              • 管理コンソール<br>
+              • SLAサポート
+            </p>
+          </div>
+        </div>
+
+        <h3>OpenAI Codex 料金プラン</h3>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="plan-name">ChatGPT Plus</div>
+            <div class="price">$20<span style="font-size: 1rem;">/月</span></div>
+            <p style="color: var(--text-light); margin-top: 12px;">
+              • Web版統合<br>
+              • GPT-4アクセス<br>
+              • コーディング支援
+            </p>
+          </div>
+          <div class="pricing-card">
+            <div class="plan-name">API</div>
+            <div class="price">従量課金</div>
+            <p style="color: var(--text-light); margin-top: 12px;">
+              • $0.01-0.06/1Kトークン<br>
+              • 無制限スケール<br>
+              • カスタム統合
+            </p>
+          </div>
+          <div class="pricing-card">
+            <div class="plan-name">Enterprise</div>
+            <div class="price">要相談</div>
+            <p style="color: var(--text-light); margin-top: 12px;">
+              • カスタムプラン<br>
+              • 専用サポート<br>
+              • SLA保証
+            </p>
+          </div>
+        </div>
+
+        <div class="info-box warning">
+          <h4>⚠️ コスト注意点</h4>
+          <p>
+            <strong>Claude Code：</strong> 定額制のため予算管理が容易。ただしCLI版は有料プラン必須。<br>
+            <strong>OpenAI Codex：</strong> API版は使用量に応じて変動。大規模利用時は予算超過リスクあり。Web版はChatGPT Plus契約で利用可能。
+          </p>
+        </div>
+      </section>
+
+      <!-- モデル比較 -->
+      <section class="section">
+        <h2>🧠 モデル比較</h2>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>モデル</th>
+              <th>Claude Code</th>
+              <th>OpenAI Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>基盤モデル</strong></td>
+              <td>
+                • Claude 3.5 Opus（高性能）<br>
+                • Claude 3.5 Sonnet（標準）
+              </td>
+              <td>
+                • GPT-4 Turbo<br>
+                • Codex-1（コーディング特化）
+              </td>
+            </tr>
+            <tr>
+              <td><strong>コンテキスト窓</strong></td>
+              <td>200K トークン</td>
+              <td>128K トークン（GPT-4 Turbo）</td>
+            </tr>
+            <tr>
+              <td><strong>コード生成精度</strong></td>
+              <td>
+                • 自然言語→コード変換: 高<br>
+                • 複雑ロジック: 中〜高<br>
+                • エラー修正: 高
+              </td>
+              <td>
+                • 自然言語→コード変換: 高<br>
+                • 複雑ロジック: 高<br>
+                • エラー修正: 中〜高
+              </td>
+            </tr>
+            <tr>
+              <td><strong>特徴</strong></td>
+              <td>
+                • エージェント行動に最適化<br>
+                • 段階的実装が得意<br>
+                • 長文コンテキスト理解
+              </td>
+              <td>
+                • 多様なコーディングタスク対応<br>
+                • ドキュメント生成が得意<br>
+                • エコシステム統合
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 制限事項 -->
+      <section class="section">
+        <h2>⚠️ 制限事項</h2>
+
+        <h3>Claude Code の制限</h3>
+        <div class="info-box warning">
+          <ul class="feature-list">
+            <li><strong>Web版：</strong> サンドボックス環境のため外部APIアクセス制限あり</li>
+            <li><strong>CLI版：</strong> 有料プラン必須、無料版では利用不可</li>
+            <li><strong>実行時間：</strong> 長時間タスクはタイムアウトの可能性</li>
+            <li><strong>ファイルサイズ：</strong> 大規模プロジェクトの一括処理に制限</li>
+            <li><strong>リアルタイム性：</strong> ネットワーク依存のため遅延発生の可能性</li>
+          </ul>
+        </div>
+
+        <h3>OpenAI Codex の制限</h3>
+        <div class="info-box warning">
+          <ul class="feature-list">
+            <li><strong>Web版：</strong> コード実行環境なし、生成のみ</li>
+            <li><strong>API版：</strong> レート制限あり（RPM/TPM制限）</li>
+            <li><strong>コスト：</strong> 大規模利用時の従量課金コスト増加</li>
+            <li><strong>モデル選択：</strong> 最新モデルは待機リストや追加料金の場合あり</li>
+            <li><strong>セキュリティ：</strong> ローカル実行のため誤コード実行リスク</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- まとめ -->
+      <section class="section">
+        <h2>✅ まとめ</h2>
+
+        <div class="info-box success">
+          <h4>🎯 選択ガイド</h4>
+          <p><strong>Claude Code を選ぶべき場合：</strong></p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>エージェント型で自律的にタスクを完了させたい</li>
+            <li>プロトタイプを素早く作りたい</li>
+            <li>予算を固定したい（定額制希望）</li>
+            <li>ブラウザベースの開発環境を好む</li>
+          </ul>
+
+          <p style="margin-top: 16px;"><strong>OpenAI Codex を選ぶべき場合：</strong></p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>既存ツールやワークフローに統合したい</li>
+            <li>大規模プロジェクトでカスタマイズ性が必要</li>
+            <li>API経由での柔軟な利用を希望</li>
+            <li>エンタープライズ環境での利用</li>
+          </ul>
+        </div>
+
+        <div class="comparison-grid" style="margin-top: 32px;">
+          <div class="info-box">
+            <h4>💡 Claude Code の強み</h4>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>直感的なエージェント型UI</li>
+              <li>クラウドサンドボックスの安全性</li>
+              <li>予算管理しやすい定額制</li>
+              <li>長文コンテキスト理解</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h4>💡 OpenAI Codex の強み</h4>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>豊富なエコシステム統合</li>
+              <li>柔軟なAPI活用</li>
+              <li>大規模プロジェクト対応</li>
+              <li>ChatGPTとの統合</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 32px;">
+          <h4>🔮 今後の展望</h4>
+          <p>
+            両ツールともAIコーディング支援市場で急速に進化中。Claude Codeはエージェント機能の強化、Codexはエコシステム統合の拡大が期待される。開発者はプロジェクトの特性に応じて、両ツールを使い分けることが最適戦略となる。
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <p>📚 参考リンク</p>
+      <p style="margin-top: 12px;">
+        <a href="https://claude.ai/code" target="_blank">Claude Code 公式</a> |
+        <a href="https://openai.com/codex" target="_blank">OpenAI Codex 公式</a> |
+        <a href="https://platform.openai.com/docs" target="_blank">OpenAI API ドキュメント</a>
+      </p>
+      <p style="margin-top: 24px; opacity: 0.7;">&copy; 2025 AI Intelligence Hub</p>
+    </footer>
+  </div>
+</body>
+</html>
