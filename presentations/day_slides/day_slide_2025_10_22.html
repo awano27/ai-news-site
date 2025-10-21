@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT Atlas vs 競合AIブラウザ徹底比較 - 2025/10/22</title>
+  <style>
+    :root {
+      --atlas: #10a37f;
+      --arc: #4f46e5;
+      --comet: #7c3aed;
+      --genspark: #ea580c;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --accent: #3b82f6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #10a37f 0%, #7c3aed 50%, #ea580c 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #10a37f 0%, #7c3aed 50%, #ea580c 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.05) 10px,
+        rgba(255,255,255,0.05) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .date {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-top: 16px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: var(--bg-dark);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--bg-dark);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .browser-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .browser-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .browser-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .browser-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+    }
+
+    .browser-card.atlas::before {
+      background: linear-gradient(90deg, var(--atlas), #34d399);
+    }
+
+    .browser-card.arc::before {
+      background: linear-gradient(90deg, var(--arc), #818cf8);
+    }
+
+    .browser-card.comet::before {
+      background: linear-gradient(90deg, var(--comet), #a78bfa);
+    }
+
+    .browser-card.genspark::before {
+      background: linear-gradient(90deg, var(--genspark), #fb923c);
+    }
+
+    .browser-header {
+      text-align: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .browser-icon {
+      font-size: 3rem;
+      margin-bottom: 8px;
+    }
+
+    .browser-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .browser-company {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    .feature-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: start;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 0.95rem;
+    }
+
+    .comparison-table thead {
+      background: linear-gradient(135deg, #10a37f 0%, #7c3aed 100%);
+      color: white;
+    }
+
+    .comparison-table th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .comparison-table tbody tr:hover {
+      background: var(--bg-light);
+    }
+
+    .comparison-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    .tag.free {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .tag.paid {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .tag.mac {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .tag.win {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .tag.mobile {
+      background: #fce7f3;
+      color: #9f1239;
+    }
+
+    .tag.beta {
+      background: #f3e8ff;
+      color: #6b21a8;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-left: 4px solid #3b82f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .info-box.warning {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-left-color: #f59e0b;
+    }
+
+    .info-box.success {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border-left-color: #10b981;
+    }
+
+    .info-box h4 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .price-tag {
+      display: inline-block;
+      background: var(--atlas);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin: 4px 0;
+    }
+
+    .usecase-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+
+    .usecase-card h4 {
+      color: var(--atlas);
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .footer {
+      background: var(--bg-dark);
+      color: white;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .footer a {
+      color: #60a5fa;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      header {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      .browser-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-table {
+        font-size: 0.85rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 8px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌐 ChatGPT Atlas vs 競合AIブラウザ</h1>
+      <p class="subtitle">次世代AIブラウザ4大勢力の徹底比較</p>
+      <div class="date">📅 2025年10月22日</div>
+    </header>
+
+    <div class="content">
+      <!-- エグゼクティブサマリー -->
+      <section class="section">
+        <h2>📋 エグゼクティブサマリー</h2>
+        <div class="info-box">
+          <h4>🎯 AIブラウザ戦国時代の幕開け</h4>
+          <p>OpenAIが2025年10月に発表したChatGPT Atlasを皮切りに、AIブラウザ市場が本格始動。Arc/Dia（The Browser Company）、Perplexity Comet、GenSpark AIが競合。Chrome支配のブラウザ市場に「AI×ブラウザ」の新価値で挑戦。Sam Altman CEOは「ブラウザとは何かを十年に一度見直す機会」と表明。</p>
+        </div>
+
+        <div class="browser-grid">
+          <div class="browser-card atlas">
+            <div class="browser-header">
+              <div class="browser-icon">🤖</div>
+              <div class="browser-name">ChatGPT Atlas</div>
+              <div class="browser-company">OpenAI</div>
+            </div>
+            <ul class="feature-list">
+              <li>AIチャットサイドバー＋コンテキスト理解</li>
+              <li>Agent Mode（自動タスク実行）</li>
+              <li>ブラウザメモリ（履歴AI活用）</li>
+              <li>無料＋有料プラン</li>
+            </ul>
+          </div>
+
+          <div class="browser-card arc">
+            <div class="browser-header">
+              <div class="browser-icon">🎨</div>
+              <div class="browser-name">Arc / Dia</div>
+              <div class="browser-company">The Browser Company</div>
+            </div>
+            <ul class="feature-list">
+              <li>独自UI（垂直タブ、ワークスペース）</li>
+              <li>5秒プレビュー（即時要約）</li>
+              <li>Dia: 全タブとチャット</li>
+              <li>完全無料</li>
+            </ul>
+          </div>
+
+          <div class="browser-card comet">
+            <div class="browser-header">
+              <div class="browser-icon">🔍</div>
+              <div class="browser-name">Perplexity Comet</div>
+              <div class="browser-company">Perplexity AI</div>
+            </div>
+            <ul class="feature-list">
+              <li>サイドカーAIアシスタント</li>
+              <li>専門ツール（Discover/Shopping/Travel等）</li>
+              <li>バックグラウンドアシスタント</li>
+              <li>無料＋Pro $20/Max $200</li>
+            </ul>
+          </div>
+
+          <div class="browser-card genspark">
+            <div class="browser-header">
+              <div class="browser-icon">⚡</div>
+              <div class="browser-name">GenSpark AI</div>
+              <div class="browser-company">MainFunc</div>
+            </div>
+            <ul class="feature-list">
+              <li>オンデバイスAI（ローカル実行）</li>
+              <li>700+外部サービス連携（MCP）</li>
+              <li>フルエージェント＋Autopilot</li>
+              <li>基本無料＋Pro ~$20-30</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ChatGPT Atlas詳細 -->
+      <section class="section">
+        <h2>🤖 ChatGPT Atlas 詳細機能</h2>
+
+        <h3>1️⃣ AIチャットサイドバー</h3>
+        <div class="info-box">
+          <p>
+            <strong>機能：</strong> ブラウザ画面横にChatGPTを呼び出し、閲覧中ページの要約・質問・比較分析が可能。各タブごとに対話可能で、ドラッグ＆ドロップでデータ解析。開いているページ内容や他タブ、ログイン状態も（許可すれば）把握し、文脈に沿った回答を提供。
+          </p>
+        </div>
+
+        <h3>2️⃣ インライン文章支援</h3>
+        <div class="info-box">
+          <p>
+            <strong>機能：</strong> メール返信・フォーム入力・ドキュメント編集時、テキストボックス内で直接AIにリライトや文案作成を依頼可能。コピペ不要でウェブ上どこでも文章改善。
+          </p>
+        </div>
+
+        <h3>3️⃣ ブラウザメモリ</h3>
+        <div class="info-box">
+          <p>
+            <strong>機能：</strong> 訪れたサイトや操作履歴をAIが記憶・再利用。「先週見た求人情報を探して、業界動向をまとめて」といったパーソナライズ回答が可能。記録内容や保持期間はユーザー管理、履歴消去でメモリも削除。
+          </p>
+        </div>
+
+        <h3>4️⃣ ナチュラルランゲージ操作</h3>
+        <div class="info-box">
+          <p>
+            <strong>機能：</strong> 「昨日見た旅行サイトを開いて」「レシピのタブを全部閉じて」のように自然な言葉で指示。ブックマークやタブ管理をAIが自動実行。
+          </p>
+        </div>
+
+        <h3>5️⃣ Agent Mode（エージェントモード）</h3>
+        <div class="info-box warning">
+          <h4>⚠️ 有料プラン限定機能</h4>
+          <p>
+            <strong>機能：</strong> AIがウェブ上のタスクを自律的に進める「ブラウザ内秘書」。「旅行プランを立てて予約まで」「書類のオンライン申請を代行」など複雑な手続きをサイトナビゲーションしながら完了支援。現段階では簡易タスクに留まり、複雑処理は不安定との報告あり。ChatGPT Plus/Pro/Business限定プレビュー機能。
+          </p>
+        </div>
+
+        <h3>6️⃣ プライバシー設計</h3>
+        <div class="info-box success">
+          <p>
+            <strong>特徴：</strong> デフォルトでブラウジング内容をモデル学習に使用しない設計。インコグニート対応、サイト内容をAIに見せるか細かく設定可能。ブラウザメモリも表示・編集・削除が可能でユーザー主導のデータ管理。
+          </p>
+        </div>
+      </section>
+
+      <!-- 競合ブラウザ比較表 -->
+      <section class="section">
+        <h2>📊 主要機能比較表</h2>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">項目</th>
+              <th style="width: 20%;">ChatGPT Atlas</th>
+              <th style="width: 20%;">Arc / Dia</th>
+              <th style="width: 20%;">Perplexity Comet</th>
+              <th style="width: 20%;">GenSpark AI</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>提供元</strong></td>
+              <td>OpenAI</td>
+              <td>The Browser Company</td>
+              <td>Perplexity AI</td>
+              <td>MainFunc</td>
+            </tr>
+            <tr>
+              <td><strong>リリース時期</strong></td>
+              <td>2025年10月</td>
+              <td>Arc: 2023年〜<br>Dia: 2025年</td>
+              <td>2025年初（10月全公開）</td>
+              <td>2024-2025年</td>
+            </tr>
+            <tr>
+              <td><strong>対応OS</strong></td>
+              <td><span class="tag mac">macOS</span><span class="tag beta">Win/Mobile予定</span></td>
+              <td><span class="tag mac">macOS</span><span class="tag win">Windows</span><span class="tag mobile">iPhone</span></td>
+              <td><span class="tag mac">macOS</span><span class="tag win">Windows</span></td>
+              <td><span class="tag mac">macOS</span><span class="tag win">Windows</span><span class="tag mobile">Android</span></td>
+            </tr>
+            <tr>
+              <td><strong>AIサイドバー</strong></td>
+              <td>✓ タブごと対話</td>
+              <td>Arc Max: Ask ChatGPT<br>Dia: 全タブチャット</td>
+              <td>✓ Comet Assistant</td>
+              <td>✓ オンデバイスAI</td>
+            </tr>
+            <tr>
+              <td><strong>ページ要約</strong></td>
+              <td>✓</td>
+              <td>✓ 5秒プレビュー<br>Dia: 即時要約</td>
+              <td>✓ Sparkpage形式</td>
+              <td>✓ ローカル処理</td>
+            </tr>
+            <tr>
+              <td><strong>文章支援</strong></td>
+              <td>✓ インライン編集</td>
+              <td>Dia: コピーエディター</td>
+              <td>✓ メールアシスタント</td>
+              <td>✓ 音声通話代行</td>
+            </tr>
+            <tr>
+              <td><strong>エージェント機能</strong></td>
+              <td>✓ Agent Mode<br>（有料限定）</td>
+              <td>未実装</td>
+              <td>✓ バックグラウンド<br>アシスタント（有料）</td>
+              <td>✓ Autopilot<br>フルエージェント</td>
+            </tr>
+            <tr>
+              <td><strong>専門ツール</strong></td>
+              <td>汎用AI</td>
+              <td>ワークスペース<br>タブ管理</td>
+              <td>Discover/Shopping/<br>Travel/Finance等</td>
+              <td>MCPストア<br>700+サービス連携</td>
+            </tr>
+            <tr>
+              <td><strong>オフライン対応</strong></td>
+              <td>×</td>
+              <td>×</td>
+              <td>×</td>
+              <td>✓ オンデバイスAI</td>
+            </tr>
+            <tr>
+              <td><strong>料金</strong></td>
+              <td><span class="tag free">無料</span><br>Plus/Pro限定機能あり</td>
+              <td><span class="tag free">完全無料</span></td>
+              <td><span class="tag free">無料</span><br>Pro $20/Max $200</td>
+              <td><span class="tag free">無料</span><br>Pro ~$20-30</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 料金体系詳細 -->
+      <section class="section">
+        <h2>💰 料金体系詳細</h2>
+
+        <h3>ChatGPT Atlas</h3>
+        <div class="info-box">
+          <p>
+            <span class="price-tag">無料</span> 基本機能利用可能<br>
+            <span class="price-tag">Plus/Pro/Business</span> Agent Mode等の高度機能<br>
+            <strong>特記：</strong> 無料ユーザーでもブラウザ自体は利用可能。Agent Modeやブラウザメモリ拡張機能は有料プラン限定。
+          </p>
+        </div>
+
+        <h3>Arc / Dia</h3>
+        <div class="info-box">
+          <p>
+            <span class="price-tag">完全無料</span> Arc・Diaともに無料提供<br>
+            <strong>特記：</strong> Arc Max AI機能も追加課金不要。ChatGPT連携はユーザー自身のOpenAIアカウント使用。現状The Browser Companyは料金モデル未発表。
+          </p>
+        </div>
+
+        <h3>Perplexity Comet</h3>
+        <div class="info-box">
+          <p>
+            <span class="price-tag">無料</span> サイドカーAI、基本ツール利用可<br>
+            <span class="price-tag">Pro $20/月</span> 高性能AIモデル、ファイル解析<br>
+            <span class="price-tag">Max $200/月</span> バックグラウンドアシスタント、メールAI<br>
+            <span class="price-tag">Comet Plus $5/月</span> ニュース配信（Pro以上は含む）<br>
+            <strong>特記：</strong> 2025年10月より全ユーザー無料開放。上位機能は有料プラン。
+          </p>
+        </div>
+
+        <h3>GenSpark AI</h3>
+        <div class="info-box">
+          <p>
+            <span class="price-tag">基本無料</span> ローカルAI無料、クラウド機能に無料クレジット<br>
+            <span class="price-tag">Pro ~$20-30/月</span> タスク実行上限緩和、強力モデル<br>
+            <strong>特記：</strong> 明確な料金表非公開。招待コードで無料クレジット追加あり。
+          </p>
+        </div>
+      </section>
+
+      <!-- 導入方法 -->
+      <section class="section">
+        <h2>📥 導入方法・対応状況</h2>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>ブラウザ</th>
+              <th>macOS</th>
+              <th>Windows</th>
+              <th>iOS</th>
+              <th>Android</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>ChatGPT Atlas</strong></td>
+              <td>✓ chatgpt.com/atlas</td>
+              <td>近日中</td>
+              <td>近日中</td>
+              <td>近日中</td>
+            </tr>
+            <tr>
+              <td><strong>Arc</strong></td>
+              <td>✓ arc.net</td>
+              <td>✓ arc.net</td>
+              <td>✓ App Store</td>
+              <td>未対応</td>
+            </tr>
+            <tr>
+              <td><strong>Dia</strong></td>
+              <td>✓ diabrowser.com<br>（M1以降のみ）</td>
+              <td>未対応</td>
+              <td>未対応</td>
+              <td>未対応</td>
+            </tr>
+            <tr>
+              <td><strong>Perplexity Comet</strong></td>
+              <td>✓ perplexity.ai/comet</td>
+              <td>✓ perplexity.ai/comet</td>
+              <td>未発表</td>
+              <td>未発表</td>
+            </tr>
+            <tr>
+              <td><strong>GenSpark AI</strong></td>
+              <td>✓ genspark.ai/browser</td>
+              <td>✓ genspark.ai/browser</td>
+              <td>未対応</td>
+              <td>✓ Google Play</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ユースケース -->
+      <section class="section">
+        <h2>💼 主要ユースケース</h2>
+
+        <div class="usecase-card">
+          <h4>📰 情報収集・リサーチ</h4>
+          <p>
+            <strong>Atlas：</strong> ブラウザメモリで過去閲覧サイトを記憶、関連情報を自動提案<br>
+            <strong>Comet：</strong> Sparkpage形式で複数ソース統合、引用元明示で信頼性確保<br>
+            <strong>Arc：</strong> 5秒プレビューでリンク先概要を即座に把握<br>
+            <strong>GenSpark：</strong> AIが自動でウェブ横断、情報収集をエージェントに任せる
+          </p>
+        </div>
+
+        <div class="usecase-card">
+          <h4>✍️ 執筆・ライティング</h4>
+          <p>
+            <strong>Atlas：</strong> インライン編集でメール・フォーム入力を直接AI支援<br>
+            <strong>Comet：</strong> メールアシスタントが受信トレイを自動整理、返信案作成<br>
+            <strong>Dia：</strong> コピーエディターがリアルタイムで文章改善提案<br>
+            <strong>GenSpark：</strong> 音声通話代行で電話対応も自動化
+          </p>
+        </div>
+
+        <div class="usecase-card">
+          <h4>🛒 ショッピング</h4>
+          <p>
+            <strong>Atlas：</strong> 商品比較や競合製品の違いをAIが横断分析<br>
+            <strong>Comet：</strong> Shopping機能で複数ECサイト価格比較、クーポン提案<br>
+            <strong>GenSpark：</strong> 自動でサイト巡回、レビュー分析、最安値提示
+          </p>
+        </div>
+
+        <div class="usecase-card">
+          <h4>✈️ 旅行計画・予約</h4>
+          <p>
+            <strong>Atlas：</strong> Agent Modeで航空券・ホテル予約を一括依頼<br>
+            <strong>Comet：</strong> Travel機能で観光情報、天気、為替を総合アシスト<br>
+            <strong>GenSpark：</strong> レストラン予約確認まで電話代行
+          </p>
+        </div>
+
+        <div class="usecase-card">
+          <h4>🔒 プライバシー重視</h4>
+          <p>
+            <strong>GenSpark：</strong> オンデバイスAIでオフライン動作、データ外部送信なし<br>
+            <strong>Atlas/Arc：</strong> プライバシー設定で閲覧内容を学習に使わせない制御可能
+          </p>
+        </div>
+      </section>
+
+      <!-- まとめ -->
+      <section class="section">
+        <h2>✅ 選択ガイド</h2>
+
+        <div class="info-box success">
+          <h4>🎯 こんな人におすすめ</h4>
+
+          <p><strong>ChatGPT Atlas：</strong></p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>OpenAIエコシステムを愛用している</li>
+            <li>Agent Modeで複雑タスクを自動化したい</li>
+            <li>ブラウザメモリで履歴活用を重視</li>
+          </ul>
+
+          <p style="margin-top: 16px;"><strong>Arc / Dia：</strong></p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>独自UIでタブ管理を効率化したい</li>
+            <li>完全無料でAI機能を試したい</li>
+            <li>デザイン性・UXにこだわる</li>
+          </ul>
+
+          <p style="margin-top: 16px;"><strong>Perplexity Comet：</strong></p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>AI検索エンジンを愛用している</li>
+            <li>情報の正確性・引用元を重視</li>
+            <li>専門ツール（Shopping/Travel等）を活用したい</li>
+          </ul>
+
+          <p style="margin-top: 16px;"><strong>GenSpark AI：</strong></p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>オフライン・プライバシーを最重視</li>
+            <li>700+外部サービス連携を活用したい</li>
+            <li>Android端末でAIブラウザを使いたい</li>
+          </ul>
+        </div>
+
+        <div class="info-box" style="margin-top: 32px;">
+          <h4>🔮 今後の展望</h4>
+          <p>
+            Chrome支配のブラウザ市場に「AI×ブラウザ」の新価値で挑戦する4大勢力。Sam Altman CEOの「十年に一度のブラウザ再定義」宣言通り、ウェブ体験の根本的な変革が始まっている。各ブラウザは得意分野を持ち、今後のエコシステム拡大、エージェント機能の成熟、モバイル対応が鍵。ブラウザ選びの基準が「AIとの相性」に移行する時代の幕開け。
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <p>📚 参考リンク</p>
+      <p style="margin-top: 12px;">
+        <a href="https://chatgpt.com/atlas" target="_blank">ChatGPT Atlas</a> |
+        <a href="https://arc.net" target="_blank">Arc Browser</a> |
+        <a href="https://www.diabrowser.com" target="_blank">Dia Browser</a> |
+        <a href="https://www.perplexity.ai/comet" target="_blank">Perplexity Comet</a> |
+        <a href="https://www.genspark.ai/browser" target="_blank">GenSpark AI</a>
+      </p>
+      <p style="margin-top: 24px; opacity: 0.7;">&copy; 2025 AI Intelligence Hub</p>
+    </footer>
+  </div>
+</body>
+</html>
