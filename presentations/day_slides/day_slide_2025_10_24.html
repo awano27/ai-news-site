@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIコードアシスタント4大ツール徹底比較 - 2025/10/24</title>
+  <style>
+    :root {
+      --gemini: #4285f4;
+      --copilot: #2188ff;
+      --cursor: #000000;
+      --claude: #d97757;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --accent: #3b82f6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #4285f4 0%, #2188ff 25%, #000000 75%, #d97757 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4285f4 0%, #2188ff 25%, #000000 75%, #d97757 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.05) 10px,
+        rgba(255,255,255,0.05) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .date {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-top: 16px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: var(--bg-dark);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--bg-dark);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .tool-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+    }
+
+    .tool-card.gemini::before {
+      background: linear-gradient(90deg, var(--gemini), #5a9ffc);
+    }
+
+    .tool-card.copilot::before {
+      background: linear-gradient(90deg, var(--copilot), #52a8ff);
+    }
+
+    .tool-card.cursor::before {
+      background: linear-gradient(90deg, var(--cursor), #333333);
+    }
+
+    .tool-card.claude::before {
+      background: linear-gradient(90deg, var(--claude), #e89070);
+    }
+
+    .tool-header {
+      text-align: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tool-icon {
+      font-size: 3rem;
+      margin-bottom: 8px;
+    }
+
+    .tool-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .tool-company {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    .tool-details {
+      line-height: 1.8;
+    }
+
+    .tool-details p {
+      margin: 8px 0;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(33, 136, 255, 0.1) 100%);
+      border-left: 4px solid var(--gemini);
+      padding: 24px;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+
+    .info-box.warning {
+      background: linear-gradient(135deg, rgba(217, 119, 87, 0.1) 0%, rgba(232, 144, 112, 0.1) 100%);
+      border-left-color: var(--claude);
+    }
+
+    .info-box h4 {
+      color: var(--gemini);
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+    }
+
+    .info-box.warning h4 {
+      color: var(--claude);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 0.9rem;
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, var(--gemini), var(--copilot));
+      color: white;
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .comparison-table tr:hover {
+      background: rgba(66, 133, 244, 0.05);
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comparison-table strong {
+      color: var(--bg-dark);
+      font-weight: 600;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-list li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--gemini);
+      font-weight: bold;
+    }
+
+    .highlight {
+      color: var(--gemini);
+      font-weight: 600;
+    }
+
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .price-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .price-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .price-card h4 {
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+      color: var(--bg-dark);
+    }
+
+    .price-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--gemini);
+      margin: 16px 0;
+    }
+
+    .price-card.gemini .price-value { color: var(--gemini); }
+    .price-card.copilot .price-value { color: var(--copilot); }
+    .price-card.cursor .price-value { color: var(--cursor); }
+    .price-card.claude .price-value { color: var(--claude); }
+
+    .source-section {
+      background: var(--bg-light);
+      padding: 32px;
+      border-radius: 12px;
+      margin-top: 48px;
+    }
+
+    .source-section h3 {
+      color: var(--bg-dark);
+      margin-bottom: 16px;
+    }
+
+    .source-section a {
+      color: var(--gemini);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .source-section a:hover {
+      text-decoration: underline;
+    }
+
+    .back-link {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 32px;
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      background: var(--gemini);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .pros, .cons {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .pros {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 3px solid #10b981;
+    }
+
+    .cons {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid #ef4444;
+    }
+
+    .pros h5, .cons h5 {
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .pros h5 { color: #10b981; }
+    .cons h5 { color: #ef4444; }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .tool-grid,
+      .price-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pros-cons {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-table {
+        font-size: 0.8rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 10px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💻 AIコードアシスタント4大ツール徹底比較</h1>
+      <div class="subtitle">Google Gemini vs GitHub Copilot vs Cursor vs Claude Code</div>
+      <div class="date">2025年10月24日</div>
+    </header>
+
+    <div class="content">
+      <!-- Executive Summary -->
+      <section class="section">
+        <h2>🎯 エグゼクティブサマリー</h2>
+        <div class="info-box">
+          <h4>4大AIコードアシスタントツールの特徴</h4>
+          <p style="line-height: 1.8;">
+            • <span class="highlight">Google Gemini Code Assist</span>：Google Cloud統合、Enterprise向けコードカスタマイゼーション<br>
+            • <span class="highlight">GitHub Copilot</span>：業界標準、30言語以上対応、IP補償付き<br>
+            • <span class="highlight">Cursor</span>：AI統合IDE、GPT-4/Claude/Gemini選択可能、プライバシーモード<br>
+            • <span class="highlight">Claude Code</span>：世界最高のコーディングモデル、大規模コンテキスト対応
+          </p>
+        </div>
+        <div class="info-box warning">
+          <h4>⚠️ 選択のポイント</h4>
+          <p><strong>用途・予算・セキュリティ要件</strong>によって最適なツールは異なる。企業利用ではデータ管理・コンプライアンス対応が重要。</p>
+        </div>
+      </section>
+
+      <!-- 4 Tools Overview -->
+      <section class="section">
+        <h2>🛠️ 4大ツール概要</h2>
+        <div class="tool-grid">
+          <div class="tool-card gemini">
+            <div class="tool-header">
+              <div class="tool-icon">🔵</div>
+              <div class="tool-name">Google Gemini</div>
+              <div class="tool-company">Google</div>
+            </div>
+            <div class="tool-details">
+              <p><strong>特徴：</strong>Google Cloud緊密統合、コードカスタマイゼーション</p>
+              <p><strong>強み：</strong>Enterprise向け、引用元明示、日本語対応</p>
+              <p><strong>料金：</strong>Standard無料、Enterprise要契約</p>
+            </div>
+          </div>
+
+          <div class="tool-card copilot">
+            <div class="tool-header">
+              <div class="tool-icon">🐙</div>
+              <div class="tool-name">GitHub Copilot</div>
+              <div class="tool-company">Microsoft / GitHub</div>
+            </div>
+            <div class="tool-details">
+              <p><strong>特徴：</strong>業界標準、30言語以上対応、GPT-4ベース</p>
+              <p><strong>強み：</strong>成熟した機能、IP補償、公開コードブロック</p>
+              <p><strong>料金：</strong>個人$10/月、Business $19/月</p>
+            </div>
+          </div>
+
+          <div class="tool-card cursor">
+            <div class="tool-header">
+              <div class="tool-icon">⚫</div>
+              <div class="tool-name">Cursor</div>
+              <div class="tool-company">Anysphere</div>
+            </div>
+            <div class="tool-details">
+              <p><strong>特徴：</strong>AI統合IDE、複数モデル選択可能</p>
+              <p><strong>強み：</strong>プライバシーモード、エージェント機能</p>
+              <p><strong>料金：</strong>Hobby無料、Pro $20/月、Teams $40/月</p>
+            </div>
+          </div>
+
+          <div class="tool-card claude">
+            <div class="tool-header">
+              <div class="tool-icon">🟠</div>
+              <div class="tool-name">Claude Code</div>
+              <div class="tool-company">Anthropic</div>
+            </div>
+            <div class="tool-details">
+              <p><strong>特徴：</strong>世界最高コーディングモデル、大規模コンテキスト</p>
+              <p><strong>強み：</strong>SWE-benchトップスコア、複雑タスク対応</p>
+              <p><strong>料金：</strong>無料枠あり、Pro $20/月、API従量課金</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Feature Comparison -->
+      <section class="section">
+        <h2>⚙️ 機能比較</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">機能</th>
+              <th style="width: 20%;">Gemini</th>
+              <th style="width: 20%;">Copilot</th>
+              <th style="width: 20%;">Cursor</th>
+              <th style="width: 20%;">Claude</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>コード補完</strong></td>
+              <td>インライン補完、複数行提案、差分ビュー</td>
+              <td>リアルタイム補完、文脈理解、型情報活用</td>
+              <td>AI補完+LSP連携、無制限（Pro以上）</td>
+              <td>高精度補完、大規模コンテキスト対応</td>
+            </tr>
+            <tr>
+              <td><strong>コード生成</strong></td>
+              <td>/generateコマンド、自然言語から生成</td>
+              <td>コメントから生成、Docstring対応</td>
+              <td>GPT-4/Claude/Gemini選択可能</td>
+              <td>関数全体〜大規模リファクタまで対応</td>
+            </tr>
+            <tr>
+              <td><strong>デバッグ支援</strong></td>
+              <td>Quick Fix提案、エラー修正差分表示</td>
+              <td>エラー検出、修正提案</td>
+              <td>IDE機能+AI分析</td>
+              <td>バグ原因特定〜修正まで自動対応</td>
+            </tr>
+            <tr>
+              <td><strong>スマートアクション</strong></td>
+              <td>ユニットテスト生成、リファクタ提案</td>
+              <td>コードレビュー、説明生成</td>
+              <td>エージェント機能、タスク自動化</td>
+              <td>複数ファイル横断分析・編集</td>
+            </tr>
+            <tr>
+              <td><strong>チャット機能</strong></td>
+              <td>専用ペイン、Google Cloud連携</td>
+              <td>Copilot Chat、コード質問応答</td>
+              <td>統合チャット、コンテキスト保持</td>
+              <td>Web/CLI/IDE、200Kトークンコンテキスト</td>
+            </tr>
+            <tr>
+              <td><strong>引用元表示</strong></td>
+              <td>✓ OSS引用時にURL表示</td>
+              <td>✓ 公開コードマッチ警告</td>
+              <td>モデル依存</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Language Support -->
+      <section class="section">
+        <h2>🌐 言語サポート（C# / TypeScript / Python）</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">ツール</th>
+              <th style="width: 27%;">C#</th>
+              <th style="width: 27%;">TypeScript</th>
+              <th style="width: 26%;">Python</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Gemini</strong></td>
+              <td>検証済みサポート言語、型安全な提案</td>
+              <td>検証済みサポート言語、型定義・Docs参照</td>
+              <td>検証済みサポート言語、Docstring・ライブラリ精通</td>
+            </tr>
+            <tr>
+              <td><strong>Copilot</strong></td>
+              <td>特によく効く言語、.NETパターン対応</td>
+              <td>最も得意な言語、型・ジェネリクス考慮</td>
+              <td>最も得意な言語、ライブラリ使用例豊富</td>
+            </tr>
+            <tr>
+              <td><strong>Cursor</strong></td>
+              <td>LSP+GPT、Unity/C#開発で利用報告</td>
+              <td>VS Code機能+AI、型情報活用で高精度</td>
+              <td>高度GPTモデル、大規模プロジェクト対応</td>
+            </tr>
+            <tr>
+              <td><strong>Claude</strong></td>
+              <td>非常に高性能、大規模コード洞察</td>
+              <td>非常に高性能、解析・生成能力突出</td>
+              <td>非常に高性能、バグ特定〜修正自動化</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="info-box">
+          <h4>📊 性能評価</h4>
+          <p style="line-height: 1.8;">
+            • <strong>Gemini：</strong>Google内部検証で主要言語の高品質保証<br>
+            • <strong>Copilot：</strong>GPT-4ベース、30言語以上で実績<br>
+            • <strong>Cursor：</strong>複数モデル活用で柔軟な対応<br>
+            • <strong>Claude：</strong>SWE-benchで最高スコア、複雑タスクに強み
+          </p>
+        </div>
+      </section>
+
+      <!-- Pricing Comparison -->
+      <section class="section">
+        <h2>💰 料金比較</h2>
+
+        <h3>個人利用</h3>
+        <div class="price-grid">
+          <div class="price-card gemini">
+            <h4>Gemini Standard</h4>
+            <div class="price-value">無料</div>
+            <p style="color: var(--text-light);">VS Code拡張、基本機能</p>
+            <p style="font-size: 0.85rem; margin-top: 12px;">※データ改善利用あり（オプトアウト可）</p>
+          </div>
+
+          <div class="price-card copilot">
+            <h4>GitHub Copilot Individual</h4>
+            <div class="price-value">$10<span style="font-size: 1rem;">/月</span></div>
+            <p style="color: var(--text-light);">全機能、30言語対応</p>
+            <p style="font-size: 0.85rem; margin-top: 12px;">※データ収集あり</p>
+          </div>
+
+          <div class="price-card cursor">
+            <h4>Cursor Hobby</h4>
+            <div class="price-value">無料</div>
+            <p style="color: var(--text-light);">制限付き補完・エージェント</p>
+            <p style="font-size: 0.85rem; margin-top: 12px;">Pro: $20/月（無制限）</p>
+          </div>
+
+          <div class="price-card claude">
+            <h4>Claude Free / Pro</h4>
+            <div class="price-value">無料 / $20<span style="font-size: 1rem;">/月</span></div>
+            <p style="color: var(--text-light);">無料枠あり、Pro優先アクセス</p>
+            <p style="font-size: 0.85rem; margin-top: 12px;">API従量課金も可</p>
+          </div>
+        </div>
+
+        <h3>企業利用</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">プラン</th>
+              <th style="width: 20%;">料金</th>
+              <th style="width: 30%;">特徴</th>
+              <th style="width: 30%;">データ管理</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Gemini Enterprise</strong></td>
+              <td>要契約</td>
+              <td>コードカスタマイゼーション、専用インスタンス、IAM連携</td>
+              <td>組織データ隔離、Google Cloud標準準拠（ISO 27001、SOC 2、GDPR）</td>
+            </tr>
+            <tr>
+              <td><strong>Copilot Business</strong></td>
+              <td>$19/月/ユーザー</td>
+              <td>中央管理、公開コードブロック、ポリシー設定</td>
+              <td>コードスニペット保存・学習なし、IP補償オプション</td>
+            </tr>
+            <tr>
+              <td><strong>Cursor Teams</strong></td>
+              <td>$40/月/ユーザー</td>
+              <td>一括課金、利用分析、プライバシーモード、SSO、RBAC</td>
+              <td>プライバシーモード：外部送信なし（機能制限あり）</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Team/Enterprise</strong></td>
+              <td>$30-150/月/ユーザー</td>
+              <td>大コンテキスト、監査ログ、オンプレオプション</td>
+              <td>学習利用なし、自動削除、保持期間カスタマイズ（Enterprise）</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Pros and Cons -->
+      <section class="section">
+        <h2>✅ 各ツールの長所・短所</h2>
+
+        <h3>Google Gemini Code Assist</h3>
+        <div class="pros-cons">
+          <div class="pros">
+            <h5>✓ 長所</h5>
+            <ul class="feature-list">
+              <li>Google Cloud統合、Firebase/BigQuery連携</li>
+              <li>引用元明示でライセンス配慮</li>
+              <li>Enterprise向けコードカスタマイゼーション</li>
+              <li>日本語含む多言語プロンプト対応</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h5>✗ 短所</h5>
+            <ul class="feature-list" style="list-style: none;">
+              <li>• 大ファイルでチャット回答途切れ</li>
+              <li>• Google Cloudエコシステムへのロックイン</li>
+              <li>• Enterprise版は追加料金発生</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>GitHub Copilot</h3>
+        <div class="pros-cons">
+          <div class="pros">
+            <h5>✓ 長所</h5>
+            <ul class="feature-list">
+              <li>業界標準、成熟した機能・実績</li>
+              <li>30言語以上対応、広範なサポート</li>
+              <li>IP補償オプション、公開コードブロック</li>
+              <li>GitHub統合、開発ワークフロー最適化</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h5>✗ 短所</h5>
+            <ul class="feature-list" style="list-style: none;">
+              <li>• 個人版はデータ収集あり</li>
+              <li>• 月額課金必須（無料枠なし）</li>
+              <li>• 複数モデル選択不可</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Cursor</h3>
+        <div class="pros-cons">
+          <div class="pros">
+            <h5>✓ 長所</h5>
+            <ul class="feature-list">
+              <li>AI統合IDE、VS Codeベースで親和性高</li>
+              <li>GPT-4/Claude/Gemini選択可能</li>
+              <li>プライバシーモード、企業向けSSO/RBAC</li>
+              <li>エージェント機能、タスク自動化</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h5>✗ 短所</h5>
+            <ul class="feature-list" style="list-style: none;">
+              <li>• 無料プランは機能制限あり</li>
+              <li>• プライバシーモードで高度モデル制限</li>
+              <li>• 外部API利用時は各社規約適用</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Claude Code</h3>
+        <div class="pros-cons">
+          <div class="pros">
+            <h5>✓ 長所</h5>
+            <ul class="feature-list">
+              <li>世界最高コーディングモデル（SWE-benchトップ）</li>
+              <li>200Kトークン大規模コンテキスト</li>
+              <li>複数ファイル横断分析・編集</li>
+              <li>学習利用なし、プライバシー配慮</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h5>✗ 短所</h5>
+            <ul class="feature-list" style="list-style: none;">
+              <li>• VS Code拡張はベータ版</li>
+              <li>• CLIツール主体（IDE統合発展途上）</li>
+              <li>• Enterprise契約でカスタム要素多</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Selection Guide -->
+      <section class="section">
+        <h2>🎯 選択ガイド</h2>
+
+        <div class="tool-grid">
+          <div class="tool-card gemini">
+            <h4>Google Gemini 推奨ケース</h4>
+            <ul class="feature-list" style="margin-top: 12px;">
+              <li>Google Cloud中心の開発環境</li>
+              <li>Firebase/BigQuery連携が必要</li>
+              <li>ライセンス配慮（引用元明示）重視</li>
+              <li>Enterprise向けカスタマイズ希望</li>
+            </ul>
+          </div>
+
+          <div class="tool-card copilot">
+            <h4>GitHub Copilot 推奨ケース</h4>
+            <ul class="feature-list" style="margin-top: 12px;">
+              <li>業界標準ツールを採用したい</li>
+              <li>GitHub中心の開発ワークフロー</li>
+              <li>IP補償が必要な企業環境</li>
+              <li>30言語以上の広範な対応が必要</li>
+            </ul>
+          </div>
+
+          <div class="tool-card cursor">
+            <h4>Cursor 推奨ケース</h4>
+            <ul class="feature-list" style="margin-top: 12px;">
+              <li>複数AIモデルを使い分けたい</li>
+              <li>エージェント機能・タスク自動化</li>
+              <li>プライバシーモード必須の企業</li>
+              <li>IDE統合の快適性重視</li>
+            </ul>
+          </div>
+
+          <div class="tool-card claude">
+            <h4>Claude Code 推奨ケース</h4>
+            <ul class="feature-list" style="margin-top: 12px;">
+              <li>最高性能モデルが必要</li>
+              <li>大規模コードベース分析</li>
+              <li>複雑なリファクタリング・バグ修正</li>
+              <li>プライバシー重視（学習利用なし）</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <h4>💡 総合評価</h4>
+          <p style="line-height: 1.8;">
+            • <strong>コスパ重視：</strong>Gemini Standard（無料）またはCopilot Individual（$10/月）<br>
+            • <strong>企業利用：</strong>セキュリティ要件に応じてCopilot Business、Cursor Teams、Claude Enterpriseから選択<br>
+            • <strong>最高性能：</strong>Claude Code（SWE-benchトップスコア、大規模コンテキスト）<br>
+            • <strong>柔軟性：</strong>Cursor（複数モデル選択、プライバシーモード）
+          </p>
+        </div>
+      </section>
+
+      <!-- Data Sources -->
+      <section class="source-section">
+        <h3>📚 主要出典</h3>
+        <p style="line-height: 2; font-size: 0.9rem;">
+          <strong>Google Gemini:</strong> <a href="https://marketplace.visualstudio.com/items?itemName=GoogleCloudTools.cloudcode" target="_blank">VS Code Marketplace</a>, <a href="https://cloud.google.com/code/docs" target="_blank">Google Cloud Docs</a><br>
+          <strong>GitHub Copilot:</strong> <a href="https://docs.github.com/en/copilot" target="_blank">GitHub Docs</a>, <a href="https://github.blog/" target="_blank">GitHub Blog</a><br>
+          <strong>Cursor:</strong> <a href="https://cursor.com/" target="_blank">Cursor公式サイト</a>, <a href="https://cursor.com/pricing" target="_blank">Pricing</a><br>
+          <strong>Claude Code:</strong> <a href="https://anthropic.com/" target="_blank">Anthropic公式</a>, <a href="https://docs.claude.com/" target="_blank">Claude Docs</a>
+        </p>
+
+        <a href="https://awano27.github.io/ai-news-site/presentations/day_slides_index.html" class="back-link">← 日次レポート一覧に戻る</a>
+      </section>
+
+    </div>
+  </div>
+</body>
+</html>
