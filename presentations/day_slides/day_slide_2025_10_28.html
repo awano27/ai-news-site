@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code v2.0.28大型アップデート - 個人開発者向け完全ガイド</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --verified: #22c55e;
+            --unverified: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.8;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        header {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .project-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tldr-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 6px solid var(--warning);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .tldr-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .new-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .metric-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .section {
+            margin: 40px 0;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--secondary);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            color: var(--accent);
+        }
+
+        .new-point {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 6px solid var(--verified);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .new-point h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 6px solid var(--verified);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .feature-box h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .comparison-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 6px solid var(--warning);
+        }
+
+        .context-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 6px solid var(--accent);
+        }
+
+        .innovation-box {
+            background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            color: #6b21a8;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 6px solid var(--secondary);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        .comparison-table tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .key-points {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid var(--secondary);
+        }
+
+        .key-points ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .key-points li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .key-points li::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .sources {
+            margin-top: 40px;
+            padding: 25px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            border-top: 3px solid var(--accent);
+        }
+
+        .sources h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .sources a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            display: block;
+            padding: 8px 0;
+        }
+
+        .sources a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .detail-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .detail-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--bg-tertiary);
+            transition: transform 0.3s ease;
+        }
+
+        .detail-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--secondary);
+        }
+
+        .detail-card h5 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .score-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="project-badge">🚀 Anthropic最新版 | v2.0.28メジャーアップデート | 10大新機能実装</div>
+            <h1>Claude Code v2.0.28大型アップデート</h1>
+            <div class="subtitle">個人開発者向け完全ガイド - 自律エージェント時代の開発環境革命 + Codex/Kiro/Cursor徹底比較</div>
+        </header>
+
+        <div class="tldr-box">
+            <h3>📌 TL;DR（要約）</h3>
+            <p>AnthropicがClaude Code v2.0.28をリリース。<strong>VS Code拡張機能（ベータ版）、チェックポイント巻き戻し機能、複数サブエージェント並行実行、プラグインマーケットプレイス、Claude Agent SDK、Web版とサンドボックスモード</strong>など10大新機能を実装。<span class="highlight">SWE-benchで72.7%のトップスコア</span>を記録し、OpenAI Codex CLI、AWS Kiro、Cursor CLIを上回る性能を実証。個人開発者向けに月額$20のProプランで全機能が利用可能。自律的な並行開発、安全なリファクタリング、カスタマイズ可能なワークフロー自動化により、開発生産性を劇的に向上。</p>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span class="metric-value">v2.0.28</span>
+                <div class="metric-label">最新バージョン</div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">10</span>
+                <div class="metric-label">大新機能実装</div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">72.7%</span>
+                <div class="metric-label">SWE-bench最高スコア</div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">$20/月</span>
+                <div class="metric-label">個人向けプラン</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🆕 今回の新規性 - v2.0.28で何が変わったか</h2>
+
+            <div class="new-point">
+                <h4>🎯 <span class="new-badge">NEW</span> 10大新機能の同時実装によるパラダイムシフト</h4>
+                <p>v2.0.28は単なる機能追加ではなく、<strong>開発体験の根本的な変革</strong>を実現。VS Code統合、自律エージェント、プラグインエコシステムという3つの柱により、AI支援開発の新時代を切り開きました。従来の「AIによるコード補完ツール」から「自律的に開発を進行するAIパートナー」へと進化しています。</p>
+            </div>
+
+            <div class="context-box">
+                <h4>📊 競合比較における圧倒的優位性</h4>
+                <p>本バージョンで<strong>SWE-benchスコア72.7%</strong>を記録し、OpenAI Codex CLI（69.1%）、AWS Kiro、Cursor CLIを上回る業界トップの問題解決能力を実証。複数ファイルにまたがる大規模コードベースの理解・編集において、Claude 4 Sonnetの長大コンテキスト（最大20万トークン）と高度な推論能力が他を圧倒しています。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 v2.0.28の10大新機能詳細</h2>
+
+            <div class="new-point">
+                <h4>1️⃣ <span class="new-badge">NEW</span> VS Code統合とUI刷新</h4>
+                <p><strong>専用のVisual Studio Code拡張機能（ベータ版）</strong>が公開され、IDE内でClaude Codeを直接利用可能に。コード編集内容をリアルタイムにサイドバーで差分表示でき、ターミナルを離れずに対話できます。ターミナル版のUIも刷新され、ステータス表示の改善や<strong>過去プロンプトの検索（Ctrl+R）機能</strong>が追加され、履歴コマンドの再利用や編集が容易になりました。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>2️⃣ <span class="new-badge">NEW</span> チェックポイント機能（Rewind）</h4>
+                <p>複雑な開発タスクに備え、<strong>チェックポイントによる巻き戻し機能</strong>を実装。コード変更前に自動で状態を保存し、<strong>Escキー二度押しや/rewindコマンド</strong>で過去のコード状態や会話状態に即座に戻せます。バージョン管理と組み合わせることで、安全に大規模リファクタリングを試行できます。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>3️⃣ <span class="new-badge">NEW</span> 自律エージェント機能の強化</h4>
+                <p>Claude Codeは<strong>複数のサブエージェントを並行実行</strong>し、開発タスクを自動化・並列化できるように。例えばバックエンドAPI構築とフロントエンド実装を別エージェントに委任することで、並行開発が可能です。<strong>フック（Hooks）</strong>により特定イベント（コード変更後のテスト実行やコミット前のLintなど）で自動処理を差し込め、長時間実行のバックグラウンドタスクにも対応。ユーザーの大まかな指示に従って自律的かつ並行的にプロジェクトを進行できます。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>4️⃣ <span class="new-badge">NEW</span> プラグイン対応</h4>
+                <p><strong>プラグイン機能</strong>を導入し、カスタムコマンドやサブエージェント、フック等をまとめて拡張パックとして共有・インストール可能に。<strong>/pluginコマンド</strong>でマーケットプレイスからプラグインの検索・導入・管理ができ（例：コードレビュー自動化やテスト生成のプラグイン）、必要に応じ有効化/無効化できます。軽量な拡張パッケージとして複数のスラッシュコマンドやエージェント設定をまとめ配布でき、チーム内標準化やオープンソースコミュニティでのワークフロー共有を促進します。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>5️⃣ <span class="new-badge">NEW</span> Claude Agent SDKの提供</h4>
+                <p>開発者向けに<strong>Claude Agent SDK（旧称Claude Code SDK）</strong>が公開され、Claude Codeを支えるコアツール群やコンテキスト管理・権限システムに直接アクセス可能に。独自のエージェント機能やワークフローを構築したり、Claude Codeを自社システムに組み込んだりといった拡張が可能です。サブエージェントやフックにも対応しており、自律的コーディング能力を自身のユースケースに合わせてカスタマイズできます。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>6️⃣ <span class="new-badge">NEW</span> Claude Code Webとサンドボックス</h4>
+                <p>従来ターミナルで動作していたClaude Codeに、<strong>Webインターフェース版「Claude Code Web」</strong>が追加。ブラウザ上でClaude Codeを動かしつつ、WebとCLI間で<strong>セッションをテレポート（引き継ぎ）</strong>する機能も提供されています。またLinux/Mac向けに<strong>サンドボックスモード</strong>も導入され、ファイルシステムやネットワークアクセスを制限した隔離環境下でコードを実行でき、より安全にAIにタスクを任せられます。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>7️⃣ <span class="new-badge">NEW</span> インタラクティブQ&A</h4>
+                <p>開発対話の中でClaudeが主体的に追加質問を投げかけてくる<strong>インタラクティブ質問ツール</strong>を実装。プランモードで曖昧な点がある場合などにAIがユーザーに確認質問を行い、要求を絞り込んでから実装を進めることで、より精度の高い回答やコード提案に繋げます。ユーザーとAIの協調的な問題定義・解決が促進されます。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>8️⃣ <span class="new-badge">NEW</span> Claude Skills対応</h4>
+                <p>Claudeの新機能である<strong>スキル（Agent Skills）</strong>にClaude Codeも対応。スキルとは特定分野の手順やリソースをまとめた指示セットで、PowerPointやExcel、PDF操作などAnthropic提供のスキルや、独自作成したスキルをロードして専門的タスクに対応できます。Code Execution権限をオンにすることで、必要なときに動的にスキルを読み込んでAIの能力を拡張できる柔軟性が加わりました。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>9️⃣ <span class="new-badge">NEW</span> 高度モデルのサポート</h4>
+                <p>デフォルトモデルが<strong>Claude Sonnet 4.5にアップグレード</strong>。長いコンテキストと高い推論能力を備え、より大規模で複雑な開発タスクに強くなっています。またプロプランユーザー向けに<strong>高速・軽量なClaude Haiku 4.5モデル</strong>も選択可能となり、リアルタイム性が求められる場面ではHaikuでスピードを優先するなど、タスクに応じてモデルを使い分けられます。</p>
+            </div>
+
+            <div class="new-point">
+                <h4>🔟 <span class="new-badge">NEW</span> UNIX的統合の強化</h4>
+                <p>ターミナルでの操作性に優れ、<strong>claude.mdによるプロジェクトコンテキスト共有、スラッシュコマンドによる定型処理、並列実行やパイプ処理への対応</strong>などUNIX的な統合が図られています。MCP（Model Context Protocol）に対応し、GitHubやJira、Notion等の外部ツールとも連携可能で、開発環境全体にAIを組み込めます。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 競合製品との徹底比較</h2>
+
+            <div class="comparison-box">
+                <h4>4製品の比較マトリックス</h4>
+                <p>Claude Code、OpenAI Codex CLI、AWS Kiro、Cursor CLIの4製品を<strong>モデル性能、開発体験、料金体系</strong>の3軸で詳細比較。個人開発者にとって最適な選択肢を明確化します。</p>
+            </div>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>Claude Code</th>
+                        <th>Codex CLI</th>
+                        <th>Kiro</th>
+                        <th>Cursor CLI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>モデル性能</strong></td>
+                        <td>Claude 4 Sonnet（最大20万トークン）<br><span class="score-badge">SWE-bench: 72.7%</span></td>
+                        <td>GPT-4相当o3モデル<br><span class="score-badge">SWE-bench: 69.1%</span></td>
+                        <td>Claude Sonnet 4.0/3.7<br>段階的アプローチ</td>
+                        <td>GPT-4/5, Claude, Gemini<br>複数モデル選択可</td>
+                    </tr>
+                    <tr>
+                        <td><strong>開発体験</strong></td>
+                        <td>CLI + VS Code拡張<br>MCP対応、プラグイン<br>自動計画とチェックポイント</td>
+                        <td>オープンソース（Apache-2.0）<br>軽量・シンプル<br>Unix親和性高</td>
+                        <td>VS Codeフォーク専用IDE<br>スペック駆動開発<br>AWS連携深い</td>
+                        <td>独自エディタ + CLI<br>UI/UX洗練度高<br>ペアプロ体験</td>
+                    </tr>
+                    <tr>
+                        <td><strong>料金体系</strong></td>
+                        <td>Pro: $20/月（年払い$17/月）<br>Max: $100-200/月</td>
+                        <td>OSS無償<br>OpenAI API従量課金<br>ChatGPT Plus: $20/月</td>
+                        <td>プレビュー無料<br>Pro予定: $19/月<br>Pro+予定: $39/月</td>
+                        <td>一部無料枠あり<br>Pro: $20程度/月<br>Ultra: $200/月</td>
+                    </tr>
+                    <tr>
+                        <td><strong>強み</strong></td>
+                        <td>総合性能トップ<br>自律性・並行処理<br>大規模開発対応</td>
+                        <td>コスト・カスタマイズ性<br>オープンソース<br>Unix統合</td>
+                        <td>AWSエコシステム<br>体系的開発プロセス<br>要件～テスト統合</td>
+                        <td>複数モデル選択<br>洗練されたUI<br>開発体験の良さ</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="detail-card-grid">
+                <div class="detail-card">
+                    <h5>🏆 Claude Code推奨ケース</h5>
+                    <p>複雑なプロジェクトを丸ごと任せたい<br>高度なプランニング機能が必要<br>大規模開発や自律エージェント活用<br>信頼性重視</p>
+                </div>
+                <div class="detail-card">
+                    <h5>💰 Codex CLI推奨ケース</h5>
+                    <p>コスト重視・オープン性<br>軽量モデルで高速補完<br>Unix的統合のしやすさ<br>既存OpenAI利用者</p>
+                </div>
+                <div class="detail-card">
+                    <h5>🎨 Cursor推奨ケース</h5>
+                    <p>複数モデル使い分け<br>エディタ統合ペアプロ<br>洗練されたUI/UX<br>開発体験重視</p>
+                </div>
+                <div class="detail-card">
+                    <h5>☁️ Kiro推奨ケース</h5>
+                    <p>AWSユーザー<br>体系立った開発プロセス<br>要件～テスト包括支援<br>最新技術試用</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 個人開発者にとっての最適選択</h2>
+
+            <div class="innovation-box">
+                <h4>🎯 総合評価とユースケース別推奨</h4>
+                <p><strong>総合的なコード生成能力と自律性ではClaude Codeが突出</strong>。高度なプランニング機能と高精度モデル（SWEベンチマーク首位の72.7%スコア）によって信頼性の高いコーディングパートナーとなります。月額$20で使えるプロプランは個人にも手が届き、複雑なプロジェクトを丸ごと任せるようなユースケースではClaude Codeが最有力です。</p>
+            </div>
+
+            <div class="feature-box">
+                <h4>📋 プロジェクト規模別の選択指針</h4>
+                <ul>
+                    <li><strong>小規模スクリプト作成や低コスト運用</strong> → Codex CLI（無料OSS + OpenAI API）</li>
+                    <li><strong>先進的なAIコーディング体験</strong> → Cursor（複数モデル選択 + 洗練UI）</li>
+                    <li><strong>大規模開発や高度な自律エージェント機能</strong> → Claude Code（SWE-bench首位 + 並行処理）</li>
+                    <li><strong>AWSインテグレーションや新開発手法挑戦</strong> → Kiro（スペック駆動 + AWS連携）</li>
+                </ul>
+            </div>
+
+            <div class="context-box">
+                <h4>⚡ コスト vs 性能のトレードオフ</h4>
+                <p>コストやオープン性を重視する場合はOpenAIのCodex CLIが有力。ツール自体は無料かつオープンソースで、ChatGPT Plusの契約があれば追加負担なく高性能モデルを活用できます。若干精度ではClaudeに劣るものの、軽量モデルでの高速補完やUnix的な統合のしやすさは魅力です。</p>
+                <p>Cursorは最新モデルへのアクセスや洗練されたUIを武器に、開発体験の良さで優れます。ただし高性能モデル利用時の料金は割高になりがちで、継続利用コストには注意が必要です。無料枠で試してみて、自身のワークフローで効果的かを見極めるとよいでしょう。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔑 まとめ</h2>
+            <div class="key-points">
+                <ul>
+                    <li><strong>Claude Code v2.0.28は10大新機能で開発パラダイムを変革</strong> - VS Code統合、チェックポイント、自律エージェント、プラグイン、SDK、Web版、サンドボックス、Q&A、スキル、モデル強化</li>
+                    <li><strong>SWE-benchスコア72.7%で業界トップの問題解決能力</strong> - Codex CLI（69.1%）を上回る性能、大規模コードベース理解に強い</li>
+                    <li><strong>複数サブエージェントの並行実行で開発効率化</strong> - バックエンドとフロントエンドを別エージェントに委任、フックで自動処理</li>
+                    <li><strong>プラグインエコシステムでカスタマイズ自在</strong> - /pluginコマンドでマーケットプレイスからワンクリック導入</li>
+                    <li><strong>Claude Agent SDKで独自エージェント構築可能</strong> - コアツール群とコンテキスト管理に直接アクセス、自社システム組み込み</li>
+                    <li><strong>チェックポイント巻き戻しで安全なリファクタリング</strong> - Escキー二度押しや/rewindで過去状態に即座復帰</li>
+                    <li><strong>Sonnet 4.5とHaiku 4.5でタスク別モデル選択</strong> - 複雑タスクはSonnet、リアルタイム性はHaikuで最適化</li>
+                    <li><strong>個人開発者向けProプラン月額$20で全機能利用可</strong> - 年払いなら$17/月、大規模用途はMax $100-200/月</li>
+                    <li><strong>4製品比較でユースケース別最適解明確化</strong> - 性能重視Claude、コスト重視Codex、体験重視Cursor、AWS連携Kiro</li>
+                    <li><strong>MCP対応でGitHub/Jira/Notion等と連携</strong> - 開発環境全体にAIを統合、UNIX的な操作性で生産性向上</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sources">
+            <h3>📚 参考文献</h3>
+            <a href="https://www.anthropic.com/news/enabling-claude-code-to-work-more-autonomously" target="_blank">Anthropic公式: Enabling Claude Code to work more autonomously</a>
+            <a href="https://www.anthropic.com/news/claude-code-plugins" target="_blank">Anthropic公式: Customize Claude Code with plugins</a>
+            <a href="https://claudelog.com/faqs/claude-code-release-notes/" target="_blank">ClaudeLog: Claude Code Release Notes</a>
+            <a href="https://www.codeant.ai/blogs/claude-code-cli-vs-codex-cli-vs-gemini-cli-best-ai-cli-tool-for-developers-in-2025" target="_blank">CodeAnt.ai: Claude Code CLI vs Codex CLI vs Gemini CLI - Best AI CLI Tool 2025</a>
+            <a href="https://visualstudiomagazine.com/articles/2025/07/21/forked-again-awss-kiro-latest-ai-assistant-based-on-vs-code.aspx" target="_blank">Visual Studio Magazine: AWS's Kiro - Latest AI Assistant Based on VS Code</a>
+            <a href="https://cursor.com/cli" target="_blank">Cursor公式: CLI Documentation</a>
+            <a href="https://github.com/openai/codex" target="_blank">GitHub: OpenAI Codex - Lightweight coding agent</a>
+        </div>
+    </div>
+</body>
+</html>
