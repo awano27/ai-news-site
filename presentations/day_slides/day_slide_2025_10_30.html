@@ -1,736 +1,639 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚨速報：Cursor 2.0革命 - 最大8エージェント並列実行でコーディングが変わる</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: #333;
-      line-height: 1.6;
-      padding: 20px;
-      min-height: 100vh;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
-    }
-
-    header {
-      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
-      color: white;
-      padding: 60px 40px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 200%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      animation: slide 3s infinite;
-    }
-
-    @keyframes slide {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.05); opacity: 0.9; }
-    }
-
-    .breaking-badge {
-      display: inline-block;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255,255,255,0.3);
-      padding: 12px 30px;
-      border-radius: 50px;
-      font-size: 1.1rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-      animation: pulse 2s ease-in-out infinite;
-      letter-spacing: 2px;
-    }
-
-    h1 {
-      font-size: 2.8rem;
-      font-weight: 900;
-      margin-bottom: 20px;
-      line-height: 1.2;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .subtitle {
-      font-size: 1.3rem;
-      opacity: 0.95;
-      font-weight: 400;
-    }
-
-    .content {
-      padding: 50px 40px;
-    }
-
-    .breaking-news {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border-left: 6px solid #f59e0b;
-      padding: 30px;
-      margin-bottom: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
-    }
-
-    .breaking-news h3 {
-      color: #92400e;
-      font-size: 1.5rem;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .breaking-news p {
-      color: #78350f;
-      font-size: 1.1rem;
-      line-height: 1.8;
-      margin-bottom: 12px;
-    }
-
-    .breaking-news strong {
-      color: #b45309;
-      font-weight: 700;
-    }
-
-    .section {
-      margin-bottom: 50px;
-    }
-
-    .section-title {
-      font-size: 2rem;
-      color: #8b5cf6;
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 3px solid #e5e7eb;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-
-    .metric-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .metric-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-    }
-
-    .metric-value {
-      display: block;
-      font-size: 3rem;
-      font-weight: 900;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .metric-label {
-      font-size: 1.1rem;
-      opacity: 0.95;
-      font-weight: 600;
-    }
-
-    .feature-card {
-      background: #f8fafc;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .feature-card:hover {
-      border-color: #8b5cf6;
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.1);
-      transform: translateX(5px);
-    }
-
-    .feature-title {
-      font-size: 1.4rem;
-      color: #1e293b;
-      margin-bottom: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .feature-description {
-      color: #475569;
-      line-height: 1.8;
-      font-size: 1.05rem;
-    }
-
-    .new-tag {
-      display: inline-block;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    .comparison-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 30px 0;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
-
-    .comparison-table thead {
-      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-      color: white;
-    }
-
-    .comparison-table th {
-      padding: 18px;
-      text-align: left;
-      font-weight: 700;
-      font-size: 1.05rem;
-    }
-
-    .comparison-table td {
-      padding: 18px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .comparison-table tbody tr:hover {
-      background: #f1f5f9;
-    }
-
-    .tool-name {
-      font-weight: 700;
-      color: #8b5cf6;
-      font-size: 1.1rem;
-    }
-
-    .price {
-      font-weight: 700;
-      color: #059669;
-      font-size: 1.2rem;
-    }
-
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
-      margin-top: 30px;
-    }
-
-    .product-card {
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      border: 2px solid #8b5cf6;
-      border-radius: 15px;
-      padding: 30px;
-      transition: all 0.3s ease;
-    }
-
-    .product-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.2);
-    }
-
-    .product-card h4 {
-      color: #8b5cf6;
-      font-size: 1.4rem;
-      margin-bottom: 15px;
-      font-weight: 800;
-    }
-
-    .product-card ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    .product-card li {
-      padding: 8px 0;
-      padding-left: 25px;
-      position: relative;
-      color: #334155;
-    }
-
-    .product-card li::before {
-      content: "✓";
-      position: absolute;
-      left: 0;
-      color: #10b981;
-      font-weight: 900;
-      font-size: 1.2rem;
-    }
-
-    .impact-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-
-    .impact-card {
-      padding: 25px;
-      border-radius: 12px;
-      color: white;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-
-    .impact-card.innovation {
-      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    }
-
-    .impact-card.performance {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    .impact-card.workflow {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    }
-
-    .impact-card.value {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    }
-
-    .impact-value {
-      font-size: 1.5rem;
-      font-weight: 900;
-      display: block;
-      margin-bottom: 10px;
-    }
-
-    .impact-label {
-      font-size: 1rem;
-      font-weight: 600;
-      opacity: 0.95;
-      line-height: 1.6;
-    }
-
-    .sources {
-      background: #f8fafc;
-      border-radius: 12px;
-      padding: 30px;
-      margin-top: 50px;
-    }
-
-    .sources h3 {
-      color: #1e293b;
-      font-size: 1.3rem;
-      margin-bottom: 20px;
-    }
-
-    .sources ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    .sources li {
-      margin-bottom: 12px;
-      padding-left: 25px;
-      position: relative;
-    }
-
-    .sources li::before {
-      content: "🔗";
-      position: absolute;
-      left: 0;
-    }
-
-    .sources a {
-      color: #8b5cf6;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .sources a:hover {
-      text-decoration: underline;
-    }
-
-    footer {
-      background: #1e293b;
-      color: white;
-      text-align: center;
-      padding: 30px;
-      font-size: 0.95rem;
-    }
-
-    footer a {
-      color: #60a5fa;
-      text-decoration: none;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-
-      header {
-        padding: 40px 20px;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
-
-      .content {
-        padding: 30px 20px;
-      }
-
-      .metrics-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .comparison-table {
-        font-size: 0.9rem;
-      }
-
-      .comparison-table th,
-      .comparison-table td {
-        padding: 12px 8px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨速報：AIコーディングツール完全価格比較 - Windsurf/Cursor/Copilot/Claude/Kiro 2025年最新</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Yu Gothic UI', 'Meiryo', sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe 0%, #667eea 50%, #764ba2 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .breaking-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            line-height: 1.2;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            font-weight: 500;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .home-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .home-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 40px;
+            background: linear-gradient(to bottom, #f8f9ff 0%, #ffffff 100%);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .metric-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            display: block;
+            font-size: 1rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .content-section {
+            padding: 50px 40px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: #2d3748;
+            border-left: 6px solid #667eea;
+            padding-left: 20px;
+        }
+
+        .breaking-news {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 6px solid #f59e0b;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .breaking-news h3 {
+            color: #92400e;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .breaking-news ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .breaking-news li {
+            padding: 12px 0;
+            color: #78350f;
+            font-weight: 600;
+            font-size: 1.05rem;
+            border-bottom: 1px solid rgba(217, 119, 6, 0.2);
+        }
+
+        .breaking-news li:last-child {
+            border-bottom: none;
+        }
+
+        .breaking-news li::before {
+            content: "💰 ";
+            margin-right: 10px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .comparison-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .comparison-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.95rem;
+        }
+
+        .comparison-table tbody tr {
+            background: white;
+            transition: background 0.2s ease;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .comparison-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tool-name {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .price-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin: 3px;
+        }
+
+        .price-tag.free {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .price-tag.premium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .pattern-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .pattern-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .pattern-card h3 {
+            color: #667eea;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .pattern-card .best-choice {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .pattern-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pattern-card li {
+            padding: 10px 0;
+            color: #4b5563;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .pattern-card li:last-child {
+            border-bottom: none;
+        }
+
+        .pattern-card li::before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border-left: 6px solid #667eea;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .tip-box h3 {
+            color: #3730a3;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .tip-box p {
+            color: #4338ca;
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .sources {
+            background: #f9fafb;
+            padding: 40px;
+            border-top: 3px solid #667eea;
+        }
+
+        .sources h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-weight: 800;
+        }
+
+        .sources ol {
+            padding-left: 20px;
+        }
+
+        .sources li {
+            margin-bottom: 12px;
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .sources a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .sources a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header {
+                padding: 40px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .content-section {
+                padding: 30px 20px;
+            }
+
+            .section-title {
+                font-size: 1.6rem;
+            }
+
+            .pattern-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 12px;
+            }
+
+            .home-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="breaking-badge">🚨 速報：Cursor 2.0 大型アップデート発表</div>
-      <h1>Cursor 2.0革命<br>最大8エージェント並列実行＋内蔵ブラウザ</h1>
-      <p class="subtitle">自社モデル「Composer」4倍高速・30秒未満でコーディングが変わる</p>
-    </header>
+    <div class="container">
+        <header>
+            <div class="breaking-badge">🚨 速報：AIコーディングツール 完全価格比較 2025</div>
+            <h1>AIコーディングツール<br>完全価格比較ガイド</h1>
+            <p class="subtitle">Windsurf・Cursor・GitHub Copilot・Claude Code・Kiro - あなたに最適な$0〜$200プランを見つけよう</p>
+        </header>
 
-    <div class="content">
-      <!-- Breaking News Summary -->
-      <div class="breaking-news">
-        <h3>⚡ 今日の衝撃ニュース</h3>
-        <p>
-          Cursor 2.0の核心は<strong>「エージェント中心」UI</strong>。複数エージェントを<strong>並列</strong>で走らせ、<strong>最大8体</strong>まで同一課題に同時アタック → 最良の結果を採用する"オーケストレーション"が可能になりました。
-        </p>
-        <p>
-          自社モデル<strong>「Composer」</strong>を新搭載。<strong>同等知能の他モデル比で約4倍高速</strong>、多くのターンを<strong>30秒未満</strong>で完了する低レイテンシ設計。大規模コードベース理解に強い。OpenAI／Anthropic／Geminiなど<strong>複数モデルを同時並列</strong>で走らせ、ベスト案を採用できる設計。
-        </p>
-      </div>
-
-      <!-- Key Metrics -->
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <span class="metric-value">最大8体</span>
-          <span class="metric-label">エージェント並列実行</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-value">4倍高速</span>
-          <span class="metric-label">Composer低レイテンシ</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-value">30秒未満</span>
-          <span class="metric-label">多くのターンを完了</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-value">内蔵ブラウザ</span>
-          <span class="metric-label">IDE内で完結</span>
-        </div>
-      </div>
-
-      <!-- Section 1: Core Features -->
-      <section class="section">
-        <h2 class="section-title">🚀 Cursor 2.0 の核心機能</h2>
-
-        <div class="feature-card">
-          <div class="feature-title">
-            <span>1️⃣</span>
-            並列・多様性で当てにいく補完 <span class="new-tag">NEW</span>
-          </div>
-          <div class="feature-description">
-            1つの指示で<strong>最大8エージェント</strong>を並列実行。<strong>異なるモデル</strong>（例：OpenAI系／Anthropic系／Gemini系）に同時に解かせ、<strong>最良案のみを採用</strong>することで難問の正答率を引き上げる。従来の「1モデルでトライ＆エラー」から脱却。
-          </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span class="metric-value">5ツール</span>
+                <span class="metric-label">主要製品を徹底比較</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">$0〜$200</span>
+                <span class="metric-label">月額料金レンジ</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">無制限補完</span>
+                <span class="metric-label">多くのプランで標準</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">個人向け</span>
+                <span class="metric-label">開発者最適化プラン</span>
+            </div>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-title">
-            <span>2️⃣</span>
-            Composerの低レイテンシ補完 <span class="new-tag">NEW</span>
-          </div>
-          <div class="feature-description">
-            小さな補完〜中規模編集が<strong>体感30秒以内</strong>でまとまり、タブ補完や小刻みな反復が"詰まらない"。<strong>コードベース横断検索</strong>の内蔵で、関連ファイルを自動で拾った提案が出やすい。<strong>同等知能の他モデル比で約4倍高速</strong>を実現。
-          </div>
+        <div class="content-section">
+            <h2 class="section-title">🎯 TL;DR - 結論から</h2>
+            <div class="breaking-news">
+                <h3>あなたに最適なツールはこれ！</h3>
+                <ul>
+                    <li><strong>最小コストで補完だけ</strong>：Windsurf Free ($0) または Copilot Free ($0) - 補完が無料で実質無制限</li>
+                    <li><strong>強い補完＋エージェント活用を定額で</strong>：Cursor Pro ($20/月) - タブ補完無制限＋$20分のクレジット込み</li>
+                    <li><strong>チャット/コード会話を厚めに安価に</strong>：GitHub Copilot Pro ($10/月) - 補完無制限＋Chat 300回/月</li>
+                    <li><strong>Claude Codeを個人で</strong>：Claude Pro ($20/月、年払い$17/月) - さらに使うならMax ($100/$200/月)</li>
+                    <li><strong>クレジット従量で柔軟に</strong>：Kiro Pro ($20/月、1,000クレジット) - 超過は$0.04/クレジット</li>
+                </ul>
+            </div>
+
+            <h2 class="section-title">💰 各製品の料金詳細</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>ツール名</th>
+                        <th>無料プラン</th>
+                        <th>有料プラン</th>
+                        <th>主な特徴</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="tool-name">Cursor 2.0</td>
+                        <td><span class="price-tag free">Hobby $0</span></td>
+                        <td>
+                            <span class="price-tag">Pro $20</span>
+                            <span class="price-tag premium">Pro+ $60</span>
+                            <span class="price-tag premium">Ultra $200</span>
+                        </td>
+                        <td>タブ補完無制限(Pro)、$20分クレジット込み、バックグラウンドAgent</td>
+                    </tr>
+                    <tr>
+                        <td class="tool-name">Windsurf (Codeium)</td>
+                        <td><span class="price-tag free">Free $0</span></td>
+                        <td><span class="price-tag">Pro $15</span></td>
+                        <td>補完系(SWE-1/Fast Tab/Command)が無料で実質無制限、クレジット追加$10/250</td>
+                    </tr>
+                    <tr>
+                        <td class="tool-name">GitHub Copilot</td>
+                        <td><span class="price-tag free">Free $0</span></td>
+                        <td>
+                            <span class="price-tag">Pro $10</span>
+                            <span class="price-tag premium">Pro+ $39</span>
+                        </td>
+                        <td>Pro: 補完無制限＋Chat 300回/月(超過$0.04/回)、Pro+: 1,500回/月</td>
+                    </tr>
+                    <tr>
+                        <td class="tool-name">Claude Code (Anthropic)</td>
+                        <td><span class="price-tag free">Free制限あり</span></td>
+                        <td>
+                            <span class="price-tag">Pro $20 (年$17)</span>
+                            <span class="price-tag premium">Max $100/$200</span>
+                        </td>
+                        <td>Pro: Claude Code利用可、Max: 5x/20xの使用量拡張</td>
+                    </tr>
+                    <tr>
+                        <td class="tool-name">Kiro</td>
+                        <td><span class="price-tag free">Free 50cr/月</span></td>
+                        <td>
+                            <span class="price-tag">Pro $20 (1,000cr)</span>
+                            <span class="price-tag">Pro+ $40 (2,000cr)</span>
+                            <span class="price-tag premium">Power $200 (10,000cr)</span>
+                        </td>
+                        <td>クレジット制、超過$0.04/cr、日本は消費税適用</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 class="section-title">👨‍💻 利用パターン別の最適解</h2>
+            <div class="pattern-grid">
+                <div class="pattern-card">
+                    <h3>🌱 ライト (週末開発)</h3>
+                    <div class="best-choice">最適: Windsurf Free ($0)</div>
+                    <ul>
+                        <li>補完中心、大モデルは時々</li>
+                        <li>Windsurf Free: 補完無制限</li>
+                        <li>たまの大規模生成は$10で250クレジット追加</li>
+                        <li>または Copilot Free/Pro ($10)</li>
+                        <li>Cursor Hobbyも試せるが補完常用ならPro推奨</li>
+                    </ul>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>⚡ ミドル (平日も毎日)</h3>
+                    <div class="best-choice">最適: Cursor Pro ($20)</div>
+                    <ul>
+                        <li>Chat/Agentをそこそこ使う</li>
+                        <li>Cursor Pro: タブ無制限＋$20分クレジット込み</li>
+                        <li>大半の個人は追加課金なしで回る</li>
+                        <li>代替: Windsurf Pro ($15) 500cr/月</li>
+                        <li>代替: Copilot Pro ($10) Chat 300回/月</li>
+                    </ul>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>🚀 ヘビー (長時間開発)</h3>
+                    <div class="best-choice">最適: Cursor Pro+/Ultra</div>
+                    <ul>
+                        <li>複数ファイル改修を連日、長文思考</li>
+                        <li>Cursor Pro+ ($60)/Ultra ($200): 外部モデル3x/20x拡張</li>
+                        <li>Claude Max ($100/$200): 5x/20x使用量、長対話向け</li>
+                        <li>Kiro Pro〜Power: スパイク対応$0.04/cr</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 class="section-title">💡 コスパ所感 - 最適解の組み方</h2>
+            <div class="tip-box">
+                <h3>🎯 最安×補完安定</h3>
+                <p><strong>Windsurf Free ($0)</strong>を常用（補完は無制限）。必要な日だけクレジット追加（$10=250cr）。固定費ゼロ運用が可能。</p>
+            </div>
+
+            <div class="tip-box">
+                <h3>🔧 定額で補完＋Agent毎日</h3>
+                <p><strong>Cursor Pro ($20)</strong>：タブ無制限＋$20分の外部モデル込みで、月額一定に近い体験。多ファイル修正やAgent併用が多い人に最適。</p>
+            </div>
+
+            <div class="tip-box">
+                <h3>💬 補完最安＋Chatもそこそこ</h3>
+                <p><strong>Copilot Pro ($10)</strong>：補完無制限／Chat 300回。Chatを多用しない個人なら最安の定額プラン。</p>
+            </div>
+
+            <div class="tip-box">
+                <h3>🧠 Claudeの思考力に寄せたい</h3>
+                <p><strong>Claude Pro ($20)</strong>でClaude Codeを軸に。長対話・長文コンテキストを常用するなら<strong>Max ($100/$200)</strong>に上げて使用量の頭打ちを避ける。</p>
+            </div>
+
+            <div class="tip-box">
+                <h3>💳 日本の税制メモ</h3>
+                <p><strong>Kiro</strong>は日本の請求先に消費税適用が明記。個人でも税別→税込での支払い額に注意が必要。</p>
+            </div>
+
+            <h2 class="section-title">✅ ひとことで選ぶなら</h2>
+            <div class="breaking-news" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-left-color: #3b82f6;">
+                <h3 style="color: #1e3a8a;">シンプル選択ガイド</h3>
+                <ul>
+                    <li style="color: #1e40af; border-bottom-color: rgba(59, 130, 246, 0.2);"><strong>"無料で強い補完"重視</strong>：Windsurf Free（必要時のみ$10で追加クレジット）</li>
+                    <li style="color: #1e40af; border-bottom-color: rgba(59, 130, 246, 0.2);"><strong>"毎日、補完＋AI作業を定額で"</strong>：Cursor Pro $20</li>
+                    <li style="color: #1e40af; border-bottom-color: rgba(59, 130, 246, 0.2);"><strong>"補完は最安定額、Chatはほどほど"</strong>：Copilot Pro $10</li>
+                    <li style="color: #1e40af; border-bottom-color: rgba(59, 130, 246, 0.2);"><strong>"Claude Code中心で長対話"</strong>：Claude Pro $20 → Max $100/$200へ拡張</li>
+                    <li style="color: #1e40af;"><strong>"クレジット従量で柔軟に"</strong>：Kiro Pro $20 (1,000cr) ／超過$0.04</li>
+                </ul>
+            </div>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-title">
-            <span>3️⃣</span>
-            ブラウザ内蔵×補完の地続き化 <span class="new-tag">GA</span>
-          </div>
-          <div class="feature-description">
-            エディタ内にDevTools相当を埋め込み、DOM要素を選択→エージェントに渡して<strong>「このボタンの色を変えて」→コード修正→動作確認</strong>までIDE内で完結。UIを見ながら「この要素をこう変える」と自然言語で伝え、<strong>DOM情報がエージェントに直送</strong>され、フロントエンドの"往復負荷"が激減。
-          </div>
+        <div class="sources">
+            <h3>📚 参考情報（公式一次情報）</h3>
+            <ol>
+                <li><a href="https://windsurf.com/pricing" target="_blank" rel="noopener noreferrer">Pricing | Windsurf</a> - Free=25クレジット、補完(SWE-1/Fast Tab/Command)無制限、Pro=$15/500cr</li>
+                <li><a href="https://cursor.com/pricing" target="_blank" rel="noopener noreferrer">Pricing · Cursor</a> - Hobby/Pro/Pro+/Ultra、Proは外部モデル向け$20分クレジット込み</li>
+                <li><a href="https://docs.github.com/en/copilot/concepts/billing/individual-plans" target="_blank" rel="noopener noreferrer">About individual GitHub Copilot plans and benefits</a> - Free、Pro=$10(補完無制限/プレミアム300)、Pro+=$39(1,500)</li>
+                <li><a href="https://www.claude.com/pricing" target="_blank" rel="noopener noreferrer">Pricing | Claude</a> - Pro=$20(月)/年払い$17、Max=$100/$200(5x/20x)</li>
+                <li><a href="https://kiro.dev/pricing/" target="_blank" rel="noopener noreferrer">Pricing - Kiro</a> - Free=50cr、Pro=$20/1,000cr、Pro+=$40/2,000cr、Power=$200/10,000cr、超過$0.04/cr</li>
+                <li><a href="https://cursor.com/blog/june-2025-pricing" target="_blank" rel="noopener noreferrer">Clarifying our pricing · Cursor</a> - Proの$20で中央値ベースSonnet 4が約225回程度まで込み</li>
+                <li><a href="https://github.com/features/copilot/plans" target="_blank" rel="noopener noreferrer">GitHub Copilot · Plans & pricing</a> - Free/Pro/Pro+の詳細プラン比較</li>
+            </ol>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-title">
-            <span>4️⃣</span>
-            マルチモデル運用
-          </div>
-          <div class="feature-description">
-            OpenAI／Anthropic／Geminiなど<strong>複数モデルを同時並列</strong>で走らせ、ベスト案を採用できる設計（プランにより選択可能）。公式チャンジログでは<strong>GPT-5 Codex</strong>最適化の記述もあり。<strong>Claude Sonnet 4.5</strong>のような最新Sonnetも範囲に含まれる扱い。
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 2: Use Cases -->
-      <section class="section">
-        <h2 class="section-title">🎯 これまで難しかったユースケースが通る理由</h2>
-
-        <div class="product-grid">
-          <div class="product-card">
-            <h4>🔄 複雑機能の"比較生成"</h4>
-            <ul>
-              <li>同一課題に並列エージェント＋複数モデル</li>
-              <li>GPT-5やClaude系Sonnetなど対応（プラン依存）</li>
-              <li>最良の差分のみ採用</li>
-              <li>難易度の高いアルゴリズム実装に有効</li>
-            </ul>
-          </div>
-
-          <div class="product-card">
-            <h4>📂 多ファイル横断補完</h4>
-            <ul>
-              <li>Composerのコードベース全体検索</li>
-              <li>定義・参照が散在する修正</li>
-              <li>型の変更→関連呼び出しの一括追従</li>
-              <li>エージェントが自律的に提案</li>
-            </ul>
-          </div>
-
-          <div class="product-card">
-            <h4>🎨 フロントエンド"見ながら直す"開発</h4>
-            <ul>
-              <li>内蔵ブラウザでUIを見つつ指示</li>
-              <li>「このフォームのバリデーションを厳しく」</li>
-              <li>テスト→再修正までIDEで完結</li>
-              <li>E2Eに近い反復→検証の短サイクル</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 3: Pricing Comparison -->
-      <section class="section">
-        <h2 class="section-title">💰 個人利用のコスト感（主要ツール比較）</h2>
-
-        <table class="comparison-table">
-          <thead>
-            <tr>
-              <th>ツール名</th>
-              <th>無料プラン</th>
-              <th>有料プラン</th>
-              <th>主な特徴</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="tool-name">Cursor <span class="new-tag">NEW</span></td>
-              <td>Agent/Tabに上限</td>
-              <td class="price">Pro $20/月<br>Pro+ $60<br>Ultra $200</td>
-              <td><strong>並列エージェント×内蔵ブラウザ×低レイテンシComposer</strong>。タブ補完無制限、大きな文脈解放。外部モデル使用量枠を拡大</td>
-            </tr>
-            <tr>
-              <td class="tool-name">Windsurf (Codeium)</td>
-              <td class="price">$0<br>補完無制限</td>
-              <td class="price">Pro $15/月</td>
-              <td>Free $0で<strong>SWE-1/Fast Tab/Command無制限＋25クレジット/月</strong>。Pro $15で500クレジット/月。補完だけなら無料でも相当使える</td>
-            </tr>
-            <tr>
-              <td class="tool-name">Kiro (AWS)</td>
-              <td class="price">$0<br>50クレジット/月</td>
-              <td class="price">Pro $20<br>Pro+ $40<br>Power $200</td>
-              <td><strong>スペック駆動</strong>（Requirements→Design→Tasks）。初回30日500ボーナスクレジット。Sonnet 4含むミックス運用。日本請求は消費税適用明記</td>
-            </tr>
-            <tr>
-              <td class="tool-name">GitHub Copilot</td>
-              <td class="price">$0<br>補完2000回/月</td>
-              <td class="price">Pro $10<br>Pro+ $39</td>
-              <td>Free $0（補完2000回/月、エージェント/チャット50回/月）、Pro $10（<strong>補完無制限</strong>・最新モデル枠300回/月）。Claude Sonnet 4.5/GPT-5等利用可能</td>
-            </tr>
-            <tr>
-              <td class="tool-name">Claude Code (Cline)</td>
-              <td class="price">$0<br>拡張無料</td>
-              <td>API従量課金</td>
-              <td><strong>拡張自体は無料</strong>。API課金（従量）でClaude/GPT/Gemini等を自由に切替。<strong>自前キー</strong>を持ち込む方式で<strong>ベンダーロックインなし</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <!-- Section 4: Competition Comparison -->
-      <section class="section">
-        <h2 class="section-title">⚔️ 競合との位置づけ（コード補完の体感）</h2>
-
-        <div class="product-grid">
-          <div class="product-card">
-            <h4>🟣 Cursor 2.0</h4>
-            <ul>
-              <li>並列エージェント×マルチモデルで"当てに行く"補完</li>
-              <li>Composerの低レイテンシとブラウザ内蔵</li>
-              <li>実装→検証→再提案の往復が最短化</li>
-              <li>難易度の高い改修や大規模コードに強い</li>
-            </ul>
-          </div>
-
-          <div class="product-card">
-            <h4>🟢 Windsurf</h4>
-            <ul>
-              <li>プラグイン／エディタの両提供</li>
-              <li>無料でも補完は実質無制限</li>
-              <li>日常コーディングのコスパが高い</li>
-              <li>大タスクはクレジット消費で上位モデル呼出</li>
-            </ul>
-          </div>
-
-          <div class="product-card">
-            <h4>🟠 Kiro</h4>
-            <ul>
-              <li>スペック駆動（Requirements→Design→Tasks）</li>
-              <li>計画→実装→検証までエージェント化</li>
-              <li>フローの見える化とフック自動化が売り</li>
-              <li>従量クレジット制でスパイクも走らせやすい</li>
-            </ul>
-          </div>
-
-          <div class="product-card">
-            <h4>🔵 GitHub Copilot</h4>
-            <ul>
-              <li>IDE統合の軽さと$10/月の安さで補完無制限</li>
-              <li>最新モデルの深い推論はプレミアム枠消費</li>
-              <li>Pro／Pro+で段階的に拡張</li>
-              <li>GitHub統合の強み</li>
-            </ul>
-          </div>
-
-          <div class="product-card">
-            <h4>🟤 Claude Code (Cline)</h4>
-            <ul>
-              <li>モデル自由度と巨大文脈が魅力</li>
-              <li>重い改修に強い</li>
-              <li>使い過ぎるとAPI費用が嵩む</li>
-              <li>自前キーで柔軟な運用</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 5: Impact -->
-      <section class="section">
-        <h2 class="section-title">📊 開発体験への影響</h2>
-
-        <div class="impact-grid">
-          <div class="impact-card innovation">
-            <span class="impact-value">コーディングの常識が変わる</span>
-            <span class="impact-label"><strong>エージェント中心</strong>の設計により、細かな実装はAIに任せ<strong>「何を作るか」に集中</strong>できる開発体験へ</span>
-          </div>
-          <div class="impact-card performance">
-            <span class="impact-value">Composerは4倍高速</span>
-            <span class="impact-label"><strong>30秒未満</strong>のターンで対話ストレスが大幅減。<strong>次世代の開発体験</strong>を実現</span>
-          </div>
-          <div class="impact-card workflow">
-            <span class="impact-value">マルチエージェント機能</span>
-            <span class="impact-label"><strong>1指示→複数エージェント／複数モデルを並列</strong>実行し、<strong>最適案を選抜</strong>する"AIドリームチーム"運用</span>
-          </div>
-          <div class="impact-card value">
-            <span class="impact-value">内蔵ブラウザ</span>
-            <span class="impact-label">エディタ内でUIを直接見て<strong>要素指定→修正→テスト</strong>まで反復。もうブラウザとエディタを往復しない</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 6: Summary -->
-      <section class="section">
-        <h2 class="section-title">📝 総評</h2>
-
-        <div class="feature-card" style="border-color: #8b5cf6; background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);">
-          <div class="feature-description" style="font-size: 1.1rem;">
-            <p style="margin-bottom: 15px;">
-              <strong>新規性</strong>は<strong>並列エージェント×内蔵ブラウザ×低レイテンシComposer</strong>の三位一体。<strong>要件→実装→検証</strong>の1サイクルをIDE内で短縮するのがCursor 2.0の真骨頂です。
-            </p>
-            <p style="margin-bottom: 15px;">
-              <strong>コスパ</strong>で補完中心なら<strong>Windsurf Free</strong>や<strong>Copilot Pro($10)</strong>が強い。一方、<strong>難度の高い改修の決定打</strong>を求めるなら、<strong>Cursor Pro($20)</strong>の並列＋ブラウザワークフローは十分に元が取れる設計です。
-            </p>
-            <p>
-              実際に選べる具体モデルはプラン／地域で変動しますが、<strong>GPT-5 Codex</strong>への最適化や<strong>Claude Sonnet 4.5</strong>のような最新Sonnetも「Claudeモデルの範囲」に含まれる扱いとなっています。
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sources -->
-      <div class="sources">
-        <h3>📚 出典（公式アナウンス・価格ページ等）</h3>
-        <ul>
-          <li><a href="https://cursor.com/changelog/2-0" target="_blank">Cursor - New Coding Model and Agent Interface · Cursor (2-0 Changelog)</a></li>
-          <li><a href="https://cursor.com/blog/2-0" target="_blank">Cursor - Introducing Cursor 2.0 and Composer (公式ブログ)</a></li>
-          <li><a href="https://cursor.com/pricing" target="_blank">Cursor - Pricing (Pro/Pro+/Ultra)</a></li>
-          <li><a href="https://windsurf.com/pricing" target="_blank">Windsurf - Pricing (Free"無制限"の内訳・Pro)</a></li>
-          <li><a href="https://kiro.dev/pricing/" target="_blank">Kiro - Pricing</a></li>
-          <li><a href="https://kiro.dev/blog/introducing-kiro/" target="_blank">Kiro - Introducing Kiro</a></li>
-          <li><a href="https://github.com/features/copilot/plans" target="_blank">GitHub Copilot - Plans & pricing (モデル／上限／価格)</a></li>
-          <li><a href="https://cline.bot/" target="_blank">Cline - AI Coding, Open Source and Uncompromised</a></li>
-          <li><a href="https://cline.bot/pricing" target="_blank">Cline - Pricing (モデル自由・従量課金の方針)</a></li>
-        </ul>
-      </div>
     </div>
 
-    <footer>
-      <p><strong>作成日:</strong> 2025年10月30日</p>
-      <p style="margin-top: 10px;">このスライドは<a href="https://awano27.github.io/ai-news-site/" target="_blank">AI Intelligence Hub</a>で公開されています</p>
-      <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
-        🤖 Generated with <a href="https://claude.com/claude-code" target="_blank">Claude Code</a><br>
-        Co-Authored-By: Claude &lt;noreply@anthropic.com&gt;
-      </p>
-    </footer>
-  </div>
+    <a href="../../index.html" class="home-button">
+        <span>🏠</span>
+        <span>ホームに戻る</span>
+    </a>
 </body>
 </html>
