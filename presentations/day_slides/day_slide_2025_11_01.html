@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚨速報：Gemini CLI大型アップデート - Jules拡張＋対話型シェル＋90以上の拡張機能 - 2025/11/01</title>
+  <style>
+    :root {
+      --google-blue: #4285f4;
+      --google-red: #ea4335;
+      --google-yellow: #fbbc04;
+      --google-green: #34a853;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --accent: #4285f4;
+      --success: #34a853;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc04 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* 速報ヘッダー */
+    header {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.05) 10px,
+        rgba(255,255,255,0.05) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.3);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 16px;
+    }
+
+    .date {
+      display: inline-block;
+      background: rgba(255,255,255,0.3);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-top: 8px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 10px 30px rgba(66, 133, 244, 0.4);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .home-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(66, 133, 244, 0.6);
+    }
+
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 2.2rem;
+      color: var(--bg-dark);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+      color: var(--bg-dark);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ブレイキングニュースカード */
+    .breaking-news {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 3px solid #f59e0b;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .breaking-news::before {
+      content: '⚡';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      font-size: 12rem;
+      opacity: 0.1;
+    }
+
+    .breaking-news h3 {
+      color: #92400e;
+      font-size: 1.8rem;
+      margin-top: 0;
+    }
+
+    .breaking-news p {
+      color: #78350f;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      margin: 12px 0;
+    }
+
+    .breaking-news strong {
+      color: #92400e;
+      font-weight: 800;
+    }
+
+    /* メトリクスカード */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .metric-card {
+      background: linear-gradient(135deg, #4285f4, #34a853);
+      color: white;
+      padding: 28px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(66, 133, 244, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 10s linear infinite;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .metric-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(66, 133, 244, 0.4);
+    }
+
+    .metric-value {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #fbbc04;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .metric-label {
+      display: block;
+      font-size: 1rem;
+      opacity: 0.9;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 機能カード */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 32px 0;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(66, 133, 244, 0.15);
+    }
+
+    .feature-card h4 {
+      font-size: 1.4rem;
+      color: var(--bg-dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      color: var(--text-light);
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    .feature-card li {
+      color: var(--text-light);
+      padding: 6px 0;
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .feature-card li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    /* バージョンカード */
+    .version-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .version-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .version-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(66, 133, 244, 0.15);
+    }
+
+    .version-card h4 {
+      font-size: 1.3rem;
+      color: var(--bg-dark);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .version-card .version-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .version-card p {
+      color: var(--text-light);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* 情報源セクション */
+    .sources {
+      background: var(--bg-light);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 48px;
+    }
+
+    .sources h3 {
+      color: var(--bg-dark);
+      margin-bottom: 16px;
+    }
+
+    .sources ul {
+      list-style: none;
+    }
+
+    .sources li {
+      margin: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      color: var(--text-light);
+    }
+
+    .sources li::before {
+      content: '🔗';
+      position: absolute;
+      left: 0;
+    }
+
+    .sources a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .sources a:hover {
+      color: var(--google-green);
+      text-decoration: underline;
+    }
+
+    /* フッター */
+    footer {
+      text-align: center;
+      padding: 32px;
+      background: var(--bg-light);
+      color: var(--text-light);
+      border-top: 2px solid var(--border);
+    }
+
+    footer p {
+      margin: 8px 0;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.6rem;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      .metrics-grid,
+      .feature-grid,
+      .version-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .home-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="breaking-badge">🚨 速報：Gemini CLI大型アップデート</div>
+      <h1>Gemini CLI革命<br>Jules拡張＋対話型シェル＋90以上の拡張機能</h1>
+      <p class="subtitle">GoogleがターミナルAIを次世代へ - 自律型助手Julesとカスタマイズ可能なエコシステム</p>
+      <span class="date">📅 2025年11月1日発表</span>
+    </header>
+
+    <div class="content">
+      <!-- 何が新しいのか？ -->
+      <div class="section">
+        <h2>⚡ 何が新しいのか？</h2>
+        <div class="breaking-news">
+          <h3>🚀 Gemini CLIがターミナルAIの新時代を切り開く</h3>
+          <p><strong>Jules拡張（自律型AIアシスタント）</strong>：バックグラウンドで動作する<strong>自律型の助手</strong>。コード修正やビルドを並行処理し、完了した変更は新規ブランチとしてコミット提案。「/jules Convert commonJS modules to ES modules」のようにタスクを依頼するだけ。</p>
+          <p><strong>対話型シェル対応（v0.9.0）</strong>：vim、git rebase -i、topなど<strong>対話型コマンド</strong>をGemini CLI上で直接実行可能に。擬似ターミナル(PTY)サポートによりエージェントが固まる問題を解決し、AIが編集内容を把握したまま支援を継続。</p>
+          <p><strong>拡張フレームワーク公開</strong>：Dynatrace、Elastic、Figma、Shopifyなど<strong>90以上の公式/コミュニティ拡張</strong>が利用可能。「gemini extensions install」1行コマンドでAIに新しいツールを教え込める。データベース操作、クラウド運用、セキュリティ診断など多様なカテゴリ。</p>
+          <p><strong>安定性向上（v0.11.3）</strong>：前バージョンの不具合を即日修正する<strong>パッチリリース</strong>。v0.11.0以降の新機能（Jules拡張、対話型シェル等）を安心して利用できる安定版を提供。</p>
+        </div>
+      </div>
+
+      <!-- 主要メトリクス -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-value">90以上</span>
+          <span class="metric-label">公式/コミュニティ拡張</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-value">v0.11.3</span>
+          <span class="metric-label">最新安定版（10/31リリース）</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-value">対話型</span>
+          <span class="metric-label">vim/git等シェル対応</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-value">Jules</span>
+          <span class="metric-label">自律型AIアシスタント</span>
+        </div>
+      </div>
+
+      <!-- なにが"すごい"のか -->
+      <div class="section">
+        <h2>🎯 なにが"すごい"のか（開発者視点）</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>1️⃣ 自律型助手Julesによる並行作業</h4>
+            <p>Jules拡張を使えば、<strong>複数のバグ修正を同時に依頼</strong>して並行処理が可能。開発者はメインタスクに集中しながら、バックグラウンドでJulesがコード修正・ビルド・テストを自律的に実行。</p>
+            <ul>
+              <li>仮想マシン上でリポジトリをクローン＋依存関係インストール</li>
+              <li>「/jules what is the status of my last task?」で進捗確認</li>
+              <li>完了した変更は新規ブランチでコミット提案</li>
+              <li>jules.google.comで専用アカウント登録、GitHub連携必要</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h4>2️⃣ 対話型コマンドの完全サポート</h4>
+            <p>従来はGemini CLI上で対話型コマンドを実行すると<strong>エージェントが固まる</strong>問題がありましたが、v0.9.0でPTYサポート導入により解決。AIが編集内容やシステム状態を把握したまま支援を継続。</p>
+            <ul>
+              <li>vim エディタでファイル編集をCLI内で完結</li>
+              <li>git rebase -i による対話的なコミット編集</li>
+              <li>top コマンドでリアルタイムプロセス監視</li>
+              <li>別ターミナルへの移動不要、作業フロー途切れず</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h4>3️⃣ カスタマイズ可能なエコシステム</h4>
+            <p>拡張フレームワークにより、<strong>自分専用に育てられるAIターミナル</strong>が実現。開発者コミュニティ主導で新機能を追加でき、日々の開発ワークフローを飛躍的に効率化。</p>
+            <ul>
+              <li>90以上の公式/コミュニティ拡張が公開済み</li>
+              <li>「gemini extensions install」1行で導入完了</li>
+              <li>プレイブック内包で即座に有用な応答</li>
+              <li>「gemini extensions new」で自作拡張を素早く構築</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- バージョン履歴 -->
+      <div class="section">
+        <h2>📋 直近のバージョンアップデート</h2>
+        <div class="version-grid">
+          <div class="version-card">
+            <span class="version-badge">v0.11.3</span>
+            <h4>2025年10月31日リリース</h4>
+            <p><strong>安定性向上パッチ</strong>。v0.11.2の不具合を即座に修正し、ユーザーにより安定したCLI環境を提供。Gemini CLIチームがフィードバックに即応していることを示すリリース。前日のv0.11.2からの差分を反映し、特定の問題修正のために緊急リリース。</p>
+          </div>
+
+          <div class="version-card">
+            <span class="version-badge">v0.11.2</span>
+            <h4>2025年10月31日リリース</h4>
+            <p><strong>ホットフィックス版</strong>。v0.11.1の致命的な問題を即日修正。開発チームは日付をまたがず即日中にv0.11.1→v0.11.2→v0.11.3と連続リリースし、プロダクトの信頼性確保を最優先。コミットID: 643f2c0のバグ修正を取り込み。</p>
+          </div>
+
+          <div class="version-card">
+            <span class="version-badge">v0.9.0</span>
+            <h4>2025年10月6日リリース</h4>
+            <p><strong>対話型シェル対応</strong>。PTY（擬似ターミナル）サポート導入により、vim、git rebase -i、topなど対話型コマンドをGemini CLI上で直接実行可能に。エージェントが固まる問題を根本解決し、開発者の作業フローが途切れない環境を実現。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- これまで難しかったユースケース -->
+      <div class="section">
+        <h2>💡 これまで難しかったユースケース</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>🔧 複数バグの並行修正</h4>
+            <p>従来は開発者が順番に1つずつバグを修正していたが、<strong>Jules拡張</strong>により複数のバグ修正を同時にJulesに依頼し並行処理。完了した変更はそれぞれ別ブランチで提案され、レビュー効率も向上。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4>🎨 デザインツールとの連携</h4>
+            <p>Figma拡張などにより、<strong>デザインシステムとコード</strong>をシームレスに連携。デザイン変更をAIが認識し、コードへの反映を自動提案。デザイナーとエンジニアのコラボレーションが加速。</p>
+          </div>
+
+          <div class="feature-card">
+            <h4>🏢 クラウド運用の自動化</h4>
+            <p>Dynatrace、Elastic等の拡張により、<strong>監視・ログ分析・インシデント対応</strong>をAIと協働。異常検知からコード修正までの一連フローをターミナル内で完結でき、運用効率が飛躍的に向上。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 総評 -->
+      <div class="section">
+        <h2>📊 総評</h2>
+        <div class="breaking-news">
+          <h3>🌟 ターミナルAIの新時代が到来</h3>
+          <p>Gemini CLIは、<strong>「自分専用に育てられるAIターミナル」</strong>という明確なビジョンを掲げています。Jules拡張による自律型AIアシスタント、対話型シェル対応、90以上の拡張機能により、開発者の作業フローが根本から変わります。</p>
+          <p><strong>並行作業の実現</strong>：Julesがバックグラウンドで複数タスクを並行処理し、開発者はメインタスクに集中。完了した変更は新規ブランチで提案され、レビューフローもスムーズ。</p>
+          <p><strong>シームレスな統合</strong>：vim、git rebase -i等の対話型コマンドもCLI内で完結。別ターミナルへの移動不要で、AIが文脈を保持したまま支援を継続。</p>
+          <p><strong>無限の拡張性</strong>：90以上の公式/コミュニティ拡張により、データベース操作、クラウド運用、セキュリティ診断、デザインツール連携など、あらゆる開発ワークフローをAIと協働できる環境が整備。</p>
+          <p>Google開発者ブログでは「もはや別のターミナルに移動したり対話的コマンドでエージェントが固まる心配はない」と強調。Gemini CLIチームの即応性（v0.11.1→v0.11.2→v0.11.3と即日連続リリース）も信頼性を裏付けています。</p>
+          <p><strong>「ターミナルがAIと協働する時代へ」</strong>──Gemini CLIはその最前線に立っています。</p>
+        </div>
+      </div>
+
+      <!-- 情報源 -->
+      <div class="sources">
+        <h3>📚 情報源</h3>
+        <ul>
+          <li><a href="https://github.com/google-gemini/gemini-cli/releases" target="_blank">GitHub Releases: google-gemini/gemini-cli</a></li>
+          <li><a href="https://developers.googleblog.com/en/say-hello-to-a-new-level-of-interactivity-in-gemini-cli/" target="_blank">Google Developers Blog: Say hello to a new level of interactivity in Gemini CLI</a></li>
+          <li><a href="https://developers.googleblog.com/en/introducing-the-jules-extension-for-gemini-cli/" target="_blank">Google Developers Blog: Introducing the Jules extension for Gemini CLI</a></li>
+          <li><a href="https://blog.google/technology/developers/gemini-cli-extensions/" target="_blank">Google Blog: Gemini CLI extensions let you customize your command line</a></li>
+          <li><a href="https://devops.com/gemini-cli-extensions-bring-customization-to-the-command-line/" target="_blank">DevOps.com: Gemini CLI Extensions Bring Customization to the Command Line</a></li>
+          <li><a href="https://geminicli.com/docs/changelogs/" target="_blank">Gemini CLI Changelog | Gemini CLI</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+      <p>📰 AI News Slide | 2025年11月1日</p>
+      <p>🔍 最新のAI開発ツール動向をキャッチアップ</p>
+    </footer>
+  </div>
+
+  <!-- ホームに戻るボタン -->
+  <a href="../../index.html" class="home-button">
+    <span>🏠</span>
+    <span>ホームに戻る</span>
+  </a>
+</body>
+</html>
