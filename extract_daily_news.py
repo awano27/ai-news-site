@@ -7,6 +7,7 @@ import re
 import sys
 from datetime import datetime
 from html.parser import HTMLParser
+from pathlib import Path
 from urllib.request import urlopen, Request
 
 class NewsCardParser(HTMLParser):
@@ -138,7 +139,8 @@ def main():
 
     # 日付ベースのファイル名
     today = datetime.now().strftime('%Y-%m-%d')
-    output_file = f'public-pages/news/{today}_daily.json'
+    output_dir = Path('public-pages/news')
+    output_path = output_dir / f'{today}_daily.json'
 
     # JSON出力
     output_data = {
@@ -151,20 +153,60 @@ def main():
         'articles': articles
     }
 
-    # ディレクトリ作成
-    import os
-    os.makedirs('public-pages/news', exist_ok=True)
-
     # ファイル書き込み
-    with open(output_file, 'w', encoding='utf-8') as f:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open('w', encoding='utf-8') as f:
         json.dump(output_data, f, ensure_ascii=False, indent=2)
 
-    print(f"[OK] Extracted {len(articles)} articles to {output_file}")
+    update_daily_indexes(output_path, output_data)
+
+    print(f"[OK] Extracted {len(articles)} articles to {output_path}")
     print(f"  Categories: {len(set(a['category'] for a in articles))}")
     print(f"  Sources: {len(set(a['source'] for a in articles))}")
     print(f"  High importance: {sum(1 for a in articles if a['importance'] == 'high')}")
 
     return 0
+
+
+def update_daily_indexes(output_path: Path, data: dict) -> None:
+    """Update helper index files for the daily news snapshots."""
+
+    metadata = data.get('metadata', {})
+    entry = {
+        'date': output_path.stem.replace('_daily', ''),
+        'file': output_path.name,
+        'count': metadata.get('total_articles') or len(data.get('articles', []) or []),
+        'extracted_at': metadata.get('extracted_at'),
+        'source': metadata.get('source'),
+    }
+
+    index_path = output_path.parent / 'daily_index.json'
+    entries = []
+
+    if index_path.exists():
+        try:
+            entries = json.loads(index_path.read_text(encoding='utf-8'))
+        except json.JSONDecodeError:
+            entries = []
+
+    entries = [e for e in entries if e.get('file') != entry['file']]
+    entries.append(entry)
+
+    def sort_key(item: dict) -> datetime:
+        date_str = item.get('date', '')
+        try:
+            return datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            return datetime.min
+
+    entries.sort(key=sort_key, reverse=True)
+
+    index_path.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding='utf-8')
+
+    latest_path = output_path.parent / 'daily_latest.json'
+    latest_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+
+    print("  Updated daily_index.json and daily_latest.json")
 
 if __name__ == '__main__':
     sys.exit(main())
