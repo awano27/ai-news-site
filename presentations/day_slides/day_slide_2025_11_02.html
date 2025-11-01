@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚨速報：Google AI Studio大型アップデート - 統合Playground＋観測強化で"作って回す"が速くなる - 2025/11/02</title>
+  <style>
+    :root {
+      --google-blue: #4285f4;
+      --google-red: #ea4335;
+      --google-yellow: #fbbc04;
+      --google-green: #34a853;
+      --breaking: #ef4444;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --success: #22c55e;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc04 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* 速報ヘッダー */
+    header {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(251, 188, 4, 0.05) 10px,
+        rgba(251, 188, 4, 0.05) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(234, 67, 53, 0.3);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* コンテンツエリア */
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: var(--google-blue);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* 速報カード */
+    .breaking-news {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 3px solid #f59e0b;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+      animation: highlight 2s ease-in-out infinite;
+    }
+
+    @keyframes highlight {
+      0%, 100% { transform: translateY(0); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2); }
+      50% { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(245, 158, 11, 0.3); }
+    }
+
+    .breaking-news h3 {
+      color: #b45309;
+      margin-bottom: 16px;
+    }
+
+    .breaking-news p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #78350f;
+      margin-bottom: 12px;
+    }
+
+    .breaking-news strong {
+      color: #92400e;
+      font-weight: 700;
+    }
+
+    /* 機能カード */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+      border-color: var(--google-blue);
+    }
+
+    .feature-card h4 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--google-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      color: var(--text-light);
+      line-height: 1.7;
+    }
+
+    /* メトリクスグリッド */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .metric-card {
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(66, 133, 244, 0.3);
+    }
+
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .metric-label {
+      font-size: 0.95rem;
+      opacity: 0.95;
+    }
+
+    /* リストスタイル */
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 12px 0;
+      padding-left: 32px;
+      position: relative;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--google-green);
+      font-weight: 900;
+      font-size: 1.3rem;
+    }
+
+    /* 注意カード */
+    .warning-card {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border-left: 4px solid var(--google-red);
+      padding: 24px;
+      border-radius: 12px;
+      margin-top: 24px;
+    }
+
+    .warning-card h4 {
+      color: var(--google-red);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .warning-card p {
+      color: #7f1d1d;
+      line-height: 1.7;
+    }
+
+    /* ソースリンク */
+    .sources {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 2px solid var(--border);
+    }
+
+    .sources h3 {
+      color: var(--google-blue);
+      margin-bottom: 16px;
+    }
+
+    .sources a {
+      display: inline-block;
+      color: var(--google-blue);
+      text-decoration: none;
+      padding: 8px 16px;
+      margin: 4px;
+      background: #eff6ff;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+    }
+
+    .sources a:hover {
+      background: var(--google-blue);
+      color: white;
+      transform: translateX(4px);
+    }
+
+    /* ホームボタン */
+    .home-button {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      padding: 16px 28px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(66, 133, 244, 0.4);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .home-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(66, 133, 244, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      .features-grid,
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .home-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="breaking-badge">🚨 速報：Google AI Studio大型アップデート</div>
+      <h1>AI Studio革命<br>統合Playground＋観測強化で"作って回す"が速くなる</h1>
+      <p class="subtitle">2025年11月2日 | Google AI Studio最新情報</p>
+    </header>
+
+    <div class="content">
+      <!-- 何が新しいのか？ -->
+      <div class="section">
+        <h2>⚡ 何が新しいのか？</h2>
+        <div class="breaking-news">
+          <h3>🚀 Google AI Studioが"作って回す"開発体験を劇的に改善</h3>
+          <p><strong>統合Playground</strong>：Gemini、GenMedia（Veo 3.1対応）、TTS、Liveを<strong>1つの画面</strong>で切替・連続利用可能に。チャットUIも統一され、<strong>プロンプト→画像→動画→ボイスオーバー</strong>を<strong>タブ移動なし</strong>でつなげられます。</p>
+          <p><strong>Logs & Datasets（ノーコード観測）</strong>：ダッシュボードの<strong>「Enable logging」ボタン</strong>だけで、CloudプロジェクトのGenerateContent API呼び出し履歴がStudioに集約表示。追加コードなしで<strong>観測・デバッグ・評価下地</strong>を整備可能。</p>
+          <p><strong>Usage & Rate limit可視化</strong>：利用量と上限を<strong>リアルタイム</strong>に把握し、スケール時の"想定外の制限"を回避しやすく。</p>
+          <p><strong>Maps Grounding</strong>：Googleマップの実世界位置情報で出力を根拠付ける機能を追加。位置文脈が必要な生成（観光案内、配送導線、商圏分析）に有効。</p>
+        </div>
+      </div>
+
+      <!-- 3本柱の詳細 -->
+      <div class="section">
+        <h2>🎯 3本柱：統合UI／観測強化／Rate limit可視化</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>📊 統合Playground</h4>
+            <p>複数モデルを1画面で切替。テキスト→画像→動画→音声の検証が<strong>Studio内で完結</strong>。文脈の断絶が減り、検証が高速化。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔍 Logs & Datasets</h4>
+            <p>「Enable logging」ボタンだけで<strong>API呼び出し履歴を自動追跡</strong>。成功/失敗を含め、追加コードなしで観測基盤を構築。</p>
+          </div>
+          <div class="feature-card">
+            <h4>⚡ Usage & Rate limit</h4>
+            <p>リアルタイムで利用量と上限を監視。<strong>レート制限の"想定外ブロック"</strong>を事前回避し、スムーズなスケールアップを実現。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🗺️ Maps Grounding</h4>
+            <p>Googleマップデータで出力を根拠付け。<strong>位置情報が必要な生成タスク</strong>（観光、配送、商圏分析）で威力を発揮。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🏠 ホーム再設計</h4>
+            <p>Welcomeホームが"司令塔"に。機能全体・最新情報・直近プロジェクトに<strong>素早く復帰</strong>可能。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🎨 画像編集機能</h4>
+            <p>生成画像の一部分だけをテキストで指示して変更可能。画像全体の一貫性を保ちつつ部分的な編集が実現。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- モデル更新 -->
+      <div class="section">
+        <h2>🤖 モデル更新：Gemini 2.5系＋Imagen 4/Veo 3.x</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>🧠 Gemini 2.5 Pro</h4>
+            <p><strong>安定版（stable）</strong>がリリース済み。<strong>適応的思考（Thinking）</strong>対応で、推論の深さ/一貫性が向上。旧プレビューは順次廃止へ整理。</p>
+          </div>
+          <div class="feature-card">
+            <h4>⚡ Gemini 2.5 Flash / Flash-Lite</h4>
+            <p><strong>価格性能重視</strong>の系統が拡充。用途に応じて高速・低コストな選択肢が増加。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🎨 Imagen 4 / Veo 3.x</h4>
+            <p><strong>画像/動画生成</strong>の最新モデル群が一般提供またはプレビュー段階。Playgroundの統合により<strong>テキスト→画像→動画</strong>の検証がStudio内で完結。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔐 SynthIDによる透かし</h4>
+            <p>画像生成（Gemini 2.5 Flash Image等）には<strong>不可視のSynthID</strong>が標準付与。生成/編集コンテンツの由来表示・真正性担保を強化。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔄 Compareモード</h4>
+            <p>同一プロンプトで各モデル（Gemini/Gemma）の<strong>出力品質・速度・コスト</strong>を横並びで比較可能。最適なモデル選択を支援。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🎤 マルチモーダル対応</h4>
+            <p>テキスト・画像・動画・音声・地図情報まで扱う<strong>マルチモーダルAI</strong>へ進化。TTS/ASRも統合。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- メトリクス -->
+      <div class="section">
+        <h2>📊 主要メトリクス</h2>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value">5+</div>
+            <div class="metric-label">統合機能<br>（Gemini/GenMedia/TTS/Live/Maps）</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">無料</div>
+            <div class="metric-label">AI Studio利用<br>（公式明記）</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">1画面</div>
+            <div class="metric-label">統合Playground<br>（タブ移動なし）</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">ノーコード</div>
+            <div class="metric-label">観測・デバッグ<br>（Enable logging）</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- コスト -->
+      <div class="section">
+        <h2>💰 コスト：Studio無料、本番API課金</h2>
+        <ul>
+          <li><strong>AI Studio自体の利用は無料</strong>：公式Pricingページに"Google AI Studio usage is free of charge"と明記（地域要件等の注記あり）。試作・比較・プロンプト設計はStudioでコストを気にせず実施可能。</li>
+          <li><strong>レート制限/スループット</strong>：Free/Tier1〜3のレート階層があり、課金アカウント連携や累計支出で上限が引き上がる設計。Rate limitページでの監視と併用が推奨。</li>
+          <li><strong>APIの従量課金</strong>：モデル毎にUSD/100万トークン等の基準が提示。Vertex AIとは価格が異なる点に注意。Pricingページの最新値を参照。</li>
+          <li><strong>Gemini 2.5 Pro</strong>：約100万トークン（日本語で160〜170万文字）分まで無償利用可能（無料枠）。</li>
+          <li><strong>有料専用モデル</strong>：高度なGemini 2.5 Pro（1.5 Pro含む）は無料枠なし。動画生成モデルVeo 3/3.1はAPI専用で生成1回ごとに課金。</li>
+        </ul>
+      </div>
+
+      <!-- 注意点 -->
+      <div class="section">
+        <h2>⚠️ 注意点とリスク</h2>
+        <div class="warning-card">
+          <h4>🚨 Studioは無料でもAPIは課金</h4>
+          <p>PoC→本番移行時に同一プロンプトでも費用感が変わるため、<strong>レート上限</strong>と<strong>課金プロジェクト</strong>の切替設計を先に決めるのが安全です。</p>
+        </div>
+        <div class="warning-card">
+          <h4>🔄 モデルの段階（GA/Preview）</h4>
+          <p>一部はPreviewで仕様や振る舞いが変わる可能性。<strong>Changelog</strong>で追随が必要。</p>
+        </div>
+        <div class="warning-card">
+          <h4>🔐 生成物の帰属</h4>
+          <p>SynthIDは可視/不可視の透かしで真正性に寄与する一方、エコシステム全体での検証連携が前提。運用ポリシー側の補完策も必要。</p>
+        </div>
+      </div>
+
+      <!-- ソースリンク -->
+      <div class="sources">
+        <h3>📚 情報源</h3>
+        <a href="https://blog.google/technology/developers/ai-studio-updates-more-control/" target="_blank">Google公式ブログ（2025-10-18）：統合Playground/ホーム/Rate limit</a>
+        <a href="https://blog.google/technology/developers/google-ai-studio-logs-datasets/" target="_blank">Google公式ブログ（2025-10-30）：Logs & Datasets</a>
+        <a href="https://ai.google.dev/gemini-api/docs/changelog" target="_blank">Gemini API Changelog：モデル更新</a>
+        <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank">Gemini API Pricing：コスト詳細</a>
+        <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank">Rate limits：レート階層</a>
+        <a href="https://developers.googleblog.com/en/introducing-gemini-2-5-flash-image/" target="_blank">Gemini 2.5 Flash Image</a>
+        <a href="https://deepmind.google/discover/blog/synthid-detector--a-new-portal-to-help-identify-ai-generated-content/" target="_blank">SynthID Detector</a>
+      </div>
+    </div>
+  </div>
+
+  <a href="../../index.html" class="home-button">
+    <span>🏠</span>
+    <span>ホームに戻る</span>
+  </a>
+</body>
+</html>
