@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔄 AI Context Flow - クロスLLM長期メモリ革命 - 2025/11/10</title>
+  <style>
+    :root {
+      --flow-purple: #8b5cf6;
+      --flow-blue: #3b82f6;
+      --flow-cyan: #06b6d4;
+      --flow-emerald: #10b981;
+      --flow-orange: #f59e0b;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #06b6d4 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    header {
+      background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(6, 182, 212, 0.1) 10px,
+        rgba(6, 182, 212, 0.1) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.3);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+    }
+
+    /* コンテンツエリア */
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 4px solid var(--flow-purple);
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      margin: 32px 0 16px;
+      color: var(--flow-blue);
+      font-weight: 700;
+    }
+
+    h4 {
+      font-size: 1.2rem;
+      margin: 24px 0 12px;
+      color: var(--flow-cyan);
+      font-weight: 600;
+    }
+
+    /* ハイライトボックス */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border-left: 6px solid var(--flow-purple);
+      padding: 24px;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+
+    .highlight-box strong {
+      color: var(--flow-purple);
+      font-size: 1.2rem;
+    }
+
+    /* 特徴グリッド */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .feature-card {
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
+      border-color: var(--flow-purple);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .feature-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--flow-blue);
+    }
+
+    .feature-desc {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    /* 統計情報 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .stat-box {
+      text-align: center;
+      padding: 24px;
+      background: linear-gradient(135deg, var(--flow-purple) 0%, var(--flow-blue) 100%);
+      color: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.95;
+    }
+
+    /* テーブル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    thead {
+      background: linear-gradient(135deg, var(--flow-purple) 0%, var(--flow-blue) 100%);
+      color: white;
+    }
+
+    th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:hover {
+      background: rgba(139, 92, 246, 0.05);
+    }
+
+    /* リスト */
+    ul {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    li {
+      padding: 12px 0 12px 32px;
+      position: relative;
+    }
+
+    li::before {
+      content: '🔄';
+      position: absolute;
+      left: 0;
+      font-size: 1.2rem;
+    }
+
+    ol {
+      margin-left: 20px;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+
+    ol li::before {
+      content: none;
+    }
+
+    /* リンク */
+    a {
+      color: var(--flow-blue);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    a:hover {
+      color: var(--flow-purple);
+      text-decoration: underline;
+    }
+
+    /* ホームボタン */
+    .home-button {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: linear-gradient(135deg, var(--flow-purple) 0%, var(--flow-blue) 100%);
+      color: white;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      font-size: 1.8rem;
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .home-button:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 12px 32px rgba(139, 92, 246, 0.6);
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      header {
+        padding: 32px 20px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .content {
+        padding: 24px 20px;
+      }
+
+      h2 {
+        font-size: 1.6rem;
+      }
+
+      .stats-grid,
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+
+      th, td {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="breaking-badge">🔄 Chrome拡張で実現するAI横断長期メモリ | 2025年11月10日</div>
+      <h1>🧠 AI Context Flow</h1>
+      <p class="subtitle">ChatGPT・Claude・Geminiで共通の"あなたの文脈"を持ち運ぶ新常識</p>
+    </header>
+
+    <div class="content">
+      <!-- 概要 -->
+      <section class="section">
+        <div class="highlight-box">
+          <strong>🎯 AI Context Flowとは？</strong>
+          <p>AI Context Flowは、ChatGPT・Claude・Geminiなど<strong>異なるAI間で"共通の長期メモリ"</strong>を持たせるChrome拡張です。プロファイルやハイライトを「メモリバケット」に保存し、<strong>ワンクリック（Ctrl+I）でプロンプトへ最適注入</strong>できるのが新機軸。各AIのネイティブMemoryが未連携でも、拡張が代理で文脈を毎回注入することで、無料プランAIでも継続性を実現します。</p>
+        </div>
+      </section>
+
+      <!-- 主要統計 -->
+      <section class="section">
+        <h2>📊 主要統計・基本情報</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-value">5+</span>
+            <span class="stat-label">対応AIプラットフォーム</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">無料</span>
+            <span class="stat-label">基本機能（バケット制限あり）</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">v1.5.0</span>
+            <span class="stat-label">最新版（2025-11-07更新）</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">Ctrl+I</span>
+            <span class="stat-label">ショートカットで即注入</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 何が新しいか -->
+      <section class="section">
+        <h2>✨ 何が新しいか - プロダクトの"差分"</h2>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🌐</div>
+            <div class="feature-title">ユニバーサル長期メモリ</div>
+            <div class="feature-desc">単なる「貼り付け補助」ではなく、保存済みの文脈（プロジェクト情報、技術スタック、ブランドトーン等）を<strong>ショートカット（Ctrl+I）</strong>で最適化されたプロンプトとして注入。複数AI（ChatGPT/Claude/Gemini/Perplexity/Grok）を横断して同じ"あなたの文脈"を使い回せる</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">📦</div>
+            <div class="feature-title">メモリバケット</div>
+            <div class="feature-desc">Webハイライト、会話の保存、ファイル（.txt/.json/.docx/.md/.pdf）アップロードで「メモリバケット」を育て、あとからダッシュボードで整理・削除できる。用途別に複数バケットを管理可能</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔐</div>
+            <div class="feature-title">プライバシー重視</div>
+            <div class="feature-desc">「同意なしにページを読まない／E2E暗号化／第三者に共有しない」と明記。ユーザーのコントロール下で安全に文脈を管理</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">自動プロンプト最適化</div>
+            <div class="feature-desc">保存された文脈を単に注入するだけでなく、各AIに最適化されたプロンプト形式に自動整形。効率的な応答を引き出す</div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <strong>💡 核心的な価値</strong>
+          <p>各AIの"ネイティブメモリ"が未連携でも、<strong>拡張が代理で文脈を毎回注入</strong>する発想。これにより<strong>無料プランAIでも継続性</strong>を実現しやすい点が革新的です。特に複数のAIツールを使い分けるユーザーにとって、文脈の一貫性を保つ手間が大幅に削減されます。</p>
+        </div>
+      </section>
+
+      <!-- 対応プラットフォーム -->
+      <section class="section">
+        <h2>🤖 対応AIプラットフォーム</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <div class="feature-title">ChatGPT</div>
+            <div class="feature-desc">OpenAIの主力サービスに対応。無料プランでも長期メモリ活用可能</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-title">Claude</div>
+            <div class="feature-desc">Anthropicの対話型AI。プロジェクト単位の文脈管理が強力に</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔷</div>
+            <div class="feature-title">Gemini</div>
+            <div class="feature-desc">Googleの最新AI。検索連携と組み合わせて効果的</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <div class="feature-title">Perplexity</div>
+            <div class="feature-desc">検索特化型AI。リサーチ文脈の継続に最適</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">Grok</div>
+            <div class="feature-desc">X（旧Twitter）のAI。ソーシャルコンテキストでの活用が可能</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 価格・課金モデル -->
+      <section class="section">
+        <h2>💰 コスト - 価格・課金モデルの現状</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>プラン</th>
+              <th>価格</th>
+              <th>主な機能</th>
+              <th>備考</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>無料プラン</strong></td>
+              <td>$0</td>
+              <td>基本機能、Chrome拡張のインストール、メモリバケット（数量制限あり）</td>
+              <td>まずは無料で試せる。実用的な機能を提供</td>
+            </tr>
+            <tr>
+              <td><strong>プレミアムプラン</strong></td>
+              <td>未公表<br>（近日発表予定）</td>
+              <td>拡張ストレージ解放、無制限メモリバケット、優先サポート</td>
+              <td>容量が必要なユーザー向け。正確な月額は2025-11-10時点で未掲載</td>
+            </tr>
+            <tr>
+              <td><strong>キャンペーン</strong></td>
+              <td>変動</td>
+              <td>1年のPlusサブスク特典などのプロモーション</td>
+              <td>イベント・招待ベース。恒常価格ではない</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <strong>💡 購入判断のポイント</strong>
+          <p>現時点は<strong>"無料で試せる＋上位は近日／可変"</strong>という段階。購入判断は「必要なバケット容量」で見極めるのが実務的です。複数プロジェクトを並行管理するユーザーや、大量の文脈データを扱う場合にプレミアムプランが有用になる見込み。</p>
+        </div>
+      </section>
+
+      <!-- 競合比較 -->
+      <section class="section">
+        <h2>⚔️ 競合比較 - 拡張系 vs ネイティブ系</h2>
+
+        <h3>クロスLLM対応の拡張系</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>サービス</th>
+              <th>特徴</th>
+              <th>強み</th>
+              <th>価格</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(139, 92, 246, 0.05);">
+              <td><strong>AI Context Flow</strong></td>
+              <td>①クロスLLMで同一文脈、②ワンクリック最適化、③ハイライト→即メモリ化</td>
+              <td>自動整形プロンプト、使いやすいUI、プライバシー重視</td>
+              <td>無料（制限あり）＋プレミアム（未公表）</td>
+            </tr>
+            <tr>
+              <td><strong>OpenMemory</strong></td>
+              <td>自動検出＋編集可能なダッシュボード、ChatGPTのネイティブMemory取り込み可</td>
+              <td>完全無料を謳う、ChatGPT連携が強力</td>
+              <td>無料</td>
+            </tr>
+            <tr>
+              <td><strong>Mem0</strong></td>
+              <td>オープンソースの"ChatGPT風メモリ"を横断共有</td>
+              <td>自前運用・拡張性で優位、技術者向け</td>
+              <td>OSS無料（自己運用コスト）</td>
+            </tr>
+            <tr>
+              <td><strong>MemoryPlugin</strong></td>
+              <td>長期記憶をChatGPT/Claude/Gemini等へ付与</td>
+              <td>シンプルで使いやすい</td>
+              <td>フリーミアム</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>プラットフォームのネイティブ機能</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>プラットフォーム</th>
+              <th>機能</th>
+              <th>制約</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>ChatGPT Memory</strong></td>
+              <td>会話横断の記憶機能</td>
+              <td><strong>ChatGPT内部限定</strong>。クロスLLMでは共有されない</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Memory</strong></td>
+              <td>プロジェクト単位の記憶、インポート活用（2025秋拡張）</td>
+              <td><strong>Claude内</strong>で閉じる。他AIとは連携しない</td>
+            </tr>
+            <tr>
+              <td><strong>Gemini有償プラン</strong></td>
+              <td>プラン内で高機能化</td>
+              <td><strong>クロスLLMの共有記憶</strong>は提供していない</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <strong>🎯 AI Context Flowの立ち位置</strong>
+          <p><strong>強み</strong>：①<strong>クロスLLM</strong>で同一文脈を持ち回り、②<strong>ワンクリック最適化</strong>で"いい感じの長文プロンプト"へ自動整形、③<strong>ハイライト→即メモリ化</strong>の手軽さ</p>
+          <p><strong>弱み</strong>：価格の<strong>明確な公表が少ない</strong>／完全自動抽出の"魔法"ではなく<strong>ユーザがメモリを設計する前提</strong>（ただしコントロール性は高い）</p>
+        </div>
+      </section>
+
+      <!-- ユースケース -->
+      <section class="section">
+        <h2>🎯 主要ユースケース - 実務で刺さる場面</h2>
+
+        <h3>1. SRE／開発チーム</h3>
+        <ul>
+          <li><strong>技術スタック共有</strong>：Next.js＋FastAPI＋Terraform/K8sなどのスタック情報やプロジェクト制約（SLO/ダウンタイム最小等）を一度バケット化。Issue返信や設計相談をどのAIでも即"自社文脈"で開始</li>
+          <li><strong>コード規約の一貫性</strong>：コーディング規約、命名規則、アーキテクチャパターンをメモリ化し、レビューやコード生成で一貫した品質を維持</li>
+          <li><strong>ドキュメント参照</strong>：API仕様書、設計書、過去のトラブルシューティング記録を保存し、問題解決を高速化</li>
+        </ul>
+
+        <h3>2. カスタマーサポート／CS</h3>
+        <ul>
+          <li><strong>定型トーン管理</strong>：定型トーン、SLA、禁止表現、FAQリンクをバケット化。<strong>どのAIでも</strong>一貫した一次返信ドラフトを生成</li>
+          <li><strong>製品情報の即時参照</strong>：製品マニュアル、既知の問題、よくある質問をメモリ化し、正確な回答を迅速に提供</li>
+          <li><strong>エスカレーション基準</strong>：エスカレーションが必要な状況の判断基準を共有し、対応品質を標準化</li>
+        </ul>
+
+        <h3>3. 広報／コンテンツ制作</h3>
+        <ul>
+          <li><strong>ブランドボイス統一</strong>：ブランドボイス、用語統一、原稿テンプレを共有。<strong>Ctrl+I</strong>でコンテキスト注入→体裁が揃った初稿を高速作成</li>
+          <li><strong>メディアキット活用</strong>：会社概要、プレスリリーステンプレート、メディア向け情報をメモリ化し、問い合わせ対応を効率化</li>
+          <li><strong>キャンペーン文脈</strong>：進行中のキャンペーン情報、メッセージング戦略を保存し、一貫したコミュニケーションを実現</li>
+        </ul>
+
+        <h3>4. リサーチ／営業活動</h3>
+        <ul>
+          <li><strong>リサーチノート蓄積</strong>：Webハイライトを<strong>選択→保存</strong>し、後日の質問で背景を自動合成。複数AIを横断しても記憶の連続性を確保</li>
+          <li><strong>顧客プロファイル</strong>：顧客の業界情報、課題、過去の会話要点をメモリ化し、パーソナライズされた提案を作成</li>
+          <li><strong>競合分析</strong>：競合の製品情報、市場動向をバケット化し、戦略立案に活用</li>
+        </ul>
+
+        <h3>5. 個人タスク／マルチコンテキスト管理</h3>
+        <ul>
+          <li><strong>バケット分離</strong>：履歴書要約、自己紹介、よく使う規約文面などを"個人""仕事""副業"で<strong>バケット分離</strong>。誤注入を避けつつ再利用</li>
+          <li><strong>学習記録</strong>：学習メモ、参考資料、進捗状況を保存し、継続的な学習をサポート</li>
+          <li><strong>趣味プロジェクト</strong>：複数の趣味プロジェクトの情報を分離管理し、文脈のスイッチングを容易に</li>
+        </ul>
+
+        <div class="highlight-box">
+          <strong>✨ 共通する価値</strong>
+          <p>「複数AIを常用」×「毎回の説明が面倒」というユーザーにとって、<strong>文脈の再利用</strong>は時間の大幅な節約につながります。メモリ設計（どの情報を残し、どう要約するか）を最初に決めると効果が最大化します。</p>
+        </div>
+      </section>
+
+      <!-- リスクと限界 -->
+      <section class="section">
+        <h2>⚠️ リスクと限界 - 前提・注意点</h2>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">💵</div>
+            <div class="feature-title">価格の透明性</div>
+            <div class="feature-desc"><strong>無料→有料</strong>の境界（容量・バケット数）は明示されるが、<strong>月額の確定額は現時点で公開情報が薄い</strong>。導入前にFAQとダッシュボード内の上限を確認することが重要</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">📏</div>
+            <div class="feature-title">コンテキスト上限</div>
+            <div class="feature-desc">大量の文脈はそのままでは逆効果になり得る（LLMの「注意予算」問題）。<strong>要約・抽出</strong>の設計も並走させると安定。適切な粒度でメモリを管理することが推奨される</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <div class="feature-title">ネイティブMemoryとの違い</div>
+            <div class="feature-desc">拡張は"外付け注入"。各AIの内部記憶とは仕様が異なるため、<strong>二重記憶の整合</strong>や<strong>秘匿情報の混入</strong>に留意。意図しない情報漏洩を防ぐ管理が必要</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🛠️</div>
+            <div class="feature-title">設計スキル要求</div>
+            <div class="feature-desc">完全自動抽出ではなく、<strong>ユーザがメモリを設計する前提</strong>。どの情報をどの粒度で保存するかの判断が、効果を大きく左右する。初期設定に時間を要する場合がある</div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <strong>🔒 セキュリティとプライバシー</strong>
+          <p>拡張は「同意なしにページを読まない／E2E暗号化／第三者に共有しない」と明記していますが、保存する情報には機密情報が含まれる可能性があります。特に企業での利用時は、社内ポリシーとの整合性を確認し、適切な情報分類・アクセス管理を行うことが推奨されます。</p>
+        </div>
+      </section>
+
+      <!-- 導入ガイド -->
+      <section class="section">
+        <h2>🚀 導入手順と使い方</h2>
+
+        <h3>1. インストール</h3>
+        <div class="highlight-box">
+          <strong>📥 Chrome拡張のインストール</strong>
+          <ol>
+            <li><a href="https://chromewebstore.google.com/detail/ai-context-flow-improved/cfegfckldnmbdnimjgfamhjnmjpcmgnf" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>からAI Context Flowをインストール</li>
+            <li>ブラウザツールバーに拡張アイコンが表示されることを確認</li>
+            <li>初回起動時にアカウント作成またはログイン</li>
+          </ol>
+        </div>
+
+        <h3>2. メモリバケットの作成</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">✏️</div>
+            <div class="feature-title">手動作成</div>
+            <div class="feature-desc">ダッシュボードから新規バケットを作成し、プロジェクト情報や定型文を入力</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🖱️</div>
+            <div class="feature-title">ハイライト保存</div>
+            <div class="feature-desc">Webページ上のテキストを選択→右クリック→「Save to Memory」で即座にバケットへ追加</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">📁</div>
+            <div class="feature-title">ファイルアップロード</div>
+            <div class="feature-desc">.txt/.json/.docx/.md/.pdfファイルをアップロードして一括保存</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <div class="feature-title">会話保存</div>
+            <div class="feature-desc">AI会話の重要な部分をそのままメモリバケットに保存</div>
+          </div>
+        </div>
+
+        <h3>3. メモリの活用</h3>
+        <div class="highlight-box">
+          <strong>⚡ ショートカットで即注入</strong>
+          <ol>
+            <li>ChatGPT、Claude、Geminiなどの対応AIサイトでチャット画面を開く</li>
+            <li><strong>Ctrl+I</strong>（またはCmd+I on Mac）を押す</li>
+            <li>保存済みメモリバケットのリストが表示される</li>
+            <li>注入したいバケットを選択すると、最適化されたプロンプトとして自動挿入</li>
+            <li>必要に応じて追加の指示を入力して送信</li>
+          </ol>
+        </div>
+
+        <h3>4. メモリの管理</h3>
+        <ul>
+          <li><strong>ダッシュボード</strong>：拡張アイコンをクリックしてダッシュボードを開く</li>
+          <li><strong>整理</strong>：バケットの名前変更、内容編集、削除が可能</li>
+          <li><strong>分類</strong>：プロジェクト、クライアント、タスクタイプなどでバケットを分類</li>
+          <li><strong>共有</strong>：チーム向けプランでは、バケットを共有できる機能も検討中</li>
+        </ul>
+      </section>
+
+      <!-- ベストプラクティス -->
+      <section class="section">
+        <h2>💡 ベストプラクティス - メモリ設計のコツ</h2>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-title">目的別にバケット分離</div>
+            <div class="feature-desc">「開発」「CS」「広報」「個人」など、明確な用途ごとにバケットを作成。誤注入を防ぎ、文脈の純度を保つ</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">📝</div>
+            <div class="feature-title">簡潔で構造化された記述</div>
+            <div class="feature-desc">箇条書き、見出し、セクション分けを活用。AIが解釈しやすい形式で保存すると、プロンプト最適化がより効果的に</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <div class="feature-title">定期的な更新</div>
+            <div class="feature-desc">プロジェクトの進行に伴い、古い情報を削除し、新しい情報を追加。メモリの鮮度を保つことで精度が向上</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <div class="feature-title">適切な粒度</div>
+            <div class="feature-desc">多すぎる情報は「注意予算」を圧迫。必要十分な情報量を見極め、要点を絞り込む</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🧪</div>
+            <div class="feature-title">テストと改善</div>
+            <div class="feature-desc">実際に複数のAIで注入して効果を確認。反応が悪い場合は、メモリの表現や構造を調整</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔐</div>
+            <div class="feature-title">機密情報の管理</div>
+            <div class="feature-desc">パスワード、APIキー、個人情報などの機密データは保存しない。または専用の暗号化バケットを使用（今後の機能）</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- まとめ -->
+      <section class="section">
+        <h2>✨ まとめ - 判断基準と展望</h2>
+        <div class="highlight-box">
+          <p><strong>AI Context Flow</strong>は、ChatGPT・Claude・Geminiなど異なるAI間で<strong>共通の長期メモリ</strong>を実現するChrome拡張です。「メモリバケット」による柔軟な文脈管理と、<strong>Ctrl+Iのワンクリック注入</strong>により、複数AIツールを使い分けるユーザーの生産性を大幅に向上させます。</p>
+
+          <p><strong>無料プランで試せる</strong>ため、導入ハードルが低く、実務での効果を確認してから有料プランへの移行を検討できます。OpenMemory（完全無料×自動抽出）、Mem0（OSS×拡張性）、各プラットフォームのネイティブMemory（単体完結）と比較して、<strong>"横断＋最適化"</strong>で優位性を持ちます。</p>
+
+          <p><strong>特に効果的な用途</strong>：SRE/開発チーム（技術スタック共有）、カスタマーサポート（定型トーン管理）、広報/コンテンツ制作（ブランドボイス統一）、リサーチ/営業（顧客プロファイル蓄積）、個人タスク（マルチコンテキスト管理）</p>
+
+          <p><strong>注意点</strong>：価格の透明性（有料プラン詳細は今後発表）、コンテキスト上限への配慮（要約設計）、ネイティブMemoryとの違い（二重記憶の整合性）、メモリ設計スキルの必要性（ユーザー主導の構築）</p>
+
+          <p><strong>推奨アクション</strong>：「複数AIを常用」×「毎回の説明が面倒」と感じているなら、<strong>まず無料で試す価値大</strong>。メモリ設計（どの情報を残し、どう要約するか）を最初に決めると効果が最大化します。</p>
+        </div>
+      </section>
+
+      <!-- ソース・参考情報 -->
+      <section class="section">
+        <h2>📚 ソース・参考情報</h2>
+
+        <h3>🌐 公式サイト・ストア</h3>
+        <ul style="margin-bottom: 24px;">
+          <li><strong><a href="https://chromewebstore.google.com/detail/ai-context-flow-improved/cfegfckldnmbdnimjgfamhjnmjpcmgnf" target="_blank" rel="noopener noreferrer">Chrome Web Store - AI Context Flow</a></strong> - 機能・更新日・開発元情報</li>
+          <li><strong><a href="https://plurality.network/blogs/reusable-ai-memory-with-ai-context-flow/" target="_blank" rel="noopener noreferrer">公式ブログ - Plurality Network</a></strong> - セットアップ、ショートカット、対応AI、FAQ・課金方針</li>
+          <li><strong><a href="https://plurality.network/" target="_blank" rel="noopener noreferrer">Plurality Network - ホーム</a></strong> - 開発元の公式サイト</li>
+        </ul>
+
+        <h3>📱 SNS・コミュニティ</h3>
+        <ul style="margin-bottom: 24px;">
+          <li><strong><a href="https://x.com/PluralityWeb3/status/1977699332808724763" target="_blank" rel="noopener noreferrer">@PluralityWeb3（X）</a></strong> - 公式アカウントの最新情報</li>
+          <li><strong><a href="https://www.producthunt.com/products/ai-context-flow" target="_blank" rel="noopener noreferrer">Product Hunt</a></strong> - AI Context Flowの製品ページ、ユーザーレビュー</li>
+        </ul>
+
+        <h3>🔗 競合サービス・比較対象</h3>
+        <ul style="margin-bottom: 24px;">
+          <li><strong><a href="https://chromewebstore.google.com/detail/openmemory/onihkkbipkfeijkadecaafbgagkhglop" target="_blank" rel="noopener noreferrer">OpenMemory - Chrome Web Store</a></strong> - 無料の競合拡張</li>
+          <li><strong><a href="https://github.com/mem0ai/mem0-chrome-extension" target="_blank" rel="noopener noreferrer">Mem0 Chrome Extension - GitHub</a></strong> - オープンソースの競合</li>
+          <li><strong><a href="https://chromewebstore.google.com/detail/memoryplugin-long-term-me/iaelpdacgkkhecjoojjgkhiengnbjacd?hl=en" target="_blank" rel="noopener noreferrer">MemoryPlugin - Chrome Web Store</a></strong> - 長期メモリ拡張</li>
+        </ul>
+
+        <h3>📰 関連記事・解説</h3>
+        <ul style="margin-bottom: 24px;">
+          <li><strong><a href="https://www.tomsguide.com/ai/claude-just-unlocked-memory-that-syncs-with-chatgpt-heres-how-it-works" target="_blank" rel="noopener noreferrer">Tom's Guide - Claude Memory解説</a></strong> - ネイティブMemory比較の参考</li>
+          <li><strong><a href="https://one.google.com/about/google-ai-plans/" target="_blank" rel="noopener noreferrer">Google AI Plans</a></strong> - Gemini有償プラン情報</li>
+          <li><strong><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener noreferrer">Anthropic - Effective Context Engineering</a></strong> - コンテキスト設計の注意点（公式エンジニア記事）</li>
+        </ul>
+
+        <div class="highlight-box">
+          <strong>📊 情報の信頼性</strong>
+          <p>本スライドの内容は、AI Context Flowの公式Chrome Web Storeページ、Plurality Networkの公式ブログ、Product Huntの製品情報、競合サービスの公式サイト、およびAI業界の技術記事に基づいています。価格情報は2025年11月10日時点のもので、今後変更される可能性があります。最新情報は公式サイトをご確認ください。</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <a href="/ai-news-site/" class="home-button" title="ホームに戻る">🏠</a>
+</body>
+</html>
