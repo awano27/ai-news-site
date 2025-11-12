@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from collections import Counter, defaultdict
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
-from src.utils.sanitize import sanitize_html, normalize_text
+from src.utils.sanitize import sanitize_html, sanitize_text
 
 
 class DailyNewsGenerator:

@@ -122,16 +122,33 @@ class BM25Scorer:
 
 class SemanticSearchEngine:
     """セマンティック検索エンジン"""
-    
+
+    # Maximum cache size (number of embeddings to store)
+    MAX_CACHE_SIZE = 1000
+
     def __init__(self):
         self.model = None
         self.embeddings_cache = {}
-        
+        self.cache_access_order = []  # Track access order for LRU
+
         if TRANSFORMERS_AVAILABLE:
             try:
                 self.model = SentenceTransformer(settings.models.embedding_model)
             except Exception as e:
                 print(f"Warning: Failed to load embedding model: {e}")
+
+    def _evict_cache_if_needed(self):
+        """Evict oldest entries if cache exceeds max size (LRU policy)"""
+        while len(self.embeddings_cache) > self.MAX_CACHE_SIZE:
+            if self.cache_access_order:
+                oldest_key = self.cache_access_order.pop(0)
+                self.embeddings_cache.pop(oldest_key, None)
+
+    def _update_cache_access(self, key: str):
+        """Update access order for LRU tracking"""
+        if key in self.cache_access_order:
+            self.cache_access_order.remove(key)
+        self.cache_access_order.append(key)
     
     def encode(self, texts: List[str]) -> np.ndarray:
         """テキストをベクトル化"""
@@ -142,21 +159,25 @@ class SemanticSearchEngine:
         cached_embeddings = []
         new_texts = []
         new_indices = []
-        
+
         for i, text in enumerate(texts):
             if text in self.embeddings_cache:
                 cached_embeddings.append((i, self.embeddings_cache[text]))
+                # Update access order for LRU
+                self._update_cache_access(text)
             else:
                 new_texts.append(text)
                 new_indices.append(i)
-        
+
         # 新しいテキストのエンコード
         if new_texts:
             try:
                 new_embeddings = self.model.encode(new_texts, convert_to_numpy=True)
-                # キャッシュに保存
+                # キャッシュに保存 (with LRU eviction)
                 for text, embedding in zip(new_texts, new_embeddings):
                     self.embeddings_cache[text] = embedding
+                    self._update_cache_access(text)
+                    self._evict_cache_if_needed()
             except Exception as e:
                 print(f"Warning: Encoding failed: {e}")
                 new_embeddings = np.zeros((len(new_texts), 384))
@@ -333,7 +354,7 @@ class GraphSearchEngine:
     def graph_search(self, seed_doc_ids: List[int], max_hops: int = 2, top_k: int = 10) -> List[Tuple[int, float]]:
         """グラフベース検索（関連記事の探索）"""
         visited = set(seed_doc_ids)
-        current_level = {doc_id: 1.0 for doc_id_id in seed_doc_ids}
+        current_level = {doc_id: 1.0 for doc_id in seed_doc_ids}
         results = {}
         
         for hop in range(max_hops):

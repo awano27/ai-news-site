@@ -13,12 +13,30 @@ class APIConfig:
     gemini_api_key: str = os.getenv('GEMINI_API_KEY', '')
     gemini_model: str = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash-lite')
     gemini_url_context_batch: int = int(os.getenv('GEMINI_URL_CONTEXT_BATCH', '20'))
-    
+
     openai_api_key: str = os.getenv('OPENAI_API_KEY', '')
     openai_model: str = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
-    
+
     github_token: str = os.getenv('GITHUB_TOKEN', '')
     x_bearer_token: str = os.getenv('X_BEARER_TOKEN', '')
+
+    def __repr__(self):
+        """Mask sensitive API keys in string representation"""
+        def mask_key(key: str) -> str:
+            if not key or len(key) < 8:
+                return '***'
+            return f"{key[:4]}...{key[-4:]}"
+
+        return (
+            f"APIConfig("
+            f"gemini_api_key='{mask_key(self.gemini_api_key)}', "
+            f"gemini_model='{self.gemini_model}', "
+            f"openai_api_key='{mask_key(self.openai_api_key)}', "
+            f"openai_model='{self.openai_model}', "
+            f"github_token='{mask_key(self.github_token)}', "
+            f"x_bearer_token='{mask_key(self.x_bearer_token)}'"
+            f")"
+        )
 
 
 @dataclass
@@ -104,7 +122,7 @@ class BasicConfig:
     """基本設定"""
     hours_lookback: int = int(os.getenv('HOURS_LOOKBACK', '24'))
     max_items_per_category: int = int(os.getenv('MAX_ITEMS_PER_CATEGORY', '10'))
-    translate_to_ja: bool = bool(int(os.getenv('TRANSLATE_TO_JA', '1')))
+    translate_to_ja: bool = os.getenv('TRANSLATE_TO_JA', '1').lower() in ('1', 'true', 'yes')
     translate_engine: str = os.getenv('TRANSLATE_ENGINE', 'deepl')
     fast_mode: bool = os.getenv('NEWS_FAST_MODE') == '1'
 

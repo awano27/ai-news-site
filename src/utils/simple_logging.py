@@ -4,9 +4,33 @@ Python 3.13互換性対応
 """
 import logging
 import sys
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+
+class SensitiveDataFilter(logging.Filter):
+    """Filter to mask sensitive data like API keys in log messages"""
+
+    # Patterns to match API keys and tokens
+    SENSITIVE_PATTERNS = [
+        (re.compile(r'(api[_-]?key["\']?\s*[:=]\s*["\']?)([a-zA-Z0-9_\-]{20,})(["\']?)', re.IGNORECASE), r'\1***\3'),
+        (re.compile(r'(token["\']?\s*[:=]\s*["\']?)([a-zA-Z0-9_\-]{20,})(["\']?)', re.IGNORECASE), r'\1***\3'),
+        (re.compile(r'(bearer\s+)([a-zA-Z0-9_\-]{20,})', re.IGNORECASE), r'\1***'),
+        (re.compile(r'(password["\']?\s*[:=]\s*["\']?)([^"\']+)(["\']?)', re.IGNORECASE), r'\1***\3'),
+        # Generic pattern for long alphanumeric strings that look like keys
+        (re.compile(r'\b([a-zA-Z0-9_\-]{32,})\b'), r'***'),
+    ]
+
+    def filter(self, record):
+        """Mask sensitive data in log message"""
+        if hasattr(record, 'msg') and isinstance(record.msg, str):
+            message = record.msg
+            for pattern, replacement in self.SENSITIVE_PATTERNS:
+                message = pattern.sub(replacement, message)
+            record.msg = message
+        return True
 
 def setup_logging(log_level: str = "INFO") -> logging.Logger:
     """ロギングシステムの初期化（簡易版）"""
@@ -59,10 +83,12 @@ def setup_logging(log_level: str = "INFO") -> logging.Logger:
     # ハンドラー設定
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(console_formatter)
-    
+    console_handler.addFilter(SensitiveDataFilter())  # Add security filter
+
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setFormatter(file_formatter)
-    
+    file_handler.addFilter(SensitiveDataFilter())  # Add security filter
+
     # ロガー設定
     logger = logging.getLogger('daily_ai_news')
     logger.setLevel(getattr(logging, log_level.upper()))

@@ -21,13 +21,31 @@ logger = logging.getLogger(__name__)
 
 class SourceManager:
     """情報源管理クラス"""
-    
+
     def __init__(self):
         self.sources_config = None
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
+
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - cleanup resources"""
+        self.close()
+        return False
+
+    def close(self):
+        """Close the HTTP session"""
+        if self.session:
+            self.session.close()
+
+    def __del__(self):
+        """Cleanup on deletion"""
+        self.close()
     
     async def collect_all_sources(self) -> List[Dict[str, Any]]:
         """全ソースから情報収集"""

@@ -37,21 +37,36 @@ class NewsSystemV2:
     async def run_full_pipeline(self) -> Dict[str, Any]:
         """完全なパイプラインの実行"""
         logger.info("🚀 Starting Daily AI News System v2.0")
-        
+
+        # Timeout for each phase (in seconds)
+        COLLECTION_TIMEOUT = 300  # 5 minutes
+        ANALYSIS_TIMEOUT = 600    # 10 minutes
+        EVALUATION_TIMEOUT = 300  # 5 minutes
+        RELATIONSHIP_TIMEOUT = 180 # 3 minutes
+
         try:
             # 1. 情報収集
             logger.info("📡 Phase 1: Collecting information from sources")
-            raw_articles = await self._collect_from_sources()
+            raw_articles = await asyncio.wait_for(
+                self._collect_from_sources(),
+                timeout=COLLECTION_TIMEOUT
+            )
             logger.info(f"Collected {len(raw_articles)} raw articles")
-            
+
             # 2. URL Context分析（Gemini）
             logger.info("🧠 Phase 2: Analyzing content with Gemini")
-            analyzed_articles = await self._analyze_with_gemini(raw_articles)
+            analyzed_articles = await asyncio.wait_for(
+                self._analyze_with_gemini(raw_articles),
+                timeout=ANALYSIS_TIMEOUT
+            )
             logger.info(f"Analyzed {len(analyzed_articles)} articles")
-            
+
             # 3. 多層評価
             logger.info("⚡ Phase 3: Multi-layer evaluation")
-            evaluated_articles = await self._evaluate_articles(analyzed_articles)
+            evaluated_articles = await asyncio.wait_for(
+                self._evaluate_articles(analyzed_articles),
+                timeout=EVALUATION_TIMEOUT
+            )
             logger.info(f"Evaluated {len(evaluated_articles)} articles")
             
             # 4. 検索エンジンの学習
@@ -60,7 +75,10 @@ class NewsSystemV2:
             
             # 5. 記事の関連付けと最適化
             logger.info("🔗 Phase 5: Article relationship building")
-            optimized_articles = await self._build_relationships(evaluated_articles)
+            optimized_articles = await asyncio.wait_for(
+                self._build_relationships(evaluated_articles),
+                timeout=RELATIONSHIP_TIMEOUT
+            )
             
             # 6. ペルソナ別選別とランキング
             logger.info("👥 Phase 6: Persona-based filtering and ranking")
@@ -86,6 +104,13 @@ class NewsSystemV2:
                 'generated_at': datetime.now(timezone.utc).isoformat()
             }
             
+        except asyncio.TimeoutError as e:
+            logger.error(f"❌ Pipeline timeout: Operation exceeded time limit")
+            return {
+                'status': 'error',
+                'error': 'Pipeline timeout: Operation exceeded time limit',
+                'generated_at': datetime.now(timezone.utc).isoformat()
+            }
         except Exception as e:
             logger.error(f"❌ Pipeline failed: {e}", exc_info=True)
             return {
@@ -127,7 +152,11 @@ class NewsSystemV2:
             try:
                 # 記事オブジェクトに変換
                 article = self.gemini_analyzer.convert_to_article_schema(url, analysis_data)
-                
+
+                if article is None:
+                    logger.warning(f"Failed to convert article schema for URL: {url}")
+                    continue
+
                 # 元データから追加情報をマージ
                 if 'published_date' in raw_article:
                     article.published_date = raw_article['published_date']
@@ -135,12 +164,15 @@ class NewsSystemV2:
                     article.source = raw_article['source']
                 if 'source_tier' in raw_article:
                     article.source_tier = SourceTier(raw_article['source_tier'])
-                
+
                 analyzed_articles.append(article)
                 self.processed_urls.add(url)
-                
+
+            except (KeyError, ValueError, TypeError) as e:
+                logger.error(f"Data conversion error for article {url}: {type(e).__name__}: {e}")
+                continue
             except Exception as e:
-                logger.error(f"Error converting article {url}: {e}")
+                logger.exception(f"Unexpected error converting article {url}: {e}")
                 continue
         
         return analyzed_articles
@@ -148,31 +180,47 @@ class NewsSystemV2:
     async def _evaluate_articles(self, articles: List[Article]) -> List[Article]:
         """記事の多層評価"""
         evaluated_articles = []
-        
+
         for article in articles:
             try:
+                # Validate article has required fields
+                if not article.url:
+                    logger.warning(f"Article missing URL, skipping evaluation")
+                    continue
+
                 # エンジニア向け評価
                 engineer_eval = self.evaluator.evaluate_article(article, 'engineer')
-                
+
                 # ビジネス向け評価
                 business_eval = self.evaluator.evaluate_article(article, 'business')
-                
+
+                # Validate evaluation results
+                if not engineer_eval or 'total_score' not in engineer_eval:
+                    logger.warning(f"Invalid engineer evaluation for {article.url}")
+                    continue
+                if not business_eval or 'total_score' not in business_eval:
+                    logger.warning(f"Invalid business evaluation for {article.url}")
+                    continue
+
                 # 評価結果を記事に保存
                 from .models.schemas import EvaluationMetrics, UserRatings
-                
+
                 article.evaluation = EvaluationMetrics(
                     engineer_score=engineer_eval['total_score'],
                     business_score=business_eval['total_score'],
                     score_breakdown=engineer_eval['breakdown'],
                     user_ratings=UserRatings()
                 )
-                
+
                 evaluated_articles.append(article)
-                
-            except Exception as e:
-                logger.error(f"Error evaluating article {article.url}: {e}")
+
+            except (KeyError, ValueError) as e:
+                logger.error(f"Evaluation data error for {article.url}: {type(e).__name__}: {e}")
                 continue
-        
+            except Exception as e:
+                logger.exception(f"Unexpected error evaluating article {article.url}: {e}")
+                continue
+
         return evaluated_articles
     
     async def _build_relationships(self, articles: List[Article]) -> List[Article]:

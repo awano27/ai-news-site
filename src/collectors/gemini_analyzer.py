@@ -24,9 +24,31 @@ from ..config.settings import settings
 logger = logging.getLogger(__name__)
 
 
+def _validate_url(url: str) -> bool:
+    """Validate URL format and scheme"""
+    if not url or not isinstance(url, str):
+        return False
+    try:
+        parsed = urlparse(url)
+        # Only allow http and https schemes
+        if parsed.scheme not in ('http', 'https'):
+            return False
+        # Must have a network location (domain)
+        if not parsed.netloc:
+            return False
+        # Block localhost and private IPs (basic SSRF protection)
+        if parsed.netloc.lower() in ('localhost', '127.0.0.1', '0.0.0.0', '[::1]'):
+            return False
+        if parsed.netloc.startswith('192.168.') or parsed.netloc.startswith('10.') or parsed.netloc.startswith('172.'):
+            return False
+        return True
+    except Exception:
+        return False
+
+
 class GeminiURLAnalyzer:
     """Gemini URL Context分析エンジン"""
-    
+
     def __init__(self):
         if not settings.api.gemini_api_key:
             logger.warning("GEMINI_API_KEY not set, URL analysis will be disabled")
@@ -166,7 +188,12 @@ URL: {url}
         if not self.client:
             logger.warning("Gemini client not available")
             return None
-        
+
+        # Validate URL before API call
+        if not _validate_url(url):
+            logger.warning(f"Invalid or unsafe URL rejected: {url}")
+            return None
+
         try:
             # URLからコンテンツを分析
             prompt = self.analysis_prompt.format(url=url)
@@ -215,11 +242,17 @@ URL: {url}
     
     async def analyze_batch(self, urls: List[str]) -> Dict[str, Optional[Dict[str, Any]]]:
         """複数URLのバッチ分析"""
+        # Filter out invalid URLs first
+        valid_urls = [url for url in urls if _validate_url(url)]
+        invalid_count = len(urls) - len(valid_urls)
+        if invalid_count > 0:
+            logger.warning(f"Filtered out {invalid_count} invalid URLs")
+
         batch_size = settings.api.gemini_url_context_batch
         results = {}
-        
-        for i in range(0, len(urls), batch_size):
-            batch_urls = urls[i:i + batch_size]
+
+        for i in range(0, len(valid_urls), batch_size):
+            batch_urls = valid_urls[i:i + batch_size]
             
             # 並列処理でバッチ分析
             tasks = [self.analyze_url(url) for url in batch_urls]
