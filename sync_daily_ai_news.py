@@ -60,9 +60,13 @@ def extract_news_items(html_content):
     """HTMLからニュース項目を抽出"""
     soup = BeautifulSoup(html_content, 'html.parser')
     news_items = []
-    
-    # すべてのニュースカードを取得（セクション分けなし）
-    cards = soup.find_all('div', class_='card')
+
+    # news-cardクラスを持つ要素を検索
+    cards = soup.find_all(class_='news-card')
+
+    # news-cardが見つからない場合は従来の方法で検索
+    if not cards:
+        cards = soup.find_all('div', class_='card')
     
     if not cards:
         print("No cards found with class 'card'")
@@ -99,66 +103,60 @@ def extract_news_items(html_content):
     
     for i, card in enumerate(cards):
         try:
-            # タイトル要素を探す（複数の可能性を試す）
-            title_elem = (card.find('h2', class_='card-title') or 
-                         card.find('h3', class_='card-title') or
-                         card.find('div', class_='card-title') or
-                         card.find('a', class_='card-title'))
-            
+            # news-card構造の場合
+            title_elem = (card.find(class_='news-card__title') or
+                         card.find(class_='card-title'))
+
             if not title_elem:
                 # タイトル要素が見つからない場合はスキップ
                 continue
-                
+
             title = title_elem.get_text(strip=True)
-            
-            # URLを取得（タイトル要素がリンクの場合、または親のリンクを探す）
+
+            # URLを取得
             url = ''
             if title_elem.name == 'a':
                 url = title_elem.get('href', '')
             else:
-                link_elem = card.find('a')
+                link_elem = title_elem.find('a') or card.find('a')
                 if link_elem:
                     url = link_elem.get('href', '')
-            
+
             # 要約
-            summary_elem = card.find('p', class_='card-summary')
+            summary_elem = (card.find(class_='news-card__summary') or
+                           card.find(class_='card-text'))
             summary = summary_elem.get_text(strip=True) if summary_elem else ''
-            
-            # メタデータ領域を探す
-            metadata_elem = card.find('div', class_='card-metadata')
+
+            # ソース情報
             source = ''
+            source_elem = card.find(class_='news-card__source')
+            if source_elem:
+                source = source_elem.get_text(strip=True)
+
+            # 時間情報
             time_info = ''
+            time_elem = (card.find(class_='news-card__time') or
+                        card.find('small', class_='text-muted'))
+            if time_elem:
+                time_info = time_elem.get_text(strip=True)
             
-            if metadata_elem:
-                # ソース情報
-                source_elem = metadata_elem.find('span', class_='source') or metadata_elem.find('span', class_='chip')
-                if source_elem:
-                    source = source_elem.get_text(strip=True)
-                
-                # 時間情報
-                time_elem = metadata_elem.find('span', class_='time-ago')
-                if time_elem:
-                    time_info = time_elem.get_text(strip=True)
-            else:
-                # メタデータ領域がない場合、チップ要素を探す
-                chips = card.find_all('span', class_='chip')
-                for chip in chips:
-                    chip_text = chip.get_text(strip=True)
-                    if '時間前' in chip_text or '日前' in chip_text or '週間前' in chip_text or '分前' in chip_text:
-                        time_info = chip_text
-                    elif not chip.get('class') or 'ghost' not in chip.get('class', []):
-                        source = chip_text
-            
-            # カテゴリを推定（データ属性やタブ情報から）
+            # カテゴリを推定（data-category属性またはタグから）
             category = 'AI News'  # デフォルト
-            
-            # データ属性からカテゴリを推定
-            if 'business' in str(card.get('class', [])).lower():
-                category = 'ビジネス'
-            elif 'tool' in str(card.get('class', [])).lower():
-                category = 'ツール'
-            elif 'post' in str(card.get('class', [])).lower():
-                category = 'SNS/論文'
+
+            # data-category属性から取得
+            if card.has_attr('data-category'):
+                category = card['data-category']
+            else:
+                # タグリストから推定
+                tags_elem = card.find(class_='news-card__taglist')
+                if tags_elem:
+                    tags_text = tags_elem.get_text(strip=True).lower()
+                    if 'ビジネス' in tags_text or 'business' in tags_text:
+                        category = 'ビジネス'
+                    elif 'ツール' in tags_text or 'tool' in tags_text:
+                        category = 'ツール'
+                    elif 'sns' in tags_text or '論文' in tags_text:
+                        category = 'SNS/論文'
             
             # 投稿日時を推定
             estimated_date = parse_time_info(time_info)
