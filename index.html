@@ -481,6 +481,93 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Status badge for WIP/under-construction links */
+    .status-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: rgba(255, 75, 146, 0.15);
+      color: #ffd1e3;
+      border: 1px solid rgba(255, 75, 146, 0.4);
+      letter-spacing: 0.05em;
+      line-height: 1.2;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* Optional subtle hint on WIP cards */
+    .card.wip {
+      outline: 1px dashed rgba(255, 75, 146, 0.4);
+    }
+
+    /* Presentations button row */
+    .pill-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .btn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #050814;
+      background: linear-gradient(135deg, #ff4b92, #7c5cff);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 10px 22px rgba(124, 92, 255, 0.28);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-pill:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(124,92,255,0.35); }
+
+    .btn-pill.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      color: rgba(226,232,240,0.8);
+      background: linear-gradient(135deg, rgba(148,163,184,0.25), rgba(148,163,184,0.18));
+      box-shadow: none;
+    }
+
+    /* Under Development overlay */
+    .under-dev-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .under-dev-modal {
+      width: min(520px, 92vw);
+      background: linear-gradient(120deg, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 16px;
+      padding: 22px;
+      color: #f8fafc;
+      box-shadow: 0 24px 60px rgba(15,23,42,0.65);
+      text-align: center;
+    }
+
+    .under-dev-modal h3 { font-size: 1.2rem; margin-bottom: 8px; }
+    .under-dev-modal p { color: rgba(226,232,240,0.78); margin-bottom: 16px; }
+    .under-dev-modal button {
+      padding: 10px 18px; border-radius: 999px; cursor: pointer;
+      background: linear-gradient(135deg, #7c5cff, #38bdf8);
+      border: 1px solid rgba(148,163,184,0.25); color: #050814; font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -541,6 +628,14 @@
           </div>
         </div>
       </div>
+    </section>
+    <!-- Presentations buttons (synced with /presentations) -->
+    <section class="section" id="presentations">
+      <div class="section-header">
+        <h2>Presentations</h2>
+        <p>presentations にある機能へのショートカット</p>
+      </div>
+      <div class="pill-links" id="presentationsButtons"></div>
     </section>
 
     <section class="section" id="news">
@@ -733,6 +828,14 @@
       © 2024 AI Intelligence Hub. All rights reserved.
     </footer>
   </div>
+  <!-- Under Development Overlay -->
+  <div id="underDevOverlay" class="under-dev-backdrop" role="dialog" aria-modal="true" aria-labelledby="underDevTitle">
+    <div class="under-dev-modal">
+      <h3 id="underDevTitle">この機能は現在開発中です</h3>
+      <p>公開まで今しばらくお待ちください。</p>
+      <button id="underDevClose" type="button">閉じる</button>
+    </div>
+  </div>
 
   <script>
     // ダークモード切り替え機能
@@ -801,6 +904,121 @@
         this.style.transform = '';
       });
     });
+  </script>
+  <script>
+    // Add "作成中" badges to items that currently jump to a different page
+    // than their menu/category suggests (temporary routing).
+    (function () {
+      function decorateWip() {
+        var wipHrefs = [
+          'presentations/news_archive.html#generative',
+          'presentations/news_archive.html#community'
+        ];
+
+        wipHrefs.forEach(function (href) {
+          document.querySelectorAll('a.card[href="' + href + '"]').forEach(function (a) {
+            a.classList.add('wip');
+            a.setAttribute('title', 'この機能は作成中です');
+            var titleEl = a.querySelector('.card-title');
+            if (titleEl && !titleEl.querySelector('.status-badge')) {
+              var badge = document.createElement('span');
+              badge.className = 'status-badge';
+              badge.textContent = '作成中';
+              titleEl.appendChild(badge);
+            }
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', decorateWip);
+      } else {
+        decorateWip();
+      }
+    })();
+  </script>
+  <script>
+    // Build Presentations buttons from a spec and mark under-development if target is missing
+    (function () {
+      const spec = [
+        { label: 'ニュースアーカイブ', href: 'presentations/news_archive.html' },
+        { label: 'デイリースライド一覧', href: 'presentations/day_slides_index.html' },
+        { label: 'AIアーカイブ検索', href: 'presentations/ai_archive_searchable.html' },
+        { label: 'AIランキング最新', href: 'presentations/ai_ranking_report_latest.html' },
+        { label: '高度分析レポート', href: 'presentations/advanced_intelligence_report_latest.html' },
+        { label: '外部リソース集', href: 'presentations/ai_external_resources.html' },
+        { label: 'デイリースライド(リスト)', href: 'presentations/day_slides_list.html' },
+        { label: 'インタラクティブランキング', href: 'presentations/ai_ranking_interactive.html' },
+        { label: '統合レポート', href: 'presentations/integrated_report.html' },
+        { label: '今日のベストAIニュース', href: 'presentations/today_best_ai_news.html' },
+        { label: 'ダッシュボード', href: 'presentations/dashboard_resn.html' }
+      ];
+
+      const container = document.getElementById('presentationsButtons');
+      const overlay = document.getElementById('underDevOverlay');
+      const closeBtn = document.getElementById('underDevClose');
+      function showOverlay() { overlay.style.display = 'flex'; }
+      function hideOverlay() { overlay.style.display = 'none'; }
+      if (closeBtn) closeBtn.addEventListener('click', hideOverlay);
+      if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) hideOverlay(); });
+
+      async function exists(url) {
+        try {
+          const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+          if (r.ok) return true;
+        } catch (_) {}
+        try {
+          const r2 = await fetch(url, { method: 'GET', cache: 'no-store' });
+          return r2.ok;
+        } catch (_) { return false; }
+      }
+
+      async function augmentFromPresentationsIndex() {
+        try {
+          const res = await fetch('presentations/index.html', { cache: 'no-store' });
+          if (!res.ok) return;
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const links = doc.querySelectorAll('.features-grid a.feature-card');
+          links.forEach(a => {
+            const href = a.getAttribute('href');
+            const titleEl = a.querySelector('.feature-title');
+            const label = (titleEl?.textContent || a.textContent || 'Feature').trim();
+            if (href && !spec.some(x => x.href === href)) {
+              spec.push({ label, href: 'presentations/' + href.replace(/^\.\/?/, '') });
+            }
+          });
+        } catch (_) { /* ignore */ }
+      }
+
+      async function render() {
+        if (!container) return;
+        await augmentFromPresentationsIndex();
+        for (const item of spec) {
+          const ok = await exists(item.href);
+          if (ok) {
+            const a = document.createElement('a');
+            a.className = 'btn-pill';
+            a.href = item.href;
+            a.textContent = item.label;
+            container.appendChild(a);
+          } else {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn-pill disabled';
+            b.textContent = item.label + '（開発中）';
+            b.addEventListener('click', (e) => { e.preventDefault(); showOverlay(); });
+            container.appendChild(b);
+          }
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', render);
+      } else {
+        render();
+      }
+    })();
   </script>
 </body>
 </html>
