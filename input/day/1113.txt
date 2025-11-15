@@ -1,0 +1,389 @@
+世界的に著名な「LLM製品ストラテジスト兼テックライター」として回答します。
+
+---
+
+**TL;DR**
+
+* GPT-5.1（ChatGPT 5.1）は、**「GPT-5の知能」＋「人間らしい会話性」＋「自動で考える時間を調節するAdaptive Reasoning」** を組み合わせた、ChatGPT用の新コアモデル群（Instant / Thinking）です。([OpenAI][1])
+* **コンテキスト長は従来のGPT-5と同じ400kトークン級**（272k入力＋128k出力）で、API価格も現時点ではGPT-5と同レンジのまま（GPT-5: 入力$1.25／出力$10／1Mトークン）。GPT-5.1固有のAPI料金はまだ公式未発表です。([OpenAI][2])
+* **Instantは「普段使いのChatGPTをより暖かく・指示に忠実に」**、**Thinkingは「難しいタスクほどじっくり考え、それ以外は2倍速」**になるようチューニングされています。([OpenAI][1])
+* 競合の文脈では、**Grok-4-Fast（2Mコンテキスト・激安）、Claude Sonnet 4.5（1Mコンテキスト・コーディング＆エージェント特化）、Gemini 2.5 Pro（最大2Mコンテキストのマルチモーダル推論）**と真正面からぶつかる「総合フラッグシップの改良版」です。([xAI][3])
+* 実務的には、**「ChatGPT UIの標準エンジン」＋「gpt-5.1(Thinking)をバックエンドAPIに差し替える」**のが王道で、重いエージェントや長文処理はClaudeやGrokとハイブリッド運用する構成が現実的です。
+
+---
+
+### Step-by-step（この記事の前提）
+
+1. **背景と前提**
+
+   * 製品名: **GPT-5.1（ChatGPT 5.1 / GPT-5.1 Instant & GPT-5.1 Thinking）**
+   * ベンダー: **OpenAI**
+   * 発表日: **2025年11月12日（OpenAI公式ブログ。JSTでは13日）**([OpenAI][1])
+   * 製品タイプ: **「ChatGPT基盤モデル＋LLM API（推論特化Reasoningモデル）」**
+
+2. **一次情報ソース**
+
+   * OpenAI公式ブログ「GPT-5.1: A smarter, more conversational ChatGPT」([OpenAI][1])
+   * GPT-5.1 System Card addendum([OpenAI][4])
+   * GPT-5開発者向けブログ（コンテキスト長など）([OpenAI][2])
+   * API Pricingページ（GPT-5 / mini / nanoの価格）([OpenAI][5])
+   * The Verge / Decrypt / Investing.com などのニュース([The Verge][6])
+
+3. **比較対象の選定軸**
+
+   * 価格（$/1Mトークン）
+   * コンテキスト長
+   * Reasoning能力・ベンチマーク傾向
+   * エージェント機能／IDE統合／カスタマイズ性
+
+4. **この記事のゴール**
+
+   * **エンジニア**には「どのタスクでGPT-5.1を採用／見送るか」の判断材料を
+   * **事業側**には「どこまでGPT-5.1を標準化し、どこから競合とハイブリッドにするか」の戦略材料を提供します。
+
+---
+
+## 1. 🚨 速報ヘッダー
+
+🚨 速報：ChatGPT 5.1（GPT-5.1）発表 | 2025年11月12日（米国時間）([OpenAI][1])
+GPT-5.1 Instant / GPT-5.1 Thinking
+**「Adaptive Reasoning × 暖かい会話体験」を徹底追求したChatGPT次世代コアモデル**
+
+---
+
+## 2. 📊 主要統計
+
+**400k**
+最大コンテキスト長（272k入力＋128k出力の合計）。GPT-5世代のロングコンテキスト設計を継承。([OpenAI][2])
+
+**2モデル構成**
+GPT-5.1 Instant（会話・日常タスク用）＋ GPT-5.1 Thinking（高難度Reasoning用）。([OpenAI][1])
+
+**約2×高速 / 2×深い思考**
+Thinkingは「簡単なタスクでGPT-5比約2倍速、難しいタスクで約2倍長く考える」ようにチューニング。([OpenAI][1])
+
+**8種類のパーソナリティプリセット**
+Default / Professional / Friendly / Candid / Quirky / Efficient / Nerdy / Cynical による会話スタイル選択。([OpenAI][1])
+
+**API: 近日 gpt-5.1 / gpt-5.1-chat-latest として提供**
+Instant = `gpt-5.1-chat-latest`、Thinking = `gpt-5.1` としてAPI公開予定（価格は現時点で未公表）。([OpenAI][1])
+
+**GPT-5価格の参考**
+GPT-5: 入力 $1.25 / 1M、出力 $10 / 1M、キャッシュ入力 $0.125 / 1M（GPT-5.1も同レンジになる可能性が高いが、**現時点では推測**）。([OpenAI][5])
+
+---
+
+## 3. 🤖 中核機能 – 「Adaptive Reasoning」とChatGPT側の進化
+
+### 3-1. モデル側：Instant / Thinking の役割分担
+
+* **GPT-5.1 Instant**
+
+  * 日常的なChatGPTの主力モデル。
+  * 軽量な「Adaptive Reasoning」を搭載し、**簡単な質問は即答、難しい質問は内部で少し考えてから回答**。([OpenAI][1])
+  * 口調がより「暖かく・共感的」で、ストレス相談などのケア系にも向く。
+
+* **GPT-5.1 Thinking**
+
+  * GPT-5 Thinkingの後継となる本格Reasoningモデル。
+  * 「タスクの難易度に応じて思考時間をダイナミックに調整」し、**簡単なタスクでは2倍速、複雑なタスクでは2倍じっくり考える**。([OpenAI][1])
+  * 説明文が「より平易で、専門用語と未定義用語が減った」と公式に明記されており、**ビジネスサイドにも説明しやすい**。([OpenAI][1])
+
+### 3-2. ChatGPT製品側：パーソナライズとオートルーティング
+
+* ChatGPTでは**GPT-5.1 Auto**ルーターが、Instant / Thinking を自動で切り替え。ユーザーは「モデル選択の悩み」からかなり解放される設計。([OpenAI][1])
+* トーン設定は、プリセット8種＋**細かいスライダー（暖かさ／簡潔さ／絵文字頻度など）で調整可能**。設定変更は全チャットに即時反映。([OpenAI][1])
+
+### 3-3. 開発者視点：API利用時のポイント
+
+* APIでは **`gpt-5.1`（Thinking）と `gpt-5.1-chat-latest`（Instant）** を、
+
+  * 「バッチ処理・自動化・エージェント」＝ Thinking
+  * 「ユーザー対話・UIバックエンド」＝ Instant
+    というようにロール分担させるのが素直な設計。([OpenAI][1])
+* コンテキスト長やReasoning APIの使い方はGPT-5世代と共通で、既存のGPT-5ワークロードを**ほぼそのまま差し替え可能**（価格も同水準の見込みだが、ここは正式発表待ち）。([OpenAI][2])
+
+---
+
+## 4. 🆕 何が新しいか – 5つの革新ポイント
+
+### 1️⃣ 「暖かい」会話スタイル＋8つのパーソナリティプリセット
+
+GPT-5.1では、「Default / Professional / Friendly / Candid / Quirky / Efficient / Nerdy / Cynical」という**8つの会話スタイル**が公式UIから即変更可能になりました。([OpenAI][1])
+従来は「真面目で硬いが賢いGPT-5」という評価が多かったのに対し、**ユーザーごと・シーンごとにトーンを最適化できる**ため、CS・教育・メンタルサポートなどで使いやすくなります。
+
+### 2️⃣ GPT-5.1 Instantの「ライトReasoning」化
+
+以前の「ChatGPTの軽量モデル」は、ほぼ即応答で**深く考えない＝たまに雑**という課題がありました。GPT-5.1 Instantは、
+**「質問の難しさを見てから、考える量（トークン）を自動調整する」** Adaptive Reasoningを搭載し、
+AIME 2025 / Codeforces などの数学・コーディング評価でGPT-5より有意に改善したと報告されています（具体スコアは未公開）。([OpenAI][1])
+
+### 3️⃣ GPT-5.1 Thinkingの「2倍速＆2倍粘る」挙動
+
+Thinkingは、**タスク分布ベースで「簡単なものは2倍速、難しいものは2倍遅い」**ように調整されました。([OpenAI][1])
+エンタープライズ利用では、「簡単な問い合わせに高価なReasoningを全力投球してしまうムダ」が減り、**平均コストとレイテンシの両方が下がる**設計になっています。
+
+### 4️⃣ 説明文の“脱・専門用語化”と安全性評価の拡張
+
+GPT-5.1 Thinkingは、「専門用語や未定義用語を減らす」ようチューニングされており、**技術解説をノンエンジニアが読んでも理解しやすい**方向に寄せられています。([OpenAI][1])
+安全性評価では、**メンタルヘルス関連・過度な感情依存（Emotional Reliance）**に関する新しい評価軸が追加され、GPT-5 System Cardに追記されました。([OpenAI][4])
+
+### 5️⃣ ChatGPT製品体験の再設計 – 設定変更の即時反映＆Autoルーティング
+
+パーソナリティ設定・トーン調整は、**会話中でも即時に反映される**ようになり、「設定を変えたのに新規チャットからしか効かない」問題が解消。([OpenAI][1])
+あわせて、GPT-5.1 Autoが**Instant / Thinkingを自動切り替え**するため、一般ユーザーはモデル名を意識せずとも「ちょうどよい知能と速度」を享受できます。
+
+---
+
+## 5. 🎯 想定ユースケース（実務寄り）
+
+1. **調査・要約・OSINT＋一次分析（Instant中心）**
+   💡 特徴: Webリサーチやレポート要約、OSINT的な「広く集めてざっくり整理」タスクでは、**InstantのAdaptive Reasoning**で十分な精度と速度を両立。ChatGPT UIからの利用だけで多くのビジネス用途をカバーできます。
+
+2. **要件定義・仕様レビュー・長文ドキュメントの読み解き（Thinking）**
+   💡 特徴: PRDや法務ドキュメント、アーキテクチャ設計レビューなど、**前提条件を踏まえた多段推論が必要なタスク**はGPT-5.1 Thinking向き。400kトークン級コンテキスト＋Reasoningで「仕様の矛盾指摘」や「ステークホルダーごとの論点整理」を任せやすくなります。([OpenAI][2])
+
+3. **エージェント／RPAフローの頭脳（Thinking＋ツール利用）**
+   💡 特徴: Code Interpreter、ファイル検索、Webブラウザ（ChatGPT Atlas）などと組み合わせて、**社内RPAやエージェントの頭脳としてThinkingを採用**するパターン。競合のClaudeコードエージェントやGrok Code Fastと比較して、**Microsoft／OpenAIの既存エコシステムとの統合性**が強み。([Tom's Hardware][7])
+
+4. **CS・教育・コーチング系の対話ボット（Instant＋パーソナリティ）**
+   💡 特徴: 「Friendly × Quirky」などのプリセットや暖かいデフォルトトーンにより、**学習支援・従業員相談・コーチングチャットボット**にそのまま流用しやすい。メンタルヘルス関連の安全評価も拡張されているため、リスク管理の前提としても扱いやすい。([OpenAI][1])
+
+5. **マルチステークホルダーへの説明資料作成（Instant→Thinking）**
+   💡 特徴: まずInstantで「素案」や要約を生成し、その後Thinkingで**役員向け／開発向け／現場向けに粒度やトーンを変えた説明に焼き分け**る、といった「二段階生成フロー」に相性が良いです。
+
+---
+
+## 6. ⚖️ 競合との差（要点比較）
+
+ざっくり、フラッグシップ級モデルの特徴を文章ベースで整理すると：
+
+* **価格（$/1Mトークン・入力/出力の目安）**
+
+  * GPT-5（参考）: **$1.25 / $10**（キャッシュ入力 $0.125）。GPT-5.1は同レンジが有力だが、**公式価格はまだ未公表。**([OpenAI][5])
+  * Claude Sonnet 4.5: **$3 / $15**（キャッシュあり）。([Claude Docs][8])
+  * Gemini 2.5 Pro: 代表的には **$1.25 / $10**（200kトークン以下の場合の入力/出力）でGPT-5と同水準。([Google AI for Developers][9])
+  * Grok-4-Fast: **$0.20 / $0.50** ＋ 2Mコンテキスト（キャッシュ$0.05）。GPT-5系よりも **一桁以上安い**。([xAI][3])
+
+* **コンテキスト長**
+
+  * GPT-5 / 5.1系: **400kトークン級**。([OpenAI][2])
+  * Claude Sonnet 4.5: **最大1Mトークン（ベータヘッダ指定で解放）**。([Claude Docs][10])
+  * Gemini 2.5 Pro: **1M〜2Mトークン（GAは1M、2Mは一部ワークロードや低解像度モードで）**。([blog.google][11])
+  * Grok-4-Fast: **2Mトークン**。([xAI][3])
+
+* **検索・エージェント機能**
+
+  * GPT-5.1: ChatGPT AtlasブラウザやCode Interpreter、ファイル検索、MCP対応などを総合的に統合。([Zapier][12])
+  * Claude Sonnet 4.5: Claude Code / デスクトップアプリ経由の「長時間自律作業」、ブラウザ操作エージェントに強み。([TechRadar][13])
+  * Gemini 2.5 Pro: Gemini Advanced / Deep Research / Gemini CLIなど**Googleサービスとの統合とマルチモーダル処理**が強み。([The Verge][14])
+  * Grok-4-Fast: Live SearchやX連携を含む「Web＋コード」寄りのエージェント適性。([xAI][3])
+
+> **どこでGPT-5.1が最も光るか？**
+> → **「ChatGPT製品体験の中心」＋「汎用Reasoningエンジン」としてのバランス**です。
+> 価格性能比ではGrok-4-FastやDeepSeek系が攻めており、コンテキスト長ではClaude / Geminiに軍配もありますが、**エコシステム・安全性・UIを含めた総合体験**は依然としてGPT-5.1が非常に強いポジションにいます。
+
+---
+
+## 7. 🔍 詳細競合比較 – 最新モデル全方位チェック
+
+### GPT-5.1 Instant / Thinking（OpenAI, 2025-11）
+
+* **価格**: GPT-5と同等レンジが想定されるが、**正式なAPI価格は未公表（2025-11-13時点）**。([OpenAI][5])
+* **コンテキスト**: GPT-5世代と同じく400kトークン級。([OpenAI][2])
+* **強み**: Adaptive Reasoning＋暖かい会話、ChatGPT Atlas・Code Interpreter・MCPなどの**総合エコシステム**。
+* **代表ユースケース**: ChatGPT UI全般、社内向けQAボット、仕様レビュー、ライトなエージェント。
+
+### GPT-5 mini / nano（OpenAI）
+
+* **価格**: mini: $0.25 / $2、nano: $0.05 / $0.40（入力/出力, 1Mトークンあたり）。([OpenAI][5])
+* **コンテキスト**: いずれも400kトークン。([Zapier][12])
+* **強み**: GPT-5.1 ThinkingほどのDeep Reasoningは不要だが、**ある程度の論理性＋圧倒的なコスパ**。
+* **代表ユースケース**: 高頻度のチャットボット、要約・分類・翻訳などのバッチ処理。
+
+### Claude Sonnet 4.5（Anthropic, 2025-09）
+
+* **価格**: 入力 $3 / 出力 $15（1Mトークン）。([Claude Docs][8])
+* **コンテキスト**: 最大1Mトークン（ベータフラグで解放）。([Claude Docs][10])
+* **強み**: SWE-bench Verifiedトップクラスのコーディング性能、**30時間超の長時間エージェント運用**など。([Anthropic][15])
+* **代表ユースケース**: コードベースを跨ぐ大規模リファクタ、長大な仕様書や論文セットの一括解析、エージェントによる継続作業。
+
+### Gemini 2.5 Pro / Flash（Google, 2025-03〜）
+
+* **価格（Pro例）**: 入力 $1.25 / 出力 $10（200k以下の場合）。Flashはさらに安価。([Google AI for Developers][9])
+* **コンテキスト**: Proは1M〜2Mトークン（設定・モードにより変動）。([blog.google][11])
+* **強み**: **ネイティブマルチモーダル**（テキスト・画像・音声・動画）、Deep Research / Gemini CLI / Code Assist によるGoogleエコシステムとの統合。([Google DeepMind][16])
+* **代表ユースケース**: 長時間動画解析、G Suite / Google Cloud 連携のドキュメント分析、検索連携を前提とした調査タスク。
+
+### Grok-4-Fast（xAI, 2025-10）
+
+* **価格**: 入力 $0.20 / 出力 $0.50 /1Mトークン、キャッシュ $0.05。([xAI][3])
+* **コンテキスト**: 2Mトークン。([xAI][3])
+* **強み**: **圧倒的なコスパ＋2Mコンテキスト**。x.com（旧Twitter）連携やLive Searchとの組み合わせで「Web＋コード」に強み。
+* **代表ユースケース**: 大量ログ解析、トレンド監視、比較的ルールが明確な推論タスク。
+
+### IDE一体型（Cursor Composer / Windsurf Cascadeなど）
+
+* **価格**: Cursor Pro: $20/月、Windsurf: 約$15/月から（いずれもシート課金）。([Builder.io][17])
+* **コンテキスト**: バックエンドLLMに依存（GPT-5.x, Claude, Geminiなど）。
+* **強み**: **エディタ統合・リポジトリ認識・テスト実行など開発フローへの密着**。
+* **代表ユースケース**: 日々の実装・リファクタ・レビューの高速化。
+
+---
+
+## 8. 🎯 用途別の使い分け推奨
+
+### 「総合力 × ChatGPT体験」を重視する場合
+
+* **GPT-5.1（特にInstant＋Auto）を“デフォルト”**に据えるのが自然です。
+* プロダクトのUI層・社内ポータル・CSチャットなど、「人が直接触れるところ」はGPT-5.1を標準にしておくと、**会話体験・安全性・管理のバランスが良い**。
+
+### 「長文処理・エージェント」を最優先する場合
+
+* **Claude Sonnet 4.5（1Mコンテキスト）や Gemini 2.5 Pro / Grok-4-Fast（2Mコンテキスト）**が有利。
+* GPT-5.1は400kまでなので、
+
+  * 大規模コードベースや何十本もの論文を「一撃で」処理したい
+  * 1日を超える自律エージェントを動かしたい
+    といったケースではClaude / Gemini / Grokをフロントに立てる方が良いです。([Claude Docs][10])
+
+### 「コスト最重視で、とにかく大量処理したい」場合
+
+* バックグラウンド処理や非対話型ワークロードでは、**GPT-5 mini / nano or Grok-4-Fast**のような「安いモデル」をメインにし、
+* 「例外的に難しいタスクだけGPT-5.1 Thinkingにエスカレーション」する構成が有効です。([OpenAI][5])
+
+### 「IDE一体型体験」を重視する場合
+
+* コーディング体験としては、**Cursor / Windsurf + GPT-5.x / Claude Sonnet 4.5**の組み合わせが現時点でかなり強力です。([Qiita][18])
+* GPT-5.1はAPIとしてこれらIDEからも順次使われていくと考えられるため、**IDEはCursor/Windsurf、サーバーサイドの推論はGPT-5.1というハイブリッド**が現実解になります。
+
+---
+
+## 9. 💰 コスト設計の勘所（Tip集）
+
+📏 **Tip 1: 「本当にThinkingが必要か？」をルール化する**
+GPT-5.1 Thinkingは間違いなく強力ですが、**すべてのリクエストをThinkingに投げるとコストが跳ね上がる**のはGPT-5と同様です。
+「テキスト長」「タスク種別（計画立案／コード生成／雑談）」などでルーティングルールを決め、**簡単な用途はInstant or GPT-5 miniに逃がす**設計が有効です。([OpenAI][1])
+
+📏 **Tip 2: 400kコンテキストを“常用しない”前提でプロンプト設計**
+400k入るからといって毎回フルに詰め込むと、**線形にコストが増えます**。
+
+* 「直近N件だけ残し、それ以外は要約して再投入」
+* 「ドキュメントは分割＋RAGで検索」
+  といった**RAG＋要約パターン**は、Claude / Gemini / Grokでも同様に基本戦略です。([AITC | AI TRANSFORMATION CENTER][19])
+
+📏 **Tip 3: キャッシュとバッチAPIの活用を前提設計に組み込む**
+OpenAI公式は、バッチAPI利用で**入出力とも最大50%ディスカウント**を案内しています。([OpenAI][5])
+日次バッチレポートやオフライン分析など、**リアルタイム性が不要な処理は必ずバッチに逃がす**ルールにしておくと、月額コストをかなり抑えられます。
+
+📏 **Tip 4: 「モデル選択コスト」を削ってAuto / ルーターに寄せる**
+人間が「このタスクはどのモデルに投げるべきか」を毎回判断する運用はスケールしません。
+ChatGPT側の**GPT-5.1 Auto**や、マイクロサービス側の**ルーター層**で自動選択させることで、**人件費＋設計コスト**も含めた総コストを削減できます。([OpenAI][1])
+
+---
+
+## 10. ⚠️ リスクと限界
+
+1. **API価格の不確実性**
+
+   * 現時点で、GPT-5.1固有のAPI単価は公式ページに明示されていません。
+   * GPT-5と同水準になる可能性が高いものの、**確定情報が出るまでは「試算レベル」に留めるべき**です。([OpenAI][5])
+
+2. **ベンチマークの具体スコア非公開**
+
+   * AIME 2025 / Codeforcesなどでの改善は言及されていますが、**具体スコア（％）は未公開**です。([OpenAI][1])
+   * 他社（Gemini 2.5, Claude Sonnet 4.5, Grok 4）との絶対比較をしたい場合は、**サードパーティ評価（LMSys, Artificial Analysisなど）や自社ベンチマークを必須**と考えたほうがよいです。([Reddit][20])
+
+3. **超長文コンテキストでは他社に見劣りする場面も**
+
+   * 1M〜2Mトークンをネイティブに扱うClaude / Gemini / Grokに比べると、**“全部突っ込む”タイプのユースケースでは見劣り**します。([Claude Docs][10])
+   * ただし、現実的にはRAG＋要約で十分なケースが多いため、「設計でカバーするか、競合モデルを併用するか」の判断が必要です。
+
+4. **ChatGPT依存リスク（ベンダーロックイン）**
+
+   * ChatGPT UI＋GPT-5.1に業務を寄せすぎると、**OpenAIの価格・利用規約・国別規制変更の影響をダイレクトに受ける**ことになります。
+   * 重要なワークロードは、**Claude / Gemini / Grokなどとのマルチベンダー構成**を前提にしたアーキテクチャを推奨します。
+
+5. **感情依存のリスク**
+
+   * GPT-5.1はより暖かく・共感的に対話するため、**ユーザーがAIに過度に感情依存するリスク**も高まります。
+   * System Cardの通り、OpenAI側もEmotional Relianceを評価対象に含めていますが、**社内ガイドライン（利用目的・禁止用途）整備は必須**です。([OpenAI][4])
+
+---
+
+## 11. ✨ まとめ
+
+一言で言うと、**GPT-5.1は「GPT-5をちゃんと“日常の相棒”に仕立て直した、実務志向のアップデート」**です。
+
+* モデル側では、**InstantのAdaptive Reasoning化**と**Thinkingの「2倍速＆2倍粘る」挙動**により、
+
+  * 速さ
+  * 賢さ
+  * コスト
+    のバランスが取り直されました。([OpenAI][1])
+* プロダクト側では、**8種類のパーソナリティプリセット＋細かいトーン調整**で、ChatGPTが「自分好みのアシスタント」に近づいています。([OpenAI][1])
+* 競合のClaude / Gemini / Grokは、それぞれ
+
+  * 「超長文＆コーディング＆エージェント」
+  * 「マルチモーダル＆検索連携」
+  * 「2Mコンテキスト＆破格のトークン単価」
+    という尖った強みを伸ばしており、**GPT-5.1単独で“全取り”するのではなく、ハイブリッド構成での採用が現実的**です。([Claude Docs][10])
+
+エンジニア視点では、**既存のGPT-5ワークロードをほぼそのままGPT-5.1に差し替えつつ、Criticalなタスクだけベンチマークして最適モデルを選ぶ**方針が取りやすく、
+ビジネス意思決定者視点では、**「ChatGPT 5.1を体験の標準」「Claude/Grok/Geminiを特化ユースケース用のサブ」とするマルチモデル戦略**が、2025〜2026年の実務的な落としどころになりそうです。
+
+---
+
+## 12. 📚 ソース・参考情報 & 情報の信頼性
+
+**主な一次情報・公式ドキュメント**
+
+* OpenAI公式ブログ「GPT-5.1: A smarter, more conversational ChatGPT」([OpenAI][1])
+* GPT-5 System Card & GPT-5.1 System Card addendum（安全性・評価項目）([OpenAI][4])
+* OpenAI API Pricing（GPT-5 / mini / nanoの価格）([OpenAI][5])
+* OpenAI modelsまとめ（Zapierによる公式情報整理）([Zapier][12])
+* ChatGPT Release Notes（GPT-5 → GPT-5.1への移行）([OpenAI Help Center][21])
+
+**ニュース・セカンダリソース**
+
+* The Verge「OpenAI says the brand-new GPT-5.1 is ‘warmer’ and has more ‘personality’ options」([The Verge][6])
+* Decrypt「OpenAI Unveils GPT-5.1, Making ChatGPT Smarter, Faster, and More 'Conversational'」([Decrypt][22])
+* Investing.com「OpenAI rolls out GPT-5.1, aiming for ‘smarter, warmer’ conversations」([Investing.com][23])
+* Anthropic / Claude Sonnet 4.5公式情報・ドキュメント([Anthropic][15])
+* Google Gemini 2.5 Pro / Pricing / Long Context関連ドキュメント([Google AI for Developers][9])
+* xAI Grok-4-Fast公式ドキュメント([xAI][3])
+
+**信頼性について**
+
+* **価格・コンテキスト長・リリース日**などの数値情報は、OpenAI / Anthropic / Google / xAI の**公式ドキュメントおよび料金ページ**を優先して参照しています。
+* GPT-5.1固有のAPI価格・正確なベンチマークスコアなど、**公式に明記されていない項目は「未公表」と明示**し、GPT-5の価格などを参考値として記載しました（この部分は推測を含まず、あくまで「参考としての数値」です）。
+* 一部の「他社モデルとの比較」「ハイブリッド構成の推奨」は、上記一次情報＋業界動向（ニュース・技術ブログ）を元にした**専門的な推論**であり、環境やユースケースによって最適解が変わる可能性があります。
+
+---
+
+* [seekingalpha.com](https://seekingalpha.com/news/4520821-openai-releases-chatgptminus-5_1-featuring-warmer-communication-style?utm_source=chatgpt.com)
+* [The Verge](https://www.theverge.com/news/802653/openai-gpt-5-1-upgrade-personality-presets?utm_source=chatgpt.com)
+
+[1]: https://openai.com/index/gpt-5-1/ "GPT-5.1: A smarter, more conversational ChatGPT | OpenAI"
+[2]: https://openai.com/index/introducing-gpt-5-for-developers/?utm_source=chatgpt.com "Introducing GPT‑5 for developers"
+[3]: https://docs.x.ai/docs/models/grok-4-fast-reasoning "xAI"
+[4]: https://openai.com/index/gpt-5-system-card-addendum-gpt-5-1/?utm_source=chatgpt.com "GPT-5.1 Instant and GPT-5.1 Thinking System Card ..."
+[5]: https://openai.com/api/pricing/ "Pricing | OpenAI"
+[6]: https://www.theverge.com/news/802653/openai-gpt-5-1-upgrade-personality-presets "OpenAI says the brand-new GPT-5.1 is ‘warmer’ and has more ‘personality’ options | The Verge"
+[7]: https://www.tomshardware.com/tech-industry/artificial-intelligence/microsoft-adds-grok-4-to-azure-ai-foundry-following-cautious-trials-elon-musks-latest-ai-model-is-now-available-to-deploy-for-frontier-level-reasoning?utm_source=chatgpt.com "Microsoft adds Grok 4 to Azure AI Foundry following cautious trials - Elon Musk's latest AI model is now available to deploy for \"frontier-level reasoning\""
+[8]: https://docs.claude.com/en/docs/about-claude/pricing?utm_source=chatgpt.com "Pricing"
+[9]: https://ai.google.dev/gemini-api/docs/pricing?utm_source=chatgpt.com "Gemini Developer API pricing - Google AI for Developers"
+[10]: https://docs.claude.com/en/docs/build-with-claude/context-windows?utm_source=chatgpt.com "Context windows"
+[11]: https://blog.google/technology/google-deepmind/gemini-model-thinking-updates-march-2025/?utm_source=chatgpt.com "Gemini 2.5: Our most intelligent AI model"
+[12]: https://zapier.com/blog/openai-models/ "OpenAI models: All the models and what they're best for"
+[13]: https://www.techradar.com/ai-platforms-assistants/claude/anthropics-claude-sonnet-4-5-is-available-now-the-best-ai-model-in-the-world-for-real-world-agents-coding-and-computer-use?utm_source=chatgpt.com "Anthropic's Claude Sonnet 4.5 is available now - 'the best AI model in the world for real-world agents, coding, and computer use'"
+[14]: https://www.theverge.com/news/635502/google-gemini-2-5-reasoning-ai-model?utm_source=chatgpt.com "Google says its new 'reasoning' Gemini AI models are the best ones yet"
+[15]: https://www.anthropic.com/news/claude-sonnet-4-5?utm_source=chatgpt.com "Introducing Claude Sonnet 4.5"
+[16]: https://deepmind.google/models/gemini/pro/?utm_source=chatgpt.com "Gemini 2.5 Pro"
+[17]: https://www.builder.io/blog/windsurf-vs-cursor?utm_source=chatgpt.com "Windsurf vs Cursor: which is the better AI code editor?"
+[18]: https://qiita.com/syukan3/items/c5f4cb48a6f1a5396e4e?utm_source=chatgpt.com "【徹底比較】Cursor vs Windsurf: AIコーディングの新時代"
+[19]: https://aitc.dentsusoken.com/column/genai-guide-context-length-max-tokens/?utm_source=chatgpt.com "生成AIのコンテクスト長と最大入出力トークンをGPT5で解説"
+[20]: https://www.reddit.com/r/singularity/comments/1ml23c0/gpt5_on_api_is_the_best_at_long_context/?utm_source=chatgpt.com "GPT-5 on API is the best at long context : r/singularity"
+[21]: https://help.openai.com/en/articles/6825453-chatgpt-release-notes?utm_source=chatgpt.com "ChatGPT — Release Notes"
+[22]: https://decrypt.co/348353/openai-unveils-gpt-5-1-making-chatgpt-smarter-faster-more-conversational "OpenAI Unveils GPT-5.1, Making ChatGPT Smarter, Faster, and More 'Conversational' - Decrypt"
+[23]: https://www.investing.com/news/company-news/openai-rolls-out-gpt51-aiming-for-smarter-warmer-conversations-4352707 "OpenAI rolls out GPT-5.1, aiming for ‘smarter, warmer’ conversations By Investing.com"
