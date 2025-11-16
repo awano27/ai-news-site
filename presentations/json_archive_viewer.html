@@ -397,23 +397,38 @@
     // アーカイブインデックスを読み込み
     async function loadArchiveIndex() {
       try {
-        const response = await fetch('../public-pages/news/archive_index.json');
-        if (!response.ok) throw new Error('Failed to load archive index');
+        // 新しいJSON API (presentations/api/daily-news.json) を読み込み
+        const response = await fetch('api/daily-news.json');
+        if (!response.ok) throw new Error('Failed to load daily news JSON');
 
         const data = await response.json();
-        archiveData = data;
+
+        // 日付ごとにグループ化
+        const groupedByDate = {};
+        data.items.forEach(item => {
+          if (!groupedByDate[item.date]) {
+            groupedByDate[item.date] = [];
+          }
+          groupedByDate[item.date].push(item);
+        });
+
+        // アーカイブデータに変換
+        archiveData = Object.keys(groupedByDate)
+          .sort((a, b) => b.localeCompare(a)) // 新しい順
+          .map(date => ({
+            date: date,
+            file: `daily-news.json#${date}`,
+            count: groupedByDate[date].length,
+            items: groupedByDate[date]
+          }));
 
         // 統計情報を計算
-        allItems = data.reduce((sum, entry) => sum + (entry.count || 0), 0);
-
-        // バージョン情報を取得
-        const versionResponse = await fetch('../public-pages/news/version.json');
-        const versionData = await versionResponse.json();
+        allItems = data.totalCount;
 
         // 統計情報を表示
-        document.getElementById('totalEntries').textContent = data.length;
+        document.getElementById('totalEntries').textContent = archiveData.length;
         document.getElementById('totalItems').textContent = allItems;
-        document.getElementById('lastUpdated').textContent = versionData.updated.split(' ')[0];
+        document.getElementById('lastUpdated').textContent = data.generatedAt.split('T')[0];
 
         renderArchiveList(archiveData);
       } catch (error) {
@@ -421,7 +436,8 @@
         document.getElementById('archiveList').innerHTML = `
           <div class="error">
             <strong>エラー</strong><br>
-            アーカイブデータの読み込みに失敗しました。
+            アーカイブデータの読み込みに失敗しました。<br>
+            <small>${error.message}</small>
           </div>
         `;
       }
@@ -442,27 +458,32 @@
       }
 
       container.innerHTML = data.map(entry => {
-        const jsonUrl = `../public-pages/news/${entry.file}`;
-        const rawJsonUrl = `https://raw.githubusercontent.com/awano27/ai-news-site/main/public-pages/news/${entry.file}`;
+        const jsonUrl = `api/daily-news.json`;
+        const rawJsonUrl = `https://raw.githubusercontent.com/awano27/ai-news-site/main/presentations/api/daily-news.json`;
+
+        // その日のニュースタイトルを取得
+        const newsTitle = entry.items && entry.items[0] ? entry.items[0].title : 'タイトル不明';
+        const newsPreview = newsTitle.length > 80 ? newsTitle.substring(0, 80) + '...' : newsTitle;
 
         return `
           <div class="archive-item">
             <div class="archive-header">
               <div class="archive-date">📅 ${entry.date}</div>
-              <div class="archive-count">${entry.count} items</div>
+              <div class="archive-count">${entry.count} item${entry.count > 1 ? 's' : ''}</div>
             </div>
+            <p style="color: var(--muted); margin: 8px 0 0 0; font-size: 0.95rem;">${newsPreview}</p>
             <div class="archive-actions">
-              <a href="${jsonUrl}" class="btn" target="_blank">
+              <button class="btn" onclick="viewDetails('${entry.date}')">
                 <span>👁️</span>
-                <span>JSONを表示</span>
-              </a>
-              <a href="${jsonUrl}" download="${entry.file}" class="btn btn-secondary">
+                <span>詳細を表示</span>
+              </button>
+              <a href="${jsonUrl}" class="btn btn-secondary" target="_blank">
                 <span>💾</span>
-                <span>ダウンロード</span>
+                <span>全データDL</span>
               </a>
               <a href="${rawJsonUrl}" class="btn btn-secondary" target="_blank">
                 <span>🔗</span>
-                <span>Raw</span>
+                <span>Raw JSON</span>
               </a>
             </div>
           </div>
@@ -499,6 +520,54 @@
 
       renderArchiveList(sorted);
     });
+
+    // 詳細表示機能
+    function viewDetails(date) {
+      const entry = archiveData.find(e => e.date === date);
+      if (!entry || !entry.items || entry.items.length === 0) {
+        alert('データが見つかりません');
+        return;
+      }
+
+      const item = entry.items[0];
+      const detailsHtml = `
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 800px; margin: 20px auto;">
+          <h2 style="color: var(--accent); margin-top: 0;">${item.title}</h2>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 20px;">📅 ${item.date}</p>
+
+          <h3 style="color: var(--text); font-size: 1.1rem; margin: 20px 0 10px 0;">📝 概要</h3>
+          <p style="color: var(--muted); line-height: 1.8;">${item.summary || '概要なし'}</p>
+
+          ${item.surprise ? `
+            <h3 style="color: var(--text); font-size: 1.1rem; margin: 20px 0 10px 0;">⚡ なぜサプライズか</h3>
+            <p style="color: var(--muted); line-height: 1.8;">${item.surprise}</p>
+          ` : ''}
+
+          ${item.sources && item.sources.length > 0 ? `
+            <h3 style="color: var(--text); font-size: 1.1rem; margin: 20px 0 10px 0;">🔗 情報源</h3>
+            <ul style="color: var(--muted); line-height: 1.8;">
+              ${item.sources.map(src => `<li><a href="${src.url}" target="_blank" style="color: var(--accent);">${src.text}</a></li>`).join('')}
+            </ul>
+          ` : ''}
+
+          <div style="margin-top: 24px; display: flex; gap: 12px;">
+            <button onclick="closeDetails()" class="btn btn-secondary">閉じる</button>
+            <a href="api/daily-news.json" download class="btn">JSON をダウンロード</a>
+          </div>
+        </div>
+      `;
+
+      const modal = document.createElement('div');
+      modal.id = 'detailsModal';
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; padding: 40px 20px;';
+      modal.innerHTML = detailsHtml;
+      document.body.appendChild(modal);
+    }
+
+    function closeDetails() {
+      const modal = document.getElementById('detailsModal');
+      if (modal) modal.remove();
+    }
 
     // 初期化
     loadArchiveIndex();
