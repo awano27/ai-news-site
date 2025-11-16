@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📚 NotebookLM - ソース忠実型AIリサーチツールの進化 - 2025/11/17</title>
+  <style>
+    :root {
+      --google-blue: #4285f4;
+      --google-red: #ea4335;
+      --google-yellow: #fbbc04;
+      --google-green: #34a853;
+      --primary: #4285f4;
+      --accent: #ea4335;
+      --accent2: #fbbc04;
+      --accent3: #34a853;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-light: #64748b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--google-blue) 0%, var(--google-green) 50%, var(--google-red) 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    header {
+      background: linear-gradient(135deg, var(--google-blue) 0%, var(--google-green) 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(66, 133, 244, 0.1) 10px,
+        rgba(66, 133, 244, 0.1) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .date {
+      margin-top: 16px;
+      font-size: 1rem;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* コンテンツ */
+    .content {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--google-blue);
+    }
+
+    .section-icon {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: var(--google-blue);
+      font-weight: 800;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--google-green);
+      margin: 32px 0 16px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    ul, ol {
+      margin: 16px 0 16px 32px;
+    }
+
+    li {
+      font-size: 1.05rem;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    /* カード */
+    .card {
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+      border-left: 4px solid var(--google-blue);
+      padding: 24px;
+      margin: 24px 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card h4 {
+      color: var(--google-blue);
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .card.green {
+      border-left-color: var(--google-green);
+    }
+
+    .card.green h4 {
+      color: var(--google-green);
+    }
+
+    .card.red {
+      border-left-color: var(--google-red);
+    }
+
+    .card.red h4 {
+      color: var(--google-red);
+    }
+
+    .card.yellow {
+      border-left-color: var(--google-yellow);
+    }
+
+    .card.yellow h4 {
+      color: #f9ab00;
+    }
+
+    /* 統計グリッド */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--google-blue) 0%, var(--google-green) 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.red {
+      background: linear-gradient(135deg, var(--google-red) 0%, var(--google-yellow) 100%);
+    }
+
+    .stat-card.green {
+      background: linear-gradient(135deg, var(--google-green) 0%, var(--google-blue) 100%);
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      opacity: 0.95;
+    }
+
+    /* 比較テーブル */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, var(--google-blue) 0%, var(--google-green) 100%);
+      color: white;
+      padding: 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .comparison-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.05rem;
+    }
+
+    .comparison-table tr:hover {
+      background: rgba(66, 133, 244, 0.05);
+    }
+
+    /* ホームボタン */
+    .home-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, var(--google-blue) 0%, var(--google-green) 100%);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(66, 133, 244, 0.4);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .home-button:hover {
+      transform: scale(1.1) rotate(360deg);
+      box-shadow: 0 12px 32px rgba(66, 133, 244, 0.6);
+    }
+
+    /* 強調ボックス */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(52, 168, 83, 0.1) 100%);
+      border-left: 4px solid var(--google-blue);
+      padding: 24px;
+      margin: 24px 0;
+      border-radius: 8px;
+    }
+
+    .highlight-box strong {
+      color: var(--google-blue);
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Consolas', monospace;
+      font-size: 0.9em;
+    }
+
+    strong {
+      color: var(--google-blue);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="breaking-badge">🚨 2025年11月大型アップデート | Google NotebookLM</div>
+      <h1>📚 Google NotebookLM</h1>
+      <p class="subtitle">ソース忠実型AIリサーチ・学習ツールの決定版 - Deep Research×マルチモーダル対応</p>
+      <p class="date">2025年11月17日</p>
+    </header>
+
+    <div class="content">
+      <!-- 概要 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🎯</span>
+          <h2>NotebookLMとは？</h2>
+        </div>
+
+        <div class="highlight-box">
+          <p><strong>一言で言うと：</strong></p>
+          <p>「<strong>自分の資料だけをちゃんと読んでくれる、ソース忠実型のAIリサーチ・学習ツール</strong>」</p>
+          <p>ChatGPT/Geminiみたいな汎用チャットではなく、<strong>アップロードしたソースに限定して考えるAI</strong>が基本設計。幻覚はゼロではないが、汎用チャットより明らかに抑えやすい構造。</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">1M</span>
+            <span class="stat-label">トークン対応（従来比8倍）</span>
+          </div>
+          <div class="stat-card green">
+            <span class="stat-value">80+</span>
+            <span class="stat-label">言語対応（Video Overviews）</span>
+          </div>
+          <div class="stat-card red">
+            <span class="stat-value">200+</span>
+            <span class="stat-label">国・地域で無料提供</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 中核機能 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🤖</span>
+          <h2>中核機能 - 何ができるのか</h2>
+        </div>
+
+        <h3>1. 対応するソース（資料）</h3>
+        <div class="card">
+          <h4>📄 ドキュメント</h4>
+          <ul>
+            <li>PDF（Google Drive上 / URL）</li>
+            <li>Google Docs / Slides</li>
+            <li><strong>Microsoft Word (.docx)</strong> - 2025年11月追加</li>
+            <li>Webページ・ブログ</li>
+            <li>YouTube（字幕から読む）</li>
+          </ul>
+        </div>
+
+        <div class="card green">
+          <h4>📊 データ・ビジュアル</h4>
+          <ul>
+            <li><strong>Google Sheets</strong>（スプレッドシート） - 2025年11月追加</li>
+            <li><strong>画像（手書きメモ・グラフ・プリント等）</strong> - 2025年11月追加</li>
+            <li>DriveファイルのURL貼り付け</li>
+          </ul>
+        </div>
+
+        <h3>2. できること</h3>
+        <div class="card red">
+          <h4>💬 対話・分析</h4>
+          <ul>
+            <li>ソースに基づくQ&A・要約・比較・翻訳</li>
+            <li>構造化されたレポート / ブリーフィング作成</li>
+            <li>試験対策用の<strong>フラッシュカード・クイズ生成</strong></li>
+            <li>Mind Map、Study Guide、Briefing Doc</li>
+          </ul>
+        </div>
+
+        <div class="card yellow">
+          <h4>🎙️ マルチメディア出力</h4>
+          <ul>
+            <li><strong>Audio Overviews</strong>: ソースをポッドキャスト風の会話音声に（50+言語対応）</li>
+            <li><strong>Video Overviews</strong>: スライド＋ナレーション付き動画で概要説明（80+言語対応）</li>
+            <li>Audio Overviewsに途中で話しかけるインタラクティブ機能</li>
+          </ul>
+        </div>
+
+        <h3>3. 中身のモデル</h3>
+        <p>公式には「最新のGeminiモデル」とだけ表記。<strong>2025年5月以降はGemini 2.5 Flashベースに移行</strong>（BleepingComputer報道）。2024年12月時点ではGemini 2.0 Flash実験版を統合し、段階的にアップグレード。</p>
+      </section>
+
+      <!-- 2025年のアップデート -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🆕</span>
+          <h2>2025年の主要アップデート</h2>
+        </div>
+
+        <h3>📊 2025年11月：Deep Research + ファイル対応拡大</h3>
+
+        <div class="card">
+          <h4>Deep Research機能</h4>
+          <p>NotebookLM内でソースを「Web」にすると、<strong>数百サイトを自動クロールして調査レポート作成</strong>が可能に。</p>
+          <ul>
+            <li><strong>Fast Research</strong>: 普通の速い検索</li>
+            <li><strong>Deep Research</strong>:
+              <ol>
+                <li>調査プランを立てる</li>
+                <li>関連する記事・論文を多数収集</li>
+                <li>構造化されたレポート（背景・論点・対立・結論など）を生成</li>
+                <li>ソース一覧も同時に出力</li>
+              </ol>
+            </li>
+            <li>レポートとソースを<strong>ワンクリックでノートブックに取り込み</strong>可能</li>
+          </ul>
+        </div>
+
+        <div class="card green">
+          <h4>対応ファイルの大幅拡大</h4>
+          <ul>
+            <li><strong>Google Sheets</strong> - 売上・KPI・アンケートデータの直接分析</li>
+            <li><strong>Microsoft Word (.docx)</strong></li>
+            <li><strong>画像（手書きメモ・グラフ等）</strong> - アナログ資料をスマホで撮って投げ込める</li>
+            <li>DriveファイルのURL貼り付け対応</li>
+          </ul>
+          <p><em>※ 公式アナウンス：多くの機能は1週間以内に展開、画像は数週間以内</em></p>
+        </div>
+
+        <h3>💬 2025年10月：チャット大型アップデート + Goals</h3>
+
+        <div class="card red">
+          <h4>コンテキスト拡大</h4>
+          <ul>
+            <li><strong>コンテキストウィンドウが1,000,000トークンに</strong>（従来比8倍）</li>
+            <li>会話履歴の保持容量も約6倍</li>
+            <li>巨大な資料群でも一括で扱いやすく</li>
+          </ul>
+        </div>
+
+        <div class="card yellow">
+          <h4>Goals（ゴール）機能</h4>
+          <p><strong>カスタムペルソナ機能</strong> - ロールやトーンを事前に指定</p>
+          <ul>
+            <li>「修士論文アドバイザ」</li>
+            <li>「コードレビュア」</li>
+            <li>「マーケ戦略担当」</li>
+            <li>「SRE視点のリスクレビュア」など</li>
+          </ul>
+        </div>
+
+        <h3>🎥 2025年8月：Video / Audio Overviewsの多言語対応</h3>
+        <ul>
+          <li><strong>Video Overviews</strong>: 80+言語対応（日本語含む）</li>
+          <li><strong>Audio Overviews</strong>: 50+言語対応、非英語版も英語並みに深掘りする形に強化</li>
+          <li>「日本語の資料 → 日本語の動画/音声で要約」がほぼ標準的に可能に</li>
+        </ul>
+
+        <h3>⚡ 2025年5月：Gemini 2.5 Flashへのアップグレード</h3>
+        <p>NotebookLMのチャット/リサーチが<strong>Gemini 2.5 Flash</strong>に移行。複数ステップ推論や複雑な質問での回答品質が向上。</p>
+
+        <h3>🎨 2024年12月：UI刷新・Audioインタラクション</h3>
+        <ul>
+          <li><strong>3ペイン構成</strong>: Sources / Chat / Studio の新UI</li>
+          <li>Studioから Study Guide / Briefing Doc / Audio Overview / Mind Map などをタイルベースで生成</li>
+          <li><strong>Audio Overviewsに途中でAIホストに話しかける</strong>インタラクション追加</li>
+          <li>Gemini 2.0 Flashで強化、Workspace連携を拡大</li>
+        </ul>
+      </section>
+
+      <!-- 実際の使われ方 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🎯</span>
+          <h2>日本語圏での実際の使われ方</h2>
+        </div>
+
+        <div class="card">
+          <h4>1. プロンプト設計の自動化</h4>
+          <p>プロンプトのコツをまとめた資料をNotebookLMに読ませて、<strong>「プロンプトを作るプロンプト」を生成</strong></p>
+          <ul>
+            <li>良いプロンプト例・解説記事をソースとして投入</li>
+            <li>「こういう目的で使えるプロンプトを10個出して」と依頼</li>
+            <li>気に入ったものをNotebookLM内でメモ化・ライブラリ化</li>
+            <li>自作プロンプトより質が安定、初心者でも高品質なプロンプトを利用可能</li>
+          </ul>
+        </div>
+
+        <div class="card green">
+          <h4>2. 画像×教育用途</h4>
+          <ul>
+            <li><strong>学校プリントや漢字ドリルの写真</strong> → 復習テスト / フラッシュカード化</li>
+            <li>教科書の図・グラフ・手書きノートも画像で投入し、問題生成・要点整理</li>
+            <li>音声・動画での解説に変換</li>
+            <li>これまで複数ツールを組み合わせていたワークフローが、<strong>NotebookLM単体で完結</strong></li>
+            <li>Audio Overviewsに参加して、英語音声で質問しながら学ぶ使い方も可能</li>
+          </ul>
+        </div>
+
+        <div class="card red">
+          <h4>3. Deep Researchでの技術・市場調査</h4>
+          <ul>
+            <li><strong>数百のWebページを自動調査</strong>して、構造化レポートを出力</li>
+            <li>背景・論点・賛否・今後の動向を含んだ「ブリーフィングペーパー」的なアウトプット</li>
+            <li>参照ソースリスト付きで検証可能性が高い</li>
+            <li>新規事業の市場調査、他社プロダクトの比較、新技術のリサーチを人力の前段として片付ける</li>
+          </ul>
+        </div>
+
+        <div class="card yellow">
+          <h4>4. スプレッドシート×分析・動画解説</h4>
+          <ul>
+            <li>Sheets対応により、売上・KPI・アンケートなどのデータをそのままソース化</li>
+            <li>傾向分析・セグメント別比較・気づきの抽出</li>
+            <li>その内容をVideo / Audio Overviewで<strong>「上司向け説明用コンテンツ」に変換</strong></li>
+            <li>DriveからSheetsを選択 → NotebookLMで分析 → 動画で要約</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>5. ビジネス課題の整理・原因分析</h4>
+          <ul>
+            <li>議事録・レポート・アンケートなどを投入</li>
+            <li>課題一覧 → 原因分析 → 改善案 → 次のアクションまで一気に生成</li>
+            <li>「感覚で解く時代は終わり」- データに基づく意思決定の前工程を自動化</li>
+          </ul>
+        </div>
+
+        <h3>共通テーマ</h3>
+        <ul>
+          <li><strong>時短・オペレーション効率化</strong>: プロンプト設計、勉強用プリント作成、資料の要約・再構成を自動化</li>
+          <li><strong>教育と学習</strong>: プリント → ドリル、授業ノート → ポッドキャスト/動画、「教材変換ツール」として</li>
+          <li><strong>課題解決・ビジネス活用</strong>: データ分析＋レポート、Deep Researchによる市場調査、課題整理とアクションプラン提案</li>
+          <li><strong>初心者でも始めやすい</strong>: プロンプトを自分で工夫する前に、NotebookLMに手伝わせる設計</li>
+        </ul>
+      </section>
+
+      <!-- 強みと注意点 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">⚖️</span>
+          <h2>NotebookLMの強みと注意点</h2>
+        </div>
+
+        <h3>💪 強み</h3>
+
+        <div class="card green">
+          <h4>1. ソース忠実型で幻覚が少なめ</h4>
+          <p>「自分が入れた資料に限定して答える」が前提設計。汎用チャットよりもトレースしやすく、信頼性が高い。</p>
+        </div>
+
+        <div class="card">
+          <h4>2. 長い資料に強い（1Mトークン + マルチソース）</h4>
+          <p>書籍レベルのPDFや、複数レポート・議事録・スプレッドシートをまとめて突っ込んでも、1つのコンテキストで扱える。</p>
+        </div>
+
+        <div class="card green">
+          <h4>3. マルチモーダル</h4>
+          <p>文章・表・画像・動画をまたいで理解し、音声・動画でも返してくれる。</p>
+        </div>
+
+        <div class="card">
+          <h4>4. Deep Researchとの組み合わせ</h4>
+          <p>「社内資料＋Web」の両方を見たうえでレポートを作らせ、そのままNotebookLMのノートとして育てられる。</p>
+        </div>
+
+        <div class="card green">
+          <h4>5. 無料で使える範囲が広い</h4>
+          <p>多くの機能が無料プランでも利用可能で、200以上の国・地域で提供。</p>
+        </div>
+
+        <h3>⚠️ 課題・注意すべき点</h3>
+
+        <div class="card red">
+          <h4>1. ソース品質に強く依存</h4>
+          <ul>
+            <li>変な記事やポエム寄りブログをDeep Research側が拾えば、当然アウトプットも歪む</li>
+            <li>出力されたレポートは、リンクを辿って<strong>一次情報で検証する前提</strong>のツール</li>
+          </ul>
+        </div>
+
+        <div class="card red">
+          <h4>2. 言語サポートの温度差</h4>
+          <p>Video / Audio Overviewsの言語対応はかなり広がったが、ドキュメントやUIは英語中心の情報がまだ多い。</p>
+        </div>
+
+        <div class="card red">
+          <h4>3. 機密情報の扱い</h4>
+          <ul>
+            <li>Googleのクラウドに載せる以上、社外秘資料・個人情報をどこまで入れるかは会社ポリシー次第</li>
+            <li>特にDeep ResearchはWebも見るため、「機密＋ネット情報を混ぜる問い」は分離するのが無難</li>
+          </ul>
+        </div>
+
+        <div class="card red">
+          <h4>4. モデルの推論は"補助輪付き"だと割り切る</h4>
+          <ul>
+            <li>Gemini 2.5 Flashで推論力はかなり上がっているが、ロジックの抜けや前提ミスは普通に起きる</li>
+            <li>NotebookLMの強みは「情報集約・構造化・たたき台化」であって、<strong>最終判断を丸投げするツールではない</strong></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- エンジニア視点での実践パターン -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">💻</span>
+          <h2>エンジニア視点での実践パターン</h2>
+        </div>
+
+        <div class="card">
+          <h4>1. プロジェクトごとにNotebookを作る</h4>
+          <p>要件定義・設計書・アーキ図・SLO定義・事故分析・Spreadsheet(KPI)・スクショ類を全部投入。</p>
+        </div>
+
+        <div class="card green">
+          <h4>2. Goalsで役割を固定</h4>
+          <ul>
+            <li>「SRE視点のリスクレビュア」</li>
+            <li>「バックエンド設計レビュー担当」</li>
+            <li>「API仕様チェッカー」</li>
+            <li>「パフォーマンスアナリスト」などをゴールとして保存</li>
+          </ul>
+        </div>
+
+        <div class="card red">
+          <h4>3. Deep Researchで技術選定の下調べ</h4>
+          <p>例:</p>
+          <ul>
+            <li>「この要件でManaged Kafka vs Pub/Sub vs Kinesisを比較して」</li>
+            <li>「近年のマネージドk8sのトラブル事例を整理して」</li>
+            <li>「Next.js 15の主な変更点と移行リスクをまとめて」</li>
+          </ul>
+        </div>
+
+        <div class="card yellow">
+          <h4>4. Studioで"人に渡せる形"に変換</h4>
+          <ul>
+            <li><strong>Briefing Doc</strong> → マネージャ向け1枚資料</li>
+            <li><strong>Video Overview</strong> → 非エンジニア向けの説明動画</li>
+            <li><strong>Audio Overview</strong> → 通勤中に聞く振り返り用</li>
+            <li><strong>Mind Map</strong> → 全体像の可視化</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 競合比較 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🏆</span>
+          <h2>競合AIツールとの比較</h2>
+        </div>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>ツール</th>
+              <th>強み</th>
+              <th>弱点（対NotebookLM）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Google NotebookLM</strong></td>
+              <td>ソース忠実型、1Mトークン、Deep Research、マルチモーダル、無料</td>
+              <td>英語中心のドキュメント、機密データの扱い要注意</td>
+            </tr>
+            <tr>
+              <td><strong>ChatGPT (GPT-5.1)</strong></td>
+              <td>汎用性が高い、会話性・指示遵守強化、カスタム指示</td>
+              <td>ソース制約がなく幻覚リスク、長文コンテキストは400k</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Sonnet 4.5</strong></td>
+              <td>1Mコンテキスト、コーディング特化、エージェント運用</td>
+              <td>ソース忠実性はNotebookLMほど明示的でない</td>
+            </tr>
+            <tr>
+              <td><strong>Gemini 2.5 Pro</strong></td>
+              <td>2Mコンテキスト、Google統合、Deep Research</td>
+              <td>NotebookLMほどの教育・学習特化ツールではない</td>
+            </tr>
+            <tr>
+              <td><strong>Perplexity</strong></td>
+              <td>Web検索特化、ソース表示、最新情報に強い</td>
+              <td>自分の資料をベースにした分析には不向き</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <p><strong>🎯 NotebookLMが最も光る場面</strong></p>
+          <p>「<strong>自分の資料をベースにした深い分析・学習・レポート作成</strong>」において、NotebookLMは他の汎用AIツールを圧倒。特にDeep Research + マルチモーダル対応により、「社内資料＋Web情報」を統合した調査が可能に。</p>
+        </div>
+      </section>
+
+      <!-- まとめ -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">✨</span>
+          <h2>まとめ</h2>
+        </div>
+
+        <div class="highlight-box">
+          <p><strong>🎯 NotebookLMは「情報集約・構造化・たたき台化」の最強ツール</strong></p>
+          <p>2025年に入ってからのアップデート（Deep Research、1Mトークン、マルチモーダル対応、Goals機能）により、<strong>「かなり本気の仕事道具」</strong>寄りに進化しています。</p>
+        </div>
+
+        <h3>主要な進化ポイント</h3>
+        <ul>
+          <li><strong>Deep Research</strong>: 数百サイトを自動調査し、構造化レポートを生成</li>
+          <li><strong>1Mトークン対応</strong>: 従来比8倍のコンテキスト長で巨大資料も一括処理</li>
+          <li><strong>マルチモーダル完全対応</strong>: 画像・音声・動画での入出力が可能に</li>
+          <li><strong>Goals機能</strong>: カスタムペルソナでロール・トーンを事前指定</li>
+          <li><strong>多言語対応強化</strong>: Video 80+言語、Audio 50+言語対応</li>
+        </ul>
+
+        <h3>実務での位置づけ</h3>
+        <div class="card green">
+          <h4>NotebookLMを「中心」に据える場面</h4>
+          <ul>
+            <li>プロジェクトドキュメント・議事録・データの一元管理と分析</li>
+            <li>教育・学習コンテンツの自動生成（プリント→ドリル、ノート→動画）</li>
+            <li>技術選定・市場調査の下調べ（Deep Research活用）</li>
+            <li>ビジネス課題の整理・原因分析・改善案生成</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>他ツールと併用する場面</h4>
+          <ul>
+            <li><strong>ChatGPT / Claude</strong>: 汎用対話・コーディング支援</li>
+            <li><strong>Perplexity</strong>: 最新Web情報の即座検索</li>
+            <li><strong>Gemini</strong>: Google Workspace統合ワークフロー</li>
+          </ul>
+        </div>
+
+        <div class="highlight-box">
+          <p><strong>🚀 実践推奨アプローチ</strong></p>
+          <p>「NotebookLMに自分の資料を全部突っ込んで、たたき台を作らせる → 他ツールで精緻化・実行」という<strong>ハイブリッド戦略</strong>が、2025年以降の実務的な落としどころです。</p>
+          <p>特にエンジニア・研究者・教育関係者にとっては、<strong>「損しないうちに触っておいた方がいい」</strong>ツールと言えます。</p>
+        </div>
+      </section>
+
+      <!-- ソース情報 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">📚</span>
+          <h2>参考情報</h2>
+        </div>
+
+        <h3>公式情報</h3>
+        <ul>
+          <li><a href="https://notebooklm.google/" target="_blank">Google NotebookLM 公式サイト</a></li>
+          <li><a href="https://blog.google/technology/google-labs/notebooklm-deep-research-file-types/" target="_blank">NotebookLM adds Deep Research, Docx, Sheets and more</a></li>
+          <li><a href="https://blog.google/technology/google-labs/notebooklm-custom-personas-engine-upgrade/" target="_blank">NotebookLM adds custom goals, upgrades performance</a></li>
+          <li><a href="https://blog.google/technology/google-labs/notebook-lm-audio-video-overviews-more-languages-longer-content/" target="_blank">Google's NotebookLM updates Audio and Video Overviews</a></li>
+        </ul>
+
+        <h3>技術メディア</h3>
+        <ul>
+          <li><a href="https://www.bleepingcomputer.com/news/artificial-intelligence/google-notebooklm-is-now-using-gemini-25-flash/" target="_blank">Google NotebookLM is now using Gemini 2.5 Flash</a></li>
+          <li><a href="https://www.theverge.com/news/657785/google-audio-overviews-ai-podcasts-50-languages" target="_blank">Google's AI podcast maker is now available in over 50 languages</a></li>
+          <li><a href="https://www.watch.impress.co.jp/docs/news/2063307.html" target="_blank">グーグル「NotebookLM」がDeep Research対応（Impress Watch）</a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <a href="../../index.html" class="home-button" title="ホームに戻る">🏠</a>
+</body>
+</html>
