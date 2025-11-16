@@ -45,29 +45,67 @@ This is an AI News Archive system that automatically extracts, processes, and pr
 
 ## Common Development Commands
 
-### Processing New Daily News
+### Creating New Daily Slides (Manual Process)
+
+The most common workflow for adding new AI news slides:
 
 ```bash
-# 1. Add new text file to input/day/ (e.g., input/day/1110.txt for Nov 10)
-# 2. Update the archive
+# 1. Create input file: input/day/MMDD.txt (e.g., 1113.txt for Nov 13)
+#    - First line is the title
+#    - Use bullet points (・) for key features
+#    - Include URLs for sources
+
+# 2. Create the HTML slide manually in presentations/day_slides/
+#    - Use day_slide_2025_08_27.html as the reference template
+#    - Use an earlier recent slide (e.g., previous day) as a practical starting point
+#    - Keep the same HTML structure but customize:
+#      * CSS gradient colors (--primary-color, --secondary-color, --accent-color)
+#      * Breaking badge date and title
+#      * Stats grid values
+#      * Feature cards content
+#      * Use cases, competition tables, risks, summary sections
+
+# 3. Update all site index files to link to the new slide:
+#    presentations/index.html (4 locations):
+#      - Hero CTA button href
+#      - Stats section (date + description)
+#      - Quick links section
+#      - JavaScript dynamic content (add new conditional at TOP of if-else chain)
+#      - JavaScript fallback display (around line 765)
+#    presentations/day_slides_index.html:
+#      - Add new <li> entry at the top of the slides list
+#    presentations/day_slides_list.html:
+#      - Update date range in note section
+#      - Add new slide card at the top of slides-grid
+
+# 4. Commit and push
+git add presentations/day_slides/day_slide_2025_MM_DD.html presentations/index.html presentations/day_slides_index.html presentations/day_slides_list.html
+git commit -m "add: [topic] slide (MM/DD) with full site integration"
+git push origin main
+```
+
+### Processing News Archives (Automated)
+
+```bash
+# Update JSON archives from input/day/*.txt files
 python update_news_archive.py
 
-# 3. Verify output in public-pages/news/
+# Verify output in public-pages/news/
 # - YYYY-MM-DD.json created
 # - archive_index.json updated
 # - version.json updated with new timestamp
 ```
 
-### Working with Slides
+### Bulk Slide Operations
 
 ```bash
-# Generate slides from input files
+# Recreate multiple slides from input files
 python recreate_all_slides.py
 
 # Apply consistent styling to existing slides
 python update_all_day_slides.py
 
-# Fix link issues in slides
+# Fix link clickability issues
 python fix_slide_links.py
 ```
 
@@ -142,14 +180,33 @@ Score range: 20-100, calculated from:
 
 Files use MMDD.txt format (no year prefix). Scripts assume current year (2025 as of this writing). The `parse_date_from_filename()` function converts `0913.txt` → `2025-09-13`.
 
+### Daily Slide Creation Workflow
+
+**Manual HTML Slide Creation** (Most Common):
+1. **Input file**: Create `input/day/MMDD.txt` with news content
+2. **HTML slide**: Manually create `presentations/day_slides/day_slide_2025_MM_DD.html`
+   - Copy structure from a recent slide (e.g., previous day)
+   - Customize CSS color variables for each topic/brand
+   - Maintain consistent section structure: header → stats → features → use cases → competition → risks → summary
+3. **Site integration**: Update 3 files to link the new slide:
+   - `presentations/index.html` (5 update points: hero CTA, stats section, quick links, JS dynamic content, JS fallback)
+   - `presentations/day_slides_index.html` (add entry at top of list)
+   - `presentations/day_slides_list.html` (update date range + add card at top)
+4. **Git workflow**: Commit all 4 files together with descriptive message
+
+**Critical**: When updating `presentations/index.html` JavaScript dynamic content, always add new conditionals at the **TOP** of the if-else chain to ensure newest slides are checked first.
+
 ### Template System
 
 Slides use `templates/day_news_slide.html` as base template with:
 - Reveal.js 4.4.0 for presentations
 - Inter font family
-- Custom CSS variables for theming
+- Custom CSS variables for theming (--primary-color, --secondary-color, --accent-color)
 - Animated gradient backgrounds
 - Standardized layout based on day_slide_2025_08_27.html
+- Self-contained HTML files (no external dependencies except fonts)
+
+**Recent slides serve as better templates** than the base template because they have the latest styling patterns and section structures.
 
 ### Archive Indexing
 
@@ -162,6 +219,7 @@ Slides use `templates/day_news_slide.html` as base template with:
 - Today's data is always force-updated
 - Past data only updates if source file is newer than JSON (via mtime comparison)
 - Version hash uses MD5 of current timestamp
+- Site integration requires updating multiple index files atomically (commit together)
 
 ## Character Encoding
 
@@ -199,14 +257,41 @@ Install with:
 pip install -r requirements.txt
 ```
 
+## Slide Content Enhancement Workflow
+
+When users provide additional information sources (e.g., `1113-2.txt` supplementing `1113.txt`):
+
+1. **Read both source files** to understand all available information
+2. **Identify high-value additions** that make users want to use the technology:
+   - Concrete performance metrics (accuracy %, speed improvements, cost savings)
+   - Practical implementation examples (code samples, API usage patterns)
+   - Real-world use cases with specific outcomes
+   - Cost optimization strategies
+   - Risk/limitation awareness
+3. **Strategic section additions**:
+   - Enhance stats grid with quantitative improvements
+   - Add "how-to" sections (e.g., custom instructions, API integration)
+   - Include competitive advantages with numbers
+   - Provide implementation code examples when available
+4. **Maintain slide structure** while adding depth - don't break existing sections
+5. **Commit with detailed message** explaining what value was added
+
+**Example enhancements**:
+- Adding "Custom Instructions" section with copy-pasteable templates
+- Including "API & Rollout" section with implementation examples
+- Expanding stats with specific benchmarks (accuracy, cost, speed)
+- Adding practical use case sections (medical, coding, business)
+
 ## Important Notes
 
 - The system handles Japanese (日本語) content - be careful with character encoding
-- Dates in filenames are MM-DD format without year prefix
+- Dates in filenames are MM-DD format without year prefix (MMDD.txt)
 - The working slide template is `day_slide_2025_08_27.html` - use as reference for styling
+- **Recent slides are better templates** than base templates - they have latest patterns
 - URL extraction uses regex: `https?://[^\s<>"{}|\\^`\[\]]+`
 - Slides disable Reveal.js controls by default (see CSS customizations)
 - There are some legacy/temp files (tmp_*.py, tmp_*.html) that can be ignored
+- Multiple input files for same date (e.g., `1113.txt` + `1113-2.txt`) should be merged into comprehensive slides
 
 ## Testing & Verification
 
