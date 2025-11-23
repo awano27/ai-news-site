@@ -201,6 +201,166 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Search & Filter Styles */
+    .controls-container {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 29, 58, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 16px 0;
+      margin: 0 -20px 32px -20px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .controls-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 16px;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(138, 180, 255, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    .filter-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .filter-btn.active {
+      background: var(--accent-2);
+      color: var(--bg);
+      border-color: var(--accent-2);
+    }
+    
+    .copy-link-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+    
+    .tool-card:hover .copy-link-btn {
+      opacity: 1;
+    }
+    
+    .copy-link-btn:hover {
+      background: var(--accent-2);
+      color: var(--bg);
+    }
+    
+    .no-results {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted);
+      font-size: 16px;
+      display: none;
+    }
+    
+    /* Scroll Top Button */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      background: var(--accent-2);
+      color: var(--bg);
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 90;
+    }
+    
+    .scroll-top-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    
+    .scroll-top-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    }
   </style>
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https: data:; style-src 'self' https: 'unsafe-inline';">
@@ -212,6 +372,29 @@
     <a class="nav-link" href="../index.html">← ホームに戻る</a>
     <h1>🛠️ おすすめ便利ツール</h1>
     <p class="lead">個人開発者やエンジニア向けの便利なツールを、定番ツールと新興ツールに分けてご紹介します。開発ツール、タスク管理、コンテンツ制作、AI活用など、生産性を高めるサービスを厳選しました。</p>
+
+    <div class="controls-container">
+      <div class="controls-inner">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" class="search-input" placeholder="ツール名、キーワード、カテゴリで検索..." id="searchInput">
+        </div>
+        <div class="filter-scroll" id="filterContainer">
+          <button class="filter-btn active" data-filter="all">すべて</button>
+          <button class="filter-btn" data-filter="dev">開発・SRE</button>
+          <button class="filter-btn" data-filter="collab">コラボ・デザイン</button>
+          <button class="filter-btn" data-filter="auto">自動化・生産性</button>
+          <button class="filter-btn" data-filter="ai">AI・モデル</button>
+          <button class="filter-btn" data-filter="ph">Product Hunt注目</button>
+          <button class="filter-btn" data-filter="other">その他</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="noResults" class="no-results">
+      <p>該当するツールが見つかりませんでした 😢</p>
+      <button class="nav-link" onclick="resetSearch()" style="margin-top: 16px; cursor: pointer;">検索をリセット</button>
+    </div>
 
     <!-- 定番ツール: 開発・SRE系 -->
     <section class="category-section">
@@ -2667,6 +2850,212 @@
       </div>
     </section>
 
+    <!-- Product Hunt トレンド (2025年11月) -->
+    <section class="category-section">
+      <div class="category-header">
+        <h2>🚀 Product Hunt トレンド【2025年11月】</h2>
+        <p>世界中のプロダクトハンターが注目した最新ツール</p>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>TrustMRR<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">検証済みスタートアップ収益データベース</p>
+          </div>
+          <p class="tool-description">
+            Stripeと連携して検証済みのMRR（月次経常収益）を閲覧・公開できるデータベース。透明性の高い収益指標を提供し、スタートアップの信頼性を担保します。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/trustmrr" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Sheet0<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">スプレッドシート × YOLOモード</p>
+          </div>
+          <p class="tool-description">
+            スプレッドシートに「YOLOモード」を導入するというユニークなコンセプトのツール。従来の堅苦しい表計算に遊び心とスピードをもたらします。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/sheet0" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>TheySaid 3.0<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">オールインワンフィードバックアプリ</p>
+          </div>
+          <p class="tool-description">
+            顧客フィードバックの収集・分析・管理を統合したプラットフォーム。定性的な声を定量的なインサイトに変換し、プロダクト改善に活かせます。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/theysaid" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Emma<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">AI栄養インテリジェンス</p>
+          </div>
+          <p class="tool-description">
+            グローバルな食品データを理解するAI。食品ラベルをスキャンして成分分析、アレルギーチェック、栄養価の計算を瞬時に行います。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/sugar-free-food-scanner" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Cal ID<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">OSSスケジューリングツール</p>
+          </div>
+          <p class="tool-description">
+            ソロやチーム向けの完全オープンソーススケジューリングツール。無制限のミーティング、包括的な統合、人間によるサポートを提供。Cal.comの系譜。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/cal-id" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Video Localization by Algebras<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">AI動画ローカライズ</p>
+          </div>
+          <p class="tool-description">
+            文化的背景まで考慮した「人間らしい」ダビングを32言語で行うAIツール。口の動き（リップシンク）も自動調整されます。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/algebras-ai" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>MyLens for Youtube<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">YouTube動画をAIタイムライン化</p>
+          </div>
+          <p class="tool-description">
+            YouTube動画の内容を解析し、視覚的なタイムラインと要約に変換するツール。長時間の動画から重要なポイントを素早く把握できます。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/mylens-for-youtube" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Passionfruit Labs<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">AIメンション収益化</p>
+          </div>
+          <p class="tool-description">
+            AIによるブランドメンションや引用を追跡し、それを収益機会に変換するプラットフォーム。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/passionfruit-labs" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Willow on IOS<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">高速音声ディクテーション</p>
+          </div>
+          <p class="tool-description">
+            iOS向けの音声入力ツール。従来の音声入力よりも5倍速く、高精度にテキスト化できることを謳っています。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/willow-voice" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>logo.dev<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">即座に信頼できるロゴを</p>
+          </div>
+          <p class="tool-description">
+            どんな製品やブランドに対しても、即座にプロフェッショナルで信頼感のあるロゴを生成・提供するサービス。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/logo-dev" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+        
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>YouWare Mobile<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">ポケットサイズのバイブコーディング</p>
+          </div>
+          <p class="tool-description">
+            モバイル端末で動作するコーディングエンジニアAI。外出先でも開発や修正が可能になります。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/youware" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>scraib.app<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">メニューバー常駐AIライティング</p>
+          </div>
+          <p class="tool-description">
+            Macのメニューバーに常駐し、Ctrl+Rで即座にテキストを書き直し・改善してくれるライティングアシスタント。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/scraib-app" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Artifacts<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">デジタル収集・共有プラットフォーム</p>
+          </div>
+          <p class="tool-description">
+            オブジェクトを通じて「永続するもの」を収集、共有、祝うためのプラットフォーム。デジタル遺産やコレクション管理に近いコンセプト。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/artifacts" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+        
+        <div class="tool-card">
+          <div class="tool-header">
+            <h3>Email Buttons<span class="badge new">新興</span></h3>
+            <p class="tool-subtitle">Gmail用カスタムボタン作成</p>
+          </div>
+          <p class="tool-description">
+            Gmailのメール本文に簡単にボタンを追加できるツール。カスタムCTAボタン、テンプレート保存、QRコード追加などが可能。
+          </p>
+          <div class="tool-section">
+            <h4>リンク</h4>
+            <ul><li><a href="https://www.producthunt.com/products/email-buttons" target="_blank" rel="noopener" style="color: var(--accent-2);">Product Hunt</a></li></ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <div
       style="margin-top: 48px; padding: 24px; background: linear-gradient(135deg, var(--surface), var(--surface-2)); border: 1px solid var(--border); border-radius: 16px; text-align: center;">
       <p style="color: var(--muted); margin: 0 0 12px 0; font-size: 14px;">
@@ -2680,6 +3069,119 @@
       </p>
     </div>
   </main>
+  <button id="scrollTopBtn" class="scroll-top-btn" title="トップに戻る">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const toolCards = document.querySelectorAll('.tool-card');
+      const noResults = document.getElementById('noResults');
+      const scrollTopBtn = document.getElementById('scrollTopBtn');
+      const categorySections = document.querySelectorAll('.category-section');
+
+      // Inject Copy Link Buttons
+      toolCards.forEach(card => {
+        const btn = document.createElement('button');
+        btn.className = 'copy-link-btn';
+        btn.title = 'リンクをコピー';
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+        
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const link = card.querySelector('a')?.href;
+          if (link) {
+            try {
+              await navigator.clipboard.writeText(link);
+              const originalIcon = btn.innerHTML;
+              btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+              setTimeout(() => {
+                btn.innerHTML = originalIcon;
+              }, 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
+          }
+        });
+        
+        card.appendChild(btn);
+      });
+
+      // Search & Filter Logic
+      function filterTools() {
+        const query = searchInput.value.toLowerCase();
+        const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+        let visibleCount = 0;
+
+        categorySections.forEach(section => {
+          const sectionTitle = section.querySelector('h2').textContent;
+          let hasVisibleCardInSection = false;
+          
+          // Map filter keys to section keywords
+          let sectionMatch = true;
+          if (activeFilter !== 'all') {
+            if (activeFilter === 'dev' && !sectionTitle.includes('開発') && !sectionTitle.includes('SRE')) sectionMatch = false;
+            if (activeFilter === 'collab' && !sectionTitle.includes('コラボ') && !sectionTitle.includes('Notion')) sectionMatch = false;
+            if (activeFilter === 'auto' && !sectionTitle.includes('自動化') && !sectionTitle.includes('GTM')) sectionMatch = false;
+            if (activeFilter === 'ai' && !sectionTitle.includes('AI') && !sectionTitle.includes('LLM')) sectionMatch = false;
+            if (activeFilter === 'ph' && !sectionTitle.includes('Product Hunt')) sectionMatch = false;
+            if (activeFilter === 'other' && (sectionTitle.includes('開発') || sectionTitle.includes('コラボ') || sectionTitle.includes('自動化') || sectionTitle.includes('AI') || sectionTitle.includes('Product Hunt'))) sectionMatch = false;
+          }
+
+          const cards = section.querySelectorAll('.tool-card');
+          cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const matchesSearch = text.includes(query);
+            
+            if (matchesSearch && sectionMatch) {
+              card.style.display = 'block';
+              hasVisibleCardInSection = true;
+              visibleCount++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+
+          // Hide section if no cards visible
+          section.style.display = hasVisibleCardInSection ? 'block' : 'none';
+        });
+
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+
+      searchInput.addEventListener('input', filterTools);
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          filterTools();
+        });
+      });
+
+      window.resetSearch = () => {
+        searchInput.value = '';
+        filterBtns.forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-filter="all"]').classList.add('active');
+        filterTools();
+      };
+
+      // Scroll Top Logic
+      window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+          scrollTopBtn.classList.add('visible');
+        } else {
+          scrollTopBtn.classList.remove('visible');
+        }
+      });
+
+      scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  </script>
 </body>
 
 </html>
