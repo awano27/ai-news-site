@@ -3258,12 +3258,35 @@
           // Map filter keys to section keywords
           let sectionMatch = true;
           if (activeFilter !== 'all') {
-            if (activeFilter === 'dev' && !sectionTitle.includes('開発') && !sectionTitle.includes('SRE')) sectionMatch = false;
-            if (activeFilter === 'collab' && !sectionTitle.includes('コラボ') && !sectionTitle.includes('Notion')) sectionMatch = false;
-            if (activeFilter === 'auto' && !sectionTitle.includes('自動化') && !sectionTitle.includes('GTM')) sectionMatch = false;
-            if (activeFilter === 'ai' && !sectionTitle.includes('AI') && !sectionTitle.includes('LLM')) sectionMatch = false;
-            if (activeFilter === 'ph' && !sectionTitle.includes('Product Hunt')) sectionMatch = false;
-            if (activeFilter === 'other' && (sectionTitle.includes('開発') || sectionTitle.includes('コラボ') || sectionTitle.includes('自動化') || sectionTitle.includes('AI') || sectionTitle.includes('Product Hunt'))) sectionMatch = false;
+            const t = sectionTitle; // Alias for cleaner checks
+            
+            if (activeFilter === 'dev' && !t.includes('開発') && !t.includes('SRE') && !t.includes('セキュリティ') && !t.includes('エンジニア')) sectionMatch = false;
+            
+            if (activeFilter === 'collab' && !t.includes('コラボ') && !t.includes('Notion') && !t.includes('ドキュメント') && !t.includes('デザイン')) sectionMatch = false;
+            
+            if (activeFilter === 'auto' && !t.includes('自動化') && !t.includes('GTM') && !t.includes('タスク') && !t.includes('プロダクティビティ') && !t.includes('集中') && !t.includes('習慣') && !t.includes('ビジネス') && !t.includes('マネタイズ') && !t.includes('案件') && !t.includes('生産性')) sectionMatch = false;
+            
+            if (activeFilter === 'ai' && !t.includes('AI') && !t.includes('LLM')) sectionMatch = false;
+            
+            if (activeFilter === 'ph' && !t.includes('Product Hunt')) sectionMatch = false;
+            
+            // "Other" matches sections that are explicitly "Others" or Creative/Community/macOS specific
+            // OR sections that don't fit into the main 4 categories (Dev, Collab, Auto, AI)
+            if (activeFilter === 'other') {
+               const isDev = t.includes('開発') || t.includes('SRE') || t.includes('セキュリティ');
+               const isCollab = t.includes('コラボ') || t.includes('Notion') || t.includes('ドキュメント') || t.includes('デザイン');
+               const isAuto = t.includes('自動化') || t.includes('GTM') || t.includes('タスク') || t.includes('プロダクティビティ') || t.includes('集中') || t.includes('習慣') || t.includes('ビジネス');
+               const isAI = t.includes('AI') || t.includes('LLM');
+               const isPH = t.includes('Product Hunt');
+               
+               // If it fits in a main category, don't show in 'other' (unless it's also 'other' specific)
+               if (isDev || isCollab || isAuto || isAI || isPH) {
+                 // Exception: If it's explicitly "Other" or "Creative" etc, show it
+                 if (!t.includes('その他') && !t.includes('クリエイティブ') && !t.includes('コミュニティ') && !t.includes('macOS')) {
+                   sectionMatch = false;
+                 }
+               }
+            }
           }
 
           const cards = section.querySelectorAll('.tool-card');
