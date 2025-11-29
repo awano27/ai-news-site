@@ -3332,6 +3332,9 @@
 
       // Inject Copy Link Buttons
       toolCards.forEach(card => {
+        // Prevent duplicate buttons if script runs multiple times
+        if (card.querySelector('.copy-link-btn')) return;
+
         const btn = document.createElement('button');
         btn.className = 'copy-link-btn';
         btn.title = 'リンクをコピー';
@@ -3359,55 +3362,58 @@
 
       // Search & Filter Logic
       function filterTools() {
-        const query = searchInput.value.toLowerCase();
-        const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+        const rawQuery = searchInput.value || '';
+        const query = rawQuery.replace(/　/g, ' ').toLowerCase().trim(); // Handle full-width spaces
+        const activeBtn = document.querySelector('.filter-btn.active');
+        const activeFilter = activeBtn ? activeBtn.dataset.filter : 'all';
+        
         let visibleCount = 0;
 
         categorySections.forEach(section => {
-          const sectionTitle = section.querySelector('h2').textContent;
-          let hasVisibleCardInSection = false;
+          const header = section.querySelector('h2');
+          if (!header) return;
+
+          const sectionTitleRaw = header.textContent;
+          const t = sectionTitleRaw.toLowerCase();
           
-          // Map filter keys to section keywords
           let sectionMatch = true;
+          
           if (activeFilter !== 'all') {
-            const t = sectionTitle; // Alias for cleaner checks
+            // Filter Logic
+            const isDev = t.includes('開発') || t.includes('sre') || t.includes('セキュリティ') || t.includes('エンジニア') || t.includes('github');
+            const isCollab = t.includes('コラボ') || t.includes('notion') || t.includes('ドキュメント') || t.includes('デザイン');
+            const isAuto = t.includes('自動化') || t.includes('gtm') || t.includes('タスク') || t.includes('プロダクティビティ') || t.includes('集中') || t.includes('習慣') || t.includes('ビジネス') || t.includes('生産性') || t.includes('ワークフロー') || t.includes('マネタイズ');
+            const isAI = t.includes('ai') || t.includes('llm') || t.includes('ライティング');
+            const isPH = t.includes('product hunt');
+
+            if (activeFilter === 'dev' && !isDev) sectionMatch = false;
+            if (activeFilter === 'collab' && !isCollab) sectionMatch = false;
+            if (activeFilter === 'auto' && !isAuto) sectionMatch = false;
+            if (activeFilter === 'ai' && !isAI) sectionMatch = false;
+            if (activeFilter === 'ph' && !isPH) sectionMatch = false;
             
-            if (activeFilter === 'dev' && !t.includes('開発') && !t.includes('SRE') && !t.includes('セキュリティ') && !t.includes('エンジニア')) sectionMatch = false;
-            
-            if (activeFilter === 'collab' && !t.includes('コラボ') && !t.includes('Notion') && !t.includes('ドキュメント') && !t.includes('デザイン')) sectionMatch = false;
-            
-            if (activeFilter === 'auto' && !t.includes('自動化') && !t.includes('GTM') && !t.includes('タスク') && !t.includes('プロダクティビティ') && !t.includes('集中') && !t.includes('習慣') && !t.includes('ビジネス') && !t.includes('マネタイズ') && !t.includes('案件') && !t.includes('生産性')) sectionMatch = false;
-            
-            if (activeFilter === 'ai' && !t.includes('AI') && !t.includes('LLM')) sectionMatch = false;
-            
-            if (activeFilter === 'ph' && !t.includes('Product Hunt')) sectionMatch = false;
-            
-            // "Other" matches sections that are explicitly "Others" or Creative/Community/macOS specific
-            // OR sections that don't fit into the main 4 categories (Dev, Collab, Auto, AI)
             if (activeFilter === 'other') {
-               const isDev = t.includes('開発') || t.includes('SRE') || t.includes('セキュリティ');
-               const isCollab = t.includes('コラボ') || t.includes('Notion') || t.includes('ドキュメント') || t.includes('デザイン');
-               const isAuto = t.includes('自動化') || t.includes('GTM') || t.includes('タスク') || t.includes('プロダクティビティ') || t.includes('集中') || t.includes('習慣') || t.includes('ビジネス');
-               const isAI = t.includes('AI') || t.includes('LLM');
-               const isPH = t.includes('Product Hunt');
-               
-               // If it fits in a main category, don't show in 'other' (unless it's also 'other' specific)
+               // Other shows sections that do NOT match the main categories, OR explicitly "macOS", "Entertainment", etc.
+               // If it matches a main category (and isn't specifically an "other" type), hide it.
                if (isDev || isCollab || isAuto || isAI || isPH) {
-                 // Exception: If it's explicitly "Other" or "Creative" etc, show it
-                 if (!t.includes('その他') && !t.includes('クリエイティブ') && !t.includes('コミュニティ') && !t.includes('macOS')) {
+                 // Exceptions for "Other" categories that might keyword-match but conceptually belong to Other
+                 if (!t.includes('その他') && !t.includes('クリエイティブ') && !t.includes('コミュニティ') && !t.includes('macos') && !t.includes('エンターテインメント') && !t.includes('ゲーム')) {
                    sectionMatch = false;
                  }
                }
             }
           }
 
+          let hasVisibleCardInSection = false;
           const cards = section.querySelectorAll('.tool-card');
+          
           cards.forEach(card => {
             const text = card.textContent.toLowerCase();
-            const matchesSearch = text.includes(query);
+            // Simple keyword search across the entire card content
+            const matchesSearch = !query || text.includes(query);
             
             if (matchesSearch && sectionMatch) {
-              card.style.display = 'block';
+              card.style.display = 'block'; // Use block (or flex/grid if needed, but card is block-like)
               hasVisibleCardInSection = true;
               visibleCount++;
             } else {
@@ -3419,10 +3425,14 @@
           section.style.display = hasVisibleCardInSection ? 'block' : 'none';
         });
 
-        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        if (noResults) {
+          noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
       }
 
-      searchInput.addEventListener('input', filterTools);
+      if (searchInput) {
+        searchInput.addEventListener('input', filterTools);
+      }
 
       filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3433,9 +3443,10 @@
       });
 
       window.resetSearch = () => {
-        searchInput.value = '';
+        if (searchInput) searchInput.value = '';
         filterBtns.forEach(b => b.classList.remove('active'));
-        document.querySelector('[data-filter="all"]').classList.add('active');
+        const allBtn = document.querySelector('[data-filter="all"]');
+        if (allBtn) allBtn.classList.add('active');
         filterTools();
       };
 
@@ -3448,9 +3459,14 @@
         }
       });
 
-      scrollTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+      if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+      
+      // Initialize
+      filterTools();
     });
   </script>
 </body>
