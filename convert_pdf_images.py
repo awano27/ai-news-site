@@ -33,8 +33,13 @@ def convert_pdf_to_images(pdf_path, output_dir, prefix="slide"):
     return image_paths
 
 if __name__ == "__main__":
-    pdf_path = r"D:\ai-news-site-main\input\day\1124-エージェントスタック_信頼できる自律システムの設計.pdf"
-    output_dir = r"D:\ai-news-site-main\input\day\1124_slides"
+    import sys
+    if len(sys.argv) >= 3:
+        pdf_path = sys.argv[1]
+        output_dir = sys.argv[2]
+    else:
+        pdf_path = r"D:\ai-news-site-main\input\day\1128-AI開発エージェント三国志_Google_Julesの戦略.pdf"
+        output_dir = r"D:\ai-news-site-main\input\day\1128_slides"
     
     try:
         images = convert_pdf_to_images(pdf_path, output_dir)
