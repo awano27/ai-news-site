@@ -37,6 +37,7 @@ def create_slide_v2():
     }
     header {
       background: linear-gradient(135deg, #8E0000 0%, #1a0505 100%);
+    }
     """
     
     # コンテンツの生成
@@ -101,19 +102,106 @@ def create_slide_v2():
     for i in range(1, 16):
         slides_html += f'<img src="../../input/day/1209_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">\n'
     
-    # 置換実行
-    # テンプレートからヘッダー、フッター、メインコンテンツを抽出
-    head_match = re.search(r'(<!DOCTYPE html>.*?<head>.*?</head>\s*<body>\s*<div class="container">\s*<header>.*?</header>)', template, flags=re.DOTALL)
-    footer_match = re.search(r'(<footer>.*?</footer>\s*</div>\s*</body>\s*</html>)', template, flags=re.DOTALL)
-    
-    if not head_match or not footer_match:
-        raise ValueError("Template structure is not as expected. Could not find header or footer.")
+    # テンプレート（base_template.html）を読み込む
+    with open("base_template.html", "r", encoding="utf-8") as f:
+        template_html_content = f.read()
 
-    header_part = head_match.group(1)
-    footer_part = footer_match.group(1)
+    # 入力データ（12/09）
+    date_jp = "2025年12月9日"
+    date_slash = "2025/12/09"
+    date_file = "2025-12-09"
     
-    # メインコンテンツの生成 (full_main_contentは<main>タグを含まない)
-    new_main_content = f"""
+    # JSONデータの読み込み（タイトル等の取得）
+    with open(f"news/{date_file}.json", "r", encoding="utf-8") as f:
+        news_data = json.load(f)
+    
+    # item = news_data['items'][0]
+    
+    # タイトル加工
+    short_title = "China Tech Vision 2049"
+    main_title = "中国 Vision 2049: AI × BCI国家戦略"
+    subtitle = "ASI（人工超知能）と脳–機械インターフェースの完全融合"
+    
+    intro_box = """
+    <div style="background: linear-gradient(135deg, #1a0505, #8E0000); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);">
+        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;">
+            中国が描く2049年の未来像「Vision 1」は、欧米のAGI論とは一線を画します。
+        </p>
+        <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
+            国家主導のタイムライン、脳–機械インターフェース（BCI）のインフラ化、そして人間拡張（Augmentation）。「社会主義的近代化の完成形」としてのAI戦略の全貌が明らかになりました。
+        </p>
+    </div>
+    """
+    
+    highlight_box = """
+    <div class="highlight-box">
+      <p><strong>【従来のAI戦略との決定的な違い】</strong><br>
+      Big Tech主導の欧米型モデルに対し、中国は<strong>「国家安全保障」と「社会実装」</strong>を最優先。<br>
+      単なる知能の自動化ではなく、BCIを通じてAIを人間の脳に直接接続し、認知能力を物理的に拡張する「トランスヒューマン的アプローチ」を国家規模で推進しています。</p>
+    </div>
+    """
+    
+    feature_grid = """
+    <div class="card accent">
+      <h4>Vision 2049 の3つの柱</h4>
+      
+      <div class="feature-grid">
+        <div class="feature-item">
+            <span class="feature-icon">🇨🇳</span>
+            <div class="feature-title">State Driven</div>
+            <div class="feature-desc">
+                建国100周年(2049年)に向けた政治的マイルストーン。民間任せではなく、国家が「自主可控」な技術体系を整備。
+            </div>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🧠</span>
+            <div class="feature-title">BCI Infrastructure</div>
+            <div class="feature-desc">
+                脳–機械インターフェースを次世代インフラと定義。思考を直接デジタル空間へ送る「シームレスな融合」を目指す。
+            </div>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🚀</span>
+            <div class="feature-title">Human Augmentation</div>
+            <div class="feature-desc">
+                AIによる「人間の置き換え」ではなく「能力拡張」。ASI（超知能）を脳の延長として活用する独自のアプローチ。
+            </div>
+        </div>
+      </div>
+    </div>
+    """
+    
+    detail_card = """
+    <div class="card">
+        <h4>実装へのロードマップ</h4>
+        <p>2027年までにBCIの「重要技術ブレイクスルー」を達成するという産業指針が既に公表されています。半侵襲型ワイヤレス脳チップ「Beinao No.1」の臨床試験など、ビジョンは既に実験段階から実装段階へと移行しつつあります。</p>
+    </div>
+    """
+
+    # 5. スライド画像リスト (1-15)
+    slides_html = ""
+    for i in range(1, 16):
+        slides_html += f'<img src="../../input/day/1209_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">\n'
+    
+    # 配色設定 (China Red / Gold / Future Blue)
+    css_vars_block = """
+    :root {
+      --primary: #D32F2F; /* China Red */
+      --accent: #FFD700; /* Gold */
+      --accent2: #FF5252;
+      --bg-dark: #1a0505;
+      --bg-light: #fff5f5;
+      --border: #ffcdd2;
+      --text: #2c0b0e;
+      --text-light: #5c1e23;
+    }
+    header {
+      background: linear-gradient(135deg, #8E0000 0%, #1a0505 100%);
+    }
+    """
+    
+    # メインコンテンツの構築 (full_main_contentに全てを統合)
+    main_content_html = f"""
     <main>
       <!-- トップ画像 -->
       <div class="top-image-container">
@@ -176,19 +264,15 @@ def create_slide_v2():
       </section>
     </main>
     """
-    
-    html = header_part + new_main_content + footer_part # Reconstruct the HTML
-    
-    # CSS変数の置換
-    html = re.sub(r':root \{.*?\}(?=\s*\*)', css_vars, html, flags=re.DOTALL)
-    html = re.sub(r'header \{.*?background:.*?;', 'header {\n      background: linear-gradient(135deg, #8E0000 0%, #1a0505 100%);', html, flags=re.DOTALL)
-    
-    # ヘッダー情報の置換
-    html = html.replace("TRON GenAI CODEアシスタント: 組み込みAI開発の新時代", f"{short_title}: {main_title}") # Title tag
-    html = html.replace("🤖 2025年12月8日レポート | 組み込みAI開発", f"🌏 2025年12月9日レポート | 国家AI戦略")
-    html = html.replace("TRON GenAI CODEアシスタント", main_title)
-    html = html.replace("組み込みシステム開発に特化した生成AIアシスタントが登場", subtitle)
-    html = html.replace("2025年12月8日", date_jp)
+
+    # プレースホルダーを置換
+    html = template_html_content.replace("{{FULL_TITLE}}", f"{short_title}: {main_title} - {date_slash}")
+    html = html.replace("{{CSS_VARS_BLOCK}}", css_vars_block)
+    html = html.replace("{{BREAKING_BADGE_TEXT}}", f"🌏 {date_jp}レポート | 国家AI戦略")
+    html = html.replace("{{H1_TITLE}}", main_title)
+    html = html.replace("{{SUBTITLE}}", subtitle)
+    html = html.replace("{{DATE}}", date_jp)
+    html = html.replace("{{MAIN_CONTENT_HTML}}", main_content_html)
     
     # 保存
     output_path = "presentations/day_slides/day_slide_2025_12_09.html"
