@@ -102,27 +102,25 @@ def create_slide_v2():
         slides_html += f'<img src="../../input/day/1209_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">\n'
     
     # 置換実行
-    html = template
+    # テンプレートからヘッダー、フッター、メインコンテンツを抽出
+    head_match = re.search(r'(<!DOCTYPE html>.*?<head>.*?</head>\s*<body>\s*<div class="container">\s*<header>.*?</header>)', template, flags=re.DOTALL)
+    footer_match = re.search(r'(<footer>.*?</footer>\s*</div>\s*</body>\s*</html>)', template, flags=re.DOTALL)
     
-    # CSS変数の置換 (TRON設定を削除し、新しい設定を挿入)
-    html = re.sub(r':root \{.*?\}(?=\s*\*)', css_vars, html, flags=re.DOTALL)
-    html = re.sub(r'header \{.*?background:.*?;', 'header {\n      background: linear-gradient(135deg, #8E0000 0%, #1a0505 100%);', html, flags=re.DOTALL)
+    if not head_match or not footer_match:
+        raise ValueError("Template structure is not as expected. Could not find header or footer.")
+
+    header_part = head_match.group(1)
+    footer_part = footer_match.group(1)
     
-    # ヘッダー情報の置換
-    html = html.replace("TRON GenAI CODEアシスタント: 組み込みAI開発の新時代", f"{short_title}: {main_title}") # Title tag
-    html = html.replace("🤖 2025年12月8日レポート | 組み込みAI開発", f"🌏 2025年12月9日レポート | 国家AI戦略")
-    html = html.replace("TRON GenAI CODEアシスタント", main_title)
-    html = html.replace("組み込みシステム開発に特化した生成AIアシスタントが登場", subtitle)
-    html = html.replace("2025年12月8日", date_jp)
-    
-    # 画像パスの置換
-    html = html.replace("../../input/day/1208.png", "../../input/day/1209.png")
-    html = html.replace('alt="TRON GenAI CODE Assistant Visual"', 'alt="China Vision 2049 Visual"')
-    
-    # コンテンツセクションの置換
-    section_content_regex = r'(<section class="section">\s*<div class="section-header">.*?<h2>.*?</h2>\s*</div>)(.*?)(</section>)'
-    
-    new_section_content = f"""
+    # メインコンテンツの生成 (full_main_contentは<main>タグを含まない)
+    new_main_content = f"""
+    <main>
+      <!-- トップ画像 -->
+      <div class="top-image-container">
+        <img src="../../input/day/1209.png" alt="China Vision 2049 Visual">
+      </div>
+
+      <section class="section">
         <div class="section-header">
           <span class="section-icon">🔭</span>
           <h2>Vision 2049: AIと人類の融合</h2>
@@ -132,17 +130,65 @@ def create_slide_v2():
         {highlight_box}
         {feature_grid}
         {detail_card}
+      </section>
+
+      <!-- スライド資料 (全ページ) -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">📖</span>
+          <h2>スライド資料 (全ページ)</h2>
+        </div>
+        
+        <div class="download-link" style="text-align: center; margin-bottom: 24px;">
+            <a href="../../input/day/1209-China_ASI_BCI_2049_Strategy.pdf" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); text-decoration: none; color: var(--text); transition: all 0.2s ease;">
+                <span style="font-size: 1.2rem;">📄</span>
+                <span>レポート全文をダウンロード (PDF)</span>
+            </a>
+        </div>
+        
+        <div class="slides-container">
+            <!-- Slide Images -->
+            {slides_html}
+        </div>
+        
+        <style>
+            .slide-img {{
+                width: 100%;
+                max-width: 1000px;
+                height: auto;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border: 1px solid var(--border);
+                transition: transform 0.3s ease;
+            }}
+            .slide-img:hover {{
+                transform: scale(1.01);
+                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            }}
+            .slides-container {{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+                width: 100%;
+            }}
+        </style>
+      </section>
+    </main>
     """
     
-    # 最初のセクションを置換 (TRONの内容が入っている部分)
-    html = re.sub(section_content_regex, f'\1\n{new_section_content}\n\3', html, count=1, flags=re.DOTALL)
-
-    # PDFダウンロードリンクの置換
-    html = html.replace("../../input/day/1208-TRON_GenAI_The_Embedded_Coding_Revolution.pdf", "../../input/day/1209-China_ASI_BCI_2049_Strategy.pdf")
+    html = header_part + new_main_content + footer_part # Reconstruct the HTML
     
-    # スライド画像の置換
-    slides_container_regex = r'(<div class="slides-container">)(.*?)(</div>)'
-    html = re.sub(slides_container_regex, f'\1\n{slides_html}\3', html, flags=re.DOTALL)
+    # CSS変数の置換
+    html = re.sub(r':root \{.*?\}(?=\s*\*)', css_vars, html, flags=re.DOTALL)
+    html = re.sub(r'header \{.*?background:.*?;', 'header {\n      background: linear-gradient(135deg, #8E0000 0%, #1a0505 100%);', html, flags=re.DOTALL)
+    
+    # ヘッダー情報の置換
+    html = html.replace("TRON GenAI CODEアシスタント: 組み込みAI開発の新時代", f"{short_title}: {main_title}") # Title tag
+    html = html.replace("🤖 2025年12月8日レポート | 組み込みAI開発", f"🌏 2025年12月9日レポート | 国家AI戦略")
+    html = html.replace("TRON GenAI CODEアシスタント", main_title)
+    html = html.replace("組み込みシステム開発に特化した生成AIアシスタントが登場", subtitle)
+    html = html.replace("2025年12月8日", date_jp)
     
     # 保存
     output_path = "presentations/day_slides/day_slide_2025_12_09.html"
