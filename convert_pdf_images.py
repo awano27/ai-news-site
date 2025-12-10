@@ -34,10 +34,10 @@ def convert_pdf_to_images(pdf_path, output_dir, prefix="slide"):
 
 if __name__ == "__main__":
     # 変換したいPDFファイルのパス
-    pdf_path = r"input/day/1209-China_ASI_BCI_2049_Strategy.pdf"
+    pdf_path = r"input/day/1210-Open_Foundation_for_Agentic_AI.pdf"
     
     # 画像の出力先フォルダ
-    output_dir = r"input/day/1209_slides"
+    output_dir = r"input/day/1210_slides"
     
     try:
         images = convert_pdf_to_images(pdf_path, output_dir)

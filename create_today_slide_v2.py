@@ -26,9 +26,9 @@ def create_slide_v2():
     feature_grid = read_html_content("templates/daily_content/content_feature_grid_1210.html")
     detail_card = read_html_content("templates/daily_content/content_detail_card_1210.html")
     
-    # 5. スライド画像リスト (1-121)
+    # 5. スライド画像リスト (1-13)
     slides_list = []
-    for i in range(1, 122):
+    for i in range(1, 14):
         slides_list.append(f'<img src="../../input/day/1210_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">')
     slides_html = "\n".join(slides_list)
     
