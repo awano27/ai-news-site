@@ -2,6 +2,10 @@ import re
 from pathlib import Path
 import json
 
+def read_html_content(filepath):
+    with open(filepath, "r", encoding="utf-8") as f:
+        return f.read()
+
 def create_slide_v2():
     # Load base_template.html
     with open("base_template.html", "r", encoding="utf-8") as f:
@@ -12,79 +16,23 @@ def create_slide_v2():
     date_slash = "2025/12/10"
     date_file = "2025-12-10"
     
-    # Load news data
-    # with open(f"news/{date_file}.json", "r", encoding="utf-8") as f:
-    #     news_data = json.load(f)
-    
-    # item = news_data['items'][0] # Keep this commented out if not used
-
-    # Define content variables for 2025-12-10 (guessed content, USER SHOULD CONFIRM)
+    # Define content variables
     short_title = "Open Foundation for Agentic AI" 
     main_title = "自律エージェントAI基盤のオープン化"
     subtitle = "大規模言語モデルの次なる進化とエコシステム"
 
-    intro_box = """
-    <div style="background: linear-gradient(135deg, #1a0505, #8E0000); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);">
-        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;">
-            Open Foundation for Agentic AIの概要。
-        </p>
-        <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
-            大規模言語モデルの能力を最大化し、自律的な問題解決を可能にするための新しいAI基盤の発表。
-        </p>
-    </div>
-    """
+    intro_box = read_html_content("templates/daily_content/content_intro_box_1210.html")
+    highlight_box = read_html_content("templates/daily_content/content_highlight_box_1210.html")
+    feature_grid = read_html_content("templates/daily_content/content_feature_grid_1210.html")
+    detail_card = read_html_content("templates/daily_content/content_detail_card_1210.html")
     
-    highlight_box = """
-    <div class="highlight-box">
-      <p><strong>【従来のAIとの違い】</strong><br>
-      単なるツールとしてのAIではなく、自律的に目標を設定し、実行し、学習するエージェント型AIの実現を目指します。<br>
-      オープンソース化により、研究開発の加速と幅広い分野での応用を促進します。</p>
-    </div>
-    """
-    
-    feature_grid = """
-    <div class="card accent">
-      <h4>Open Foundation の3つの要素</h4>
-      
-      <div class="feature-grid">
-        <div class="feature-item">
-            <span class="feature-icon">🌐</span>
-            <div class="feature-title">Open Source</div>
-            <div class="feature-desc">
-                基盤モデル、ツール、データセットをオープンソース化し、透明性と共同開発を推進。
-            </div>
-        </div>
-        <div class="feature-item">
-            <span class="feature-icon">🧠</span>
-            <div class="feature-title">Agentic Capabilities</div>
-            <div class="feature-desc">
-                計画、推論、自己修正能力を持つAIエージェントの構築を支援。
-            </div>
-        </div>
-        <div class="feature-item">
-            <span class="feature-icon">🚀</span>
-            <div class="feature-title">Ecosystem Growth</div>
-            <div class="feature-desc">
-                開発者コミュニティを育成し、多様なアプリケーションの創出を促進。
-            </div>
-        </div>
-      </div>
-    </div>
-    """
-    
-    detail_card = """
-    <div class="card">
-        <h4>実装へのロードマップ</h4>
-        <p>初期リリースには、マルチモーダル対応のエージェントフレームワーク、セキュアな実行環境、性能評価ツールが含まれます。数ヶ月以内に主要なクラウドプラットフォームとの連携も予定されています。</p>
-    </div>
-    """
-
     # 5. スライド画像リスト (1-121)
-    slides_html = ""
+    slides_list = []
     for i in range(1, 122):
-        slides_html += f'<img src="../../input/day/1210_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">\n'
+        slides_list.append(f'<img src="../../input/day/1210_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">')
+    slides_html = "\n".join(slides_list)
     
-    # 配色設定 (China Red / Gold / Future Blue)
+    # 配色設定
     css_vars_block = """
     :root {
       --primary: #D32F2F; /* China Red */
@@ -101,70 +49,85 @@ def create_slide_v2():
     }
     """
     
-    # メインコンテンツの構築 (main_content_html)
-    main_content_html = """
-    <main>
-      <!-- トップ画像 -->
-      <div class="top-image-container">
-        <img src="../../input/day/1210.png" alt="Open Foundation for Agentic AI Visual">
-      </div>
+    # メインコンテンツの構築
+    content_parts = []
+    content_parts.append('<main>')
+    content_parts.append('  <!-- トップ画像 -->')
+    content_parts.append('  <div class="top-image-container">')
+    
+    # Image tag construction
+    img_tag_parts = []
+    img_tag_parts.append('<img src="../../input/day/1210.png" ')
+    img_tag_parts.append('alt="Open Foundation for Agentic AI Visual">')
+    content_parts.append('    ' + "".join(img_tag_parts))
+    
+    content_parts.append('  </div>')
+    
+    content_parts.append('  <section class="section">')
+    content_parts.append('    <div class="section-header">')
+    content_parts.append('      <span class="section-icon">🔭</span>')
+    content_parts.append('      <h2>Open Foundation for Agentic AI</h2>')
+    content_parts.append('    </div>')
+    content_parts.append(intro_box)
+    content_parts.append('    <h3>Open Foundation の目的と特徴</h3>')
+    content_parts.append(highlight_box)
+    content_parts.append(feature_grid)
+    content_parts.append(detail_card)
+    content_parts.append('  </section>')
 
-      <section class="section">
-        <div class="section-header">
-          <span class="section-icon">🔭</span>
-          <h2>Open Foundation for Agentic AI</h2>
-        </div>
-        """ + intro_box + """
-        <h3>Open Foundation の目的と特徴</h3>
-        """ + highlight_box + """
-        """ + feature_grid + """
-        """ + detail_card + """
-      </section>
+    content_parts.append('  <!-- スライド資料 (全ページ) -->')
+    content_parts.append('  <section class="section">')
+    content_parts.append('    <div class="section-header">')
+    content_parts.append('      <span class="section-icon">📖</span>')
+    content_parts.append('      <h2>スライド資料 (全ページ)</h2>')
+    content_parts.append('    </div>')
+    
+    content_parts.append('    <div class="download-link" style="text-align: center; margin-bottom: 24px;">')
+    
+    # PDF link construction
+    pdf_link_parts = []
+    pdf_link_parts.append('<a href="../../input/day/1210-Open_Foundation_for_Agentic_AI.pdf" target="_blank" ')
+    pdf_link_parts.append('style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); ')
+    pdf_link_parts.append('padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); ')
+    pdf_link_parts.append('text-decoration: none; color: var(--text); transition: all 0.2s ease;">')
+    content_parts.append('        ' + "".join(pdf_link_parts))
+    
+    content_parts.append('            <span style="font-size: 1.2rem;">📄</span>')
+    content_parts.append('            <span>レポート全文をダウンロード (PDF)</span>')
+    content_parts.append('        </a>')
+    content_parts.append('    </div>')
+    
+    content_parts.append('    <div class="slides-container">')
+    content_parts.append('        <!-- Slide Images -->')
+    content_parts.append(slides_html)
+    content_parts.append('    </div>')
+    
+    content_parts.append('    <style>')
+    content_parts.append('        .slide-img {')
+    content_parts.append('            width: 100%;')
+    content_parts.append('            max-width: 1000px;')
+    content_parts.append('            height: auto;')
+    content_parts.append('            border-radius: 12px;')
+    content_parts.append('            box-shadow: 0 4px 20px rgba(0,0,0,0.15);')
+    content_parts.append('            border: 1px solid var(--border);')
+    content_parts.append('            transition: transform 0.3s ease;')
+    content_parts.append('        }')
+    content_parts.append('        .slide-img:hover {')
+    content_parts.append('            transform: scale(1.01);')
+    content_parts.append('            box-shadow: 0 8px 30px rgba(0,0,0,0.2);')
+    content_parts.append('        }')
+    content_parts.append('        .slides-container {')
+    content_parts.append('            display: flex;')
+    content_parts.append('            flex-direction: column;')
+    content_parts.append('            align-items: center;')
+    content_parts.append('            gap: 24px;')
+    content_parts.append('            width: 100%;')
+    content_parts.append('        }')
+    content_parts.append('    </style>')
+    content_parts.append('  </section>')
+    content_parts.append('</main>')
 
-      <!-- スライド資料 (全ページ) -->
-      <section class="section">
-        <div class="section-header">
-          <span class="section-icon">📖</span>
-          <h2>スライド資料 (全ページ)</h2>
-        </div>
-        
-        <div class="download-link" style="text-align: center; margin-bottom: 24px;">
-            <a href="../../input/day/1210-Open_Foundation_for_Agentic_AI.pdf" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); text-decoration: none; color: var(--text); transition: all 0.2s ease;">
-                <span style="font-size: 1.2rem;">📄</span>
-                <span>レポート全文をダウンロード (PDF)</span>
-            </a>
-        </div>
-        
-        <div class="slides-container">
-            <!-- Slide Images -->
-            """ + slides_html + """
-        </div>
-        
-        <style>
-            .slide-img {
-                width: 100%;
-                max-width: 1000px;
-                height: auto;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                border: 1px solid var(--border);
-                transition: transform 0.3s ease;
-            }
-            .slide-img:hover {
-                transform: scale(1.01);
-                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            }
-            .slides-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 24px;
-                width: 100%;
-            }
-        </style>
-      </section>
-    </main>
-    """
+    main_content_html = "\n".join(content_parts)
 
     # プレースホルダーを置換
     html = template_html_content.replace("{{FULL_TITLE}}", f"{short_title}: {main_title} - {date_slash}")
@@ -176,7 +139,7 @@ def create_slide_v2():
     html = html.replace("{{MAIN_CONTENT_HTML}}", main_content_html)
     
     # 保存
-    output_path = "presentations/day_slides/day_slide_2025_12_10.html" # Output file name for 12/10
+    output_path = "presentations/day_slides/day_slide_2025_12_10.html"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
         
