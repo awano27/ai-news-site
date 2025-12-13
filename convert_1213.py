@@ -30,7 +30,7 @@ def convert_pdf_to_images(pdf_path, output_dir, prefix="slide"):
     return image_paths
 
 if __name__ == "__main__":
-    pdf_path = r"input/day/1213-Workflow_Redefined.pdf"
+    pdf_path = r"input/day/1213-Code_Transformation_Cost.pdf"
     output_dir = r"input/day/1213_slides"
     
     try:
