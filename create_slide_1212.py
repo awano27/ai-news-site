@@ -183,7 +183,7 @@ def create_slide_1212():
     
     # PDF link construction
     pdf_link_parts = []
-    pdf_link_parts.append('<a href="../../input/day/1212-GPT-5.2_業務エンジンへの進化.pdf" target="_blank" ') # Escaped quotes here
+    pdf_link_parts.append('<a href="../../input/day/1212-GPT-5.2-Business-Engine.pdf" target="_blank" ') # Escaped quotes here
     pdf_link_parts.append('style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); ') # Escaped quote here
     pdf_link_parts.append('padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); ') # Escaped quote here
     pdf_link_parts.append('text-decoration: none; color: var(--text); transition: all 0.2s ease;">') # Escaped quote here
