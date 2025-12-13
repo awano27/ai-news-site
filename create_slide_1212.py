@@ -16,9 +16,9 @@ def create_slide_1212():
     date_slash = "2025/12/12"
     
     # Define content variables from 1212.txt
-    short_title = "GPT-5.2 解説" 
-    main_title = "OpenAI最新モデル「GPT-5.2」徹底解説"
-    subtitle = "専門家レベルのAIパートナーの登場：何が変わり、何が可能になったのか"
+    short_title = "GPT-5.2 業務エンジン" 
+    main_title = "GPT-5.2：知識労働を加速する「業務エンジン」への進化"
+    subtitle = "調査・分析・資料化・実装支援を統合し、知的生産性を刷新する"
 
     # HTML Parts Construction
     
@@ -26,95 +26,99 @@ def create_slide_1212():
     intro_box = """
     <div style=\"background: linear-gradient(135deg, #000000, #10a37f); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);\">
         <p style=\"font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;\">
-            AIは「ツール」から「パートナー」へ
+            AIは「ツール」から「業務エンジン」へ
         </p>
         <p style=\"font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;\">
-            2025年12月11日発表の「GPT-5.2」は、単なる性能向上モデルではありません。
-            実務能力を測る新指標「GDPval」で史上初めて人間の専門家レベルに到達し、
-            ビジネスの現場におけるAIの役割を根本から変えようとしています。
+            GPT-5.2は単なる便利なチャットAIではなく、調査・分析・資料化・実装といった「知識労働」をまとめて加速するための「業務エンジン」です。
+            意思決定と実行のスピードを劇的に上げ、競合に対する構造的な優位性を構築します。
         </p>
     </div>
     """
 
-    # Highlight Box (GDPval)
+    # Highlight Box (3つの価値)
     highlight_box = """
     <div class="highlight-box" style="background-color: #f0fdf4; border-left: 5px solid #10a37f; padding: 24px; margin-bottom: 32px; border-radius: 8px;">
       <h3 style="color: #0d8a6a; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; font-size: 1.4rem;">
-         <span style="font-size: 1.8rem; margin-right: 10px;">📈</span>
-         衝撃の新指標「GDPval」
+         <span style="font-size: 1.8rem; margin-right: 10px;">🚀</span>
+         GPT-5.2がもたらす3つの核心的価値
       </h3>
-      <p style="font-size: 1.1rem; line-height: 1.8; color: #202123;">
-        実際の経済活動に貢献する専門的タスク遂行能力において、GPT-5.2は勝率<strong>70.9%</strong>を記録。
-        これはAI史上初めて、広範な知識労働タスクにおいて<strong>「人間の専門家レベル」</strong>に到達したことを意味します。
-        しかも、人間の11倍以上の速度、1/100未満のコストで実行可能です。
-      </p>
+      <ul style="font-size: 1.1rem; line-height: 1.8; color: #202123; list-style: none; padding: 0;">
+        <li style="margin-bottom: 12px;"><strong>1. 統合と整理：</strong> 長文や複数資料（契約書、仕様書等）を横断的に解析し、要点や論点を短時間で抽出。</li>
+        <li style="margin-bottom: 12px;"><strong>2. 直結する資料化：</strong> 調査結果をそのままスライドや表計算のたたき台へ。企画から資料化までのリードタイムを圧縮。</li>
+        <li><strong>3. リスク管理と最大化：</strong> 信頼性は向上したが、「人の検証」を前提とした運用でリスクを抑えつつ効果を最大化。</li>
+      </ul>
     </div>
     """
 
-    # Feature Grid (3つの進化点)
+    # Feature Grid (部門別メリット)
     feature_grid = """
     <div class="card accent" style="background: white; border: 1px solid var(--border); border-top: 4px solid var(--primary); border-radius: 16px; padding: 24px; margin-bottom: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-      <h4 style="margin-bottom: 20px; font-size: 1.3rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px;">GPT-5.2の核心的な3つの進化</h4>
+      <h4 style="margin-bottom: 20px; font-size: 1.3rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px;">部門別・活用インパクト</h4>
       
       <div class="feature-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
         <div class="feature-item" style="padding: 20px; background: var(--bg-light); border-radius: 12px; text-align: center; border: 1px solid var(--border);">
-            <span class="feature-icon" style="font-size: 2.5rem; display: block; margin-bottom: 12px;">🛡️</span>
-            <div class="feature-title" style="font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">信頼性の飛躍</div>
+            <span class="feature-icon" style="font-size: 2.5rem; display: block; margin-bottom: 12px;">📊</span>
+            <div class="feature-title" style="font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">企画・マーケ・財務</div>
             <div class="feature-desc" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-light); text-align: left;">
-                幻覚（ハルシネーション）を30%削減。金融や法務など、正確性が求められる分野での実務利用が現実に。
-            </div>
-        </div>
-        <div class="feature-item" style="padding: 20px; background: var(--bg-light); border-radius: 12px; text-align: center; border: 1px solid var(--border);">
-            <span class="feature-icon" style="font-size: 2.5rem; display: block; margin-bottom: 12px;">📚</span>
-            <div class="feature-title" style="font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">圧倒的な長文処理</div>
-            <div class="feature-desc" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-light); text-align: left;">
-                256kトークンでほぼ100%の精度を達成。書籍一冊分のレポートや複雑な契約書も一括で正確に解析。
+                市場・競合整理、提案書や稟議骨子の作成、モデル草案などで作業の初速を最大化。
             </div>
         </div>
         <div class="feature-item" style="padding: 20px; background: var(--bg-light); border-radius: 12px; text-align: center; border: 1px solid var(--border);">
             <span class="feature-icon" style="font-size: 2.5rem; display: block; margin-bottom: 12px;">💻</span>
-            <div class="feature-title" style="font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">最強のコーディング</div>
+            <div class="feature-title" style="font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">開発・IT</div>
             <div class="feature-desc" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-light); text-align: left;">
-                SWE-Benchで80%の新記録。バグ修正からリファクタリングまで、自律的な開発パートナーとして機能。
+                設計検討、実装案作成、リファクタリング支援により、開発リードタイムを大幅短縮。
+            </div>
+        </div>
+        <div class="feature-item" style="padding: 20px; background: var(--bg-light); border-radius: 12px; text-align: center; border: 1px solid var(--border);">
+            <span class="feature-icon" style="font-size: 2.5rem; display: block; margin-bottom: 12px;">⚖️</span>
+            <div class="feature-title" style="font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">法務・知財・R&D</div>
+            <div class="feature-desc" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-light); text-align: left;">
+                契約横断レビュー、論文大量要約、リスク条項抽出など、高負荷タスクを効率化。
             </div>
         </div>
       </div>
     </div>
     """
 
-    # Detail Card (Gemini比較)
+    # Detail Card (推奨90日プラン)
     detail_card = """
     <div class="card" style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
         <h3 style="margin-bottom: 20px; color: var(--text); display: flex; align-items: center;">
             <span style="width: 6px; height: 24px; background: var(--primary); margin-right: 10px; border-radius: 3px;"></span>
-            競合モデルとの使い分け
+            推奨：成果を出すための「90日プラン」
         </h3>
         
         <p style="margin-bottom: 20px; line-height: 1.7;">
-            最大のライバルであるGoogleの<strong>Gemini 3 Pro</strong>とは設計思想が異なります。
-            目的や利用シーンに応じて最適なモデルを選択することが、生産性最大化の鍵となります。
+            知的生産プロセスを刷新し、確実に成果につなげるための導入ステップです。
         </p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; border: 1px solid #bbf7d0;">
-                <h4 style="color: #15803d; margin-bottom: 10px; border-bottom: 1px solid #bbf7d0; padding-bottom: 5px;">OpenAI GPT-5.2</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 8px;">✅ <strong>会話の自然さ・創造性</strong></li>
-                    <li style="margin-bottom: 8px;">✅ <strong>インタラクティブな応答速度</strong></li>
-                    <li style="margin-bottom: 8px;">✅ <strong>プラグイン・API連携の柔軟さ</strong></li>
-                    <li style="font-size: 0.9rem; color: #166534;">👉 アイデア創出、コーディング支援、対話型学習に最適</li>
-                </ul>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;">
+            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid #10a37f; display: flex; align-items: flex-start;">
+                <div style="background: #10a37f; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; flex-shrink: 0;">1</div>
+                <div>
+                    <h4 style="margin: 0 0 5px 0; color: #202123;">優先業務の選定</h4>
+                    <p style="margin: 0; font-size: 0.95rem; color: #666;">頻度が高く工数が重い業務を3件選び、優先順位を設定。</p>
+                </div>
             </div>
-            <div style="background: #eff6ff; padding: 16px; border-radius: 8px; border: 1px solid #bfdbfe;">
-                <h4 style="color: #1d4ed8; margin-bottom: 10px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px;">Google Gemini 3 Pro</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 8px;">✅ <strong>情報統合力・正確性</strong></li>
-                    <li style="margin-bottom: 8px;">✅ <strong>超長文処理 (100万トークン~)</strong></li>
-                    <li style="margin-bottom: 8px;">✅ <strong>Googleエコシステム連携</strong></li>
-                    <li style="font-size: 0.9rem; color: #1e40af;">👉 技術文書作成、大規模データ分析、リサーチに最適</li>
-                </ul>
+             <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid #10a37f; display: flex; align-items: flex-start;">
+                <div style="background: #10a37f; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; flex-shrink: 0;">2</div>
+                <div>
+                    <h4 style="margin: 0 0 5px 0; color: #202123;">PoC（概念実証）- 2週間</h4>
+                    <p style="margin: 0; font-size: 0.95rem; color: #666;">品質・工数・再現性・リスクを数字と具体例で評価。</p>
+                </div>
+            </div>
+             <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid #10a37f; display: flex; align-items: flex-start;">
+                <div style="background: #10a37f; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; flex-shrink: 0;">3</div>
+                <div>
+                    <h4 style="margin: 0 0 5px 0; color: #202123;">ガバナンスと標準化</h4>
+                    <p style="margin: 0; font-size: 0.95rem; color: #666;">運用ルール（権限、監査、レビュー）を整備し、テンプレート化して展開。</p>
+                </div>
             </div>
         </div>
+        <p style="font-size: 0.95rem; background: #eff6ff; padding: 12px; border-radius: 6px; color: #1e40af; border: 1px solid #bfdbfe;">
+            💡 <strong>Point:</strong> 「作業を少し早くする」のではなく、「プロセスそのものを短縮する」ことを目指しましょう。
+        </p>
     </div>
     """
     
@@ -179,7 +183,7 @@ def create_slide_1212():
     
     # PDF link construction
     pdf_link_parts = []
-    pdf_link_parts.append('<a href="../../input/day/1212-GPT-52_The_Human_Expert_AI.pdf" target="_blank" ') # Escaped quotes here
+    pdf_link_parts.append('<a href="../../input/day/1212-GPT-5.2_業務エンジンへの進化.pdf" target="_blank" ') # Escaped quotes here
     pdf_link_parts.append('style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); ') # Escaped quote here
     pdf_link_parts.append('padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); ') # Escaped quote here
     pdf_link_parts.append('text-decoration: none; color: var(--text); transition: all 0.2s ease;">') # Escaped quote here
