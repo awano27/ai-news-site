@@ -1,0 +1,461 @@
+import os
+
+template = """<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Workspace Studio: ノーコードでエージェント開発 - 2025/12/04</title>
+  <style>
+    :root {
+      --microsoft-blue: #0078D4; /* Business Blue */
+      --microsoft-cyan: #50E6FF;
+      --microsoft-orange: #FFB900;
+      --microsoft-green: #107C10;
+      --primary: #0078D4;
+      --accent: #004578;
+      --accent2: #FFB900;
+      --accent3: #107C10;
+      --bg-dark: #1a1512;
+      --bg-light: #f5f9fd;
+      --border: #e1dfdd;
+      --text: #323130;
+      --text-light: #605e5c;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--microsoft-blue) 0%, var(--bg-light) 50%, white 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    header {
+      background: linear-gradient(135deg, var(--microsoft-blue) 0%, var(--accent) 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(45deg,
+          transparent,
+          transparent 10px,
+          rgba(255, 255, 255, 0.05) 10px,
+          rgba(255, 255, 255, 0.05) 20px);
+      animation: slide 30s linear infinite;
+    }
+
+    @keyframes slide {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(50px, 50px);
+      }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .date {
+      font-size: 1rem;
+      opacity: 0.85;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* メインコンテンツ */
+    main {
+      padding: 48px;
+    }
+
+    .top-image-container {
+      text-align: center;
+      margin-bottom: 48px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .top-image-container img {
+      width: 100%;
+      height: auto;
+      max-width: 1000px;
+      object-fit: contain;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .section-icon {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    /* リンク */
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    
+    .highlight-box {
+      background-color: #f0f8ff;
+      border-left: 5px solid var(--primary);
+      padding: 24px;
+      margin-bottom: 32px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card.accent {
+      border-top: 4px solid var(--accent);
+    }
+    
+    .card h4 {
+        color: var(--primary);
+        font-size: 1.4rem;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 40px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    h3::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 32px;
+        background: var(--primary);
+        margin-right: 12px;
+        border-radius: 4px;
+    }
+
+    /* 3-column feature grid */
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .feature-item {
+        background: var(--bg-light);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid var(--border);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .feature-title {
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        color: var(--primary);
+    }
+
+    .feature-desc {
+        font-size: 0.95rem;
+        color: var(--text-light);
+        text-align: left;
+    }
+
+    /* フッター */
+    footer {
+      background: var(--bg-dark);
+      color: white;
+      padding: 32px 48px;
+      text-align: center;
+    }
+
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        body {
+          padding: 0;
+        }
+
+        .container {
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        header {
+          padding: 32px 20px;
+        }
+
+        h1 {
+          font-size: 1.6rem;
+        }
+
+        .subtitle {
+          font-size: 1rem;
+        }
+
+        .breaking-badge {
+          font-size: 0.9rem;
+          padding: 6px 16px;
+        }
+
+        main {
+          padding: 24px 20px;
+        }
+
+        footer {
+          padding: 24px;
+        }
+      }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="breaking-badge">🤖 2025年12月4日レポート | 業務自動化</div>
+      <h1>Google Workspace Studio</h1>
+      <p class="subtitle">コーディング不要で自社向けエージェントを設計／展開可能に</p>
+      <p class="date">2025年12月4日</p>
+    </header>
+
+    <main>
+      <!-- トップ画像 -->
+      <div class="top-image-container">
+        <img src="../../input/day/1204.png" alt="Google Workspace Studio Visual">
+      </div>
+      
+      <!-- 説明文 -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🛠️</span>
+          <h2>ノーコードで「自社専用エージェント」を作る時代へ</h2>
+        </div>
+
+        <div style="background: linear-gradient(135deg, var(--microsoft-blue), var(--accent)); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0, 120, 212, 0.25); font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;">
+            <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;">
+                Googleは2025年12月、Workspace内で動作する「AIエージェント」をデザイン・管理・共有できる「Workspace Studio」の一般提供を開始しました。
+            </p>
+            <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
+                コーディング知識ゼロでも、数分で業務特化型エージェントを構築可能。Gemini 3を基盤とし、GmailやDocsと深く連携します。
+            </p>
+        </div>
+        
+        <h3>主な機能とインパクト</h3>
+        
+        <div class="highlight-box">
+          <p><strong>【誰でも開発者に】</strong><br>
+          メール整理、ドキュメント要約、会議メモ作成、タスク割り当てなど、<strong>自社の業務フローに完全に合わせたエージェント</strong>を直感的なUIで作成できます。<br>
+          「ノーコード／低コード」での業務自動化が加速し、現場レベルでのAI活用が一気に進む可能性があります。</p>
+        </div>
+
+        <div class="card accent">
+          <h4>特徴まとめ</h4>
+          
+          <div class="feature-grid">
+            <div class="feature-item">
+                <span class="feature-icon">⚡</span>
+                <div class="feature-title">No-Code Design</div>
+                <div class="feature-desc">
+                    プログラミング不要。直感的なインターフェースで、誰もが数分でカスタムエージェントを設計・展開できます。
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔗</span>
+                <div class="feature-title">Deep Integration</div>
+                <div class="feature-desc">
+                    Gmail, Docs, Sheets, Driveなど、Google Workspaceの主要アプリとシームレスに統合・連携します。
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🧠</span>
+                <div class="feature-title">Powered by Gemini 3</div>
+                <div class="feature-desc">
+                    バックエンドでは最新のGemini 3モデルが稼働。高度な推論能力で複雑なタスクも自律的に処理します。
+                </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+            <h4>今後の展望</h4>
+            <p>「Figma ⇄ AI」や「ワークフロー自動化 ⇄ コスト最適化」といった文脈において、このツールは強力なピースとなります。自社カスタムAIエージェントの展開ハードルが劇的に下がることで、企業の生産性向上戦略は新たなフェーズに入ります。</p>
+        </div>
+      </section>
+
+      <!-- スライド資料 (全ページ) -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">📖</span>
+          <h2>スライド資料 (全ページ)</h2>
+        </div>
+        
+        <div class="download-link" style="text-align: center; margin-bottom: 24px;">
+            <a href="../../input/day/1204-Workspace_Studio_Autonomous_Work_Orchestration.pdf" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); text-decoration: none; color: var(--text); transition: all 0.2s ease;">
+                <span style="font-size: 1.2rem;">📄</span>
+                <span>レポート全文をダウンロード (PDF)</span>
+            </a>
+        </div>
+        
+        <div class="slides-container">
+            <!-- Slide Images -->
+            <img src="../../input/day/1204_slides/slide_001.jpg" alt="Slide 1" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_002.jpg" alt="Slide 2" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_003.jpg" alt="Slide 3" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_004.jpg" alt="Slide 4" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_005.jpg" alt="Slide 5" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_006.jpg" alt="Slide 6" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_007.jpg" alt="Slide 7" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_008.jpg" alt="Slide 8" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_009.jpg" alt="Slide 9" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_010.jpg" alt="Slide 10" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_011.jpg" alt="Slide 11" class="slide-img">
+            <img src="../../input/day/1204_slides/slide_012.jpg" alt="Slide 12" class="slide-img">
+        </div>
+        
+        <style>
+            .slide-img {
+                width: 100%;
+                max-width: 1000px;
+                height: auto;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border: 1px solid var(--border);
+                transition: transform 0.3s ease;
+            }
+            .slide-img:hover {
+                transform: scale(1.01);
+                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            }
+            .slides-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+                width: 100%;
+            }
+        </style>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>&copy; 2025 AI News Archive | このスライドは教育目的で作成されています</p>
+    </footer>
+  </div>
+</body>
+
+</html>"""
+
+with open('presentations/day_slides/day_slide_2025_12_04.html', 'w', encoding='utf-8') as f:
+    f.write(template)
+print("Slide created successfully")
