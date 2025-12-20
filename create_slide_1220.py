@@ -108,8 +108,8 @@ def create_slide_1220():
     # I'll use a loop that checks file existence or just a safe range like 15.
     
     slides_list = []
-    # 1220.pdf has 23 pages
-    for i in range(1, 24):
+    # 1220.pdf has 18 pages
+    for i in range(1, 19):
         slides_list.append(f'<img src="../../input/day/1220_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">')
     slides_html = "\n".join(slides_list)
     
@@ -174,7 +174,7 @@ def create_slide_1220():
     
     # PDF link construction
     pdf_link_parts = []
-    pdf_link_parts.append('<a href="../../input/day/1220-Agent_Skills_Workflow_Design.pdf" target="_blank" ')
+    pdf_link_parts.append('<a href="../../input/day/1220-Agent_Skills_知識を資産に変える.pdf" target="_blank" ')
     pdf_link_parts.append('style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-light); ')
     pdf_link_parts.append('padding: 12px 24px; border-radius: 999px; border: 1px solid var(--border); ')
     pdf_link_parts.append('text-decoration: none; color: var(--text); transition: all 0.2s ease;">')

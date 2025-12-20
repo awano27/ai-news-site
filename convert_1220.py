@@ -34,7 +34,7 @@ def convert_pdf_to_images(pdf_path, output_dir, prefix="slide"):
 
 if __name__ == "__main__":
     # 変換したいPDFファイルのパス
-    pdf_path = r"input/day/1220-Agent_Skills_Workflow_Design.pdf"
+    pdf_path = r"input/day/1220-Agent_Skills_知識を資産に変える.pdf"
     
     # 画像の出力先フォルダ
     output_dir = r"input/day/1220_slides"
