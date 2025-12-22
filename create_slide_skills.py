@@ -26,7 +26,7 @@ def create_slide_skills():
     intro_box = """
     <div style="background: linear-gradient(135deg, #0f9d58, #0b8043); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);">
         <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;">
-            効率的で一貫性のある情報発信のために
+            AIは「応答」から「実行」のフェーズへ
         </p>
         <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
             このスキルは、特定の日のAIニュース情報を基に、ウェブサイト用のスライドHTMLを生成し、インデックスを更新してGitに成果物を反映させるための標準的な手順を定義します。
@@ -38,8 +38,8 @@ def create_slide_skills():
     highlight_box = """
     <div style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
         <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 1.4rem;">🛠️</span>
-            ワークフローの3つの柱
+            <span style="font-size: 1.4rem;">🚀</span>
+            ワークフローの3つの核心価値
         </h4>
         <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;">
             <li style="display: flex; gap: 12px; align-items: start;">
@@ -82,7 +82,7 @@ def create_slide_skills():
     detail_card = """
     <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 32px;">
         <div style="background: #0f9d58; color: white; padding: 16px 24px;">
-            <h3 style="margin: 0; font-size: 1.2rem; color: white;">運用上の注意点</h3>
+            <h3 style="margin: 0; font-size: 1.2rem; color: white;">展望：スキルが拓く実務の自律化</h3>
         </div>
         <div style="padding: 24px;">
             <div style="margin-bottom: 20px;">
@@ -97,7 +97,7 @@ def create_slide_skills():
     </div>
     """
     
-    # 5. スライド画像リスト (Skills slide doesn't have specific images, so we show a placeholder or just skip)
+    # 5. スライド画像リスト
     slides_html = '<p style="text-align: center; color: var(--text-light);">このスキルガイドには個別のスライド画像はありません。</p>'
     
     # 配色設定 (Gemma Green theme)
@@ -114,7 +114,7 @@ def create_slide_skills():
       --tron-black: #000000;
     }
     header {
-        background: linear-gradient(135deg, #0f9d58 0%, #34a853 100%);
+        background: linear-gradient(135deg, var(--tron-black) 0%, #000000 100%);
     }
     h3::before {
         background: var(--primary);
@@ -127,6 +127,10 @@ def create_slide_skills():
     # メインコンテンツの構築
     content_parts = []
     content_parts.append('<main>')
+    content_parts.append('  <div class="top-image-container">')
+    content_parts.append('    <img src="https://via.placeholder.com/1200x600?text=Daily+AI+News+Slide+Generation+Skill" alt="Skill Visual">')
+    content_parts.append('  </div>')
+    
     content_parts.append('  <section class="section">')
     content_parts.append('    <div class="section-header">')
     content_parts.append('      <span class="section-icon">🔗</span>')
