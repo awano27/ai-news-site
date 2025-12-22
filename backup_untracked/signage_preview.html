@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイネージ画面プレビュー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "helvetica neue", "biz udpgothic", arial, "hiragino kaku gothic pron", meiryo, "hiragino sans", sans-serif;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+        }
+
+        .signage-page {
+            width: 100vw;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* 上部案内文 */
+        .signage-instruction {
+            text-align: center;
+            color: #212529;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            padding: 0;
+        }
+
+        /* 予約メニュー情報バー */
+        .reservation-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .reservation-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #212529;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .nav-arrow {
+            color: #999999;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .time-slot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #212529;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        /* メインコンテンツ */
+        .signage-content {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        /* カード共通 */
+        .signage-card {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            min-width: 400px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .signage-card .card-title-bar {
+            background: #296EC6;
+            color: #ffffff;
+            padding: 20px 30px;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .signage-card .card-content {
+            background: #B3D9E6;
+            padding: 60px 80px;
+            text-align: center;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .signage-card .number {
+            font-size: 140px;
+            font-weight: 700;
+            color: #333333;
+            line-height: 1;
+        }
+
+        .signage-card .unit {
+            font-size: 40px;
+            color: #333333;
+            font-weight: 500;
+        }
+
+        /* フッター */
+        .signage-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .notice {
+            color: #212529;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+        }
+
+        .datetime {
+            color: #212529;
+            font-size: 20px;
+            font-weight: 500;
+            text-align: right;
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="signage-page" id="signagePage">
+        <!-- 上部案内文 -->
+        <div class="signage-instruction">
+            お持ちの番号が左側に表示されましたら、診察室へお入りください。
+        </div>
+
+        <!-- 予約メニュー情報バー -->
+        <div class="reservation-header-bar">
+            <div class="reservation-menu">
+                <span class="nav-arrow">&lt;</span>
+                <span>予約メニュー</span>
+                <span class="nav-arrow">&gt;</span>
+            </div>
+            <div class="time-slot">
+                <span class="nav-arrow">&lt;</span>
+                <span>9:00 - 12:00</span>
+                <span class="nav-arrow">&gt;</span>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="signage-content">
+            <!-- 診察中呼出番号 -->
+            <div class="signage-card">
+                <div class="card-title-bar">診察中呼出番号</div>
+                <div class="card-content">
+                    <span class="number">9</span>
+                    <span class="unit">番</span>
+                </div>
+            </div>
+
+            <!-- 診察待ち人数 -->
+            <div class="signage-card">
+                <div class="card-title-bar">診察待ち人数</div>
+                <div class="card-content">
+                    <span class="number">10</span>
+                    <span class="unit">名</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- フッター -->
+        <div class="signage-footer">
+            <p class="notice">
+                ※診察内容によって順番が前後する場合がございますがご了承ください。
+            </p>
+        </div>
+
+        <!-- 日時 -->
+        <div class="datetime" id="datetime">
+            2025/11/12 11:50
+        </div>
+    </div>
+
+    <script>
+        // 日時を更新
+        function updateDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('datetime').textContent = `${year}/${month}/${day} ${hours}:${minutes}`;
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    </script>
+</body>
+</html>

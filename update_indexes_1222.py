@@ -4,7 +4,7 @@ from pathlib import Path
 def update_indexes_1222():
     today_str = "2025-12-22"
     date_slash = "2025/12/22"
-    title = "国産AI 3兆円プロジェクト：政府・企業連合による国家戦略"
+    title = "国産AI 3兆円プロジェクト：政府・企業連合による国家戦略の徹底解説"
     
     # 1. Update day_slides_index.html
     index_path = Path("presentations/day_slides_index.html")
