@@ -28,6 +28,6 @@ def convert_pdf_to_images(pdf_path, output_dir):
     pdf.close()
 
 if __name__ == "__main__":
-    pdf_file = "input/day/1223-Agent_Skills_The_New_AI_Assets.pdf"
+    pdf_file = "input/day/1223-Context_Engineering (1).pdf"
     output_folder = "input/day/1223_slides"
     convert_pdf_to_images(pdf_file, output_folder)

@@ -126,10 +126,10 @@ def create_slide_1223():
       <section class="section">
         <div class="section-header">
           <span class="section-icon">📖</span>
-          <h2>スライド資料 (全21ページ)</h2>
+          <h2>スライド資料 (全23ページ)</h2>
         </div>
         <div class="slides-container">
-          {"".join([f'<img src="../../input/day/1223_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">' for i in range(1, 22)])}
+          {"".join([f'<img src="../../input/day/1223_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">' for i in range(1, 24)])}
         </div>
       </section>
     </main>
