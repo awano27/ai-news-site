@@ -18,9 +18,9 @@ def create_slide_1224():
     date_slash = "2025/12/24"
     
     # Define content variables
-    short_title = "AGI Frontier 2025" 
-    main_title = "AGI Frontier 2025 Status Report"
-    subtitle = "汎用人工知能への道のりと現在地：最新ステータス報告"
+    short_title = "AGI Now" 
+    main_title = "Exponential Acceleration"
+    subtitle = "指数関数的な加速とAGIの現在地"
 
     # CSS Variables for "AGI Blue" theme
     css_vars = """
@@ -110,7 +110,7 @@ def create_slide_1224():
     main_content = f"""
     <main>
       <div class="top-image-container">
-        <img src="../../input/day/1224.jpg" alt="AGI Frontier 2025 Visual" onerror="this.src='https://via.placeholder.com/1200x600?text=1224+AGI+Frontier'">
+        <img src="../../input/day/1224.jpg" alt="AGI Frontier 2025 Visual" onerror="this.src='https://placehold.co/1200x600?text=1224+AGI+Frontier'">
       </div>
       <section class="section">
         <div class="section-header">
