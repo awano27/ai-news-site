@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 def create_slide_1226():
@@ -93,23 +94,32 @@ def create_slide_1226():
       <section class="section">
         <div class="section-header">
           <span class="section-icon">📖</span>
-          <h2>スライド資料 (全14ページ)</h2>
+          <h2>スライド資料 (全15ページ)</h2>
         </div>
         <div class="slides-container">
-          {"".join([f'<img src="../../input/day/1226_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">' for i in range(1, 15)])}
+          {"".join([f'<img src="../../input/day/1226_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">' for i in range(1, 16)])}
         </div>
       </section>
     </main>
     """
 
-    # Replace placeholders
-    html_content = template_html_content.replace("{{ CSS_VARS_BLOCK }}", css_vars)
-    html_content = html_content.replace("{ { CSS_VARS_BLOCK } }", css_vars) # Handle potential double spacing
-    html_content = html_content.replace("{{ TITLE }}", title)
-    html_content = html_content.replace("{{ DATE }}", date_slash)
-    html_content = html_content.replace("{{ BREAKING_BADGE }}", f"🚀 {date_slash} レポート | {short_title}")
-    html_content = html_content.replace("{{ SUBTITLE }}", "指示するAIから、自律するオーナーへの進化")
-    html_content = html_content.replace("{{ MAIN_CONTENT }}", main_content)
+    # Replace placeholders to match base_template.html
+    html_content = template_html_content
+    
+    # Handle the weirdly formatted CSS block
+    css_placeholder = "{\n        {\n        CSS_VARS_BLOCK\n      }\n    }"
+    if css_placeholder in html_content:
+        html_content = html_content.replace(css_placeholder, css_vars)
+    else:
+        # Fallback for other variations
+        html_content = re.sub(r'\{\s*\{\s*CSS_VARS_BLOCK\s*\}\s*\}', css_vars, html_content)
+
+    html_content = html_content.replace("{{FULL_TITLE}}", title)
+    html_content = html_content.replace("{{H1_TITLE}}", title)
+    html_content = html_content.replace("{{DATE}}", date_slash)
+    html_content = html_content.replace("{{BREAKING_BADGE_TEXT}}", f"🚀 {date_slash} レポート | {short_title}")
+    html_content = html_content.replace("{{SUBTITLE}}", "指示するAIから、自律するオーナーへの進化")
+    html_content = html_content.replace("{{MAIN_CONTENT_HTML}}", main_content)
 
     # Output path
     output_filename = f"day_slide_{today_str.replace('-', '_')}.html"
