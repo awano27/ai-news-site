@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 def create_slide_1226():
-    # Load base_template.html
+    # SKILL WORKFLOW: Load base_template.html
     template_path = "base_template.html"
     if not os.path.exists(template_path):
         print(f"Template not found: {template_path}")
@@ -11,7 +11,7 @@ def create_slide_1226():
     with open(template_path, "r", encoding="utf-8") as f:
         template_html_content = f.read()
 
-    # Content for 12/26
+    # Content for 12/26 - Refined after PDF review
     today_str = "2025-12-26"
     date_slash = "2025/12/26"
     title = "AIプロジェクト管理の革命：指示するAIから、自律するオーナーへ (AIPO)"

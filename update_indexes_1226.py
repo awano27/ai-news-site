@@ -5,7 +5,7 @@ from pathlib import Path
 def update_indexes_1226():
     today_str = "2025-12-26"
     date_slash = "2025/12/26"
-    title = "AIPO: Autonomous Project Owner — AI時代の新・意思決定"
+    title = "AIプロジェクト管理の革命：指示するAIから、自律するオーナーへ (AIPO)"
     
     # URL friendly name (matching create_slide_1226.py output)
     slide_filename = f"day_slide_{today_str.replace('-', '_')}.html"
@@ -19,7 +19,7 @@ def update_indexes_1226():
         new_li = f'        <li><a href="day_slides/{slide_filename}" aria-describedby="slide-{today_str}"><span class="date">{date_slash}</span><span class="slide-title">{title}</span></a></li>'
         
         if slide_filename not in content:
-            # Insert after the first <ul> with class "slides"
+            # SKILL WORKFLOW: Insert at the top of the list
             content = re.sub(r'(<ul class="slides">\s*)', f'\\1{new_li}\\n', content)
             with open(index_path, 'w', encoding='utf-8') as f:
                 f.write(content)
@@ -40,7 +40,7 @@ def update_indexes_1226():
       </a>'''
 
         if slide_filename not in content:
-            # Insert into '12月分' section
+            # SKILL WORKFLOW: Add to '12月分' card section
             if '<!-- 12月分 -->' in content:
                 content = content.replace('<!-- 12月分 -->', f'<!-- 12月分 -->{new_card}')
             elif '<div class="slides-grid">' in content:

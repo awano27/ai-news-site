@@ -25,7 +25,8 @@ def convert_pdf_to_images(pdf_path, output_dir):
     pdf.close()
 
 if __name__ == "__main__":
-    pdf_file = "input/day/1226-AIPO_Autonomous_Project_Owner.pdf"
+    # SKILL WORKFLOW: Use current date and correct PDF name
+    pdf_file = "input/day/1226-AIPO_AI_Product_Owner.pdf"
     output_folder = "input/day/1226_slides"
     
     if os.path.exists(pdf_file):
