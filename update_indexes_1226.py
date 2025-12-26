@@ -5,7 +5,7 @@ from pathlib import Path
 def update_indexes_1226():
     today_str = "2025-12-26"
     date_slash = "2025/12/26"
-    title = "AIプロジェクト管理の革命：指示するAIから、自律するオーナーへ (AIPO)"
+    title = "AIPO: AI Product Owner — ゴールを託すだけで、プロジェクトは自ら動き出す"
     
     # URL friendly name (matching create_slide_1226.py output)
     slide_filename = f"day_slide_{today_str.replace('-', '_')}.html"

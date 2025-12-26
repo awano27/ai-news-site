@@ -12,11 +12,11 @@ def create_slide_1226():
     with open(template_path, "r", encoding="utf-8") as f:
         template_html_content = f.read()
 
-    # Content for 12/26 - Refined after PDF review
+    # Content for 12/26 - Updated for AI Product Owner version
     today_str = "2025-12-26"
     date_slash = "2025/12/26"
-    title = "AIプロジェクト管理の革命：指示するAIから、自律するオーナーへ (AIPO)"
-    short_title = "AIPO: Autonomous Project Owner"
+    title = "AIPO: AI Product Owner — ゴールを託すだけで、プロジェクトは自ら動き出す"
+    short_title = "AIPO: AI Product Owner"
     
     # CSS Variables for "AIPO Deep Blue" theme
     css_vars = """
@@ -34,7 +34,7 @@ def create_slide_1226():
 
     intro_box = f"""
     <div style="background: linear-gradient(135deg, var(--bg-dark), #003366); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid var(--accent); box-shadow: 0 0 20px rgba(0, 194, 203, 0.2);">
-        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; color: var(--accent);">GOALを伝えれば、AIが勝手に仕事を進める</p>
+        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; color: var(--accent);">ゴールを託すだけで、プロジェクトは自ら動き出す</p>
         <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
             従来の「AIの手を引いてあげる」ようなもどかしさ（AIPM）から脱却し、AIが自律的にプロジェクトを完遂する「AIPO」へ。DifyやCursorエージェントを活用した、次世代の意思決定システムを全解説します。
         </p>
@@ -74,11 +74,11 @@ def create_slide_1226():
     </div>
     """
 
-    # Assemble Main Content (14 pages)
+    # Assemble Main Content (20 pages)
     main_content = f"""
     <main>
       <div class="top-image-container">
-        <img src="../../input/day/1226.jpg" alt="AIPO Visual" onerror="this.src='https://placehold.co/1200x600?text=1226+AIPO+Autonomous+Project+Owner'">
+        <img src="../../input/day/1226.jpg" alt="AIPO Visual" onerror="this.src='https://placehold.co/1200x600?text=1226+AIPO+AI+Product+Owner'">
       </div>
       <section class="section">
         <div class="section-header">
@@ -94,10 +94,10 @@ def create_slide_1226():
       <section class="section">
         <div class="section-header">
           <span class="section-icon">📖</span>
-          <h2>スライド資料 (全15ページ)</h2>
+          <h2>スライド資料 (全20ページ)</h2>
         </div>
         <div class="slides-container">
-          {"".join([f'<img src="../../input/day/1226_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">' for i in range(1, 16)])}
+          {"".join([f'<img src="../../input/day/1226_slides/slide_{i:03d}.jpg" alt="Slide {i}" class="slide-img">' for i in range(1, 21)])}
         </div>
       </section>
     </main>
