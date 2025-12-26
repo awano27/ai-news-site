@@ -70,7 +70,7 @@ def load_template():
 
 def load_content_data(input_file):
     """Load content data from input file"""
-    input_path = Path("../input/day") / input_file
+    input_path = Path("input/day") / input_file
     if not input_path.exists():
         print(f"Warning: Input file {input_file} not found, using placeholder content")
         return {
