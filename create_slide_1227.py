@@ -98,16 +98,23 @@ def create_slide_1227():
 
     # Replacement logic with robust pattern matching for current template
     new_html = template_html_content
-    new_html = new_html.replace("{{ DATE_SLASH }}", date_slash)
-    new_html = new_html.replace("{{ TITLE }}", title)
     
-    # CSS variables block
+    # 1. Title/Meta
+    new_html = new_html.replace("{{FULL_TITLE}}", title)
+    
+    # 2. Header Content
+    new_html = new_html.replace("{{BREAKING_BADGE_TEXT}}", "DEEP DIVE")
+    new_html = new_html.replace("{{H1_TITLE}}", short_title)
+    new_html = new_html.replace("{{SUBTITLE}}", "LearnLM: 教育を加速するAIの魂")
+    new_html = new_html.replace("{{DATE}}", date_slash)
+    
+    # 3. CSS variables block (handle multiline with whitespace)
     css_pattern = r'\{\s*\{\s*CSS_VARS_BLOCK\s*\}\s*\}'
-    new_html = re.sub(css_pattern, css_vars, new_html)
+    new_html = re.sub(css_pattern, css_vars, new_html, flags=re.MULTILINE | re.DOTALL)
     
-    # Content block
-    content_pattern = r'\{\s*\{\s*MAIN_CONTENT_BLOCK\s*\}\s*\}'
-    new_html = re.sub(content_pattern, main_content, new_html)
+    # 4. Main Content block
+    content_pattern = r'\{\s*\{\s*MAIN_CONTENT_HTML\s*\}\s*\}'
+    new_html = re.sub(content_pattern, main_content, new_html, flags=re.MULTILINE | re.DOTALL)
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(new_html)
