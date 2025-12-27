@@ -115,6 +115,8 @@ def create_slide_1227():
     # 4. Main Content block
     content_pattern = r'\{\s*\{\s*MAIN_CONTENT_HTML\s*\}\s*\}'
     new_html = re.sub(content_pattern, main_content, new_html, flags=re.MULTILINE | re.DOTALL)
+    import datetime
+    new_html += f"\n<!-- Generated on: {datetime.datetime.now()} -->"
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(new_html)
