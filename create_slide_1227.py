@@ -86,6 +86,18 @@ def create_slide_1227():
       </section>
       <section class="section">
         <div class="section-header">
+          <span class="section-icon">🔗</span>
+          <h2>ソース資料</h2>
+        </div>
+        <div class="highlight-box">
+          <p>このスライドの内容は、以下のGoogle公式特設サイトに基づいています：</p>
+          <a href="https://learnyourway.withgoogle.com/" target="_blank" rel="noopener noreferrer" style="font-size: 1.2rem; display: block; margin-top: 10px;">
+            Learn Your Way with Google: The Future of Teaching & Learning
+          </a>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-header">
           <span class="section-icon">📖</span>
           <h2>スライド資料 (全15ページ)</h2>
         </div>
