@@ -4,7 +4,7 @@ from pathlib import Path
 def update_indexes_1224():
     today_str = "2025-12-24"
     date_slash = "2025/12/24"
-    title = "AGI Frontier 2025 Status Report"
+    title = "AGI Now: Exponential Acceleration"
     
     # 1. Update day_slides_index.html
     index_path = Path("presentations/day_slides_index.html")

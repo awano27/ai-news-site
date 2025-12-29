@@ -28,6 +28,6 @@ def convert_pdf_to_images(pdf_path, output_dir):
     pdf.close()
 
 if __name__ == "__main__":
-    pdf_file = "input/day/1224-AGI_Frontier_2025_Status_Report.pdf"
+    pdf_file = "input/day/1224-AGI_Now_Exponential_Acceleration.pdf"
     output_folder = "input/day/1224_slides"
     convert_pdf_to_images(pdf_file, output_folder)
