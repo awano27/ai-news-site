@@ -11,8 +11,8 @@ def update_indexes_1228():
         new_item = """
         <li>
             <a href="day_slides/day_slide_2025_12_28.html" class="slide-link">
-                <span class="date">2025.12.28</span>
-                <span class="title">Code Is Written While You Sleep</span>
+                <span class="date">2025/12/28</span>
+                <span class="slide-title">Code Is Written While You Sleep</span>
             </a>
         </li>"""
         
@@ -33,15 +33,23 @@ def update_indexes_1228():
         content = public_index_path.read_text(encoding="utf-8")
         
         new_item_public = """
-        <li>
-            <a href="https://awano27.github.io/ai-news-site/presentations/day_slides/day_slide_2025_12_28.html" class="slide-link">
-                <span class="date">2025.12.28</span>
-                <span class="title">Code Is Written While You Sleep</span>
-            </a>
-        </li>"""
+            <div class="slide-card">
+                <div class="slide-date">2025年12月28日</div>
+                <div class="slide-title">Code Is Written While You Sleep</div>
+
+                <div class="slide-actions">
+                    <a href="https://awano27.github.io/ai-news-site/presentations/day_slides/day_slide_2025_12_28.html" class="btn btn-primary">
+                        🎯 スライドを開く
+                    </a>
+                    <a href="#" onclick="copyLink('https://awano27.github.io/ai-news-site/presentations/day_slides/day_slide_2025_12_28.html')"
+                        class="btn btn-secondary">
+                        🔗 リンクをコピー
+                    </a>
+                </div>
+            </div>"""
         
-        if '<ul class="slides">' in content:
-            content = content.replace('<ul class="slides">', '<ul class="slides">' + new_item_public)
+        if '<div class="slides-grid">' in content:
+            content = content.replace('<div class="slides-grid">', '<div class="slides-grid">' + new_item_public)
             public_index_path.write_text(content, encoding="utf-8")
             print(f"Updated {public_index_path}")
         elif '<ul class="slide-list">' in content:
