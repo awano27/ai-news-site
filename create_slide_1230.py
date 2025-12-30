@@ -28,87 +28,95 @@ def create_slide_1230():
         pdf_title = basename.replace("1230-", "").replace(".pdf", "").replace("_", " ")
 
     # Define content variables
-    short_title = "AI News" 
-    main_title = pdf_title
-    subtitle = "Daily AI Update"
+    short_title = "MetaによるManus買収" 
+    main_title = "AI業界の常識を覆した4つの「サプライズ」"
+    subtitle = "「対話」から「実行」へ：AI覇権争いの主戦場がシフト"
 
-    # CSS Variables (Default Blue/Purple theme)
+    # CSS Variables (Meta Blue / Tech Dark theme)
     css_vars = """
     :root {
-      --primary: #311b92;
-      --accent: #7c4dff;
-      --bg-light: #ede7f6;
-      --bg-dark: #12005e;
-      --text: #1a1a1a;
-      --text-light: #4a4a4a;
-      --border: #d1c4e9;
+      --primary: #0668E1;
+      --accent: #00F2FF;
+      --bg-light: #f0f2f5;
+      --bg-dark: #050505;
+      --text: #1c1e21;
+      --text-light: #65676b;
+      --border: #dddfe2;
       --tron-black: #000000;
     }
     """
 
-    # Intro Box Content (Placeholder)
+    # Intro Box Content
     intro_box = """
-    <div style="background: linear-gradient(135deg, #311b92, #4527a0); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);">
+    <div style="background: linear-gradient(135deg, #0668E1, #00F2FF); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(6, 104, 225, 0.3);">
         <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;">
-            Daily AI News Update
+            AIの価値基準が「対話」から「実行」へ
         </p>
         <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
-            Summary of the latest AI developments for December 30, 2025.
+            MetaによるManus買収は、AIの覇権がモデルの「頭脳」ではなく「手足」で争われる時代への歴史的な転換点です。
         </p>
     </div>
     """
 
-    # Highlight Box Content (Placeholder)
+    # Highlight Box Content
     highlight_box = """
     <div style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
         <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 1.4rem;">🚀</span>
-            Key Highlights
+            <span style="font-size: 1.4rem;">💡</span>
+            4つの衝撃的な真実（サプライズ）
         </h4>
         <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;">
             <li style="display: flex; gap: 12px; align-items: start;">
                 <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">1</span>
-                <span><strong>Highlight 1</strong>: Details about highlight 1.</span>
+                <span><strong>価値の源泉</strong>: 最強の頭脳（基盤モデル）ではなく、最高の司令塔（実行レイヤー）へ。</span>
             </li>
             <li style="display: flex; gap: 12px; align-items: start;">
                 <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">2</span>
-                <span><strong>Highlight 2</strong>: Details about highlight 2.</span>
+                <span><strong>技術革新</strong>: 「実行」を支えるCodeActやマルチエージェント・アーキテクチャ。</span>
+            </li>
+            <li style="display: flex; gap: 12px; align-items: start;">
+                <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">3</span>
+                <span><strong>非同期実行</strong>: ユーザーがPCを閉じた後も自律的にタスクを完遂。</span>
+            </li>
+            <li style="display: flex; gap: 12px; align-items: start;">
+                <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">4</span>
+                <span><strong>地政学的脱出</strong>: 中国発技術が地政学的制約を越えて米テック企業へExit。</span>
             </li>
         </ul>
     </div>
     """
 
-    # Feature Grid Content (Placeholder)
+    # Feature Grid Content
     feature_grid = """
     <div class="feature-grid">
         <div class="feature-item">
             <span class="feature-icon">🤖</span>
-            <div class="feature-title">Topic A</div>
-            <div class="feature-desc">Description of Topic A.</div>
+            <div class="feature-title">CodeAct</div>
+            <div class="feature-desc">Pythonコードを直接生成・実行。JSONベースより柔軟で成功率が20%向上。</div>
         </div>
         <div class="feature-item">
             <span class="feature-icon">🔄</span>
-            <div class="feature-title">Topic B</div>
-            <div class="feature-desc">Description of Topic B.</div>
+            <div class="feature-title">Multi-Agent</div>
+            <div class="feature-desc">PlannerとExecutorが協調。GAIAベンチマークで86.5%の驚異的スコア。</div>
         </div>
         <div class="feature-item">
-            <span class="feature-icon">📈</span>
-            <div class="feature-title">Topic C</div>
-            <div class="feature-desc">Description of Topic C.</div>
+            <span class="feature-icon">🧠</span>
+            <div class="feature-title">Context Eng.</div>
+            <div class="feature-desc">KV-Cache最適化やtodo.mdパターンで、長期タスクの目的逸脱を防止。</div>
         </div>
     </div>
     """
 
-    # Detail Cards Content (Placeholder)
+    # Detail Cards Content
     detail_cards = """
     <div class="card accent">
-        <h4>Analysis</h4>
-        <p>In-depth analysis of today's news.</p>
+        <h4>非同期実行能力の衝撃</h4>
+        <p>クラウド上のVMで動作するため、ユーザーがオフラインでもタスクを継続。8,000万台以上の仮想コンピュータを生成し、147兆トークンを処理する圧倒的なスケールを実現しています。</p>
     </div>
 
     <div class="card">
-        <h4>Future Outlook</h4>
-        <p>What this means for the future of AI.</p>
+        <h4>戦略的な「脱中国」措置</h4>
+        <p>Metaは買収に際し、中国の投資家との関係断絶、中国内サービスの停止、データの隔離を徹底。地政学的リスクを遮断し、グローバル市場での成功を確実なものにしました。</p>
     </div>
     """
 

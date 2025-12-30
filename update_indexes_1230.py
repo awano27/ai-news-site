@@ -4,14 +4,7 @@ import glob
 import os
 
 def update_indexes_1230():
-    # Try to find title from PDF filename if possible
-    pdf_files = glob.glob("input/day/1230-*.pdf")
-    pdf_title = "AI News Update"
-    if pdf_files:
-        # Extract title from filename "1230-Title.pdf"
-        basename = os.path.basename(pdf_files[0])
-        # Remove 1230- and .pdf
-        pdf_title = basename.replace("1230-", "").replace(".pdf", "").replace("_", " ")
+    pdf_title = "MetaによるManus買収: AI業界の常識を覆した4つのサプライズ"
 
     # 1. Update presentations/day_slides_index.html
     index_path = Path("presentations/day_slides_index.html")
