@@ -133,7 +133,7 @@ def create_slide_1230():
     main_content = f"""
     <main>
       <div class="top-image-container">
-        <img src="../../input/day/1230.jpg" alt="12/30 Visual" onerror="this.src='https://placehold.co/1200x600?text=1230+AI+News'">
+        <img src="../../input/day/1230.png" alt="12/30 Visual" onerror="this.src='https://placehold.co/1200x600?text=1230+AI+News'">
       </div>
       <section class="section">
         <div class="section-header">
