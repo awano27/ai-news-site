@@ -12,9 +12,17 @@ def convert_pdf_to_images(output_folder):
     pdf_path = pdf_files[0]
     print(f"Found PDF: {pdf_path}")
 
-    # 出力フォルダが存在しない場合は作成
+    # 出力フォルダが存在しない場合は作成。存在する場合は古い画像を削除
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
+    else:
+        # 古いスライド画像を削除してクリーンな状態にする
+        old_slides = glob.glob(os.path.join(output_folder, "*.jpg"))
+        for f in old_slides:
+            try:
+                os.remove(f)
+            except OSError:
+                pass
 
     # PDFを開く
     doc = fitz.open(pdf_path)
