@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 # GraphQL endpoint
 GRAPHQL_URL = "https://api.producthunt.com/v2/api/graphql"
 
-# Query to get posts
+# Query to get posts (simplified to reduce complexity)
+# Note: Product Hunt API has a complexity limit of 500,000
+# Each post with nested topics adds significant complexity
 POSTS_QUERY = """
 query GetPosts($first: Int!, $postedAfter: DateTime, $postedBefore: DateTime) {
   posts(first: $first, postedAfter: $postedAfter, postedBefore: $postedBefore, order: VOTES) {
@@ -32,21 +34,14 @@ query GetPosts($first: Int!, $postedAfter: DateTime, $postedBefore: DateTime) {
         url
         website
         votesCount
-        commentsCount
-        topics {
+        topics(first: 5) {
           edges {
             node {
               name
-              slug
             }
           }
         }
-        createdAt
       }
-    }
-    pageInfo {
-      hasNextPage
-      endCursor
     }
   }
 }
@@ -58,7 +53,7 @@ class ProductHuntCollector(BaseCollector):
 
     # Product Hunt specific settings
     REQUEST_DELAY = 2.0  # Be more conservative with PH
-    MAX_POSTS_PER_DAY = 50  # Limit posts to fetch
+    MAX_POSTS_PER_DAY = 20  # Reduced to stay within API complexity limits
 
     def __init__(self):
         super().__init__()
