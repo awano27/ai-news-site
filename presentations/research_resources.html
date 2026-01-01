@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Resources Hub - 調査・研究ポータル</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Manrope:wght@300;500;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #38bdf8;
+            --accent: #f43f5e;
+            --bg-dark: #020617;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(148, 163, 184, 0.1);
+            --font-main: 'Manrope', 'Inter', -apple-system, sans-serif;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 5rem;
+        }
+
+        .bg-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+        }
+
+        .blob {
+            position: absolute;
+            width: 50vw;
+            height: 50vw;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.1;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-1 {
+            background: var(--primary);
+            top: -10%;
+            left: -10%;
+        }
+
+        .blob-2 {
+            background: var(--secondary);
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(10%, 15%) scale(1.1);
+            }
+        }
+
+        header {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--secondary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .category-section {
+            margin-bottom: 6rem;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            border-left: 4px solid var(--secondary);
+            padding-left: 1.5rem;
+        }
+
+        .category-header h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .category-header .en-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--secondary);
+            font-weight: 700;
+            display: block;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.75rem;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .card-link {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--secondary);
+            align-self: flex-end;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 5rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            header {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <header>
+        <a href="../index.html" class="brand">
+            <div class="brand-logo">AI</div>
+            <span style="font-weight: 800; letter-spacing: -0.02em;">Intelligence Hub</span>
+        </a>
+        <a href="../index.html" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            BACK TO HOME
+        </a>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Research Portal</h1>
+            <p>調査・研究を加速させる40の網羅的リソース集。世界中の学術論文、プレプリント、AI搭載の分析ツールへシームレスにアクセス。</p>
+        </div>
+
+        <!-- Section: Essentials -->
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">THE ESSENTIALS</span>
+                    <h2>マストハブ・リソース</h2>
+                </div>
+            </div>
+            <div class="resource-grid">
+                <a href="https://www.ncbi.nlm.nih.gov/pmc/" target="_blank" class="card">
+                    <div class="card-title">PubMed Central</div>
+                    <div class="card-desc">医学・生命科学分野の無料全文アーカイブ。</div>
+                    <div class="card-link">PMC →</div>
+                </a>
+                <a href="https://www.jstor.org/" target="_blank" class="card">
+                    <div class="card-title">JSTOR</div>
+                    <div class="card-desc">数千の学術誌、書籍を網羅する巨大デジタルライブラリ。</div>
+                    <div class="card-link">JSTOR →</div>
+                </a>
+                <a href="https://arxiv.org/" target="_blank" class="card">
+                    <div class="card-title">arXiv</div>
+                    <div class="card-desc">物理、数学、CS、AIなどの最新プレプリント集積地。</div>
+                    <div class="card-link">arXiv →</div>
+                </a>
+                <a href="https://scholar.google.com/" target="_blank" class="card">
+                    <div class="card-title">Google Scholar</div>
+                    <div class="card-desc">全分野をカバーする、研究調査の出発点として最適な検索エンジン。</div>
+                    <div class="card-link">Google →</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Section: Open Access -->
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">OPEN ACCESS OPTIONS</span>
+                    <h2>オープンアクセスの扉</h2>
+                </div>
+            </div>
+            <div class="resource-grid">
+                <a href="https://doaj.org/" target="_blank" class="card">
+                    <div class="card-title">DOAJ</div>
+                    <div class="card-desc">高品質なオープンアクセス学術誌を世界中から集約。</div>
+                    <div class="card-link">DOAJ →</div>
+                </a>
+                <a href="https://core.ac.uk/" target="_blank" class="card">
+                    <div class="card-title">CORE</div>
+                    <div class="card-desc">数千万件のオープンアクセス論文を検索・閲覧可能。</div>
+                    <div class="card-link">CORE →</div>
+                </a>
+                <a href="https://www.biorxiv.org/" target="_blank" class="card">
+                    <div class="card-title">bioRxiv</div>
+                    <div class="card-desc">生物学分野の査読前論文に特化したプレプリントサーバー。</div>
+                    <div class="card-link">bioRxiv →</div>
+                </a>
+                <a href="https://www.ssrn.com/" target="_blank" class="card">
+                    <div class="card-title">SSRN</div>
+                    <div class="card-desc">社会科学分野の初期研究やワーキングペーパーを共有。</div>
+                    <div class="card-link">SSRN →</div>
+                </a>
+                <a href="https://base-search.net/" target="_blank" class="card">
+                    <div class="card-title">BASE</div>
+                    <div class="card-desc">世界最大級の学術リポジトリ横断検索エンジン。</div>
+                    <div class="card-link">BASE →</div>
+                </a>
+                <a href="https://www.jstage.jst.go.jp/" target="_blank" class="card">
+                    <div class="card-title">J-STAGE</div>
+                    <div class="card-desc">日本国内の学術論文・学会誌を一堂に集めたプラットフォーム。</div>
+                    <div class="card-link">J-STAGE →</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Section: AI Tools -->
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">AI & HELPFUL TOOLS</span>
+                    <h2>AI 検索・支援ツール</h2>
+                </div>
+            </div>
+            <div class="resource-grid">
+                <a href="https://www.semanticscholar.org/" target="_blank" class="card">
+                    <div class="card-title">Semantic Scholar</div>
+                    <div class="card-desc">AIが文脈や重要引用を分析し、関連性の高い論文を提示。</div>
+                    <div class="card-link">Semantic →</div>
+                </a>
+                <a href="https://consensus.app/" target="_blank" class="card">
+                    <div class="card-title">Consensus</div>
+                    <div class="card-desc">質問に対し、学術論文に基づいた「科学的答え」を抽出。</div>
+                    <div class="card-link">Consensus →</div>
+                </a>
+                <a href="https://elicit.org/" target="_blank" class="card">
+                    <div class="card-title">Elicit</div>
+                    <div class="card-desc">リサーチクエリから論文を発見し、要約を自動生成。</div>
+                    <div class="card-link">Elicit →</div>
+                </a>
+                <a href="https://www.connectedpapers.com/" target="_blank" class="card">
+                    <div class="card-title">Connected Papers</div>
+                    <div class="card-desc">類似論文との相関関係を可視化するグラフツール。</div>
+                    <div class="card-link">Connected →</div>
+                </a>
+                <a href="https://typeset.io/" target="_blank" class="card">
+                    <div class="card-title">SciSpace</div>
+                    <div class="card-desc">読解、執筆、引用管理までカバーするオールインワンAI。</div>
+                    <div class="card-link">SciSpace →</div>
+                </a>
+                <a href="https://www.researchgate.net/" target="_blank" class="card">
+                    <div class="card-title">ResearchGate</div>
+                    <div class="card-desc">研究者間のSNS。直接著者とつながり、非公開論文へのアクセスも。</div>
+                    <div class="card-link">Gate →</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Section: Specialized -->
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">SPECIALIZED SOURCES</span>
+                    <h2>特定分野・地域別</h2>
+                </div>
+            </div>
+            <div class="resource-grid">
+                <a href="https://ethos.bl.uk/" target="_blank" class="card">
+                    <div class="card-title">EThOS</div>
+                    <div class="card-desc">英国全土の大学から収集された博士論文アーカイブ。</div>
+                    <div class="card-link">EThOS →</div>
+                </a>
+                <a href="https://archive.org/" target="_blank" class="card">
+                    <div class="card-title">Internet Archive</div>
+                    <div class="card-desc">世界中の書籍、ソフトウェア、Webサイトの永久保存庫。</div>
+                    <div class="card-link">Archive →</div>
+                </a>
+                <a href="https://scielo.org/" target="_blank" class="card">
+                    <div class="card-title">SciELO</div>
+                    <div class="card-desc">ラテンアメリカやカリブ海諸国を中心としたオープンジャーナル。</div>
+                    <div class="card-link">SciELO →</div>
+                </a>
+                <a href="https://www.openaire.eu/" target="_blank" class="card">
+                    <div class="card-title">OpenAIRE</div>
+                    <div class="card-desc">欧州全域の研究成果とデータを統合するプラットフォーム。</div>
+                    <div class="card-link">OpenAIRE →</div>
+                </a>
+                <a href="https://ci.nii.ac.jp/" target="_blank" class="card">
+                    <div class="card-title">CiNii Research</div>
+                    <div class="card-desc">日本国内の論文、図書、研究データを網羅的に検索。</div>
+                    <div class="card-link">CiNii →</div>
+                </a>
+                <a href="https://kaken.nii.ac.jp/" target="_blank" class="card">
+                    <div class="card-title">KAKEN</div>
+                    <div class="card-desc">科学研究費助成事業（科研費）の採択課題・成果を閲覧。</div>
+                    <div class="card-link">KAKEN →</div>
+                </a>
+            </div>
+        </section>
+
+        <footer>
+            &copy; 2026 AI INTELLIGENCE HUB. RESEARCH PORTAL.
+        </footer>
+    </div>
+</body>
+
+</html>
