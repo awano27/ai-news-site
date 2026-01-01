@@ -77,6 +77,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Pull latest changes before committing to avoid conflicts
+          git fetch origin main
+          git reset --soft origin/main
+
           # Get today's date for commit message
           TODAY=$(date -u +"%Y-%m-%d")
 
@@ -87,9 +91,7 @@ jobs:
 
           Co-Authored-By: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 
-          # Pull any remote changes before pushing (handles concurrent updates)
-          git pull --rebase origin main || true
-          git push
+          git push origin main
 
       - name: Summary
         run: |
