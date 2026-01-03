@@ -884,6 +884,111 @@
       color: var(--text-muted);
       font-size: 0.875rem;
     }
+
+    /* Screen reader only - visually hidden but accessible */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Results count badge */
+    .results-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 100px;
+      font-size: 0.8125rem;
+      color: var(--secondary);
+      margin-left: 1rem;
+    }
+
+    /* Tool card action buttons */
+    .tool-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .tool-action-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .tool-action-btn:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .tool-action-btn.copied {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .tool-action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Similar tools section */
+    .similar-tools {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      font-size: 0.75rem;
+    }
+
+    .similar-tools-label {
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .similar-tools-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+    }
+
+    .similar-tool-link {
+      padding: 0.25rem 0.5rem;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 4px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.6875rem;
+      transition: var(--transition);
+    }
+
+    .similar-tool-link:hover {
+      background: rgba(99, 102, 241, 0.2);
+      color: white;
+    }
   </style>
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https: data:; style-src 'self' https: 'unsafe-inline'; script-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https: data:;">
@@ -902,7 +1007,7 @@
       <h1>🧰 仕事が速くなる おすすめ便利ツール</h1>
       <p class="lead">ビジネスで“すぐ効く”生産性ツールを、用途（会議・資料・ナレッジ・自動化・AI）別に整理しました。各ツールには「稟議で確認されがちな観点」も付けているので、導入判断がしやすい構成です。</p>
 
-      <p class="lead" style="margin-top:-18px;font-size:13px;">※ 最終更新：2025-02-16 /
+      <p class="lead" style="margin-top:-18px;font-size:13px;">※ 最終更新：2026-01-03 /
         主要な機能・数値は公式サイト・公式ドキュメントの記載を優先し、変動しやすい評価（レビュー点・フォロワー数等）は原則掲載しません。</p>
 
       <section class="hero" aria-label="このページの使い方">
@@ -1162,8 +1267,11 @@
       </div>
   </div>
 
+  <!-- Accessibility: Screen reader announcements -->
+  <div id="resultsAnnounce" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
   <div id="noResults" class="no-results">
-    <p>該当するツールが見つかりませんでした 😢</p>
+    <p>該当するツールが見つかりませんでした</p>
     <button class="nav-link" onclick="resetSearch()" style="margin-top: 16px; cursor: pointer;">検索をリセット</button>
   </div>
 
@@ -5346,13 +5454,49 @@
         }
       }
 
-      if (searchInput) searchInput.addEventListener('input', filterTools);
+      // Auto-scroll to results helper
+      function scrollToResults() {
+        const sections = document.getElementById('sections');
+        if (sections) {
+          const yOffset = -140; // Offset for sticky header
+          const y = sections.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }
+
+      // Update results count announcement for accessibility
+      function announceResults(count) {
+        const liveRegion = document.getElementById('resultsAnnounce');
+        if (liveRegion) {
+          liveRegion.textContent = count > 0
+            ? `${count}件のツールが見つかりました`
+            : '該当するツールが見つかりませんでした';
+        }
+      }
+
+      if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            filterTools();
+            // Count visible cards
+            const visibleCards = document.querySelectorAll('.tool-card[style="display: block;"], .tool-card:not([style*="display: none"])');
+            let count = 0;
+            visibleCards.forEach(card => {
+              if (card.offsetParent !== null) count++;
+            });
+            announceResults(count);
+          }, 200);
+        });
+      }
 
       filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           filterBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           filterTools();
+          scrollToResults();
         });
       });
 
@@ -5413,6 +5557,7 @@
                   : "すべて表示中";
           }
           filterTools();
+          scrollToResults();
         });
       }
 
@@ -5837,6 +5982,180 @@
 
       // Initial display
       updateDisplay();
+    })();
+  </script>
+
+  <!-- Tool Card Enhancements Script -->
+  <script>
+    (function() {
+      'use strict';
+
+      // Similar tools mapping
+      const similarToolsMap = {
+        'notion': ['Coda', 'Confluence', 'Obsidian'],
+        'slack': ['Discord', 'Teams', 'Mattermost'],
+        'chatgpt': ['Claude', 'Gemini', 'Copilot'],
+        'claude': ['ChatGPT', 'Gemini', 'Perplexity'],
+        'cursor': ['GitHub Copilot', 'Windsurf', 'Tabnine'],
+        'copilot': ['Cursor', 'Cody', 'Tabnine'],
+        'zapier': ['Make', 'n8n', 'Power Automate'],
+        'linear': ['Jira', 'Asana', 'Height'],
+        'figma': ['Sketch', 'Adobe XD', 'Penpot'],
+        'vercel': ['Netlify', 'Cloudflare Pages', 'Railway'],
+        'supabase': ['Firebase', 'PlanetScale', 'Neon'],
+        'sentry': ['Datadog', 'New Relic', 'Rollbar'],
+        'postman': ['Insomnia', 'Hoppscotch', 'Thunder Client'],
+        'granola': ['Otter.ai', 'Fireflies', 'tl;dv'],
+        'notebooklm': ['Perplexity', 'Elicit', 'Consensus']
+      };
+
+      // Generate approval memo text for a tool card
+      function generateApprovalMemo(card) {
+        const titleEl = card.querySelector('h3');
+        const subtitleEl = card.querySelector('.tool-subtitle');
+        const descEl = card.querySelector('.tool-description');
+        const featuresEl = card.querySelector('.tool-section ul');
+
+        const title = titleEl ? titleEl.textContent.replace(/定番|新興|注目/g, '').trim() : '';
+        const subtitle = subtitleEl ? subtitleEl.textContent.trim() : '';
+        const description = descEl ? descEl.textContent.trim() : '';
+
+        let features = [];
+        if (featuresEl) {
+          featuresEl.querySelectorAll('li').forEach(li => {
+            const text = li.textContent.trim();
+            if (!text.startsWith('http') && !text.includes('公式サイト')) {
+              features.push(text);
+            }
+          });
+        }
+
+        let memo = `【ツール導入検討メモ】\n\n`;
+        memo += `■ ツール名: ${title}\n`;
+        memo += `■ カテゴリ: ${subtitle}\n\n`;
+        memo += `■ 概要:\n${description}\n\n`;
+
+        if (features.length > 0) {
+          memo += `■ 主な特徴:\n`;
+          features.slice(0, 5).forEach(f => {
+            memo += `・${f}\n`;
+          });
+          memo += `\n`;
+        }
+
+        memo += `■ 稟議確認ポイント:\n`;
+        memo += `・料金体系: 要確認（公式サイト参照）\n`;
+        memo += `・セキュリティ: SSO/SAML対応、データ保管場所を確認\n`;
+        memo += `・運用: 管理者権限、監査ログ機能を確認\n`;
+        memo += `・契約: 最低利用期間、解約条件を確認\n\n`;
+        memo += `※ 詳細は公式サイトでご確認ください`;
+
+        return memo;
+      }
+
+      // Copy text to clipboard
+      async function copyToClipboard(text, button) {
+        try {
+          await navigator.clipboard.writeText(text);
+          button.classList.add('copied');
+          const originalHTML = button.innerHTML;
+          button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>コピー完了`;
+          setTimeout(() => {
+            button.classList.remove('copied');
+            button.innerHTML = originalHTML;
+          }, 2000);
+        } catch (err) {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          button.classList.add('copied');
+          const originalHTML = button.innerHTML;
+          button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>コピー完了`;
+          setTimeout(() => {
+            button.classList.remove('copied');
+            button.innerHTML = originalHTML;
+          }, 2000);
+        }
+      }
+
+      // Add action buttons and similar tools to each card
+      function enhanceToolCards() {
+        const cards = document.querySelectorAll('.tool-card');
+
+        cards.forEach(card => {
+          // Skip if already enhanced
+          if (card.querySelector('.tool-actions')) return;
+
+          const titleEl = card.querySelector('h3');
+          const toolName = titleEl ? titleEl.textContent.replace(/定番|新興|注目/g, '').trim().toLowerCase() : '';
+
+          // Create action buttons container
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'tool-actions';
+
+          // Copy memo button
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'tool-action-btn';
+          copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>稟議メモ`;
+          copyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const memo = generateApprovalMemo(card);
+            copyToClipboard(memo, copyBtn);
+          });
+          actionsDiv.appendChild(copyBtn);
+
+          // Copy link button
+          const linkBtn = document.createElement('button');
+          linkBtn.className = 'tool-action-btn';
+          linkBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>リンク`;
+          linkBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const link = card.querySelector('a[href^="http"]');
+            if (link) {
+              copyToClipboard(link.href, linkBtn);
+            }
+          });
+          actionsDiv.appendChild(linkBtn);
+
+          card.appendChild(actionsDiv);
+
+          // Add similar tools if available
+          const normalizedName = toolName.split(' ')[0].toLowerCase();
+          const similarTools = similarToolsMap[normalizedName];
+
+          if (similarTools && similarTools.length > 0) {
+            const similarDiv = document.createElement('div');
+            similarDiv.className = 'similar-tools';
+            similarDiv.innerHTML = `
+              <div class="similar-tools-label">類似ツール:</div>
+              <div class="similar-tools-list">
+                ${similarTools.map(t => `<span class="similar-tool-link">${t}</span>`).join('')}
+              </div>
+            `;
+            card.appendChild(similarDiv);
+          }
+        });
+      }
+
+      // Run enhancement after DOM ready and after auto-load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(enhanceToolCards, 100);
+          // Re-run after auto-collected tools load
+          setTimeout(enhanceToolCards, 500);
+        });
+      } else {
+        setTimeout(enhanceToolCards, 100);
+        setTimeout(enhanceToolCards, 500);
+      }
+
+      // Also expose for manual call if needed
+      window.enhanceToolCards = enhanceToolCards;
     })();
   </script>
 
