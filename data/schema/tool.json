@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://awano27.github.io/ai-news-site/data/schema/tool.json",
+  "title": "Tool",
+  "description": "AI/生産性ツールのスキーマ定義",
+  "type": "object",
+  "required": ["id", "name", "tagline", "categories", "links", "first_seen_at", "source"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "一意識別子（slug形式: lowercase-hyphen）"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "ツール名"
+    },
+    "tagline": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "短い説明（1行）"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "詳細説明（オプション）"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["meeting", "docs", "pm", "automation", "ai", "dev", "ph", "other"]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "カテゴリ（複数可）: meeting=会議, docs=ドキュメント, pm=プロジェクト管理, automation=自動化, ai=AI活用, dev=開発, ph=ProductHunt注目, other=その他"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["individual", "team", "enterprise"]
+      },
+      "uniqueItems": true,
+      "description": "対象ユーザー: individual=個人, team=チーム, enterprise=エンタープライズ"
+    },
+    "pricing": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["free", "freemium", "paid", "unknown"],
+          "description": "料金タイプ"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "料金に関する補足"
+        }
+      },
+      "required": ["type"]
+    },
+    "links": {
+      "type": "object",
+      "properties": {
+        "official": {
+          "type": "string",
+          "format": "uri",
+          "description": "公式サイトURL"
+        },
+        "producthunt": {
+          "type": "string",
+          "format": "uri",
+          "description": "Product HuntページURL"
+        },
+        "hn": {
+          "type": "string",
+          "format": "uri",
+          "description": "Hacker NewsスレッドURL"
+        },
+        "github": {
+          "type": "string",
+          "format": "uri",
+          "description": "GitHubリポジトリURL"
+        }
+      },
+      "required": ["official"]
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date",
+      "description": "初回収集日（YYYY-MM-DD）"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["producthunt", "hn", "github", "manual", "rss"],
+      "description": "収集元"
+    },
+    "source_rank": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "収集元での順位（あれば）"
+    },
+    "source_votes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "収集元での投票数/スター数"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "総合スコア（0-100）"
+    },
+    "manual": {
+      "type": "boolean",
+      "default": false,
+      "description": "手動追加フラグ"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "公開フラグ（レビュー済み）"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "description": "特徴リスト"
+    },
+    "badge": {
+      "type": "string",
+      "enum": ["new", "standard", "alpha", "beta"],
+      "description": "表示バッジ"
+    },
+    "topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "関連トピック/タグ（収集元から）"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "最終更新日時（ISO 8601）"
+    }
+  },
+  "additionalProperties": false
+}
