@@ -3,26 +3,18 @@ import os
 import glob
 
 def convert_pdf_to_images(output_folder):
-    # Find PDF file for 0101
-    pdf_files = glob.glob("input/day/0101-*.pdf")
+    # Find PDF file for 0103
+    pdf_files = glob.glob("input/day/0103-*.pdf")
     if not pdf_files:
-        print("Error: No PDF file found for 0101 in input/day/")
+        print("Error: No PDF file found for 0103 in input/day/")
         return
     
     pdf_path = pdf_files[0]
     print(f"Found PDF: {pdf_path}")
 
-    # 出力フォルダが存在しない場合は作成。存在する場合は古い画像を削除
+    # 出力フォルダが存在しない場合は作成
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    else:
-        # 古いスライド画像を削除してクリーンな状態にする
-        old_slides = glob.glob(os.path.join(output_folder, "*.jpg"))
-        for f in old_slides:
-            try:
-                os.remove(f)
-            except OSError:
-                pass
 
     # PDFを開く
     doc = fitz.open(pdf_path)
@@ -46,6 +38,6 @@ def convert_pdf_to_images(output_folder):
 
 if __name__ == "__main__":
     # 設定
-    output_dir = "input/day/0101_slides"
+    output_dir = "input/day/0103_slides"
     
     convert_pdf_to_images(output_dir)
