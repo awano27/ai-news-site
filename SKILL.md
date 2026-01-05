@@ -2,6 +2,10 @@
 
 このスキルは、特定の日のAIニュース情報（テキストおよびPDF）を基に、ウェブサイト用のスライドHTMLを生成し、インデックスを更新してGitに成果物を反映させるための標準的なワークフローを定義します。
 
+> **🤖 ClaudeCodeユーザーへ**
+> ClaudeCodeを使用している場合は、[.claude/skills/daily-ai-slide-generator.md](.claude/skills/daily-ai-slide-generator.md) を参照してください。
+> 自動化されたワークフローにより、「MMDDのスライドを作成して」と指示するだけで、以下の手順を自動実行します。
+
 ## 概要
 1. **成果物**: 
    - スライド画像群 (`input/day/MMDD_slides/`)
