@@ -684,21 +684,27 @@
           const html = await res.text();
           const doc = new DOMParser().parseFromString(html, 'text/html');
 
-          // Try standard selector first, then fallback to looser selector
-          let first = doc.querySelector('.slides li a') || doc.querySelector('li a');
-          if (!first) return;
+          // Get the first slide card (latest slide)
+          let firstCard = doc.querySelector('.slide-card');
+          if (!firstCard) return;
 
-          const href = first.getAttribute('href');
-          const date = first.querySelector('.date')?.textContent?.trim();
-          const title = first.querySelector('.slide-title')?.textContent?.trim();
+          const dateElem = firstCard.querySelector('.slide-date');
+          const titleElem = firstCard.querySelector('.slide-title');
+          const linkElem = firstCard.querySelector('.slide-actions a[href*="day_slide"]');
+
+          if (!linkElem) return;
+
+          const href = linkElem.getAttribute('href');
+          const date = dateElem?.textContent?.trim();
+          const title = titleElem?.textContent?.trim();
 
           const btn = document.getElementById('latestSlideHeroBtn');
           if (!btn) return;
 
           if (href) {
-            // Ensure path is relative to root correctly
-            // href in index file is usually "day_slides/..."
-            btn.href = 'presentations/' + href.replace(/^\.?\/?/, '');
+            // href is already relative to daily_slides_index.html location
+            // e.g., "presentations/day_slides/day_slide_2026_01_08.html"
+            btn.href = href;
           }
           if (date) {
             btn.textContent = `今日のスライドを見る（${date}）`;
