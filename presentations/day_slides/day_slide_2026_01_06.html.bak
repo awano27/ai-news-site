@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIエージェント・ハーネス：信頼性を支える次世代OS - 2026/01/06</title>
+  <style>
+    :root {
+      --primary: #B165FB;
+      --accent: #40695B;
+      --text: #181B24;
+      --text-light: #5a6c7d;
+      --bg-light: #f8f9fa;
+      --bg-dark: #181B24;
+      --border: #e1e8ed;
+      --tron-black: #0A0E1A;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--bg-light) 0%, white 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    header {
+      background: linear-gradient(135deg, var(--tron-black) 0%, #000000 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(45deg,
+          transparent,
+          transparent 10px,
+          rgba(177, 101, 251, 0.1) 10px,
+          rgba(177, 101, 251, 0.1) 20px);
+      animation: slide 30s linear infinite;
+    }
+
+    @keyframes slide {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(50px, 50px);
+      }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(177, 101, 251, 0.2);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #B165FB;
+    }
+
+    .date {
+      font-size: 1rem;
+      opacity: 0.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* メインコンテンツ */
+    main {
+      padding: 48px;
+    }
+
+    .top-image-container {
+      text-align: center;
+      margin-bottom: 48px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .top-image-container img {
+      width: 100%;
+      height: auto;
+      max-width: 1000px;
+      object-fit: contain;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .section-icon {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    /* リンク */
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    .highlight-box {
+      background-color: #f3ebff;
+      border-left: 5px solid var(--primary);
+      padding: 24px;
+      margin-bottom: 32px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card.accent {
+      border-top: 4px solid var(--primary);
+    }
+
+    .card h4 {
+      color: var(--text);
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 40px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    h3::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 32px;
+      background: var(--primary);
+      margin-right: 12px;
+      border-radius: 4px;
+    }
+
+    /* 3-column feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .feature-item {
+      background: var(--bg-light);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .feature-desc {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      text-align: left;
+    }
+
+    /* スライド表示用スタイル */
+    .slides-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    .slide-img {
+      width: 100%;
+      max-width: 1000px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border);
+      transition: transform 0.3s ease;
+      display: block;
+    }
+
+    .slide-img:hover {
+      transform: scale(1.01);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* フッター */
+    footer {
+      background: var(--bg-dark);
+      color: white;
+      padding: 32px 48px;
+      text-align: center;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+      }
+
+      .container {
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      header {
+        padding: 32px 20px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .breaking-badge {
+        font-size: 0.9rem;
+        padding: 6px 16px;
+      }
+
+      main {
+        padding: 24px 20px;
+      }
+
+      footer {
+        padding: 24px;
+      }
+    }
+
+    /* TOPに戻るボタン */
+    .back-to-top {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      z-index: 1000;
+      background: rgba(177, 101, 251, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 12px 24px;
+      border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(177, 101, 251, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .back-to-top:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      background: rgba(177, 101, 251, 0.25);
+      color: #B165FB;
+      text-decoration: none;
+    }
+
+    .back-to-top span {
+      font-size: 1.2rem;
+    }
+
+    @media (max-width: 768px) {
+      .back-to-top {
+        top: 15px;
+        left: 15px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../../index.html" class="back-to-top">
+    <span>🏠</span> TOPに戻る
+  </a>
+  <div class="container">
+    <header>
+      <div class="breaking-badge">🔮 2026年1月6日レポート | AIエージェント・ハーネス</div>
+      <h1>AIエージェント・ハーネス：信頼性を支える次世代OS</h1>
+      <p class="subtitle">モデル性能を超えた、長期タスクの安定性を支えるインフラストラクチャ</p>
+      <p class="date">2026年1月6日</p>
+    </header>
+
+
+    <main>
+      <div class="top-image-container">
+        <img src="../../input/day/0106.jpg" alt="01/06 Visual" onerror="this.src='https://placehold.co/1200x600?text=0106+AI+News'">
+      </div>
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">🔮</span>
+          <h2>エージェント・ハーネスとは</h2>
+        </div>
+
+    <div style="background: linear-gradient(135deg, #B165FB, #40695B); color: white; padding: 24px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(177, 101, 251, 0.3);">
+        <p style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; line-height: 1.5; letter-spacing: 0.05em;">
+            AIモデルをCPU、コンテキストをメモリとするならば、システム全体を統括するオペレーティングシステム
+        </p>
+        <p style="font-size: 1.1rem; opacity: 0.95; margin: 0; line-height: 1.6;">
+            2026年のAI開発において、「エージェント・ハーネス」という新たなインフラストラクチャが、モデル単体の性能以上に重要になると予測されています。長期にわたる複雑なタスクの安定性を支える役割を果たします。
+        </p>
+    </div>
+
+        <h3>ハーネスの役割</h3>
+
+    <div style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
+        <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.4rem;">🎯</span>
+            AIシステムOSとしての機能
+        </h4>
+        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;">
+            <li style="display: flex; gap: 12px; align-items: start;">
+                <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">1</span>
+                <span><strong>システム統括</strong>: AIモデル（CPU相当）とコンテキスト（メモリ相当）を統合管理</span>
+            </li>
+            <li style="display: flex; gap: 12px; align-items: start;">
+                <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">2</span>
+                <span><strong>信頼性確保</strong>: 従来のベンチマークでは測れない持続的な指示への忠実度を実現</span>
+            </li>
+            <li style="display: flex; gap: 12px; align-items: start;">
+                <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">3</span>
+                <span><strong>データ蓄積</strong>: 実行ログと失敗の軌跡を次世代モデルの学習データとして活用</span>
+            </li>
+        </ul>
+    </div>
+
+
+    <div class="feature-grid">
+        <div class="feature-item">
+            <span class="feature-icon">🔧</span>
+            <div class="feature-title">コンテキスト・エンジニアリング</div>
+            <div class="feature-desc">持続的な指示への忠実度と信頼性を確保するための不可欠な技術</div>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🎨</span>
+            <div class="feature-title">柔軟な設計</div>
+            <div class="feature-desc">過剰な制御フローを避け、モデルの進化に合わせてコードを破棄できる構造</div>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <div class="feature-title">データ資産化</div>
+            <div class="feature-desc">実行ログや失敗の軌跡が次世代モデルの精度向上に貢献</div>
+        </div>
+    </div>
+
+
+    <div class="card accent">
+        <h4>2026年の予測：インフラが勝負を決める</h4>
+        <p>最終的に、ハーネスによって収集された実行ログや失敗の軌跡は、次世代モデルの精度を向上させるための貴重なデータセットとして機能します。モデル性能を超えて、システム全体のインフラストラクチャが競争優位性を生み出す時代が到来しています。</p>
+    </div>
+
+    <div class="card">
+        <h4>開発者への示唆</h4>
+        <p>開発者は過剰な制御フローの構築を避け、モデルの進化に合わせてコードを破棄できる柔軟な設計を維持することが求められます。これにより、技術的負債を最小限に抑えながら、最新のモデル機能を最大限に活用できるエコシステムが実現します。</p>
+    </div>
+
+      </section>
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">📖</span>
+          <h2>スライド資料 (全5ページ)</h2>
+        </div>
+        <div class="slides-container">
+          <p style="text-align: center; color: var(--text-light); font-size: 1.1rem; padding: 40px;">
+            ※ スライド画像は準備中です。<br>
+            PPTXファイルは <a href="../../output/0106_slides.pptx" download>こちら</a> からダウンロードできます。
+          </p>
+        </div>
+      </section>
+    </main>
+
+
+    <footer>
+      <p>&copy; 2026 AI News Archive | このスライドは教育目的で作成されています</p>
+    </footer>
+  </div>
+</body>
+
+</html>
