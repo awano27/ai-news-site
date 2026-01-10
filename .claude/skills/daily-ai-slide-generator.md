@@ -62,7 +62,12 @@ input/day/
 - 新しいスライドのエントリを日付順に追加
 - Git conflictマーカーがあれば自動クリーンアップ
 
-### 4. Git反映
+### 4. トップページ更新
+- `index.html` のヒーローボタンリンクを最新スライドに更新
+  - `<!-- Updated: YYYY-MM-DD -->` コメントを更新
+  - `id="latestSlideHeroBtn"` の `href` を新しいスライドに変更
+
+### 5. Git反映
 - 変更をステージング
 - コミットメッセージを自動生成
 - `git pull --rebase` で最新を取得
@@ -130,6 +135,11 @@ https://awano27.github.io/ai-news-site/presentations/day_slides/day_slide_YYYY_M
 インデックスページ：
 ```
 https://awano27.github.io/ai-news-site/presentations/day_slides_index.html
+```
+
+トップページ（最新スライドへのリンク）：
+```
+https://awano27.github.io/ai-news-site/index.html
 ```
 
 ## 💡 Tips
