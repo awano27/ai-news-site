@@ -157,7 +157,9 @@ def create_slide_0109():
     # Replace placeholders in template
     final_html = template_html_content
     final_html = final_html.replace("{{FULL_TITLE}}", f"{main_title} - {date_slash}")
-    final_html = final_html.replace("{{CSS_VARS_BLOCK}}", css_vars)
+    # Fix broken CSS_VARS_BLOCK placeholder (it's split across multiple lines in the template)
+    import re
+    final_html = re.sub(r'\{\s*\{\s*CSS_VARS_BLOCK\s*\}\s*\}', css_vars, final_html)
     final_html = final_html.replace("{{BREAKING_BADGE_TEXT}}", f"🚀 {date_jp}レポート | {short_title}")
     final_html = final_html.replace("{{H1_TITLE}}", main_title)
     final_html = final_html.replace("{{SUBTITLE}}", subtitle)
