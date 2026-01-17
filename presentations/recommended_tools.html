@@ -305,11 +305,12 @@
 
     .search-wrapper {
       position: relative;
+      flex: 1;
     }
 
     .search-input {
       width: 100%;
-      padding: 1rem 1rem 1rem 3.5rem;
+      padding: 1rem 3rem 1rem 3.5rem;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--glass-border);
       border-radius: 100px;
@@ -331,6 +332,242 @@
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-muted);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .search-clear:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .search-input:not(:placeholder-shown) ~ .search-clear {
+      display: flex;
+    }
+
+    /* Search Suggestions Dropdown */
+    .search-suggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(20px);
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+
+    .search-suggestions.active {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .suggestion-section {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .suggestion-section:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-label {
+      padding: 0.25rem 1rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .suggestion-item {
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item.highlighted {
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    .suggestion-item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .suggestion-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .suggestion-item-title {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 0.9rem;
+    }
+
+    .suggestion-item-title mark {
+      background: rgba(56, 189, 248, 0.3);
+      color: var(--secondary);
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
+    .suggestion-item-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .suggestion-item-tag {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(99, 102, 241, 0.2);
+      border-radius: 4px;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    /* Quick Search Tags */
+    .quick-search-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .quick-tag {
+      padding: 0.4rem 0.8rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .quick-tag:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .quick-tag-icon {
+      font-size: 0.85rem;
+    }
+
+    /* Search History */
+    .search-history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .search-history-item .remove-history {
+      opacity: 0;
+      padding: 0.25rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .suggestion-item:hover .remove-history {
+      opacity: 1;
+    }
+
+    .remove-history:hover {
+      color: var(--accent);
+    }
+
+    /* Search Result Stats */
+    .search-stats {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .search-stats.active {
+      display: flex;
+    }
+
+    .search-stats-text {
+      color: var(--text-main);
+    }
+
+    .search-stats-text strong {
+      color: var(--secondary);
+    }
+
+    .search-stats-clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      text-decoration: underline;
+      transition: var(--transition);
+    }
+
+    .search-stats-clear:hover {
+      color: var(--secondary);
+    }
+
+    /* Search Highlight in Cards */
+    .tool-card .search-highlight {
+      background: rgba(56, 189, 248, 0.25);
+      color: var(--secondary);
+      border-radius: 2px;
+      padding: 0 2px;
     }
 
     .filter-scroll {
@@ -2571,8 +2808,18 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input type="text" class="search-input" placeholder="例：議事録 / 稟議 / ナレッジ / 自動化 / Slack ..." id="searchInput"
-                aria-label="検索">
+              <input type="text" class="search-input" placeholder="ツール名・機能・用途で検索..." id="searchInput"
+                aria-label="検索" autocomplete="off">
+              <button class="search-clear" id="searchClear" aria-label="検索をクリア">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+              <!-- Search Suggestions Dropdown -->
+              <div class="search-suggestions" id="searchSuggestions">
+                <!-- Populated by JavaScript -->
+              </div>
             </div>
             <div class="select-wrapper">
               <label class="sr-only" for="sortSelect">並び替え</label>
@@ -2604,8 +2851,30 @@
             <button class="filter-btn" data-filter="ph">Product Hunt注目</button>
             <button class="filter-btn" data-filter="other">その他</button>
           </div>
+
+          <!-- Quick Search Tags -->
+          <div class="quick-search-tags" id="quickSearchTags">
+            <button class="quick-tag" data-search="議事録"><span class="quick-tag-icon">📝</span>議事録</button>
+            <button class="quick-tag" data-search="自動化"><span class="quick-tag-icon">⚡</span>自動化</button>
+            <button class="quick-tag" data-search="無料"><span class="quick-tag-icon">🆓</span>無料あり</button>
+            <button class="quick-tag" data-search="SOC2"><span class="quick-tag-icon">🔒</span>SOC2対応</button>
+            <button class="quick-tag" data-search="API"><span class="quick-tag-icon">🔌</span>API連携</button>
+            <button class="quick-tag" data-search="SSO"><span class="quick-tag-icon">🔐</span>SSO対応</button>
+            <button class="quick-tag" data-search="チーム"><span class="quick-tag-icon">👥</span>チーム向け</button>
+            <button class="quick-tag" data-search="コード"><span class="quick-tag-icon">💻</span>コード生成</button>
+          </div>
         </div>
       </div>
+  </div>
+
+  <!-- Search Stats Bar -->
+  <div class="wrap">
+    <div class="search-stats" id="searchStats">
+      <span class="search-stats-text">
+        「<strong id="searchQuery"></strong>」の検索結果: <strong id="searchCount">0</strong>件
+      </span>
+      <button class="search-stats-clear" id="searchStatsClear">検索をクリア</button>
+    </div>
   </div>
 
   <!-- Accessibility: Screen reader announcements -->
@@ -7525,20 +7794,375 @@
         }
       }
 
+      // ========== Enhanced Search System ==========
+      const searchSuggestions = document.getElementById('searchSuggestions');
+      const searchClear = document.getElementById('searchClear');
+      const searchStats = document.getElementById('searchStats');
+      const searchQueryEl = document.getElementById('searchQuery');
+      const searchCountEl = document.getElementById('searchCount');
+      const searchStatsClear = document.getElementById('searchStatsClear');
+      const quickSearchTags = document.getElementById('quickSearchTags');
+
+      // Search History (stored in localStorage)
+      const SEARCH_HISTORY_KEY = 'recommended_tools_search_history';
+      const MAX_HISTORY = 5;
+
+      function getSearchHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+        } catch { return []; }
+      }
+
+      function addToSearchHistory(query) {
+        if (!query || query.length < 2) return;
+        let history = getSearchHistory();
+        history = history.filter(h => h.toLowerCase() !== query.toLowerCase());
+        history.unshift(query);
+        history = history.slice(0, MAX_HISTORY);
+        try {
+          localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+        } catch { }
+      }
+
+      function removeFromSearchHistory(query) {
+        let history = getSearchHistory();
+        history = history.filter(h => h !== query);
+        try {
+          localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+        } catch { }
+        showSuggestions(searchInput?.value || '');
+      }
+
+      // Build tool index for search suggestions
+      function buildToolIndex() {
+        const tools = [];
+        toolCards.forEach(card => {
+          const name = getToolName(card);
+          const subtitle = card.querySelector('.tool-subtitle')?.textContent || '';
+          const description = card.querySelector('.tool-description')?.textContent || '';
+          const tags = (card.dataset.tags || '').split(',').filter(Boolean);
+          const id = card.id;
+          tools.push({ name, subtitle, description, tags, id, card });
+        });
+        return tools;
+      }
+
+      const toolIndex = buildToolIndex();
+
+      // Popular search suggestions
+      const popularSearches = [
+        { term: '議事録', icon: '📝' },
+        { term: 'AI', icon: '🤖' },
+        { term: '自動化', icon: '⚡' },
+        { term: 'Notion', icon: '📓' },
+        { term: 'Slack', icon: '💬' },
+        { term: 'ChatGPT', icon: '💭' }
+      ];
+
+      function highlightMatch(text, query) {
+        if (!query) return text;
+        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
+      }
+
+      function showSuggestions(query) {
+        if (!searchSuggestions) return;
+
+        const q = normalize(query);
+        let html = '';
+
+        // If no query, show history and popular
+        if (!q) {
+          const history = getSearchHistory();
+
+          if (history.length > 0) {
+            html += '<div class="suggestion-section">';
+            html += '<div class="suggestion-label">🕐 最近の検索</div>';
+            history.forEach(h => {
+              html += `
+                <div class="suggestion-item search-history-item" data-search="${h}">
+                  <div class="suggestion-item-icon">🔍</div>
+                  <div class="suggestion-item-content">
+                    <div class="suggestion-item-title">${h}</div>
+                  </div>
+                  <button class="remove-history" data-remove="${h}" aria-label="履歴から削除">✕</button>
+                </div>
+              `;
+            });
+            html += '</div>';
+          }
+
+          html += '<div class="suggestion-section">';
+          html += '<div class="suggestion-label">🔥 人気の検索</div>';
+          popularSearches.forEach(p => {
+            html += `
+              <div class="suggestion-item" data-search="${p.term}">
+                <div class="suggestion-item-icon">${p.icon}</div>
+                <div class="suggestion-item-content">
+                  <div class="suggestion-item-title">${p.term}</div>
+                </div>
+              </div>
+            `;
+          });
+          html += '</div>';
+        } else {
+          // Search tools matching query
+          const matches = toolIndex.filter(t => {
+            const searchText = normalize(`${t.name} ${t.subtitle} ${t.description}`);
+            return searchText.includes(q);
+          }).slice(0, 6);
+
+          if (matches.length > 0) {
+            html += '<div class="suggestion-section">';
+            html += '<div class="suggestion-label">🧰 ツール</div>';
+            matches.forEach(m => {
+              const tagLabels = { meeting: "会議", docs: "ナレッジ", pm: "PM", automation: "自動化", ai: "AI", dev: "開発" };
+              const showTag = m.tags.find(t => tagLabels[t]);
+              html += `
+                <div class="suggestion-item" data-tool-id="${m.id}">
+                  <div class="suggestion-item-icon">🔧</div>
+                  <div class="suggestion-item-content">
+                    <div class="suggestion-item-title">${highlightMatch(m.name, query)}</div>
+                    <div class="suggestion-item-desc">${m.subtitle}</div>
+                  </div>
+                  ${showTag ? `<span class="suggestion-item-tag">${tagLabels[showTag]}</span>` : ''}
+                </div>
+              `;
+            });
+            html += '</div>';
+          }
+
+          // Also suggest category filters
+          const categoryMatches = [];
+          const categories = [
+            { key: 'meeting', label: '会議・議事録', keywords: ['会議', '議事録', 'ミーティング', 'meeting'] },
+            { key: 'docs', label: 'ドキュメント・ナレッジ', keywords: ['ドキュメント', 'ナレッジ', '資料', '文書', 'wiki'] },
+            { key: 'automation', label: '自動化', keywords: ['自動化', 'ワークフロー', '連携', 'automation'] },
+            { key: 'ai', label: 'AI活用', keywords: ['ai', 'gpt', 'llm', '生成', 'claude', 'gemini'] },
+            { key: 'dev', label: '開発ツール', keywords: ['開発', 'コード', 'dev', 'github', 'プログラミング'] }
+          ];
+
+          categories.forEach(cat => {
+            if (cat.keywords.some(kw => kw.includes(q) || q.includes(kw))) {
+              categoryMatches.push(cat);
+            }
+          });
+
+          if (categoryMatches.length > 0) {
+            html += '<div class="suggestion-section">';
+            html += '<div class="suggestion-label">📂 カテゴリ</div>';
+            categoryMatches.forEach(cat => {
+              html += `
+                <div class="suggestion-item" data-filter="${cat.key}">
+                  <div class="suggestion-item-icon">📁</div>
+                  <div class="suggestion-item-content">
+                    <div class="suggestion-item-title">${cat.label}</div>
+                    <div class="suggestion-item-desc">このカテゴリで絞り込み</div>
+                  </div>
+                </div>
+              `;
+            });
+            html += '</div>';
+          }
+
+          if (!html) {
+            html = '<div class="suggestion-section"><div class="suggestion-label" style="padding: 1rem;">検索候補がありません</div></div>';
+          }
+        }
+
+        searchSuggestions.innerHTML = html;
+        searchSuggestions.classList.add('active');
+
+        // Attach event listeners to suggestion items
+        searchSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-history')) {
+              const toRemove = e.target.closest('.remove-history').dataset.remove;
+              removeFromSearchHistory(toRemove);
+              return;
+            }
+
+            const searchTerm = item.dataset.search;
+            const toolId = item.dataset.toolId;
+            const filter = item.dataset.filter;
+
+            if (toolId) {
+              // Scroll to specific tool
+              const toolCard = document.getElementById(toolId);
+              if (toolCard) {
+                searchInput.value = '';
+                hideSuggestions();
+                updateSearchStats('', 0);
+
+                // Show all tools first
+                toolCards.forEach(card => card.style.display = 'block');
+
+                // Scroll to tool
+                const yOffset = -160;
+                const y = toolCard.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+
+                // Highlight briefly
+                toolCard.style.boxShadow = '0 0 0 3px var(--secondary)';
+                setTimeout(() => {
+                  toolCard.style.boxShadow = '';
+                }, 2000);
+              }
+            } else if (filter) {
+              // Apply category filter
+              searchInput.value = '';
+              hideSuggestions();
+              filterBtns.forEach(b => {
+                if (b.dataset.filter === filter) {
+                  b.classList.add('active');
+                } else {
+                  b.classList.remove('active');
+                }
+              });
+              filterTools();
+              scrollToResults();
+            } else if (searchTerm) {
+              // Apply search term
+              searchInput.value = searchTerm;
+              addToSearchHistory(searchTerm);
+              hideSuggestions();
+              executeSearch(searchTerm);
+            }
+          });
+        });
+      }
+
+      function hideSuggestions() {
+        if (searchSuggestions) {
+          searchSuggestions.classList.remove('active');
+        }
+      }
+
+      function updateSearchStats(query, count) {
+        if (!searchStats || !searchQueryEl || !searchCountEl) return;
+
+        if (query && query.length > 0) {
+          searchQueryEl.textContent = query;
+          searchCountEl.textContent = count;
+          searchStats.classList.add('active');
+        } else {
+          searchStats.classList.remove('active');
+        }
+      }
+
+      function executeSearch(query) {
+        filterTools();
+
+        // Count visible cards
+        let count = 0;
+        toolCards.forEach(card => {
+          if (card.style.display !== 'none' && card.offsetParent !== null) count++;
+        });
+
+        updateSearchStats(query, count);
+        announceResults(count);
+        scrollToResults();
+      }
+
+      function clearSearch() {
+        if (searchInput) {
+          searchInput.value = '';
+          searchInput.focus();
+        }
+        hideSuggestions();
+        updateSearchStats('', 0);
+        filterTools();
+      }
+
+      // Global reset function
+      window.resetSearch = clearSearch;
+
       if (searchInput) {
         let searchTimeout;
+        let highlightedIndex = -1;
+
         searchInput.addEventListener('input', () => {
           clearTimeout(searchTimeout);
+          const query = searchInput.value;
+
+          // Show suggestions immediately
+          showSuggestions(query);
+
           searchTimeout = setTimeout(() => {
-            filterTools();
-            // Count visible cards
-            const visibleCards = document.querySelectorAll('.tool-card[style="display: block;"], .tool-card:not([style*="display: none"])');
-            let count = 0;
-            visibleCards.forEach(card => {
-              if (card.offsetParent !== null) count++;
+            if (query.length >= 1) {
+              executeSearch(query);
+            } else {
+              updateSearchStats('', 0);
+              filterTools();
+            }
+          }, 300);
+        });
+
+        searchInput.addEventListener('focus', () => {
+          showSuggestions(searchInput.value);
+        });
+
+        // Keyboard navigation for suggestions
+        searchInput.addEventListener('keydown', (e) => {
+          const items = searchSuggestions?.querySelectorAll('.suggestion-item') || [];
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+            items.forEach((item, i) => {
+              item.classList.toggle('highlighted', i === highlightedIndex);
             });
-            announceResults(count);
-          }, 200);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedIndex = Math.max(highlightedIndex - 1, -1);
+            items.forEach((item, i) => {
+              item.classList.toggle('highlighted', i === highlightedIndex);
+            });
+          } else if (e.key === 'Enter') {
+            if (highlightedIndex >= 0 && items[highlightedIndex]) {
+              e.preventDefault();
+              items[highlightedIndex].click();
+            } else if (searchInput.value) {
+              addToSearchHistory(searchInput.value);
+              hideSuggestions();
+              executeSearch(searchInput.value);
+            }
+          } else if (e.key === 'Escape') {
+            hideSuggestions();
+            highlightedIndex = -1;
+          }
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.search-wrapper')) {
+            hideSuggestions();
+            highlightedIndex = -1;
+          }
+        });
+      }
+
+      // Search clear button
+      if (searchClear) {
+        searchClear.addEventListener('click', clearSearch);
+      }
+
+      // Search stats clear button
+      if (searchStatsClear) {
+        searchStatsClear.addEventListener('click', clearSearch);
+      }
+
+      // Quick search tags
+      if (quickSearchTags) {
+        quickSearchTags.querySelectorAll('.quick-tag').forEach(tag => {
+          tag.addEventListener('click', () => {
+            const term = tag.dataset.search;
+            if (searchInput) {
+              searchInput.value = term;
+              addToSearchHistory(term);
+              executeSearch(term);
+            }
+          });
         });
       }
 
