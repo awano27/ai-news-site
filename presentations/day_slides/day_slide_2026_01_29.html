@@ -9,6 +9,8 @@
     :root {
       --primary: #4285f4;
       --accent: #34a853;
+      --secondary: #ea4335;
+      --warning: #fbbc04;
       --bg-light: #e8f0fe;
       --bg-dark: #1a73e8;
       --text: #0f172a;
@@ -40,7 +42,7 @@
     }
 
     header {
-      background: linear-gradient(135deg, var(--bg-dark) 0%, #4285f4 100%);
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #4285f4 50%, #34a853 100%);
       color: white;
       padding: 48px;
       text-align: center;
@@ -56,8 +58,9 @@
       width: 200%;
       height: 200%;
       background:
-        radial-gradient(circle at 20% 50%, rgba(66, 133, 244, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 50%, rgba(52, 168, 83, 0.15) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, rgba(66, 133, 244, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(52, 168, 83, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(251, 188, 4, 0.15) 0%, transparent 40%);
       animation: headerPulse 15s ease-in-out infinite;
     }
 
@@ -138,6 +141,13 @@
       color: var(--text);
     }
 
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
     a {
       color: var(--primary);
       text-decoration: none;
@@ -160,9 +170,19 @@
       line-height: 1.8;
     }
 
+    .warning-box {
+      background: linear-gradient(135deg, rgba(251, 188, 4, 0.1), rgba(234, 67, 53, 0.05));
+      border-left: 5px solid var(--warning);
+      padding: 24px;
+      margin-bottom: 32px;
+      border-radius: 8px;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 20px;
       margin: 32px 0;
     }
@@ -173,10 +193,16 @@
       border-radius: 12px;
       text-align: center;
       border: 2px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(66, 133, 244, 0.15);
     }
 
     .stat-number {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: 900;
       color: var(--primary);
       display: block;
@@ -184,14 +210,14 @@
     }
 
     .stat-label {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-light);
       font-weight: 600;
     }
 
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
       margin: 32px 0;
     }
@@ -212,7 +238,7 @@
 
     .feature-card h3 {
       color: var(--primary);
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -222,12 +248,14 @@
     .feature-card p {
       color: var(--text-light);
       line-height: 1.7;
+      font-size: 0.95rem;
     }
 
     .comparison-table {
       width: 100%;
       border-collapse: collapse;
       margin: 24px 0;
+      font-size: 0.95rem;
     }
 
     .comparison-table th,
@@ -247,37 +275,232 @@
       background: rgba(66, 133, 244, 0.05);
     }
 
-    .workflow-step {
+    .workflow-container {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
       gap: 16px;
-      padding: 20px;
-      background: var(--bg-light);
-      border-radius: 12px;
-      margin-bottom: 16px;
-    }
-
-    .step-number {
-      width: 48px;
-      height: 48px;
-      background: var(--primary);
-      color: white;
-      border-radius: 50%;
-      display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 900;
-      font-size: 1.2rem;
-      flex-shrink: 0;
+      margin: 32px 0;
     }
 
-    .step-arrow {
-      font-size: 1.5rem;
+    .workflow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px;
+      background: var(--bg-light);
+      border-radius: 16px;
+      min-width: 140px;
+      text-align: center;
+      border: 2px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .workflow-step:hover {
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .step-icon {
+      font-size: 2.5rem;
+    }
+
+    .step-label {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .workflow-arrow {
+      font-size: 2rem;
       color: var(--accent);
     }
 
+    .code-block {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 24px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin: 24px 0;
+    }
+
+    .code-block .comment {
+      color: #64748b;
+    }
+
+    .code-block .keyword {
+      color: #c084fc;
+    }
+
+    .code-block .string {
+      color: #34d399;
+    }
+
+    .code-block .function {
+      color: #60a5fa;
+    }
+
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin: 32px 0;
+    }
+
+    .usecase-card {
+      background: linear-gradient(135deg, white 0%, var(--bg-light) 100%);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .usecase-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(66, 133, 244, 0.15);
+    }
+
+    .usecase-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: var(--primary);
+    }
+
+    .usecase-card .example {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .usecase-card .example-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+      border-radius: 3px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 28px;
+      width: 14px;
+      height: 14px;
+      background: var(--primary);
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .timeline-date {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .timeline-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .timeline-desc {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .resource-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg-light);
+      padding: 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .resource-card:hover {
+      border-color: var(--primary);
+      transform: translateX(4px);
+      text-decoration: none;
+    }
+
+    .resource-icon {
+      font-size: 2rem;
+    }
+
+    .resource-info h4 {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .resource-info p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-yellow { background: #fef3c7; color: #b45309; }
+    .badge-red { background: #fee2e2; color: #dc2626; }
+
     footer {
-      background: var(--bg-dark);
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #0d47a1 100%);
       color: white;
       padding: 32px 48px;
       text-align: center;
@@ -306,7 +529,7 @@
 
     .back-to-top:hover {
       transform: translateY(-3px) scale(1.05);
-      background: rgba(66, 133, 244, 0.9);
+      background: rgba(66, 133, 244, 0.95);
       color: white;
       text-decoration: none;
     }
@@ -321,6 +544,8 @@
       .back-to-top { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.85rem; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .feature-grid { grid-template-columns: 1fr; }
+      .workflow-container { flex-direction: column; }
+      .workflow-arrow { transform: rotate(90deg); }
     }
   </style>
 </head>
@@ -332,13 +557,14 @@
 
   <div class="container">
     <header>
-      <div class="breaking-badge">&#128293; 2026年1月29日速報 | Google Gemini / Vision AI / Code Execution</div>
+      <div class="breaking-badge">&#128293; 2026年1月29日速報 | Google Gemini / Vision AI / Code Execution / Agentic</div>
       <h1>Agentic Vision in Gemini</h1>
-      <p class="subtitle">見て、考えて、コードで解決する自律型AI</p>
-      <p class="date">2026年1月29日 | Product Hunt #8 (123 upvotes)</p>
+      <p class="subtitle">見て、考えて、コードで解決する ― 自律型AIの新境地</p>
+      <p class="date">2026年1月29日 | Product Hunt #8 (123 upvotes) | サプライズ度: ⭐⭐⭐⭐⭐</p>
     </header>
 
     <main>
+      <!-- 概要セクション -->
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128161;</span>
@@ -346,10 +572,18 @@
         </div>
 
         <div class="highlight-box">
-          <strong>Agentic Vision in Gemini</strong>は、Googleが発表した次世代のAIエージェント機能。従来のVision AIが「画像を見て説明する」だけだったのに対し、このシステムは<strong>画像を分析 → 問題を特定 → 解決コードを自動生成 → 実行</strong>という自律ループを実現。「見て→考えて→コードで解決」というエージェント的な振る舞いで、これまでのVision AIの限界を突破します。
+          <strong>Agentic Vision in Gemini</strong>は、Googleが発表した次世代のAIエージェント機能。従来のVision AIが「画像を見て説明する」だけだったのに対し、このシステムは<strong>画像を分析 → 問題を特定 → 解決コードを自動生成 → サンドボックスで実行 → 結果を返却</strong>という完全自律ループを実現。
+          <br><br>
+          「見て → 考えて → コードで解決」というエージェント的な振る舞いで、これまでのVision AIの限界を突破。人間の介入なしに、視覚情報から実行可能なソリューションまで一気通貫で処理できる革新的なシステムです。
+          <br><br>
+          <span class="badge badge-blue">Gemini 2.0</span>
+          <span class="badge badge-green">Code Execution</span>
+          <span class="badge badge-yellow">Vision AI</span>
+          <span class="badge badge-red">Agentic</span>
           <br><br>
           <strong>ソース:</strong>
-          <a href="https://www.producthunt.com/posts/agentic-vision-in-gemini" target="_blank">Product Hunt</a>
+          <a href="https://www.producthunt.com/posts/agentic-vision-in-gemini" target="_blank">Product Hunt</a> |
+          <a href="https://ai.google.dev/gemini-api/docs" target="_blank">Gemini API Docs</a>
         </div>
 
         <div class="stats-grid">
@@ -366,171 +600,407 @@
             <span class="stat-label">画像認識</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">Code</span>
+            <span class="stat-number">Python</span>
             <span class="stat-label">コード実行</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Loop</span>
+            <span class="stat-label">自己修正</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Sandbox</span>
+            <span class="stat-label">安全実行</span>
           </div>
         </div>
       </section>
 
+      <!-- ワークフローセクション -->
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128640;</span>
           <h2>自律ループのワークフロー</h2>
         </div>
 
-        <div class="workflow-step">
-          <span class="step-number">1</span>
-          <div>
-            <strong>&#128247; 画像入力</strong><br>
-            スクリーンショット、手書きメモ、グラフ、UIデザインなど
+        <div class="workflow-container">
+          <div class="workflow-step">
+            <span class="step-icon">&#128247;</span>
+            <span class="step-label">画像入力</span>
+            <span class="step-desc">スクショ、手書き、グラフ</span>
+          </div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-step">
+            <span class="step-icon">&#128065;</span>
+            <span class="step-label">視覚分析</span>
+            <span class="step-desc">内容を認識・構造化</span>
+          </div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-step">
+            <span class="step-icon">&#129504;</span>
+            <span class="step-label">推論・計画</span>
+            <span class="step-desc">解決策を立案</span>
+          </div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-step">
+            <span class="step-icon">&#128187;</span>
+            <span class="step-label">コード生成</span>
+            <span class="step-desc">Python自動生成</span>
+          </div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-step">
+            <span class="step-icon">&#9889;</span>
+            <span class="step-label">実行</span>
+            <span class="step-desc">サンドボックス実行</span>
+          </div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-step">
+            <span class="step-icon">&#128202;</span>
+            <span class="step-label">結果出力</span>
+            <span class="step-desc">グラフ・データ・解答</span>
           </div>
         </div>
-        <div style="text-align: center; padding: 8px 0;">
-          <span class="step-arrow">&#8595;</span>
-        </div>
-        <div class="workflow-step">
-          <span class="step-number">2</span>
-          <div>
-            <strong>&#128065; 視覚分析</strong><br>
-            Geminiが画像の内容を認識・理解・構造化
-          </div>
-        </div>
-        <div style="text-align: center; padding: 8px 0;">
-          <span class="step-arrow">&#8595;</span>
-        </div>
-        <div class="workflow-step">
-          <span class="step-number">3</span>
-          <div>
-            <strong>&#128187; コード生成</strong><br>
-            問題解決のためのPython/JSコードを自動生成
-          </div>
-        </div>
-        <div style="text-align: center; padding: 8px 0;">
-          <span class="step-arrow">&#8595;</span>
-        </div>
-        <div class="workflow-step">
-          <span class="step-number">4</span>
-          <div>
-            <strong>&#9889; 実行＆出力</strong><br>
-            サンドボックス環境でコードを実行、結果を返却
-          </div>
+
+        <div class="warning-box">
+          <strong>&#128260; 自己修正ループ:</strong> 生成したコードでエラーが発生した場合、Geminiは自動的にエラーを分析し、修正版のコードを生成して再実行します。人間の介入なしに、成功するまでループを繰り返す「エージェント的」な振る舞いを実現。
         </div>
       </section>
 
+      <!-- 技術詳細セクション -->
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128736;</span>
-          <h2>主要機能</h2>
+          <h2>技術的特徴</h2>
         </div>
 
         <div class="feature-grid">
           <div class="feature-card">
-            <h3>&#128248; 画像→コード変換</h3>
-            <p>手書きの数式、フローチャート、UIモックアップなどの画像から、動作するコードを自動生成</p>
+            <h3>&#127912; マルチモーダル入力</h3>
+            <p>画像、スクリーンショット、手書きメモ、PDF、チャート、UIモックアップなど、あらゆる視覚的入力に対応。複数画像の同時分析も可能。</p>
           </div>
           <div class="feature-card">
-            <h3>&#128202; データ可視化</h3>
-            <p>テーブルやグラフ画像からデータを抽出し、matplotlibやPlotlyで新しいグラフを自動生成</p>
+            <h3>&#128187; Pythonサンドボックス</h3>
+            <p>生成されたコードは安全なサンドボックス環境で実行。NumPy、Pandas、Matplotlib、SymPyなど科学計算ライブラリがプリインストール。</p>
           </div>
           <div class="feature-card">
-            <h3>&#128295; エラーデバッグ</h3>
-            <p>エラー画面のスクリーンショットから原因を分析し、修正コードを提案</p>
+            <h3>&#128202; 可視化自動生成</h3>
+            <p>データ分析結果をMatplotlib/Plotlyでグラフ化。画像として出力されるので、そのまま資料に使用可能。</p>
           </div>
           <div class="feature-card">
-            <h3>&#128301; 自己修正ループ</h3>
-            <p>生成したコードでエラーが出た場合、自動で原因を分析して修正を試みる</p>
+            <h3>&#128295; エラー自己修復</h3>
+            <p>コード実行時にエラーが発生すると、スタックトレースを分析して自動修正。最大3回まで再試行。</p>
+          </div>
+          <div class="feature-card">
+            <h3>&#128274; セキュリティ分離</h3>
+            <p>ネットワークアクセス無効、ファイルシステム制限、実行時間制限（30秒）など、厳格なセキュリティ制約。</p>
+          </div>
+          <div class="feature-card">
+            <h3>&#127793; ステートフル実行</h3>
+            <p>チャットセッション内でコード実行状態を保持。前の実行結果を参照して、段階的に複雑な処理を構築可能。</p>
           </div>
         </div>
       </section>
 
+      <!-- コード例セクション -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128221;</span>
+          <h2>使用例：Python API</h2>
+        </div>
+
+        <h3>基本的な使い方</h3>
+        <div class="code-block">
+<span class="keyword">import</span> google.generativeai <span class="keyword">as</span> genai
+<span class="keyword">from</span> PIL <span class="keyword">import</span> Image
+
+<span class="comment"># APIキー設定</span>
+genai.<span class="function">configure</span>(api_key=<span class="string">"YOUR_API_KEY"</span>)
+
+<span class="comment"># Code Executionを有効化したモデル</span>
+model = genai.<span class="function">GenerativeModel</span>(
+    model_name=<span class="string">"gemini-2.0-flash"</span>,
+    tools=[<span class="string">"code_execution"</span>]
+)
+
+<span class="comment"># 画像を読み込み</span>
+image = Image.<span class="function">open</span>(<span class="string">"math_problem.png"</span>)
+
+<span class="comment"># 画像を分析してコードで解決</span>
+response = model.<span class="function">generate_content</span>([
+    <span class="string">"この数式を解いて、計算過程をPythonコードで示してください"</span>,
+    image
+])
+
+<span class="keyword">print</span>(response.text)
+        </div>
+
+        <h3>データ分析の例</h3>
+        <div class="code-block">
+<span class="comment"># Excelスクリーンショットからデータ分析</span>
+response = model.<span class="function">generate_content</span>([
+    <span class="string">"""このスプレッドシートの画像から:
+    1. データを抽出してPandas DataFrameに変換
+    2. 基本統計量を計算
+    3. 売上トレンドをグラフ化
+    してください"""</span>,
+    spreadsheet_image
+])
+
+<span class="comment"># 実行結果には生成されたグラフ画像も含まれる</span>
+<span class="keyword">for</span> part <span class="keyword">in</span> response.parts:
+    <span class="keyword">if</span> part.executable_code:
+        <span class="keyword">print</span>(<span class="string">"生成されたコード:"</span>, part.executable_code.code)
+    <span class="keyword">if</span> part.code_execution_result:
+        <span class="keyword">print</span>(<span class="string">"実行結果:"</span>, part.code_execution_result.output)
+        </div>
+      </section>
+
+      <!-- ユースケースセクション -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128188;</span>
+          <h2>実践ユースケース</h2>
+        </div>
+
+        <div class="usecase-grid">
+          <div class="usecase-card">
+            <h3>&#128290; 数学・科学計算</h3>
+            <p>手書きの数式、物理の問題、化学式などを画像で渡すだけで、計算コードを生成して解答を導出。学生のノート写真から一発で答えを算出。</p>
+            <div class="example">
+              <div class="example-label">入力例</div>
+              <p>「この微分方程式を解いて、一般解をSymPyで求めて」+ 手書きノート画像</p>
+            </div>
+          </div>
+
+          <div class="usecase-card">
+            <h3>&#127912; UI → コード変換</h3>
+            <p>Figmaのデザイン、手書きワイヤーフレーム、UIスクリーンショットからHTML/CSS/Reactコンポーネントを自動生成。</p>
+            <div class="example">
+              <div class="example-label">入力例</div>
+              <p>「このモバイルアプリのスクショをReact Nativeコンポーネントに変換して」</p>
+            </div>
+          </div>
+
+          <div class="usecase-card">
+            <h3>&#128200; データ可視化</h3>
+            <p>Excelスクリーンショット、手書きの表、PDFの統計データから、Pythonでデータを抽出してグラフ化。レポート作成を自動化。</p>
+            <div class="example">
+              <div class="example-label">入力例</div>
+              <p>「この売上表から月別トレンドと前年比グラフを作成して」</p>
+            </div>
+          </div>
+
+          <div class="usecase-card">
+            <h3>&#128295; デバッグ支援</h3>
+            <p>エラー画面のスクリーンショットから、スタックトレースを解析して原因を特定。修正コードまで提案。</p>
+            <div class="example">
+              <div class="example-label">入力例</div>
+              <p>「このエラー画面を見て、原因と修正方法をコードで示して」</p>
+            </div>
+          </div>
+
+          <div class="usecase-card">
+            <h3>&#128218; ドキュメント変換</h3>
+            <p>フローチャート、ER図、アーキテクチャ図などの画像から、対応するコードやスキーマを自動生成。</p>
+            <div class="example">
+              <div class="example-label">入力例</div>
+              <p>「このER図からSQLAlchemyのモデル定義を生成して」</p>
+            </div>
+          </div>
+
+          <div class="usecase-card">
+            <h3>&#127891; レガシー現代化</h3>
+            <p>古いシステムのスクリーンショットから、現代的なWebアプリのコードを生成。COBOL画面→React変換なども。</p>
+            <div class="example">
+              <div class="example-label">入力例</div>
+              <p>「この80年代の端末画面を、モダンなWebUIとして再実装して」</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 競合比較セクション -->
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128200;</span>
-          <h2>従来との比較</h2>
+          <h2>競合比較</h2>
         </div>
 
         <table class="comparison-table">
           <thead>
             <tr>
-              <th>項目</th>
-              <th>従来のVision AI</th>
-              <th>Agentic Vision</th>
+              <th>機能</th>
+              <th>Agentic Vision (Gemini)</th>
+              <th>GPT-4V + Code Interpreter</th>
+              <th>Claude Vision</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>出力形式</strong></td>
-              <td>テキスト説明のみ</td>
-              <td>コード生成＋実行結果</td>
+              <td><strong>Vision入力</strong></td>
+              <td>✅ 画像・動画・PDF</td>
+              <td>✅ 画像・PDF</td>
+              <td>✅ 画像・PDF</td>
             </tr>
             <tr>
-              <td><strong>ワークフロー</strong></td>
-              <td>認識 → 説明で終了</td>
-              <td>認識 → 分析 → コード → 実行 → 結果</td>
+              <td><strong>コード実行</strong></td>
+              <td>✅ Python（サンドボックス）</td>
+              <td>✅ Python（サンドボックス）</td>
+              <td>❌ なし（提案のみ）</td>
             </tr>
             <tr>
-              <td><strong>人間の介入</strong></td>
-              <td>コード化は人間の作業</td>
-              <td>自動で完結可能</td>
+              <td><strong>自己修正ループ</strong></td>
+              <td>✅ 最大3回再試行</td>
+              <td>✅ 自動再試行</td>
+              <td>❌ 人間が修正</td>
             </tr>
             <tr>
-              <td><strong>エラー対応</strong></td>
-              <td>人間が修正</td>
-              <td>自己修正ループ</td>
+              <td><strong>Vision+Code統合</strong></td>
+              <td>✅ ネイティブ統合</td>
+              <td>⚠️ 別ツール扱い</td>
+              <td>❌ 分離</td>
+            </tr>
+            <tr>
+              <td><strong>API価格</strong></td>
+              <td>入力$0.10/100万トークン</td>
+              <td>入力$2.50/100万トークン</td>
+              <td>入力$3.00/100万トークン</td>
+            </tr>
+            <tr>
+              <td><strong>無料枠</strong></td>
+              <td>✅ 15 RPM無料</td>
+              <td>⚠️ 限定的</td>
+              <td>⚠️ 限定的</td>
             </tr>
           </tbody>
         </table>
       </section>
 
+      <!-- 制限事項セクション -->
       <section class="section">
         <div class="section-header">
-          <span class="section-icon">&#128221;</span>
-          <h2>活用例</h2>
+          <span class="section-icon">&#9888;&#65039;</span>
+          <h2>制限事項・注意点</h2>
         </div>
 
         <div class="feature-grid">
           <div class="feature-card">
-            <h3>&#128290; 数学・計算</h3>
-            <p>手書きの数式画像 → 計算コード生成 → 解答出力。学生のノートから一発で答えを導出</p>
+            <h3>&#128338; 実行時間制限</h3>
+            <p>コード実行は最大30秒。長時間かかる機械学習トレーニングなどは不向き。</p>
           </div>
           <div class="feature-card">
-            <h3>&#127912; UI開発</h3>
-            <p>Figmaやスケッチ画像 → HTML/CSS/Reactコンポーネント生成。デザイン→実装を自動化</p>
+            <h3>&#128274; ネットワーク無効</h3>
+            <p>サンドボックスからのネットワークアクセスは禁止。外部API呼び出しはできません。</p>
           </div>
           <div class="feature-card">
-            <h3>&#128200; データ分析</h3>
-            <p>Excelスクリーンショット → データ抽出 → Pandasで再分析 → 新しい可視化</p>
+            <h3>&#128190; ファイルサイズ</h3>
+            <p>生成される出力ファイル（画像等）にはサイズ制限あり。大量データ処理には注意。</p>
           </div>
           <div class="feature-card">
-            <h3>&#128187; デバッグ支援</h3>
-            <p>エラー画面のスクショ → スタックトレース解析 → 修正コード提案</p>
+            <h3>&#127919; 対応言語</h3>
+            <p>現在はPythonのみ。JavaScript、Rなど他言語は今後対応予定。</p>
           </div>
         </div>
       </section>
 
+      <!-- 技術進化タイムライン -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128197;</span>
+          <h2>Gemini Vision進化の軌跡</h2>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">2023年12月</div>
+            <div class="timeline-title">Gemini 1.0 リリース</div>
+            <div class="timeline-desc">初のマルチモーダルモデル。画像認識+テキスト生成の統合。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">2024年2月</div>
+            <div class="timeline-title">Gemini 1.5 Pro</div>
+            <div class="timeline-desc">100万トークンコンテキスト。動画理解が大幅向上。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">2024年12月</div>
+            <div class="timeline-title">Gemini 2.0 Flash</div>
+            <div class="timeline-desc">Code Execution機能追加。コード生成から実行まで一貫処理。</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">2026年1月</div>
+            <div class="timeline-title">Agentic Vision</div>
+            <div class="timeline-desc">Vision + Code Execution + 自己修正ループの完全統合。エージェント的自律動作を実現。</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- リソースセクション -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128279;</span>
+          <h2>関連リソース</h2>
+        </div>
+
+        <div class="resource-grid">
+          <a href="https://ai.google.dev/gemini-api/docs" target="_blank" class="resource-card">
+            <span class="resource-icon">&#128214;</span>
+            <div class="resource-info">
+              <h4>Gemini API ドキュメント</h4>
+              <p>公式APIリファレンス</p>
+            </div>
+          </a>
+          <a href="https://aistudio.google.com/" target="_blank" class="resource-card">
+            <span class="resource-icon">&#127891;</span>
+            <div class="resource-info">
+              <h4>Google AI Studio</h4>
+              <p>ブラウザで試せるPlayground</p>
+            </div>
+          </a>
+          <a href="https://github.com/google-gemini/cookbook" target="_blank" class="resource-card">
+            <span class="resource-icon">&#128218;</span>
+            <div class="resource-info">
+              <h4>Gemini Cookbook</h4>
+              <p>サンプルコード集</p>
+            </div>
+          </a>
+          <a href="https://www.producthunt.com/posts/agentic-vision-in-gemini" target="_blank" class="resource-card">
+            <span class="resource-icon">&#128293;</span>
+            <div class="resource-info">
+              <h4>Product Hunt</h4>
+              <p>本日のローンチページ</p>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- インパクトセクション -->
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128640;</span>
-          <h2>インパクト</h2>
+          <h2>業界インパクト</h2>
         </div>
 
         <div class="highlight-box">
-          <strong>エンジニア向け度: ⭐⭐⭐⭐⭐</strong><br><br>
+          <strong>エンジニア向け度: ⭐⭐⭐⭐⭐</strong><br>
+          <strong>サプライズ度: ⭐⭐⭐⭐⭐</strong><br><br>
+          
           「見て説明する」AIから「見て解決する」AIへの進化。これにより：
-          <ul style="margin-top: 16px; padding-left: 24px;">
-            <li>ドキュメントの画像からコードを直接生成</li>
-            <li>レガシーシステムのスクリーンショットからモダン化</li>
-            <li>ホワイトボードのアイデアを即座にプロトタイプ化</li>
-            <li>非エンジニアでも「見せるだけ」で自動化を構築</li>
+          <ul style="margin-top: 16px; padding-left: 24px; line-height: 2;">
+            <li><strong>プロトタイピング高速化</strong> - ホワイトボードのスケッチを即座にコード化</li>
+            <li><strong>ドキュメント自動処理</strong> - 画像ベースのマニュアルからスクリプト生成</li>
+            <li><strong>データ分析民主化</strong> - 非エンジニアでも「見せるだけ」で分析実行</li>
+            <li><strong>教育革新</strong> - 問題を写真に撮るだけで解法コード付き解答</li>
+            <li><strong>レガシー現代化</strong> - 古いシステムのUIをモダンWebに変換</li>
           </ul>
           <br>
-          Vision × Code Execution × Agenticの三位一体が、AIエージェント時代の新しい標準を示唆しています。
+          <strong>Vision × Code Execution × Agentic</strong>の三位一体が、AIエージェント時代の新しい標準を示唆しています。
+          <br><br>
+          <em>「AIに画像を見せたら、人間より正確にコードを書いて実行してくれる」</em> ― これが2026年の新常識に。
         </div>
       </section>
     </main>
 
     <footer>
       <p>&copy; 2026 AI News Archive | このスライドは教育目的で作成されています</p>
+      <p style="margin-top: 8px; opacity: 0.7; font-size: 0.9rem;">Generated with AI assistance | Last updated: 2026-01-29</p>
     </footer>
   </div>
 </body>
