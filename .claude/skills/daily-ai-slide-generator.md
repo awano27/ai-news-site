@@ -11,7 +11,7 @@
 ## 🎯 このスキルで実現できること
 
 1. PDFからスライド画像への自動変換
-2. テーマに合わせたHTMLスライドの自動生成
+2. テーマに合わせたHTMLスライドの自動生成（シンプル構成）
 3. インデックスページへの自動追加
 4. Git コミット・プッシュまでの一連の自動化
 
@@ -20,7 +20,7 @@
 ### 基本的な使い方
 
 ```
-MMDD（例: 0105）のスライドを作成して
+MMDD（例: 0116）のスライドを作成して
 ```
 
 または
@@ -32,46 +32,65 @@ input/dayのMMDD.txt, MMDD.png, MMDD-*.pdfからスライドを生成して
 ### より詳細な指定
 
 ```
-0105のスライドを「Sentient Sparks: オープンソースAGIコミュニティプログラム」というタイトルで作成して
+0116のスライドを「remio 2.0 戦略的導入ガイド」というタイトルで作成して
 ```
 
 ## 📁 必要なファイル構成
 
 ```
 input/day/
-  ├── MMDD.txt         # ニュースの要約テキスト
-  ├── MMDD.png         # トップ画像
-  └── MMDD-Topic.pdf   # 技術解説等の元PDF
+  ├── MMDD.txt         # ニュースの要約テキスト（概要・特徴など）
+  ├── MMDD.png         # サマリ画像（最初に大きく表示）
+  └── MMDD-Topic.pdf   # スライド元PDF（全ページを画像化）
 ```
 
 ## ⚙️ 処理フロー
 
-### 1. PDF画像変換
+### 1. PDF画像変換（PyMuPDF使用）
 - `input/day/MMDD-*.pdf` を検索
 - 各ページを高解像度（2倍ズーム）でJPG画像に変換
 - `input/day/MMDD_slides/slide_001.jpg` 形式で保存
+- PyMuPDF (fitz) を使用: `page.get_pixmap(matrix=fitz.Matrix(2, 2))`
 
-### 2. スライドHTML生成
-- `MMDD.txt` の内容を分析してテーマを抽出
+### 2. スライドHTML生成（シンプル構成）
+- `MMDD.txt` の内容を分析してテーマ・タイトルを抽出
 - テーマに合わせたCSS変数（カラースキーム）を設定
-- `base_template.html` をベースに動的にHTMLを生成
+- **シンプル構成で生成**:
+  1. ヘッダー（日付バッジ、タイトル、サブタイトル）
+  2. サマリセクション:
+     - **MMDD.png をサマリ画像として最初に大きく表示**
+     - 簡潔な概要テキスト（highlight-box）
+     - 統計グリッド（4つの数値）
+  3. スライドセクション:
+     - PDFダウンロードリンク
+     - 全スライド画像を縦に並べて表示
+  4. フッター
 - `presentations/day_slides/day_slide_YYYY_MM_DD.html` として保存
 
-### 3. インデックス更新
-- `presentations/day_slides_index.html` を読み込み
-- 新しいスライドのエントリを日付順に追加
-- Git conflictマーカーがあれば自動クリーンアップ
+### 3. インデックス更新（4ファイル）
+以下のファイルを全て更新:
 
-### 4. トップページ更新
-- `index.html` のヒーローボタンリンクを最新スライドに更新
-  - `<!-- Updated: YYYY-MM-DD -->` コメントを更新
-  - `id="latestSlideHeroBtn"` の `href` を新しいスライドに変更
+1. **`presentations/day_slides_index.html`**
+   - `<ul class="slides">` の先頭に新エントリを追加
 
-### 5. Git反映
-- 変更をステージング
+2. **`presentations/day_slides_list.html`**
+   - 日付範囲を更新
+   - `slides-grid` の先頭に新カードを追加
+
+3. **`presentations/index.html`**
+   - ヒーローCTAボタンのhref更新
+   - 統計セクションの日付更新
+   - クイックリンクセクション更新
+   - JavaScript動的コンテンツ（if-elseの**先頭**に追加）
+   - JavaScriptフォールバック表示更新
+
+4. **`index.html`（ルート）**
+   - ヒーローボタンリンクを最新スライドに更新
+
+### 4. Git反映
+- 変更をステージング（HTML + スライド画像）
 - コミットメッセージを自動生成
-- `git pull --rebase` で最新を取得
-- コンフリクトがあれば解決
+- `git stash && git pull --rebase origin main && git stash pop` でコンフリクト回避
 - リモートにプッシュ
 
 ## 🎨 テーマカスタマイズ
