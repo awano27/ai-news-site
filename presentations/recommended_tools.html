@@ -224,18 +224,24 @@
   <main class="container">
     <section class="hero">
       <h1>おすすめAIツール（シンプル版）</h1>
-      <p class="lead">選び方をシンプルにしました。まず「目的」で絞り、気になるツールだけ確認してください。</p>
+      <p class="lead">選び方をシンプルにしました。まず「目的」、次に「職種」で絞り、気になるツールだけ確認してください。</p>
       <p class="meta">最終更新: 2026年2月7日</p>
 
       <div class="controls">
         <input id="searchInput" class="search" type="text" placeholder="ツール名・用途で検索（例: 議事録, 自動化, 開発）" />
-        <div class="filter-row" id="filterRow">
+        <div class="filter-row" id="purposeRow" aria-label="目的で絞り込み">
           <button class="filter-btn active" data-filter="all" type="button">すべて</button>
           <button class="filter-btn" data-filter="meeting" type="button">会議・議事録</button>
           <button class="filter-btn" data-filter="docs" type="button">資料・ナレッジ</button>
           <button class="filter-btn" data-filter="automation" type="button">自動化</button>
           <button class="filter-btn" data-filter="dev" type="button">開発</button>
           <button class="filter-btn" data-filter="ph" type="button">Product Hunt注目</button>
+        </div>
+        <div class="filter-row" id="roleRow" aria-label="職種で絞り込み">
+          <button class="filter-btn active" data-role="all" type="button">職種: すべて</button>
+          <button class="filter-btn" data-role="biz" type="button">ビジネス</button>
+          <button class="filter-btn" data-role="pm" type="button">企画・PM</button>
+          <button class="filter-btn" data-role="dev" type="button">開発</button>
         </div>
         <p class="result-meta" id="resultMeta">表示件数: 0件</p>
       </div>
@@ -568,13 +574,25 @@
   <script>
     (function () {
       const searchInput = document.getElementById('searchInput');
-      const filterRow = document.getElementById('filterRow');
-      const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
+      const purposeRow = document.getElementById('purposeRow');
+      const roleRow = document.getElementById('roleRow');
+      const purposeBtns = Array.from(document.querySelectorAll('#purposeRow .filter-btn'));
+      const roleBtns = Array.from(document.querySelectorAll('#roleRow .filter-btn'));
       const cards = Array.from(document.querySelectorAll('.tool-card'));
       const resultMeta = document.getElementById('resultMeta');
       const emptyState = document.getElementById('emptyState');
 
-      let activeFilter = 'all';
+      let activePurpose = 'all';
+      let activeRole = 'all';
+
+      function inferRolesFromTags(tags) {
+        const roles = new Set();
+        if (tags.includes('meeting') || tags.includes('docs') || tags.includes('automation')) roles.add('biz');
+        if (tags.includes('docs') || tags.includes('automation') || tags.includes('meeting')) roles.add('pm');
+        if (tags.includes('dev') || tags.includes('automation')) roles.add('dev');
+        if (roles.size === 0) roles.add('biz');
+        return Array.from(roles);
+      }
 
       function applyFilters() {
         const query = (searchInput.value || '').toLowerCase().trim();
@@ -583,12 +601,16 @@
 
         cards.forEach((card) => {
           const tags = (card.dataset.tags || '').split(',').map((t) => t.trim());
+          const roles = card.dataset.roles
+            ? card.dataset.roles.split(',').map((r) => r.trim())
+            : inferRolesFromTags(tags);
           const text = card.textContent.toLowerCase();
 
-          const matchFilter = activeFilter === 'all' ? true : tags.includes(activeFilter);
+          const matchPurpose = activePurpose === 'all' ? true : tags.includes(activePurpose);
+          const matchRole = activeRole === 'all' ? true : roles.includes(activeRole);
           const matchSearch = tokens.length === 0 ? true : tokens.every((t) => text.includes(t));
 
-          const visible = matchFilter && matchSearch;
+          const visible = matchPurpose && matchRole && matchSearch;
           card.style.display = visible ? 'block' : 'none';
           if (visible) count += 1;
         });
@@ -597,12 +619,21 @@
         emptyState.style.display = count === 0 ? 'block' : 'none';
       }
 
-      filterRow.addEventListener('click', (e) => {
+      purposeRow.addEventListener('click', (e) => {
         const btn = e.target.closest('.filter-btn');
         if (!btn) return;
 
-        activeFilter = btn.dataset.filter || 'all';
-        filterBtns.forEach((b) => b.classList.toggle('active', b === btn));
+        activePurpose = btn.dataset.filter || 'all';
+        purposeBtns.forEach((b) => b.classList.toggle('active', b === btn));
+        applyFilters();
+      });
+
+      roleRow.addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+
+        activeRole = btn.dataset.role || 'all';
+        roleBtns.forEach((b) => b.classList.toggle('active', b === btn));
         applyFilters();
       });
 
