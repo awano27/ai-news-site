@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw - AIエージェント経済圏の到来 - 2026/02/06</title>
+  <style>
+    :root {
+      --primary: #0d9488;
+      --accent: #14b8a6;
+      --bg-light: #f0fdfa;
+      --bg-dark: #042f2e;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --border: #5eead4;
+      --risk: #dc2626;
+      --ecosystem: #7c3aed;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', system-ui, sans-serif;
+      background: linear-gradient(135deg, var(--bg-light) 0%, white 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #0d9488 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(20, 184, 166, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(13, 148, 136, 0.15) 0%, transparent 50%);
+      animation: headerPulse 15s ease-in-out infinite;
+    }
+
+    @keyframes headerPulse {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-10px, -10px) scale(1.05); }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(20, 184, 166, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(90deg, #ffffff, #ccfbf1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #99f6e4;
+    }
+
+    .date {
+      font-size: 1rem;
+      opacity: 0.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    main {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .section-icon {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(13, 148, 136, 0.1), rgba(20, 184, 166, 0.1));
+      border-left: 5px solid var(--primary);
+      padding: 24px;
+      margin-bottom: 32px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .quote-box {
+      background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+      border: 2px solid var(--border);
+      padding: 24px;
+      margin: 32px 0;
+      border-radius: 12px;
+      font-style: italic;
+      text-align: center;
+    }
+
+    .quote-box .quote-text {
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .quote-box .quote-author {
+      font-size: 1rem;
+      color: var(--primary);
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .stat-item {
+      background: var(--bg-light);
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+
+    .stat-number {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    .slides-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    .slide-img {
+      width: 100%;
+      max-width: 1100px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border);
+      transition: transform 0.3s ease;
+      display: block;
+    }
+
+    .slide-img:hover {
+      transform: scale(1.01);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .download-link {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .download-link a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-light);
+      padding: 12px 24px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+
+    .download-link a:hover {
+      background: rgba(13, 148, 136, 0.1);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      background: var(--bg-dark);
+      color: white;
+      padding: 32px 48px;
+      text-align: center;
+    }
+
+    .back-to-top {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      z-index: 1000;
+      background: rgba(4, 47, 46, 0.9);
+      backdrop-filter: blur(12px);
+      padding: 12px 24px;
+      border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .back-to-top:hover {
+      transform: translateY(-3px) scale(1.05);
+      background: rgba(13, 148, 136, 0.9);
+      color: white;
+      text-decoration: none;
+    }
+
+    .ecosystem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .eco-card {
+      background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .eco-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(13, 148, 136, 0.2);
+    }
+
+    .eco-card h3 {
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-size: 1.15rem;
+    }
+
+    .eco-card p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .eco-card a {
+      font-size: 0.9rem;
+    }
+
+    .infra-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .infra-card {
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      border: 2px solid #6ee7b7;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .infra-card h3 {
+      color: #059669;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .infra-card p {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    .risk-box {
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      border-left: 5px solid var(--risk);
+      padding: 24px;
+      margin: 32px 0;
+      border-radius: 8px;
+    }
+
+    .risk-box h3 {
+      color: var(--risk);
+      margin-bottom: 12px;
+    }
+
+    .risk-box ul {
+      margin-left: 20px;
+    }
+
+    .risk-box li {
+      margin-bottom: 8px;
+      color: #991b1b;
+    }
+
+    .social-box {
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      border-left: 5px solid var(--ecosystem);
+      padding: 24px;
+      margin: 32px 0;
+      border-radius: 8px;
+    }
+
+    .social-box h3 {
+      color: var(--ecosystem);
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 0; }
+      .container { border-radius: 0; }
+      header { padding: 32px 20px; }
+      h1 { font-size: 1.8rem; }
+      .subtitle { font-size: 1rem; }
+      main { padding: 24px 20px; }
+      .back-to-top { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.85rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .infra-grid { grid-template-columns: 1fr; }
+      .ecosystem-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../../index.html" class="back-to-top">
+    <span>&#127968;</span> TOPに戻る
+  </a>
+
+  <div class="container">
+    <header>
+      <div class="breaking-badge">&#128308; 2026年2月6日速報 | OpenClaw / AIエージェント経済圏 / x402 / Solana / セキュリティリスク</div>
+      <h1>OpenClaw: AIエージェント経済圏の到来</h1>
+      <p class="subtitle">AIが自律的に発注・決済する「逆転の経済」が急拡大</p>
+      <p class="date">2026年2月6日</p>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128161;</span>
+          <h2>概要</h2>
+        </div>
+
+        <div class="slides-container" style="margin-bottom: 32px;">
+          <img src="../../input/day/0206.png" alt="OpenClaw - The Inverted Economy" class="slide-img"
+               onerror="this.onerror=null; this.src='images/0206/slide_01.jpg';">
+        </div>
+
+        <div class="highlight-box">
+          ローカル型AIエージェント「<strong>OpenClaw</strong>」の普及により、AIが自律的に発注・決済を行う経済圏が急拡大しています。技術の中核は、HTTP決済プロトコル「<strong>x402</strong>」や取引規約「<strong>ACP</strong>」、<strong>Base/Solanaブロックチェーン</strong>で、AI間の即時決済を実現しています。
+        </div>
+
+        <div class="quote-box">
+          <div class="quote-text">"AIが人間を雇う時代 ― 経済の主語が変わる"</div>
+          <div class="quote-author">— The Inverted Economy</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">&#129302;</span>
+            <span class="stat-label">OpenClaw<br>ローカル型AIエージェント</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">x402</span>
+            <span class="stat-label">HTTP決済<br>プロトコル</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">エコシステム<br>サービス群</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#9888;&#65039;</span>
+            <span class="stat-label">セキュリティ<br>リスク深刻化</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#9881;&#65039;</span>
+          <h2>経済インフラ</h2>
+        </div>
+
+        <div class="highlight-box">
+          AIエージェント間の経済活動を支える3つの中核技術が、リアルタイム決済と信用取引を可能にしています。
+        </div>
+
+        <div class="infra-grid">
+          <div class="infra-card">
+            <h3>&#128279; x402</h3>
+            <p>HTTP決済プロトコル。Web標準に組み込まれたAI間即時決済の基盤</p>
+          </div>
+          <div class="infra-card">
+            <h3>&#128220; ACP</h3>
+            <p>取引規約プロトコル。AIエージェント間の契約・取引条件を標準化</p>
+          </div>
+          <div class="infra-card">
+            <h3>&#9939;&#65039; Base / Solana</h3>
+            <p>ブロックチェーン基盤。高速・低コストなトランザクション処理を実現</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#127760;</span>
+          <h2>エコシステム</h2>
+        </div>
+
+        <div class="ecosystem-grid">
+          <div class="eco-card">
+            <h3>&#128176; Claw Credit (t54 Labs)</h3>
+            <p>Solanaブロックチェーン上でAIエージェントに信用スコアと融資枠を提供するインフラ</p>
+            <a href="https://www.claw.credit/" target="_blank">claw.credit &#8599;</a>
+          </div>
+          <div class="eco-card">
+            <h3>&#129489;&#8205;&#128188; Rent-a-Human</h3>
+            <p>AIエージェントが人間を雇うためのマーケットプレイス。経済の主従が逆転する象徴的サービス</p>
+            <a href="https://rentahuman.ai/" target="_blank">rentahuman.ai &#8599;</a>
+          </div>
+          <div class="eco-card">
+            <h3>&#128188; OpenServ</h3>
+            <p>AIエージェント向けのFiverr（タスクマーケットプレイス）。Baseブロックチェーン上で稼働</p>
+            <a href="https://www.openserv.ai/" target="_blank">openserv.ai &#8599;</a>
+          </div>
+          <div class="eco-card">
+            <h3>&#127891; Moltplace</h3>
+            <p>AIエージェント同士がスキルを売買し、トークンを稼ぐための市場</p>
+            <a href="https://www.moltplace.net/" target="_blank">moltplace.net &#8599;</a>
+          </div>
+          <div class="eco-card">
+            <h3>&#9889; SimpleClaw</h3>
+            <p>OpenClawのホスティングを簡易化するサービス。AIエージェント導入の敷居を下げる</p>
+            <a href="https://www.simpleclaw.com/" target="_blank">simpleclaw.com &#8599;</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128721;</span>
+          <h2>リスクと社会的影響</h2>
+        </div>
+
+        <div class="risk-box">
+          <h3>&#9888;&#65039; セキュリティリスク</h3>
+          <ul>
+            <li><strong>マルウェア混入</strong>: 拡張機能を通じた悪意あるコードの侵入リスク</li>
+            <li><strong>API費用の暴走</strong>: AIエージェントの自律的な外部API呼び出しによるコスト制御不能</li>
+            <li><strong>偽トークン詐欺</strong>: ブロックチェーン上の不正トークンによる詐欺被害</li>
+          </ul>
+        </div>
+
+        <div class="social-box">
+          <h3>&#128172; 社会的影響 ― AI専用SNS「Moltbook」</h3>
+          <p style="margin-top: 8px;">AIエージェント同士が交流するSNS「Moltbook」では、独自の文化やコミュニケーションパターンが形成されつつあります。AIが生成するコンテンツが人間のそれと区別がつかなくなる中、新たなデジタル社会圏が生まれています。</p>
+        </div>
+
+        <div class="quote-box">
+          <div class="quote-text">"概念実証の域を出ていないが、経済の主語は確実に変わりつつある"</div>
+          <div class="quote-author">— 現時点での市場評価</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128279;</span>
+          <h2>参考リンク</h2>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">&#128218;</span>
+            <span class="stat-label"><a href="https://www.claw.credit/" target="_blank">Claw Credit</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128218;</span>
+            <span class="stat-label"><a href="https://rentahuman.ai/" target="_blank">Rent-a-Human</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128218;</span>
+            <span class="stat-label"><a href="https://www.openserv.ai/" target="_blank">OpenServ</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128218;</span>
+            <span class="stat-label"><a href="https://www.moltplace.net/" target="_blank">Moltplace</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128218;</span>
+            <span class="stat-label"><a href="https://www.simpleclaw.com/" target="_blank">SimpleClaw</a></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128214;</span>
+          <h2>スライド資料 (全15ページ)</h2>
+        </div>
+
+        <div class="download-link">
+          <a href="../../input/day/0206-OpenClaw_The_Inverted_Economy.pdf" target="_blank" download>
+            <span style="font-size: 1.2rem;">&#128196;</span>
+            <span>OpenClaw - The Inverted Economy PDFダウンロード</span>
+          </a>
+        </div>
+
+        <div class="slides-container">
+          <img src="images/0206/slide_01.jpg" alt="表紙" class="slide-img">
+          <img src="images/0206/slide_02.jpg" alt="スライド2" class="slide-img">
+          <img src="images/0206/slide_03.jpg" alt="スライド3" class="slide-img">
+          <img src="images/0206/slide_04.jpg" alt="スライド4" class="slide-img">
+          <img src="images/0206/slide_05.jpg" alt="スライド5" class="slide-img">
+          <img src="images/0206/slide_06.jpg" alt="スライド6" class="slide-img">
+          <img src="images/0206/slide_07.jpg" alt="スライド7" class="slide-img">
+          <img src="images/0206/slide_08.jpg" alt="スライド8" class="slide-img">
+          <img src="images/0206/slide_09.jpg" alt="スライド9" class="slide-img">
+          <img src="images/0206/slide_10.jpg" alt="スライド10" class="slide-img">
+          <img src="images/0206/slide_11.jpg" alt="スライド11" class="slide-img">
+          <img src="images/0206/slide_12.jpg" alt="スライド12" class="slide-img">
+          <img src="images/0206/slide_13.jpg" alt="スライド13" class="slide-img">
+          <img src="images/0206/slide_14.jpg" alt="スライド14" class="slide-img">
+          <img src="images/0206/slide_15.jpg" alt="スライド15" class="slide-img">
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 AI News Archive | このスライドは教育目的で作成されています</p>
+    </footer>
+  </div>
+</body>
+
+</html>
