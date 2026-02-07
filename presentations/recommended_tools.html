@@ -2079,6 +2079,146 @@
       text-decoration: none;
       font-size: 0.75rem;
     }
+
+    /* UX Refresh Layer */
+    .ux-toolbar {
+      position: sticky;
+      top: 12px;
+      z-index: 120;
+      margin: 0 0 18px 0;
+      padding: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 14px;
+      background: rgba(2, 8, 28, 0.88);
+      backdrop-filter: blur(10px);
+    }
+
+    .ux-toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ux-toolbar-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .ux-btn,
+    .ux-select {
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.78);
+      color: var(--text-main);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .ux-btn:hover,
+    .ux-select:hover {
+      border-color: var(--secondary);
+    }
+
+    .ux-btn.active {
+      border-color: var(--secondary);
+      background: rgba(56, 189, 248, 0.16);
+      color: #dff4ff;
+    }
+
+    .ux-select {
+      min-width: 240px;
+    }
+
+    .tool-card {
+      line-height: 1.72;
+    }
+
+    .tool-description {
+      font-size: 0.98rem;
+    }
+
+    .ux-card-summary {
+      font-size: 0.85rem;
+      color: #c7d2fe;
+      margin: 0 0 1rem 0;
+      padding: 10px 12px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.28);
+      border-radius: 10px;
+    }
+
+    .category-header {
+      position: relative;
+      padding-right: 156px;
+    }
+
+    .ux-collapse-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text-main);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .ux-collapse-btn:hover {
+      border-color: var(--secondary);
+    }
+
+    .category-section.ux-collapsed .tools-grid {
+      display: none;
+    }
+
+    .category-section.ux-collapsed .category-header {
+      opacity: 0.78;
+    }
+
+    body.ux-compact .tool-card .tool-section,
+    body.ux-compact .tool-card details.memo,
+    body.ux-compact .tool-card .tool-actions,
+    body.ux-compact .tool-card .similar-tools {
+      display: none;
+    }
+
+    body.ux-compact .tool-card .tool-section.ux-links-section {
+      display: block;
+      margin-top: 6px;
+    }
+
+    body.ux-focus .hero,
+    body.ux-focus .quickstart,
+    body.ux-focus #cost-calculator,
+    body.ux-focus .search-stats {
+      display: none !important;
+    }
+
+    body.ux-focus .category-section {
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 900px) {
+      .category-header {
+        padding-right: 20px;
+      }
+
+      .ux-collapse-btn {
+        position: static;
+        margin-top: 10px;
+      }
+
+      .ux-select {
+        min-width: 170px;
+      }
+    }
   </style>
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https: data:; style-src 'self' https: 'unsafe-inline'; script-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https: data:;">
@@ -2099,6 +2239,20 @@
 
       <p class="lead" style="margin-top:-18px;font-size:13px;">※ 最終更新：2026-01-29 /
         主要な機能・数値は公式サイト・公式ドキュメントの記載を優先し、変動しやすい評価（レビュー点・フォロワー数等）は原則掲載しません。</p>
+
+      <section class="ux-toolbar" aria-label="表示改善コントロール">
+        <div class="ux-toolbar-row">
+          <button class="ux-btn" id="uxCompactBtn" type="button">コンパクト表示</button>
+          <button class="ux-btn" id="uxFocusBtn" type="button">重要情報だけ表示</button>
+          <button class="ux-btn" id="uxCollapseAllBtn" type="button">カテゴリを折りたたむ</button>
+          <button class="ux-btn" id="uxResetBtn" type="button">検索をリセット</button>
+          <button class="ux-btn" id="uxTopBtn" type="button">先頭へ</button>
+          <select class="ux-select" id="uxSectionJump" aria-label="カテゴリジャンプ">
+            <option value="">カテゴリへジャンプ…</option>
+          </select>
+        </div>
+        <p class="ux-toolbar-note">見づらいときは「重要情報だけ表示」と「コンパクト表示」を併用してください。</p>
+      </section>
 
       <section class="hero" aria-label="このページの使い方">
         <h2>意思決定者・現場どちらにも使える形に再編集</h2>
@@ -10860,6 +11014,153 @@ ${t.features.map(f => `  ・${f}`).join('\n')}
       });
       updateFavoritesBar();
 
+    })();
+  </script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const PREF_KEY = 'recommended_tools_ux_prefs_v1';
+
+      function getPrefs() {
+        try {
+          return JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+        } catch {
+          return {};
+        }
+      }
+
+      function savePrefs(next) {
+        const current = getPrefs();
+        const merged = Object.assign({}, current, next);
+        try {
+          localStorage.setItem(PREF_KEY, JSON.stringify(merged));
+        } catch {
+          // ignore storage errors
+        }
+      }
+
+      function applyBodyMode(className, enabled, btn) {
+        document.body.classList.toggle(className, enabled);
+        if (btn) btn.classList.toggle('active', enabled);
+      }
+
+      function collapseSection(section, collapsed, btn) {
+        section.classList.toggle('ux-collapsed', collapsed);
+        if (btn) btn.textContent = collapsed ? '展開する' : '折りたたむ';
+      }
+
+      function run() {
+        const compactBtn = document.getElementById('uxCompactBtn');
+        const focusBtn = document.getElementById('uxFocusBtn');
+        const collapseAllBtn = document.getElementById('uxCollapseAllBtn');
+        const resetBtn = document.getElementById('uxResetBtn');
+        const topBtn = document.getElementById('uxTopBtn');
+        const sectionJump = document.getElementById('uxSectionJump');
+        const sections = Array.from(document.querySelectorAll('.category-section'));
+        const cards = Array.from(document.querySelectorAll('.tool-card'));
+
+        if (!compactBtn || !focusBtn || !collapseAllBtn || !sectionJump) return;
+
+        const prefs = getPrefs();
+        applyBodyMode('ux-compact', !!prefs.compact, compactBtn);
+        applyBodyMode('ux-focus', !!prefs.focus, focusBtn);
+
+        // Section jump + collapse button
+        sections.forEach((section, index) => {
+          const header = section.querySelector('.category-header');
+          const h2 = header ? header.querySelector('h2') : null;
+          if (!header || !h2) return;
+
+          if (!section.id) section.id = 'ux-section-' + (index + 1);
+
+          const opt = document.createElement('option');
+          opt.value = section.id;
+          opt.textContent = h2.textContent.replace(/\s+/g, ' ').trim();
+          sectionJump.appendChild(opt);
+
+          if (!header.querySelector('.ux-collapse-btn')) {
+            const btn = document.createElement('button');
+            btn.className = 'ux-collapse-btn';
+            btn.type = 'button';
+            btn.textContent = '折りたたむ';
+            btn.addEventListener('click', () => {
+              const collapsed = !section.classList.contains('ux-collapsed');
+              collapseSection(section, collapsed, btn);
+            });
+            header.appendChild(btn);
+          }
+        });
+
+        // Card readability polish
+        cards.forEach((card) => {
+          const desc = card.querySelector('.tool-description');
+          if (!desc || card.querySelector('.ux-card-summary')) return;
+          const text = desc.textContent.replace(/\s+/g, ' ').trim();
+          const sentence = (text.split('。')[0] || text).trim();
+          if (!sentence) return;
+          const summary = document.createElement('p');
+          summary.className = 'ux-card-summary';
+          summary.textContent = sentence.length > 120 ? sentence.slice(0, 120) + '…' : sentence + '。';
+          desc.insertAdjacentElement('beforebegin', summary);
+
+          const sectionsInCard = Array.from(card.querySelectorAll('.tool-section'));
+          sectionsInCard.forEach((s) => {
+            const h4 = (s.querySelector('h4')?.textContent || '').trim();
+            if (h4.includes('リンク')) s.classList.add('ux-links-section');
+          });
+        });
+
+        compactBtn.addEventListener('click', () => {
+          const enabled = !document.body.classList.contains('ux-compact');
+          applyBodyMode('ux-compact', enabled, compactBtn);
+          savePrefs({ compact: enabled });
+        });
+
+        focusBtn.addEventListener('click', () => {
+          const enabled = !document.body.classList.contains('ux-focus');
+          applyBodyMode('ux-focus', enabled, focusBtn);
+          savePrefs({ focus: enabled });
+        });
+
+        collapseAllBtn.addEventListener('click', () => {
+          const shouldCollapse = !sections.every((s) => s.classList.contains('ux-collapsed'));
+          sections.forEach((section) => {
+            const btn = section.querySelector('.ux-collapse-btn');
+            collapseSection(section, shouldCollapse, btn);
+          });
+          collapseAllBtn.textContent = shouldCollapse ? 'カテゴリを展開' : 'カテゴリを折りたたむ';
+        });
+
+        if (resetBtn) {
+          resetBtn.addEventListener('click', () => {
+            if (typeof window.resetSearch === 'function') {
+              window.resetSearch();
+            }
+          });
+        }
+
+        if (topBtn) {
+          topBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        sectionJump.addEventListener('change', () => {
+          if (!sectionJump.value) return;
+          const target = document.getElementById(sectionJump.value);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
     })();
   </script>
 
