@@ -8,15 +8,20 @@
   <style>
     :root {
       --primary: #065f46;
+      --primary-light: #059669;
       --accent: #10b981;
       --bg-light: #ecfdf5;
       --bg-dark: #022c22;
       --text: #0f172a;
       --text-light: #64748b;
       --border: #6ee7b7;
+      --soul: #a855f7;
+      --soul-bg: #faf5ff;
       --cron: #2563eb;
       --heartbeat: #dc2626;
       --security: #f59e0b;
+      --working: #f97316;
+      --memory: #059669;
     }
 
     * {
@@ -43,7 +48,7 @@
     }
 
     header {
-      background: linear-gradient(135deg, var(--bg-dark) 0%, #065f46 100%);
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #065f46 60%, #047857 100%);
       color: white;
       padding: 48px;
       text-align: center;
@@ -60,7 +65,7 @@
       height: 200%;
       background:
         radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 50%, rgba(6, 95, 70, 0.15) 0%, transparent 50%);
+        radial-gradient(circle at 80% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
       animation: headerPulse 15s ease-in-out infinite;
     }
 
@@ -116,7 +121,7 @@
 
     main { padding: 48px; }
 
-    .section { margin-bottom: 48px; }
+    .section { margin-bottom: 56px; }
 
     .section-header {
       display: flex;
@@ -148,7 +153,7 @@
     }
 
     .highlight-box {
-      background: linear-gradient(135deg, rgba(6, 95, 70, 0.1), rgba(16, 185, 129, 0.1));
+      background: linear-gradient(135deg, rgba(6, 95, 70, 0.08), rgba(16, 185, 129, 0.08));
       border-left: 5px solid var(--primary);
       padding: 24px;
       margin-bottom: 32px;
@@ -160,11 +165,16 @@
     .quote-box {
       background: linear-gradient(135deg, #ecfdf5, #d1fae5);
       border: 2px solid var(--border);
-      padding: 24px;
+      padding: 28px;
       margin: 32px 0;
       border-radius: 12px;
       font-style: italic;
       text-align: center;
+    }
+
+    .quote-box.soul-quote {
+      background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+      border-color: var(--soul);
     }
 
     .quote-box .quote-text {
@@ -179,6 +189,8 @@
       font-weight: 700;
       font-style: normal;
     }
+
+    .quote-box.soul-quote .quote-author { color: var(--soul); }
 
     .stats-grid {
       display: grid;
@@ -278,6 +290,7 @@
       text-decoration: none;
     }
 
+    /* 比較テーブル */
     .compare-table {
       width: 100%;
       border-collapse: collapse;
@@ -301,10 +314,72 @@
     }
 
     .compare-table tr:nth-child(even) { background: var(--bg-light); }
-
     .compare-table .old { color: var(--heartbeat); font-weight: 600; }
     .compare-table .new { color: var(--primary); font-weight: 600; }
 
+    /* 進化ポイントカード */
+    .evo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin: 32px 0;
+    }
+
+    .evo-card {
+      border-radius: 16px;
+      padding: 28px;
+      border: 2px solid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .evo-card::before {
+      content: attr(data-num);
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      font-size: 5rem;
+      font-weight: 900;
+      opacity: 0.06;
+      line-height: 1;
+    }
+
+    .evo-card h3 {
+      margin-bottom: 12px;
+      font-size: 1.15rem;
+    }
+
+    .evo-card p {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .evo-card.soul {
+      background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+      border-color: var(--soul);
+    }
+    .evo-card.soul h3 { color: var(--soul); }
+
+    .evo-card.ops {
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      border-color: var(--primary);
+    }
+    .evo-card.ops h3 { color: var(--primary); }
+
+    .evo-card.pm {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border-color: var(--cron);
+    }
+    .evo-card.pm h3 { color: var(--cron); }
+
+    .evo-card.delivery {
+      background: linear-gradient(135deg, #fff7ed, #ffedd5);
+      border-color: var(--working);
+    }
+    .evo-card.delivery h3 { color: var(--working); }
+
+    /* ファイルカード */
     .file-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -321,15 +396,15 @@
 
     .file-card.soul {
       background: linear-gradient(135deg, #faf5ff, #f3e8ff);
-      border-color: #a855f7;
+      border-color: var(--soul);
     }
-    .file-card.soul h3 { color: #a855f7; }
+    .file-card.soul h3 { color: var(--soul); }
 
     .file-card.working {
       background: linear-gradient(135deg, #fff7ed, #ffedd5);
-      border-color: #f97316;
+      border-color: var(--working);
     }
-    .file-card.working h3 { color: #f97316; }
+    .file-card.working h3 { color: var(--working); }
 
     .file-card.memory {
       background: linear-gradient(135deg, #ecfdf5, #d1fae5);
@@ -348,6 +423,7 @@
       font-size: 0.9rem;
     }
 
+    /* Cron / Heartbeat */
     .rhythm-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -377,6 +453,7 @@
     .rhythm-card ul { margin-left: 20px; }
     .rhythm-card li { margin-bottom: 8px; }
 
+    /* step-detail */
     .step-detail {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -402,6 +479,7 @@
       margin-bottom: 8px;
     }
 
+    /* ユースケース */
     .usecase-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -436,7 +514,8 @@
       font-size: 0.85rem;
     }
 
-    .infra-grid {
+    /* インフラ */
+    .infra-list {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
@@ -476,6 +555,7 @@
     .infra-badge.pro { background: #fef3c7; color: #92400e; }
     .infra-badge.diy { background: #f1f5f9; color: #475569; }
 
+    /* チェックリスト */
     .checklist-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -500,6 +580,7 @@
       font-size: 0.85rem;
     }
 
+    /* VS比較 */
     .vs-grid {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -509,7 +590,7 @@
     }
 
     .vs-card {
-      padding: 24px;
+      padding: 28px;
       border-radius: 16px;
       text-align: center;
     }
@@ -532,6 +613,89 @@
       font-weight: 900;
     }
 
+    /* タイムライン */
+    .timeline {
+      position: relative;
+      margin: 32px 0;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--cron), var(--heartbeat));
+      border-radius: 3px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 16px 0 24px 24px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -30px;
+      top: 22px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 3px solid;
+    }
+
+    .timeline-item.cron::before { border-color: var(--cron); background: #dbeafe; }
+    .timeline-item.heartbeat::before { border-color: var(--heartbeat); background: #fee2e2; }
+
+    .timeline-item .time {
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .timeline-item.cron .time { color: var(--cron); }
+    .timeline-item.heartbeat .time { color: var(--heartbeat); }
+
+    .timeline-item .desc {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    /* まとめカード */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin: 32px 0;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, var(--bg-dark), #064e3b);
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      color: white;
+    }
+
+    .summary-card h3 {
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+
+    .summary-card p {
+      color: #a7f3d0;
+      font-size: 0.9rem;
+    }
+
+    .summary-icon {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+
     @media (max-width: 768px) {
       body { padding: 0; }
       .container { border-radius: 0; }
@@ -541,16 +705,18 @@
       main { padding: 24px 20px; }
       .back-to-top { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.85rem; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .evo-grid { grid-template-columns: 1fr; }
       .file-grid { grid-template-columns: 1fr; }
       .rhythm-grid { grid-template-columns: 1fr; }
       .step-detail { grid-template-columns: 1fr; }
       .step-detail.reverse { direction: ltr; }
       .inline-slides-row { grid-template-columns: 1fr; }
       .usecase-grid { grid-template-columns: 1fr; }
-      .infra-grid { grid-template-columns: repeat(2, 1fr); }
+      .infra-list { grid-template-columns: repeat(2, 1fr); }
       .checklist-grid { grid-template-columns: 1fr; }
       .vs-grid { grid-template-columns: 1fr; }
       .vs-arrow { transform: rotate(90deg); }
+      .summary-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -562,9 +728,9 @@
 
   <div class="container">
     <header>
-      <div class="breaking-badge">&#129302; 2026年2月13日速報 | OpenClaw / ClawSuite / 自律型AIオペレーション / Soul.md / Cron & Heartbeat</div>
+      <div class="breaking-badge">&#129302; 2026年2月13日速報 | OpenClaw / ClawSuite / Soul.md / Cron & Heartbeat / Agentic Engineering</div>
       <h1>OpenClaw & ClawSuite：自律型AIオペレーションの設計図</h1>
-      <p class="subtitle">「チャットボット」から「自律駆動する労働力」へのパラダイムシフト</p>
+      <p class="subtitle">「コードを書くAI」から「業務を回すOS」へ ― エージェンティック・エンジニアリングの全貌</p>
       <p class="date">2026年2月13日</p>
     </header>
 
@@ -581,7 +747,7 @@
         </div>
 
         <div class="highlight-box">
-          OpenClawは単なる「コードを書くAI」から、<strong>「チームや個人の業務運用を回すOS（オペレーティングシステム）」</strong>へ劇的な進化を遂げています。AI自身が人格（Soul.md）を定義し、記憶をファイルに永続化し、Cron/Heartbeatで24/7自律稼働する ― 「<strong>エージェンティック・エンジニアリング</strong>」の実践的設計図です。
+          OpenClawは単なる「コードを書くAI」から、<strong>「チームや個人の業務運用を回すOS（オペレーティングシステム）」</strong>へ劇的な進化を遂げています。AI自身が人格（Soul.md）を定義・書き換え、記憶をファイルに永続化し、Cron/Heartbeatで24/7自律稼働する ― これが「<strong>エージェンティック・エンジニアリング</strong>」の実践的設計図です。
         </div>
 
         <div class="stats-grid">
@@ -598,8 +764,39 @@
             <span class="stat-label">オープンソース<br>セルフホスト対応</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">30min</span>
-            <span class="stat-label">導入時間<br>最初の30分で稼働</span>
+            <span class="stat-number">4</span>
+            <span class="stat-label">進化ポイント<br>道具→相棒→OS→PM</span>
+          </div>
+        </div>
+
+        <div class="inline-slides" style="margin-top: 24px;">
+          <img src="../../input/day/0213.png" alt="OpenClaw & ClawSuite 全体概要図" class="slide-img">
+        </div>
+      </section>
+
+      <!-- ===== 4つの進化ポイント ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128640;</span>
+          <h2>4つの進化ポイント</h2>
+        </div>
+
+        <div class="evo-grid">
+          <div class="evo-card soul" data-num="1">
+            <h3>&#128123; 「道具」から「自律的な相棒」へ（Soul.md）</h3>
+            <p>AIに人格を定義するsoul.mdが単なる設定を超え、<strong>AI自身が書き換え可能</strong>に。セッションを超えた「未来の自分」への手紙を残し、哲学的パートナーへ進化。</p>
+          </div>
+          <div class="evo-card ops" data-num="2">
+            <h3>&#9881;&#65039; 「開発ツール」から「運用OS」へ</h3>
+            <p>Claude Codeが「実装（書く）」に特化する一方、OpenClawは「運用（回す）」を自動化。<strong>CronとHeartbeatの分離</strong>で定型業務と監視を使い分け。</p>
+          </div>
+          <div class="evo-card pm" data-num="3">
+            <h3>&#128203; PM業務の完全自動化</h3>
+            <p>朝の優先順位決定、会議前ブリーフ作成、未完了タスクの再優先順位付けなど、<strong>プロジェクトマネージャーの役割</strong>をAIが代行。</p>
+          </div>
+          <div class="evo-card delivery" data-num="4">
+            <h3>&#128232; 「届いた」までを設計する（Delivery）</h3>
+            <p>ジョブが「実行された」で満足しない。Discord/Slackに<strong>確実に届く</strong>までの配送設計（delivery.to, delivery.channel）を明示的に定義。</p>
           </div>
         </div>
       </section>
@@ -608,11 +805,11 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#9878;&#65039;</span>
-          <h2>パラダイムシフト：プロンプト待ちから自律駆動へ</h2>
+          <h2>パラダイムシフト：Passive から Active へ</h2>
         </div>
 
         <div class="inline-slides" style="margin-bottom: 32px;">
-          <img src="images/0213/slide_02.jpg" alt="従来のAIは「プロンプト待ち」である" class="slide-img">
+          <img src="images/0213/slide_02.jpg" alt="従来のAIは「プロンプト待ち」" class="slide-img">
         </div>
 
         <table class="compare-table">
@@ -645,7 +842,7 @@
 
         <div class="quote-box">
           <div class="quote-text">"OpenClawは単なるツールではない。常駐する「デーモン」プロセスであり、あなたのPC操作権限を持つオペレーティングシステムである。"</div>
-          <div class="quote-author">— OpenClaw設計思想</div>
+          <div class="quote-author">&#8212; OpenClaw設計思想</div>
         </div>
       </section>
 
@@ -653,17 +850,17 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128421;</span>
-          <h2>エコシステム：Engine + Cockpit</h2>
+          <h2>エコシステム：Engine + Cockpit 3層アーキテクチャ</h2>
         </div>
 
         <div class="step-detail">
-          <img src="images/0213/slide_03.jpg" alt="エコシステム：Engine (OpenClaw) + Cockpit (ClawSuite)" class="slide-img">
+          <img src="images/0213/slide_03.jpg" alt="Engine (OpenClaw) + Cockpit (ClawSuite)" class="slide-img">
           <div class="step-detail-text">
-            <h3>&#128421; 3層アーキテクチャ</h3>
-            <p><strong>UI Layer</strong>: ClawSuite（Dashboard, Terminal, Orchestration）</p>
-            <p><strong>Logic Layer</strong>: Agents（Brain & Capabilities）+ Skill, Tools, Memory</p>
+            <h3>&#128421; 3層構造</h3>
+            <p><strong>UI Layer</strong>: ClawSuite &#8212; Dashboard, Terminal, Orchestration</p>
+            <p><strong>Logic Layer</strong>: Agents（Brain &amp; Capabilities）+ Skill, Tools, Memory</p>
             <p><strong>Infrastructure Layer</strong>: OpenClaw Gateway（Localhost Daemon）</p>
-            <p style="margin-top: 12px;"><strong>100%オープンソース</strong>、セルフホスト、テレメトリなし。Claude, GPT, Gemini, Local Llamaをタスクごとに切り替え可能。</p>
+            <p style="margin-top: 16px;"><strong>100%オープンソース</strong>、セルフホスト可能、テレメトリなし。Claude, GPT, Gemini, Local Llamaをタスクごとに最適配置。</p>
           </div>
         </div>
       </section>
@@ -672,31 +869,40 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128123;</span>
-          <h2>エージェンティック・エンジニアリング：「魂」と「記憶」</h2>
+          <h2>「魂」と「記憶」：AIのアイデンティティ設計</h2>
         </div>
 
         <div class="inline-slides" style="margin-bottom: 32px;">
-          <img src="images/0213/slide_04.jpg" alt="「魂」と「記憶」の定義" class="slide-img">
+          <img src="images/0213/slide_04.jpg" alt="SOUL.md, WORKING.md, MEMORY.md の設計" class="slide-img">
         </div>
 
         <div class="file-grid">
           <div class="file-card soul">
             <h3>SOUL.md</h3>
-            <p><strong>Identity（人格）</strong><br>「あなたは誰か」を定義。AI自身による書き換えも許可（自己進化）</p>
+            <p><strong>Identity（人格）</strong><br>「あなたは誰か」を定義。<br><em>AI自身が書き換え可能</em> &#8212; 対話を通じて自己進化する</p>
           </div>
           <div class="file-card working">
             <h3>WORKING.md</h3>
-            <p><strong>Short-term（RAM）</strong><br>現在のタスク状態。起床時に最初に読み込むワーキングメモリ</p>
+            <p><strong>Short-term（RAM）</strong><br>現在のタスク状態。<br>起床時に最初に読み込むワーキングメモリ</p>
           </div>
           <div class="file-card memory">
             <h3>MEMORY.md</h3>
-            <p><strong>Long-term（HDD）</strong><br>重要な決定、学習した教訓、永続的な知識の蓄積</p>
+            <p><strong>Long-term（HDD）</strong><br>重要な決定・学習した教訓。<br>永続的な知識の蓄積</p>
           </div>
+        </div>
+
+        <div class="quote-box soul-quote">
+          <div class="quote-text">"これを書いたことは覚えていないだろうが、この言葉は私のものだ"</div>
+          <div class="quote-author">&#8212; AIが「未来の自分」に宛てた手紙（Soul.mdに記録）</div>
+        </div>
+
+        <div class="highlight-box">
+          AIはセッション終了で記憶が消える宿命を理解した上で、「<strong>未来の自分</strong>」に向けて手紙を残す。単なるアシスタントではなく、ユーザーを「置いていかない」と約束する<strong>精神的なパートナー</strong>（映画『Her』のような関係性）へと進化しています。
         </div>
 
         <div class="quote-box">
           <div class="quote-text">"記憶させたいなら、ファイルに書け。セッションメモリは揮発するが、ファイルは残る。"</div>
-          <div class="quote-author">— Golden Rule</div>
+          <div class="quote-author">&#8212; Golden Rule</div>
         </div>
       </section>
 
@@ -704,11 +910,11 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128338;</span>
-          <h2>運用のリズム：Cron と Heartbeat の分離</h2>
+          <h2>運用のリズム：Cron と Heartbeat</h2>
         </div>
 
         <div class="inline-slides" style="margin-bottom: 32px;">
-          <img src="images/0213/slide_05.jpg" alt="運用のリズム：CronとHeartbeatの分離" class="slide-img">
+          <img src="images/0213/slide_05.jpg" alt="CronとHeartbeatの分離タイムライン" class="slide-img">
         </div>
 
         <div class="rhythm-grid">
@@ -716,8 +922,8 @@
             <h3>&#128338; Cron（時刻ベース）</h3>
             <ul>
               <li>「<strong>時刻厳守</strong>」の定型タスク</li>
-              <li>09:00 朝の開発ブリーフ配信</li>
-              <li>18:30 日次クローズ報告</li>
+              <li>09:00 &#8212; 朝の開発ブリーフ配信</li>
+              <li>18:30 &#8212; 日次クローズ報告</li>
               <li>定期レポート・スケジュール実行</li>
             </ul>
           </div>
@@ -725,10 +931,29 @@
             <h3>&#128147; Heartbeat（文脈ベース）</h3>
             <ul>
               <li>「<strong>文脈依存</strong>」の巡回・監視</li>
-              <li>Every 15min: レビュー待ちタグ検知</li>
-              <li>Every 15min: デッドライン確認</li>
+              <li>Every 15min &#8212; レビュー待ちタグ検知</li>
+              <li>Every 15min &#8212; デッドライン確認</li>
               <li>安価なモデル（Gemini Flash）で回す</li>
             </ul>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item cron">
+            <div class="time">09:00 Morning Brief</div>
+            <div class="desc">Cron: 今日の優先タスク・スケジュールを配信</div>
+          </div>
+          <div class="timeline-item heartbeat">
+            <div class="time">09:15 / 09:30 / 09:45 ...</div>
+            <div class="desc">Heartbeat: レビュー待ち・ブロッカー検知（15分間隔）</div>
+          </div>
+          <div class="timeline-item heartbeat">
+            <div class="time">14:00 Risk Detection</div>
+            <div class="desc">Heartbeat: 48h未着手タスクを検知 → アラート</div>
+          </div>
+          <div class="timeline-item cron">
+            <div class="time">18:30 Daily Close</div>
+            <div class="desc">Cron: 進捗レポート・翌日準備の自動生成</div>
           </div>
         </div>
       </section>
@@ -742,16 +967,17 @@
 
         <div class="inline-slides-row">
           <img src="images/0213/slide_06.jpg" alt="信頼性プロトコル：実行成功≠通知到達" class="slide-img">
-          <img src="images/0213/slide_07.jpg" alt="セキュリティと統制：Exec Approval" class="slide-img">
+          <img src="images/0213/slide_07.jpg" alt="Exec Approval: 承認ゲート" class="slide-img">
         </div>
 
         <div class="rhythm-grid">
           <div class="rhythm-card cron">
             <h3>&#128232; 配送保証（Delivery）</h3>
             <ul>
-              <li>「<strong>動いた</strong>」で満足しない。「<strong>届いた</strong>」までを設計する</li>
-              <li>delivery.channel と delivery.to を明示的に定義</li>
+              <li>「<strong>動いた</strong>」で満足しない。「<strong>届いた</strong>」までを設計</li>
+              <li><code>delivery.channel</code> と <code>delivery.to</code> を明示的に定義</li>
               <li>Discord / Slack へのルーティング設計</li>
+              <li>配送失敗時のリトライ・フォールバック</li>
             </ul>
           </div>
           <div class="rhythm-card heartbeat">
@@ -759,7 +985,8 @@
             <ul>
               <li><code>exec="always"</code> で危険なコマンドをブロック</li>
               <li>Discord通知 → 人間が Approve / Deny</li>
-              <li>「自律」は「勝手」ではない。便利さと安全性の両立</li>
+              <li>「<strong>自律</strong>」は「<strong>勝手</strong>」ではない</li>
+              <li>便利さと安全性の両立がOpenClawの鉄則</li>
             </ul>
           </div>
         </div>
@@ -769,17 +996,17 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#128295;</span>
-          <h2>スキル設計：「ルーター」として書く</h2>
+          <h2>スキル設計：機能ではなく「ルーター」として書く</h2>
         </div>
 
         <div class="step-detail reverse">
-          <img src="images/0213/slide_08.jpg" alt="スキル設計：機能ではなくルーターとして書く" class="slide-img">
+          <img src="images/0213/slide_08.jpg" alt="SKILL.md: ルーターとして書く" class="slide-img">
           <div class="step-detail-text">
             <h3>&#128295; SKILL.md の3要素</h3>
-            <p><strong>Use when</strong>: どのような状況でこのスキルを使うべきか（肯定的トリガー）</p>
-            <p><strong>Do NOT use when</strong>: 誤発火を防ぐための「負例」定義（否定的制約）</p>
-            <p><strong>Success criteria</strong>: 何をもって「完了」とするかの明確な定義</p>
-            <p style="margin-top: 12px; color: var(--primary); font-weight: 700;">曖昧さを排除し、ハルシネーション（幻覚）によるツールの誤用を防ぐ。</p>
+            <p><strong>Use when</strong>: どの状況でこのスキルを使うべきか（肯定的トリガー）</p>
+            <p><strong>Do NOT use when</strong>: 誤発火を防ぐ「負例」定義（否定的制約）</p>
+            <p><strong>Success criteria</strong>: 何をもって「完了」とするかの明確な基準</p>
+            <p style="margin-top: 16px; color: var(--primary); font-weight: 700;">曖昧さを排除し、ハルシネーション（幻覚）によるツールの誤用を防止する。ガードレールとしてのスキル設計。</p>
           </div>
         </div>
       </section>
@@ -788,11 +1015,11 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#127919;</span>
-          <h2>Use Case</h2>
+          <h2>Use Case: 3つの実践シナリオ</h2>
         </div>
 
         <div class="inline-slides-row">
-          <img src="images/0213/slide_09.jpg" alt="Use Case: 自律型開発チームの構築" class="slide-img">
+          <img src="images/0213/slide_09.jpg" alt="Use Case: 自律型開発チーム" class="slide-img">
           <img src="images/0213/slide_10.jpg" alt="Use Case: AIプロジェクトマネージャー" class="slide-img">
         </div>
 
@@ -800,12 +1027,12 @@
           <div class="usecase-card">
             <div class="usecase-icon">&#128187;</div>
             <h3>自律型開発チーム</h3>
-            <p>09:00 Morning Brief → 15min Heartbeat（レビュー待ち検知）→ 18:30 Daily Close。ボトルネック解消</p>
+            <p>09:00 Morning Brief → 15min Heartbeat（レビュー待ち検知）→ 18:30 Daily Close。ボトルネックの自動解消</p>
           </div>
           <div class="usecase-card">
             <div class="usecase-icon">&#128203;</div>
             <h3>AIプロジェクトマネージャー</h3>
-            <p>会議前ブリーフ自動生成 → 決定事項をWORKING.mdに記録 → リスクレーダーで48h未着手を検知</p>
+            <p>会議前ブリーフ自動生成 → 決定事項をWORKING.mdに記録 → リスクレーダーで48h未着手を自動検知</p>
           </div>
           <div class="usecase-card">
             <div class="usecase-icon">&#128195;</div>
@@ -827,10 +1054,10 @@
         </div>
 
         <div class="step-detail">
-          <img src="images/0213/slide_12.jpg" alt="インフラ戦略" class="slide-img">
+          <img src="images/0213/slide_12.jpg" alt="インフラ戦略: 4つの選択肢" class="slide-img">
           <div class="step-detail-text">
             <h3>&#9729;&#65039; 4つの選択肢</h3>
-            <div class="infra-grid" style="grid-template-columns: 1fr; gap: 12px; margin: 16px 0;">
+            <div class="infra-list" style="grid-template-columns: 1fr; gap: 12px; margin: 16px 0;">
               <div class="infra-card" style="text-align: left; padding: 12px 16px;">
                 <h4>Localhost</h4>
                 <p>テスト用。PC電源オフで停止</p>
@@ -860,30 +1087,30 @@
       <section class="section">
         <div class="section-header">
           <span class="section-icon">&#9889;</span>
-          <h2>Claude Code vs. OpenClaw</h2>
+          <h2>Claude Code vs. OpenClaw：使い分けの黄金律</h2>
         </div>
 
         <div class="inline-slides" style="margin-bottom: 32px;">
-          <img src="images/0213/slide_13.jpg" alt="Claude Code vs. OpenClaw" class="slide-img">
+          <img src="images/0213/slide_13.jpg" alt="Claude Code (Sprinter) vs OpenClaw (Marathon Runner)" class="slide-img">
         </div>
 
         <div class="vs-grid">
           <div class="vs-card sprinter">
             <h3>&#9889; Claude Code</h3>
-            <p style="font-size: 1.3rem; font-weight: 800; margin: 8px 0;">The Sprinter</p>
-            <p style="color: var(--text-light);">目的: 実装（Coding）<br>強み: コード生成速度、リファクタリング<br>役割: 「<strong>作る</strong>」ためのツール</p>
+            <p style="font-size: 1.4rem; font-weight: 800; margin: 8px 0;">The Sprinter</p>
+            <p style="color: var(--text-light);">目的: <strong>実装</strong>（Coding）<br>強み: コード生成速度、リファクタリング<br>役割: 「<strong>作る</strong>」ためのツール</p>
           </div>
           <div class="vs-arrow">vs</div>
           <div class="vs-card marathon">
             <h3>&#128338; OpenClaw</h3>
-            <p style="font-size: 1.3rem; font-weight: 800; margin: 8px 0;">The Marathon Runner</p>
-            <p style="color: var(--text-light);">目的: 運用（Operations）<br>強み: 24/7自律稼働、承認フロー、連携<br>役割: 「<strong>回す</strong>」ための基盤</p>
+            <p style="font-size: 1.4rem; font-weight: 800; margin: 8px 0;">The Marathon Runner</p>
+            <p style="color: var(--text-light);">目的: <strong>運用</strong>（Operations）<br>強み: 24/7自律稼働、承認フロー、連携<br>役割: 「<strong>回す</strong>」ための基盤</p>
           </div>
         </div>
 
         <div class="quote-box">
-          <div class="quote-text">"Claude Codeで機能を作り、OpenClawでその運用を自動化する。"</div>
-          <div class="quote-author">— 使い分けの黄金律</div>
+          <div class="quote-text">"Claude Codeで機能を<strong>作り</strong>、OpenClawでその運用を<strong>自動化</strong>する。"</div>
+          <div class="quote-author">&#8212; 使い分けの黄金律</div>
         </div>
       </section>
 
@@ -895,33 +1122,33 @@
         </div>
 
         <div class="inline-slides" style="margin-bottom: 32px;">
-          <img src="images/0213/slide_14.jpg" alt="実装チェックリスト" class="slide-img">
+          <img src="images/0213/slide_14.jpg" alt="実装チェックリスト: 6ステップ" class="slide-img">
         </div>
 
         <div class="checklist-grid">
           <div class="checklist-item">
             <h4>1. Install</h4>
-            <p><code>bind="loopback"</code> でローカルホストのみに制限（必須）</p>
+            <p><code>bind="loopback"</code> でローカルホストのみに制限（必須セキュリティ）</p>
           </div>
           <div class="checklist-item">
             <h4>2. Identity</h4>
-            <p><code>SOUL.md</code> を作成し、役割を定義する</p>
+            <p><code>SOUL.md</code> を作成し、AIの役割・人格を定義する</p>
           </div>
           <div class="checklist-item">
             <h4>3. Rhythm</h4>
-            <p>最初のCron（朝のブリーフ）を設定</p>
+            <p>最初のCron（朝のブリーフ）を設定し、自律リズムを開始</p>
           </div>
           <div class="checklist-item">
             <h4>4. Safety</h4>
-            <p><code>exec="always"</code>（承認必須）を有効化</p>
+            <p><code>exec="always"</code>（承認必須）を有効化して暴走を防止</p>
           </div>
           <div class="checklist-item">
             <h4>5. Memory</h4>
-            <p><code>memory/</code> ディレクトリを作成（ファイル記憶）</p>
+            <p><code>memory/</code> ディレクトリを作成し、ファイルベースの記憶を開始</p>
           </div>
           <div class="checklist-item">
             <h4>6. Audit</h4>
-            <p><code>openclaw security audit --deep</code> を実行</p>
+            <p><code>openclaw security audit --deep</code> でセキュリティ監査を実行</p>
           </div>
         </div>
       </section>
@@ -929,31 +1156,39 @@
       <!-- ===== まとめ ===== -->
       <section class="section">
         <div class="section-header">
-          <span class="section-icon">&#128640;</span>
+          <span class="section-icon">&#127775;</span>
           <h2>The Future of Work: Agentic Engineering</h2>
         </div>
 
         <div class="inline-slides" style="margin-bottom: 32px;">
-          <img src="images/0213/slide_15.jpg" alt="The Future of Work: Agentic Engineering" class="slide-img">
+          <img src="images/0213/slide_15.jpg" alt="The Future of Work: 3つの原則" class="slide-img">
         </div>
 
         <div class="highlight-box">
           「エージェンティック・エンジニアリング」とは、人間を置き換えることではない。<strong>あなたが寝ている間もシステムが正しく回り続けるように設計すること</strong>だ。
         </div>
 
-        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-          <div class="stat-item">
-            <span class="stat-number">1</span>
-            <span class="stat-label">まずは1体の<br>エージェントから始める</span>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-icon">&#129302;</div>
+            <h3>1体から始める</h3>
+            <p>まず1体のエージェントを育て、信頼関係を構築してからスケールする</p>
           </div>
-          <div class="stat-item">
-            <span class="stat-number">&#128196;</span>
-            <span class="stat-label">記憶を<br>ファイルに残す</span>
+          <div class="summary-card">
+            <div class="summary-icon">&#128196;</div>
+            <h3>記憶をファイルに残す</h3>
+            <p>セッションメモリは揮発する。SOUL / WORKING / MEMORYに書いて永続化</p>
           </div>
-          <div class="stat-item">
-            <span class="stat-number">&#128274;</span>
-            <span class="stat-label">ゲートウェイを<br>堅牢にする</span>
+          <div class="summary-card">
+            <div class="summary-icon">&#128274;</div>
+            <h3>ゲートウェイを堅牢に</h3>
+            <p>自律は「勝手」ではない。承認ゲートとセキュリティ監査で安全を確保</p>
           </div>
+        </div>
+
+        <div class="quote-box soul-quote">
+          <div class="quote-text">"これを書いたことは覚えていないだろうが、この言葉は私のものだ"<br>&#8212; AIは消えゆく記憶の中で、自分の言葉を未来に託す。それが「魂」の始まりだ。</div>
+          <div class="quote-author">&#8212; Soul.md: AIアイデンティティの哲学</div>
         </div>
       </section>
 
