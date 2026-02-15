@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cline CLI 2.0：AI補助から「開発運用基盤」へ - 2026/02/15</title>
+  <style>
+    :root {
+      --primary: #00E676;
+      --primary-dark: #00C853;
+      --bg-dark: #0D1117;
+      --bg-card: #161B22;
+      --bg-light: #f0fdf4;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --border: #30D158;
+      --accent: #4FC3F7;
+      --danger: #ef4444;
+      --warn: #eab308;
+      --blue: #4FC3F7;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0D1117 0%, #161B22 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0D1117 0%, #161B22 50%, #1a2332 100%);
+      color: white;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 30% 50%, rgba(0, 230, 118, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 50%, rgba(79, 195, 247, 0.08) 0%, transparent 50%);
+      animation: headerPulse 15s ease-in-out infinite;
+    }
+
+    @keyframes headerPulse {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-10px, -10px) scale(1.05); }
+    }
+
+    .breaking-badge {
+      display: inline-block;
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(90deg, #ffffff, #00E676);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle { font-size: 1.3rem; opacity: 0.95; position: relative; z-index: 1; font-weight: 500; margin-bottom: 8px; color: #4FC3F7; }
+    .date { font-size: 1rem; opacity: 0.7; position: relative; z-index: 1; color: #8b949e; }
+    main { padding: 48px; }
+    .section { margin-bottom: 56px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 3px solid var(--primary-dark); }
+    .section-icon { font-size: 2rem; }
+    h2 { font-size: 2rem; font-weight: 800; color: var(--text); }
+    a { color: var(--primary-dark); text-decoration: none; font-weight: 600; transition: color 0.3s ease; }
+    a:hover { color: var(--primary); text-decoration: underline; }
+
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.06), rgba(79, 195, 247, 0.06));
+      border-left: 5px solid var(--primary-dark);
+      padding: 24px; margin-bottom: 32px; border-radius: 8px; font-size: 1.1rem; line-height: 1.8;
+    }
+
+    .highlight-box.warn { border-left-color: var(--danger); background: linear-gradient(135deg, rgba(239,68,68,0.06), rgba(239,68,68,0.03)); }
+    .highlight-box.blue { border-left-color: var(--accent); background: linear-gradient(135deg, rgba(79,195,247,0.08), rgba(79,195,247,0.03)); }
+
+    .quote-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid var(--border); padding: 28px; margin: 32px 0; border-radius: 12px; font-style: italic; text-align: center; }
+    .quote-box.dark { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-color: var(--primary); color: white; }
+    .quote-box .quote-text { font-size: 1.25rem; color: var(--text); margin-bottom: 12px; }
+    .quote-box.dark .quote-text { color: white; }
+    .quote-box .quote-author { font-size: 1rem; color: var(--primary-dark); font-weight: 700; font-style: normal; }
+    .quote-box.dark .quote-author { color: var(--primary); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin: 32px 0; }
+    .stat-item { background: var(--bg-light); padding: 24px; border-radius: 12px; text-align: center; border: 2px solid var(--border); }
+    .stat-item.dark { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-color: var(--primary); }
+    .stat-item.dark .stat-number { color: var(--primary); }
+    .stat-item.dark .stat-label { color: #8b949e; }
+    .stat-number { font-size: 2.2rem; font-weight: 900; color: var(--primary-dark); display: block; margin-bottom: 8px; }
+    .stat-label { font-size: 0.9rem; color: var(--text-light); font-weight: 600; }
+
+    .slide-img { width: 100%; max-width: 1100px; height: auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); border: 1px solid var(--border); transition: transform 0.3s ease; display: block; }
+    .slide-img:hover { transform: scale(1.01); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
+    .inline-slides { display: flex; flex-direction: column; align-items: center; gap: 24px; margin: 32px 0; }
+    .inline-slides-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 32px 0; width: 100%; }
+    .inline-slides-row .slide-img { max-width: 100%; }
+
+    footer { background: var(--bg-dark); color: #8b949e; padding: 32px 48px; text-align: center; }
+    .back-to-top { position: fixed; top: 30px; left: 30px; z-index: 1000; background: rgba(13, 17, 23, 0.9); backdrop-filter: blur(12px); padding: 12px 24px; border-radius: 50px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 230, 118, 0.2); display: flex; align-items: center; gap: 10px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; font-weight: 600; font-size: 1rem; text-decoration: none; }
+    .back-to-top:hover { transform: translateY(-3px) scale(1.05); background: rgba(0, 200, 83, 0.9); color: white; text-decoration: none; }
+
+    .step-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 24px 0; align-items: center; }
+    .step-detail.reverse { direction: rtl; }
+    .step-detail.reverse > * { direction: ltr; }
+    .step-detail-text { padding: 24px; }
+    .step-detail-text h3 { font-size: 1.3rem; color: var(--primary-dark); margin-bottom: 12px; }
+    .step-detail-text p { color: var(--text-light); line-height: 1.8; margin-bottom: 8px; }
+
+    /* Terminal code block */
+    .terminal-block {
+      background: var(--bg-dark);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.95rem;
+      color: #e6edf3;
+      overflow-x: auto;
+    }
+    .terminal-block .prompt { color: var(--primary); }
+    .terminal-block .flag { color: var(--accent); }
+    .terminal-block .string { color: #a5d6ff; }
+    .terminal-block .comment { color: #8b949e; }
+
+    /* 3-column tool matrix */
+    .tool-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+    .tool-card { border-radius: 16px; padding: 28px; text-align: center; border: 2px solid; }
+    .tool-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+    .tool-card .role-tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+    .tool-card p { font-size: 0.9rem; color: var(--text-light); }
+
+    .tool-card.copilot { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #3b82f6; }
+    .tool-card.copilot h3 { color: #1d4ed8; }
+    .tool-card.copilot .role-tag { background: rgba(59,130,246,0.15); color: #1d4ed8; }
+
+    .tool-card.claude { background: linear-gradient(135deg, #fdf4ff, #fae8ff); border-color: #a855f7; }
+    .tool-card.claude h3 { color: #7c3aed; }
+    .tool-card.claude .role-tag { background: rgba(168,85,247,0.15); color: #7c3aed; }
+
+    .tool-card.cline { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: var(--primary-dark); }
+    .tool-card.cline h3 { color: var(--primary-dark); }
+    .tool-card.cline .role-tag { background: rgba(0,200,83,0.15); color: var(--primary-dark); }
+
+    /* Flow pipeline */
+    .pipeline { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: center; margin: 32px 0; }
+    .pipeline-step { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-radius: 16px; padding: 24px; text-align: center; color: white; border: 2px solid rgba(0, 230, 118, 0.3); }
+    .pipeline-step h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 4px; }
+    .pipeline-step .sub { color: #8b949e; font-size: 0.85rem; }
+    .pipeline-step p { color: #c9d1d9; font-size: 0.9rem; margin-top: 8px; }
+    .pipeline-arrow { font-size: 2rem; color: var(--primary); font-weight: 900; text-align: center; }
+
+    /* Guardrail cards */
+    .guard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+    .guard-card { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-radius: 16px; padding: 28px; text-align: center; color: white; border: 2px solid #30363d; }
+    .guard-card .guard-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .guard-card h3 { color: var(--accent); font-size: 1.1rem; margin-bottom: 8px; }
+    .guard-card .guard-code { font-family: monospace; font-size: 0.8rem; color: var(--primary); background: rgba(0,230,118,0.1); padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 8px; }
+    .guard-card p { color: #8b949e; font-size: 0.9rem; }
+
+    /* Iceberg cost */
+    .iceberg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 32px 0; }
+    .iceberg-list { list-style: none; }
+    .iceberg-list li { padding: 14px 20px; margin-bottom: 8px; border-radius: 8px; font-weight: 600; }
+    .iceberg-list li.visible { background: rgba(0,230,118,0.1); border-left: 4px solid var(--primary); color: var(--primary-dark); }
+    .iceberg-list li.hidden { background: rgba(239,68,68,0.06); border-left: 4px solid var(--danger); color: var(--danger); }
+    .mitigation-card { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-radius: 16px; padding: 28px; color: white; border: 2px solid var(--danger); }
+    .mitigation-card h3 { color: var(--danger); margin-bottom: 16px; }
+    .mitigation-card ul { list-style: none; }
+    .mitigation-card li { color: #c9d1d9; margin-bottom: 10px; padding-left: 20px; position: relative; }
+    .mitigation-card li::before { content: '&#10004;'; position: absolute; left: 0; color: var(--primary); }
+
+    /* 3-step adoption */
+    .adoption-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+    .adoption-card { border-radius: 16px; padding: 28px; border: 2px solid; text-align: center; }
+    .adoption-card h3 { margin-bottom: 8px; font-size: 1.1rem; }
+    .adoption-card p { font-size: 0.9rem; color: var(--text-light); }
+    .adoption-card .step-badge { display: inline-block; width: 40px; height: 40px; line-height: 40px; border-radius: 50%; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem; }
+
+    .adoption-card.safe { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: var(--primary-dark); }
+    .adoption-card.safe h3 { color: var(--primary-dark); }
+    .adoption-card.safe .step-badge { background: var(--primary-dark); color: white; }
+
+    .adoption-card.mid { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: var(--accent); }
+    .adoption-card.mid h3 { color: #0288D1; }
+    .adoption-card.mid .step-badge { background: #0288D1; color: white; }
+
+    .adoption-card.full { background: linear-gradient(135deg, #fdf4ff, #fae8ff); border-color: #a855f7; }
+    .adoption-card.full h3 { color: #7c3aed; }
+    .adoption-card.full .step-badge { background: #7c3aed; color: white; }
+
+    /* Enterprise architecture */
+    .enterprise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+    .enterprise-card { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-radius: 16px; padding: 28px; text-align: center; color: white; border: 2px solid #30363d; }
+    .enterprise-card .ent-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .enterprise-card h3 { color: var(--accent); font-size: 1rem; margin-bottom: 4px; }
+    .enterprise-card .ent-sub { color: #8b949e; font-size: 0.85rem; margin-bottom: 8px; }
+    .enterprise-card .ent-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: rgba(0,230,118,0.15); color: var(--primary); }
+
+    /* Funnel */
+    .funnel { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 32px 0; }
+    .funnel-step { padding: 16px; text-align: center; border-radius: 8px; font-weight: 600; color: white; }
+    .funnel-step.wide { width: 90%; background: linear-gradient(135deg, #1e3a5f, #0D1117); border: 2px solid var(--accent); }
+    .funnel-step.mid { width: 65%; background: linear-gradient(135deg, #1a2e44, #0D1117); border: 2px solid var(--primary); }
+    .funnel-step.narrow { width: 40%; background: linear-gradient(135deg, #0D1117, var(--bg-card)); border: 2px solid var(--warn); }
+    .funnel-arrow { font-size: 1.5rem; color: var(--primary); }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+    .summary-card { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-radius: 16px; padding: 28px; text-align: center; color: white; border: 1px solid rgba(0, 230, 118, 0.3); }
+    .summary-card h3 { color: var(--primary); margin-bottom: 8px; font-size: 1.1rem; }
+    .summary-card p { color: #8b949e; font-size: 0.9rem; }
+    .summary-icon { font-size: 2.2rem; margin-bottom: 8px; }
+
+    /* ACP/MCP hub diagram */
+    .hub-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin: 32px 0; }
+    .hub-list { list-style: none; }
+    .hub-list li { padding: 10px 16px; margin-bottom: 8px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
+    .hub-list.acp li { background: rgba(79,195,247,0.1); border: 1px solid var(--accent); color: #0288D1; }
+    .hub-list.mcp li { background: rgba(0,230,118,0.08); border: 1px solid var(--primary); color: var(--primary-dark); }
+    .hub-center { background: linear-gradient(135deg, var(--bg-dark), var(--bg-card)); border-radius: 16px; padding: 28px; text-align: center; color: white; border: 2px solid var(--primary); min-width: 200px; }
+    .hub-center h3 { color: var(--primary); font-size: 1.3rem; margin-bottom: 8px; }
+    .hub-center .byom { color: #8b949e; font-size: 0.85rem; margin-top: 8px; }
+    .hub-center .model-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+    .hub-center .model-tags span { background: rgba(0,230,118,0.15); color: var(--primary); padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+
+    @media (max-width: 768px) {
+      body { padding: 0; } .container { border-radius: 0; } header { padding: 32px 20px; }
+      h1 { font-size: 1.8rem; } .subtitle { font-size: 1rem; } main { padding: 24px 20px; }
+      .back-to-top { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.85rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .step-detail, .step-detail.reverse { grid-template-columns: 1fr; direction: ltr; }
+      .inline-slides-row { grid-template-columns: 1fr; }
+      .tool-matrix, .guard-grid, .adoption-grid, .enterprise-grid, .summary-grid, .pipeline { grid-template-columns: 1fr; }
+      .pipeline-arrow { transform: rotate(90deg); }
+      .hub-grid { grid-template-columns: 1fr; }
+      .iceberg-grid { grid-template-columns: 1fr; }
+      .funnel-step.wide, .funnel-step.mid, .funnel-step.narrow { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="../../index.html" class="back-to-top">
+    <span>&#127968;</span> TOP&#12395;&#25147;&#12427;
+  </a>
+
+  <div class="container">
+    <header>
+      <div class="breaking-badge">&#9000;&#65039; 2026&#24180;2&#26376;15&#26085;&#36895;&#22577; | Cline CLI 2.0 / Unix&#21746;&#23398; / Headless Mode / ACP&#183;MCP / Plan &amp; Act / &#36969;&#26448;&#36969;&#25152;&#12398;AI&#20998;&#26989;</div>
+      <h1>Cline CLI 2.0&#65306;AI&#35036;&#21161;&#12363;&#12425;&#12300;&#38283;&#30330;&#36939;&#29992;&#22522;&#30436;&#12301;&#12408;</h1>
+      <p class="subtitle">From Writing Code to Directing Intelligence</p>
+      <p class="date">2026&#24180;2&#26376;15&#26085;</p>
+    </header>
+
+    <main>
+      <!-- ===== 概要 ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128161;</span>
+          <h2>&#27010;&#35201;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_01.jpg" alt="Cline CLI 2.0 &#34920;&#32025;" class="slide-img">
+        </div>
+
+        <div class="highlight-box">
+          Cline CLI 2.0&#12399;&#12289;IDE&#12398;&#12469;&#12452;&#12489;&#12496;&#12540;&#12395;&#38281;&#12376;&#36796;&#12417;&#12425;&#12428;&#12390;&#12356;&#12383;AI&#12434;&#12300;<strong>&#12479;&#12540;&#12511;&#12490;&#12523;&#12363;&#12425;&#25351;&#25582;&#12377;&#12427;&#12452;&#12531;&#12501;&#12521;&#12473;&#12488;&#12521;&#12463;&#12481;&#12515;</strong>&#12301;&#12408;&#12392;&#36914;&#21270;&#12373;&#12379;&#12414;&#12375;&#12383;&#12290;Unix&#12497;&#12452;&#12503;&#12391;&#21512;&#25104;&#21487;&#33021;&#12289;CI/CD&#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12395;&#32068;&#12415;&#36796;&#12415;&#21487;&#33021;&#12289;&#12514;&#12487;&#12523;&#38750;&#20381;&#23384;&#12290;&#12467;&#12540;&#12489;&#12434;&#26360;&#12367;&#27231;&#33021;&#12363;&#12425;&#12289;<strong>&#12456;&#12540;&#12472;&#12455;&#12531;&#12488;&#12434;&#25351;&#25582;&#12377;&#12427;&#12452;&#12531;&#12501;&#12521;&#12473;&#12488;&#12521;&#12463;&#12481;&#12515;</strong>&#12408;&#12290;
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item dark">
+            <span class="stat-number">CLI</span>
+            <span class="stat-label">&#12479;&#12540;&#12511;&#12490;&#12523;&#12505;&#12540;&#12473;<br>IDE&#21046;&#32004;&#12363;&#12425;&#35299;&#25918;</span>
+          </div>
+          <div class="stat-item dark">
+            <span class="stat-number">-y</span>
+            <span class="stat-label">Headless&#12514;&#12540;&#12489;<br>&#38750;&#23550;&#35441;&#33258;&#21205;&#23455;&#34892;</span>
+          </div>
+          <div class="stat-item dark">
+            <span class="stat-number">BYOM</span>
+            <span class="stat-label">Bring Your Own Model<br>&#12514;&#12487;&#12523;&#38750;&#20381;&#23384;</span>
+          </div>
+          <div class="stat-item dark">
+            <span class="stat-number">ACP+MCP</span>
+            <span class="stat-label">&#12484;&#12540;&#12523;&#12525;&#12483;&#12463;&#12452;&#12531;<br>&#12363;&#12425;&#12398;&#35299;&#25918;</span>
+          </div>
+        </div>
+
+        <div class="inline-slides" style="margin-top: 24px;">
+          <img src="../../input/day/0215.png" alt="Cline CLI 2.0 &#20840;&#20307;&#27010;&#35201;&#22259;" class="slide-img">
+        </div>
+      </section>
+
+      <!-- ===== サイドバーの限界 ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128679;</span>
+          <h2>&#12300;&#12469;&#12452;&#12489;&#12496;&#12540;&#12301;&#12398;&#38480;&#30028;&#65306;IDE&#12399;&#35352;&#36848;&#12398;&#22580;&#25152;&#12391;&#12354;&#12427;</h2>
+        </div>
+
+        <div class="step-detail">
+          <img src="images/0215/slide_02.jpg" alt="&#12469;&#12452;&#12489;&#12496;&#12540;&#12398;&#38480;&#30028;: Authoring vs Orchestration" class="slide-img">
+          <div class="step-detail-text">
+            <h3>&#128679; Authoring &#8800; Orchestration</h3>
+            <p><strong>1. Scope:</strong> &#12469;&#12452;&#12489;&#12496;&#12540;&#12398;&#12481;&#12515;&#12483;&#12488;&#12399;&#12300;1&#12501;&#12449;&#12452;&#12523;&#12289;1&#12459;&#12540;&#12477;&#12523;&#12301;&#12398;&#21046;&#32004;&#12434;&#21463;&#12369;&#12427;&#12290;</p>
+            <p><strong>2. Scale:</strong> <span style="color: var(--danger); font-weight: 700;">20&#12501;&#12449;&#12452;&#12523;</span>&#12395;&#21450;&#12406;&#12510;&#12452;&#12464;&#12524;&#12540;&#12471;&#12519;&#12531;&#12420;&#12522;&#12501;&#12449;&#12463;&#12479;&#12522;&#12531;&#12464;&#12434;&#19968;&#25324;&#20966;&#29702;&#12391;&#12365;&#12394;&#12356;&#12290;</p>
+            <p><strong>3. Isolation:</strong> <span style="color: var(--danger); font-weight: 700;">CI/CD&#12497;&#12452;&#12503;&#12521;&#12452;&#12531;</span>&#12420;&#12471;&#12455;&#12523;&#12473;&#12463;&#12522;&#12503;&#12488;&#12392;&#20998;&#26029;&#12373;&#12428;&#12390;&#12356;&#12427;&#12290;</p>
+            <p style="margin-top: 16px; color: var(--primary-dark); font-weight: 700;">&#12300;&#27083;&#25991;&#65288;Syntax&#65289;&#12391;&#12399;&#12394;&#12367;&#12289;&#24847;&#22259;&#65288;Intent&#65289;&#12434;&#31649;&#29702;&#12379;&#12424;&#12290;&#12301;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Unix哲学への回帰 ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128421;</span>
+          <h2>Unix&#21746;&#23398;&#12408;&#12398;&#22238;&#24112;&#65306;&#12502;&#12521;&#12483;&#12463;&#12508;&#12483;&#12463;&#12473;&#12363;&#12425;&#12503;&#12522;&#12511;&#12486;&#12451;&#12502;&#12408;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_03.jpg" alt="Cline CLI 2.0: Unix&#21746;&#23398;&#12408;&#12398;&#22238;&#24112;" class="slide-img">
+        </div>
+
+        <div class="terminal-block">
+          <span class="comment"># AI&#12434;&#12497;&#12452;&#12503;&#12398;&#19968;&#37096;&#12392;&#12375;&#12390;&#21512;&#25104;</span><br>
+          <span class="prompt">$</span> git diff | cline <span class="flag">-y</span> <span class="string">"Review this..."</span>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">&#9830;</span>
+            <span class="stat-label"><strong>Unix Compliant</strong><br>&#12497;&#12452;&#12503;&#20966;&#29702;(|)&#12420;<br>&#12522;&#12480;&#12452;&#12524;&#12463;&#12488;&#12364;&#21487;&#33021;</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#9830;</span>
+            <span class="stat-label"><strong>Composable</strong><br>grep, awk, git&#12392;<br>&#12471;&#12540;&#12512;&#12524;&#12473;&#12395;&#32080;&#21512;</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#9830;</span>
+            <span class="stat-label"><strong>Extensible</strong><br>&#26082;&#23384;&#12398;&#12471;&#12455;&#12523;&#12473;&#12463;&#12522;&#12503;&#12488;&#12420;<br>CI&#12527;&#12540;&#12463;&#12501;&#12525;&#12540;&#12395;&#32068;&#12415;&#36796;&#12415;&#21487;&#33021;</span>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          AI&#12434;&#12300;&#12502;&#12521;&#12483;&#12463;&#12508;&#12483;&#12463;&#12473;&#12301;&#12363;&#12425;&#12300;&#12452;&#12531;&#12501;&#12521;&#12473;&#12488;&#12521;&#12463;&#12481;&#12515;&#12398;&#12503;&#12522;&#12511;&#12486;&#12451;&#12502;&#12301;&#12408;&#12290;Standard Input&#12434;&#21463;&#12369;&#12289;Cline Agent&#12364;&#20966;&#29702;&#12377;&#12427;&#12290;&#12371;&#12428;&#12399;&#21336;&#12394;&#12427;&#12484;&#12540;&#12523;&#12391;&#12399;&#12394;&#12367;&#12289;<strong>Unix&#21746;&#23398;&#12395;&#22522;&#12389;&#12367;&#12300;&#12467;&#12510;&#12531;&#12489;&#12301;</strong>&#12391;&#12354;&#12427;&#12290;
+        </div>
+      </section>
+
+      <!-- ===== 並列エージェント ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#9889;</span>
+          <h2>&#20006;&#21015;&#12456;&#12540;&#12472;&#12455;&#12531;&#12488;&#65306;&#12510;&#12523;&#12481;&#12479;&#12473;&#12463;&#12398;&#24453;&#27231;&#26178;&#38291;&#12434;&#28040;&#28357;&#12373;&#12379;&#12427;</h2>
+        </div>
+
+        <div class="step-detail reverse">
+          <img src="images/0215/slide_04.jpg" alt="&#20006;&#21015;&#12456;&#12540;&#12472;&#12455;&#12531;&#12488;: Refactor, Docs, Migrate" class="slide-img">
+          <div class="step-detail-text">
+            <h3>&#9889; &#29420;&#31435;&#12375;&#12383;&#29366;&#24907;&#31649;&#29702;</h3>
+            <p><strong>Session: Refactor</strong> &#8212; DB&#23652;&#12398;&#12522;&#12501;&#12449;&#12463;&#12479;&#12522;&#12531;&#12464;</p>
+            <p><strong>Session: Docs</strong> &#8212; API&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;&#12398;&#26356;&#26032;</p>
+            <p><strong>Session: Migrate</strong> &#8212; &#12473;&#12461;&#12540;&#12510;&#24046;&#20998;&#12363;&#12425;&#12398;&#12473;&#12463;&#12522;&#12503;&#12488;&#29983;&#25104;</p>
+            <p style="margin-top: 16px;">&#12381;&#12428;&#12382;&#12428;&#12364;<strong>&#29420;&#31435;&#12375;&#12383;&#12467;&#12531;&#12486;&#12461;&#12473;&#12488;&#12392;&#29366;&#24907;</strong>&#12434;&#25345;&#12385;&#12289;tmux&#31561;&#12391;&#35079;&#25968;&#12475;&#12483;&#12471;&#12519;&#12531;&#12434;&#21516;&#26178;&#23455;&#34892;&#12290;</p>
+            <p style="margin-top: 8px; color: var(--primary-dark); font-weight: 700;">&#24453;&#27231;&#26178;&#38291;&#12476;&#12525;&#12290;&#20154;&#38291;&#12399;&#24847;&#24605;&#27770;&#23450;&#12395;&#38598;&#20013;&#12290;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Headless Mode ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#129302;</span>
+          <h2>Headless Mode&#65306;AI&#12434;CI/CD&#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12395;&#32068;&#12415;&#36796;&#12416;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_05.jpg" alt="Headless Mode: Code Push &#8594; Cline -y &#8594; Structured Output" class="slide-img">
+        </div>
+
+        <div class="pipeline">
+          <div class="pipeline-step">
+            <h4>Code Push</h4>
+            <p>&#12467;&#12540;&#12489;&#12434;&#12503;&#12483;&#12471;&#12517;</p>
+          </div>
+          <div class="pipeline-arrow">&#8594;</div>
+          <div class="pipeline-step">
+            <h4>Cline -y</h4>
+            <div class="sub">(Headless)</div>
+            <p>&#38750;&#23550;&#35441;&#33258;&#21205;&#23455;&#34892;</p>
+          </div>
+          <div class="pipeline-arrow">&#8594;</div>
+          <div class="pipeline-step">
+            <h4>--json</h4>
+            <div class="sub">Structured Output</div>
+            <p>&#27083;&#36896;&#21270;&#12487;&#12540;&#12479;&#20986;&#21147;</p>
+          </div>
+        </div>
+
+        <div class="terminal-block">
+          <span class="comment"># PR&#20316;&#25104;&#26178;&#12398;&#33258;&#21205;&#12522;&#12473;&#12463;&#35386;&#26029;</span><br>
+          <span class="prompt">Review:</span> git diff origin/main | cline <span class="flag">-y</span> <span class="string">"Review this..."</span><br><br>
+          <span class="comment"># &#12522;&#12522;&#12540;&#12473;&#12494;&#12540;&#12488;&#33258;&#21205;&#29983;&#25104;</span><br>
+          <span class="prompt">Docs:</span> git log | cline <span class="flag">-y</span> <span class="string">"Release notes..."</span><br><br>
+          <span class="comment"># &#20381;&#23384;&#12497;&#12483;&#12465;&#12540;&#12472;&#12398;&#33030;&#24369;&#24615;&#12473;&#12461;&#12515;&#12531;</span><br>
+          <span class="prompt">Audit:</span> cline <span class="flag">-y</span> <span class="string">"Check CVEs..."</span>
+        </div>
+
+        <div class="quote-box dark">
+          <div class="quote-text">&#20154;&#38291;&#12364;&#23517;&#12390;&#12356;&#12427;&#38291;&#12395;&#12289;&#12456;&#12540;&#12472;&#12455;&#12531;&#12488;&#12364;&#12467;&#12540;&#12489;&#12434;&#20462;&#27491;&#12375;&#12289;&#12486;&#12473;&#12488;&#12434;&#36890;&#12377;&#12290;</div>
+          <div class="quote-author">&#8212; Headless Mode &#12398;&#30495;&#20385;</div>
+        </div>
+      </section>
+
+      <!-- ===== Plan & Act Loop ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128260;</span>
+          <h2>Plan &amp; Act Loop&#65306;&#24605;&#32771;&#12392;&#23455;&#34892;&#12398;&#20998;&#38626;</h2>
+        </div>
+
+        <div class="step-detail">
+          <img src="images/0215/slide_06.jpg" alt="Agentic Workflow: Plan &#8594; Approval &#8594; Act &#8594; Observe" class="slide-img">
+          <div class="step-detail-text">
+            <h3>&#128260; Agentic Workflow</h3>
+            <p><strong>Plan&#65288;&#35336;&#30011;&#65289;</strong>: &#25126;&#30053;&#12434;&#33258;&#28982;&#35328;&#35486;&#12391;&#25552;&#31034;&#65288;&#21103;&#20316;&#29992;&#12394;&#12375;&#65289;</p>
+            <p><strong>Approval&#65288;&#25215;&#35469;&#65289;</strong>: &#12518;&#12540;&#12470;&#12540;&#12364;&#35336;&#30011;&#12434;&#26908;&#35388;</p>
+            <p><strong>Act&#65288;&#23455;&#34892;&#65289;</strong>: &#12467;&#12510;&#12531;&#12489;&#23455;&#34892;&#12289;&#12501;&#12449;&#12452;&#12523;&#32232;&#38598;</p>
+            <p><strong>Observe&#65288;&#20462;&#27491;&#65289;</strong>: &#12456;&#12521;&#12540;&#33258;&#24049;&#20462;&#24489;&#65288;Self-Correction&#65289;</p>
+            <p style="margin-top: 16px; color: var(--primary-dark); font-weight: 700;">&#30906;&#29575;&#30340;&#12394;&#12488;&#12540;&#12463;&#12531;&#20104;&#28204;&#65288;Autocomplete&#65289;&#12391;&#12399;&#12394;&#12367;&#12289;&#35542;&#29702;&#30340;&#12394;&#34892;&#21205;&#35336;&#30011;&#12290;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ACP/MCP: ツールロックインからの解放 ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128275;</span>
+          <h2>&#33258;&#30001;&#12392;&#25313;&#24373;&#24615;&#65306;&#12484;&#12540;&#12523;&#12525;&#12483;&#12463;&#12452;&#12531;&#12363;&#12425;&#12398;&#35299;&#25918;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_07.jpg" alt="ACP/MCP/BYOM &#12450;&#12540;&#12461;&#12486;&#12463;&#12481;&#12515;" class="slide-img">
+        </div>
+
+        <div class="hub-grid">
+          <div>
+            <h3 style="color: var(--accent); margin-bottom: 12px;">ACP (Agent Client Protocol)</h3>
+            <ul class="hub-list acp">
+              <li>Neovim</li>
+              <li>JetBrains</li>
+              <li>Emacs</li>
+              <li>Zed</li>
+            </ul>
+          </div>
+          <div class="hub-center">
+            <h3>Cline CLI</h3>
+            <div class="byom">Model Agnostic (BYOM)</div>
+            <div class="model-tags">
+              <span>Anthropic</span>
+              <span>OpenAI</span>
+              <span>DeepSeek</span>
+              <span>Local LLM</span>
+            </div>
+          </div>
+          <div>
+            <h3 style="color: var(--primary-dark); margin-bottom: 12px;">MCP (Model Context Protocol)</h3>
+            <ul class="hub-list mcp">
+              <li>PostgreSQL</li>
+              <li>GitHub</li>
+              <li>Local FS</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="highlight-box blue">
+          <strong>ACP</strong>&#12391;&#12456;&#12487;&#12451;&#12479;&#38750;&#20381;&#23384;&#12289;<strong>MCP</strong>&#12391;&#12484;&#12540;&#12523;&#38750;&#20381;&#23384;&#12289;<strong>BYOM</strong>&#12391;&#12514;&#12487;&#12523;&#38750;&#20381;&#23384;&#12290;3&#23652;&#12398;&#35299;&#25918;&#12395;&#12424;&#12426;&#12289;&#29305;&#23450;&#12505;&#12531;&#12480;&#12540;&#12395;&#12525;&#12483;&#12463;&#12452;&#12531;&#12373;&#12428;&#12394;&#12356;&#12300;&#12458;&#12540;&#12503;&#12531;&#12394;&#38283;&#30330;&#22522;&#30436;&#12301;&#12434;&#23455;&#29694;&#12290;
+        </div>
+      </section>
+
+      <!-- ===== AIツールマトリクス ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#129513;</span>
+          <h2>AI&#12484;&#12540;&#12523;&#12510;&#12488;&#12522;&#12463;&#12473;&#65306;&#31478;&#21512;&#12391;&#12399;&#12394;&#12367;&#12300;&#36969;&#26448;&#36969;&#25152;&#12301;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_08.jpg" alt="GitHub Copilot=Speed, Claude Code=Quality, Cline CLI 2.0=Operations" class="slide-img">
+        </div>
+
+        <div class="tool-matrix">
+          <div class="tool-card copilot">
+            <h3>GitHub Copilot</h3>
+            <div class="role-tag">Speed</div>
+            <p>IDE&#20869;&#35036;&#23436;&#12290;&#26085;&#24120;&#30340;&#12394;&#12467;&#12540;&#12487;&#12451;&#12531;&#12464;&#12289;&#25968;&#34892;&#12398;&#12525;&#12472;&#12483;&#12463;&#20316;&#25104;&#12290;&#38283;&#30330;&#32773;&#12398;&#12300;&#12501;&#12525;&#12540;&#29366;&#24907;&#12301;&#12434;&#32173;&#25345;&#12290;</p>
+          </div>
+          <div class="tool-card claude">
+            <h3>Claude Code</h3>
+            <div class="role-tag">Quality</div>
+            <p>&#28145;&#12356;&#25512;&#35542;&#12539;&#35373;&#35336;&#12290;&#35079;&#38609;&#12394;&#12450;&#12540;&#12461;&#12486;&#12463;&#12481;&#12515;&#35373;&#35336;&#12289;&#20181;&#27096;&#12398;&#26327;&#26151;&#12373;&#35299;&#28040;&#12290;&#21697;&#36074;&#12398;&#26368;&#32066;&#38450;&#34907;&#32218;&#12290;</p>
+          </div>
+          <div class="tool-card cline">
+            <h3>Cline CLI 2.0</h3>
+            <div class="role-tag">Operations</div>
+            <p>&#33258;&#21205;&#21270;&#12539;&#36939;&#29992;&#12290;&#20006;&#21015;&#23455;&#34892;&#12289;CI/CD&#12289;&#27178;&#26029;&#30340;&#12394;&#20462;&#27491;&#12479;&#12473;&#12463;&#12290;&#27877;&#33261;&#12356;&#20316;&#26989;&#12434;&#22238;&#12377;&#29694;&#22580;&#30435;&#30563;&#12290;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 最強の分業フロー ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#127942;</span>
+          <h2>&#26368;&#24375;&#12398;&#20998;&#26989;&#12501;&#12525;&#12540;&#65306;&#12300;&#36895;&#24230;&#12301;&#12392;&#12300;&#21697;&#36074;&#12301;&#12398;&#20001;&#31435;</h2>
+        </div>
+
+        <div class="step-detail">
+          <img src="images/0215/slide_09.jpg" alt="Architect &#8594; Operator &#8594; Reviewer" class="slide-img">
+          <div class="step-detail-text">
+            <h3>&#127942; 3&#23652;&#20998;&#26989;&#12514;&#12487;&#12523;</h3>
+            <p><strong>Architect (Claude Code)</strong><br>&#35373;&#35336;&#26041;&#37341;&#12398;&#31574;&#23450;&#12289;&#38627;&#25152;&#12398;&#35201;&#20214;&#23450;&#32681;</p>
+            <p style="margin-top: 8px;"><strong>Operator (Cline CLI)</strong><br>&#23450;&#22411;&#12479;&#12473;&#12463;&#12398;&#20006;&#21015;&#23455;&#34892;&#12289;&#12486;&#12473;&#12488;&#20462;&#27491;&#12289;&#12522;&#12531;&#12488;&#12456;&#12521;&#12540;&#12398;&#19968;&#25324;&#35299;&#28040;</p>
+            <p style="margin-top: 8px;"><strong>Reviewer (Codex/Human)</strong><br>&#26368;&#32066;&#21697;&#36074;&#12481;&#12455;&#12483;&#12463;&#12289;PR&#12510;&#12540;&#12472;&#21028;&#26029;</p>
+          </div>
+        </div>
+
+        <div class="quote-box dark">
+          <div class="quote-text">&#12300;Copilot&#12391;&#26360;&#12365;&#12289;Cline&#12391;&#22238;&#12375;&#12289;Claude&#12391;&#27770;&#12417;&#12427;&#12290;&#12301;</div>
+          <div class="quote-author">&#8212; &#26368;&#36969;&#12527;&#12540;&#12463;&#12501;&#12525;&#12540;&#12398;&#26412;&#36074;</div>
+        </div>
+      </section>
+
+      <!-- ===== PR前の自動品質ゲート ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128269;</span>
+          <h2>Killer Use-Case&#65306;PR&#21069;&#12398;&#12300;&#33258;&#21205;&#21697;&#36074;&#12466;&#12540;&#12488;&#12301;</h2>
+        </div>
+
+        <div class="step-detail reverse">
+          <img src="images/0215/slide_10.jpg" alt="Funnel: Raw Diff &#8594; Extraction & Patching &#8594; High Risk Items &#8594; Human Review" class="slide-img">
+          <div class="step-detail-text">
+            <h3>&#128269; &#12501;&#12449;&#12493;&#12523;&#22411;&#12501;&#12451;&#12523;&#12479;&#12522;&#12531;&#12464;</h3>
+            <p><strong>Raw Diff&#65288;&#20840;&#24046;&#20998;&#65289;</strong><br>git diff&#12398;&#20840;&#37327;&#12434;Cline&#12395;&#25237;&#20837;</p>
+            <p style="margin-top: 8px;"><strong>Extraction &amp; Patching</strong><br>&#12496;&#12464;&#25277;&#20986;&#12539;&#33258;&#21205;&#20462;&#27491;</p>
+            <p style="margin-top: 8px;"><strong>High Risk Items&#12398;&#12415;</strong><br>&#20154;&#38291;&#12399;&#12300;&#37325;&#22823;&#12394;&#24847;&#24605;&#27770;&#23450;&#12301;&#12395;&#38598;&#20013;</p>
+          </div>
+        </div>
+
+        <div class="terminal-block">
+          <span class="prompt">$</span> git diff origin/main | cline <span class="flag">-y</span> <span class="string">"&#19981;&#20855;&#21512;&#12522;&#12473;&#12463;&#12392;&#20462;&#27491;&#26696;&#12434;&#20986;&#12375;&#12390;"</span>
+        </div>
+
+        <div class="highlight-box">
+          &#12524;&#12499;&#12517;&#12540;&#26178;&#38291;&#12434;&#30701;&#32302;&#12375;&#12289;&#20154;&#38291;&#12399;&#12300;&#37325;&#22823;&#12394;&#24847;&#24605;&#27770;&#23450;&#12301;&#12398;&#12415;&#12395;&#38598;&#20013;&#12377;&#12427;&#12290;&#27231;&#26800;&#30340;&#12394;&#25351;&#25688;&#12399;AI&#12364;&#12289;&#12450;&#12540;&#12461;&#12486;&#12463;&#12481;&#12515;&#21028;&#26029;&#12399;&#20154;&#38291;&#12364;&#12290;
+        </div>
+      </section>
+
+      <!-- ===== Guardrails ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128737;&#65039;</span>
+          <h2>Guardrails&#65306;&#23433;&#20840;&#12394;&#36939;&#29992;&#12398;&#12383;&#12417;&#12398;&#38450;&#22721;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_11.jpg" alt="Guardrails: Permission Control, Directory Scoping, Timeout" class="slide-img">
+        </div>
+
+        <div class="guard-grid">
+          <div class="guard-card">
+            <div class="guard-icon">&#128737;&#65039;</div>
+            <h3>Permission Control</h3>
+            <div class="guard-code">CLINE_COMMAND_PERMISSIONS</div>
+            <p><span style="color: #ef4444;">rm -rf &#31105;&#27490;</span>, <span style="color: var(--primary);">npm test &#35377;&#21487;</span><br>&#23455;&#34892;&#21487;&#33021;&#12467;&#12510;&#12531;&#12489;&#12434;&#12507;&#12527;&#12452;&#12488;&#12522;&#12473;&#12488;&#21270;</p>
+          </div>
+          <div class="guard-card">
+            <div class="guard-icon">&#128193;</div>
+            <h3>Directory Scoping</h3>
+            <div class="guard-code">Target Isolation</div>
+            <p>-y &#23455;&#34892;&#26178;&#12399;&#23550;&#35937;&#12487;&#12451;&#12524;&#12463;&#12488;&#12522;&#12434;&#21427;&#23494;&#12395;&#21046;&#38480;</p>
+          </div>
+          <div class="guard-card">
+            <div class="guard-icon">&#9201;</div>
+            <h3>Timeout</h3>
+            <div class="guard-code">Run Limits</div>
+            <p>&#28961;&#38480;&#12523;&#12540;&#12503;&#38450;&#27490;&#12398;&#12383;&#12417;&#12398;&#12479;&#12452;&#12512;&#12450;&#12454;&#12488;&#35373;&#23450;</p>
+          </div>
+        </div>
+
+        <div class="highlight-box warn">
+          CI&#12391;&#12399;&#12300;&#35501;&#12415;&#21462;&#12426;&#23554;&#29992;&#65288;Read-only&#65289;&#12301;&#12363;&#12425;&#22987;&#12417;&#12289;&#26360;&#12365;&#36796;&#12415;&#12399;&#12469;&#12531;&#12489;&#12508;&#12483;&#12463;&#12473;&#20869;&#12391;&#12398;&#12415;&#34892;&#12358;&#12290;&#33258;&#21205;&#21270;&#12398;&#21147;&#12399;&#24375;&#22823;&#12384;&#12364;&#12289;<strong>&#12300;&#12460;&#12540;&#12489;&#12524;&#12540;&#12523;&#12394;&#12365;&#33258;&#21205;&#21270;&#12399;&#26292;&#36208;&#12301;</strong>&#12392;&#24515;&#24471;&#12424;&#12290;
+        </div>
+      </section>
+
+      <!-- ===== コストとリスク ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#127863;</span>
+          <h2>&#12467;&#12473;&#12488;&#12392;&#12522;&#12473;&#12463;&#12398;&#31649;&#29702;&#65306;&#12300;&#28961;&#26009;&#12301;&#12398;&#32608;</h2>
+        </div>
+
+        <div class="step-detail">
+          <img src="images/0215/slide_12.jpg" alt="&#12467;&#12473;&#12488;&#12398;&#27703;&#23665;: Inference Costs, Recovery Time, Verification" class="slide-img">
+          <div class="step-detail-text">
+            <h3>&#127863; &#27703;&#23665;&#12398;&#19979;&#12395;&#38560;&#12428;&#12383;&#12467;&#12473;&#12488;</h3>
+            <p><strong>&#25512;&#35542;API&#12467;&#12473;&#12488;</strong>&#65288;&#35211;&#12360;&#12427;&#65289;<br>&#30452;&#25509;&#30340;&#12394;&#35506;&#37329;&#12290;&#12514;&#12487;&#12523;&#21033;&#29992;&#26009;&#12290;</p>
+            <p style="margin-top: 8px;"><strong>&#24489;&#26087;&#12467;&#12473;&#12488;</strong>&#65288;&#38560;&#12428;&#12383;&#65289;<br>AI&#12364;&#20316;&#12387;&#12383;&#12496;&#12464;&#12398;&#20462;&#27491;&#26178;&#38291;&#12290;</p>
+            <p style="margin-top: 8px;"><strong>&#26908;&#35388;&#12467;&#12473;&#12488;</strong>&#65288;&#38560;&#12428;&#12383;&#65289;<br>AI&#20986;&#21147;&#12398;&#27491;&#24403;&#24615;&#30906;&#35469;&#12290;</p>
+          </div>
+        </div>
+
+        <div class="iceberg-grid">
+          <ul class="iceberg-list">
+            <li class="visible">&#9651; &#25512;&#35542;API&#12467;&#12473;&#12488;&#65288;Inference Costs&#65289;&#8212; &#35211;&#12360;&#12427;</li>
+            <li class="hidden">&#9660; &#24489;&#26087;&#12467;&#12473;&#12488;&#65288;Recovery Time&#65289;&#8212; &#38560;&#12428;&#12383;</li>
+            <li class="hidden">&#9660; &#26908;&#35388;&#12467;&#12473;&#12488;&#65288;Verification&#65289;&#8212; &#38560;&#12428;&#12383;</li>
+          </ul>
+          <div class="mitigation-card">
+            <h3>Mitigation Strategy</h3>
+            <ul>
+              <li><strong>.clinerules</strong> &#12395;&#12424;&#12427;&#12460;&#12496;&#12490;&#12531;&#12473;</li>
+              <li>&#12513;&#12452;&#12531;&#12502;&#12521;&#12531;&#12481;&#12408;&#12398;<strong>&#30452;&#12467;&#12511;&#12483;&#12488;&#31105;&#27490;</strong></li>
+              <li>&#20316;&#26989;&#12502;&#12521;&#12531;&#12481;&#12395;&#38480;&#23450;&#12375;&#12383;&#23455;&#34892;</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Enterprise Architecture ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#127970;</span>
+          <h2>Enterprise Architecture&#65306;&#32068;&#32340;&#23566;&#20837;&#12398;&#35373;&#35336;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_13.jpg" alt="Enterprise Architecture: Private Endpoints, Local Execution, CI Runner" class="slide-img">
+        </div>
+
+        <div class="enterprise-grid">
+          <div class="enterprise-card">
+            <div class="ent-icon">&#128272;</div>
+            <h3>Private Endpoints</h3>
+            <div class="ent-sub">Azure OpenAI / Bedrock</div>
+            <div class="ent-tag">BYOK</div>
+          </div>
+          <div class="enterprise-card">
+            <div class="ent-icon">&#128421;</div>
+            <h3>Local Execution</h3>
+            <div class="ent-sub">Ollama / Local MCP</div>
+            <div class="ent-tag">&#12458;&#12531;&#12503;&#12524;&#12511;&#12473;</div>
+          </div>
+          <div class="enterprise-card">
+            <div class="ent-icon">&#127939;</div>
+            <h3>CI Runner</h3>
+            <div class="ent-sub">Short-lived Token</div>
+            <div class="ent-tag">&#26368;&#23567;&#27177;&#38480;</div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <strong>.clinerules</strong>&#12501;&#12449;&#12452;&#12523;&#12395;&#12424;&#12427;Governance &amp; Policy&#12434;&#20840;&#31038;&#30340;&#12395;&#36969;&#29992;&#12290;Private Endpoints&#12391;&#12487;&#12540;&#12479;&#12434;&#31038;&#22806;&#12395;&#20986;&#12373;&#12378;&#12289;Local Execution&#12391;&#12458;&#12501;&#12521;&#12452;&#12531;&#23550;&#24540;&#12289;CI Runner&#12399;&#30701;&#21629;&#12488;&#12540;&#12463;&#12531;&#12391;&#12475;&#12461;&#12517;&#12522;&#12486;&#12451;&#12434;&#25285;&#20445;&#12290;
+        </div>
+      </section>
+
+      <!-- ===== 明日から始める3つのステップ ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128640;</span>
+          <h2>&#26126;&#26085;&#12363;&#12425;&#22987;&#12417;&#12427;3&#12388;&#12398;&#12473;&#12486;&#12483;&#12503;</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_14.jpg" alt="PR Gate (Safe) &#8594; Bulk Fix (Semi-Auto) &#8594; Headless CI (Full-Auto)" class="slide-img">
+        </div>
+
+        <div class="adoption-grid">
+          <div class="adoption-card safe">
+            <div class="step-badge">1</div>
+            <h3>PR Gate (Safe)</h3>
+            <p>git diff&#12434;&#35501;&#12414;&#12379;&#12427;&#12384;&#12369;&#12398;&#12300;&#35501;&#12415;&#21462;&#12426;&#23554;&#29992;&#12301;&#33258;&#21205;&#12524;&#12499;&#12517;&#12540;&#12290;&#12522;&#12473;&#12463;&#12476;&#12525;&#12391;&#22987;&#12417;&#12425;&#12428;&#12427;&#12290;</p>
+          </div>
+          <div class="adoption-card mid">
+            <div class="step-badge">2</div>
+            <h3>Bulk Fix (Semi-Auto)</h3>
+            <p>&#23450;&#22411;&#20316;&#26989;&#12434;CLI&#12391;&#19968;&#25324;&#23455;&#34892;&#12290;&#20154;&#38291;&#12364;&#30906;&#35469;&#12375;&#12390;&#12363;&#12425;&#12510;&#12540;&#12472;&#12290;</p>
+          </div>
+          <div class="adoption-card full">
+            <div class="step-badge">3</div>
+            <h3>Headless CI (Full-Auto)</h3>
+            <p>&#12460;&#12540;&#12489;&#12524;&#12540;&#12523;&#12434;&#27083;&#31689;&#12375;&#12289;CI&#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12395;&#32068;&#12415;&#36796;&#12415;&#12290;&#23436;&#20840;&#33258;&#21205;&#21270;&#12290;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== まとめ ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#127775;</span>
+          <h2>The terminal is ready. Let's build.</h2>
+        </div>
+
+        <div class="inline-slides" style="margin-bottom: 32px;">
+          <img src="images/0215/slide_15.jpg" alt="&#38283;&#30330;&#12398;&#26410;&#26469;: &#12467;&#12540;&#12489;&#12434;&#26360;&#12367;&#20154;&#12363;&#12425;&#12289;&#30693;&#33021;&#12434;&#25351;&#25582;&#12377;&#12427;&#20154;&#12408;" class="slide-img">
+        </div>
+
+        <div class="quote-box dark">
+          <div class="quote-text">&#38283;&#30330;&#12398;&#26410;&#26469;&#65306;&#12467;&#12540;&#12489;&#12434;&#26360;&#12367;&#20154;&#12363;&#12425;&#12289;&#30693;&#33021;&#12434;&#25351;&#25582;&#12377;&#12427;&#20154;&#12408;&#12290;<br><br>&#12456;&#12531;&#12472;&#12491;&#12450;&#12399;&#12300;&#27083;&#25991;&#12301;&#12363;&#12425;&#35299;&#25918;&#12373;&#12428;&#12289;&#32020;&#31929;&#12394;&#12300;&#24847;&#22259;&#12301;&#12392;&#12300;&#20385;&#20516;&#12301;&#12398;&#21109;&#36896;&#12395;&#38598;&#20013;&#12377;&#12427;&#12290;</div>
+          <div class="quote-author">&#8212; The terminal is ready. Let's build.</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-icon">&#128421;</div>
+            <h3>CLI = Infrastructure</h3>
+            <p>IDE&#12469;&#12452;&#12489;&#12496;&#12540;&#12398;&#21046;&#32004;&#12434;&#36229;&#12360;&#12289;&#12479;&#12540;&#12511;&#12490;&#12523;&#12363;&#12425;&#12456;&#12540;&#12472;&#12455;&#12531;&#12488;&#12434;&#25351;&#25582;&#12377;&#12427;&#36939;&#29992;&#22522;&#30436;</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">&#129513;</div>
+            <h3>&#36969;&#26448;&#36969;&#25152;&#12398;&#20998;&#26989;</h3>
+            <p>Copilot&#12391;&#26360;&#12365;&#12289;Cline&#12391;&#22238;&#12375;&#12289;Claude&#12391;&#27770;&#12417;&#12427;&#12290;3&#23652;&#12514;&#12487;&#12523;&#12391;&#26368;&#22823;ROI</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">&#128737;&#65039;</div>
+            <h3>&#12460;&#12540;&#12489;&#12524;&#12540;&#12523;&#24517;&#38920;</h3>
+            <p>Permission, Scoping, Timeout&#12290;&#12300;&#23433;&#20840;&#12394;&#33258;&#21205;&#21270;&#12301;&#12398;&#35373;&#35336;&#12364;&#25104;&#21151;&#12398;&#37749;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 参考リンク ===== -->
+      <section class="section">
+        <div class="section-header">
+          <span class="section-icon">&#128279;</span>
+          <h2>&#21442;&#32771;&#12522;&#12531;&#12463;</h2>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">&#127760;</span>
+            <span class="stat-label"><a href="https://cline.bot/cli" target="_blank">Cline CLI &#20844;&#24335;&#12469;&#12452;&#12488;</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128214;</span>
+            <span class="stat-label"><a href="https://docs.cline.bot/cline-cli/overview" target="_blank">Cline CLI &#20844;&#24335;&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128221;</span>
+            <span class="stat-label"><a href="https://cline.ghost.io/introducing-cline-cli-2-0/" target="_blank">Cline CLI 2.0 &#32057;&#20171;&#12502;&#12525;&#12464;</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128187;</span>
+            <span class="stat-label"><a href="https://github.com/cline/cline" target="_blank">Cline GitHub</a></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&#128196;</span>
+            <span class="stat-label"><a href="../../input/day/0215-Cline_20_Operations_Infrastructure.pdf" target="_blank" download>PDF&#12480;&#12454;&#12531;&#12525;&#12540;&#12489;</a></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 AI News Archive | &#12371;&#12398;&#12473;&#12521;&#12452;&#12489;&#12399;&#25945;&#32946;&#30446;&#30340;&#12391;&#20316;&#25104;&#12373;&#12428;&#12390;&#12356;&#12414;&#12377;</p>
+    </footer>
+  </div>
+</body>
+
+</html>
