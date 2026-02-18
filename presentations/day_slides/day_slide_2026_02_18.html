@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Sonnet 4.6 徹底解剖：Opus級の知能をSonnetの価格で - 2026/02/18</title>
+  <style>
+    :root {
+      --primary: #C75B39;
+      --primary-light: #E8845F;
+      --primary-dark: #A5432B;
+      --bg-warm: #FAF5F0;
+      --bg-card: #FFFFFF;
+      --bg-dark: #1a1a2e;
+      --text: #2D2A26;
+      --text-light: #6B6560;
+      --text-muted: #9C9590;
+      --border: #E8DDD4;
+      --accent: #2B6B7F;
+      --accent-light: #3D8FA6;
+      --navy: #1E3A5F;
+      --safe: #2E7D32;
+      --warn: #E65100;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
+      background: var(--bg-warm);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #FAF5F0 0%, #F5EDE4 50%, #EDE3D8 100%);
+      color: var(--text);
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .header-label {
+      display: inline-block;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    header h1 span {
+      color: var(--primary);
+    }
+
+    header p.subtitle {
+      font-size: 1.15rem;
+      color: var(--text-light);
+      max-width: 700px;
+      margin: 0 auto;
+      font-style: italic;
+    }
+
+    /* Cover image */
+    .cover-img {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      background: var(--bg-warm);
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0;
+      background: var(--bg-dark);
+    }
+
+    .stat-card {
+      padding: 28px 20px;
+      text-align: center;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-card:last-child { border-right: none; }
+
+    .stat-value {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary-light);
+      letter-spacing: -1px;
+    }
+
+    .stat-value.teal { color: var(--accent-light); }
+    .stat-value.green { color: #66BB6A; }
+
+    .stat-label {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 6px;
+    }
+
+    /* Content */
+    .content { padding: 48px; }
+
+    .section {
+      margin-bottom: 52px;
+      padding-bottom: 44px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-child { border-bottom: none; }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-left: 16px;
+      border-left: 4px solid var(--primary);
+      line-height: 1.4;
+    }
+
+    .section-title .tag {
+      display: inline-block;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--primary);
+      color: white;
+      font-size: 0.65rem;
+      padding: 2px 10px;
+      border-radius: 10px;
+      margin-left: 10px;
+      vertical-align: middle;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    /* Slide images */
+    .slide-img {
+      width: 100%;
+      border-radius: 12px;
+      margin: 16px 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    /* Impossible Triangle */
+    .triangle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .triangle-card {
+      background: var(--bg-warm);
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .triangle-card .num {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .triangle-card h4 {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+    }
+
+    .triangle-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .quote-box {
+      background: var(--bg-warm);
+      border-left: 4px solid var(--primary);
+      padding: 20px 24px;
+      margin-top: 20px;
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+
+    .quote-box::before { content: '\201C '; font-size: 1.4rem; color: var(--primary); }
+    .quote-box::after { content: ' \201D'; font-size: 1.4rem; color: var(--primary); }
+
+    /* Benchmark bars */
+    .bench-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .bench-item {
+      background: var(--bg-warm);
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .bench-item h4 {
+      font-size: 1rem;
+      margin-bottom: 16px;
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .bench-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bench-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bench-bar-label {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      min-width: 80px;
+      text-align: right;
+      color: var(--text-light);
+    }
+
+    .bench-bar-track {
+      flex: 1;
+      height: 28px;
+      background: #e8e0d8;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bench-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: white;
+    }
+
+    .bench-bar-fill.opus { background: var(--navy); }
+    .bench-bar-fill.sonnet { background: var(--primary); }
+
+    .bench-winner {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .bench-winner strong { color: var(--primary); }
+
+    /* Coding Partner */
+    .coding-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .pref-card {
+      background: var(--bg-warm);
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .pref-value {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .pref-label {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .feature-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    .feature-list li:last-child { border-bottom: none; }
+
+    .feature-list li strong { color: var(--primary); }
+
+    /* Computer Use */
+    .cu-highlight {
+      background: linear-gradient(135deg, var(--bg-warm), #F0E8DF);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      border: 2px solid var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .cu-score {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .cu-prev {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .cu-cases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .cu-case {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .cu-case h4 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: var(--primary-dark);
+    }
+
+    .cu-case p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    .cu-case .stat {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: inline-block;
+      background: rgba(199, 91, 57, 0.1);
+      color: var(--primary);
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    /* New Features */
+    .features-trio {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .feat-card {
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+
+    .feat-card.thinking { background: linear-gradient(135deg, #FFF8F0, #FFF3E6); border-color: var(--primary); }
+    .feat-card.context { background: linear-gradient(135deg, #F0F7FA, #E6F2F7); border-color: var(--accent); }
+    .feat-card.compact { background: linear-gradient(135deg, #F0FAF0, #E6F7E6); border-color: var(--safe); }
+
+    .feat-card .icon { font-size: 1.8rem; margin-bottom: 12px; }
+
+    .feat-card h4 {
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+    }
+
+    .feat-card.thinking h4 { color: var(--primary); }
+    .feat-card.context h4 { color: var(--accent); }
+    .feat-card.compact h4 { color: var(--safe); }
+
+    .feat-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    /* Cost comparison */
+    .cost-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+
+    .cost-col {
+      padding: 28px;
+    }
+
+    .cost-col.sonnet {
+      background: linear-gradient(135deg, var(--bg-warm), #F0E8DF);
+      border-right: 2px solid var(--border);
+    }
+
+    .cost-col.opus {
+      background: white;
+    }
+
+    .cost-col h4 {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .cost-col.sonnet h4 { color: var(--primary); }
+    .cost-col.opus h4 { color: var(--navy); }
+
+    .cost-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .cost-row:last-child { border-bottom: none; }
+
+    .cost-price {
+      font-weight: 800;
+    }
+
+    .cost-col.sonnet .cost-price { color: var(--primary); }
+    .cost-col.opus .cost-price { color: var(--navy); }
+
+    .cost-badge {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 800;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .cost-col.sonnet .cost-badge {
+      background: rgba(199, 91, 57, 0.12);
+      color: var(--primary);
+    }
+
+    /* Strategy */
+    .strat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .strat-card {
+      border-radius: 16px;
+      padding: 28px;
+      border: 2px solid;
+    }
+
+    .strat-card.sonnet {
+      background: linear-gradient(135deg, #FFF8F0, #FFF3E6);
+      border-color: var(--primary);
+    }
+
+    .strat-card.opus {
+      background: linear-gradient(135deg, #F0F3F8, #E8EDF5);
+      border-color: var(--navy);
+    }
+
+    .strat-card h4 {
+      font-size: 1.15rem;
+      margin-bottom: 6px;
+    }
+
+    .strat-card.sonnet h4 { color: var(--primary); }
+    .strat-card.opus h4 { color: var(--navy); }
+
+    .strat-subtitle {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    .strat-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    .strat-note {
+      background: var(--bg-warm);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .strat-note strong { color: var(--primary); }
+
+    /* Safety */
+    .safety-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .safety-item {
+      background: var(--bg-warm);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .safety-item h4 {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .safety-item p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    /* API Platforms */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .platform-card {
+      background: var(--bg-warm);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid var(--border);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .platform-card .icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .platform-card .name { font-weight: 700; font-size: 0.9rem; }
+    .platform-card .note { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+    .model-id {
+      background: var(--bg-dark);
+      color: #E8845F;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* Docker code */
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .code-block .cmd { color: #9CDCFE; }
+    .code-block .flag { color: #CE9178; }
+    .code-block .val { color: #6A9955; }
+
+    /* Future */
+    .future-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .future-card {
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+
+    .future-card.threat {
+      background: linear-gradient(135deg, #FFF5F0, #FFEDE6);
+      border-color: var(--primary);
+    }
+
+    .future-card.shift {
+      background: linear-gradient(135deg, #F0F7FA, #E6F2F7);
+      border-color: var(--accent);
+    }
+
+    .future-card h4 { font-size: 1.05rem; margin-bottom: 10px; }
+    .future-card.threat h4 { color: var(--primary); }
+    .future-card.shift h4 { color: var(--accent); }
+
+    .future-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    /* Next Steps */
+    .steps-list {
+      counter-reset: step;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 20px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+
+    .step-item:last-child { border-bottom: none; }
+
+    .step-num {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .step-content h4 { font-size: 1.1rem; margin-bottom: 6px; }
+    .step-content p { font-size: 0.95rem; color: var(--text-light); }
+
+    /* Conclusion */
+    .conclusion-box {
+      background: linear-gradient(135deg, var(--bg-warm) 0%, #F0E8DF 50%, #EDE3D8 100%);
+      border-radius: 20px;
+      padding: 48px;
+      text-align: center;
+      border: 2px solid var(--primary);
+      position: relative;
+    }
+
+    .conclusion-box h2 {
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .conclusion-box h2 span { color: var(--primary); }
+
+    .conclusion-tagline {
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+
+    /* Links */
+    .links-section {
+      background: var(--bg-warm);
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .links-section h4 {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .links-grid a {
+      color: var(--primary);
+      text-decoration: none;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.85rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+      display: block;
+    }
+
+    .links-grid a:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(199, 91, 57, 0.15);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-dark);
+      color: rgba(255, 255, 255, 0.5);
+      padding: 24px 40px;
+      display: flex;
+      justify-content: space-between;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.85rem;
+    }
+
+    footer a { color: var(--primary-light); text-decoration: none; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { padding: 36px 20px; }
+      .content { padding: 24px; }
+      .triangle-grid, .coding-grid, .cost-compare, .strat-grid, .future-grid { grid-template-columns: 1fr; }
+      .cost-col.sonnet { border-right: none; border-bottom: 2px solid var(--border); }
+      footer { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <header>
+      <div class="header-label">Anthropic Claude Model Update &mdash; 2026.02.18</div>
+      <h1>Claude <span>Sonnet 4.6</span> 徹底解剖</h1>
+      <p class="subtitle">Opus級の知能を、Sonnetの価格で。AIエージェントの新時代が始まる。</p>
+    </header>
+
+    <!-- Cover Image -->
+    <img src="../../input/day/0218.png" alt="Claude Sonnet 4.6 Cover" class="cover-img">
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">79.6%</div>
+        <div class="stat-label">SWE-bench Verified<br>コーディング性能</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">72.5%</div>
+        <div class="stat-label">OSWorld<br>Computer Use精度</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value teal">100万</div>
+        <div class="stat-label">Token Context<br>ベータ提供開始</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green">-60%</div>
+        <div class="stat-label">vs Opus 4.6<br>コスト削減</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">70%</div>
+        <div class="stat-label">開発者支持率<br>vs Sonnet 4.5</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 1. The Impossible Triangle -->
+      <div class="section">
+        <div class="section-title">「神進化」 &mdash; 4.5からのマイナーチェンジではない <span class="tag">OVERVIEW</span></div>
+        <img src="images/0218/slide_02.jpg" alt="The Impossible Triangle" class="slide-img">
+        <div class="triangle-grid">
+          <div class="triangle-card">
+            <div class="num">01. Performance</div>
+            <h4>Opus級の性能</h4>
+            <p>実務タスクにおいて、最上位モデルOpus 4.6と同等、あるいはそれを凌駕する</p>
+          </div>
+          <div class="triangle-card">
+            <div class="num">02. Cost</div>
+            <h4>据え置き価格</h4>
+            <p>知能は向上しても、価格はSonnet 4.5から据え置き（$3/$15）</p>
+          </div>
+          <div class="triangle-card">
+            <div class="num">03. Capability</div>
+            <h4>Computer Use実用化</h4>
+            <p>「Computer Use」（PC操作）が実用レベルに到達（OSWorld 72.5%）</p>
+          </div>
+        </div>
+        <div class="quote-box">
+          4.5と4.6はもはや別物。なぜバージョン5にしなかったのか不思議なレベル。
+        </div>
+      </div>
+
+      <!-- 2. Benchmark Shock -->
+      <div class="section">
+        <div class="section-title">ベンチマーク・ショック：実務領域での「Opus超え」 <span class="tag">BENCHMARK</span></div>
+        <img src="images/0218/slide_03.jpg" alt="Benchmark Shock" class="slide-img">
+        <div class="bench-group">
+          <div class="bench-item">
+            <h4>Coding (SWE-bench Verified)</h4>
+            <div class="bench-bars">
+              <div class="bench-bar">
+                <span class="bench-bar-label">Opus 4.6</span>
+                <div class="bench-bar-track">
+                  <div class="bench-bar-fill opus" style="width:80.8%;">80.8%</div>
+                </div>
+              </div>
+              <div class="bench-bar">
+                <span class="bench-bar-label">Sonnet 4.6</span>
+                <div class="bench-bar-track">
+                  <div class="bench-bar-fill sonnet" style="width:79.6%;">79.6%</div>
+                </div>
+              </div>
+            </div>
+            <div class="bench-winner">コスト1/5で<strong>同等</strong>のコード生成能力</div>
+          </div>
+          <div class="bench-item">
+            <h4>Finance Agent（金融分析）</h4>
+            <div class="bench-bars">
+              <div class="bench-bar">
+                <span class="bench-bar-label">Opus 4.6</span>
+                <div class="bench-bar-track">
+                  <div class="bench-bar-fill opus" style="width:60.1%;">60.1%</div>
+                </div>
+              </div>
+              <div class="bench-bar">
+                <span class="bench-bar-label">Sonnet 4.6</span>
+                <div class="bench-bar-track">
+                  <div class="bench-bar-fill sonnet" style="width:63.3%;">63.3%</div>
+                </div>
+              </div>
+            </div>
+            <div class="bench-winner">決算書分析・市場データ処理で<strong>Opusを上回る</strong></div>
+          </div>
+          <div class="bench-item">
+            <h4>Office Tasks (GDPval-AA)</h4>
+            <div class="bench-bars">
+              <div class="bench-bar">
+                <span class="bench-bar-label">Opus 4.6</span>
+                <div class="bench-bar-track">
+                  <div class="bench-bar-fill opus" style="width:80%;">1606</div>
+                </div>
+              </div>
+              <div class="bench-bar">
+                <span class="bench-bar-label">Sonnet 4.6</span>
+                <div class="bench-bar-track">
+                  <div class="bench-bar-fill sonnet" style="width:82%;">1633</div>
+                </div>
+              </div>
+            </div>
+            <div class="bench-winner">一般的な事務・ナレッジワークでの<strong>経済的価値が高い</strong></div>
+          </div>
+        </div>
+        <div class="quote-box">
+          深い科学的推論以外の大半の実務（金融、事務、コーディング）において、Sonnet 4.6は最適な選択肢となる。
+        </div>
+      </div>
+
+      <!-- 3. Coding Partner -->
+      <div class="section">
+        <div class="section-title">開発者の70%が支持する「コーディング・パートナー」 <span class="tag">CODING</span></div>
+        <img src="images/0218/slide_04.jpg" alt="Coding Partner" class="slide-img">
+        <div class="coding-grid">
+          <div>
+            <div style="display:flex; gap:16px;">
+              <div class="pref-card" style="flex:1;">
+                <div class="pref-value">70%</div>
+                <div class="pref-label">Sonnet 4.5より選好</div>
+              </div>
+              <div class="pref-card" style="flex:1;">
+                <div class="pref-value">59%</div>
+                <div class="pref-label">旧Opus 4.5より<br>優れていると回答</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <ul class="feature-list">
+              <li><strong>Less Lazy:</strong> 「怠惰」な挙動が減り、指示に忠実なコードを生成</li>
+              <li><strong>Full Refactoring:</strong> リポジトリ全体を理解した大規模なリファクタリング</li>
+              <li><strong>One-Shot Implementation:</strong> Reactアプリ構築からデバッグまで一度で完結</li>
+              <li><strong>Integration:</strong> GitHub Copilot / Claude Code (CLI) 即時利用可能</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Computer Use -->
+      <div class="section">
+        <div class="section-title">Computer Use革命：チャットから「操作」へ <span class="tag">COMPUTER USE</span></div>
+        <img src="images/0218/slide_05.jpg" alt="Computer Use" class="slide-img">
+        <div class="cu-highlight">
+          <div class="cu-score">OSWorld 72.5%</div>
+          <div class="cu-prev">Human Level Approach（前モデル: 61.4% → +11.1pt向上）</div>
+          <p style="margin-top:12px; font-size:0.95rem; color:var(--text-light);">
+            AIが画面を見て、マウスとキーボードを操作する。APIがないウェブサイトやレガシーシステムも、人間と同じように操作可能。
+          </p>
+        </div>
+        <img src="images/0218/slide_06.jpg" alt="Computer Use Use Cases" class="slide-img">
+        <div class="cu-cases">
+          <div class="cu-case">
+            <h4>Office Admin（事務・管理）</h4>
+            <p>1000行以上のExcelデータ抽出 → グラフ作成 → 要約してメール送信。マクロを組まずに、目視確認が必要な「つなぎ」業務を自動化。</p>
+          </div>
+          <div class="cu-case">
+            <h4>Procurement（購買・発注）</h4>
+            <p>競合価格調査 → 社内システムで発注書作成 → SAPへ入力。ブラウザと基幹システムを横断するエンドツーエンドの処理。</p>
+          </div>
+          <div class="cu-case">
+            <h4>Insurance（保険業務）</h4>
+            <p>事故の初期報告（First Notice of Loss）処理。</p>
+            <div class="stat">94% accuracy in benchmarks</div>
+          </div>
+        </div>
+        <div class="quote-box">
+          「デジタル社員」としてのSonnetが、ルーチンワークを代行する。
+        </div>
+      </div>
+
+      <!-- 5. Adaptive Thinking & 1M Context -->
+      <div class="section">
+        <div class="section-title">思考するAI：Adaptive Thinking & 1Mコンテキスト <span class="tag">NEW FEATURES</span></div>
+        <img src="images/0218/slide_07.jpg" alt="Adaptive Thinking" class="slide-img">
+        <div class="features-trio">
+          <div class="feat-card thinking">
+            <div class="icon">🧠</div>
+            <h4>Adaptive Thinking（適応型思考）</h4>
+            <p>回答する前に「内部モノローグ」で思考整理を行い、ハルシネーション（嘘）を大幅に低減。タスクの難易度に応じてLow Effort / High Effortを自律的に調整。</p>
+          </div>
+          <div class="feat-card context">
+            <div class="icon">📚</div>
+            <h4>1M Token Context（ベータ）</h4>
+            <p>小説約10冊分、あるいは大規模コードベース全体を一度に読み込む記憶力。長文ドキュメント分析や巨大リポジトリの理解に威力を発揮。</p>
+          </div>
+          <div class="feat-card compact">
+            <div class="icon">📦</div>
+            <h4>Context Compaction（コンテキスト圧縮）</h4>
+            <p>長期セッションでも、古い会話履歴を自動要約（例: 58k → 480トークン）し、コストとメモリを最適化。セッションが途切れない。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Visual & Design -->
+      <div class="section">
+        <div class="section-title">視覚とデザイン：Sonnetの「右脳」的進化 <span class="tag">VISION</span></div>
+        <img src="images/0218/slide_08.jpg" alt="Visual & Design" class="slide-img">
+        <div class="strat-grid">
+          <div style="background:var(--bg-warm); border-radius:14px; padding:24px; border:1px solid var(--border);">
+            <h4 style="color:var(--primary); margin-bottom:10px;">Visual Reasoning</h4>
+            <p style="font-size:0.95rem; color:var(--text-light);">
+              CharXiv（ツールなしでのチャート理解）において、<strong style="color:var(--primary);">72.4%</strong> を記録。Opus 4.6（68.7%）を上回る視覚認識力。
+            </p>
+          </div>
+          <div style="background:var(--bg-warm); border-radius:14px; padding:24px; border:1px solid var(--border);">
+            <h4 style="color:var(--accent); margin-bottom:10px;">UI/UX Generation</h4>
+            <p style="font-size:0.95rem; color:var(--text-light);">
+              Opusの堅苦しいロジックに対し、Sonnet 4.6は洗練されたSVGやCSSアニメーションを一発で出力。<strong style="color:var(--accent);">「AI臭さ」の消失。</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Cost ROI -->
+      <div class="section">
+        <div class="section-title">経済性：圧倒的なROI（費用対効果） <span class="tag">PRICING</span></div>
+        <img src="images/0218/slide_09.jpg" alt="Cost ROI" class="slide-img">
+        <div class="cost-compare">
+          <div class="cost-col sonnet">
+            <h4>Claude Sonnet 4.6</h4>
+            <div class="cost-row">
+              <span>Input</span>
+              <span class="cost-price">$3.00 / 1M tokens</span>
+            </div>
+            <div class="cost-row">
+              <span>Output</span>
+              <span class="cost-price">$15.00 / 1M tokens</span>
+            </div>
+            <div class="cost-badge">40-60% Cheaper</div>
+          </div>
+          <div class="cost-col opus">
+            <h4>Claude Opus 4.6</h4>
+            <div class="cost-row">
+              <span>Input</span>
+              <span class="cost-price">$5.00 / 1M tokens</span>
+            </div>
+            <div class="cost-row">
+              <span>Output</span>
+              <span class="cost-price">$25.00 / 1M tokens</span>
+            </div>
+          </div>
+        </div>
+        <div class="strat-note" style="margin-top:20px;">
+          <strong>インパクト：</strong>カスタマーサポートボットや大規模データ抽出など、Opusではコスト割れしていた高頻度タスクが実用化可能に。
+        </div>
+      </div>
+
+      <!-- 8. Strategy: Sonnet vs. Opus -->
+      <div class="section">
+        <div class="section-title">戦略的使い分け：Sonnet vs. Opus <span class="tag">STRATEGY</span></div>
+        <img src="images/0218/slide_10.jpg" alt="Sonnet vs Opus" class="slide-img">
+        <div class="strat-grid">
+          <div class="strat-card sonnet">
+            <h4>Sonnet 4.6 &mdash; The Executioner（行動）</h4>
+            <div class="strat-subtitle">Role: 行動と効率</div>
+            <p><strong>Best For:</strong> コーディング、事務処理、金融分析、UIデザイン、高頻度エージェント</p>
+            <p style="margin-top:8px; font-style:italic;">Motto: スピードとコストパフォーマンスが優先される実務</p>
+          </div>
+          <div class="strat-card opus">
+            <h4>Opus 4.6 &mdash; The Thinker（思考）</h4>
+            <div class="strat-subtitle">Role: 深い思索と戦略</div>
+            <p><strong>Best For:</strong> 深い科学的研究、未知の課題解決 (ARC-AGI)、最高度の抽象推論</p>
+            <p style="margin-top:8px; font-style:italic;">Motto: コスト度外視で最高精度が必要な場面</p>
+          </div>
+        </div>
+        <div class="strat-note">
+          <strong>New Workflow:</strong> Opusで計画し、Sonnetで実行する「ハイブリッド運用」
+        </div>
+      </div>
+
+      <!-- 9. Safety -->
+      <div class="section">
+        <div class="section-title">安全性と信頼性（Enterprise Grade） <span class="tag">SAFETY</span></div>
+        <img src="images/0218/slide_11.jpg" alt="Safety" class="slide-img">
+        <div class="safety-list">
+          <div class="safety-item">
+            <h4>🛡️ ASL-3 Standard</h4>
+            <p>Anthropicの厳格な安全基準に準拠。エンタープライズグレードのセキュリティ。</p>
+          </div>
+          <div class="safety-item">
+            <h4>🔒 Prompt Injection Resistance</h4>
+            <p>Webサイト上の隠された悪意ある命令に対し、Opus 4.6同等の高い防御力を持つ。</p>
+          </div>
+          <div class="safety-item">
+            <h4>⚖️ Guardrails</h4>
+            <p>過剰な拒否（Over-refusal）を低減しつつ、有害なコンテンツには厳格に対応。</p>
+          </div>
+          <div class="safety-item">
+            <h4>👁️ Human-in-the-Loop</h4>
+            <p>Computer Use時は、常に人間が監視する運用が前提。Dockerコンテナでの隔離実行を推奨。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Implementation -->
+      <div class="section">
+        <div class="section-title">実装ガイド：Computer Useのセットアップ <span class="tag">GUIDE</span></div>
+        <img src="images/0218/slide_12.jpg" alt="Implementation Guide" class="slide-img">
+        <div class="code-block">
+          <span class="cmd">docker run</span> \<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;-e <span class="flag">MODEL</span>=<span class="val">claude-sonnet-4-6-20260217</span> \<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;-p <span class="flag">8080</span>:<span class="val">8080</span> \<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;-it <span class="val">ghcr.io/anthropics/...</span>
+        </div>
+        <div class="safety-list" style="margin-top:16px;">
+          <div class="safety-item">
+            <h4>🐳 Docker推奨</h4>
+            <p>安全性確保のため、必ずDockerコンテナで実行（実機操作禁止）</p>
+          </div>
+          <div class="safety-item">
+            <h4>🖥️ 解像度設定</h4>
+            <p>Zoomアクションなし。Set resolution e.g., 1024x768</p>
+          </div>
+          <div class="safety-item">
+            <h4>💡 Thinkingパラメータ</h4>
+            <p>'thinking' パラメータを有効にして計画精度向上</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. API & Platforms -->
+      <div class="section">
+        <div class="section-title">API & プラットフォーム利用情報 <span class="tag">API</span></div>
+        <img src="images/0218/slide_13.jpg" alt="API & Platforms" class="slide-img">
+        <div class="model-id">claude-sonnet-4-6-20260217</div>
+        <div class="platform-grid">
+          <div class="platform-card">
+            <div class="icon">🅰️</div>
+            <div class="name">Claude.ai</div>
+            <div class="note">Free / Pro Default</div>
+          </div>
+          <div class="platform-card">
+            <div class="icon">☁️</div>
+            <div class="name">AWS Bedrock</div>
+            <div class="note">即日提供</div>
+          </div>
+          <div class="platform-card">
+            <div class="icon">🔷</div>
+            <div class="name">Google Vertex AI</div>
+            <div class="note">即日提供</div>
+          </div>
+          <div class="platform-card">
+            <div class="icon">🐙</div>
+            <div class="name">GitHub Copilot</div>
+            <div class="note">GA提供</div>
+          </div>
+        </div>
+        <div class="strat-note" style="margin-top:16px;">
+          Beta Header: <code style="background:#eee; padding:2px 8px; border-radius:4px;">computer-use-2025-01-24</code>
+        </div>
+      </div>
+
+      <!-- 12. Future: Agentic Workforce -->
+      <div class="section">
+        <div class="section-title">未来への展望：SaaSから「Agentic Workforce」へ <span class="tag">FUTURE</span></div>
+        <img src="images/0218/slide_14.jpg" alt="Agentic Workforce" class="slide-img">
+        <div class="future-grid">
+          <div class="future-card threat">
+            <h4>SaaSモデルの脅威</h4>
+            <p>AIがUIを直接操作できるなら、API連携のないソフトウェアも全て自動化対象になる。既存SaaS企業は「操作不要」の世界に適応する必要がある。</p>
+          </div>
+          <div class="future-card shift">
+            <h4>Digital Employee</h4>
+            <p>「チャットボット」から、自律して業務を完結させる「デジタル社員」へのパラダイムシフト。人間は監督・判断に集中。</p>
+          </div>
+        </div>
+        <div class="quote-box">
+          Sonnet 4.6は、AIがルーチンワークの「経済的に合理的な代替」となる転換点である。
+        </div>
+      </div>
+
+      <!-- 13. Next Steps -->
+      <div class="section">
+        <div class="section-title">Next Steps：今すぐ始めるために <span class="tag">ACTION</span></div>
+        <img src="images/0218/slide_15.jpg" alt="Next Steps" class="slide-img">
+        <div class="steps-list">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>Switch</h4>
+              <p>Claude.ai / Cursor のデフォルトモデルを Sonnet 4.6 に切り替える。無料プランでもデフォルトに設定済み。</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>Try</h4>
+              <p>Dockerデモを起動し、Computer Useの威力を体感する。OSWorld 72.5%の操作精度を自分の業務で検証。</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>Optimize</h4>
+              <p>コストのかかるOpusワークフローを見直し、Sonnetへの置き換えを検討する。金融・事務・UIデザインでOpus超えの性能。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conclusion -->
+      <div class="section" style="border-bottom:none;">
+        <div class="conclusion-box">
+          <h2>Opus級の知能を、<span>ミドルコスト</span>で。<br>AIエージェントの<span>新基準</span>。</h2>
+          <div class="conclusion-tagline">
+            「Opusで計画し、Sonnetで実行する」&mdash; これが2026年の最適解。
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="section" style="border-bottom:none; padding-bottom:0;">
+        <div class="links-section">
+          <h4>🔗 参照ソース</h4>
+          <div class="links-grid">
+            <a href="https://www.anthropic.com/news/claude-sonnet-4-6" target="_blank" rel="noopener">Anthropic 公式発表</a>
+            <a href="https://platform.claude.com/docs/en/about-claude/models/whats-new-claude-4-6" target="_blank" rel="noopener">Claude API ドキュメント</a>
+            <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">Claude API 価格表</a>
+            <a href="https://github.blog/changelog/2026-02-17-claude-sonnet-4-6-is-now-generally-available-in-github-copilot/" target="_blank" rel="noopener">GitHub Copilot 連携発表</a>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/claude-sonnet-4.6-available-in-amazon-bedrock" target="_blank" rel="noopener">AWS Bedrock 提供開始</a>
+            <a href="https://anthropic.com/claude-sonnet-4-6-system-card" target="_blank" rel="noopener">システムカード（安全性評価）</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <span>AI News Archive | <a href="../index.html">トップに戻る</a></span>
+      <span>Source: input/day/0218.txt | Generated: 2026-02-18</span>
+    </footer>
+
+  </div>
+</body>
+
+</html>
