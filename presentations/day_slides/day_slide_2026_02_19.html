@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codex マルチエージェント機能：AIを「個人」から「専門チーム」へ - 2026/02/19</title>
+  <style>
+    :root {
+      --primary: #10A37F;
+      --primary-light: #34D399;
+      --primary-dark: #059669;
+      --bg-cool: #F0F4F8;
+      --bg-card: #FFFFFF;
+      --bg-dark: #0D1117;
+      --bg-slate: #1E293B;
+      --text: #1E293B;
+      --text-light: #64748B;
+      --text-muted: #94A3B8;
+      --border: #E2E8F0;
+      --accent: #38BDF8;
+      --accent-dark: #0EA5E9;
+      --navy: #0F172A;
+      --safe: #10A37F;
+      --warn: #F59E0B;
+      --danger: #EF4444;
+      --code-bg: #161B22;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+      background: var(--bg-cool);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #161B22 50%, var(--bg-slate) 100%);
+      color: #F8FAFC;
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 70%, rgba(16, 163, 127, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 30%, rgba(56, 189, 248, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .header-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .header-version {
+      display: inline-block;
+      background: rgba(16, 163, 127, 0.2);
+      color: var(--primary-light);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 163, 127, 0.3);
+      margin-left: 8px;
+      letter-spacing: 1px;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    header h1 span {
+      background: linear-gradient(135deg, var(--primary-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p.subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Cover image */
+    .cover-img {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      background: var(--bg-cool);
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      background: var(--bg-dark);
+    }
+
+    .stat-card {
+      padding: 28px 20px;
+      text-align: center;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-card:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary-light);
+      letter-spacing: -1px;
+    }
+
+    .stat-value.blue { color: var(--accent); }
+    .stat-value.white { color: #F8FAFC; }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #94A3B8;
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Section */
+    section {
+      padding: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 8px;
+      padding: 4px 12px;
+      background: rgba(16, 163, 127, 0.08);
+      border-radius: 4px;
+    }
+
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    section h2 span { color: var(--primary); }
+
+    section p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      max-width: 800px;
+      margin-bottom: 16px;
+    }
+
+    /* Problem cards */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .problem-card {
+      padding: 28px;
+      border-radius: 16px;
+      background: #FEF2F2;
+      border-left: 4px solid var(--danger);
+    }
+
+    .problem-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #991B1B;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .problem-card p {
+      font-size: 0.88rem;
+      color: #7F1D1D;
+      line-height: 1.6;
+    }
+
+    /* Role cards */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .role-card {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .role-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .role-header {
+      padding: 20px 24px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .role-header.explorer { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+    .role-header.worker { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+    .role-header.reviewer { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+
+    .role-icon {
+      font-size: 1.8rem;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+    }
+
+    .role-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .role-header .role-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-left: auto;
+    }
+
+    .role-body {
+      padding: 20px 24px;
+      background: white;
+    }
+
+    .role-body p {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+
+    .role-body .perm {
+      display: inline-block;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .perm.readonly {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+
+    .perm.write {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    /* Cycle section */
+    .cycle-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 32px 0;
+      flex-wrap: wrap;
+    }
+
+    .cycle-step {
+      text-align: center;
+      padding: 24px 28px;
+      border-radius: 16px;
+      min-width: 200px;
+      flex: 1;
+      max-width: 280px;
+    }
+
+    .cycle-step.investigate {
+      background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+      border: 2px solid #93C5FD;
+    }
+
+    .cycle-step.build {
+      background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+      border: 2px solid #6EE7B7;
+    }
+
+    .cycle-step.verify {
+      background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+      border: 2px solid #C4B5FD;
+    }
+
+    .cycle-step .step-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .cycle-step.investigate .step-num { color: #2563EB; }
+    .cycle-step.build .step-num { color: #059669; }
+    .cycle-step.verify .step-num { color: #7C3AED; }
+
+    .cycle-step h3 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .cycle-step.investigate h3 { color: #1D4ED8; }
+    .cycle-step.build h3 { color: #047857; }
+    .cycle-step.verify h3 { color: #6D28D9; }
+
+    .cycle-step p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+    }
+
+    .cycle-arrow {
+      font-size: 1.6rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    .handover-note {
+      text-align: center;
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: #92400E;
+    }
+
+    .handover-note strong { color: #78350F; }
+
+    /* PLAN.md output */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .plan-item {
+      background: var(--bg-cool);
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .plan-item h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .plan-item h4 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .plan-item p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+    }
+
+    /* Worker & Reviewer detail */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    .detail-box {
+      padding: 28px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+    }
+
+    .detail-box h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-box.worker-detail {
+      background: linear-gradient(to bottom, #ECFDF5, white);
+      border-color: #A7F3D0;
+    }
+
+    .detail-box.worker-detail h3 { color: #047857; }
+
+    .detail-box.reviewer-detail {
+      background: linear-gradient(to bottom, #F5F3FF, white);
+      border-color: #C4B5FD;
+    }
+
+    .detail-box.reviewer-detail h3 { color: #6D28D9; }
+
+    .detail-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .detail-list li {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .detail-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 14px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .detail-box.worker-detail .detail-list li::before { background: var(--primary); }
+    .detail-box.reviewer-detail .detail-list li::before { background: #8B5CF6; }
+
+    /* Code blocks */
+    .code-block {
+      background: var(--code-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 20px;
+      overflow-x: auto;
+      border: 1px solid #30363D;
+    }
+
+    .code-block .code-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .code-block .code-title .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .code-block pre {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: #E6EDF3;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .code-block pre .comment { color: #8B949E; }
+    .code-block pre .key { color: #79C0FF; }
+    .code-block pre .string { color: #A5D6FF; }
+    .code-block pre .value { color: var(--primary-light); }
+    .code-block pre .section { color: #FFA657; }
+
+    /* Config hierarchy */
+    .config-hierarchy {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+      max-width: 600px;
+    }
+
+    .config-level {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+    }
+
+    .config-level .priority {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary);
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .config-level .config-name {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .config-level .config-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .config-level:nth-child(1) { background: #ECFDF5; border-color: #6EE7B7; }
+    .config-level:nth-child(2) { background: #EFF6FF; border-color: #93C5FD; }
+    .config-level:nth-child(3) { background: #F5F3FF; border-color: #C4B5FD; }
+
+    /* Governance cards */
+    .gov-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .gov-card {
+      padding: 24px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: white;
+    }
+
+    .gov-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gov-card p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .gov-card .gov-tag {
+      display: inline-block;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    .gov-card.safe { border-color: #A7F3D0; background: linear-gradient(to bottom, #F0FDF4, white); }
+    .gov-card.safe h3 { color: #047857; }
+    .gov-card.safe .gov-tag { background: #D1FAE5; color: #065F46; }
+
+    .gov-card.caution { border-color: #FDE68A; background: linear-gradient(to bottom, #FFFBEB, white); }
+    .gov-card.caution h3 { color: #92400E; }
+    .gov-card.caution .gov-tag { background: #FEF3C7; color: #78350F; }
+
+    .gov-card.info { border-color: #93C5FD; background: linear-gradient(to bottom, #EFF6FF, white); }
+    .gov-card.info h3 { color: #1D4ED8; }
+    .gov-card.info .gov-tag { background: #DBEAFE; color: #1E40AF; }
+
+    /* Tiering pyramid */
+    .tier-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 32px;
+      gap: 8px;
+    }
+
+    .tier-block {
+      padding: 24px 40px;
+      text-align: center;
+      border-radius: 12px;
+      color: white;
+    }
+
+    .tier-block.parent {
+      background: linear-gradient(135deg, var(--bg-slate), var(--navy));
+      width: 60%;
+      min-width: 320px;
+    }
+
+    .tier-block.child {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      width: 80%;
+      min-width: 400px;
+    }
+
+    .tier-block h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .tier-block .tier-model {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .tier-block .tier-desc {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .tier-stat {
+      text-align: center;
+      margin-top: 16px;
+      padding: 10px 24px;
+      background: #ECFDF5;
+      border-radius: 10px;
+      display: inline-block;
+    }
+
+    .tier-stat strong { color: var(--primary-dark); }
+
+    /* Interface comparison */
+    .interface-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .interface-grid { grid-template-columns: 1fr; }
+    }
+
+    .interface-card {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+
+    .interface-card .if-header {
+      padding: 20px 24px;
+      color: white;
+      text-align: center;
+    }
+
+    .interface-card .if-header.cli { background: var(--code-bg); }
+    .interface-card .if-header.app { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+
+    .interface-card .if-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .interface-card .if-header .if-font {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    .interface-card .if-body {
+      padding: 20px 24px;
+      background: white;
+    }
+
+    .interface-card .if-body p {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+
+    .if-features {
+      list-style: none;
+      padding: 0;
+    }
+
+    .if-features li {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      padding: 5px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .if-features li::before {
+      content: '>';
+      position: absolute;
+      left: 0;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Troubleshooting */
+    .trouble-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .trouble-card {
+      padding: 24px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: white;
+    }
+
+    .trouble-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--danger);
+    }
+
+    .trouble-card .solution {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      background: var(--code-bg);
+      color: #E6EDF3;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .trouble-card p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    /* Use case */
+    .usecase-box {
+      margin-top: 24px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+      padding: 32px;
+      background: linear-gradient(to right, #EFF6FF, #F5F3FF, #ECFDF5);
+    }
+
+    .usecase-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .usecase-node {
+      text-align: center;
+      padding: 18px 22px;
+      border-radius: 12px;
+      background: white;
+      border: 2px solid var(--border);
+      min-width: 140px;
+    }
+
+    .usecase-node h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .usecase-node p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .usecase-node.explorer-node { border-color: #93C5FD; background: #EFF6FF; }
+    .usecase-node.worker-node { border-color: #6EE7B7; background: #ECFDF5; }
+    .usecase-node.reviewer-node { border-color: #C4B5FD; background: #F5F3FF; }
+
+    .usecase-arrow {
+      font-size: 1.4rem;
+      color: var(--text-muted);
+    }
+
+    .usecase-note {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 12px;
+    }
+
+    /* Pricing table */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .pricing-card {
+      padding: 24px;
+      border-radius: 14px;
+      text-align: center;
+      border: 2px solid var(--border);
+      background: white;
+    }
+
+    .pricing-card.recommended {
+      border-color: var(--primary);
+      background: linear-gradient(to bottom, #ECFDF5, white);
+      position: relative;
+    }
+
+    .pricing-card.recommended::after {
+      content: 'RECOMMENDED';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: var(--primary);
+      color: white;
+      padding: 3px 12px;
+      border-radius: 20px;
+    }
+
+    .pricing-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .pricing-card .price {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin: 8px 0;
+    }
+
+    .pricing-card .price-unit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .pricing-card .target {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    /* Conclusion */
+    .conclusion {
+      background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-slate) 100%);
+      color: #F8FAFC;
+      text-align: center;
+    }
+
+    .conclusion h2 {
+      color: #F8FAFC;
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .conclusion h2 span {
+      background: linear-gradient(135deg, var(--primary-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .conclusion .tagline {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+
+    .conclusion .quote {
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--primary-light);
+      margin: 24px 0;
+      padding: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .conclusion .cta {
+      font-size: 0.95rem;
+      color: #94A3B8;
+    }
+
+    /* Links */
+    .links-section {
+      background: var(--bg-cool);
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .link-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(16, 163, 127, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .link-item .link-icon {
+      font-size: 1.2rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(16, 163, 127, 0.08);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .link-item .link-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .link-item .link-url {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    /* Footer */
+    footer {
+      padding: 32px 48px;
+      text-align: center;
+      background: var(--bg-dark);
+      color: #64748B;
+      font-size: 0.75rem;
+    }
+
+    footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    /* Slide images */
+    .slide-img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      margin: 16px 0;
+    }
+
+    .img-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .img-pair { grid-template-columns: 1fr; }
+    }
+
+    .img-pair img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-label">Daily AI News — 2026/02/19 <span class="header-version">v0.102.0+</span></div>
+      <h1>Codex <span>マルチエージェント</span>機能<br>AIを「個人」から「専門チーム」へ</h1>
+      <p class="subtitle">Explorer・Worker・Reviewer の3ロール分業により、テスト通過率+20〜40%、7Mトークン並列処理を実現する実験的新機能</p>
+    </header>
+
+    <!-- Cover image -->
+    <img src="../../input/day/0219.png" alt="Codex Multi-Agent Architecture" class="cover-img" />
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">+20〜40%</div>
+        <div class="stat-label">テスト通過率の向上</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value blue">7M</div>
+        <div class="stat-label">トークン並列処理</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value white">84〜87%</div>
+        <div class="stat-label">キャッシュ効率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">専門ロール (Explorer/Worker/Reviewer)</div>
+      </div>
+    </div>
+
+    <!-- Section 1: 単一エージェントの限界 -->
+    <section>
+      <span class="section-label">Problem</span>
+      <h2>なぜマルチエージェントが必要なのか？<br><span>単一エージェントの3つの限界</span></h2>
+      <p>1つのAIエージェントに全てを任せると、コンテキスト汚染・デグレッション・幻覚ループという根本的な問題が発生します。</p>
+
+      <div class="problem-grid">
+        <div class="problem-card">
+          <h3>Context Dilution（文脈汚染）</h3>
+          <p>調査・実装・レビューを一つのコンテキストで行うと、情報過多で精度が低下。重要な条件を見落とし、品質が劣化します。</p>
+        </div>
+        <div class="problem-card">
+          <h3>Regression（デグレッション）</h3>
+          <p>新しいコードを書く際に既存コードに副作用が発生。単一エージェントでは影響範囲を正確に把握できません。</p>
+        </div>
+        <div class="problem-card">
+          <h3>Hallucination Loops（幻覚ループ）</h3>
+          <p>自分の出力を自分で検証する「自己採点」構造により、誤りが修正されず増幅し続ける悪循環に陥ります。</p>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_02.jpg" alt="単一エージェントの限界" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 2: Strategic Shift -->
+    <section>
+      <span class="section-label">Solution</span>
+      <h2>戦略的転換：<span>「関心事の分離」</span>という解法</h2>
+      <p>人間のチーム開発と同じ原理 ― 調査・実装・レビューを専門のエージェントに分離し、それぞれに適切な権限とモデルを割り当てることで、品質と速度を飛躍的に向上させます。</p>
+
+      <img src="images/0219/slide_03.jpg" alt="戦略的転換" class="slide-img" />
+    </section>
+
+    <!-- Section 3: 3 Roles -->
+    <section>
+      <span class="section-label">Architecture</span>
+      <h2><span>3つの専門ロール</span>によるチーム編成</h2>
+      <p>各ロールは明確に分離された権限を持ち、人間の開発チームのように協調して動作します。</p>
+
+      <div class="role-grid">
+        <div class="role-card">
+          <div class="role-header explorer">
+            <div class="role-icon">&#x1F50D;</div>
+            <div>
+              <h3>Explorer（調査役）</h3>
+            </div>
+            <span class="role-tag">read-only</span>
+          </div>
+          <div class="role-body">
+            <p>コードベースを探索し、影響範囲の特定と実装計画の策定を担当。安全のため書き込み権限を持たず、調査に専念します。</p>
+            <span class="perm readonly">sandbox = "read-only"</span>
+          </div>
+        </div>
+
+        <div class="role-card">
+          <div class="role-header worker">
+            <div class="role-icon">&#x1F528;</div>
+            <div>
+              <h3>Worker（実装役）</h3>
+            </div>
+            <span class="role-tag">write</span>
+          </div>
+          <div class="role-body">
+            <p>Explorerが策定した計画に忠実に従い、最小限の差分でコード編集とテスト作成を実行します。</p>
+            <span class="perm write">sandbox = "workspace-write"</span>
+          </div>
+        </div>
+
+        <div class="role-card">
+          <div class="role-header reviewer">
+            <div class="role-icon">&#x1F6E1;</div>
+            <div>
+              <h3>Reviewer（監査役）</h3>
+            </div>
+            <span class="role-tag">read-only</span>
+          </div>
+          <div class="role-body">
+            <p>職務分離（SoD）の原則に基づく独立した監査。セキュリティ脆弱性・テスト不足・後方互換性の問題を検出します。</p>
+            <span class="perm readonly">sandbox = "read-only"</span>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_04.jpg" alt="チーム構成" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 4: Golden Cycle -->
+    <section>
+      <span class="section-label">Workflow</span>
+      <h2>黄金サイクル：<span>Investigate → Build → Verify</span></h2>
+      <p>3つのロールが固定フォーマットの計画書（PLAN.md）をハンドオーバーポイントとして、調査→構築→検証のサイクルを回します。</p>
+
+      <div class="cycle-flow">
+        <div class="cycle-step investigate">
+          <div class="step-num">Step 1</div>
+          <h3>Investigate</h3>
+          <p>Explorer が調査し<br>PLAN.md を作成</p>
+        </div>
+        <div class="cycle-arrow">&#x2192;</div>
+        <div class="cycle-step build">
+          <div class="step-num">Step 2</div>
+          <h3>Build</h3>
+          <p>Worker が計画に沿って<br>最小差分で実装</p>
+        </div>
+        <div class="cycle-arrow">&#x2192;</div>
+        <div class="cycle-step verify">
+          <div class="step-num">Step 3</div>
+          <h3>Verify</h3>
+          <p>Reviewer が独立した<br>視点で品質監査</p>
+        </div>
+      </div>
+
+      <div class="handover-note">
+        <strong>Handover Point =</strong> 固定フォーマットの計画書（PLAN.md）。エージェント間の「契約」として機能し、曖昧さを排除。
+      </div>
+
+      <img src="images/0219/slide_05.jpg" alt="黄金サイクル" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 5: Explorer PLAN.md -->
+    <section>
+      <span class="section-label">Explorer Output</span>
+      <h2>Explorer の<span>5つの必須出力</span>（PLAN.md）</h2>
+      <p>Explorerは以下の5セクションを含む構造化された計画書を出力します。これが後続エージェントへの「設計書」となります。</p>
+
+      <div class="plan-grid">
+        <div class="plan-item">
+          <h4><span class="num">1</span>Services</h4>
+          <p>影響を受けるサービスの一覧と、各サービスの役割を明記</p>
+        </div>
+        <div class="plan-item">
+          <h4><span class="num">2</span>Contract Diffs</h4>
+          <p>API契約の変更差分を具体的に記載。既存の呼び出し元への影響を明確化</p>
+        </div>
+        <div class="plan-item">
+          <h4><span class="num">3</span>Plan</h4>
+          <p>実装手順をステップバイステップで記載。Worker が迷わないレベルの具体性</p>
+        </div>
+        <div class="plan-item">
+          <h4><span class="num">4</span>Rollout</h4>
+          <p>デプロイ戦略とロールバック手順。段階的リリースの計画</p>
+        </div>
+        <div class="plan-item">
+          <h4><span class="num">5</span>Tests</h4>
+          <p>必要なテストケースの定義。カバレッジ基準と回帰テストの範囲</p>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_06.jpg" alt="Explorer PLAN.md" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 6: Worker & Reviewer Detail -->
+    <section>
+      <span class="section-label">Role Details</span>
+      <h2>Worker と Reviewer の<span>行動原則</span></h2>
+
+      <div class="detail-grid">
+        <div class="detail-box worker-detail">
+          <h3>&#x1F528; Worker：Minimal Diffs（最小差分）</h3>
+          <ul class="detail-list">
+            <li>PLAN.md の指示に忠実に実装</li>
+            <li>変更は必要最小限に抑制</li>
+            <li>テストファーストで実装を進行</li>
+            <li>不明点は独断せずExplorerに差し戻し</li>
+          </ul>
+        </div>
+        <div class="detail-box reviewer-detail">
+          <h3>&#x1F6E1; Reviewer：職務分離（SoD）</h3>
+          <ul class="detail-list">
+            <li>セキュリティ脆弱性の検出</li>
+            <li>テスト不足・カバレッジ低下の指摘</li>
+            <li>後方互換性の破壊チェック</li>
+            <li>実装者と独立した視点で品質保証</li>
+          </ul>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_07.jpg" alt="Worker & Reviewer" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 7: config.toml -->
+    <section>
+      <span class="section-label">Configuration</span>
+      <h2><span>config.toml</span> 階層的設定システム</h2>
+      <p>マルチエージェントは config.toml で有効化・制御します。設定は3段階の優先度で解決されます。</p>
+
+      <div class="config-hierarchy">
+        <div class="config-level">
+          <div class="priority">1</div>
+          <div>
+            <div class="config-name">CLI Flags</div>
+            <div class="config-desc">最高優先。コマンドラインオプション</div>
+          </div>
+        </div>
+        <div class="config-level">
+          <div class="priority">2</div>
+          <div>
+            <div class="config-name">./.codex/config.toml</div>
+            <div class="config-desc">プロジェクト単位の設定</div>
+          </div>
+        </div>
+        <div class="config-level">
+          <div class="priority">3</div>
+          <div>
+            <div class="config-name">~/.codex/config.toml</div>
+            <div class="config-desc">グローバル（ユーザー共通）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-title"><span class="dot"></span>config.toml — マルチエージェント有効化</div>
+        <pre><span class="comment"># マルチエージェント機能を有効化</span>
+<span class="section">[features]</span>
+<span class="key">multi_agent</span> = <span class="value">true</span>
+
+<span class="comment"># 並列スレッド数（推奨: 4から開始）</span>
+<span class="section">[performance]</span>
+<span class="key">max_threads</span> = <span class="value">4</span>
+
+<span class="comment"># Explorer ロールの定義</span>
+<span class="section">[agents.explorer]</span>
+<span class="key">description</span> = <span class="string">"コードベース調査専用"</span>
+<span class="key">config_file</span> = <span class="string">"agents/explorer.toml"</span>
+
+<span class="comment"># Worker ロールの定義</span>
+<span class="section">[agents.worker]</span>
+<span class="key">description</span> = <span class="string">"実装・テスト作成"</span>
+<span class="key">config_file</span> = <span class="string">"agents/worker.toml"</span></pre>
+      </div>
+
+      <div class="img-pair" style="margin-top: 24px;">
+        <img src="images/0219/slide_08.jpg" alt="config.toml 階層" />
+        <img src="images/0219/slide_09.jpg" alt="カスタムロール定義" />
+      </div>
+    </section>
+
+    <!-- Section 8: Governance -->
+    <section>
+      <span class="section-label">Governance</span>
+      <h2>ガバナンス：<span>サンドボックスと非対話型承認</span></h2>
+      <p>サブエージェントは親のサンドボックス設定を継承し、権限外の操作は自動的にブロックされます。人間の介在なしに安全を保証する仕組みです。</p>
+
+      <div class="gov-grid">
+        <div class="gov-card safe">
+          <h3>Read-Only サンドボックス</h3>
+          <p>Explorer と Reviewer はファイル変更不可。調査・監査に特化し、意図しない変更を防止。</p>
+          <span class="gov-tag">Explorer, Reviewer</span>
+        </div>
+        <div class="gov-card caution">
+          <h3>Workspace-Write サンドボックス</h3>
+          <p>Worker のみ許可されたディレクトリ内で書き込み可能。外部ファイルシステムへのアクセスはブロック。</p>
+          <span class="gov-tag">Worker only</span>
+        </div>
+        <div class="gov-card info">
+          <h3>Fail-Safe：非対話型承認</h3>
+          <p>権限外の操作は即座に失敗し、親エージェントにエラーとして報告。ユーザー承認待ちにならず安全に失敗。</p>
+          <span class="gov-tag">Non-interactive Approval</span>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_10.jpg" alt="サンドボックスと非対話型承認" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 9: Intelligence Tiering -->
+    <section>
+      <span class="section-label">Cost Optimization</span>
+      <h2>インテリジェンス・ティアリング：<span>コストと速度の最適化</span></h2>
+      <p>親エージェント（Orchestrator）には高い推論能力のモデル、子エージェント（Sub-agents）には高速・軽量モデルを割り当て、コストとパフォーマンスを両立します。</p>
+
+      <div class="tier-container">
+        <div class="tier-block parent">
+          <h3>Orchestrator（親）</h3>
+          <div class="tier-model">gpt-5.3-codex</div>
+          <div class="tier-desc">High Reasoning / 指揮・意思決定</div>
+        </div>
+        <div style="font-size: 1.2rem; color: var(--text-muted);">&#x25BC;</div>
+        <div class="tier-block child">
+          <h3>Sub-agents（子）</h3>
+          <div class="tier-model">gpt-5.3-codex-spark</div>
+          <div class="tier-desc">High Speed / 実装・調査の実行</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 16px;">
+        <span class="tier-stat"><strong>Cache Efficiency: 84〜87%</strong> — プロンプトキャッシュにより大幅コスト削減</span>
+      </div>
+
+      <img src="images/0219/slide_11.jpg" alt="インテリジェンス・ティアリング" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 10: CLI vs macOS App -->
+    <section>
+      <span class="section-label">Interface</span>
+      <h2>運用インターフェース：<span>CLI と macOS App</span></h2>
+      <p>マルチエージェントは2つのインターフェースで運用でき、設定ファイルは両者で共有されます。</p>
+
+      <div class="interface-grid">
+        <div class="interface-card">
+          <div class="if-header cli">
+            <h3>Codex CLI</h3>
+            <div class="if-font">JetBrains Mono</div>
+          </div>
+          <div class="if-body">
+            <p>自動化と厳密なワークフロー制御に特化したコマンドラインインターフェース。</p>
+            <ul class="if-features">
+              <li>CI/CDパイプラインへの統合</li>
+              <li>/spawn_agent コマンドでロール指定</li>
+              <li>スクリプトによるバッチ処理</li>
+              <li>詳細なオーケストレーション制御</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="interface-card">
+          <div class="if-header app">
+            <h3>macOS App</h3>
+            <div class="if-font">JetBrains Mono</div>
+          </div>
+          <div class="if-body">
+            <p>視覚的な監督と並列スレッド管理の「コマンドセンター」。</p>
+            <ul class="if-features">
+              <li>スレッド単位でエージェントを監督</li>
+              <li>Git Worktrees 自動サポート</li>
+              <li>並行作業時のコード競合を防止</li>
+              <li>リアルタイムのステータス表示</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_12.jpg" alt="CLI と macOS App" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 11: Troubleshooting -->
+    <section>
+      <span class="section-label">Operations</span>
+      <h2>トラブルシューティングと<span>監査</span></h2>
+
+      <div class="trouble-grid">
+        <div class="trouble-card">
+          <h3>Issue: Stuck / 処理停止</h3>
+          <p>エージェントが応答しなくなった場合のリセット方法。</p>
+          <div class="solution">/agent list<br>/agent close</div>
+          <p style="margin-top: 8px;">リセットしてリソースを解放します。</p>
+        </div>
+        <div class="trouble-card">
+          <h3>Issue: Rate Limits (429)</h3>
+          <p>並列スレッド数が多すぎるとAPIレート制限に抵触。</p>
+          <div class="solution">max_threads = 4</div>
+          <p style="margin-top: 8px;">最初は4から開始し、プランに応じて12まで調整。</p>
+        </div>
+        <div class="trouble-card">
+          <h3>Audit Logs（監査ログ）</h3>
+          <p>全エージェントの操作履歴を記録。</p>
+          <div class="solution">~/.codex/sessions/*.jsonl</div>
+          <p style="margin-top: 8px;">thread.started, file_change イベントを追跡可能。</p>
+        </div>
+      </div>
+
+      <img src="images/0219/slide_13.jpg" alt="トラブルシューティング" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 12: Use Case -->
+    <section>
+      <span class="section-label">Practical Use Case</span>
+      <h2>実践ユースケース：<span>マイクロサービスの契約変更</span></h2>
+      <p>「変更境界＝サービス境界」。複数サービスにまたがるAPI契約変更を、マルチエージェントが安全に管理する例です。</p>
+
+      <div class="usecase-box">
+        <div class="usecase-flow">
+          <div class="usecase-node worker-node">
+            <h4>Worker A</h4>
+            <p>Update Provider</p>
+          </div>
+          <div class="usecase-arrow">&#x2192;</div>
+          <div class="usecase-node" style="border-color: var(--border);">
+            <h4>Provider Service</h4>
+            <p>API Contract</p>
+          </div>
+          <div class="usecase-arrow">&#x2194;</div>
+          <div class="usecase-node" style="border-color: var(--border);">
+            <h4>Consumer Service</h4>
+            <p>API Contract</p>
+          </div>
+          <div class="usecase-arrow">&#x2190;</div>
+          <div class="usecase-node worker-node">
+            <h4>Worker B</h4>
+            <p>Update Consumer</p>
+          </div>
+        </div>
+        <div class="usecase-flow" style="margin-top: 0;">
+          <div class="usecase-node explorer-node">
+            <h4>Explorer</h4>
+            <p>契約差分を調査</p>
+          </div>
+          <div style="width: 40px;"></div>
+          <div class="usecase-node reviewer-node">
+            <h4>Reviewer</h4>
+            <p>整合性を監査</p>
+          </div>
+        </div>
+        <div class="usecase-note">サービスの境界を越える変更を安全に管理</div>
+      </div>
+
+      <img src="images/0219/slide_14.jpg" alt="マイクロサービスの契約変更" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 13: Pricing -->
+    <section>
+      <span class="section-label">Plans & Pricing</span>
+      <h2>プラン別<span>利用ガイド</span></h2>
+      <p>開発スタイルに合わせた最適なプランの選択ガイド。マルチエージェント機能はPro以上で最大限活用できます。</p>
+
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Plus</h3>
+          <div class="price">$20<span class="price-unit">/月</span></div>
+          <div class="target">個人開発者向け</div>
+        </div>
+        <div class="pricing-card recommended">
+          <h3>Pro</h3>
+          <div class="price">$200<span class="price-unit">/月</span></div>
+          <div class="target">プロ開発者向け</div>
+        </div>
+        <div class="pricing-card">
+          <h3>Business</h3>
+          <div class="price">$25<span class="price-unit">/人/月</span></div>
+          <div class="target">チーム利用</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 14: Conclusion -->
+    <section class="conclusion">
+      <span class="section-label" style="background: rgba(52, 211, 153, 0.15); color: var(--primary-light);">Conclusion</span>
+      <h2>実装者から<span>「アーキテクト」</span>へ</h2>
+      <p class="tagline">コードの細部に埋没する「作業者」から、専門性と権限を設計し、チームを監督する「設計者」へ。</p>
+
+      <div class="quote">
+        "Architect your agents. Define the boundaries. Lead the team."
+      </div>
+
+      <p class="cta">config.toml を定義し、あなただけのAI開発チームを編成してください。</p>
+
+      <img src="images/0219/slide_15.jpg" alt="結論" class="slide-img" style="margin-top: 24px; max-width: 800px; margin-left: auto; margin-right: auto; display: block;" />
+    </section>
+
+    <!-- Links -->
+    <section class="links-section">
+      <span class="section-label">Reference Links</span>
+      <h2>公式ドキュメント・<span>リソース</span></h2>
+
+      <div class="links-grid">
+        <a href="https://developers.openai.com/codex/multi-agent/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4DA;</div>
+          <div>
+            <div class="link-text">Multi-agents ドキュメント</div>
+            <div class="link-url">developers.openai.com/codex/multi-agent/</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/config-reference/" target="_blank" class="link-item">
+          <div class="link-icon">&#x2699;</div>
+          <div>
+            <div class="link-text">Configuration Reference</div>
+            <div class="link-url">developers.openai.com/codex/config-reference/</div>
+          </div>
+        </a>
+        <a href="https://openai.com/index/introducing-the-codex-app/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4F1;</div>
+          <div>
+            <div class="link-text">Introducing the Codex App</div>
+            <div class="link-url">openai.com/index/introducing-the-codex-app/</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/app" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F5A5;</div>
+          <div>
+            <div class="link-text">Codex App Docs</div>
+            <div class="link-url">developers.openai.com/codex/app</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/cli/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4BB;</div>
+          <div>
+            <div class="link-text">Codex CLI Docs</div>
+            <div class="link-url">developers.openai.com/codex/cli/</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/models/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F916;</div>
+          <div>
+            <div class="link-text">Codex Models</div>
+            <div class="link-url">developers.openai.com/codex/models/</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/guides/agents-md/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4DD;</div>
+          <div>
+            <div class="link-text">AGENTS.md Guide</div>
+            <div class="link-url">developers.openai.com/codex/guides/agents-md/</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/guides/agents-sdk/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F517;</div>
+          <div>
+            <div class="link-text">Use Codex with Agents SDK</div>
+            <div class="link-url">developers.openai.com/codex/guides/agents-sdk/</div>
+          </div>
+        </a>
+        <a href="https://developers.openai.com/codex/changelog" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4CB;</div>
+          <div>
+            <div class="link-text">Codex Changelog</div>
+            <div class="link-url">developers.openai.com/codex/changelog</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>AI News Daily Report — 2026/02/19 | Source: OpenAI Codex Multi-Agent Architecture Documentation</p>
+      <p style="margin-top: 8px;"><a href="../index.html">&#x2190; プレゼンテーション一覧へ戻る</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
