@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Stitch：エージェント型デザインの時代 - 2026/02/21</title>
+  <style>
+    :root {
+      --violet: #7C3AED;
+      --violet-dark: #6D28D9;
+      --violet-light: #A78BFA;
+      --indigo: #6366F1;
+      --indigo-light: #818CF8;
+      --amber: #F59E0B;
+      --amber-light: #FCD34D;
+      --teal: #14B8A6;
+      --teal-light: #5EEAD4;
+      --bg: #FAF5FF;
+      --bg-card: #FFFFFF;
+      --bg-dark: #1E1B4B;
+      --bg-deep: #0F0A2E;
+      --text: #1E1B4B;
+      --text-light: #6B7280;
+      --text-muted: #9CA3AF;
+      --border: #E5E7EB;
+      --surface: #F3F4F6;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-deep);
+      color: #E8EAED;
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -30%;
+      width: 160%;
+      height: 220%;
+      background: radial-gradient(ellipse at 30% 80%, rgba(124, 58, 237, 0.2) 0%, transparent 55%),
+                  radial-gradient(ellipse at 70% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .header-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--violet-light);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 16px;
+      position: relative;
+      color: #E8EAED;
+    }
+
+    header h1 .brand { color: var(--violet-light); }
+    header h1 .hatter { color: var(--amber-light); }
+
+    header p.subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Cover */
+    .cover-img {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      background: var(--bg-deep);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      background: var(--violet-dark);
+    }
+
+    .stat-card {
+      padding: 28px 20px;
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat-card:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: white;
+      letter-spacing: -1px;
+    }
+
+    .stat-value.amber { color: var(--amber-light); }
+    .stat-value.teal { color: var(--teal-light); }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 4px;
+    }
+
+    /* Section */
+    section {
+      padding: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--violet);
+      margin-bottom: 8px;
+      padding: 4px 12px;
+      background: rgba(124, 58, 237, 0.08);
+      border-radius: 4px;
+    }
+
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    section h2 span { color: var(--violet); }
+    section h2 .amber { color: var(--amber); }
+    section h2 .teal { color: var(--teal); }
+
+    section p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      max-width: 800px;
+      margin-bottom: 16px;
+    }
+
+    /* Evolution timeline */
+    .evo-timeline {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .evo-timeline { grid-template-columns: 1fr; }
+      .evo-arrow { transform: rotate(90deg); }
+    }
+
+    .evo-phase {
+      padding: 28px 20px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .evo-phase.phase1 {
+      background: var(--surface);
+      border: 2px solid var(--border);
+    }
+
+    .evo-phase.phase2 {
+      background: linear-gradient(to bottom, #EDE9FE, white);
+      border: 2px solid var(--violet-light);
+    }
+
+    .evo-phase.phase3 {
+      background: linear-gradient(135deg, var(--violet-dark), var(--indigo));
+      color: white;
+      border: 2px solid var(--violet);
+    }
+
+    .evo-phase .phase-num {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .evo-phase.phase1 .phase-num { color: var(--text-muted); }
+    .evo-phase.phase2 .phase-num { color: var(--violet); }
+    .evo-phase.phase3 .phase-num { color: var(--amber-light); }
+
+    .evo-phase h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .evo-phase.phase1 h3 { color: var(--text-muted); }
+    .evo-phase.phase2 h3 { color: var(--violet-dark); }
+    .evo-phase.phase3 h3 { color: white; }
+
+    .evo-phase p {
+      font-size: 0.82rem;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .evo-phase.phase3 p { color: rgba(255,255,255,0.8); }
+
+    .evo-arrow {
+      font-size: 1.8rem;
+      color: var(--violet-light);
+      text-align: center;
+    }
+
+    /* Hatter compare */
+    .hatter-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .hatter-compare { grid-template-columns: 1fr; }
+    }
+
+    .hatter-box {
+      padding: 28px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+    }
+
+    .hatter-box.standard {
+      background: var(--surface);
+    }
+
+    .hatter-box.agent {
+      background: linear-gradient(to bottom, #EDE9FE, white);
+      border-color: var(--violet-light);
+    }
+
+    .hatter-box h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .hatter-box.standard h3 { color: var(--text-muted); }
+    .hatter-box.agent h3 { color: var(--violet-dark); }
+
+    .hatter-box p { font-size: 0.85rem; color: var(--text-light); }
+
+    .hatter-features {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .hatter-feat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .hatter-feat .label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hatter-feat .val {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--violet-dark);
+    }
+
+    .hatter-feat .badge {
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: var(--teal);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+
+    /* MCP flow */
+    .mcp-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 28px 0;
+      flex-wrap: wrap;
+    }
+
+    .mcp-node {
+      text-align: center;
+      padding: 20px 24px;
+      border-radius: 14px;
+      min-width: 160px;
+    }
+
+    .mcp-node.cloud {
+      background: var(--surface);
+      border: 2px solid var(--border);
+    }
+
+    .mcp-node.server {
+      background: linear-gradient(135deg, var(--violet), var(--indigo));
+      color: white;
+    }
+
+    .mcp-node.ide {
+      background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+      border: 2px solid var(--teal-light);
+    }
+
+    .mcp-node h4 { font-size: 0.9rem; font-weight: 700; }
+    .mcp-node p { font-size: 0.75rem; margin: 0; }
+    .mcp-node.server p { color: rgba(255,255,255,0.8); }
+    .mcp-node.ide h4 { color: #065F46; }
+
+    .mcp-arrow { font-size: 1.4rem; color: var(--text-muted); }
+
+    .cli-block {
+      margin-top: 20px;
+      background: var(--bg-dark);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      color: #A78BFA;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .cli-block .cmd { color: var(--teal-light); }
+    .cli-block .arg { color: var(--amber-light); }
+
+    /* Vibecoding cycle */
+    .vibe-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .vibe-step {
+      padding: 24px;
+      border-radius: 14px;
+      text-align: center;
+      border: 2px solid var(--border);
+      position: relative;
+    }
+
+    .vibe-step .step-num {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      font-weight: 800;
+      background: var(--violet);
+      color: white;
+      padding: 3px 16px;
+      border-radius: 20px;
+    }
+
+    .vibe-step h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      margin-top: 4px;
+      color: var(--violet-dark);
+    }
+
+    .vibe-step p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    /* Sandwich method */
+    .sandwich-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .sandwich-card {
+      padding: 28px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .sandwich-card.stitch-card {
+      background: linear-gradient(135deg, var(--violet-dark), var(--indigo));
+      color: white;
+    }
+
+    .sandwich-card.figma-card {
+      background: linear-gradient(135deg, #FDF2F8, #FCE7F3);
+      border: 2px solid #F9A8D4;
+    }
+
+    .sandwich-card.code-card {
+      background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+      border: 2px solid var(--teal-light);
+    }
+
+    .sandwich-card .pct {
+      font-size: 2.8rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .sandwich-card.stitch-card .pct { color: var(--amber-light); }
+    .sandwich-card.figma-card .pct { color: #DB2777; }
+    .sandwich-card.code-card .pct { color: #059669; }
+
+    .sandwich-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .sandwich-card.figma-card h3 { color: #DB2777; }
+    .sandwich-card.code-card h3 { color: #059669; }
+
+    .sandwich-card p {
+      font-size: 0.82rem;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .sandwich-card.stitch-card p { color: rgba(255,255,255,0.8); }
+
+    /* App Store assets */
+    .appstore-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .appstore-card {
+      padding: 24px;
+      border-radius: 14px;
+      text-align: center;
+      background: white;
+      border: 2px solid var(--border);
+    }
+
+    .appstore-card .icon {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+
+    .appstore-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .appstore-card p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    /* Competition table */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      font-size: 0.88rem;
+    }
+
+    .comp-table th, .comp-table td {
+      padding: 14px 18px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comp-table th {
+      background: var(--bg-dark);
+      color: #E8EAED;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .comp-table th:first-child {
+      text-align: left;
+      border-radius: 12px 0 0 0;
+    }
+
+    .comp-table th:last-child { border-radius: 0 12px 0 0; }
+
+    .comp-table th.stitch-col { background: var(--violet-dark); }
+
+    .comp-table td { font-weight: 600; }
+
+    .comp-table td:first-child {
+      text-align: left;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .comp-table tr:hover { background: rgba(124, 58, 237, 0.04); }
+
+    .comp-table .win {
+      color: var(--violet-dark);
+      font-weight: 800;
+    }
+
+    .comp-table .top-val {
+      background: rgba(124, 58, 237, 0.08);
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    /* Constraints */
+    .constraints-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .constraint-item {
+      padding: 20px 24px;
+      border-radius: 14px;
+      border-left: 4px solid var(--amber);
+      background: #FFFBEB;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .constraint-item .warn-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .constraint-item h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .constraint-item p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    /* Future */
+    .future-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .future-card {
+      padding: 28px;
+      border-radius: 16px;
+      background: var(--bg-dark);
+      color: white;
+      text-align: center;
+    }
+
+    .future-card h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--violet-light);
+      margin-bottom: 8px;
+    }
+
+    .future-card .future-val {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .future-card p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    /* Takeaways */
+    .takeaway-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .takeaway-flow { grid-template-columns: 1fr; }
+      .take-arrow { transform: rotate(90deg); }
+    }
+
+    .take-card {
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .take-card.logic {
+      background: linear-gradient(135deg, var(--violet-dark), var(--indigo));
+      color: white;
+    }
+
+    .take-card.code {
+      background: linear-gradient(135deg, #EDE9FE, white);
+      border: 2px solid var(--violet-light);
+    }
+
+    .take-card.polish {
+      background: linear-gradient(135deg, #FDF2F8, white);
+      border: 2px solid #F9A8D4;
+    }
+
+    .take-card h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .take-card.code h3 { color: var(--violet-dark); }
+    .take-card.polish h3 { color: #DB2777; }
+
+    .take-card p {
+      font-size: 0.82rem;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .take-card.logic p { color: rgba(255,255,255,0.8); }
+
+    .take-arrow {
+      font-size: 1.8rem;
+      color: var(--violet-light);
+      text-align: center;
+    }
+
+    .take-quote {
+      margin-top: 24px;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-left: 4px solid var(--violet);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      font-style: italic;
+    }
+
+    /* Conclusion */
+    .conclusion {
+      background: linear-gradient(135deg, var(--bg-deep) 0%, #312E81 100%);
+      color: #E8EAED;
+      text-align: center;
+    }
+
+    .conclusion h2 {
+      color: #E8EAED;
+      font-size: 1.8rem;
+    }
+
+    .conclusion h2 span { color: var(--violet-light); }
+
+    .conclusion .tagline {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 28px;
+    }
+
+    .try-grid {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .try-card {
+      padding: 18px 28px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #E8EAED;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .try-card:hover {
+      background: rgba(124, 58, 237, 0.2);
+      border-color: var(--violet-light);
+    }
+
+    .try-card .try-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Links */
+    .links-section {
+      background: var(--bg);
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .link-item:hover {
+      border-color: var(--violet);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .link-item .link-icon {
+      font-size: 1.2rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(124, 58, 237, 0.08);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .link-item .link-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .link-item .link-url {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    /* Footer */
+    footer {
+      padding: 32px 48px;
+      text-align: center;
+      background: var(--bg-deep);
+      color: #5F6368;
+      font-size: 0.75rem;
+    }
+
+    footer a {
+      color: var(--violet-light);
+      text-decoration: none;
+    }
+
+    /* Slide images */
+    .slide-img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin: 16px 0;
+    }
+
+    .img-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .img-pair { grid-template-columns: 1fr; }
+    }
+
+    .img-pair img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-label">Daily AI News &mdash; 2026/02/21</div>
+      <h1>Google <span class="brand">Stitch</span> &amp; <span class="hatter">Hatter</span> Agent<br>エージェント型デザインの時代</h1>
+      <p class="subtitle">UIジェネレーターから「エージェント型・推論エンジン」へ。Deep Design、ネイティブMCP統合、Vibecoding&mdash;デザインとコードの境界が消える</p>
+    </header>
+
+    <!-- Cover -->
+    <img src="../../input/day/0221.png" alt="Google Stitch & Hatter Agent" class="cover-img" />
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value amber">Hatter</div>
+        <div class="stat-label">新規エージェント（Deep Design）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">MCP</div>
+        <div class="stat-label">ネイティブMCP統合</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value teal">80%</div>
+        <div class="stat-label">Stitch生成 / Sandwich Method</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">4.5:1</div>
+        <div class="stat-label">WCAG準拠コントラスト比</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Evolution of Stitch -->
+    <section>
+      <span class="section-label">Evolution</span>
+      <h2>Stitchの進化：生成から反復、<span>そして推論へ</span></h2>
+      <p>Google Stitchは単なるUI画像ジェネレーターから、包括的なdesign-to-code推論エンジンへと根本的な進化を遂げています。Phase 3の「Hatter Agent」は自律的にデザインを決定し多段階で最適化する次世代エージェントです。</p>
+
+      <div class="evo-timeline">
+        <div class="evo-phase phase1">
+          <div class="phase-num">Phase 1: Generation</div>
+          <h3>Galileo AI / Early Stitch</h3>
+          <p>Text Prompt &rarr; Single Screen<br>単純な画像生成</p>
+        </div>
+        <div class="evo-arrow">&rarr;</div>
+        <div class="evo-phase phase2">
+          <div class="phase-num">Phase 2: Iteration</div>
+          <h3>Gemini 2.5 Flash/Pro</h3>
+          <p>Fast Iteration &amp; Figma Export<br>速度とフィデリティへの注力</p>
+        </div>
+        <div class="evo-arrow">&rarr;</div>
+        <div class="evo-phase phase3">
+          <div class="phase-num">Phase 3: Reasoning (NOW)</div>
+          <h3>Hatter Agent (Gemini 3)</h3>
+          <p>Agentic Design &amp; Deep Design<br>システム全体の自律的な設計と構造化</p>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_03.jpg" alt="Stitchの進化" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 2: Meet Hatter -->
+    <section>
+      <span class="section-label">The Brain</span>
+      <h2>Hatter Agent：<span>「描く」から「考える」へ</span></h2>
+      <p>従来のAIは「表面的な模倣」に過ぎず、見た目は良いがUXロジックやアクセシビリティが欠如していました。Hatterはシニアデザイナーのように意図（Intent）を理解し、自律的に微調整（Self-Correction）を行います。</p>
+
+      <div class="hatter-compare">
+        <div class="hatter-box standard">
+          <h3>Standard AI Output</h3>
+          <p>表面的な模倣。見た目は良いが、UXロジックやアクセシビリティが欠如。レイアウトはパターンマッチングによる複製。</p>
+        </div>
+        <div class="hatter-box agent">
+          <h3>Hatter Agent Output</h3>
+          <p>「Deep Design」に基づく自律的な推論で、プロ級のデザインを最初から出力。</p>
+          <div class="hatter-features">
+            <div class="hatter-feat">
+              <span class="label">Hierarchy Optimized</span>
+              <span><span class="val">Main User Goal</span></span>
+            </div>
+            <div class="hatter-feat">
+              <span class="label">Contrast Ratio</span>
+              <span><span class="val">4.5:1</span><span class="badge">WCAG 2.1 AA</span></span>
+            </div>
+            <div class="hatter-feat">
+              <span class="label">Touch Target</span>
+              <span><span class="val">48x48px</span><span class="badge">Mobile</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_04.jpg" alt="Hatter Agent比較" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 3: Hatter Prompt Anatomy -->
+    <section>
+      <span class="section-label">Deep Design</span>
+      <h2>Hatterプロンプトの解剖：<span>Context / Constraints / Instruction</span></h2>
+      <p>Hatterへの入力は3層構造です。Zoom-Outでアプリ全体のコンテキストを与え、Hard Constraintsでアクセシビリティや画面サイズを制約し、Agent Autonomyで「何を自律決定に委ねるか」を明示します。</p>
+
+      <img src="images/0221/slide_05.jpg" alt="Hatter Prompt Anatomy" class="slide-img" />
+    </section>
+
+    <!-- Section 4: MCP Integration -->
+    <section>
+      <span class="section-label">The Nervous System</span>
+      <h2>ネイティブ<span>MCP統合</span>：コピペの終わり</h2>
+      <p>Stitch内にクラウド上のMCPサーバーが統合されました。デザインは静的なファイルではなく、コーディングエージェントがAPI経由で常に参照可能な「生きた仕様書」となります。Cursor、Claude Code、Gemini CLIなどの開発ツールへ直接エクスポートが可能です。</p>
+
+      <div class="mcp-flow">
+        <div class="mcp-node cloud">
+          <h4>Google Stitch Cloud</h4>
+          <p>Project Assets</p>
+        </div>
+        <div class="mcp-arrow">&rarr;</div>
+        <div class="mcp-node server">
+          <h4>MCP Server</h4>
+          <p>stitch.googleapis.com/mcp</p>
+        </div>
+        <div class="mcp-arrow">&rarr;</div>
+        <div class="mcp-node ide">
+          <h4>Local IDE / Coding Agent</h4>
+          <p>Cursor / Claude Code / Gemini CLI</p>
+        </div>
+      </div>
+
+      <div class="cli-block">
+        <span class="cmd">$</span> stitch-mcp serve <span class="arg">--project=my-app</span><br>
+        <span class="cmd">$</span> list_projects()<br>
+        <span class="cmd">$</span> get_screen_code(<span class="arg">id='screen_1'</span>)
+      </div>
+
+      <img src="images/0221/slide_06.jpg" alt="MCP統合" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 5: Vibecoding -->
+    <section>
+      <span class="section-label">New Paradigm</span>
+      <h2>Vibecoding：<span class="amber">雰囲気がそのまま実装仕様になる</span></h2>
+      <p>「Vibe（雰囲気・意図）」がそのままバックエンドの実装仕様になる新しい開発パラダイム。Stitchで生成したデザインがMCP経由で機能仕様として機能し、コーディングAIがデザインコンテキストを読み取り実装します。</p>
+
+      <div class="vibe-steps">
+        <div class="vibe-step">
+          <span class="step-num">Step 1 &mdash; Ideate</span>
+          <h3>ビジュアルとフローを生成</h3>
+          <p>Stitchでデザインの「Vibe」を表現。テキストや画像からUIを自動生成</p>
+        </div>
+        <div class="vibe-step">
+          <span class="step-num">Step 2 &mdash; Connect</span>
+          <h3>MCPサーバーとしてマウント</h3>
+          <p>デザイン = Functional Spec。MCP接続でIDE側からアクセス可能に</p>
+        </div>
+        <div class="vibe-step">
+          <span class="step-num">Step 3 &mdash; Implement</span>
+          <h3>コーディングAIが読み取り実装</h3>
+          <p>Cursor / Claude CodeがデザインコンテキストをMCP経由で取得し、バックエンドまで自律実装</p>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_07.jpg" alt="Vibecoding" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 6: Sandwich Method -->
+    <section>
+      <span class="section-label">Best Practice</span>
+      <h2>Sandwich Method：<span class="teal">ハイブリッドワークフロー</span></h2>
+      <p>Stitchの弱点（特に日本語タイポグラフィの処理）を補うため、全エージェントからFigmaへ「編集可能レイヤー」としてエクスポートする機能が強化。Stitchで爆速生成し、Figmaで人間が最終的な微調整を行う「品質重視ルート」が現在のベストプラクティスです。</p>
+
+      <div class="sandwich-grid">
+        <div class="sandwich-card stitch-card">
+          <div class="pct">80%</div>
+          <h3>Stitch / Hatter</h3>
+          <p>AIがベースデザインとコードを爆速生成。Deep Designで構造化</p>
+        </div>
+        <div class="sandwich-card figma-card">
+          <div class="pct">10%</div>
+          <h3>Figma Polish</h3>
+          <p>人間が日本語タイポグラフィ、ブランドカラー、微調整を担当</p>
+        </div>
+        <div class="sandwich-card code-card">
+          <div class="pct">10%</div>
+          <h3>Production Code</h3>
+          <p>最終的なコード品質の確認とデプロイ</p>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_08.jpg" alt="Sandwich Method" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 7: App Store Assets -->
+    <section>
+      <span class="section-label">GTM Acceleration</span>
+      <h2>App Store向けアセットの<span>ワンクリック自動生成</span></h2>
+      <p>作成したUIデザインから、Apple App StoreやGoogle Playに提出するためのスクリーンショット一式、説明文（コピー）、アプリアイコンをワンクリックで自動生成。インディー開発者やスタートアップの市場投入（GTM）を劇的に加速させます。</p>
+
+      <div class="appstore-grid">
+        <div class="appstore-card">
+          <div class="icon">&#x1F3A8;</div>
+          <h3>Generated Icon</h3>
+          <p>Square &amp; Rounded versions。App Store/Play Store両対応のアイコンを自動生成</p>
+        </div>
+        <div class="appstore-card">
+          <div class="icon">&#x1F4F1;</div>
+          <h3>Marketing Screenshots</h3>
+          <p>デバイスフレーム内のスクリーンショット一式を自動レイアウト</p>
+        </div>
+        <div class="appstore-card">
+          <div class="icon">&#x1F4DD;</div>
+          <h3>Marketing Copy</h3>
+          <p>Title &amp; Descriptionのテキストブロックを自動生成。ASO最適化にも対応</p>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_09.jpg" alt="App Store Assets" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 8: Competition -->
+    <section>
+      <span class="section-label">Competitive Landscape</span>
+      <h2>競合比較：<span>Code-First &times; 学習コストゼロ</span>の優位性</h2>
+      <p>Stitchの優位性は「Code-First」かつ「学習コストゼロ」。Figmaがコラボレーションツールであるのに対し、Stitchは「動くアプリ」を即座に求める層に特化しています。</p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="stitch-col">Google Stitch</th>
+            <th>Figma AI</th>
+            <th>V0 (Vercel)</th>
+            <th>UX Pilot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Output</td>
+            <td class="win"><span class="top-val">Code-First</span></td>
+            <td>Design-First</td>
+            <td>Code-First</td>
+            <td>Design-First</td>
+          </tr>
+          <tr>
+            <td>Learning Curve</td>
+            <td class="win"><span class="top-val">Zero</span></td>
+            <td>Steep</td>
+            <td>Low</td>
+            <td>Medium</td>
+          </tr>
+          <tr>
+            <td>Agentic Design</td>
+            <td class="win"><span class="top-val">Hatter</span></td>
+            <td>&mdash;</td>
+            <td>&mdash;</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <td>MCP Integration</td>
+            <td class="win"><span class="top-val">Native</span></td>
+            <td>&mdash;</td>
+            <td>Partial</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <td>Figma Export</td>
+            <td>Editable Layers</td>
+            <td class="win">Native</td>
+            <td>&mdash;</td>
+            <td>Limited</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <img src="images/0221/slide_10.jpg" alt="競合比較" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 9: Constraints -->
+    <section>
+      <span class="section-label">Constraints &amp; Considerations</span>
+      <h2>制約事項と<span class="amber">注意点</span></h2>
+
+      <div class="constraints-list">
+        <div class="constraint-item">
+          <div class="warn-icon">&#x26A0;</div>
+          <div>
+            <h3>Japanese Typography</h3>
+            <p>日本語フォント（Noto Sans JP）の自動適用はまだ弱い。CSS/Tailwindでの手動オーバーライドが必要です。Figmaでの仕上げが推奨されます。</p>
+          </div>
+        </div>
+        <div class="constraint-item">
+          <div class="warn-icon">&#x26A0;</div>
+          <div>
+            <h3>Dynamic Quotas</h3>
+            <p>クォータは毎日GMT 0:00にリセットされる。Hatterのような高推論エージェントはクレジット消費が激しいため、利用計画が必要です。</p>
+          </div>
+        </div>
+        <div class="constraint-item">
+          <div class="warn-icon">&#x26A0;</div>
+          <div>
+            <h3>Security Tokens</h3>
+            <p>エンタープライズ利用では、APIキーではなくOAuth（短命トークン）による管理が推奨されます。</p>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_11.jpg" alt="制約と注意点" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 10: Future -->
+    <section>
+      <span class="section-label">Future Outlook</span>
+      <h2>将来展望：<span>Gemini 4 &amp; Agentic Search</span></h2>
+
+      <div class="future-grid">
+        <div class="future-card">
+          <h3>Context Window Expansion</h3>
+          <div class="future-val">50+ Screens</div>
+          <p>単一画面から、アプリ全体のフローや50画面以上のシステムを一括生成</p>
+        </div>
+        <div class="future-card">
+          <h3>AI Mode SEO</h3>
+          <div class="future-val">Agentic Search</div>
+          <p>検索エンジンではなく、AIエージェントに最適化されたUI/コード構造へ</p>
+        </div>
+        <div class="future-card">
+          <h3>Component Libraries</h3>
+          <div class="future-val">Production-Grade</div>
+          <p>プロトタイプ品質から、本番運用に耐えうるコンポーネントライブラリ生成へ</p>
+        </div>
+      </div>
+
+      <img src="images/0221/slide_12.jpg" alt="将来展望" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 11: Strategic Takeaways -->
+    <section>
+      <span class="section-label">Strategic Takeaways</span>
+      <h2>戦略的要点：3ステップの<span>推奨ワークフロー</span></h2>
+
+      <div class="takeaway-flow">
+        <div class="take-card logic">
+          <h3>Hatter for Logic</h3>
+          <p>まずはHatterで構造とロジックを固める</p>
+        </div>
+        <div class="take-arrow">&rarr;</div>
+        <div class="take-card code">
+          <h3>MCP for Code</h3>
+          <p>MCPをIDEに接続し「Vibecoding」フローを確立する</p>
+        </div>
+        <div class="take-arrow">&rarr;</div>
+        <div class="take-card polish">
+          <h3>Figma for Polish</h3>
+          <p>最終的な品質と日本語調整はFigmaで仕上げる</p>
+        </div>
+      </div>
+
+      <div class="take-quote">
+        "Stitch isn't replacing designers; it's giving them a jetpack."
+      </div>
+
+      <img src="images/0221/slide_13.jpg" alt="Strategic Takeaways" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Conclusion -->
+    <section class="conclusion">
+      <span class="section-label" style="background: rgba(167, 139, 250, 0.15); color: var(--violet-light);">Conclusion</span>
+      <h2>デザインとコードの境界が消える<br><span>エージェント型デザインの時代</span></h2>
+      <p class="tagline">Google Stitchは「Hatter Agent」「ネイティブMCP」「Figmaハイブリッド」の3本柱で、UIジェネレーターから推論エンジンへの質的転換を遂げました。</p>
+
+      <div class="try-grid">
+        <a href="https://stitch.withgoogle.com/" target="_blank" class="try-card">
+          <div class="try-label">Try Now</div>
+          Stitch Tool
+        </a>
+        <a href="https://stitch.googleapis.com/mcp" target="_blank" class="try-card">
+          <div class="try-label">MCP Server</div>
+          stitch.googleapis.com/mcp
+        </a>
+        <a href="https://github.com/google-labs-code/stitch-skills" target="_blank" class="try-card">
+          <div class="try-label">GitHub</div>
+          Stitch Skills
+        </a>
+        <a href="https://www.figma.com/dev-mode/" target="_blank" class="try-card">
+          <div class="try-label">Integration</div>
+          Figma Dev Mode
+        </a>
+      </div>
+
+      <img src="images/0221/slide_14.jpg" alt="Resources" class="slide-img" style="margin-top: 24px; max-width: 800px; margin-left: auto; margin-right: auto; display: block;" />
+    </section>
+
+    <!-- Links -->
+    <section class="links-section">
+      <span class="section-label">Reference Links</span>
+      <h2>公式ドキュメント・<span>リソース</span></h2>
+
+      <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--violet-dark); margin-top: 24px; margin-bottom: 12px;">Google Stitch 公式</h3>
+      <div class="links-grid">
+        <a href="https://stitch.withgoogle.com/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F3A8;</div>
+          <div>
+            <div class="link-text">Stitch アプリ本体</div>
+            <div class="link-url">stitch.withgoogle.com/</div>
+          </div>
+        </a>
+        <a href="https://stitch.googleapis.com/mcp" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F517;</div>
+          <div>
+            <div class="link-text">Stitch MCP サーバー</div>
+            <div class="link-url">stitch.googleapis.com/mcp</div>
+          </div>
+        </a>
+        <a href="https://developers.googleblog.com/ja/introducing-stitch/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4F0;</div>
+          <div>
+            <div class="link-text">Stitch紹介 (Google Developers Blog)</div>
+            <div class="link-url">developers.googleblog.com/ja/introducing-stitch/</div>
+          </div>
+        </a>
+        <a href="https://blog.google/technology/google-labs/stitch-gemini-3/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F916;</div>
+          <div>
+            <div class="link-text">Gemini 3統合ブログ</div>
+            <div class="link-url">blog.google/.../stitch-gemini-3/</div>
+          </div>
+        </a>
+        <a href="https://app-companion-430619.appspot.com/docs/mcp/setup/index.html" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4DA;</div>
+          <div>
+            <div class="link-text">MCPセットアップドキュメント</div>
+            <div class="link-url">app-companion-430619.appspot.com/.../mcp/setup/</div>
+          </div>
+        </a>
+      </div>
+
+      <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--violet-dark); margin-top: 28px; margin-bottom: 12px;">MCP・CLI・拡張機能 (GitHub)</h3>
+      <div class="links-grid">
+        <a href="https://developers.googleblog.com/making-gemini-cli-extensions-easier-to-use/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F527;</div>
+          <div>
+            <div class="link-text">Gemini CLI拡張ブログ</div>
+            <div class="link-url">developers.googleblog.com/.../gemini-cli-extensions/</div>
+          </div>
+        </a>
+        <a href="https://geminicli.com/docs/tools/mcp-server/" target="_blank" class="link-item">
+          <div class="link-icon">&#x2328;</div>
+          <div>
+            <div class="link-text">Gemini CLI MCP Server</div>
+            <div class="link-url">geminicli.com/docs/tools/mcp-server/</div>
+          </div>
+        </a>
+        <a href="https://github.com/google-labs-code/stitch-skills" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4BB;</div>
+          <div>
+            <div class="link-text">Stitch Skills (Agent Skills)</div>
+            <div class="link-url">github.com/google-labs-code/stitch-skills</div>
+          </div>
+        </a>
+        <a href="https://github.com/gemini-cli-extensions/stitch" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4BB;</div>
+          <div>
+            <div class="link-text">Gemini CLI向けStitch拡張</div>
+            <div class="link-url">github.com/gemini-cli-extensions/stitch</div>
+          </div>
+        </a>
+        <a href="https://github.com/modelcontextprotocol" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F310;</div>
+          <div>
+            <div class="link-text">Model Context Protocol 公式</div>
+            <div class="link-url">github.com/modelcontextprotocol</div>
+          </div>
+        </a>
+        <a href="https://github.com/modelcontextprotocol/python-sdk" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F40D;</div>
+          <div>
+            <div class="link-text">MCP Python SDK</div>
+            <div class="link-url">github.com/modelcontextprotocol/python-sdk</div>
+          </div>
+        </a>
+        <a href="https://github.com/modelcontextprotocol/typescript-sdk" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4E6;</div>
+          <div>
+            <div class="link-text">MCP TypeScript SDK</div>
+            <div class="link-url">github.com/modelcontextprotocol/typescript-sdk</div>
+          </div>
+        </a>
+        <a href="https://www.anthropic.com/news/model-context-protocol" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D6;</div>
+          <div>
+            <div class="link-text">MCPの背景 (Anthropic)</div>
+            <div class="link-url">anthropic.com/news/model-context-protocol</div>
+          </div>
+        </a>
+        <a href="https://cloud.google.com/blog/products/application-development/mcp-toolbox-for-databases-essential-to-cloud-based-dev" target="_blank" class="link-item">
+          <div class="link-icon">&#x2601;</div>
+          <div>
+            <div class="link-text">MCP Toolbox (Google Cloud Blog)</div>
+            <div class="link-url">cloud.google.com/blog/.../mcp-toolbox-for-databases/</div>
+          </div>
+        </a>
+      </div>
+
+      <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--violet-dark); margin-top: 28px; margin-bottom: 12px;">メディア記事・フォーラム</h3>
+      <div class="links-grid">
+        <a href="https://gihyo.jp/article/2026/02/stitch-ideate-agent" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4F0;</div>
+          <div>
+            <div class="link-text">Ideateエージェント実務情報 (Gihyo)</div>
+            <div class="link-url">gihyo.jp/article/2026/02/stitch-ideate-agent</div>
+          </div>
+        </a>
+        <a href="https://www.testingcatalog.com/google-tests-hatter-agent-and-app-store-tools-in-stitch-update/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F50D;</div>
+          <div>
+            <div class="link-text">Hatterエージェント発見報道 (TestingCatalog)</div>
+            <div class="link-url">testingcatalog.com/.../google-tests-hatter-agent/</div>
+          </div>
+        </a>
+        <a href="https://discuss.ai.google.dev/t/stitch-mcp-not-working-with-api-key/120933" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4AC;</div>
+          <div>
+            <div class="link-text">API Keyエラーに関するフォーラム</div>
+            <div class="link-url">discuss.ai.google.dev/.../stitch-mcp-not-working/</div>
+          </div>
+        </a>
+        <a href="https://discuss.ai.google.dev/t/stitch-mcp-installation-in-antigravity/118194" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4AC;</div>
+          <div>
+            <div class="link-text">Antigravityインストール (フォーラム)</div>
+            <div class="link-url">discuss.ai.google.dev/.../stitch-mcp-installation/</div>
+          </div>
+        </a>
+      </div>
+
+      <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--violet-dark); margin-top: 28px; margin-bottom: 12px;">学術論文</h3>
+      <div class="links-grid">
+        <a href="https://aclanthology.org/2024.naacl-long.417/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D1;</div>
+          <div>
+            <div class="link-text">UICoder (NAACL 2024)</div>
+            <div class="link-url">aclanthology.org/2024.naacl-long.417/</div>
+          </div>
+        </a>
+        <a href="https://arxiv.org/abs/2406.16386" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D1;</div>
+          <div>
+            <div class="link-text">DCGen</div>
+            <div class="link-url">arxiv.org/abs/2406.16386</div>
+          </div>
+        </a>
+        <a href="https://aclanthology.org/2025.naacl-long.199.pdf" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D1;</div>
+          <div>
+            <div class="link-text">Design2Code (NAACL 2025)</div>
+            <div class="link-url">aclanthology.org/2025.naacl-long.199.pdf</div>
+          </div>
+        </a>
+        <a href="https://arxiv.org/abs/2306.05499" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D1;</div>
+          <div>
+            <div class="link-text">Prompt Injection</div>
+            <div class="link-url">arxiv.org/abs/2306.05499</div>
+          </div>
+        </a>
+      </div>
+
+      <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--violet-dark); margin-top: 28px; margin-bottom: 12px;">競合ツール（比較用）</h3>
+      <div class="links-grid">
+        <a href="https://www.figma.com/dev-mode/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F3AF;</div>
+          <div>
+            <div class="link-text">Figma Dev Mode</div>
+            <div class="link-url">figma.com/dev-mode/</div>
+          </div>
+        </a>
+        <a href="https://uizard.io/autodesigner/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F3AF;</div>
+          <div>
+            <div class="link-text">Uizard Autodesigner</div>
+            <div class="link-url">uizard.io/autodesigner/</div>
+          </div>
+        </a>
+        <a href="https://www.framer.com/ai/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F3AF;</div>
+          <div>
+            <div class="link-text">Framer AI</div>
+            <div class="link-url">framer.com/ai/</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>AI News Daily Report &mdash; 2026/02/21 | Source: Google Stitch &amp; Hatter Agent Documentation</p>
+      <p style="margin-top: 8px;"><a href="../index.html">&#x2190; プレゼンテーション一覧へ戻る</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
