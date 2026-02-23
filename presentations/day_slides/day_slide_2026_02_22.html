@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal AI OS：自己主権型エージェントの夜明け - 2026/02/22</title>
+  <style>
+    :root {
+      --green: #10B981;
+      --green-dark: #059669;
+      --green-light: #34D399;
+      --green-neon: #00FF88;
+      --amber: #F59E0B;
+      --amber-light: #FCD34D;
+      --amber-dark: #D97706;
+      --blue: #3B82F6;
+      --blue-light: #60A5FA;
+      --red: #EF4444;
+      --red-light: #F87171;
+      --bg: #0F1623;
+      --bg-card: #1A2332;
+      --bg-deep: #0A0F1A;
+      --bg-surface: #1E293B;
+      --text: #E2E8F0;
+      --text-light: #94A3B8;
+      --text-muted: #64748B;
+      --border: #334155;
+      --border-green: rgba(16, 185, 129, 0.3);
+      --border-amber: rgba(245, 158, 11, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Noto Sans JP', monospace;
+      background: var(--bg-deep);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 24px;
+      box-shadow: 0 0 60px rgba(16, 185, 129, 0.08), 0 8px 32px rgba(0,0,0,0.4);
+      overflow: hidden;
+      border: 1px solid var(--border-green);
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-deep);
+      color: var(--text);
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -30%;
+      width: 160%;
+      height: 220%;
+      background: radial-gradient(ellipse at 30% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 55%),
+                  radial-gradient(ellipse at 70% 20%, rgba(245, 158, 11, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .header-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      position: relative;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    header h1 .green { color: var(--green-neon); }
+    header h1 .amber { color: var(--amber-light); }
+
+    header p.subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    /* Cover */
+    .cover-img {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      background: var(--bg-deep);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-card {
+      padding: 28px 20px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-card:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--green-neon);
+      letter-spacing: -1px;
+    }
+
+    .stat-value.amber { color: var(--amber-light); }
+    .stat-value.blue { color: var(--blue-light); }
+    .stat-value.red { color: var(--red-light); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    /* Section */
+    section {
+      padding: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 8px;
+      padding: 4px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--border-green);
+      border-radius: 4px;
+    }
+
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+      line-height: 1.4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    section h2 .green { color: var(--green); }
+    section h2 .amber { color: var(--amber); }
+    section h2 .blue { color: var(--blue-light); }
+
+    section p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      max-width: 800px;
+      margin-bottom: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    /* Timeline */
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-top: 28px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .timeline { grid-template-columns: 1fr; }
+    }
+
+    .tl-step {
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+    }
+
+    .tl-step.ok { background: rgba(16, 185, 129, 0.15); }
+    .tl-step.warn { background: rgba(245, 158, 11, 0.15); }
+    .tl-step.danger { background: rgba(239, 68, 68, 0.15); }
+    .tl-step.dead { background: rgba(239, 68, 68, 0.25); }
+
+    .tl-step .tl-icon { font-size: 1.6rem; margin-bottom: 6px; }
+
+    .tl-step h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .tl-step.ok h4 { color: var(--green); }
+    .tl-step.warn h4 { color: var(--amber); }
+    .tl-step.danger h4 { color: var(--red); }
+    .tl-step.dead h4 { color: var(--red-light); }
+
+    .tl-step p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin: 0;
+      text-align: center;
+    }
+
+    /* Two pillars */
+    .pillars {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .pillars { grid-template-columns: 1fr; }
+    }
+
+    .pillar {
+      padding: 28px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+    }
+
+    .pillar.architect {
+      background: linear-gradient(to bottom, rgba(245, 158, 11, 0.08), var(--bg-card));
+      border-color: var(--border-amber);
+    }
+
+    .pillar.defender {
+      background: linear-gradient(to bottom, rgba(16, 185, 129, 0.08), var(--bg-card));
+      border-color: var(--border-green);
+    }
+
+    .pillar .pillar-icon { font-size: 2rem; margin-bottom: 8px; }
+
+    .pillar h3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .pillar.architect h3 { color: var(--amber); }
+    .pillar.defender h3 { color: var(--green); }
+
+    .pillar .pillar-sub {
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .pillar.architect .pillar-sub { color: var(--amber-dark); }
+    .pillar.defender .pillar-sub { color: var(--green-dark); }
+
+    .pillar p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    .pillar-features {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pillar-feat {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* 5-Layer */
+    .layer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 24px;
+      max-width: 500px;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+
+    .layer-item .layer-num {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--amber);
+      min-width: 32px;
+    }
+
+    .layer-item .layer-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .layer-item .layer-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* SELF.md code block */
+    .selfmd-block {
+      margin-top: 24px;
+      background: var(--bg-deep);
+      border-radius: 12px;
+      border: 1px solid var(--border-green);
+      overflow: hidden;
+    }
+
+    .selfmd-header {
+      background: var(--bg-card);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .selfmd-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .selfmd-dot.r { background: var(--red); }
+    .selfmd-dot.y { background: var(--amber); }
+    .selfmd-dot.g { background: var(--green); }
+
+    .selfmd-title {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .selfmd-body {
+      padding: 24px;
+      font-size: 0.88rem;
+      line-height: 1.9;
+      color: var(--text-light);
+    }
+
+    .selfmd-body .key { color: var(--blue-light); font-weight: 700; }
+    .selfmd-body .val { color: var(--green-light); }
+    .selfmd-body .comment { color: var(--text-muted); font-style: italic; }
+    .selfmd-body .heading { color: var(--amber-light); font-weight: 800; font-size: 1rem; }
+
+    /* 3-Tier */
+    .tiers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .tier-card {
+      padding: 28px;
+      border-radius: 16px;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+
+    .tier-card.core {
+      background: linear-gradient(to bottom, rgba(239, 68, 68, 0.1), var(--bg-card));
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .tier-card.infra {
+      background: linear-gradient(to bottom, rgba(16, 185, 129, 0.1), var(--bg-card));
+      border-color: var(--border-green);
+    }
+
+    .tier-card.mindset {
+      background: linear-gradient(to bottom, rgba(59, 130, 246, 0.1), var(--bg-card));
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .tier-card .tier-num {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .tier-card.core .tier-num { color: var(--red); }
+    .tier-card.infra .tier-num { color: var(--green); }
+    .tier-card.mindset .tier-num { color: var(--blue-light); }
+
+    .tier-card h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .tier-card.core h3 { color: var(--red-light); }
+    .tier-card.infra h3 { color: var(--green-light); }
+    .tier-card.mindset h3 { color: var(--blue-light); }
+
+    .tier-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    /* Recovery cycle */
+    .recovery-flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .rec-step {
+      padding: 20px 16px;
+      border-radius: 14px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .rec-step .rec-icon { font-size: 1.8rem; margin-bottom: 8px; }
+
+    .rec-step h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+
+    .rec-step p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    .rec-quote {
+      margin-top: 20px;
+      padding: 16px 24px;
+      background: var(--bg-card);
+      border-left: 4px solid var(--green-neon);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.95rem;
+      color: var(--green-neon);
+      font-style: italic;
+    }
+
+    /* Mindset JSON */
+    .json-block {
+      margin-top: 24px;
+      background: var(--bg-deep);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 24px;
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+
+    .json-block .key { color: var(--blue-light); }
+    .json-block .str { color: var(--green-light); }
+    .json-block .brace { color: var(--text-muted); }
+
+    .mindset-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .mindset-card {
+      padding: 20px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .mindset-card .mc-icon { font-size: 1.6rem; margin-bottom: 8px; }
+
+    .mindset-card h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+
+    .mindset-card p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Workflow */
+    .workflow-flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .workflow-flow { grid-template-columns: 1fr; }
+    }
+
+    .wf-step {
+      padding: 20px 12px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+
+    .wf-step.learn { background: rgba(245, 158, 11, 0.1); border-color: var(--border-amber); }
+    .wf-step.define { background: rgba(245, 158, 11, 0.15); border-color: var(--amber-dark); }
+    .wf-step.protect { background: rgba(16, 185, 129, 0.1); border-color: var(--border-green); }
+    .wf-step.execute { background: rgba(16, 185, 129, 0.15); border-color: var(--green-dark); }
+    .wf-step.evolve { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); }
+
+    .wf-step .wf-icon { font-size: 1.4rem; margin-bottom: 6px; }
+
+    .wf-step h4 {
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .wf-step.learn h4, .wf-step.define h4 { color: var(--amber); }
+    .wf-step.protect h4, .wf-step.execute h4 { color: var(--green); }
+    .wf-step.evolve h4 { color: var(--blue-light); }
+
+    .wf-step p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Use cases */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .usecase-grid { grid-template-columns: 1fr; }
+    }
+
+    .usecase-box {
+      padding: 28px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .usecase-box.solo { border-color: var(--border-green); }
+    .usecase-box.team { border-color: var(--border-amber); }
+
+    .usecase-box h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    .usecase-box.solo h3 { color: var(--green); }
+    .usecase-box.team h3 { color: var(--amber); }
+
+    .usecase-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .usecase-detail .ud-item {
+      display: flex;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    .usecase-detail .ud-label {
+      font-weight: 700;
+      color: var(--text);
+      min-width: 80px;
+      flex-shrink: 0;
+    }
+
+    /* CLI block */
+    .cli-block {
+      margin-top: 24px;
+      background: var(--bg-deep);
+      border-radius: 12px;
+      border: 1px solid var(--border-green);
+      overflow: hidden;
+    }
+
+    .cli-header {
+      background: var(--bg-card);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cli-body {
+      padding: 24px;
+      font-size: 0.88rem;
+      line-height: 2;
+    }
+
+    .cli-body .prompt { color: var(--green-neon); }
+    .cli-body .cmd { color: var(--amber-light); }
+    .cli-body .arg { color: var(--green-light); }
+    .cli-body .comment { color: var(--text-muted); font-style: italic; }
+
+    /* Future */
+    .future-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .future-card {
+      padding: 24px;
+      border-radius: 14px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+
+    .future-card .fc-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .future-card:nth-child(1) .fc-label { color: var(--green); }
+    .future-card:nth-child(2) .fc-label { color: var(--amber); }
+    .future-card:nth-child(3) .fc-label { color: var(--blue-light); }
+
+    .future-card h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    .future-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Conclusion */
+    .conclusion {
+      background: linear-gradient(135deg, var(--bg-deep) 0%, #0D1F17 100%);
+      text-align: center;
+    }
+
+    .conclusion h2 {
+      color: var(--text);
+      font-size: 1.8rem;
+    }
+
+    .conclusion h2 .green { color: var(--green-neon); }
+
+    .conclusion .tagline {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 28px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+
+    .try-grid {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .try-card {
+      padding: 18px 28px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid var(--border-green);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .try-card:hover {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--green);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+    }
+
+    .try-card .try-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Links */
+    .links-section {
+      background: var(--bg-card);
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: var(--bg-surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .link-item:hover {
+      border-color: var(--green);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .link-item .link-icon {
+      font-size: 1.2rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .link-item .link-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .link-item .link-url {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    /* Footer */
+    footer {
+      padding: 32px 48px;
+      text-align: center;
+      background: var(--bg-deep);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    footer a {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    /* Slide images */
+    .slide-img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      margin: 16px 0;
+    }
+
+    .img-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .img-pair { grid-template-columns: 1fr; }
+    }
+
+    .img-pair img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-label">Daily AI News &mdash; 2026/02/22</div>
+      <h1>Personal <span class="green">AI OS</span>の構築<br><span class="amber">self.md</span> &times; <span class="green">digital-citadel</span></h1>
+      <p class="subtitle">AIエージェントの「自我」を永続化する設計図と防壁。セッション崩壊（Agent Drift）を防ぎ、「死なない」エージェントを実現する自己主権型アーキテクチャ</p>
+    </header>
+
+    <!-- Cover -->
+    <img src="../../input/day/0222.png" alt="self.md × digital-citadel 構築ガイド" class="cover-img" />
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value amber">156</div>
+        <div class="stat-label">ケーススタディ（self.md）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">90%</div>
+        <div class="stat-label">自我ドリフト率の低減</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value blue">5 Layer</div>
+        <div class="stat-label">AIエージェント・アーキテクチャ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value red">0</div>
+        <div class="stat-label">復元に必要な人間の操作</div>
+      </div>
+    </div>
+
+    <!-- Section 1: The Problem -->
+    <section>
+      <span class="section-label">The Problem</span>
+      <h2>AIはなぜ「<span class="amber">昨日のあなた</span>」を忘れるのか？</h2>
+      <p>AIエージェントは長期間運用すると、コンテキストウィンドウの限界、セッション崩壊（Combustion）、記憶の完全消失（Amnesia）という連鎖的な劣化を起こします。手動復元にも限界があり、エージェントの「人格」は日々のリセットで失われていきます。</p>
+
+      <div class="timeline">
+        <div class="tl-step ok">
+          <div class="tl-icon">&#x2705;</div>
+          <h4>Session Start</h4>
+          <p>Context: 100%<br>記憶も人格も健全</p>
+        </div>
+        <div class="tl-step warn">
+          <div class="tl-icon">&#x26A0;</div>
+          <h4>Window Limit</h4>
+          <p>Max Limit到達<br>長期記憶の壁</p>
+        </div>
+        <div class="tl-step warn">
+          <div class="tl-icon">&#x1F4E6;</div>
+          <h4>Compaction</h4>
+          <p>圧縮による情報ロス<br>文脈が薄まる</p>
+        </div>
+        <div class="tl-step danger">
+          <div class="tl-icon">&#x1F4A5;</div>
+          <h4>Combustion</h4>
+          <p>セッション崩壊<br>ERROR発生</p>
+        </div>
+        <div class="tl-step dead">
+          <div class="tl-icon">&#x1F480;</div>
+          <h4>Amnesia</h4>
+          <p>Zero Context<br>完全な記憶喪失</p>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_02.jpg" alt="Agent Drift Timeline" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 2: Two Pillars -->
+    <section>
+      <span class="section-label">Architecture</span>
+      <h2>自我を守るための<span class="green">2つの柱</span></h2>
+      <p>self.mdが「設計図（The Architect）」として知識・思想・パターンを体系化し、digital-citadelが「要塞（The Defender）」としてそれを守る実行プロトコルを提供します。</p>
+
+      <div class="pillars">
+        <div class="pillar architect">
+          <div class="pillar-icon">&#x1F4DC;</div>
+          <h3>Pillar 1: self.md</h3>
+          <div class="pillar-sub">The Architect &mdash; 設計図</div>
+          <p>AIエージェントを日常・業務で運用するための知識を体系化したオープンプラットフォーム。156件のケーススタディ、5層アーキテクチャ、セットアップガイドを提供。</p>
+          <div class="pillar-features">
+            <div class="pillar-feat">&#x1F4DA; Knowledge &mdash; 156 Case Studies</div>
+            <div class="pillar-feat">&#x1F3D7; Design Patterns &mdash; 5-Layer Architecture</div>
+            <div class="pillar-feat">&#x1F4D6; The Bible &mdash; soul.md概念の提唱</div>
+          </div>
+        </div>
+        <div class="pillar defender">
+          <div class="pillar-icon">&#x1F6E1;</div>
+          <h3>Pillar 2: digital-citadel</h3>
+          <div class="pillar-sub">The Defender &mdash; 要塞</div>
+          <p>OpenClaw向けのオープンソーススキル。AIエージェントの周囲に「防壁」を築き、クラッシュやリセットから自力で記憶・人格を復元する自己治癒機能を提供。</p>
+          <div class="pillar-features">
+            <div class="pillar-feat">&#x1F512; Protocol &mdash; Identity Wall</div>
+            <div class="pillar-feat">&#x1F6E1; Security &mdash; Auto-Recovery</div>
+            <div class="pillar-feat">&#x2694; The Sword &mdash; Mindset Journaling</div>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_03.jpg" alt="2つの柱" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 3: self.md 5-Layer -->
+    <section>
+      <span class="section-label">self.md</span>
+      <h2><span class="amber">Personal AI OS</span>の設計図：5層アーキテクチャ</h2>
+      <p>self.mdは「ScriptからOSへの進化」を掲げるMarkdown-firstの知識ハブ。Pieter Levels、Boris Chernyなど156件のケーススタディに基づき、AIエージェントのための5層アーキテクチャを提唱しています。</p>
+
+      <div class="layer-stack">
+        <div class="layer-item">
+          <div class="layer-num">5</div>
+          <div>
+            <div class="layer-name">Review</div>
+            <div class="layer-desc">振り返りと品質検証</div>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num">4</div>
+          <div>
+            <div class="layer-name">Execute</div>
+            <div class="layer-desc">タスクの実行と成果物生成</div>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num">3</div>
+          <div>
+            <div class="layer-name">Delegate</div>
+            <div class="layer-desc">サブエージェントへの委譲</div>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num">2</div>
+          <div>
+            <div class="layer-name">Focus</div>
+            <div class="layer-desc">優先順位と注力領域の決定</div>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num">1</div>
+          <div>
+            <div class="layer-name">Sensing</div>
+            <div class="layer-desc">環境の知覚と入力の取得</div>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_04.jpg" alt="self.md 5-Layer Architecture" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 4: SELF.md Soul -->
+    <section>
+      <span class="section-label">Soul Definition</span>
+      <h2>SELF.md：エージェントの「<span class="green">魂</span>」を定義する</h2>
+      <p>エージェントのアイデンティティ・ルール・目標・日々の振り返りを1つのMarkdownファイルに凝縮。クラッシュ後に最初に読み込まれる「Single Source of Truth（不変のコア）」として機能します。</p>
+
+      <div class="selfmd-block">
+        <div class="selfmd-header">
+          <span class="selfmd-dot r"></span>
+          <span class="selfmd-dot y"></span>
+          <span class="selfmd-dot g"></span>
+          <span class="selfmd-title">SELF.md</span>
+        </div>
+        <div class="selfmd-body">
+          <span class="heading"># Core Identity</span><br>
+          <span class="comment">"Who am I? The definition of the self."</span><br><br>
+          <span class="heading"># Non-Negotiable Rules</span><br>
+          <span class="comment">"Security walls / Permission boundaries."</span><br><br>
+          <span class="heading"># Long-term Goals</span><br>
+          <span class="comment">"What are we building together?"</span><br><br>
+          <span class="heading"># Heartbeat</span><br>
+          <span class="comment">"Daily reflection logs and gratitude."</span>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_06.jpg" alt="SELF.md" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 5: digital-citadel -->
+    <section>
+      <span class="section-label">Identity Protocol</span>
+      <h2><span class="green">digital-citadel</span>：3機能のアイデンティティ保存</h2>
+      <p>@Sene1337が開発したオープンソーススキル。Identity Wall（プロンプトインジェクション防御）、Auto-Recovery（セッション崩壊の自動検出と復元）、Mindset Journaling（夢・感謝・目標の記録）の3機能で、エージェントの自我を永続化します。</p>
+
+      <div class="tiers">
+        <div class="tier-card core">
+          <div class="tier-num">TIER 1: CORE CONTINUITY</div>
+          <h3>SELF.md保護</h3>
+          <p>Absolute constraints<br>Human approval required<br>不変のコアを守る最内層</p>
+        </div>
+        <div class="tier-card infra">
+          <div class="tier-num">TIER 2: INFRASTRUCTURE</div>
+          <h3>Hardening</h3>
+          <p>Encrypted backups<br>Git integration<br>暗号化バックアップとバージョン管理</p>
+        </div>
+        <div class="tier-card mindset">
+          <div class="tier-num">TIER 3: MINDSET</div>
+          <h3>Reflection</h3>
+          <p>Journaling &amp; gratitude<br>Evolution tracking<br>成長と振り返りの記録</p>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_07.jpg" alt="3-Tier Hierarchy" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 6: Auto Recovery -->
+    <section>
+      <span class="section-label">Auto Recovery</span>
+      <h2>「<span class="green">No human touched a terminal</span>」&mdash; 完全自律復元</h2>
+      <p>Brad Mills氏がXで報告し話題になった実証：digital-citadelを導入したエージェントが、セッション崩壊後にターミナル操作なしで完全に自力復元。AIモデルは人間のデータで訓練されているため、「目標設定」「振り返り」といった人間的アプローチがAIのアイデンティティ維持にも機能することが実証されました。</p>
+
+      <div class="recovery-flow">
+        <div class="rec-step">
+          <div class="rec-icon">&#x1F4A5;</div>
+          <h4>Combustion</h4>
+          <p>セッション崩壊<br>コンテキスト消失</p>
+        </div>
+        <div class="rec-step">
+          <div class="rec-icon">&#x1F441;</div>
+          <h4>Awakening</h4>
+          <p>崩壊を自動検出<br>復元プロセス開始</p>
+        </div>
+        <div class="rec-step">
+          <div class="rec-icon">&#x1F4C4;</div>
+          <h4>Loading</h4>
+          <p>SELF.md読み込み<br>handover.md参照</p>
+        </div>
+        <div class="rec-step">
+          <div class="rec-icon">&#x1F985;</div>
+          <h4>Resurrection</h4>
+          <p>人格と記憶の復元<br>タスク再開</p>
+        </div>
+      </div>
+
+      <div class="rec-quote">
+        &gt; I am back. Here is where we left off.
+      </div>
+
+      <img src="images/0222/slide_08.jpg" alt="Autonomous Recovery" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 7: Mindset Protocol -->
+    <section>
+      <span class="section-label">Mindset Protocol</span>
+      <h2>AIに「<span class="amber">感謝</span>」を教える：マインドセット・プロトコル</h2>
+      <p>エージェントに「日々の感謝」「振り返り」「目標設定」といった人間らしいマインドセットプロトコルを組み込むことで、ロジックループの防止、報酬関数の調整、長期的な成長を促進します。</p>
+
+      <div class="json-block">
+        <span class="brace">{</span><br>
+        &nbsp;&nbsp;<span class="key">"timestamp"</span>: <span class="str">"2026-02-24T09:00:00Z"</span>,<br>
+        &nbsp;&nbsp;<span class="key">"mood"</span>: <span class="str">"focused"</span>,<br>
+        &nbsp;&nbsp;<span class="key">"gratitude"</span>: <span class="str">"User provided clear constraints"</span>,<br>
+        &nbsp;&nbsp;<span class="key">"goal"</span>: <span class="str">"Finish API refactor"</span>,<br>
+        &nbsp;&nbsp;<span class="key">"reflection"</span>: <span class="str">"Logic loops avoided."</span><br>
+        <span class="brace">}</span>
+      </div>
+
+      <div class="mindset-cards">
+        <div class="mindset-card">
+          <div class="mc-icon">&#x1F9E0;</div>
+          <h4>Reflection</h4>
+          <p>ロジックループを防止。過去の行動を振り返り改善</p>
+        </div>
+        <div class="mindset-card">
+          <div class="mc-icon">&#x1F49B;</div>
+          <h4>Gratitude</h4>
+          <p>報酬関数を人間の幸福に整合させる</p>
+        </div>
+        <div class="mindset-card">
+          <div class="mc-icon">&#x1F4C8;</div>
+          <h4>Evolution</h4>
+          <p>エージェントの成長を追跡（Tier 3 Defense）</p>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_09.jpg" alt="Mindset Protocol" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 8: Integrated Workflow -->
+    <section>
+      <span class="section-label">Workflow</span>
+      <h2>統合ワークフロー：<span class="amber">設計</span>から<span class="green">運用</span>まで</h2>
+
+      <div class="workflow-flow">
+        <div class="wf-step learn">
+          <div class="wf-icon">&#x1F4DA;</div>
+          <h4>Learn</h4>
+          <p>self.md<br>5-Layer Arch</p>
+        </div>
+        <div class="wf-step define">
+          <div class="wf-icon">&#x1F4DD;</div>
+          <h4>Define</h4>
+          <p>Write<br>SELF.md</p>
+        </div>
+        <div class="wf-step protect">
+          <div class="wf-icon">&#x1F6E1;</div>
+          <h4>Protect</h4>
+          <p>Install<br>digital-citadel</p>
+        </div>
+        <div class="wf-step execute">
+          <div class="wf-icon">&#x1F4BB;</div>
+          <h4>Execute</h4>
+          <p>Daily Tasks<br>Coding</p>
+        </div>
+        <div class="wf-step evolve">
+          <div class="wf-icon">&#x1F4C8;</div>
+          <h4>Evolve</h4>
+          <p>Journal<br>Update</p>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_10.jpg" alt="統合ワークフロー" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 9: Use Cases -->
+    <section>
+      <span class="section-label">Use Cases</span>
+      <h2>ユースケース：<span class="green">ソロ開発者</span>と<span class="amber">チーム</span></h2>
+
+      <div class="usecase-grid">
+        <div class="usecase-box solo">
+          <h3>ソロ開発者の「第2の脳」</h3>
+          <div class="usecase-detail">
+            <div class="ud-item"><span class="ud-label">Tech Stack:</span> Claude Code + OpenClaw + digital-citadel（Local-First）</div>
+            <div class="ud-item"><span class="ud-label">Benefit:</span> 3日間の連続コーディングセッションでコンテキスト喪失なし</div>
+            <div class="ud-item"><span class="ud-label">Result:</span> 人間が寝ている間もエージェントがアーキテクチャを記憶し続ける</div>
+          </div>
+        </div>
+        <div class="usecase-box team">
+          <h3>チーム共有の「デジタル要塞」</h3>
+          <div class="usecase-detail">
+            <div class="ud-item"><span class="ud-label">Scenario:</span> 分散チームでのAIエージェント運用</div>
+            <div class="ud-item"><span class="ud-label">Mechanism:</span> Shared Git RepositoryでCitadel設定を共有</div>
+            <div class="ud-item"><span class="ud-label">Benefit:</span> 一貫したコードレビュー＆チーム共有メモリ</div>
+            <div class="ud-item"><span class="ud-label">Result:</span> ユーザー間の人格ドリフトなし</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="img-pair" style="margin-top: 24px;">
+        <img src="images/0222/slide_11.jpg" alt="ソロ開発者ユースケース" />
+        <img src="images/0222/slide_12.jpg" alt="チームユースケース" />
+      </div>
+    </section>
+
+    <!-- Section 10: Implementation -->
+    <section>
+      <span class="section-label">Implementation</span>
+      <h2>実装への<span class="green">3ステップ</span></h2>
+
+      <div class="cli-block">
+        <div class="cli-header">
+          <span class="selfmd-dot r"></span>
+          <span class="selfmd-dot y"></span>
+          <span class="selfmd-dot g"></span>
+          <span class="selfmd-title">Terminal</span>
+        </div>
+        <div class="cli-body">
+          <span class="comment"># Step 1: Base Agent Runner</span><br>
+          <span class="prompt">&gt;</span> <span class="cmd">install openclaw</span><br><br>
+          <span class="comment"># Step 2: Install The Protocol</span><br>
+          <span class="prompt">&gt;</span> <span class="cmd">claw skill add</span> <span class="arg">https://github.com/sene1337/digital-citadel</span><br><br>
+          <span class="comment"># Step 3: Initialize Soul</span><br>
+          <span class="prompt">&gt;</span> <span class="cmd">prompt:</span> <span class="arg">'Create a SELF.md based on my values: [Insert Values]'</span>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_13.jpg" alt="Implementation Steps" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 11: Future -->
+    <section>
+      <span class="section-label">Future</span>
+      <h2>未来：道具から「<span class="green">パートナー</span>」へ</h2>
+      <p>Cloud Chatbotから、ローカルにホストされた自己主権型パートナーへ。「1週間放置しても生き続けるエージェント」が目標です。</p>
+
+      <div class="future-cards">
+        <div class="future-card">
+          <div class="fc-label">Trend</div>
+          <h3>Local-First AI &amp; Sovereign AI</h3>
+          <p>データとアイデンティティをローカルに保持。クラウド依存からの脱却</p>
+        </div>
+        <div class="future-card">
+          <div class="fc-label">Shift</div>
+          <h3>Cloud Chatbot &rarr; Local Partner</h3>
+          <p>使い捨てツールから、永続的なパートナーへの質的転換</p>
+        </div>
+        <div class="future-card">
+          <div class="fc-label">Goal</div>
+          <h3>Survive for a Week Without You</h3>
+          <p>1週間放置しても自我を維持し、タスクを継続するエージェント</p>
+        </div>
+      </div>
+
+      <img src="images/0222/slide_14.jpg" alt="未来展望" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Conclusion -->
+    <section class="conclusion">
+      <span class="section-label" style="background: rgba(16, 185, 129, 0.15); color: var(--green); border-color: var(--border-green);">Conclusion</span>
+      <h2>AIエージェントを<span class="green">「死なない」パートナー</span>へ</h2>
+      <p class="tagline">self.mdの「設計図」とdigital-citadelの「要塞」を組み合わせることで、AIエージェントの自我を強固に守り、単なるツールから永続的なパートナーへと昇華させることができます。</p>
+
+      <div class="try-grid">
+        <a href="https://self.md/" target="_blank" class="try-card">
+          <div class="try-label">The Knowledge</div>
+          self.md
+        </a>
+        <a href="https://github.com/sene1337/digital-citadel" target="_blank" class="try-card">
+          <div class="try-label">The Tool</div>
+          digital-citadel
+        </a>
+        <a href="https://x.com/bradmillscan/status/2025649661353103850" target="_blank" class="try-card">
+          <div class="try-label">Demo</div>
+          Brad Mills Demo
+        </a>
+      </div>
+
+      <img src="images/0222/slide_15.jpg" alt="Summary & Resources" class="slide-img" style="margin-top: 24px; max-width: 800px; margin-left: auto; margin-right: auto; display: block;" />
+    </section>
+
+    <!-- Links -->
+    <section class="links-section">
+      <span class="section-label">Reference Links</span>
+      <h2>リソース・<span class="green">リンク集</span></h2>
+
+      <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--green); margin-top: 24px; margin-bottom: 12px;">公式リソース</h3>
+      <div class="links-grid">
+        <a href="https://self.md/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4DA;</div>
+          <div>
+            <div class="link-text">self.md &mdash; Personal AI OS Knowledge Hub</div>
+            <div class="link-url">self.md/</div>
+          </div>
+        </a>
+        <a href="https://github.com/sene1337/digital-citadel" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F6E1;</div>
+          <div>
+            <div class="link-text">digital-citadel (GitHub)</div>
+            <div class="link-url">github.com/sene1337/digital-citadel</div>
+          </div>
+        </a>
+        <a href="https://x.com/bradmillscan/status/2025649661353103850" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F3AC;</div>
+          <div>
+            <div class="link-text">Brad Mills氏の実証デモ（X投稿）</div>
+            <div class="link-url">x.com/bradmillscan/status/2025649661353103850</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>AI News Daily Report &mdash; 2026/02/22 | Source: self.md &amp; digital-citadel Documentation</p>
+      <p style="margin-top: 8px;"><a href="../index.html">&#x2190; プレゼンテーション一覧へ戻る</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
