@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Straion：AIコーディングエージェントを制御する「組織の脳」 - 2026/02/23</title>
+  <style>
+    :root {
+      --blue: #2563EB;
+      --blue-dark: #1E40AF;
+      --blue-deep: #1D4ED8;
+      --blue-light: #3B82F6;
+      --blue-bright: #60A5FA;
+      --blue-pale: #93C5FD;
+      --green: #10B981;
+      --green-light: #34D399;
+      --green-dark: #059669;
+      --red: #EF4444;
+      --red-light: #F87171;
+      --amber: #F59E0B;
+      --amber-light: #FCD34D;
+      --bg: #F8FAFC;
+      --bg-card: #FFFFFF;
+      --bg-deep: #0F172A;
+      --bg-surface: #F1F5F9;
+      --bg-blue: #EFF6FF;
+      --bg-green: #ECFDF5;
+      --bg-red: #FEF2F2;
+      --text: #0F172A;
+      --text-light: #475569;
+      --text-muted: #94A3B8;
+      --border: #E2E8F0;
+      --border-blue: rgba(37, 99, 235, 0.25);
+      --border-green: rgba(16, 185, 129, 0.25);
+      --border-red: rgba(239, 68, 68, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #E2E8F0;
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 24px;
+      box-shadow: 0 4px 40px rgba(15, 23, 42, 0.08), 0 8px 32px rgba(37, 99, 235, 0.06);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #1E40AF 100%);
+      color: #fff;
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -30%;
+      width: 160%;
+      height: 220%;
+      background: radial-gradient(ellipse at 70% 80%, rgba(37, 99, 235, 0.2) 0%, transparent 55%),
+                  radial-gradient(ellipse at 30% 20%, rgba(96, 165, 250, 0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .header-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--blue-bright);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      position: relative;
+      color: #fff;
+    }
+
+    header h1 .blue { color: var(--blue-pale); }
+    header h1 .green { color: var(--green-light); }
+
+    header p.subtitle {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.7);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Cover */
+    .cover-img {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      background: #fff;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-card {
+      padding: 28px 20px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-card:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--blue);
+      letter-spacing: -1px;
+    }
+
+    .stat-value.green { color: var(--green); }
+    .stat-value.red { color: var(--red); }
+    .stat-value.amber { color: var(--amber); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Section */
+    section {
+      padding: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 8px;
+      padding: 4px 12px;
+      background: var(--bg-blue);
+      border: 1px solid var(--border-blue);
+      border-radius: 4px;
+    }
+
+    .section-label.green {
+      color: var(--green);
+      background: var(--bg-green);
+      border-color: var(--border-green);
+    }
+
+    .section-label.red {
+      color: var(--red);
+      background: var(--bg-red);
+      border-color: var(--border-red);
+    }
+
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    section h2 .blue { color: var(--blue); }
+    section h2 .green { color: var(--green); }
+    section h2 .red { color: var(--red); }
+
+    section p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      max-width: 800px;
+      margin-bottom: 16px;
+    }
+
+    /* Era comparison */
+    .era-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .era-compare { grid-template-columns: 1fr; }
+    }
+
+    .era-box {
+      padding: 28px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+    }
+
+    .era-box.legacy {
+      background: var(--bg-surface);
+      border-color: var(--border);
+    }
+
+    .era-box.now {
+      background: var(--bg-blue);
+      border-color: var(--border-blue);
+    }
+
+    .era-box h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .era-box.legacy h3 { color: var(--text-muted); }
+    .era-box.now h3 { color: var(--blue); }
+
+    .era-flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .era-node {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+
+    .era-arrow { color: var(--text-muted); font-size: 1.2rem; }
+
+    .era-box .era-quote {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      font-style: italic;
+      border-left: 3px solid var(--border-blue);
+      padding-left: 12px;
+      margin-top: 12px;
+    }
+
+    .era-box .era-problem {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--bg-red);
+      border: 1px solid var(--border-red);
+      font-size: 0.82rem;
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    /* Problem cards */
+    .problem-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .problem-card {
+      padding: 24px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .problem-card .pc-num {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      background: var(--bg-red);
+      color: var(--red);
+      margin-bottom: 12px;
+    }
+
+    .problem-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .problem-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* Solution flow */
+    .solution-flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .sol-step {
+      padding: 16px 20px;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 140px;
+      background: var(--bg-card);
+      border: 2px solid var(--border-blue);
+    }
+
+    .sol-step.highlight {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .sol-step .sol-icon { font-size: 1.4rem; margin-bottom: 6px; }
+
+    .sol-step h4 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .sol-step.highlight h4 { color: #fff; }
+
+    .sol-step p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin: 4px 0 0;
+      text-align: center;
+    }
+
+    .sol-step.highlight p { color: rgba(255,255,255,0.8); }
+
+    .sol-arrow { font-size: 1.4rem; color: var(--blue-bright); }
+
+    /* Matching pipeline */
+    .pipeline {
+      margin-top: 24px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .pipeline-header {
+      background: var(--bg-blue);
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .pipeline-body {
+      padding: 24px;
+    }
+
+    .rule-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .rule-row:last-child { margin-bottom: 0; }
+
+    .rule-row.inject { background: var(--bg-green); }
+    .rule-row.ignore { background: var(--bg-surface); }
+
+    .rule-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      min-width: 140px;
+    }
+
+    .rule-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .rule-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .rule-bar-fill.high { background: var(--green); }
+    .rule-bar-fill.low { background: var(--text-muted); }
+
+    .rule-score {
+      font-size: 0.82rem;
+      font-weight: 700;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    .rule-score.high { color: var(--green); }
+    .rule-score.low { color: var(--text-muted); }
+
+    .rule-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    .rule-badge.inject { background: var(--green); color: #fff; }
+    .rule-badge.ignore { background: var(--border); color: var(--text-muted); }
+
+    /* Plan block */
+    .plan-block {
+      margin-top: 24px;
+      background: var(--bg-deep);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .plan-header {
+      background: #1E293B;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .plan-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .plan-dot.r { background: var(--red); }
+    .plan-dot.y { background: var(--amber); }
+    .plan-dot.g { background: var(--green); }
+
+    .plan-title {
+      color: #94A3B8;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .plan-body {
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.85rem;
+      line-height: 2;
+      color: #E2E8F0;
+    }
+
+    .plan-body .ai { color: var(--blue-bright); }
+    .plan-body .alert { color: var(--red-light); }
+    .plan-body .ok { color: var(--green-light); }
+    .plan-body .comment { color: #64748B; }
+
+    /* Rule types */
+    .rule-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .rule-type-card {
+      padding: 28px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .rule-type-card h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--blue);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rule-type-card p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin: 0 0 14px;
+    }
+
+    .rule-example {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .rule-example.bad {
+      background: var(--bg-red);
+      color: var(--red);
+      border: 1px solid var(--border-red);
+      text-decoration: line-through;
+      margin-bottom: 6px;
+    }
+
+    .rule-example.good {
+      background: var(--bg-green);
+      color: var(--green-dark);
+      border: 1px solid var(--border-green);
+    }
+
+    /* Comparison table */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table th {
+      background: var(--bg-deep);
+      color: #fff;
+      padding: 14px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .compare-table td {
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-light);
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+
+    .compare-table tr.highlight td {
+      background: var(--bg-blue);
+      color: var(--blue-dark);
+      font-weight: 600;
+    }
+
+    .compare-table .check { color: var(--green); font-weight: 700; }
+    .compare-table .cross { color: var(--red); font-weight: 700; }
+
+    /* Hybrid strategy */
+    .hybrid-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 24px;
+      max-width: 500px;
+    }
+
+    .hybrid-layer {
+      padding: 24px 28px;
+      text-align: center;
+      border: 2px solid;
+    }
+
+    .hybrid-layer.intelligence {
+      background: var(--blue);
+      border-color: var(--blue-dark);
+      color: #fff;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .hybrid-layer.base {
+      background: var(--bg-surface);
+      border-color: var(--border);
+      border-radius: 0 0 16px 16px;
+      border-top: none;
+    }
+
+    .hybrid-layer h3 { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
+    .hybrid-layer p { font-size: 0.82rem; margin: 0; text-align: center; }
+    .hybrid-layer.intelligence p { color: rgba(255,255,255,0.8); }
+    .hybrid-layer.base p { color: var(--text-muted); }
+    .hybrid-layer.base h3 { color: var(--text-light); }
+
+    .target-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .target-card {
+      padding: 20px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .target-card h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .target-card p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* Market validation */
+    .market-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .market-grid { grid-template-columns: 1fr; }
+    }
+
+    .market-badge {
+      padding: 28px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1E3A5F, var(--bg-deep));
+      border: 2px solid var(--border-blue);
+      text-align: center;
+      color: #fff;
+    }
+
+    .market-badge .badge-rank {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--amber-light);
+      margin-bottom: 4px;
+    }
+
+    .market-badge .badge-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--blue-bright);
+    }
+
+    .market-badge .badge-sub {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+
+    .market-testimonial {
+      padding: 28px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .market-testimonial .quote {
+      font-size: 0.92rem;
+      color: var(--text-light);
+      line-height: 1.7;
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+
+    .market-testimonial .author {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* CLI Setup */
+    .cli-block {
+      margin-top: 24px;
+      background: var(--bg-deep);
+      border-radius: 12px;
+      border: 1px solid #334155;
+      overflow: hidden;
+    }
+
+    .cli-header {
+      background: #1E293B;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .cli-body {
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.88rem;
+      line-height: 2.2;
+      color: #E2E8F0;
+    }
+
+    .cli-body .prompt { color: var(--green-light); }
+    .cli-body .cmd { color: var(--blue-bright); }
+    .cli-body .arg { color: var(--amber-light); }
+    .cli-body .output { color: var(--green-light); }
+    .cli-body .comment { color: #64748B; font-style: italic; }
+
+    .setup-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .setup-steps { grid-template-columns: 1fr; }
+    }
+
+    .setup-step {
+      padding: 24px;
+      border-radius: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .setup-step .step-num {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      border-radius: 10px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+
+    .setup-step h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .setup-step p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Conclusion */
+    .conclusion {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #1E40AF 100%);
+      text-align: center;
+      color: #fff;
+    }
+
+    .conclusion .section-label {
+      background: rgba(37, 99, 235, 0.2);
+      color: var(--blue-bright);
+      border-color: rgba(37, 99, 235, 0.3);
+    }
+
+    .conclusion h2 {
+      color: #fff;
+      font-size: 1.8rem;
+    }
+
+    .conclusion h2 .blue { color: var(--blue-pale); }
+
+    .conclusion .tagline {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.7);
+      max-width: 640px;
+      margin: 0 auto 12px;
+    }
+
+    .conclusion .quote-bold {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--amber-light);
+      margin-bottom: 28px;
+    }
+
+    .try-grid {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .try-card {
+      padding: 18px 28px;
+      border-radius: 12px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .try-card:hover {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: var(--blue-bright);
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.15);
+    }
+
+    .try-card .try-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Links */
+    .links-section {
+      background: var(--bg-surface);
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .link-item:hover {
+      border-color: var(--blue);
+      box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .link-item .link-icon {
+      font-size: 1.2rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-blue);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .link-item .link-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .link-item .link-url {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    /* Footer */
+    footer {
+      padding: 32px 48px;
+      text-align: center;
+      background: var(--bg-deep);
+      color: #94A3B8;
+      font-size: 0.75rem;
+    }
+
+    footer a {
+      color: var(--blue-bright);
+      text-decoration: none;
+    }
+
+    /* Slide images */
+    .slide-img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin: 16px 0;
+    }
+
+    .img-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .img-pair { grid-template-columns: 1fr; }
+    }
+
+    .img-pair img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-label">Daily AI News &mdash; 2026/02/23</div>
+      <h1><span class="blue">Straion</span>：AIコーディングエージェントを<br>制御する「<span class="green">組織の脳</span>」</h1>
+      <p class="subtitle">Claude Code・Cursor・GitHub Copilotに対し、組織のエンジニアリング・スタンダードを動的に注入するルール管理プラットフォーム。Product Hunt #2 Launch of the Day</p>
+    </header>
+
+    <!-- Cover -->
+    <img src="../../input/day/0223.png" alt="Straion：AIコーディングエージェントを制御する「組織の脳」" class="cover-img" />
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value amber">#2</div>
+        <div class="stat-label">Product Hunt Launch of the Day</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green">5分</div>
+        <div class="stat-label">導入完了までの時間</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">ML</div>
+        <div class="stat-label">Semantic Matching Engine</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value red">Pre-Block</div>
+        <div class="stat-label">Plan段階でのルール違反検知</div>
+      </div>
+    </div>
+
+    <!-- Section 1: The Problem - Agent Era -->
+    <section>
+      <span class="section-label red">The Problem</span>
+      <h2>「チャット」から「エージェント」へ：<span class="red">新たなボトルネック</span>の発生</h2>
+      <p>AIエージェントの能力は向上したが、エンジニアは「監視役（Babysitting）」に追われている。コンテキストの修正、軌道修正、ルール違反のレビュー&mdash;本来のビルドに集中できない。</p>
+
+      <div class="era-compare">
+        <div class="era-box legacy">
+          <h3>Chat Era (Legacy)</h3>
+          <div class="era-flow">
+            <div class="era-node">Prompt</div>
+            <span class="era-arrow">&rarr;</span>
+            <div class="era-node">AI</div>
+            <span class="era-arrow">&rarr;</span>
+            <div class="era-node">Answer</div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">シンプルなQ&A。人間がコントロールを保持</p>
+        </div>
+        <div class="era-box now">
+          <h3>Agent Era (Now)</h3>
+          <div class="era-flow">
+            <div class="era-node">Prompt</div>
+            <span class="era-arrow">&rarr;</span>
+            <div class="era-node">AI</div>
+            <span class="era-arrow">&rarr;</span>
+            <div class="era-node">Plan</div>
+            <span class="era-arrow">&rarr;</span>
+            <div class="era-node">Tool Use</div>
+          </div>
+          <div class="era-problem">Error &rarr; Retry &rarr; Correction &rarr; Error...</div>
+          <div class="era-quote">"Instead of just building, you often end up supervising. Correcting context. Pulling the AI back onto the right path." &mdash; Peter M. Buch</div>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_03.jpg" alt="Chat Era to Agent Era" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 2: Static Files Limitations -->
+    <section>
+      <span class="section-label red">Limitations</span>
+      <h2>静的ファイル管理（<span class="red">Static Files</span>）の限界</h2>
+      <p>.cursorrules、AGENTS.md、CONTRIBUTING.md&hellip;組織のルールが散在し、AIエージェントが正しく読み込めない構造的な問題。</p>
+
+      <div class="problem-cards">
+        <div class="problem-card">
+          <div class="pc-num">1</div>
+          <h4>断片化（Fragmentation）</h4>
+          <p>ルールがWikiや個人の頭の中、複数のリポジトリに散らばり、更新が同期されない</p>
+        </div>
+        <div class="problem-card">
+          <div class="pc-num">2</div>
+          <h4>トークンの無駄（Token Waste）</h4>
+          <p>すべてのルールをコンテキストウィンドウに流し込むと、AIが混乱し、コストも嵩む</p>
+        </div>
+        <div class="problem-card">
+          <div class="pc-num">3</div>
+          <h4>静的（Static）</h4>
+          <p>AIは「今のタスク」にどのルールが必要か判断できず、無関係なルールまで参照してしまう</p>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_04.jpg" alt="Static Files の限界" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 3: Dynamic Context Injection -->
+    <section>
+      <span class="section-label green">Solution</span>
+      <h2>Straion：必要なルールを、<span class="blue">必要な時だけ</span></h2>
+      <p>Dynamic Context Injection（動的コンテキスト注入）&mdash;タスクを解析し、関連するルールだけを抽出して注入。常に最適化された「脳」でタスクを実行。</p>
+
+      <div class="solution-flow">
+        <div class="sol-step">
+          <div class="sol-icon">&#x2601;</div>
+          <h4>Define</h4>
+          <p>Central Repo</p>
+        </div>
+        <span class="sol-arrow">&rarr;</span>
+        <div class="sol-step highlight">
+          <div class="sol-icon">&#x1F9E0;</div>
+          <h4>Analyze Task</h4>
+          <p>Semantic Match</p>
+        </div>
+        <span class="sol-arrow">&rarr;</span>
+        <div class="sol-step">
+          <div class="sol-icon">&#x1F4CB;</div>
+          <h4>Inject</h4>
+          <p>必要なルールのみ</p>
+        </div>
+        <span class="sol-arrow">&rarr;</span>
+        <div class="sol-step">
+          <div class="sol-icon">&#x1F916;</div>
+          <h4>AI Agent</h4>
+          <p>最適化実行</p>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_05.jpg" alt="Dynamic Context Injection" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 4: Semantic Matching -->
+    <section>
+      <span class="section-label">Core Technology</span>
+      <h2>コア技術：<span class="blue">Semantic Matching</span></h2>
+      <p>単なるキーワード検索ではなく、タスクの「意味」を理解してルールを適用。MLエンジンがContext（Task Prompt + File Diff + Tags）を解析し、関連度スコアでINJECT/IGNOREを判定します。</p>
+
+      <div class="pipeline">
+        <div class="pipeline-header">Filter Pipeline &mdash; Example: "Make a FastAPI endpoint"</div>
+        <div class="pipeline-body">
+          <div class="rule-row inject">
+            <div class="rule-name">API Security</div>
+            <div class="rule-bar"><div class="rule-bar-fill high" style="width: 94%;"></div></div>
+            <div class="rule-score high">94%</div>
+            <div class="rule-badge inject">INJECT</div>
+          </div>
+          <div class="rule-row inject">
+            <div class="rule-name">Python Style</div>
+            <div class="rule-bar"><div class="rule-bar-fill high" style="width: 88%;"></div></div>
+            <div class="rule-score high">88%</div>
+            <div class="rule-badge inject">INJECT</div>
+          </div>
+          <div class="rule-row ignore">
+            <div class="rule-name">Frontend UI</div>
+            <div class="rule-bar"><div class="rule-bar-fill low" style="width: 20%;"></div></div>
+            <div class="rule-score low">20%</div>
+            <div class="rule-badge ignore">IGNORE</div>
+          </div>
+          <div class="rule-row ignore">
+            <div class="rule-name">React Patterns</div>
+            <div class="rule-bar"><div class="rule-bar-fill low" style="width: 12%;"></div></div>
+            <div class="rule-score low">12%</div>
+            <div class="rule-badge ignore">IGNORE</div>
+          </div>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_06.jpg" alt="Semantic Matching" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 5: Plan Validation -->
+    <section>
+      <span class="section-label red">Guardrails</span>
+      <h2>「計画（Plan）」段階での<span class="red">事前ブロック</span></h2>
+      <p>コードが書かれる前に、AIの思考プロセス（Plan）を検証。技術的負債の発生源を断つ。APIキーのハードコード、PII（個人情報）のログ出力など、ルール違反を即座に検知・ブロックします。</p>
+
+      <div class="plan-block">
+        <div class="plan-header">
+          <span class="plan-dot r"></span>
+          <span class="plan-dot y"></span>
+          <span class="plan-dot g"></span>
+          <span class="plan-title">AI Agent Terminal</span>
+        </div>
+        <div class="plan-body">
+          <span class="ai">&gt; AI Plan:</span> I will log the user object including email for debugging.<br>
+          <span class="alert">&gt; &#x26A0; Straion Alert: Violation Detected (Rule: No PII in logs)</span><br>
+          <span class="ai">&gt; AI Correction:</span> Revised plan. I will hash the user ID before logging.<br>
+          <span class="ok">&gt; &#x2705; Straion: Plan Approved.</span><br>
+          <span class="comment">&gt; Generating Code: logger.info(f'User {user_id_hash} logged in')</span>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_07.jpg" alt="Plan段階での事前ブロック" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 6: Rule Types -->
+    <section>
+      <span class="section-label">Rule Categories</span>
+      <h2>どのような<span class="blue">ルール</span>を強制できるか？</h2>
+
+      <div class="rule-types">
+        <div class="rule-type-card">
+          <h3>&#x1F512; Security &amp; Compliance</h3>
+          <p>APIキーのハードコード禁止、PII（個人情報）のログ出力禁止。</p>
+          <div class="rule-example bad">const apiKey = 'sk-123...'</div>
+          <div class="rule-example good">const apiKey = process.env.API_KEY</div>
+        </div>
+        <div class="rule-type-card">
+          <h3>&#x1F3D7; Architecture</h3>
+          <p>Next.js App Routerの強制、階層化アーキテクチャの遵守。</p>
+          <div class="rule-example good">Enforce: App Router only, no Pages dir</div>
+        </div>
+        <div class="rule-type-card">
+          <h3>&#x1F4DD; Coding Style</h3>
+          <p>命名規則、特定のライブラリ使用の強制。</p>
+          <div class="rule-example good">Rule: 'Use shadcn/ui components only'</div>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_08.jpg" alt="ルールの種類" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 7: Comparison -->
+    <section>
+      <span class="section-label">Comparison</span>
+      <h2>比較：<span class="blue">Straion</span> vs. Ruler (OSS) vs. Static Files</h2>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Solution</th>
+            <th>Features</th>
+            <th>Maintenance / Validation</th>
+            <th>Target</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Static Files (.md)</strong></td>
+            <td>No Centralization<br>No Dynamic Injection</td>
+            <td>Maintenance: <span class="cross">High</span></td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><strong>Ruler (OSS)</strong></td>
+            <td>Local/Git Centralization<br>Static Injection (All Rules)</td>
+            <td>Plan Validation: <span class="cross">No</span></td>
+            <td>Solo Devs / Offline</td>
+          </tr>
+          <tr class="highlight">
+            <td><strong>Straion (SaaS)</strong></td>
+            <td>Cloud Centralization<br>Dynamic Injection (ML)</td>
+            <td>Plan Validation: <span class="check">Yes &#x2705;</span><br>Enterprise Logs</td>
+            <td>Teams / Enterprises</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 16px; font-size: 0.88rem; color: var(--blue); font-weight: 600;">Rulerはファイルを「配る」ツール。Straionはルールを「知的に適用する」プラットフォーム。</p>
+
+      <img src="images/0223/slide_09.jpg" alt="比較表" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 8: Hybrid Strategy -->
+    <section>
+      <span class="section-label green">Strategy</span>
+      <h2>推奨される<span class="blue">導入戦略</span>：The Hybrid Strategy</h2>
+
+      <div class="hybrid-stack">
+        <div class="hybrid-layer intelligence">
+          <h3>Intelligence Layer: Straion</h3>
+          <p>Dynamic Injection &amp; Compliance</p>
+        </div>
+        <div class="hybrid-layer base">
+          <h3>Base Layer: Ruler (OSS)</h3>
+          <p>Static Sync via Git</p>
+        </div>
+      </div>
+
+      <div class="target-cards">
+        <div class="target-card">
+          <h4>&#x1F464; Solo / Hobby</h4>
+          <p>Ruler + Static Filesで十分。無料でオフライン運用可能</p>
+        </div>
+        <div class="target-card">
+          <h4>&#x1F465; Team / Organization</h4>
+          <p>Review Overhead（レビューの負荷）削減のため、Straionが必須</p>
+        </div>
+        <div class="target-card">
+          <h4>&#x1F3E2; Enterprise</h4>
+          <p>監査ログとセキュリティ強制のため、Straion一択</p>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_10.jpg" alt="ハイブリッド戦略" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 9: Market Validation -->
+    <section>
+      <span class="section-label">Traction</span>
+      <h2>市場の<span class="blue">評価</span>と実績</h2>
+
+      <div class="market-grid">
+        <div class="market-badge">
+          <div class="badge-rank">#2</div>
+          <div class="badge-title">Product Hunt</div>
+          <div class="badge-sub">Launch of the Day &mdash; Feb 2026</div>
+        </div>
+        <div class="market-testimonial">
+          <div class="quote">"SDKでルールを注入した結果、規約を無視した『手抜きコード』が一瞬で『チーム標準』に化けた。技術的負債が劇的に減る。"</div>
+          <div class="author">@ai_negi_lab_com &mdash; AI Tech Lead / Blogger</div>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_11.jpg" alt="市場の評価" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Section 10: Setup -->
+    <section>
+      <span class="section-label green">Quick Start</span>
+      <h2>導入は<span class="green">5分</span>で完了</h2>
+
+      <div class="cli-block">
+        <div class="cli-header">
+          <span class="plan-dot r"></span>
+          <span class="plan-dot y"></span>
+          <span class="plan-dot g"></span>
+          <span class="plan-title">Terminal</span>
+        </div>
+        <div class="cli-body">
+          <span class="comment"># Step 1: Install CLI</span><br>
+          <span class="prompt">$</span> <span class="cmd">npm install -g</span> <span class="arg">@straion/cli</span><br>
+          <span class="comment">...</span><br><br>
+          <span class="comment"># Step 2: Import existing rules</span><br>
+          <span class="prompt">$</span> <span class="cmd">straion import</span> <span class="arg">./existing-rules.md</span><br>
+          <span class="output">&#x2714; Successfully loaded 12 requirement sets.</span><br><br>
+          <span class="comment"># Step 3: Add Skill to agent</span><br>
+          <span class="prompt">$</span> <span class="cmd">/add-skill</span> <span class="arg">straion:validating-rules</span><br>
+          <span class="output">&rarr; Dynamically injected: security + fastapi rules</span>
+        </div>
+      </div>
+
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <h4>CLIをインストール</h4>
+          <p>npm install -g @straion/cli</p>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <h4>既存ルールをインポート</h4>
+          <p>.cursorrules等から自動取り込み</p>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <h4>エージェントにSkillを追加</h4>
+          <p>動的注入が即座に開始</p>
+        </div>
+      </div>
+
+      <img src="images/0223/slide_12.jpg" alt="導入手順" class="slide-img" style="margin-top: 24px;" />
+    </section>
+
+    <!-- Conclusion -->
+    <section class="conclusion">
+      <span class="section-label">Conclusion</span>
+      <h2>AI時代の「<span class="blue">組織の記憶</span>」を構築する</h2>
+      <p class="tagline">コーディング規約は、もはやWikiに書くものではなく、AIのコンテキストに組み込む「ソフトウェア依存関係」である。</p>
+      <p class="quote-bold">"Don't let AI dilute your engineering culture; encode it."</p>
+
+      <div class="try-grid">
+        <a href="https://straion.com/" target="_blank" class="try-card">
+          <div class="try-label">Official Site</div>
+          straion.com
+        </a>
+        <a href="https://docs.straion.com/" target="_blank" class="try-card">
+          <div class="try-label">Documentation</div>
+          docs.straion.com
+        </a>
+        <a href="https://app.straion.com/" target="_blank" class="try-card">
+          <div class="try-label">Web App</div>
+          app.straion.com
+        </a>
+        <a href="https://github.com/intellectronica/ruler" target="_blank" class="try-card">
+          <div class="try-label">OSS Alternative</div>
+          Ruler (GitHub)
+        </a>
+      </div>
+
+      <img src="images/0223/slide_13.jpg" alt="まとめ" class="slide-img" style="margin-top: 24px; max-width: 800px; margin-left: auto; margin-right: auto; display: block;" />
+    </section>
+
+    <!-- Links -->
+    <section class="links-section">
+      <span class="section-label">Reference Links</span>
+      <h2>リソース・<span class="blue">リンク集</span></h2>
+
+      <div class="links-grid">
+        <a href="https://straion.com/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F310;</div>
+          <div>
+            <div class="link-text">Straion &mdash; 公式サイト</div>
+            <div class="link-url">straion.com</div>
+          </div>
+        </a>
+        <a href="https://docs.straion.com/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4DA;</div>
+          <div>
+            <div class="link-text">Straion Documentation</div>
+            <div class="link-url">docs.straion.com</div>
+          </div>
+        </a>
+        <a href="https://app.straion.com/" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4BB;</div>
+          <div>
+            <div class="link-text">Straion Web App</div>
+            <div class="link-url">app.straion.com</div>
+          </div>
+        </a>
+        <a href="https://github.com/intellectronica/ruler" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4CF;</div>
+          <div>
+            <div class="link-text">Ruler &mdash; OSS競合ツール（GitHub）</div>
+            <div class="link-url">github.com/intellectronica/ruler</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>AI News Daily Report &mdash; 2026/02/23 | Source: Straion Official Documentation</p>
+      <p style="margin-top: 8px;"><a href="../index.html">&#x2190; プレゼンテーション一覧へ戻る</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
