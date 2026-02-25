@@ -1,0 +1,43 @@
+Claude Codeの新機能「Remote Control」に関する要約と、関連するソースのURLは以下の通りです。
+
+### 「Remote Control」の要約
+
+**1. 概要と特徴**
+「Remote Control」は、ローカルPCで実行しているClaude Codeのセッションを、スマートフォン（Claudeアプリ）やタブレット、別のブラウザ（claude.ai/code）から遠隔操作できる機能です。現在、ProプランおよびMaxプランのユーザー向けにResearch Previewとして提供されています。
+
+*   **完全なローカル実行:** 処理はクラウドではなくすべてローカルPC上で行われます。ローカルのファイルシステムやMCPサーバー、各種ツールなどの環境をそのまま利用でき、ソースコードなどのデータがクラウドに移動することはありません。
+*   **シームレスな同期と接続:** ターミナルで`claude remote-control`（または`/rc`）と入力するとURLとQRコードが生成され、別端末から簡単に接続できます。会話履歴は全デバイス間でリアルタイムに同期され、ネットワークが一時的に切断されても自動で再接続されます。
+
+**2. 高度なセキュリティ**
+リモート操作でありながら、セキュリティを極限まで高めた設計になっています。
+*   **ポート開放不要:** ローカルPCはインバウンド（受信）ポートを一切開かず、Anthropic APIへのアウトバウンド（送信）HTTPS通信のみで動作します。
+*   **安全な通信と認証:** すべての通信はTLSで暗号化され、機能ごとに短寿命で独立した使い捨ての認証情報（クレデンシャル）を使用することで、万が一の漏洩リスク（爆発半径）を最小限に抑えています。
+*   **Sandboxによる多層防御:** 必要に応じて`--sandbox`フラグを有効にすることで、ファイルシステムやネットワークアクセスをOSレベルで隔離し、さらに安全性を高めることができます。
+
+**3. 主なユースケース**
+この機能により、PCの前に座り続ける「デスク拘束」から解放されます。
+*   大規模なリファクタリング、長時間のビルドやテストをPCで実行したまま、移動中（通勤電車や散歩中）にスマホから進捗を確認し、追加の指示を出す。
+*   自宅のソファやベッドでくつろぎながら、タブレットを使ってコードレビューやタスクの承認を行う。
+
+**4. 制限事項**
+*   遠隔操作中も、ホストとなるローカルPCの電源が入っており、ターミナルでClaude Codeのプロセスが起動したままである必要があります（閉じるとセッションが終了します）。
+*   PCのネットワークが10分以上切断されると、タイムアウトとなりプロセスが終了します。
+*   1つのセッションに対して接続できるリモートデバイスは1台のみです。
+
+---
+
+### 関連ソースのURL一覧
+
+公式ドキュメントおよび関連ページは以下の通りです。
+
+**公式ドキュメント**
+*   **Remote Control ガイド (英語):** https://code.claude.com/docs/en/remote-control
+*   **Remote Control ガイド (日本語):** https://code.claude.com/docs/ja/remote-control
+*   **セキュリティ詳細 (Security):** https://docs.anthropic.com/en/docs/claude-code/security (※ https://code.claude.com/docs/en/security としても参照可能)
+*   **データ利用ポリシー (Data Usage):** https://docs.anthropic.com/en/docs/claude-code/data-usage
+*   **Sandbox設定 (Sandboxing):** https://docs.anthropic.com/en/docs/claude-code/sandboxing
+*   **全体設定 (Settings):** https://docs.anthropic.com/en/docs/claude-code/settings
+
+**ニュース・SNS関連**
+*   **窓の杜 ニュース記事:** https://forest.watch.impress.co.jp/docs/news/2088383.html
+*   **Anthropic 公式X (旧Twitter) アナウンス:** https://x.com/claudeai/status/2026418435408986423
