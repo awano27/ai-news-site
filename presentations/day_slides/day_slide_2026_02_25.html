@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code「Remote Control」：PCの前からあなたを解放する新機能 - 2026/02/25</title>
+  <style>
+    :root {
+      --green: #10B981;
+      --green-dark: #059669;
+      --green-deep: #047857;
+      --green-light: #34D399;
+      --green-bright: #6EE7B7;
+      --slate: #334155;
+      --slate-light: #475569;
+      --amber: #F59E0B;
+      --amber-light: #FBBF24;
+      --amber-dark: #D97706;
+      --red: #EF4444;
+      --red-light: #F87171;
+      --blue: #3B82F6;
+      --blue-light: #60A5FA;
+      --bg: #F8FAFC;
+      --bg-card: #FFFFFF;
+      --bg-deep: #0F172A;
+      --bg-surface: #F1F5F9;
+      --text: #0F172A;
+      --text-light: #475569;
+      --text-muted: #94A3B8;
+      --border: #E2E8F0;
+      --border-green: rgba(16, 185, 129, 0.25);
+      --border-amber: rgba(245, 158, 11, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #D1D5DB;
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 24px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-deep);
+      color: #fff;
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #E5E7EB 39px, #E5E7EB 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #E5E7EB 39px, #E5E7EB 40px);
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .header-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green-bright);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      position: relative;
+      color: #fff;
+    }
+
+    header h1 .green { color: var(--green-light); }
+    header h1 .amber { color: var(--amber-light); }
+
+    header p.subtitle {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.65);
+      max-width: 740px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .version-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--green-bright);
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 16px;
+      position: relative;
+    }
+
+    /* Cover */
+    .cover-img {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      background: #fff;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-card {
+      padding: 28px 20px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-card:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: -1px;
+    }
+
+    .stat-value.amber { color: var(--amber); }
+    .stat-value.blue { color: var(--blue); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Section */
+    section {
+      padding: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green-deep);
+      margin-bottom: 8px;
+      padding: 4px 12px;
+      background: #ECFDF5;
+      border: 1px solid var(--border-green);
+      border-radius: 4px;
+    }
+
+    .section-label.amber {
+      color: var(--amber-dark);
+      background: #FFFBEB;
+      border-color: var(--border-amber);
+    }
+
+    .section-label.red {
+      color: var(--red);
+      background: #FEF2F2;
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+
+    .section-label.blue {
+      color: var(--blue);
+      background: #EFF6FF;
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    section h2 .green { color: var(--green); }
+    section h2 .amber { color: var(--amber-dark); }
+    section h2 .blue { color: var(--blue); }
+    section h2 .red { color: var(--red); }
+
+    section p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      max-width: 800px;
+      margin-bottom: 16px;
+    }
+
+    /* Slide images */
+    .slide-img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin: 16px 0;
+    }
+
+    .img-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .img-pair { grid-template-columns: 1fr; }
+    }
+
+    .img-pair img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    /* Problem vs Solution */
+    .ps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .ps-grid { grid-template-columns: 1fr; }
+    }
+
+    .ps-box {
+      padding: 28px;
+      border-radius: 16px;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+
+    .ps-box.problem { background: var(--bg-surface); }
+    .ps-box.solution { background: #ECFDF5; border-color: var(--border-green); }
+
+    .ps-box h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .ps-box.problem h3 { color: var(--text-muted); }
+    .ps-box.solution h3 { color: var(--green); }
+
+    .ps-box .ps-icon { font-size: 2.4rem; margin-bottom: 12px; }
+
+    .ps-box p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Architecture diagram */
+    .arch-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+      padding: 28px;
+      background: var(--bg-deep);
+      border-radius: 16px;
+    }
+
+    .arch-node {
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: center;
+      color: #fff;
+    }
+
+    .arch-node.local { background: #1E293B; border: 2px solid var(--green); }
+    .arch-node.api { background: #1E293B; border: 2px solid var(--amber); }
+    .arch-node.remote { background: #1E293B; border: 2px solid var(--blue); }
+    .arch-arrow { color: var(--green-light); font-size: 1.6rem; }
+
+    /* Security 3 pillars */
+    .sec-pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .sec-pillars { grid-template-columns: 1fr; }
+    }
+
+    .sec-pill {
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .sec-pill .pill-icon { font-size: 2rem; margin-bottom: 10px; }
+
+    .sec-pill h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .sec-pill p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Comparison table */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table th {
+      background: var(--bg-deep);
+      color: #fff;
+      padding: 14px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .compare-table th.highlight {
+      background: var(--green-deep);
+    }
+
+    .compare-table td {
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-light);
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+
+    .compare-table td.highlight {
+      background: #ECFDF5;
+      font-weight: 700;
+      color: var(--green-deep);
+    }
+
+    /* Use case cards */
+    .usecase-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .usecase-cards { grid-template-columns: 1fr; }
+    }
+
+    .uc-card {
+      padding: 24px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .uc-card .uc-icon { font-size: 2rem; margin-bottom: 10px; }
+
+    .uc-card h4 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .uc-card .uc-sub {
+      font-size: 0.78rem;
+      color: var(--green);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .uc-card p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Code block */
+    .code-block {
+      margin-top: 24px;
+      background: var(--bg-deep);
+      border-radius: 12px;
+      border: 1px solid #374151;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: #1F2937;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #374151;
+    }
+
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot.r { background: var(--red-light); }
+    .code-dot.y { background: #FBBF24; }
+    .code-dot.g { background: var(--green-light); }
+
+    .code-title {
+      color: #9CA3AF;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .code-body {
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.85rem;
+      line-height: 2;
+      color: #E5E7EB;
+    }
+
+    .code-body .comment { color: #6B7280; }
+    .code-body .cmd { color: var(--green-light); }
+    .code-body .output { color: var(--amber-light); }
+    .code-body .prompt { color: var(--green-light); }
+
+    /* Setup steps */
+    .setup-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .setup-steps { grid-template-columns: 1fr; }
+    }
+
+    .setup-step {
+      padding: 24px;
+      border-radius: 14px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+    }
+
+    .setup-step .step-num {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+
+    .setup-step h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .setup-step p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    .setup-step code {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--green-deep);
+      background: #ECFDF5;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* Config cards */
+    .config-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .config-card {
+      display: flex;
+      gap: 16px;
+      padding: 18px 22px;
+      border-radius: 12px;
+      align-items: flex-start;
+      border: 1px solid var(--border);
+    }
+
+    .config-card.green-bg { background: #ECFDF5; border-color: var(--border-green); }
+    .config-card.amber-bg { background: #FFFBEB; border-color: var(--border-amber); }
+    .config-card.blue-bg { background: #EFF6FF; border-color: rgba(59,130,246,0.25); }
+
+    .config-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .config-card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .config-card p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    .config-card code {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--green-deep);
+      background: rgba(16,185,129,0.1);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* Warning cards */
+    .warn-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .warn-card {
+      display: flex;
+      gap: 16px;
+      padding: 18px 22px;
+      border-radius: 12px;
+      background: #FFFBEB;
+      border: 1px solid var(--border-amber);
+      align-items: flex-start;
+    }
+
+    .warn-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .warn-card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .warn-card p {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    /* Quote */
+    .quote-box {
+      margin-top: 20px;
+      padding: 20px 28px;
+      border-left: 4px solid var(--green);
+      background: #ECFDF5;
+      border-radius: 0 12px 12px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--green-deep);
+      font-style: italic;
+    }
+
+    /* Command ref */
+    .cmd-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .cmd-table th {
+      background: var(--bg-deep);
+      color: #fff;
+      padding: 14px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .cmd-table td {
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-light);
+    }
+
+    .cmd-table tr:last-child td { border-bottom: none; }
+
+    .cmd-table code {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--green-deep);
+      background: #ECFDF5;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* Conclusion */
+    .conclusion {
+      background: var(--bg-deep);
+      text-align: center;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .conclusion::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #E5E7EB 39px, #E5E7EB 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #E5E7EB 39px, #E5E7EB 40px);
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .conclusion .section-label {
+      background: rgba(16,185,129,0.15);
+      color: var(--green-bright);
+      border-color: rgba(16,185,129,0.3);
+      position: relative;
+    }
+
+    .conclusion h2 {
+      color: #fff;
+      font-size: 1.8rem;
+      position: relative;
+    }
+
+    .conclusion h2 .green { color: var(--green-light); }
+
+    .conclusion .tagline {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.65);
+      max-width: 640px;
+      margin: 0 auto 12px;
+      position: relative;
+    }
+
+    .conclusion .quote-bold {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--green-bright);
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .try-grid {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      position: relative;
+    }
+
+    .try-card {
+      padding: 18px 28px;
+      border-radius: 12px;
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .try-card:hover {
+      background: rgba(16,185,129,0.2);
+      border-color: var(--green-light);
+      box-shadow: 0 0 20px rgba(16,185,129,0.15);
+    }
+
+    .try-card .try-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Links */
+    .links-section { background: var(--bg-surface); }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .link-item:hover {
+      border-color: var(--green);
+      box-shadow: 0 2px 12px rgba(16,185,129,0.08);
+      transform: translateY(-1px);
+    }
+
+    .link-item .link-icon {
+      font-size: 1.2rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ECFDF5;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .link-item .link-text { font-size: 0.82rem; font-weight: 600; }
+    .link-item .link-url { font-size: 0.68rem; color: var(--text-muted); word-break: break-all; }
+
+    /* Footer */
+    footer {
+      padding: 32px 48px;
+      text-align: center;
+      background: var(--bg-deep);
+      color: #9CA3AF;
+      font-size: 0.75rem;
+    }
+
+    footer a { color: var(--green-bright); text-decoration: none; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-label">Daily AI News &mdash; 2026/02/25</div>
+      <h1>Claude Code <span class="green">Remote Control</span><br>PCの前から<span class="amber">解放</span>される新しい開発体験</h1>
+      <p class="subtitle">ローカル環境を、どこでも、自由に。スマホやブラウザからClaude Codeセッションを遠隔操作する新機能がResearch Previewとして登場。</p>
+      <div class="version-badge">Research Preview &mdash; Pro &amp; Max Plans</div>
+    </header>
+
+    <!-- Cover -->
+    <img src="../../input/day/0225.png" alt="Claude Code Remote Control 概要" class="cover-img" />
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">ローカル実行</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value amber">0</div>
+        <div class="stat-label">開放ポート数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value blue">TLS 1.3</div>
+        <div class="stat-label">End-to-End暗号化</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--green);">3 Steps</div>
+        <div class="stat-label">セットアップ</div>
+      </div>
+    </div>
+
+    <!-- Section 1: The Problem -->
+    <section>
+      <span class="section-label amber">The Problem</span>
+      <h2>「<span class="amber">デスクの呪縛</span>」からの解放</h2>
+      <p>重いビルド、ローカルファイルの依存性、セキュリティ制約。開発者は物理的にPCの前に縛られてきた。Remote Controlは処理をローカルに保ったまま、インターフェースだけをポケットの中へ持ち出す。</p>
+
+      <div class="ps-grid">
+        <div class="ps-box problem">
+          <div class="ps-icon">&#x26D3;</div>
+          <h3>Before（課題）</h3>
+          <p>PCの前に物理的に拘束。<br>長時間ビルドの待機、進捗確認のために離席不可。</p>
+        </div>
+        <div class="ps-box solution">
+          <div class="ps-icon">&#x1F4F1;</div>
+          <h3>After（Remote Control）</h3>
+          <p>処理はローカルPC。操作はスマホ。<br>"デスクで始めたタスクを、ソファで引き継ぐ。"</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Architecture -->
+    <section>
+      <span class="section-label">Architecture</span>
+      <h2>実行は<span class="green">ローカル</span>。操作は<span class="blue">リモート</span>。</h2>
+      <p>クラウドへの移行ではなく、ローカル環境への「窓」。データや計算処理はすべてローカルPCで完結し、Anthropic APIを経由するのはプロンプトとテキスト出力だけ。ファイル本体はクラウドに保存されない。</p>
+
+      <div class="arch-flow">
+        <div class="arch-node local">&#x1F4BB; Local PC<br><small>Claude Code</small><br><small>Filesystem / MCP / Git</small></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node api">&#x2601; Anthropic API<br><small>Outbound HTTPS</small><br><small>TLS Streaming</small></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node remote">&#x1F4F1; Mobile / Web<br><small>UI / Chat Interface</small><br><small>Mirror View</small></div>
+      </div>
+
+      <div class="quote-box" style="margin-top: 24px;">完全ローカル実行 &rarr; リアルタイム同期 &rarr; 自動再接続。ポート開放不要、Outbound通信のみ。</div>
+    </section>
+
+    <!-- Section 3: Security -->
+    <section>
+      <span class="section-label blue">Security</span>
+      <h2><span class="green">セキュリティ</span>とプライバシー：3つの防衛線</h2>
+      <p>リモート操作でありながら、セキュリティを極限まで高めた設計。インバウンドポートは一切開かず、短寿命の使い捨てクレデンシャルを使用。</p>
+
+      <div class="sec-pillars">
+        <div class="sec-pill">
+          <div class="pill-icon">&#x1F6E1;</div>
+          <h4>1. 最小権限 (Blast Radius)</h4>
+          <p>短寿命・単一目的のクレデンシャル。万が一漏洩しても影響は極小。</p>
+        </div>
+        <div class="sec-pill">
+          <div class="pill-icon">&#x1F504;</div>
+          <h4>2. データフロー制限</h4>
+          <p>APIを経由するのはプロンプトとテキスト出力のみ。ファイル本体はクラウドに保存されない。</p>
+        </div>
+        <div class="sec-pill">
+          <div class="pill-icon">&#x23FB;</div>
+          <h4>3. 物理的な制御</h4>
+          <p>ターミナルを閉じれば即切断。ユーザーが物理的にプロセスを管理。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Comparison -->
+    <section>
+      <span class="section-label amber">Comparison</span>
+      <h2><span class="green">3つのモード</span>の違いを理解する</h2>
+      <p>Remote Control、Claude on the Web、Computer Use。それぞれの特徴と使い分け。</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="highlight">Remote Control</th>
+            <th>Claude on Web</th>
+            <th>Computer Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>実行場所</strong></td>
+            <td class="highlight">ローカルPC (Local)</td>
+            <td>クラウド (Cloud)</td>
+            <td>クラウド / API</td>
+          </tr>
+          <tr>
+            <td><strong>ローカルファイル</strong></td>
+            <td class="highlight">フルアクセス (Full)</td>
+            <td>不可 (None)</td>
+            <td>視覚的のみ (Visual)</td>
+          </tr>
+          <tr>
+            <td><strong>主な用途</strong></td>
+            <td class="highlight">外出先からの指示・監視</td>
+            <td>環境構築不要・並列処理</td>
+            <td>AIによるGUI自動操作</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 5: Use Cases (Developer) -->
+    <section>
+      <span class="section-label">Use Cases</span>
+      <h2>ユースケース：開発者の<span class="green">新しい日常</span></h2>
+
+      <div class="usecase-cards">
+        <div class="uc-card">
+          <div class="uc-icon">&#x1F6B6;</div>
+          <h4>The Dog Walker</h4>
+          <div class="uc-sub">散歩デバッグ</div>
+          <p>重いリファクタリングを仕掛けて外出。犬の散歩中にスマホでエラーを確認し、追加指示を出す。</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">&#x1F6CB;</div>
+          <h4>The Couch Coder</h4>
+          <div class="uc-sub">ソファでVibe Coding</div>
+          <p>自然言語プログラミングならキーボード不要。ソファでくつろぎながらアプリ開発。</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">&#x1F37D;</div>
+          <h4>The Dinner Guest</h4>
+          <div class="uc-sub">外出先での見守り</div>
+          <p>デプロイ監視のために残業する必要なし。食事中にスマホで完了通知を確認。</p>
+        </div>
+      </div>
+
+      <div class="usecase-cards" style="margin-top: 16px;">
+        <div class="uc-card">
+          <div class="uc-icon">&#x1F6A8;</div>
+          <h4>Emergency Ops</h4>
+          <div class="uc-sub">緊急対応</div>
+          <p>サーバー再起動やログ確認。通勤電車から自宅/オフィスのPCへ安全にアクセス。</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">&#x2705;</div>
+          <h4>Review &amp; Approve</h4>
+          <div class="uc-sub">レビューと承認</div>
+          <p>マネージャー業務。コード変更内容やファイル整理の結果を、タブレットから確認して承認。</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">&#x1F50D;</div>
+          <h4>Security Scan</h4>
+          <div class="uc-sub">セキュリティスキャン</div>
+          <p>機密データをクラウドに上げることなく、ローカルで脆弱性スキャンを実行。結果だけをリモートで確認。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: Quick Start -->
+    <section>
+      <span class="section-label" style="color: var(--green-deep); background: #ECFDF5;">Quick Start</span>
+      <h2><span class="green">3ステップ</span>で始めるセットアップ</h2>
+
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <h4>プロジェクトへ移動</h4>
+          <p><code>cd my-project</code></p>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <h4>コマンド実行</h4>
+          <p><code>claude remote-control</code></p>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <h4>QRコードで接続</h4>
+          <p>Claudeアプリでスキャン</p>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top: 24px;">
+        <div class="code-header">
+          <span class="code-dot r"></span>
+          <span class="code-dot y"></span>
+          <span class="code-dot g"></span>
+          <span class="code-title">Terminal</span>
+        </div>
+        <div class="code-body">
+          <span class="prompt">$</span> <span class="cmd">cd my-project</span><br>
+          <span class="prompt">$</span> <span class="cmd">claude remote-control</span><br>
+          <span class="output">&gt; Starting session...</span><br>
+          <span class="output">&gt; Session active. Scan QR to connect.</span><br><br>
+          <span class="comment"># Pro Tip: /rename でセッションに名前を付けると識別しやすい</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 7: Power User Settings -->
+    <section>
+      <span class="section-label amber">Advanced</span>
+      <h2>パワーユーザー向け<span class="amber">設定</span></h2>
+
+      <div class="config-cards">
+        <div class="config-card green-bg">
+          <div class="config-icon">&#x1F7E2;</div>
+          <div>
+            <h4>常時有効化 (Auto-Enable)</h4>
+            <p><code>/config</code> &rarr; Enable Remote Control for all sessions = <code>true</code></p>
+          </div>
+        </div>
+        <div class="config-card amber-bg">
+          <div class="config-icon">&#x1F4E6;</div>
+          <div>
+            <h4>サンドボックスモード (Sandbox)</h4>
+            <p><code>claude remote-control --sandbox</code> でファイルシステムとネットワークをOSレベルで隔離。セキュリティを強化。</p>
+          </div>
+        </div>
+        <div class="config-card blue-bg">
+          <div class="config-icon">&#x2615;</div>
+          <div>
+            <h4>スリープ対策 (Mac Users)</h4>
+            <p><code>caffeinate -i claude remote-control</code> でPCのスリープを防止。長時間セッションに推奨。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 8: Sandbox Detail -->
+    <section>
+      <span class="section-label">Sandbox</span>
+      <h2>サンドボックスモード：<span class="green">鉄壁の守り</span></h2>
+      <p><code>--sandbox</code> フラグでOSレベルの隔離を実現。Bashコマンドと子プロセスをコンテナ内に封じ込め、プロジェクトディレクトリ外への書き込みをブロック、許可されたドメイン以外へのネットワークアクセスを制限。</p>
+
+      <div class="sec-pillars">
+        <div class="sec-pill">
+          <div class="pill-icon">&#x1F4BB;</div>
+          <h4>プロセス隔離</h4>
+          <p>Bashコマンドと子プロセスをOSレベルで隔離</p>
+        </div>
+        <div class="sec-pill">
+          <div class="pill-icon">&#x1F4C1;</div>
+          <h4>ファイルシステム制限</h4>
+          <p>プロジェクトディレクトリ外への書き込みをブロック</p>
+        </div>
+        <div class="sec-pill">
+          <div class="pill-icon">&#x1F310;</div>
+          <h4>ネットワーク制限</h4>
+          <p>許可されたドメイン以外へのアクセスを制限</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 9: Limitations -->
+    <section>
+      <span class="section-label red">Limitations</span>
+      <h2>制限事項と<span class="red">注意点</span></h2>
+
+      <div class="warn-cards">
+        <div class="warn-card">
+          <div class="warn-icon">&#x26A0;</div>
+          <div>
+            <h4>物理的な制約</h4>
+            <p>ターミナルを閉じるとセッションは終了します。PCの電源とネットワーク接続が必要です。</p>
+          </div>
+        </div>
+        <div class="warn-card">
+          <div class="warn-icon">&#x23F1;</div>
+          <div>
+            <h4>10分タイムアウト</h4>
+            <p>ネットワーク切断が約10分続くと、セキュリティのためプロセスが終了します。</p>
+          </div>
+        </div>
+        <div class="warn-card">
+          <div class="warn-icon">&#x1F4F1;</div>
+          <div>
+            <h4>シングルセッション</h4>
+            <p>1つのセッションに接続できるリモートデバイスは1台のみです。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 10: Command Reference -->
+    <section>
+      <span class="section-label">Reference</span>
+      <h2>コマンド＆<span class="green">リソース</span></h2>
+
+      <table class="cmd-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Command</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>セッション開始</td>
+            <td><code>claude rc</code></td>
+            <td>remote-control の短縮形</td>
+          </tr>
+          <tr>
+            <td>セッション内から有効化</td>
+            <td><code>/rc</code></td>
+            <td>既存セッション中に実行</td>
+          </tr>
+          <tr>
+            <td>設定画面</td>
+            <td><code>/config</code></td>
+            <td>Auto-Enable等の設定</td>
+          </tr>
+          <tr>
+            <td>QRコード再表示</td>
+            <td><code>/mobile</code></td>
+            <td>アプリから接続用</td>
+          </tr>
+          <tr>
+            <td>セッション名変更</td>
+            <td><code>/rename</code></td>
+            <td>複数セッションの識別用</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Conclusion -->
+    <section class="conclusion">
+      <span class="section-label">Vision</span>
+      <h2><span class="green">Ambient Development</span> の時代へ</h2>
+      <p class="tagline">私たちは「キーボードを叩き続ける」スタイルから、「エージェントを監督（Supervise）する」スタイルへと移行しています。</p>
+      <p class="quote-bold">"Code Local. Control Anywhere."</p>
+
+      <div class="try-grid">
+        <a href="https://code.claude.com/docs/ja/remote-control" target="_blank" class="try-card">
+          <div class="try-label">Official Docs</div>
+          Remote Control ガイド
+        </a>
+        <a href="https://docs.anthropic.com/en/docs/claude-code/security" target="_blank" class="try-card">
+          <div class="try-label">Security</div>
+          セキュリティ詳細
+        </a>
+      </div>
+    </section>
+
+    <!-- Links -->
+    <section class="links-section">
+      <span class="section-label">Reference Links</span>
+      <h2>リソース・<span class="green">リンク集</span></h2>
+
+      <div class="links-grid">
+        <a href="https://code.claude.com/docs/ja/remote-control" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D6;</div>
+          <div>
+            <div class="link-text">Remote Control ガイド (日本語)</div>
+            <div class="link-url">code.claude.com/docs/ja/remote-control</div>
+          </div>
+        </a>
+        <a href="https://code.claude.com/docs/en/remote-control" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4D6;</div>
+          <div>
+            <div class="link-text">Remote Control Guide (English)</div>
+            <div class="link-url">code.claude.com/docs/en/remote-control</div>
+          </div>
+        </a>
+        <a href="https://docs.anthropic.com/en/docs/claude-code/security" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F512;</div>
+          <div>
+            <div class="link-text">Security Documentation</div>
+            <div class="link-url">docs.anthropic.com/en/docs/claude-code/security</div>
+          </div>
+        </a>
+        <a href="https://docs.anthropic.com/en/docs/claude-code/sandboxing" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4E6;</div>
+          <div>
+            <div class="link-text">Sandbox Settings</div>
+            <div class="link-url">docs.anthropic.com/en/docs/claude-code/sandboxing</div>
+          </div>
+        </a>
+        <a href="https://forest.watch.impress.co.jp/docs/news/2088383.html" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F4F0;</div>
+          <div>
+            <div class="link-text">窓の杜 ニュース記事</div>
+            <div class="link-url">forest.watch.impress.co.jp/docs/news/2088383.html</div>
+          </div>
+        </a>
+        <a href="https://x.com/claudeai/status/2026418435408986423" target="_blank" class="link-item">
+          <div class="link-icon">&#x1F426;</div>
+          <div>
+            <div class="link-text">Anthropic 公式X アナウンス</div>
+            <div class="link-url">x.com/claudeai/status/2026418435408986423</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>AI News Daily Report &mdash; 2026/02/25 | Source: Anthropic Official Documentation, Claude Code Remote Control Guide</p>
+      <p style="margin-top: 8px;"><a href="../index.html">&#x2190; プレゼンテーション一覧へ戻る</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
