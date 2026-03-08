@@ -125,6 +125,8 @@
       font: 14px/1.65 "IBM Plex Mono", monospace;
     }
     code { font-family: "IBM Plex Mono", monospace; }
+    .addons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .mini-code { margin-top: 12px; }
     .sources { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
     .source-card a { color: var(--cobalt); text-decoration: none; font-weight: 800; }
     .cta {
@@ -137,7 +139,7 @@
     .cta p { margin: 10px 0 0; color: var(--muted); }
 
     @media (max-width: 1080px) {
-      .stats, .grid-4, .sources, .section-head, .cta {
+      .stats, .grid-4, .sources, .addons, .section-head, .cta {
         grid-template-columns: 1fr; flex-direction: column; align-items: flex-start;
       }
     }
@@ -145,7 +147,7 @@
       .shell { width: min(100vw - 28px, 100%); }
       .hero { padding: 28px 22px; }
       .topbar { border-radius: 26px; }
-      .stats, .grid-2, .grid-3, .grid-4, .sources { grid-template-columns: 1fr; }
+      .stats, .grid-2, .grid-3, .grid-4, .addons, .sources { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -276,6 +278,66 @@
         </div>
       </section>
 
+      <section id="latest-recommended">
+        <div class="section-head">
+          <div><div class="label">Latest Recommended Stack</div><h2>2026年3月時点で、Codex に足す価値が高いもの</h2></div>
+          <p>OpenAI公式とX上の実務運用を合わせると、Codex では Codex app、worktrees、skills、automations、Slack / GitHub 連携の5つが中核です。</p>
+        </div>
+        <div class="addons">
+          <article class="card">
+            <h3>Codex app + worktrees</h3>
+            <p>最新のおすすめは app を使って複数 worktree を並列運用する構成です。OpenAI公式も built-in worktree support と parallel coding agents を前面に出しています。</p>
+            <div class="pill-row"><span class="pill">Codex app</span><span class="pill">worktree</span><span class="pill">parallel</span></div>
+            <pre class="mini-code"><code>main task
+- implementer worktree
+- reviewer worktree
+- test-plan worktree</code></pre>
+          </article>
+          <article class="card">
+            <h3>Skills</h3>
+            <p>レビュー、test plan、release note、incident summary のような routine は skill 化するのが最新の定番です。OpenAI公式でも teams can check skills into their repositories と明記されています。</p>
+            <div class="pill-row"><span class="pill">review</span><span class="pill">test-plan</span><span class="pill">release-note</span></div>
+            <pre class="mini-code"><code>codex/
+  skills/
+    review.md
+    test-plan.md
+    release-note.md</code></pre>
+          </article>
+          <article class="card">
+            <h3>Automations</h3>
+            <p>issue triage、alert monitoring、CI summary のような定期仕事は automation 化すると相性が良いです。Codex app の最新機能としても強く押されています。</p>
+            <div class="pill-row"><span class="pill">issue triage</span><span class="pill">alerts</span><span class="pill">CI summary</span></div>
+            <pre class="mini-code"><code>おすすめ automation
+- 毎朝: open issues を要約
+- 毎時: alerts を監視
+- PR 後: release note を生成</code></pre>
+          </article>
+          <article class="card">
+            <h3>Slack / GitHub 連携</h3>
+            <p>GA時点の公式メッセージでは Slack から @Codex で調査を委任し、GitHub code review へ戻す流れが推されています。Xでも「routine work を会話外に逃がす」用途で評価が高いです。</p>
+            <div class="pill-row"><span class="pill">Slack</span><span class="pill">GitHub review</span><span class="pill">routine work</span></div>
+            <pre class="mini-code"><code>Slack:
+- @Codex で issue 調査
+
+GitHub:
+- reviewer skill で PR コメント草案
+- human approves before merge</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="settings-methods">
+        <div class="section-head">
+          <div><div class="label">How To Configure</div><h2>Codex はこの3層で設定すると分かりやすいです。</h2></div>
+          <p>いまのおすすめは、<code>AGENTS.md</code> を目次にし、詳細を <code>docs/</code>、繰り返す仕事を <code>skills/</code> や automations に分ける構成です。</p>
+        </div>
+        <div class="grid-3">
+          <article class="code-card"><h3><code>AGENTS.md</code></h3><p>何の repo か、何を読むか、主要コマンドだけを書く。</p></article>
+          <article class="code-card"><h3><code>docs/</code></h3><p>設計、レビュー基準、runbook を分けて置く。長文はここに逃がす。</p></article>
+          <article class="code-card"><h3><code>skills/</code> / app Automations</h3><p>routine work を codify して、並列エージェントや定期実行へ渡す。</p></article>
+        </div>
+      </section>
+
       <section id="mistakes">
         <div class="section-head">
           <div><div class="label">Mistakes</div><h2>Codex 構築でやりがちな失敗</h2></div>
@@ -303,6 +365,7 @@
               <li><a href="https://x.com/aakashgupta/status/2026367615602667784" target="_blank" rel="noopener noreferrer">Aakash Gupta on X</a> : agents need CLI, MCP, machine-readable docs</li>
               <li><a href="https://x.com/OpenAIDevs/status/2027062351724527723" target="_blank" rel="noopener noreferrer">OpenAI Developers on X</a> : code → design → code の surface 拡張</li>
               <li><a href="https://x.com/_orcaman/status/2025530886465142857" target="_blank" rel="noopener noreferrer">Or Hiltch on X</a> : harness を自作しすぎない</li>
+              <li><a href="https://x.com/OpenAIDevs/status/2026775277272864952" target="_blank" rel="noopener noreferrer">OpenAI Developers on X</a> : Slack、code review、routine work への委任</li>
             </ul>
           </article>
           <article class="source-card">
@@ -314,6 +377,7 @@
               <li><a href="https://openai.com/index/introducing-the-codex-app/" target="_blank" rel="noopener noreferrer">Introducing the Codex app</a></li>
               <li><a href="https://openai.com/index/harness-engineering/" target="_blank" rel="noopener noreferrer">Harness engineering</a></li>
               <li><a href="https://openai.com/index/codex-now-generally-available/" target="_blank" rel="noopener noreferrer">Codex is now generally available</a></li>
+              <li><a href="https://developers.openai.com/codex/team-config/" target="_blank" rel="noopener noreferrer">Team configuration</a></li>
               <li><a href="https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan/" target="_blank" rel="noopener noreferrer">Using Codex with your ChatGPT plan</a></li>
             </ul>
           </article>

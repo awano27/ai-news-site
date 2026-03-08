@@ -135,6 +135,8 @@
       background: rgba(84, 214, 160, 0.05); color: var(--text);
     }
     .quote p { margin: 0; font-size: 17px; }
+    .addons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .mini-code { margin-top: 12px; }
     .sources { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
     .source-card a { color: var(--accent-2); text-decoration: none; font-weight: 800; }
     .cta {
@@ -148,7 +150,7 @@
 
     @media (max-width: 1080px) {
       .stats, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .setup-frame, .sources, .section-head, .cta {
+      .setup-frame, .sources, .addons, .section-head, .cta {
         grid-template-columns: 1fr; flex-direction: column; align-items: flex-start;
       }
     }
@@ -156,7 +158,7 @@
       .shell { width: min(100vw - 28px, 100%); }
       .hero { padding: 28px 22px; }
       .topbar { border-radius: 26px; }
-      .stats, .grid-2, .grid-3, .grid-4, .sources { grid-template-columns: 1fr; }
+      .stats, .grid-2, .grid-3, .grid-4, .addons, .sources { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -287,6 +289,77 @@
         </div>
       </section>
 
+      <section id="latest-recommended">
+        <div class="section-head">
+          <div><div class="label">Latest Recommended Stack</div><h2>2026年3月時点で、追加価値が高いもの</h2></div>
+          <p>X上の実務知とAnthropic公式を合わせると、Claude Code では IDE 統合、PostToolUse hooks、project-scoped MCP、subagents の4つが優先度高めです。</p>
+        </div>
+        <div class="addons">
+          <article class="card">
+            <h3>IDE 統合</h3>
+            <p>最新のおすすめは VS Code / Cursor / Windsurf の統合ターミナルで <code>claude</code> を起動し、必要なら JetBrains plugin を使う構成です。外部ターミナルからは <code>/ide</code> で接続できます。</p>
+            <div class="pill-row"><span class="pill">VS Code</span><span class="pill">Cursor</span><span class="pill">Windsurf</span><span class="pill">JetBrains</span></div>
+            <pre class="mini-code"><code># IDE 内ターミナルで起動
+claude
+
+# 外部ターミナルから接続
+/ide</code></pre>
+          </article>
+          <article class="card">
+            <h3>PostToolUse hooks</h3>
+            <p>最初の hook としておすすめなのは formatter / linter 実行です。編集や保存のあとにだけ走らせると安全で、効果も分かりやすいです。</p>
+            <div class="pill-row"><span class="pill">format</span><span class="pill">lint</span><span class="pill">notify</span></div>
+            <pre class="mini-code"><code>{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/scripts/format-and-lint.ps1"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+          </article>
+          <article class="card">
+            <h3>project-scoped MCP</h3>
+            <p>おすすめは GitHub と Sentry のような毎日使うサービスだけを project scope で共有する方法です。チーム共有なら <code>.mcp.json</code> に保存します。</p>
+            <div class="pill-row"><span class="pill">GitHub</span><span class="pill">Sentry</span><span class="pill">Jira</span><span class="pill">Slack</span></div>
+            <pre class="mini-code"><code># project-scoped MCP を追加
+claude mcp add github --scope project -- cmd /c npx -y @modelcontextprotocol/server-github
+
+# 一覧確認
+claude mcp list
+/mcp</code></pre>
+          </article>
+          <article class="card">
+            <h3>subagents</h3>
+            <p>Reviewer、Debugger、Docs Writer の3種が最新の定番です。主会話を実装に集中させ、レビューや調査だけを別コンテキストに逃がします。</p>
+            <div class="pill-row"><span class="pill">Reviewer</span><span class="pill">Debugger</span><span class="pill">Docs</span></div>
+            <pre class="mini-code"><code>project-level subagent
+- role: reviewer
+- tools: Read, Grep, Bash(test only)
+- goal: 差分レビューとリスク抽出に限定</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="settings-methods">
+        <div class="section-head">
+          <div><div class="label">How To Configure</div><h2>設定はこの3ファイルで足りることが多いです。</h2></div>
+          <p>いまのおすすめは、<code>CLAUDE.md</code> に文脈、<code>.claude/settings.json</code> に権限と hooks、<code>.mcp.json</code> に共有MCPを分ける構成です。</p>
+        </div>
+        <div class="grid-3">
+          <article class="code-card"><h3><code>CLAUDE.md</code></h3><p>何を作るか、どの docs を読むか、禁止事項だけを書く。</p></article>
+          <article class="code-card"><h3><code>.claude/settings.json</code></h3><p><code>permissions</code> と <code>hooks</code> を定義する。危険コマンドの deny と formatter が主用途です。</p></article>
+          <article class="code-card"><h3><code>.mcp.json</code></h3><p>GitHub や Sentry のような project-scoped MCP を共有する。</p></article>
+        </div>
+      </section>
+
       <section id="mistakes">
         <div class="section-head">
           <div><div class="label">Mistakes</div><h2>Claude Code 構築で外しやすい点</h2></div>
@@ -323,6 +396,7 @@
               <li><a href="https://x.com/unikoukokun/status/2026262279172558992" target="_blank" rel="noopener noreferrer">ユニコ on X</a> : Hooks/MCP より先に目的と全体像</li>
               <li><a href="https://x.com/yanndine/status/2026382902406123654" target="_blank" rel="noopener noreferrer">Yann on X</a> : plan mode, slash commands, subagents, verification loops</li>
               <li><a href="https://x.com/brunoborges/status/2023504791192617148" target="_blank" rel="noopener noreferrer">Bruno Borges on X</a> : real debugger を使う</li>
+              <li><a href="https://x.com/camsoft/status/2026304236809115988" target="_blank" rel="noopener noreferrer">camsoft on X</a> : project-specific MCP の実例</li>
             </ul>
           </article>
           <article class="source-card">
@@ -330,6 +404,7 @@
             <h3>機能確認に使った Anthropic 公式</h3>
             <ul class="checklist">
               <li><a href="https://docs.anthropic.com/en/docs/claude-code/slash-commands" target="_blank" rel="noopener noreferrer">Slash commands</a></li>
+              <li><a href="https://docs.anthropic.com/en/docs/claude-code/ide-integrations" target="_blank" rel="noopener noreferrer">IDE integrations</a></li>
               <li><a href="https://docs.anthropic.com/en/docs/claude-code/hooks-guide" target="_blank" rel="noopener noreferrer">Hooks guide</a></li>
               <li><a href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank" rel="noopener noreferrer">Hooks reference</a></li>
               <li><a href="https://docs.anthropic.com/en/docs/claude-code/mcp" target="_blank" rel="noopener noreferrer">MCP</a></li>
