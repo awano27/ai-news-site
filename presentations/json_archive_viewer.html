@@ -140,6 +140,98 @@
       align-items: center;
     }
 
+    .ops-log {
+      margin: 0 0 32px 0;
+      display: grid;
+      gap: 20px;
+    }
+
+    .ops-card {
+      background:
+        linear-gradient(180deg, rgba(103, 232, 249, 0.08), rgba(59, 130, 246, 0.03)),
+        var(--surface);
+      border: 1px solid rgba(103, 232, 249, 0.22);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    .ops-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      margin-bottom: 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(103, 232, 249, 0.08);
+      border: 1px solid rgba(103, 232, 249, 0.22);
+    }
+
+    .ops-title {
+      margin: 0 0 10px 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .ops-summary {
+      margin: 0 0 18px 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .ops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .ops-block {
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(11, 15, 20, 0.45);
+      border: 1px solid rgba(138, 160, 178, 0.12);
+    }
+
+    .ops-block h3 {
+      margin: 0 0 10px 0;
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    .ops-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .ops-block li + li {
+      margin-top: 6px;
+    }
+
+    .ops-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .ops-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .ops-links a:hover {
+      text-decoration: underline;
+    }
+
     .search-box {
       flex: 1;
       min-width: 300px;
@@ -369,6 +461,62 @@
         <span class="stat-label">Last Updated</span>
       </div>
     </div>
+
+    <section class="ops-log" aria-label="運用メモ">
+      <article class="ops-card">
+        <div class="ops-kicker">Ops Memo</div>
+        <h2 class="ops-title">2026-03-08 GitHub Pages / Gemini 運用記録</h2>
+        <p class="ops-summary">
+          daily-ai-news 側で発生した GitHub Pages 更新停止の調査結果と、その場で実施した修正内容をここに残しています。
+          同日中に復旧と再デプロイまで確認済みです。
+        </p>
+
+        <div class="ops-grid">
+          <section class="ops-block">
+            <h3>停止原因</h3>
+            <ul>
+              <li>定期 workflow が <code>disabled_inactivity</code> で自動停止していた。</li>
+              <li>ソース repo に活動が残らず、Pages 側の別 repo にだけ commit が積まれていた。</li>
+              <li>2026-03-02 実行では、デプロイ後の検証ステップ設計不備で run 全体が失敗扱いになっていた。</li>
+            </ul>
+          </section>
+
+          <section class="ops-block">
+            <h3>修正内容</h3>
+            <ul>
+              <li>workflow を再有効化し、デプロイ検証を retry 付き・非致命化に変更。</li>
+              <li>heartbeat 用の記録を追加し、inactivity で止まりにくい構成へ変更。</li>
+              <li>Gemini 補完用の secret を workflow に接続。</li>
+            </ul>
+          </section>
+
+          <section class="ops-block">
+            <h3>Gemini の現状</h3>
+            <ul>
+              <li>情報収集補完は <code>gemini-3.1-flash-lite-preview</code> を既定値に変更。</li>
+              <li>旧 <code>gemini-2.5-flash</code> は runtime の既定値から除去し、古い設定値も新モデルへ正規化。</li>
+              <li>2026-03-08 の新しい既定モデル切替 run は成功し、Pages 反映まで確認済み。</li>
+            </ul>
+          </section>
+
+          <section class="ops-block">
+            <h3>確認結果</h3>
+            <ul>
+              <li>復旧確認 run: #257 success</li>
+              <li>既定モデル切替 run: #258 success</li>
+              <li>Pages は 2026-03-08 12:46 JST 時点の内容まで更新確認済み。</li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="ops-links">
+          <a href="https://github.com/awano27/daily-ai-news/actions/runs/22812987720" target="_blank" rel="noopener noreferrer">Run #257</a>
+          <a href="https://github.com/awano27/daily-ai-news/actions/runs/22813203352" target="_blank" rel="noopener noreferrer">Run #258</a>
+          <a href="https://github.com/awano27/daily-ai-news-pages/commit/513dd4b65420aafeedca120ff2bafdc1ac7b31bc" target="_blank" rel="noopener noreferrer">Pages deploy</a>
+          <a href="https://awano27.github.io/daily-ai-news-pages/" target="_blank" rel="noopener noreferrer">公開サイト</a>
+        </div>
+      </article>
+    </section>
 
     <div class="controls">
       <div class="search-box">
