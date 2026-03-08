@@ -22,6 +22,48 @@ const OUTPUT_DIR = path.join(__dirname, '../presentations/api');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'daily-news.json');
 const OUTPUT_LATEST_FILE = path.join(OUTPUT_DIR, 'daily-news-latest.json');
 
+function pad2(value) {
+  return String(value).padStart(2, '0');
+}
+
+function inferDateFromFilename(filename, now = new Date()) {
+  const dateMatch = filename.match(/^(\d{2})(\d{2})(?:-\d+)?\.txt$/);
+  if (!dateMatch) return null;
+
+  const month = Number(dateMatch[1]);
+  const day = Number(dateMatch[2]);
+  let year = now.getFullYear();
+
+  let candidate = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(candidate.getTime())) return null;
+
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  if (candidate > today) {
+    year -= 1;
+    candidate = new Date(Date.UTC(year, month - 1, day));
+  }
+
+  return `${candidate.getUTCFullYear()}-${pad2(candidate.getUTCMonth() + 1)}-${pad2(candidate.getUTCDate())}`;
+}
+
+function extractFallbackTitle(content) {
+  const lines = content
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+  return lines[0] || 'タイトル不明';
+}
+
+function extractFallbackSummary(content, title) {
+  const lines = content
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .filter(line => line !== title);
+
+  return lines.slice(0, 4).join(' ').slice(0, 280);
+}
+
 /**
  * テキストファイルを解析してニュースオブジェクトに変換
  */
@@ -29,13 +71,8 @@ function parseNewsFile(filePath, filename) {
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    // ファイル名から日付を抽出 (例: 1115.txt -> 2025-11-15)
-    const dateMatch = filename.match(/(\d{2})(\d{2})\.txt$/);
-    if (!dateMatch) return null;
-
-    const month = dateMatch[1];
-    const day = dateMatch[2];
-    const date = `2025-${month}-${day}`;
+    const date = inferDateFromFilename(filename);
+    if (!date) return null;
 
     // 空ファイルチェック
     if (content.trim().length === 0) return null;
@@ -54,8 +91,8 @@ function parseNewsFile(filePath, filename) {
     return {
       date,
       filename,
-      title: sections.title || 'タイトル不明',
-      summary: sections.summary || '',
+      title: sections.title || extractFallbackTitle(content),
+      summary: sections.summary || extractFallbackSummary(content, sections.title || extractFallbackTitle(content)),
       surprise: sections.surprise || '',
       sources: extractLinks(sections.sources),
       engineerPoints: sections.engineerPoints || '',
@@ -198,4 +235,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { parseNewsFile, extractSection, extractLinks };
+module.exports = { parseNewsFile, extractSection, extractLinks, inferDateFromFilename };
