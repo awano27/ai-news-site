@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Claude Code、Codex、Cursor、Windsurf、Cline CLIを軸に、2026年のAIコーディングエージェントを比較・整理した実務向けガイドです。">
+  <title>AIコーディングエージェント完全ガイド | AI Intelligence Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08101d;
+      --bg-soft: #101b2d;
+      --panel: rgba(10, 20, 37, 0.88);
+      --panel-strong: #0d1728;
+      --line: rgba(148, 163, 184, 0.18);
+      --line-strong: rgba(96, 165, 250, 0.24);
+      --text: #f8fbff;
+      --text-soft: #c5d3eb;
+      --text-muted: #8ca0bf;
+      --brand: #67e8f9;
+      --brand-2: #60a5fa;
+      --accent: #f97316;
+      --ok: #34d399;
+      --danger: #f87171;
+      --shadow: 0 26px 60px rgba(0, 0, 0, 0.28);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --width: min(1180px, calc(100vw - 40px));
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans JP", sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+      background:
+        radial-gradient(circle at top left, rgba(103, 232, 249, 0.10), transparent 26%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.10), transparent 24%),
+        linear-gradient(180deg, #08101d 0%, #0b1323 100%);
+    }
+
+    a { color: inherit; }
+    .shell { width: var(--width); margin: 0 auto; padding: 24px 0 72px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 24px; padding: 14px 18px; border: 1px solid var(--line);
+      border-radius: 999px; background: rgba(10, 20, 37, 0.7); backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+    .brand { text-decoration: none; font-weight: 800; }
+    .brand small { display: block; color: var(--text-muted); font-size: 12px; font-weight: 500; }
+    .nav { display: flex; flex-wrap: wrap; gap: 10px; }
+    .nav a {
+      text-decoration: none; color: var(--text-soft); border: 1px solid transparent;
+      border-radius: 999px; padding: 10px 14px; font-size: 14px; font-weight: 700;
+    }
+    .nav a:hover { border-color: var(--line-strong); color: var(--text); background: rgba(255,255,255,0.04); }
+
+    .hero {
+      position: relative; overflow: hidden; border-radius: 36px; padding: 44px;
+      background:
+        linear-gradient(140deg, rgba(96, 165, 250, 0.14), rgba(8, 16, 29, 0) 45%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 30%),
+        var(--panel);
+      border: 1px solid var(--line); box-shadow: var(--shadow);
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; margin-bottom: 18px;
+      border: 1px solid var(--line-strong); border-radius: 999px; padding: 8px 14px;
+      color: var(--brand); font-family: "JetBrains Mono", monospace; font-size: 12px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 14px; font-family: "Fraunces", serif; font-size: clamp(38px, 6vw, 62px);
+      line-height: 1.05; letter-spacing: -0.03em;
+    }
+    .hero p {
+      margin: 0; max-width: 760px; color: var(--text-soft); font-size: 17px;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 48px;
+      padding: 12px 18px; border-radius: 999px; text-decoration: none; font-weight: 800;
+      border: 1px solid transparent; transition: transform .2s ease, border-color .2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #06101d; }
+    .btn-secondary { background: rgba(255,255,255,0.03); border-color: var(--line-strong); color: var(--text); }
+
+    .stats {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 22px;
+    }
+    .stat {
+      border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px;
+      background: rgba(255,255,255,0.03);
+    }
+    .stat strong { display: block; font: 700 28px/1 "JetBrains Mono", monospace; margin-bottom: 6px; }
+    .stat span { color: var(--text-soft); font-size: 14px; }
+
+    section { margin-top: 70px; }
+    .section-head { display: flex; justify-content: space-between; gap: 20px; align-items: end; margin-bottom: 24px; }
+    .section-head h2 { margin: 0; font-size: clamp(28px, 3.4vw, 42px); line-height: 1.12; letter-spacing: -0.03em; }
+    .section-head p { margin: 0; max-width: 620px; color: var(--text-soft); }
+    .label {
+      color: var(--brand); font: 700 12px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;
+    }
+
+    .grid-2, .grid-3 { display: grid; gap: 18px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card, .slide-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-xl);
+      padding: 24px; box-shadow: var(--shadow);
+    }
+    .card h3, .slide-card h3 { margin: 0 0 10px; font-size: 22px; line-height: 1.35; }
+    .card p, .slide-card p { margin: 0; color: var(--text-soft); }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 16px; }
+    .pill {
+      padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.05);
+      font-size: 12px; color: var(--text-soft); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .decision {
+      display: grid; gap: 12px; margin-top: 16px;
+    }
+    .decision div {
+      display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px;
+      border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+    }
+    .decision strong { color: var(--brand); font-size: 14px; min-width: 86px; }
+
+    .compare {
+      width: 100%; border-collapse: collapse; overflow: hidden; border-radius: var(--radius-xl);
+      background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow);
+    }
+    .compare th, .compare td { padding: 16px; text-align: left; vertical-align: top; }
+    .compare thead th {
+      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand);
+      background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--line);
+    }
+    .compare tbody tr + tr td { border-top: 1px solid var(--line); }
+    .compare td { color: var(--text-soft); font-size: 14px; }
+    .compare td:first-child { color: var(--text); font-weight: 800; width: 160px; }
+    .good { color: var(--ok); font-weight: 700; }
+    .warn { color: #fbbf24; font-weight: 700; }
+
+    .slide-card a, .link-inline { color: var(--brand); text-decoration: none; font-weight: 800; }
+    .slide-meta {
+      margin-bottom: 10px; color: var(--text-muted); font: 700 12px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .route {
+      margin-top: 18px; padding: 18px; border-radius: 20px; border: 1px solid var(--line-strong);
+      background: linear-gradient(135deg, rgba(103,232,249,0.08), rgba(96,165,250,0.05));
+    }
+    .route ol { margin: 12px 0 0 18px; padding: 0; color: var(--text-soft); }
+    .route li + li { margin-top: 8px; }
+
+    .cta-box {
+      display: flex; justify-content: space-between; gap: 16px; align-items: center;
+      padding: 24px; border: 1px solid var(--line-strong); border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(96,165,250,0.10), rgba(249,115,22,0.08));
+      box-shadow: var(--shadow);
+    }
+    .cta-box p { margin: 8px 0 0; color: var(--text-soft); }
+
+    @media (max-width: 1024px) {
+      .stats, .grid-2, .grid-3 { grid-template-columns: 1fr 1fr; }
+      .cta-box, .section-head { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100vw - 28px, 100%); }
+      .hero { padding: 28px 22px; }
+      .stats, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .topbar { border-radius: 26px; }
+      .compare { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">AI Intelligence Hub<small>Editorial Guide</small></a>
+      <nav class="nav" aria-label="特集ナビゲーション">
+        <a href="../index.html">ホーム</a>
+        <a href="day_slides_index.html">日次スライド</a>
+        <a href="recommended_tools.html">おすすめAIツール</a>
+        <a href="json_archive_viewer.html">JSONアーカイブ</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Coding Agents Guide 2026</div>
+        <h1>AIコーディングエージェント完全ガイド</h1>
+        <p>
+          Claude Code、Codex、Cursor、Windsurf、Cline CLIを軸に、
+          いま何を選ぶべきか、どの順で導入すべきか、どのスライドから深掘りすべきかを
+          1ページで整理しました。日次スライドの断片を、実務で使える地図に変えるための特集です。
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#comparison">比較表を見る</a>
+          <a class="btn btn-secondary" href="#related-slides">関連スライドを見る</a>
+          <a class="btn btn-secondary" href="recommended_tools.html">ツール一覧へ</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>5</strong><span>主要エージェント系ツールを整理</span></div>
+          <div class="stat"><strong>8</strong><span>関連スライドを厳選して接続</span></div>
+          <div class="stat"><strong>3</strong><span>導入レベル別の選び方を提示</span></div>
+          <div class="stat"><strong>1</strong><span>実務導入のための最短ルート</span></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="label">Start here</div>
+            <h2>まず結論だけ知りたい人へ</h2>
+          </div>
+          <p>
+            どれが最強か、よりも「どの運用に向くか」で分けた方が失敗しません。
+            このページでは、チャット型、IDE統合型、CLI型、自律実行型の違いを軸に見ます。
+          </p>
+        </div>
+        <div class="grid-3">
+          <article class="card">
+            <h3>いちばん無難に始めるなら Claude Code</h3>
+            <p>対話しながら進める設計・実装・レビューの往復が強く、個人開発からチーム運用まで広く適応しやすい入口です。</p>
+            <div class="pill-row">
+              <span class="pill">設計壁打ち</span><span class="pill">CLI運用</span><span class="pill">安定導入</span>
+            </div>
+            <a class="link-inline" href="day_slides/day_slide_2026_02_25.html">関連スライドを見る</a>
+          </article>
+          <article class="card">
+            <h3>OpenAI系を深く使うなら Codex</h3>
+            <p>Windows導線やマルチエージェント方向も含めて、OpenAIのエージェント戦略を追う中心軸です。</p>
+            <div class="pill-row">
+              <span class="pill">OpenAI純正</span><span class="pill">Windows</span><span class="pill">チーム化</span>
+            </div>
+            <a class="link-inline" href="day_slides/day_slide_2026_03_07.html">関連スライドを見る</a>
+          </article>
+          <article class="card">
+            <h3>IDE中心なら Cursor / Windsurf</h3>
+            <p>開発者が既存のエディタ中心で回したい場合は、IDE統合の体験価値が大きいです。特に既存の実装速度を上げやすい類型です。</p>
+            <div class="pill-row">
+              <span class="pill">IDE中心</span><span class="pill">複数ファイル編集</span><span class="pill">日常開発</span>
+            </div>
+            <a class="link-inline" href="recommended_tools.html">ツール一覧を見る</a>
+          </article>
+        </div>
+      </section>
+
+      <section id="comparison">
+        <div class="section-head">
+          <div>
+            <div class="label">Comparison</div>
+            <h2>5つの選択肢を、用途ベースで比較する</h2>
+          </div>
+          <p>
+            ここでの比較はベンチマークの優劣ではなく、閲覧者が「明日どれを開くべきか」を決めやすくするための実務整理です。
+          </p>
+        </div>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>ツール</th>
+              <th>向いている人</th>
+              <th>強み</th>
+              <th>注意点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Claude Code</td>
+              <td>個人開発者 / 小規模チーム / 設計から実装まで一気通貫で回したい人</td>
+              <td><span class="good">会話と実装の往復が自然</span>。ルール運用や実践知との相性が良く、安定して広く使いやすい。</td>
+              <td>組織導入では権限設計やルール管理を先に決めないと運用がぶれやすい。</td>
+            </tr>
+            <tr>
+              <td>Codex</td>
+              <td>OpenAI中心の環境 / マルチエージェント志向 / Windows環境を重視する人</td>
+              <td><span class="good">OpenAIエコシステムとの接続</span>。司令塔的な使い方やチーム化の文脈が強い。</td>
+              <td>機能の変化が速く、追うべきアップデート量が多い。</td>
+            </tr>
+            <tr>
+              <td>Cursor</td>
+              <td>普段のIDEを中心に、実装速度を早く上げたい人</td>
+              <td><span class="good">IDE統合が強い</span>。既存ワークフローに入りやすく、日常開発の時短効果が出やすい。</td>
+              <td>高度な自律運用というより、まずは日常開発の加速装置として捉える方が分かりやすい。</td>
+            </tr>
+            <tr>
+              <td>Windsurf</td>
+              <td>IDEの中でよりエージェント的に作業を進めたい人</td>
+              <td><span class="good">Agentic IDE</span> として、実装から修正までをまとめて進めやすい。</td>
+              <td>チーム標準にする前に、開発プロセスとの相性確認が必要。</td>
+            </tr>
+            <tr>
+              <td>Cline CLI</td>
+              <td>CLIや自動化フローを主軸にしたい人 / より制御可能な運用基盤を求める人</td>
+              <td><span class="good">開発運用基盤寄り</span> の使い方に向く。ワークフローと結びつけやすい。</td>
+              <td>導入のハードルはやや高めで、最初から全員向けではない。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="label">Decision map</div>
+            <h2>あなたの状況なら、どこから入るべきか</h2>
+          </div>
+          <p>「比較記事を読んで終わり」にしないために、状況別の入口を短く固定しました。</p>
+        </div>
+        <div class="grid-2">
+          <article class="card">
+            <h3>個人開発者・少人数チーム</h3>
+            <div class="decision">
+              <div><strong>Step 1</strong><span>Claude Codeで、設計と実装の往復に慣れる。</span></div>
+              <div><strong>Step 2</strong><span>Cursor or Windsurfで、日常開発の速度を底上げする。</span></div>
+              <div><strong>Step 3</strong><span>CodexやCline系を、重い自動化タスクに広げる。</span></div>
+            </div>
+          </article>
+          <article class="card">
+            <h3>組織導入・運用標準化</h3>
+            <div class="decision">
+              <div><strong>Step 1</strong><span>ルール管理、承認フロー、禁止ラインを明文化する。</span></div>
+              <div><strong>Step 2</strong><span>1つのIDE/CLIに寄せず、用途ごとに役割分担する。</span></div>
+              <div><strong>Step 3</strong><span>レビュー、テスト、PR作成まで含めてプロセス化する。</span></div>
+            </div>
+          </article>
+        </div>
+        <div class="route">
+          <div class="label">Rollout route</div>
+          <strong>最初の7日でやること</strong>
+          <ol>
+            <li>1つの実タスクだけ選び、Claude CodeかCursorで再現する。</li>
+            <li>生成コードのレビュー基準を決める。特に変更理由、影響範囲、ロールバック手順を固定する。</li>
+            <li>次にCodexやCline系で、自律実行寄りのタスクを小さく試す。</li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="related-slides">
+        <div class="section-head">
+          <div>
+            <div class="label">Related slides</div>
+            <h2>この特集と一緒に見るべき日次スライド</h2>
+          </div>
+          <p>比較だけでなく、背景や運用思想まで追えるように、関連度の高いスライドをまとめました。</p>
+        </div>
+        <div class="grid-2">
+          <article class="slide-card">
+            <div class="slide-meta">2026/03/07</div>
+            <h3><a href="day_slides/day_slide_2026_03_07.html">OpenAI Codex for Windows：次世代エージェント型開発環境</a></h3>
+            <p>Codexの現在地を把握する起点。OpenAI純正導線を見たい人はここから入るのが最短です。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/02/19</div>
+            <h3><a href="day_slides/day_slide_2026_02_19.html">Codex マルチエージェント機能：AIを「個人」から「専門チーム」へ</a></h3>
+            <p>単体ツールではなく、チームとしてAIを使う発想に進むためのスライドです。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/02/25</div>
+            <h3><a href="day_slides/day_slide_2026_02_25.html">Claude Code「Remote Control」：PCの前からあなたを解放する新機能</a></h3>
+            <p>Claude Codeを“補助ツール”から“実行パートナー”へ見るための代表回です。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/02/17</div>
+            <h3><a href="day_slides/day_slide_2026_02_17.html">Cline CLI 2.0：AI補助から「開発運用基盤」へ</a></h3>
+            <p>CLI系を単なる補助ではなく、運用基盤として捉える視点が得られます。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/02/24</div>
+            <h3><a href="day_slides/day_slide_2026_02_24.html">SPECTRE：AIの「暴走」を終わらせる構造化コーディングの決定版</a></h3>
+            <p>エージェント導入で避けて通れない、制御と再現性のテーマを理解する回です。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/02/23</div>
+            <h3><a href="day_slides/day_slide_2026_02_23.html">Straion：AIコーディングエージェントを制御する「組織の脳」</a></h3>
+            <p>個人利用から組織運用へ進めたいときに効く、ルール管理の観点を補います。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/02/11</div>
+            <h3><a href="day_slides/day_slide_2026_02_11.html">Compound Engineering：AI時代の「複利」を生む開発プロセス</a></h3>
+            <p>ツール比較ではなく、AIを組み込む開発プロセスの設計に焦点を当てた回です。</p>
+          </article>
+          <article class="slide-card">
+            <div class="slide-meta">2026/01/02</div>
+            <h3><a href="day_slides/day_slide_2026_01_02.html">Professional Software Developers Don't Vibe, They Control</a></h3>
+            <p>AIコーディングを“ノリ”ではなく“制御”として扱う思想的な基礎になります。</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="cta-box">
+          <div>
+            <div class="label">Next action</div>
+            <h2 style="margin:0;">次に見るページを迷わせない</h2>
+            <p>この特集の次は、ツール一覧で候補を増やすか、日次スライド一覧で直近の流れを追うのが自然です。</p>
+          </div>
+          <div class="hero-actions" style="margin-top:0;">
+            <a class="btn btn-primary" href="recommended_tools.html">おすすめAIツールへ</a>
+            <a class="btn btn-secondary" href="day_slides_index.html">日次スライド一覧へ</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
