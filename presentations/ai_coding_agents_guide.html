@@ -481,6 +481,21 @@
       gap: 18px;
     }
 
+    .x-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .panel strong {
+      display: inline-flex;
+      margin-bottom: 10px;
+      color: var(--cobalt);
+      font: 700 13px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .plan strong {
       display: inline-flex;
       margin-bottom: 10px;
@@ -548,7 +563,8 @@
       .quick-takes,
       .grid-5,
       .mistakes,
-      .rollout {
+      .rollout,
+      .x-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
@@ -574,7 +590,8 @@
       .grid-5,
       .quadrant,
       .mistakes,
-      .rollout {
+      .rollout,
+      .x-grid {
         grid-template-columns: 1fr;
       }
       .compare { display: block; overflow-x: auto; }
@@ -604,6 +621,7 @@
         <div class="hero-actions">
           <a class="btn btn-primary" href="#verdict">先に結論を見る</a>
           <a class="btn btn-secondary" href="#comparison">比較表を見る</a>
+          <a class="btn btn-secondary" href="#x-playbook">X流の運用を見る</a>
           <a class="btn btn-secondary" href="#rollout">導入順を見る</a>
         </div>
         <div class="quick-takes">
@@ -936,6 +954,96 @@
             <p>IDE型を日常開発、CLI型を自動化、のように役割分担して初めて複数導入の意味が出ます。比較のための比較は不要です。</p>
           </article>
         </div>
+      </section>
+
+      <section id="x-playbook">
+        <div class="section-head">
+          <div>
+            <div class="label">X Playbook</div>
+            <h2>Xで繰り返し推されている方法は、ほぼ運用の話です。</h2>
+          </div>
+          <p>
+            直近のX上では、製品名そのものより「どう使うと失敗しにくいか」の話が中心です。
+            ここでは流行りの小技ではなく、複数の投稿で共通して出てくる実践パターンだけを抽出しています。
+          </p>
+        </div>
+        <div class="x-grid">
+          <article class="panel">
+            <strong>01 / Minimal Context</strong>
+            <h3>AGENTS.md / CLAUDE.md は薄く、人間が書く</h3>
+            <p>長い自動生成ファイルを入れるより、1行要約、主要コマンド、重要ファイル、非自明なルールだけを書く方が効く、という意見がXで最も強いです。</p>
+            <ul>
+              <li>ルートの文書は短く保つ</li>
+              <li>エージェントが自力で見つけられない情報だけ書く</li>
+              <li>個人設定とリポジトリ共有設定を分ける</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <strong>02 / Spec First</strong>
+            <h3>コードの前に PRD と実装仕様を作る</h3>
+            <p>いきなり実装させるより、短いPRD、実装方針、未解決事項を先に作らせる方が成功率が高い、という運用がCodex系でもClaude Code系でも勧められています。</p>
+            <ul>
+              <li>まず目的、制約、成功条件を書く</li>
+              <li>計画は簡潔にさせる</li>
+              <li>未解決事項を明示させてから着手する</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <strong>03 / Repo Map</strong>
+            <h3>リポジトリ全体像を先に渡す</h3>
+            <p>HooksやMCPを増やす前に、何を作るのか、どのレイヤが重要か、主要ドキュメントはどこかを明示する方が効くという声が多いです。</p>
+            <ul>
+              <li>重要ファイルへのリンクを置く</li>
+              <li>docs は役割ごとに分ける</li>
+              <li>枝葉の機能より全体像を先に教える</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <strong>04 / Agent-Native Tools</strong>
+            <h3>CLI、MCP、Markdown、Skills を優先する</h3>
+            <p>エージェントが読みやすく、再現しやすい形に寄せるのが基本です。GUIだけの運用より、CLIやMarkdownに寄せた方が安定しやすいという実践報告が目立ちます。</p>
+            <ul>
+              <li>手順は Markdown で残す</li>
+              <li>繰り返す作業は skill や slash command にする</li>
+              <li>外部連携は必要になってから MCP を足す</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <strong>05 / Real Debugging</strong>
+            <h3>ログを増やすより、実行状態を見せる</h3>
+            <p>Xでは「AIに本物のデバッガを触らせる」方向がかなり支持されています。静的コード読解だけでなく、実行時状態を見せる方がバグ修正の質が上がります。</p>
+            <ul>
+              <li>console 出力の追加だけで終わらせない</li>
+              <li>スタック、例外、変数状態を直接見せる</li>
+              <li>実データに近い環境で検証する</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <strong>06 / Subagents</strong>
+            <h3>重い探索はサブエージェントへ逃がす</h3>
+            <p>メイン会話で何でもやらせるより、探索、レビュー、検証を分ける方が良いという流れも強いです。ただし最初から増やしすぎるのは逆効果です。</p>
+            <ul>
+              <li>最初は1本で始める</li>
+              <li>広い探索や検証だけを別担当に分ける</li>
+              <li>長セッションは handoff note で圧縮する</li>
+            </ul>
+          </article>
+        </div>
+        <details style="margin-top: 18px;">
+          <summary>Xで参照した代表的な実践例を開く</summary>
+          <div class="details-body">
+            <ul>
+              <li><a href="https://x.com/mvanhorn/status/2025980195732418694" target="_blank" rel="noopener noreferrer">Matt Van Horn on X</a> : lean CLAUDE.md, commands, three-layer system, progressive disclosure</li>
+              <li><a href="https://x.com/Saboo_Shubham_/status/2026134519317934393" target="_blank" rel="noopener noreferrer">Shubham Saboo on X</a> : auto-generated AGENTS/CLAUDE files より minimal effective context</li>
+              <li><a href="https://x.com/Marktechpost/status/2026817689495417219" target="_blank" rel="noopener noreferrer">Marktechpost on X</a> : ETH Zurich study summary on minimal human-written context</li>
+              <li><a href="https://x.com/kevinma_dev_zh/status/2018491519150526908" target="_blank" rel="noopener noreferrer">Kevin Ma on X</a> : concise plan mode, unresolved questions first</li>
+              <li><a href="https://x.com/brunoborges/status/2023504791192617148" target="_blank" rel="noopener noreferrer">Bruno Borges on X</a> : real debugger instead of logging loops</li>
+              <li><a href="https://x.com/unikoukokun/status/2026262279172558992" target="_blank" rel="noopener noreferrer">ユニコ on X</a> : hooks / MCP / skills より先に目的と全体像を固める</li>
+              <li><a href="https://x.com/oikon48/status/2026344594397606070" target="_blank" rel="noopener noreferrer">Oikon on X</a> : subagents, hooks, skills, multi-agent orchestration are context management problems</li>
+              <li><a href="https://x.com/yanndine/status/2026382902406123654" target="_blank" rel="noopener noreferrer">Yann on X</a> : plan-first, slash commands, subagent verification loops, MCP integration</li>
+            </ul>
+          </div>
+        </details>
       </section>
 
       <section id="background">
