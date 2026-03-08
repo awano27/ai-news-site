@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code 構築手順 | AI Intelligence Hub</title>
+  <meta name="description" content="Claude Code の構築手順を 1 ページに整理した実務向けセットアップガイド。Windows、macOS、Linux、GitHub Actions、Vertex AI までまとめて確認できます。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08111f;
+      --bg-2: #0d1a2d;
+      --surface: rgba(11, 22, 38, 0.86);
+      --surface-strong: rgba(16, 30, 52, 0.96);
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #ecf4ff;
+      --muted: #aab9cf;
+      --accent: #8df7d8;
+      --accent-2: #79b8ff;
+      --warn: #ffd36e;
+      --danger: #ff8d8d;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "IBM Plex Sans JP", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(121, 184, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(141, 247, 216, 0.12), transparent 24%),
+        linear-gradient(180deg, #08111f 0%, #0a1322 48%, #08111f 100%);
+      line-height: 1.7;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 22px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 40px;
+      border: 1px solid rgba(141, 247, 216, 0.15);
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, rgba(14, 28, 48, 0.96), rgba(10, 19, 34, 0.92)),
+        var(--surface-strong);
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -80px auto;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(121, 184, 255, 0.18), transparent 68%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(141, 247, 216, 0.08);
+      border: 1px solid rgba(141, 247, 216, 0.18);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      max-width: 780px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .meta-pill {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid.top {
+      grid-template-columns: 1.1fr 0.9fr;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .checklist,
+    .step-list,
+    .source-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .checklist li,
+    .step-list li,
+    .source-list li {
+      margin-top: 10px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .step-card {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 20px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(121, 184, 255, 0.06), transparent 50%),
+        var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .step-index {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #07101b;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .step-card h3 {
+      margin: 2px 0 10px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .step-body p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    .command-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .command-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .command-card header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .command-card header strong {
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .tag.recommended {
+      color: #062218;
+      background: var(--accent);
+    }
+
+    .tag.manual {
+      color: #1f2430;
+      background: var(--warn);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 16px 20px;
+      overflow-x: auto;
+      font: 14px/1.65 "JetBrains Mono", monospace;
+      color: #d8f0ff;
+      background: rgba(3, 10, 19, 0.82);
+    }
+
+    code {
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 211, 110, 0.22);
+      background: rgba(255, 211, 110, 0.06);
+      color: #ffe7ae;
+    }
+
+    .warn {
+      border-color: rgba(255, 141, 141, 0.22);
+      background: rgba(255, 141, 141, 0.07);
+      color: #ffd0d0;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .mini-card {
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .mini-card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .mini-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 26px;
+      padding: 24px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+    }
+
+    .footer h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    @media (max-width: 980px) {
+      .grid.top,
+      .columns,
+      .command-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .wrap {
+        padding: 18px 14px 60px;
+      }
+
+      .hero,
+      .card,
+      .step-card,
+      .mini-card,
+      .footer {
+        padding: 20px;
+      }
+
+      .step-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-link" href="index.html">← プレゼンテーション一覧へ戻る</a>
+
+    <section class="hero">
+      <div class="eyebrow">Claude Code Build Guide</div>
+      <h1>Claude Code の構築手順を<br>1ページでまとめる</h1>
+      <p class="lead">
+        Windows、macOS、Linux、WSL で Claude Code を立ち上げるまでの流れを、公式ドキュメントベースで整理しています。
+        日々の利用を始める最短手順に加えて、GitHub Actions と Vertex AI の導入入口も一緒に載せています。
+      </p>
+      <div class="hero-meta">
+        <span class="meta-pill">確認日: 2026-03-08</span>
+        <span class="meta-pill">推奨: Native Install</span>
+        <span class="meta-pill">対象: 個人利用 / チーム導入 / CI</span>
+      </div>
+    </section>
+
+    <section class="grid top">
+      <article class="card">
+        <h2>最初に確認する前提条件</h2>
+        <ul class="checklist">
+          <li>対応 OS は macOS 13 以降、Windows 10 1809 以降、Ubuntu 20.04 以降、Debian 10 以降、Alpine 3.19 以降です。</li>
+          <li>メモリは 4GB 以上、インターネット接続が必要です。</li>
+          <li>Windows では Git for Windows か WSL が必要です。</li>
+          <li>Claude Code は有料系アカウントで使います。無料の Claude.ai プランは対象外です。</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>結論だけ先に</h2>
+        <p>
+          2026年3月8日時点では、<strong>npm ではなく Native Install を第一候補にする</strong>のが安全です。
+          理由は、公式 docs で npm 方式が deprecated 扱いになっていて、native install は自動更新が有効だからです。
+        </p>
+        <div class="note">
+          Windows でも PowerShell からそのまま導入できます。ただし内部では Git Bash を使うので、Git for Windows は先に入れておきます。
+        </div>
+      </article>
+    </section>
+
+    <section class="stack">
+      <article class="step-card">
+        <div class="step-index">1</div>
+        <div class="step-body">
+          <h3>Git for Windows か WSL を先に用意する</h3>
+          <p>
+            Windows は PowerShell / CMD から Claude Code を起動できますが、内部実行には Git Bash か WSL が必要です。
+            セキュリティ重視なら WSL 2 の方がサンドボックス面で有利です。
+          </p>
+          <div class="note">
+            Windows ネイティブ構成で Git Bash を使う場合、Claude Code が見つけられないときは
+            <code>CLAUDE_CODE_GIT_BASH_PATH</code> を設定します。
+          </div>
+          <pre><code>{
+  "env": {
+    "CLAUDE_CODE_GIT_BASH_PATH": "C:\\Program Files\\Git\\bin\\bash.exe"
+  }
+}</code></pre>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-index">2</div>
+        <div class="step-body">
+          <h3>Native Install で Claude Code を入れる</h3>
+          <p>
+            公式の推奨経路です。自動更新が効き、Node.js 依存を避けられます。
+            Homebrew / WinGet も使えますが、更新は手動です。
+          </p>
+          <div class="command-grid">
+            <section class="command-card">
+              <header>
+                <strong>macOS / Linux / WSL</strong>
+                <span class="tag recommended">Recommended</span>
+              </header>
+              <pre><code>curl -fsSL https://claude.ai/install.sh | bash</code></pre>
+            </section>
+            <section class="command-card">
+              <header>
+                <strong>Windows PowerShell</strong>
+                <span class="tag recommended">Recommended</span>
+              </header>
+              <pre><code>irm https://claude.ai/install.ps1 | iex</code></pre>
+            </section>
+            <section class="command-card">
+              <header>
+                <strong>Windows CMD</strong>
+                <span class="tag manual">Alternative</span>
+              </header>
+              <pre><code>curl -fsSL https://claude.ai/install.cmd -o install.cmd &amp;&amp; install.cmd &amp;&amp; del install.cmd</code></pre>
+            </section>
+          </div>
+          <div class="note warn">
+            npm インストールは互換性目的で残っていますが、公式 docs では deprecated 扱いです。新規導入では Native Install を使います。
+          </div>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-index">3</div>
+        <div class="step-body">
+          <h3>導入確認をする</h3>
+          <p>
+            インストール直後は、まずバージョン確認、その後に診断コマンドを流します。
+            診断結果でインストール方式やパス周りの問題を先に潰せます。
+          </p>
+          <div class="command-grid">
+            <section class="command-card">
+              <header>
+                <strong>Version Check</strong>
+                <span class="tag recommended">Basic</span>
+              </header>
+              <pre><code>claude --version</code></pre>
+            </section>
+            <section class="command-card">
+              <header>
+                <strong>Doctor</strong>
+                <span class="tag recommended">Recommended</span>
+              </header>
+              <pre><code>claude doctor</code></pre>
+            </section>
+            <section class="command-card">
+              <header>
+                <strong>Manual Update</strong>
+                <span class="tag manual">Optional</span>
+              </header>
+              <pre><code>claude update</code></pre>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-index">4</div>
+        <div class="step-body">
+          <h3>ログインして最初のプロジェクトを開く</h3>
+          <p>
+            Claude Code は初回起動時にブラウザで認証します。プロジェクトのルートに移動してから起動するのが実務向きです。
+          </p>
+          <pre><code>cd /path/to/your/project
+claude</code></pre>
+          <p>
+            ここでブラウザ認証が走り、その後はターミナル内で対話セッションが始まります。
+            free プランでは Claude Code に入れないので、Pro / Max / Teams / Enterprise / Console のいずれかを使います。
+          </p>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-index">5</div>
+        <div class="step-body">
+          <h3>更新ポリシーを決める</h3>
+          <p>
+            Native Install は自動更新されます。運用を安定化したいなら release channel を stable に寄せます。
+            Homebrew と WinGet は自動更新されないので、定期 upgrade を運用に入れます。
+          </p>
+          <div class="command-grid">
+            <section class="command-card">
+              <header>
+                <strong>Stable Channel</strong>
+                <span class="tag recommended">Ops</span>
+              </header>
+              <pre><code>{
+  "autoUpdatesChannel": "stable"
+}</code></pre>
+            </section>
+            <section class="command-card">
+              <header>
+                <strong>Homebrew</strong>
+                <span class="tag manual">Manual</span>
+              </header>
+              <pre><code>brew upgrade claude-code</code></pre>
+            </section>
+            <section class="command-card">
+              <header>
+                <strong>WinGet</strong>
+                <span class="tag manual">Manual</span>
+              </header>
+              <pre><code>winget upgrade Anthropic.ClaudeCode</code></pre>
+            </section>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="columns">
+      <article class="mini-card">
+        <h3>GitHub Actions まで入れる場合</h3>
+        <p>
+          Claude Code から GitHub 連携を張る最短ルートは <code>/install-github-app</code> です。
+          これは direct Claude API ユーザー向けの quick setup で、GitHub App と必要な secret までガイドします。
+        </p>
+        <ul class="step-list">
+          <li>ターミナルで <code>claude</code> を起動</li>
+          <li><code>/install-github-app</code> を実行</li>
+          <li>repo admin 権限で GitHub App と secret を設定</li>
+          <li>Issue / PR で <code>@claude</code> を使って動作確認</li>
+        </ul>
+        <div class="note">
+          manual setup では、Claude GitHub App の導入、<code>ANTHROPIC_API_KEY</code> secret の追加、workflow 配置が必要です。
+        </div>
+      </article>
+
+      <article class="mini-card">
+        <h3>Vertex AI を使う場合</h3>
+        <p>
+          会社の GCP 課金やデータ管理に寄せるなら Vertex AI 経由も使えます。
+          その場合は GCP 側で API・モデルアクセス・IAM を先に整えます。
+        </p>
+        <pre><code>gcloud config set project YOUR-PROJECT-ID
+gcloud services enable aiplatform.googleapis.com
+
+export CLAUDE_CODE_USE_VERTEX=1
+export CLOUD_ML_REGION=global
+export ANTHROPIC_VERTEX_PROJECT_ID=YOUR-PROJECT-ID</code></pre>
+        <div class="note">
+          docs では、model alias の自動追従で壊れないように、運用時は model version pinning を推奨しています。
+        </div>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>実務での最短チェックリスト</h2>
+      <ol class="step-list">
+        <li>Git for Windows か WSL を入れる。</li>
+        <li>Native Install で Claude Code を入れる。</li>
+        <li><code>claude --version</code> と <code>claude doctor</code> を流す。</li>
+        <li>プロジェクトのルートで <code>claude</code> を起動して認証する。</li>
+        <li>stable channel にするか、自動更新の方針を決める。</li>
+        <li>必要なら <code>/install-github-app</code> で GitHub Actions を追加する。</li>
+      </ol>
+    </section>
+
+    <footer class="footer">
+      <h2>Sources</h2>
+      <ul class="source-list">
+        <li><a href="https://code.claude.com/docs/en/getting-started" target="_blank" rel="noopener noreferrer">Claude Code Docs: Getting Started</a></li>
+        <li><a href="https://code.claude.com/docs/en/github-actions" target="_blank" rel="noopener noreferrer">Claude Code Docs: GitHub Actions</a></li>
+        <li><a href="https://code.claude.com/docs/en/google-vertex-ai" target="_blank" rel="noopener noreferrer">Claude Code Docs: Google Vertex AI</a></li>
+        <li><a href="https://git-scm.com/" target="_blank" rel="noopener noreferrer">Git for Windows</a></li>
+      </ul>
+      <p>
+        2026-03-08 時点の公式情報をもとに要約しています。インストール方法や update policy は今後変わる可能性があるため、
+        実運用前に上の公式 docs を見直す前提で使ってください。
+      </p>
+    </footer>
+  </main>
+</body>
+</html>
