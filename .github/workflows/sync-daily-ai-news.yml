@@ -49,6 +49,10 @@ jobs:
             echo "⚠️ Daily AI News data extraction failed or no new data"
           fi
 
+      - name: Rebuild news indexes
+        run: |
+          node scripts/rebuild-news-indexes.js
+
       - name: Update ai_ranking_interactive.html data source
         if: steps.extract.outputs.extracted == 'true'
         run: |
@@ -69,7 +73,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # 変更をステージング
-          git add public-pages/news/*_daily.json || true
+          git add public-pages/news/*_daily.json public-pages/news/archive_index.json public-pages/news/daily_index.json public-pages/news/daily_latest.json public-pages/news/version.json || true
           git add presentations/ai_ranking_interactive.html || true
 
           # 変更があればコミット
