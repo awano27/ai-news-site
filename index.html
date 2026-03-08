@@ -1,727 +1,194 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Updated: 2026-01-12 -->
-  <title>AI Intelligence Hub - AIニュース総合ポータル</title>
+  <meta name="description" content="AIニュース、日次スライド、JSONアーカイブ、調査リソースを1か所に集約したAI Intelligence Hubです。">
+  <meta property="og:title" content="AI Intelligence Hub">
+  <meta property="og:description" content="毎日追える、使えるAIニュースアーカイブ。最新スライドと最新アーカイブの要点をまとめて確認できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://awano27.github.io/ai-news-site/">
+  <meta property="og:image" content="https://awano27.github.io/ai-news-site/assets/cosmic-bg-2.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>AI Intelligence Hub | 毎日追える、使えるAIニュースアーカイブ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #6366f1;
-      --primary-glow: rgba(99, 102, 241, 0.5);
-      --secondary: #38bdf8;
-      --accent: #f43f5e;
-      --bg-dark: #020617;
-      --bg-card: rgba(15, 23, 42, 0.6);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --glass-bg: rgba(15, 23, 42, 0.7);
-      --glass-border: rgba(148, 163, 184, 0.1);
-      --font-main: 'Manrope', 'Inter', -apple-system, sans-serif;
-      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: var(--font-main);
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Ambient Background System */
-    .bg-blobs {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      overflow: hidden;
-      background: linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.8)),
-        url('assets/cosmic-bg-2.jpg') no-repeat center top fixed;
-      background-size: cover;
-    }
-
-    .blob {
-      position: absolute;
-      width: 40vw;
-      height: 40vw;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.15;
-      animation: float 20s infinite alternate;
-    }
-
-    .blob-1 {
-      background: var(--primary);
-      top: -10%;
-      left: -10%;
-    }
-
-    .blob-2 {
-      background: var(--secondary);
-      bottom: -10%;
-      right: -10%;
-      animation-delay: -5s;
-    }
-
-    @keyframes float {
-      0% {
-        transform: translate(0, 0) scale(1);
-      }
-
-      100% {
-        transform: translate(10%, 15%) scale(1.1);
-      }
-    }
-
-    .page-shell {
-      position: relative;
-      z-index: 10;
-    }
-
-    header {
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      background: var(--glass-bg);
-      border-bottom: 1px solid var(--glass-border);
-      padding: 0.75rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: var(--transition);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
-      color: white;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      font-weight: 800;
-      box-shadow: 0 0 20px var(--primary-glow);
-    }
-
-    .brand-text {
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(to right, #fff, var(--text-muted));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    nav a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 600;
-      transition: var(--transition);
-      letter-spacing: 0.05em;
-    }
-
-    nav a:hover {
-      color: var(--secondary);
-      text-shadow: 0 0 10px var(--secondary);
-    }
-
-    .cta-button {
-      padding: 0.6rem 1.75rem;
-      background: rgba(56, 189, 248, 0.1);
-      color: var(--secondary);
-      border: 1px solid var(--secondary);
-      border-radius: 100px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-      backdrop-filter: blur(5px);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .cta-button:hover {
-      background: var(--secondary);
-      color: var(--bg-dark);
-      box-shadow: 0 0 25px var(--secondary);
-      transform: translateY(-2px);
-    }
-
-    /* Hero Section */
-    .hero-container {
-      max-width: 1200px;
-      margin: 4rem auto;
-      padding: 0 2rem;
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 4rem;
-      align-items: center;
-    }
-
-    .hero-copy h1 {
-      font-size: 4rem;
-      line-height: 1.1;
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      margin-bottom: 2rem;
-      background: linear-gradient(to bottom right, #fff 50%, var(--text-muted));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero-copy p {
-      font-size: 1.125rem;
-      color: var(--text-muted);
-      margin-bottom: 3rem;
-      max-width: 600px;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-    }
-
-    .btn-primary {
-      padding: 1rem 2.5rem;
-      background: transparent;
-      color: white;
-      border: 2px solid white;
-      border-radius: 100px;
-      font-weight: 800;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      transition: var(--transition);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-    }
-
-    .btn-primary:hover {
-      background: white;
-      color: var(--bg-dark);
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
-    }
-
-    .btn-ghost {
-      color: white;
-      text-decoration: none;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: var(--transition);
-    }
-
-    .btn-ghost:hover {
-      color: var(--secondary);
-    }
-
-    /* Daily Overview Card */
-    .daily-overview-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      border-radius: 32px;
-      padding: 2.5rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .daily-overview-card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(from 0deg, transparent, rgba(56, 189, 248, 0.1), transparent);
-      animation: rotate 10s linear infinite;
-    }
-
-    @keyframes rotate {
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .stat-item {
-      position: relative;
-      z-index: 1;
-      margin-bottom: 2rem;
-    }
-
-    .stat-value {
-      font-size: 3rem;
-      font-weight: 800;
-      letter-spacing: -0.05em;
-      line-height: 1;
-      margin-bottom: 0.25rem;
-      background: linear-gradient(to bottom, #fff, var(--text-muted));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      color: var(--secondary);
-      font-weight: 700;
-    }
-
-    /* Resources Grid */
-    .section {
-      max-width: 1200px;
-      margin: 6rem auto;
-      padding: 0 2rem;
-    }
-
-    .section-header h2 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 3rem;
-    }
-
-    .section-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-    }
-
-    .card {
-      background: var(--bg-card);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 2rem;
-      text-decoration: none;
-      transition: var(--transition);
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .card:hover {
-      transform: translateY(-8px);
-      border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-icon {
-      font-size: 2rem;
-      width: 60px;
-      height: 60px;
-      display: grid;
-      place-items: center;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.05);
-      transition: var(--transition);
-    }
-
-    .card:hover .card-icon {
-      background: var(--primary);
-    }
-
-    .card-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: white;
-    }
-
-    .card-description {
-      font-size: 0.9375rem;
-      color: var(--text-muted);
-      flex-grow: 1;
-    }
-
-    .card-meta {
-      font-size: 0.75rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      color: var(--secondary);
-      text-transform: uppercase;
-    }
-
-    footer {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--text-muted);
-      font-size: 0.8125rem;
-      letter-spacing: 0.05em;
-      border-top: 1px solid var(--glass-border);
-    }
-
-    /* Dark Mode Toggle Visuals */
-    #darkModeToggle {
-      background: var(--bg-card);
-      border: 1px solid var(--glass-border);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      transition: var(--transition);
-    }
-
-    #darkModeToggle:hover {
-      background: var(--primary);
-      transform: rotate(15deg);
-    }
-
-    @media (max-width: 968px) {
-      .hero-container {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-
-      .hero-copy h1 {
-        font-size: 3rem;
-      }
-
-      .hero-actions {
-        justify-content: center;
-      }
-
-      .hero-copy p {
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
-
-    /* WIP/Status Styling */
-    .status-badge {
-      font-size: 0.625rem;
-      background: var(--accent);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 100px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-
-    /* Simple Under-dev Modal styles */
-    .under-dev-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.9);
-      backdrop-filter: blur(10px);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .under-dev-modal {
-      background: var(--bg-card);
-      border: 1px solid var(--glass-border);
-      padding: 3rem;
-      border-radius: 32px;
-      text-align: center;
-      max-width: 400px;
-    }
-
-    .under-dev-modal button {
-      margin-top: 2rem;
-      background: white;
-      color: black;
-      border: none;
-      padding: 0.75rem 2rem;
-      border-radius: 100px;
-      font-weight: 800;
-      cursor: pointer;
-    }
+    :root{--bg:#07111f;--bg2:rgba(10,19,35,.76);--bg3:rgba(12,24,43,.56);--surface:rgba(9,17,31,.92);--line:rgba(146,174,220,.16);--line2:rgba(125,211,252,.28);--text:#f8fbff;--sub:#c3d1e9;--muted:#8ca2c3;--primary:#6ee7f9;--primary2:#2dd4bf;--accent:#f97316;--accentSoft:rgba(249,115,22,.14);--shadow:0 24px 70px rgba(0,0,0,.32);--body:"Noto Sans JP",sans-serif;--display:"Fraunces","Noto Sans JP",serif;--mono:"JetBrains Mono",monospace;--w:min(1180px,calc(100vw - 40px));}
+    body.light-mode{--bg:#edf3f8;--bg2:rgba(255,255,255,.82);--bg3:rgba(255,255,255,.66);--surface:rgba(255,255,255,.94);--line:rgba(15,23,42,.08);--line2:rgba(8,145,178,.22);--text:#081120;--sub:#334155;--muted:#64748b;--primary:#0f766e;--primary2:#0891b2;--accent:#ea580c;--accentSoft:rgba(234,88,12,.1);--shadow:0 24px 70px rgba(15,23,42,.12);}
+    *{box-sizing:border-box;margin:0;padding:0} html{scroll-behavior:smooth}
+    body{font-family:var(--body);background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh;overflow-x:hidden}
+    a{color:inherit} .skip-link{position:absolute;left:16px;top:-48px;padding:10px 16px;border-radius:999px;background:var(--text);color:var(--bg);font-weight:700;z-index:1000;text-decoration:none}.skip-link:focus{top:16px}
+    .bg{position:fixed;inset:0;z-index:-2;background:radial-gradient(circle at 15% 20%,rgba(110,231,249,.18),transparent 30%),radial-gradient(circle at 85% 15%,rgba(249,115,22,.14),transparent 24%),linear-gradient(180deg,rgba(7,17,31,.82),rgba(7,17,31,.96)),url("assets/cosmic-bg-2.jpg") no-repeat center top fixed;background-size:auto,auto,auto,cover}
+    body.light-mode .bg{background:radial-gradient(circle at 15% 20%,rgba(8,145,178,.08),transparent 30%),radial-gradient(circle at 85% 15%,rgba(234,88,12,.08),transparent 24%),linear-gradient(180deg,rgba(237,243,248,.9),rgba(237,243,248,.96)),url("assets/cosmic-bg-2.jpg") no-repeat center top fixed;background-size:auto,auto,auto,cover}
+    .grid{position:fixed;inset:0;z-index:-1;background-image:linear-gradient(rgba(140,162,195,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(140,162,195,.08) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 92%)}
+    .shell{position:relative;z-index:1;padding-bottom:48px}
+    .header{width:var(--w);margin:18px auto 0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:24px;position:sticky;top:14px;z-index:50;background:var(--bg3);border:1px solid var(--line);border-radius:999px;backdrop-filter:blur(16px);box-shadow:var(--shadow)}
+    .brand{display:inline-flex;align-items:center;gap:14px;text-decoration:none}.mark{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(140deg,rgba(110,231,249,.22),rgba(249,115,22,.18));border:1px solid var(--line2);font-family:var(--display);font-weight:700}.brand-title{font-family:var(--display);font-size:1.05rem}.brand-sub{font-size:.74rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .nav{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}.nav a,.theme{border:1px solid transparent;border-radius:999px;padding:10px 14px;text-decoration:none;color:var(--sub);font-size:.9rem;font-weight:700;transition:.2s ease}
+    .nav a:hover,.nav a:focus-visible,.theme:hover,.theme:focus-visible{color:var(--text);border-color:var(--line2);background:rgba(255,255,255,.04);transform:translateY(-1px);outline:none}
+    .nav-cta{background:linear-gradient(135deg,rgba(110,231,249,.16),rgba(45,212,191,.12));border-color:rgba(110,231,249,.24);color:var(--text)} .theme{background:transparent;cursor:pointer;font-family:inherit}
+    main{width:var(--w);margin:0 auto;padding-top:42px}
+    .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);gap:24px;padding:28px 0 16px}.card{background:var(--bg2);border:1px solid var(--line);backdrop-filter:blur(16px);box-shadow:var(--shadow)}
+    .hero-copy{border-radius:36px;padding:44px;position:relative;overflow:hidden}.hero-copy:after{content:"";position:absolute;right:-80px;bottom:-120px;width:280px;height:280px;background:radial-gradient(circle,rgba(110,231,249,.2),transparent 64%)}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;border-radius:999px;border:1px solid var(--line2);background:rgba(255,255,255,.03);padding:10px 14px;color:var(--primary);font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:22px}.eyebrow:before{content:"";width:8px;height:8px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 6px var(--accentSoft)}
+    .hero h1{font-size:clamp(2.8rem,5vw,4.8rem);line-height:1.08;letter-spacing:-.04em;margin-bottom:18px}.hero h1 strong{font-family:var(--display);font-weight:700}
+    .hero p.lead{max-width:620px;color:var(--sub);font-size:1.05rem;margin-bottom:28px}
+    .actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:28px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 22px;border-radius:999px;text-decoration:none;font-weight:800;transition:.2s ease;border:1px solid transparent}.btn:hover,.btn:focus-visible{transform:translateY(-2px);outline:none}.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#031119;box-shadow:0 18px 36px rgba(45,212,191,.22)}.btn-secondary{border-color:var(--line2);background:rgba(255,255,255,.02);color:var(--text)}
+    .tags{display:flex;flex-wrap:wrap;gap:10px}.tag{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--sub);font-size:.86rem;font-weight:600}
+    .panel{border-radius:32px;padding:28px;display:flex;flex-direction:column;gap:18px;position:relative;overflow:hidden}.panel:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent 45%),linear-gradient(140deg,rgba(110,231,249,.08),rgba(249,115,22,.03))}
+    .label,.meta{position:relative;z-index:1;font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--primary)} .panel-date{position:relative;z-index:1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.panel-date strong{font-family:var(--mono);font-size:1.15rem}.panel-date span{color:var(--muted);font-size:.82rem}
+    .panel h2{position:relative;z-index:1;font-size:1.5rem;line-height:1.35}.panel .summary{position:relative;z-index:1;color:var(--sub);font-size:.96rem}
+    .headlines{position:relative;z-index:1;list-style:none;display:grid;gap:12px}.headlines li{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}.headlines strong{color:var(--primary);font-family:var(--mono);font-size:.82rem;margin-top:2px}.headlines span{color:var(--sub);font-size:.92rem}
+    .panel-meta{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.stat{border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.05);padding:14px}.stat strong{display:block;font-family:var(--mono);font-size:1rem;margin-bottom:4px}.stat span{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .panel-link{position:relative;z-index:1;width:fit-content;text-decoration:none;font-weight:700;border-bottom:1px solid rgba(255,255,255,.16);padding-bottom:2px}
+    .metrics,.grid4,.grid3{display:grid;gap:16px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:16px}.metric{border-radius:24px;padding:22px 20px}.metric-value{font-family:var(--mono);font-size:clamp(1.45rem,3vw,2.05rem);font-weight:700;margin:12px 0 6px}.metric-title{font-size:1rem;font-weight:700}.metric-note{color:var(--muted);font-size:.88rem;margin-top:6px}
+    section.block{padding-top:88px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:26px}.section-head h2{font-size:clamp(2rem,3vw,3rem);line-height:1.16;letter-spacing:-.03em;margin-top:8px}.section-head p{max-width:720px;color:var(--sub);font-size:.98rem}
+    .grid4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}.tile{border-radius:28px;padding:24px;text-decoration:none;transition:.2s ease}.tile:hover,.tile:focus-visible{transform:translateY(-4px);border-color:var(--line2);outline:none}.icon{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;font-size:1.45rem;background:linear-gradient(140deg,rgba(110,231,249,.14),rgba(249,115,22,.12));border:1px solid rgba(255,255,255,.08);margin-bottom:18px}.tile h3{font-size:1.18rem;font-weight:800;margin-bottom:10px}.tile p{color:var(--sub);font-size:.95rem;margin-bottom:16px}
+    .banner{margin-top:22px;border-radius:28px;padding:26px 28px;background:linear-gradient(135deg,rgba(110,231,249,.1),rgba(249,115,22,.08));border:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;gap:20px}.banner h3{font-size:1.3rem;margin-bottom:8px}.banner p{color:var(--sub)}.banner-actions{display:flex;flex-wrap:wrap;gap:12px}
+    footer{width:var(--w);margin:88px auto 0;padding-top:24px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.86rem} footer strong{color:var(--sub)}
+    @media (max-width:1100px){.hero{grid-template-columns:1fr}.metrics,.grid4,.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:780px){.header{border-radius:28px;padding:18px}.nav{justify-content:flex-start}.hero-copy,.panel{padding:28px 22px}.section-head,.banner,footer{flex-direction:column;align-items:flex-start}.metrics,.grid4,.grid3,.panel-meta{grid-template-columns:1fr}.actions{align-items:stretch}.btn{width:100%}}
   </style>
 </head>
-
 <body>
-  <div class="bg-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-  </div>
-
-  <div class="page-shell">
-    <header>
-      <a href="#" class="brand">
-        <div class="brand-logo">AI</div>
-        <div class="brand-text">AI Intelligence Hub</div>
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <div class="bg"></div>
+  <div class="grid"></div>
+  <div class="shell">
+    <header class="header">
+      <a href="index.html" class="brand" aria-label="AI Intelligence Hub トップページ">
+        <div class="mark">AI</div>
+        <div>
+          <div class="brand-title">AI Intelligence Hub</div>
+          <div class="brand-sub">Daily Signals, Slides, Archive</div>
+        </div>
       </a>
-      <nav>
-        <a href="presentations/day_slides_index.html">ARCHIVE</a>
-        <a href="#explore">RESOURCES</a>
-        <a href="presentations/recommended_tools.html">TOOLS</a>
-        <a href="https://awano27.github.io/daily-ai-news-pages/" class="cta-button" target="_blank"
-          rel="noopener noreferrer">DAILY NEWS</a>
-        <button id="darkModeToggle">🌙</button>
+      <nav class="nav" aria-label="主要ナビゲーション">
+        <a href="#start-here">入口</a>
+        <a href="presentations/day_slides_index.html">日次スライド</a>
+        <a href="presentations/json_archive_viewer.html">アーカイブ</a>
+        <a href="#resources">リソース</a>
+        <a href="presentations/recommended_tools.html">ツール</a>
+        <a href="https://awano27.github.io/daily-ai-news-pages/" class="nav-cta" target="_blank" rel="noopener noreferrer">Daily News</a>
+        <button id="themeToggle" class="theme" type="button" aria-label="ライトテーマに切り替え">☀️</button>
       </nav>
     </header>
 
-    <div class="hero-container">
-      <div class="hero-copy">
-        <h1>AI動向を、<br>最高にクールに。</h1>
-        <p>
-          知能の進化を、ノイズなく美しく整理したインサイトをあなたに。<br>
-          博士号レベルの推論が日常になる時代を、最前線からお届けします。
-        </p>
-        <div class="hero-actions">
-          <a href="presentations/day_slides/day_slide_2026_03_08.html" id="latestSlideHeroBtn"
-            class="btn-primary">最新のスライドを見る</a>
-          <a href="https://awano27.github.io/daily-ai-news-pages/" class="btn-ghost" target="_blank"
-            rel="noopener noreferrer">
-            ニュース一覧
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </a>
+    <main id="main">
+      <section class="hero">
+        <div class="hero-copy card">
+          <p class="eyebrow">Daily AI signals for builders and researchers</p>
+          <h1>毎日追える、<strong>使える</strong>AIニュースアーカイブ。</h1>
+          <p class="lead">最新スライド、日次ニュース、JSONデータ、外部リソースを1か所に集約しました。今日の変化を素早く把握し、過去の流れを遡り、実務や調査にそのまま使える入口です。</p>
+          <div class="actions">
+            <a href="presentations/day_slides/day_slide_2026_03_08.html" id="latestSlideHeroBtn" class="btn btn-primary">最新スライドへ</a>
+            <a href="presentations/json_archive_viewer.html" class="btn btn-secondary">JSONアーカイブを見る</a>
+            <a href="https://awano27.github.io/daily-ai-news-pages/" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">Daily Newsに移動</a>
+          </div>
+          <div class="tags">
+            <span class="tag">毎日のスライド更新</span>
+            <span class="tag">アーカイブの検索・再利用</span>
+            <span class="tag">研究・実装向けの導線</span>
+          </div>
         </div>
-      </div>
 
-      <div class="daily-overview-card">
-        <div class="stat-item">
-          <div class="stat-value">120+</div>
-          <div class="stat-label">HEADLINES</div>
+        <aside class="panel card" aria-live="polite">
+          <div class="label">Latest snapshot</div>
+          <div class="panel-date">
+            <strong id="latestArchiveDate">読み込み中</strong>
+            <span id="latestSlideDate">スライド情報を確認中</span>
+          </div>
+          <h2 id="latestArchiveHeading">最新アーカイブの要点をここに表示します。</h2>
+          <p class="summary" id="latestArchiveSummary">最新JSONアーカイブを読み込み、直近の話題と全体件数をトップで把握できるようにしています。</p>
+          <ul class="headlines" id="latestHeadlines">
+            <li><strong>01</strong><span>最新ヘッドラインを取得しています。</span></li>
+            <li><strong>02</strong><span>主要トピックがここに並びます。</span></li>
+            <li><strong>03</strong><span>トップからそのまま詳細ページへ進めます。</span></li>
+          </ul>
+          <div class="panel-meta">
+            <div class="stat"><strong id="latestArchiveCount">--</strong><span>Latest items</span></div>
+            <div class="stat"><strong id="archiveDaysCount">--</strong><span>Archive days</span></div>
+            <div class="stat"><strong id="totalItemsCount">--</strong><span>Total captured</span></div>
+          </div>
+          <a class="panel-link" href="presentations/day_slides_index.html">日次スライドの一覧を見る</a>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="主要指標">
+        <article class="metric card"><div class="meta">Coverage</div><div class="metric-value" id="metricArchiveDays">--</div><div class="metric-title">蓄積日数</div><p class="metric-note">公開アーカイブに保存されている日次データの件数です。</p></article>
+        <article class="metric card"><div class="meta">Captured</div><div class="metric-value" id="metricTotalItems">--</div><div class="metric-title">収集済みトピック数</div><p class="metric-note">各日JSONに記録されたニュース件数の合計です。</p></article>
+        <article class="metric card"><div class="meta">Latest</div><div class="metric-value" id="metricLatestItems">--</div><div class="metric-title">直近アーカイブ件数</div><p class="metric-note">最新アーカイブ日に収録されたニュース件数を表示します。</p></article>
+        <article class="metric card"><div class="meta">Refresh</div><div class="metric-value" id="metricLatestDate">--</div><div class="metric-title">直近アーカイブ日</div><p class="metric-note">新規のJSONアーカイブが確認できた最新の日付です。</p></article>
+      </section>
+
+      <section class="block" id="start-here">
+        <div class="section-head">
+          <div><div class="label">Start here</div><h2>目的別に、最短で入れるようにする。</h2></div>
+          <p>トップでは「最新をすぐ見る」「過去の流れを遡る」「データとして使う」「研究材料を広げる」の4つを明確に分けました。初見でも、次の一手を迷わず選べる構成です。</p>
         </div>
-        <div class="stat-item">
-          <div class="stat-value">42</div>
-          <div class="stat-label">SOURCES</div>
+        <div class="grid4">
+          <a class="tile card" href="presentations/day_slides/day_slide_2026_03_08.html" id="latestSlidePathCard"><div class="icon">⚡</div><h3>今日の1枚から入る</h3><p>最新スライドを起点に、その日の重要トピックを短時間で把握します。</p><div class="meta" id="latestSlidePathMeta">Latest slide</div></a>
+          <a class="tile card" href="presentations/day_slides_index.html"><div class="icon">🗂️</div><h3>過去の流れを遡る</h3><p>日次スライドを一覧で確認し、話題の継続性やトレンドの変化を追えます。</p><div class="meta">Slide archive</div></a>
+          <a class="tile card" href="presentations/json_archive_viewer.html"><div class="icon">🧩</div><h3>データとして使う</h3><p>JSONアーカイブを直接確認し、分析やアプリ実装の素材として再利用できます。</p><div class="meta">Raw structured data</div></a>
+          <a class="tile card" href="presentations/research_resources.html"><div class="icon">🔎</div><h3>調査を広げる</h3><p>論文・外部サイト・検索ツールに接続し、話題の裏取りや深掘りに進めます。</p><div class="meta">Research workflows</div></a>
         </div>
-        <div class="stat-item">
-          <div class="stat-value">18</div>
-          <div class="stat-label">SECTORS</div>
+      </section>
+
+      <section class="block" id="resources">
+        <div class="section-head">
+          <div><div class="label">Resources</div><h2>アーカイブだけで終わらず、実際に使える導線を置く。</h2></div>
+          <p>単なるリンク集ではなく、用途が異なる情報面を並列で置いています。スライド閲覧、外部リサーチ、ツール探索、データ閲覧の往復をトップから始められます。</p>
         </div>
-      </div>
-    </div>
+        <div class="grid3">
+          <a href="presentations/day_slides_index.html" class="tile card"><div class="icon">📅</div><h3>日次スライド一覧</h3><p>毎日の要点をスライドで確認。視覚的に振り返りたいときの最短導線です。</p><div class="meta">Slides / archive</div></a>
+          <a href="presentations/json_archive_viewer.html" class="tile card"><div class="icon">🗄️</div><h3>JSONアーカイブ閲覧</h3><p>日次ニュースを構造化データで確認。開発や分析用途にそのまま接続できます。</p><div class="meta">Raw data / search</div></a>
+          <a href="presentations/recommended_tools.html" class="tile card"><div class="icon">🛠️</div><h3>実務ツール集</h3><p>AI時代の実装、調査、資料化を速くするツールをまとめています。</p><div class="meta">Productivity / tooling</div></a>
+          <a href="presentations/ai_external_resources.html" class="tile card"><div class="icon">🌐</div><h3>外部リソース集</h3><p>ドキュメント、参考サイト、周辺サービスへのリンクを横断できます。</p><div class="meta">External links</div></a>
+          <a href="presentations/research_resources.html" class="tile card"><div class="icon">🔬</div><h3>リサーチポータル</h3><p>論文、データセット、調査ツールをまとめて、検証と深掘りをしやすくしています。</p><div class="meta">Research hub</div></a>
+          <a href="https://awano27.github.io/daily-ai-news-pages/" class="tile card" target="_blank" rel="noopener noreferrer"><div class="icon">📰</div><h3>Daily News本体</h3><p>日次ニュースの一覧に直接移動。収集面と整理面を行き来したいときの入口です。</p><div class="meta">External site</div></a>
+        </div>
+        <div class="banner">
+          <div><h3>トップページで欲しいのは、雰囲気ではなく「次に押すべき1つのボタン」です。</h3><p>最新スライドと最新アーカイブの状態を上部に集約し、下に目的別カードを置いています。初見ユーザーは迷わず入り、常連ユーザーはすぐ再訪できる構成です。</p></div>
+          <div class="banner-actions">
+            <a href="presentations/day_slides_index.html" class="btn btn-secondary">スライドを一覧で見る</a>
+            <a href="presentations/json_archive_viewer.html" class="btn btn-secondary">JSONを確認する</a>
+          </div>
+        </div>
+      </section>
 
-    <section class="section" id="explore">
-      <div class="section-header">
-        <h2>Explore Resources</h2>
-      </div>
-      <div class="section-cards">
-        <a href="presentations/day_slides_index.html" class="card">
-          <div class="card-icon">📅</div>
-          <div class="card-title">スライド選集 (PDF/解説)</div>
-          <div class="card-description">過去のデイリースライドを日付別に。重要なAIトレンドを解説付きのスライド資料で振り返れます。</div>
-          <div class="card-meta">SLIDE ARCHIVE</div>
-        </a>
-
-        <a href="presentations/recommended_tools.html" class="card">
-          <div class="card-icon">🛠️</div>
-          <div class="card-title">プロダクティビティ</div>
-          <div class="card-description">AI時代のエンジニア・ビジネスマンに必須の厳選ツール。</div>
-          <div class="card-meta">TOOLS</div>
-        </a>
-
-        <a href="presentations/ai_external_resources.html" class="card">
-          <div class="card-icon">🌐</div>
-          <div class="card-title">外部リソース集</div>
-          <div class="card-description">AI学習に役立つ外部サイト、ドキュメント、ツールへのリンク集です。</div>
-          <div class="card-meta">EXTERNAL LINKS</div>
-        </a>
-
-        <a href="presentations/research_resources.html" class="card">
-          <div class="card-icon">🔬</div>
-          <div class="card-title">リサーチポータル</div>
-          <div class="card-description">研究論文、学術データ、AI論文検索ツールなど、調査を加速させる40の厳選リソース集。</div>
-          <div class="card-meta">RESEARCH HUB</div>
-        </a>
-
-        <a href="presentations/json_archive_viewer.html" class="card">
-          <div class="card-icon">🗄️</div>
-          <div class="card-title">JSON データ閲覧録</div>
-          <div class="card-description">システムに保存された全ニュースのRAWデータを閲覧。エンジニアの分析やアプリ開発向けです。</div>
-          <div class="card-meta">RAW JSON DATA</div>
-        </a>
-      </div>
-    </section>
+      <section class="block" id="policy">
+        <div class="section-head">
+          <div><div class="label">Why it works</div><h2>信頼性と再利用性を、トップでも見せる。</h2></div>
+          <p>AIニュース系サイトは、更新頻度と情報の扱い方が見えないと価値が伝わりません。ここでは、更新方針と使い道を短いカードで見せ、サイトの性格をはっきりさせています。</p>
+        </div>
+        <div class="grid3">
+          <article class="tile card"><div class="icon">🧭</div><h3>毎日の変化を短く掴める</h3><p>ヒーローから最新スライドへ、右カラムから最新アーカイブへ。入口を二層に分けています。</p><div class="meta">Fast orientation</div></article>
+          <article class="tile card"><div class="icon">📦</div><h3>JSONで再利用できる</h3><p>読むだけでなく、検索、集計、アプリ連携まで見据えた構造で公開しています。</p><div class="meta">Structured archive</div></article>
+          <article class="tile card"><div class="icon">🧪</div><h3>深掘り導線が途切れない</h3><p>外部サイト、研究ツール、推奨ツールへの遷移を分かりやすく分離しています。</p><div class="meta">Research workflow</div></article>
+        </div>
+      </section>
+    </main>
 
     <footer>
-      &copy; 2026 AI INTELLIGENCE HUB. NEURAL AESTHETICS.
+      <div><strong>AI Intelligence Hub</strong> は、スライド・ニュース・アーカイブ・リソースを束ねた入口です。</div>
+      <div>Homepage refreshed on 2026-03-08</div>
     </footer>
   </div>
-  <!-- Under Development Overlay -->
-  <div id="underDevOverlay" class="under-dev-backdrop" role="dialog" aria-modal="true" aria-labelledby="underDevTitle">
-    <div class="under-dev-modal">
-      <h3 id="underDevTitle">この機能は現在開発中です</h3>
-      <p>公開まで今しばらくお待ちください。</p>
-      <button id="underDevClose" type="button">閉じる</button>
-    </div>
-  </div>
 
   <script>
-    // ダークモード切り替え機能
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const body = document.body;
-    const root = document.documentElement;
+    const themeToggle=document.getElementById("themeToggle");const body=document.body;
+    const shorten=(text,max)=>!text?"":text.length>max?`${text.slice(0,max).trim()}…`:text;
+    const fmt=(y,m,d)=>`${y}-${m}-${d}`;
+    function applyTheme(theme){body.classList.toggle("light-mode",theme==="light");const light=body.classList.contains("light-mode");themeToggle.textContent=light?"🌘":"☀️";themeToggle.setAttribute("aria-label",light?"ダークテーマに切り替え":"ライトテーマに切り替え");localStorage.setItem("homepageTheme",light?"light":"dark")}
+    (function initTheme(){const stored=localStorage.getItem("homepageTheme");const prefersLight=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;applyTheme(stored||(prefersLight?"light":"dark"))})();
+    themeToggle.addEventListener("click",()=>applyTheme(body.classList.contains("light-mode")?"dark":"light"));
 
-    // ローカルストレージからダークモード設定を読み込み
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) {
-      enableDarkMode();
-    }
+    async function loadLatestSlide(){try{const res=await fetch(`presentations/day_slides_index.html?t=${Date.now()}`,{cache:"no-store"});if(!res.ok)return;const html=await res.text();const doc=new DOMParser().parseFromString(html,"text/html");const slideLink=doc.querySelector(".slide-link[href*='day_slide']");const slideTitle=doc.querySelector(".slide-title");if(!slideLink)return;const raw=slideLink.getAttribute("href")||"";const href=raw.startsWith("presentations/")?raw:`presentations/${raw.replace(/^\.?\//,"")}`;const match=href.match(/day_slide_(\d{4})_(\d{2})_(\d{2})\.html$/);const date=match?fmt(match[1],match[2],match[3]):"最新";const title=slideTitle?slideTitle.textContent.trim():"最新スライド";document.getElementById("latestSlideHeroBtn").href=href;document.getElementById("latestSlideHeroBtn").textContent=`最新スライドへ (${date})`;document.getElementById("latestSlideHeroBtn").title=title;document.getElementById("latestSlideHeroBtn").setAttribute("aria-label",`最新スライド: ${title}`);document.getElementById("latestSlidePathCard").href=href;document.getElementById("latestSlidePathMeta").textContent=`${date} / ${shorten(title,38)}`;document.getElementById("latestSlideDate").textContent=`最新スライド: ${date}`}catch(error){console.error("Failed to load latest slide",error)}}
 
-    darkModeToggle.addEventListener('click', () => {
-      if (body.classList.contains('dark-mode')) {
-        disableDarkMode();
-      } else {
-        enableDarkMode();
-      }
-    });
-
-    function enableDarkMode() {
-      body.classList.add('dark-mode');
-      darkModeToggle.textContent = '☀️';
-      localStorage.setItem('darkMode', 'true');
-      // New theme is dark-first
-    }
-
-    function disableDarkMode() {
-      body.classList.remove('dark-mode');
-      darkModeToggle.textContent = '🌙';
-      localStorage.setItem('darkMode', 'false');
-    }
-
-    // スムーススクロール
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      });
-    });
-
-    // カードホバーアニメーション強化
-    document.querySelectorAll('.card').forEach(card => {
-      card.addEventListener('mouseenter', function () {
-        this.style.transform = 'translateY(-8px) scale(1.02)';
-      });
-      card.addEventListener('mouseleave', function () {
-        this.style.transform = '';
-      });
-    });
-  </script>
-  <script>
-    // Add "作成中" badges to items that currently jump to a different page
-    // than their menu/category suggests (temporary routing).
-    (function () {
-      function decorateWip() {
-        var wipHrefs = [
-          'presentations/news_archive.html#generative',
-          'presentations/news_archive.html#community'
-        ];
-
-        wipHrefs.forEach(function (href) {
-          document.querySelectorAll('a.card[href="' + href + '"]').forEach(function (a) {
-            a.classList.add('wip');
-            a.setAttribute('title', 'この機能は作成中です');
-            var titleEl = a.querySelector('.card-title');
-            if (titleEl && !titleEl.querySelector('.status-badge')) {
-              var badge = document.createElement('span');
-              badge.className = 'status-badge';
-              badge.textContent = '作成中';
-              titleEl.appendChild(badge);
-            }
-          });
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', decorateWip);
-      } else {
-        decorateWip();
-      }
-    })();
-  </script>
-  <script>
-    // Hero: set latest slide button to the newest daily slide
-    (function () {
-      async function setLatestHeroButton() {
-        try {
-          const res = await fetch('presentations/day_slides_index.html?t=' + Date.now(), { cache: 'no-store' });
-          if (!res.ok) return;
-          const html = await res.text();
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-
-          // Get the first slide card (latest slide)
-          let firstCard = doc.querySelector('.slide-card');
-          if (!firstCard) return;
-
-          const dateElem = firstCard.querySelector('.slide-date');
-          const titleElem = firstCard.querySelector('.slide-title');
-          const linkElem = firstCard.querySelector('.slide-actions a[href*="day_slide"]');
-
-          if (!linkElem) return;
-
-          const href = linkElem.getAttribute('href');
-          const date = dateElem?.textContent?.trim();
-          const title = titleElem?.textContent?.trim();
-
-          const btn = document.getElementById('latestSlideHeroBtn');
-          if (!btn) return;
-
-          if (href) {
-            // href is already relative to daily_slides_index.html location
-            // e.g., "presentations/day_slides/day_slide_2026_01_08.html"
-            btn.href = href;
-          }
-          if (date) {
-            btn.textContent = `今日のスライドを見る（${date}）`;
-          }
-          if (title) {
-            btn.setAttribute('aria-label', `今日のスライド: ${title}`);
-            btn.title = `今日のスライド: ${title}`;
-          }
-        } catch (e) { console.error(e); }
-      }
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setLatestHeroButton);
-      } else {
-        setLatestHeroButton();
-      }
-    })();
+    async function loadArchiveSnapshot(){try{const indexRes=await fetch(`public-pages/news/archive_index.json?t=${Date.now()}`,{cache:"no-store"});if(!indexRes.ok)return;const archiveIndex=await indexRes.json();if(!Array.isArray(archiveIndex)||archiveIndex.length===0)return;const latest=archiveIndex[0];const days=archiveIndex.length;const total=archiveIndex.reduce((sum,entry)=>sum+(Number(entry.count)||0),0);document.getElementById("latestArchiveDate").textContent=latest.date||"--";document.getElementById("latestArchiveCount").textContent=latest.count||"--";document.getElementById("archiveDaysCount").textContent=days.toLocaleString("ja-JP");document.getElementById("totalItemsCount").textContent=total.toLocaleString("ja-JP");document.getElementById("metricArchiveDays").textContent=days.toLocaleString("ja-JP");document.getElementById("metricTotalItems").textContent=total.toLocaleString("ja-JP");document.getElementById("metricLatestItems").textContent=Number(latest.count||0).toLocaleString("ja-JP");document.getElementById("metricLatestDate").textContent=latest.date||"--";if(!latest.file)return;const latestRes=await fetch(`public-pages/news/${latest.file}?t=${Date.now()}`,{cache:"no-store"});if(!latestRes.ok)return;const latestArchive=await latestRes.json();const items=Array.isArray(latestArchive.items)?latestArchive.items:[];const usable=items.filter(item=>item&&item.title).filter(item=>!/^AI News Digest/i.test(item.title));const primary=usable[0]||items[0];if(primary){document.getElementById("latestArchiveHeading").textContent=primary.title;document.getElementById("latestArchiveSummary").textContent=shorten(primary.summary||"最新アーカイブの詳細を閲覧できます。",130)}const list=document.getElementById("latestHeadlines");const top=(usable.length?usable:items).slice(0,3);list.innerHTML=top.length?top.map((item,index)=>`<li><strong>${String(index+1).padStart(2,"0")}</strong><span>${shorten(item.title,80)}</span></li>`).join(""):'<li><strong>01</strong><span>最新アーカイブの見出しは現在準備中です。</span></li>'}catch(error){console.error("Failed to load archive snapshot",error)}}
+    Promise.allSettled([loadLatestSlide(),loadArchiveSnapshot()]);
   </script>
 </body>
-
 </html>
