@@ -24,6 +24,14 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Remove non-site files to speed up deploy
+        run: |
+          rm -rf tmp_* .git node_modules .agents .firecrawl .playwright-mcp src scripts script tools prompts input docs .github/__pycache__ src/config/__pycache__ 2>/dev/null || true
+          rm -f *.py *.pptx *.pdf *.bak *.txt requirements*.txt 2>/dev/null || true
+          rm -rf .gemini_key_tmp nul 2>/dev/null || true
+          echo "Cleaned workspace for deploy"
+          du -sh . || true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
