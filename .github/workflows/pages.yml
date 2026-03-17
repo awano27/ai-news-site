@@ -12,25 +12,27 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (sparse - site files only)
         uses: actions/checkout@v4
-        
+        with:
+          sparse-checkout: |
+            index.html
+            presentations
+            public-pages
+            news
+            templates
+            data
+            .nojekyll
+          sparse-checkout-cone-mode: false
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
-      - name: Remove non-site files to speed up deploy
-        run: |
-          rm -rf tmp_* .git node_modules .agents .firecrawl .playwright-mcp src scripts script tools prompts input docs .github/__pycache__ src/config/__pycache__ 2>/dev/null || true
-          rm -f *.py *.pptx *.pdf *.bak *.txt requirements*.txt 2>/dev/null || true
-          rm -rf .gemini_key_tmp nul 2>/dev/null || true
-          echo "Cleaned workspace for deploy"
-          du -sh . || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
