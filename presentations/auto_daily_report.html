@@ -1,516 +1,656 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026年03月20日のAIニュース速報 - OpenAI、Astralを買収しPython開発支援ツールをCodexへ統合 | AI Intelligence</title>
-    <style>
-        :root {
-            --primary: #0f172a;
-            --accent: #3b82f6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --research: #8b5cf6;
-            --dark: #020617;
-            --light: #f8fafc;
-            --border: #e2e8f0;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 14px; line-height: 1.6; color: var(--text-primary); background: var(--light);
-        }
-        .sidebar {
-            position: fixed; left: 0; top: 0; width: 260px; height: 100vh;
-            background: var(--primary); padding: 24px 16px; overflow-y: auto;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 1000;
-        }
-        .sidebar h1 { color: white; font-size: 1.1rem; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 16px; }
-        .nav-item {
-            color: #94a3b8; display: block; padding: 8px 12px; border-radius: 6px;
-            text-decoration: none; margin-bottom: 4px; transition: all 0.2s;
-        }
-        .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-        .nav-item.active { background: var(--accent); color: white; }
-        .main-content { margin-left: 260px; padding: 32px 48px; max-width: 1400px; background: white; min-height: 100vh; }
-        h1 { font-size: 2rem; color: var(--primary); margin-bottom: 8px; }
-        h2 { font-size: 1.4rem; margin: 32px 0 16px; color: var(--primary); padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 24px 0; }
-        .stat-card {
-            background: var(--primary); color: white; text-align: center;
-            padding: 20px; border-radius: 8px;
-        }
-        .stat-value { font-size: 2rem; font-weight: bold; }
-        .stat-label { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
-        .news-item {
-            background: white; border: 1px solid var(--border); border-radius: 8px;
-            padding: 20px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            transition: all 0.2s;
-        }
-        .news-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
-        .news-rank {
-            background: var(--primary); color: white; width: 32px; height: 32px;
-            border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 0.9rem; margin-right: 10px; flex-shrink: 0;
-        }
-        .news-title { font-size: 1.15rem; font-weight: bold; color: var(--primary); }
-        .news-score {
-            padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;
-            float: right; color: white;
-        }
-        .score-high { background: var(--danger); }
-        .score-mid { background: var(--warning); }
-        .score-low { background: var(--success); }
-        .news-meta { color: var(--text-secondary); font-size: 0.85rem; margin: 6px 0; }
-        .news-summary { color: var(--text-secondary); margin: 10px 0; line-height: 1.7; }
-        .news-points { margin: 8px 0; padding-left: 8px; }
-        .news-points li { list-style: none; padding: 3px 0; color: var(--text-secondary); }
-        .news-points li::before { content: "•"; color: var(--accent); font-weight: bold; margin-right: 8px; }
-        .evidence {
-            background: #f0f9ff; border-radius: 8px; padding: 12px 16px; margin: 12px 0;
-            border-left: 3px solid var(--accent); font-size: 0.9rem;
-        }
-        .evidence-row { display: flex; align-items: baseline; margin: 4px 0; gap: 8px; }
-        .evidence-label { font-weight: 600; color: var(--primary); min-width: 60px; flex-shrink: 0; }
-        .evidence-value { color: var(--text-secondary); }
-        .tag {
-            display: inline-block; padding: 2px 10px; border-radius: 12px;
-            font-size: 0.8rem; margin: 2px;
-        }
-        .tag-category { background: #e0e7ff; color: #4338ca; }
-        .tag-source { background: #fef3c7; color: #92400e; }
-        .github-item {
-            background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px;
-            padding: 16px; margin: 12px 0;
-        }
-        .github-stars { color: #e3b341; font-weight: bold; }
-        .model-item {
-            background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
-            padding: 16px; margin: 12px 0;
-        }
-        .news-url { margin-top: 8px; }
-        .news-url a { color: var(--accent); text-decoration: none; font-size: 0.85rem; }
-        .news-url a:hover { text-decoration: underline; }
-        .footer { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 48px; }
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 16px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI SIGINT — 2026-03-20</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #06070b;
+  --surface: #0c0e14;
+  --surface2: #12151e;
+  --surface3: #191d2a;
+  --border: #1a1e2e;
+  --border-h: #282d42;
+  --t1: #e2e5ed;
+  --t2: #8b92a8;
+  --t3: #4e5570;
+  --amber: #d4a017;
+  --amber-dim: rgba(212,160,23,.08);
+  --cyan: #00bcd4;
+  --cyan-dim: rgba(0,188,212,.07);
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --blue: #5b8def;
+  --orange: #e67e22;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ TOPBAR ═══ */
+.bar {
+  position: sticky; top: 0; z-index: 100;
+  height: 44px;
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 28px;
+  background: rgba(6,7,11,.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.bar-logo { color: var(--amber); font-weight: 700; }
+.bar-sep { color: var(--t3); }
+.bar-date { color: var(--t3); font-weight: 400; }
+.bar-nav { display: flex; gap: 1px; margin-left: auto; }
+.bar-nav a {
+  color: var(--t3); text-decoration: none;
+  padding: 4px 12px; border-radius: 3px;
+  transition: color .15s, background .15s;
+}
+.bar-nav a:hover { color: var(--t2); background: var(--surface2); }
+.bar-nav a.on { color: var(--amber); background: var(--amber-dim); }
+.bar-live {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ═══ CONTAINER ═══ */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px 28px 60px; }
+
+/* ═══ STATS ═══ */
+.kpi {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border); border-radius: 4px;
+  overflow: hidden; margin: 20px 0;
+}
+.kpi-cell { background: var(--surface); padding: 16px; text-align: center; }
+.kpi-n {
+  font-family: var(--mono); font-size: 1.6rem; font-weight: 700;
+  color: var(--amber);
+}
+.kpi-l {
+  font-family: var(--mono); font-size: .6rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--t3); margin-top: 2px;
+}
+
+.tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0 24px; }
+.tag {
+  font-family: var(--mono); font-size: .65rem; font-weight: 500;
+  letter-spacing: .5px; text-transform: uppercase;
+  padding: 3px 10px; border: 1px solid var(--border); border-radius: 2px;
+  color: var(--t3);
+}
+.tag b { color: var(--amber); margin-left: 4px; }
+
+/* ═══ SECTION ═══ */
+.sec { margin: 36px 0; }
+.sec-h {
+  font-family: var(--mono); font-size: .7rem; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--t3);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.sec-h em { font-style: normal; color: var(--cyan); margin-right: 6px; }
+
+/* ═══ NEWS ROW ═══ */
+.row {
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.row:last-child { border-bottom: none; }
+.row:hover { background: var(--surface); }
+.row-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; cursor: pointer;
+  user-select: none;
+}
+.row-n {
+  font-family: var(--mono); font-size: .7rem; font-weight: 600;
+  color: var(--t3); min-width: 22px; text-align: right;
+}
+.row-title {
+  flex: 1; font-size: .95rem; font-weight: 500; color: var(--t1);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.row-cat {
+  font-family: var(--mono); font-size: .6rem; font-weight: 500;
+  letter-spacing: .3px; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 2px;
+  flex-shrink: 0;
+}
+.c-model { background: rgba(91,141,239,.1); color: var(--blue); }
+.c-biz { background: rgba(230,126,34,.1); color: var(--orange); }
+.c-product { background: rgba(46,204,113,.1); color: var(--green); }
+.c-research { background: rgba(155,89,182,.1); color: #9b59b6; }
+.c-hw { background: rgba(231,76,60,.1); color: var(--red); }
+.c-other { background: var(--surface3); color: var(--t3); }
+
+.row-src {
+  font-family: var(--mono); font-size: .6rem; color: var(--t3);
+  flex-shrink: 0; max-width: 120px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.row-score {
+  font-family: var(--mono); font-size: .7rem; font-weight: 700;
+  min-width: 28px; text-align: center; flex-shrink: 0;
+}
+.s-s { color: var(--red); }
+.s-a { color: var(--amber); }
+.s-b { color: var(--green); }
+.s-c { color: var(--t3); }
+
+.row-arr {
+  font-size: .5rem; color: var(--t3);
+  transition: transform .2s; flex-shrink: 0;
+}
+.row.open .row-arr { transform: rotate(180deg); }
+
+/* ── DETAIL ── */
+.row-detail {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .35s ease, opacity .2s, padding .2s;
+  padding: 0 16px 0 50px;
+}
+.row.open .row-detail {
+  max-height: 1200px; opacity: 1;
+  padding: 0 16px 16px 50px;
+}
+.d-summary { color: var(--t2); font-size: .88rem; line-height: 1.75; margin-bottom: 8px; }
+.d-points { padding: 0; margin: 6px 0; }
+.d-points li {
+  list-style: none; font-size: .85rem; color: var(--t2);
+  padding: 2px 0 2px 14px; position: relative;
+}
+.d-points li::before {
+  content: ""; position: absolute; left: 0; top: 10px;
+  width: 4px; height: 4px; background: var(--cyan); border-radius: 1px;
+}
+
+.d-ev {
+  background: var(--surface2); border-left: 2px solid var(--cyan);
+  padding: 10px 14px; margin: 10px 0; border-radius: 0 3px 3px 0;
+}
+.d-ev-r { display: flex; gap: 8px; margin: 2px 0; align-items: baseline; }
+.d-ev-k {
+  font-family: var(--mono); font-size: .65rem; font-weight: 600;
+  color: var(--cyan); min-width: 50px; letter-spacing: .5px;
+  text-transform: uppercase; flex-shrink: 0;
+}
+.d-ev-v { color: var(--t2); font-size: .83rem; }
+.d-ev-v code {
+  font-family: var(--mono); font-size: .78rem;
+  background: var(--cyan-dim); color: var(--cyan);
+  padding: 1px 5px; border-radius: 2px;
+}
+.d-url {
+  margin-top: 8px;
+}
+.d-url a {
+  font-family: var(--mono); font-size: .7rem; color: var(--t3);
+  text-decoration: none; word-break: break-all;
+}
+.d-url a:hover { color: var(--cyan); }
+
+/* ═══ GITHUB ROW ═══ */
+.gh {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.gh:hover { background: var(--surface); }
+.gh:last-child { border-bottom: none; }
+.gh-n { font-family: var(--mono); font-size: .7rem; color: var(--t3); min-width: 22px; text-align: right; }
+.gh-info { flex: 1; min-width: 0; }
+.gh-name a {
+  font-weight: 600; color: var(--t1); text-decoration: none;
+  font-size: .9rem;
+}
+.gh-name a:hover { color: var(--amber); }
+.gh-desc {
+  font-size: .78rem; color: var(--t3); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gh-cmd {
+  font-family: var(--mono); font-size: .68rem;
+  color: var(--t3); background: var(--surface3);
+  padding: 1px 6px; border-radius: 2px; margin-top: 3px;
+  display: inline-block;
+}
+.gh-stars {
+  font-family: var(--mono); font-size: .75rem; font-weight: 600;
+  color: var(--amber); white-space: nowrap;
+}
+
+/* ═══ MODEL ROW ═══ */
+.mdl {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  border-left: 2px solid var(--orange);
+  transition: background .12s;
+}
+.mdl:hover { background: var(--surface); }
+.mdl:last-child { border-bottom: none; }
+
+/* ═══ FOOTER ═══ */
+.ft {
+  text-align: center; padding: 28px 0; margin-top: 40px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: .65rem;
+  letter-spacing: .8px; color: var(--t3); text-transform: uppercase;
+  line-height: 1.8;
+}
+.ft a { color: var(--t3); text-decoration: none; }
+.ft a:hover { color: var(--amber); }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .bar { padding: 0 12px; gap: 10px; }
+  .bar-nav { display: none; }
+  .wrap { padding: 12px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .row-head { gap: 8px; padding: 10px 8px; }
+  .row-title { white-space: normal; }
+  .row-src { display: none; }
+  .row.open .row-detail { padding-left: 38px; }
+  .gh, .mdl { padding: 10px 8px; gap: 10px; }
+}
+</style>
 </head>
 <body>
-    <div class="sidebar">
-        <h1>🤖 AI Daily Report</h1>
-        <div style="color:#64748b; font-size:0.85rem; margin-bottom:16px;">2026-03-20</div>
-        
-        <a href="#headlines" class="nav-item active">📰 ヘッドライン (14)</a>
-    <a href="#github" class="nav-item">🔥 GitHub Trending (5)</a>
-<a href="#models" class="nav-item">🤗 注目モデル (6)</a>
 
-        <div style="margin-top:24px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1);">
-            <a href="index.html" class="nav-item">🏠 ホーム</a>
-            <a href="day_slides_list.html" class="nav-item">📊 日次スライド</a>
-            <a href="ai_external_resources.html" class="nav-item">🔗 外部リソース</a>
-        </div>
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo">AI SIGINT</span>
+  <span class="bar-sep">//</span>
+  <span class="bar-date">2026-03-20</span>
+  <nav class="bar-nav">
+    <a href="#headlines" class="on">SIGNALS</a>
     
-    </div>
+    <a href="#github">GITHUB</a>
+    <a href="#models">MODELS</a>
+    <a href="/ai-news-site/">HQ</a>
+    <a href="/ai-news-site/presentations/day_slides_list.html">SLIDES</a>
+  </nav>
+</header>
 
-    <div class="main-content">
-        <h1>2026年03月20日のAIニュース速報 - OpenAI、Astralを買収しPython開発支援ツールをCodexへ統合</h1>
-        <p style="color:var(--text-muted); margin-bottom:24px;">自動生成: 2026-03-20 15:53 JST | Powered by Ollama + gemma3:4b</p>
+<div class="wrap">
+  <div class="kpi">
+    <div class="kpi-cell"><div class="kpi-n">25</div><div class="kpi-l">Signals</div></div>
+    <div class="kpi-cell"><div class="kpi-n">14</div><div class="kpi-l">High Priority</div></div>
+    <div class="kpi-cell"><div class="kpi-n">5</div><div class="kpi-l">Repos</div></div>
+    <div class="kpi-cell"><div class="kpi-n">6</div><div class="kpi-l">Models</div></div>
+  </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value">25</div>
-                <div class="stat-label">総記事数</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">14</div>
-                <div class="stat-label">高スコア (80+)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">5</div>
-                <div class="stat-label">GitHub Trending</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">6</div>
-                <div class="stat-label">注目モデル</div>
-            </div>
-        </div>
+  <div class="tags"><span class="tag">AI Model <b>7</b></span><span class="tag">Business <b>3</b></span><span class="tag">Hardware <b>3</b></span><span class="tag">Product <b>1</b></span></div>
 
-        <div style="margin: 16px 0;"><span style="background:#e2e8f0;padding:4px 10px;border-radius:12px;margin:2px;display:inline-block;font-size:0.85rem">AI Model: 7</span><span style="background:#e2e8f0;padding:4px 10px;border-radius:12px;margin:2px;display:inline-block;font-size:0.85rem">Business: 3</span><span style="background:#e2e8f0;padding:4px 10px;border-radius:12px;margin:2px;display:inline-block;font-size:0.85rem">Hardware: 3</span><span style="background:#e2e8f0;padding:4px 10px;border-radius:12px;margin:2px;display:inline-block;font-size:0.85rem">Product: 1</span></div>
+  <section class="sec" id="headlines">
+    <div class="sec-h"><em>&#9654;</em> Priority Signals</div>
+    <div class="row">
+  <div class="row-head">
+    <span class="row-n">01</span>
+    <span class="row-title">OpenAI、Astralを買収しPython開発支援ツールをCodexへ統合</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">OpenAIは、Python開発者向け高速ツール開発企業Astralを買収しました。Ruffやuvといったツールを、プログラミング支援AI「Codex」に統合し、開発ワークフローの自動化を目指します。オープンソースツールのサポートも継続することで、AI開発の効率化を図ります。</div>
+    <ul class="d-points"><li>OpenAIがPython開発支援ツールを提供するAstralを買収した。</li><li>RuffとuvといったツールがCodexに統合される。</li><li>開発ワークフローの自動化とオープンソースツールのサポートを通じて、AI開発の効率化を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">OpenAIの買収により、Codexの機能強化と開発効率の向上が期待される。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">GitHub Copilot, Tabnine</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この買収により、OpenAIのAIモデルとPython開発ツールの統合が進み、開発エンジニアはより効率的なコーディングを実現できる可能性が高まります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>CodexはOpenAIの開発プラットフォームを通じて利用可能です。詳細については、OpenAIの公式ウェブサイト ([https://openai.com/](https://openai.com/)) を参照してください。</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/news/articles/2603/20/news024.html" target="_blank">itmedia.co.jp/news/articles/2603/20/news024.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">02</span>
+    <span class="row-title">Uber、日米でロボタクシー展開　日産やAmazon子会社と連携</span>
+    <span class="row-cat c-biz">Business</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Uberが米国のZooxと提携しロボタクシー導入を米国で開始。日本でも日産とWayveと連携し、東京での試験運行を計画している。この動きは、自動運転技術の商業化に向けたUberの戦略の一環と見られる。</div>
+    <ul class="d-points"><li>UberがZooxと提携し、米国でロボタクシーの試験導入を開始。</li><li>日本でも日産とWayveと連携し、東京での試験運行を計画。</li><li>この展開は、Uberが自動運転技術の商用化に向けた取り組みを進めていることを示唆。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">Zooxの車両は、最大時速60kmまで走行可能。 / WayveのAIシステムは、リアルタイムの環境認識と意思決定を行う。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Wayve, Zoox, 各大自動車メーカーの自動運転技術開発チーム</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">このロボタクシー展開は、日本における自動運転技術開発競争を激化させ、日産やWayveといった日本のエンジニアたちに新たな技術開発のチャンスをもたらす。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>UberのZoox提携に関する最新情報や、日産とWayveのロボタクシー開発状況を継続的に追跡すること。</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/19/news044.html" target="_blank">itmedia.co.jp/enterprise/articles/2603/19/news044.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">03</span>
+    <span class="row-title">AppleやBoseなど主要ヘッドホンから有害物質が大量に検出　EU調査で各社が問われる</span>
+    <span class="row-cat c-hw">Hardware</span>
+    <span class="row-src">GIGAZINE</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">EUの支援を受けた調査で、Apple、Samsung、Boseなどの大手メーカーを含む全てのヘッドホン・イヤホンから、有害な化学物質が検出されたことが判明した。高級モデルから安価な輸入品まで、分析対象となるヘッドホン全てに有害物質が含まれていた。一部販売業者は販売中止を発表しており、市場全体に影響が及ぶ可能性がある。</div>
+    <ul class="d-points"><li>EUの資金援助を受けた調査で、高級モデル・安価な輸入品を問わず全てのヘッドホンから有害化学物質が検出された。</li><li>Apple、Samsung、Boseといった主要ブランドも調査対象となり、一部販売業者が販売を中止している。</li><li>この問題はヘッドホン市場全体に影響を及ぼす可能性があり、製品の安全性確保が改めて重要視される。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">調査対象：ヨーロッパ中央5カ国におけるヘッドホン全製品（高級モデル、安価な輸入品を含む） / 検出された有害物質：詳細な化学物質名は本文に記載なし</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Xiaomi, Sony, JBL</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この問題は、ヘッドホン業界における安全基準の厳格化を促し、日本国内のヘッドホンメーカーや販売業者に製品の安全性評価の見直しと品質管理の強化を求めてくる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>メーカーは、出荷されるヘッドホンについて、有害物質の有無を徹底的に調査・分析し、必要に応じて安全対策を講じる必要がある。また、販売業者の方は、EUの規制要件を遵守した上で、消費者への情報開示を徹底すべき。</code></span></div></div>
+    <div class="d-url"><a href="https://gigazine.net/news/20260319-headphones-chemicals" target="_blank">gigazine.net/news/20260319-headphones-chemicals</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">04</span>
+    <span class="row-title">中国AI企業がGemini 3.1 Proを超えるAIモデル「MiniMax M2.7」を発表</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">GIGAZINE</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">中国のMiniMaxが、自己進化機能を搭載したAIモデル「MiniMax M2.7」を発表しました。ベンチマークテストでGemini 3.1 Proを上回る性能を示し、同社初のAIモデルとして注目されています。特に、エージェントチームへのネイティブ対応が特徴です。</div>
+    <ul class="d-points"><li>MiniMax M2.7は、自己進化によって性能を向上させるAIモデル。</li><li>ベンチマークテストにおいてGemini 3.1 Proを超えるスコアを獲得。</li><li>エージェントチームへのネイティブ対応機能を搭載している。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">ベンチマークテストでGemini 3.1 Proを超えるスコア（具体的なスコアは示されていない） / 自己進化機能による性能向上</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Google Gemini 3.1 Pro</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この発表は、AI開発における自己進化の重要性を強調し、競争激化を加速させる可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現在、詳細な情報やAPI提供は公開されていません。MiniMax社の公式ウェブサイト (GIGAZINEの記事参照) を今後の情報収集に注視する必要があります。</code></span></div></div>
+    <div class="d-url"><a href="https://gigazine.net/news/20260319-minimax-m2-7" target="_blank">gigazine.net/news/20260319-minimax-m2-7</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">05</span>
+    <span class="row-title">OpenAIによるAstral買収を発表：次世代Python開発者ツールを加速</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">OpenAI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">OpenAIは、AIコード生成モデルCodexの成長を加速させるため、スタートアップAstralを買収しました。Astralの技術を統合することで、Python開発者のツール開発が加速され、AIを活用した開発体験の向上を目指します。この買収により、OpenAIは同分野での競争力を強化します。</div>
+    <ul class="d-points"><li>OpenAIがAstralを買収することでCodexの成長を加速する。</li><li>Astralの技術は、次世代のPython開発者ツール開発に利用される。</li><li>AIを活用した開発体験の向上を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">GitHub Copilot, Tabnine</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この買収により、Python開発者はより高度なAIサポートを利用できるようになり、開発効率の向上や新しい開発手法の習得が期待されます。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>OpenAIが今後、Astralの技術に基づくAPIやツールを公開する可能性があります。OpenAIの公式発表にご注目ください。</code></span></div></div>
+    <div class="d-url"><a href="https://openai.com/index/openai-to-acquire-astral" target="_blank">openai.com/index/openai-to-acquire-astral</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">06</span>
+    <span class="row-title">SPEED-Bench: 大規模言語モデルの推論速度評価ベンチマークの導入</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">Hugging Face</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Hugging Faceが発表したSPEED-Benchは、大規模言語モデル（LLM）の推論速度を統一的に評価するための新しいベンチマークです。多様なLLMモデル（Llama2, Mistral, Gemmaなど）と評価指標（速度、消費電力、レイテンシ）を組み合わせることで、より公平な比較が可能になります。これにより、開発者はモデルのパフォーマンスをより正確に把握し、効率的なモデル選択や最適化に役立てることができます。</div>
+    <ul class="d-points"><li>SPEED-Benchは、LLMの速度、消費電力、レイテンシを統合的に評価するベンチマークです。</li><li>Llama2, Mistral, Gemmaなどの主要なLLMモデルがSPEED-Benchで評価されています。</li><li>ベンチマークの結果は、モデルのパフォーマンスを比較し、効率的なモデル選択に役立てるのに貢献します。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">速度: 範囲はモデルとハードウェア構成によって異なりますが、ベンチマーク結果は公開されています（Hugging Face Hub）、特にLlama2の推論速度は他のベンチマークと比較して高速であることが示唆されています。 / 消費電力: モデルに依存しますが、ベンチマークを通じて、モデルごとの消費電力も評価可能です。 / レイテンシ: 応答時間もベンチマークによって測定され、モデルのリアルタイム性評価に役立ちます。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">MLMe, Open LLM Leaderboard</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業やエンジニアは、SPEED-Benchを導入することで、LLMモデルのパフォーマンスをより客観的に評価し、効率的な開発・運用戦略を構築できる可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>SPEED-Benchの詳細はHugging Face Hubで公開されています: [https://huggingface.co/spaces/HuggingFaceH4/speed-bench](https://huggingface.co/spaces/HuggingFaceH4/speed-bench).  モデルの評価に利用する場合は、速度を比較検討し、自身の環境に合わせたモデルを選択してください。</code></span></div></div>
+    <div class="d-url"><a href="https://huggingface.co/blog/nvidia/speed-bench" target="_blank">huggingface.co/blog/nvidia/speed-bench</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">07</span>
+    <span class="row-title">ジェフ・ベゾス、旧製造業企業をAIで変革し1000億ドル投資を計画</span>
+    <span class="row-cat c-biz">Business</span>
+    <span class="row-src">TechCrunch AI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">ジェフ・ベゾス氏が、AI技術を活用して老朽化した製造業企業を買収し、大規模な変革を試みるプロジェクトを立ち上げた。具体的な投資額は1000億ドルとされており、AIによる製造業の刷新を目指すもの。この動きは、AIと製造業の融合における新たな可能性を示唆している。</div>
+    <ul class="d-points"><li>ジェフ・ベゾス氏がAI技術を活用した製造業企業買収プロジェクトを計画。</li><li>投資額は1000億ドルという巨額である。</li><li>AI技術による製造業の変革を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この動きは、AI技術を製造業に適用する取り組みを加速させ、日本の製造業におけるAI導入の戦略や投資判断に影響を与える可能性がある。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では、具体的なアクションアイテム（pip install名、URL、API等）は提供されていません。しかし、大規模なAI導入による製造業変革のトレンドを注視し、関連技術やベンダーへの調査を行うことが推奨されます。</code></span></div></div>
+    <div class="d-url"><a href="https://techcrunch.com/2026/03/19/jeff-bezos-reportedly-wants-100-billion-to-buy-and-transform-old-manufacturing-firms-with-ai" target="_blank">techcrunch.com/2026/03/19/jeff-bezos-reportedly-wants-100-billion-to-b</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">08</span>
+    <span class="row-title">2027年までにAIボットのトラフィックが人間のトラフィックを上回る - クラウドフレアCEO</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">TechCrunch AI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">クラウドフレアCEOマッTHUR・プリンス氏は、生成AIエージェントの増加により、2027年までにオンラインでのAIボットのトラフィックが人間のトラフィックを上回ると予測。これはウェブトラフィックとインフラストラクチャの要求を大幅に増加させる可能性がある。この予測は、AIの急速な普及とそれがもたらす影響について重要な示唆を与える。</div>
+    <ul class="d-points"><li>2027年までにAIボットのオンライントラフィックが人間のトラフィックを上回ると予測。</li><li>生成AIエージェントの増加がウェブトラフィックとインフラストラクチャの要求を増加させる要因。</li><li>この予測はAIの急速な普及とそれがもたらす影響に関する重要な示唆を与える。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">予測年: 2027年 / 変動量: AIボットが人間のトラフィックを上回る</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業やエンジニアは、AIボットの増加に伴うウェブサイトの信頼性、セキュリティ、インフラストラクチャへの影響を注視し、対策を講じる必要が生じる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では具体的なアクションアイテム（pip install名、URLなど）は提供されていません。しかし、ウェブサイトのセキュリティ対策、AIボットの検出・防御技術、そして生成AIのインフラストラクチャ需要の増加に備えるための調査と検討が重要です。</code></span></div></div>
+    <div class="d-url"><a href="https://techcrunch.com/2026/03/19/online-bot-traffic-will-exceed-human-traffic-by-2027-cloudflare-ceo-says" target="_blank">techcrunch.com/2026/03/19/online-bot-traffic-will-exceed-human-traffic</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">09</span>
+    <span class="row-title">AdobeのAI画像生成ツールが、独自の作品でトレーニング可能に</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">The Verge AI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Adobeは、特定の芸術スタイルやキャラクターデザインを模倣できるカスタマイズ可能なAI画像生成ツールを導入。Firefly Custom Modelsは本日、パブリックベータ版で公開され、クリエイターやブランドは自身の資産でモデルをトレーニングすることで、キャラクターやイラスト、写真の生成において一貫した美的感覚を確保できる。これにより、よりブランドに合わせたAI生成画像の作成が可能になる。</div>
+    <ul class="d-points"><li>Adobe Firefly Custom Modelsは、ユーザーの独自の資産（アートワーク、デザインなど）を用いてAIモデルをトレーニングできる。</li><li>トレーニングされたモデルを使用することで、生成される画像が特定の芸術スタイルやキャラクターデザインに沿った結果になるように制御できる。</li><li>この機能は、キャラクターデザイン、イラストレーション、写真などの分野に特に役立つ。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">パブリックベータ版として開始 / カスタムモデルのトレーニングが可能 / より一貫性のある美的感覚の生成を目的とした機能</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Midjourney, Stable Diffusion</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業やエンジニアは、AdobeのAI画像生成ツールを活用することで、より高品質でブランディングに合致したAI生成画像を作成でき、創造的な業務効率化に貢献できる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>Adobe Firefly Custom Modelsのパブリックベータ版にアクセスして、自身の資産でAIモデルをトレーニングすることが可能。Adobeの公式発表([https://www.adobe.com/jp/sensei/firefly.html](https://www.adobe.com/jp/sensei/firefly.html))”を参照。</code></span></div></div>
+    <div class="d-url"><a href="https://theverge.com/tech/897243/adobe-firefly-ai-custom-models-image-public-beta" target="_blank">theverge.com/tech/897243/adobe-firefly-ai-custom-models-image-public-b</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">10</span>
+    <span class="row-title">楽天、AIモデル「Rakuten AI 3.0」を無償提供、日本語能力強化</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">楽天が、日本語性能に優れたAIモデル「Rakuten AI 3.0」を無償で公開した。7000億パラメータのMoEアーキテクチャを採用し、国内AI開発の加速と技術支援を目的としている。これにより、日本語AI開発コミュニティへの貢献を目指す。</div>
+    <ul class="d-points"><li>楽天が日本語特化型AIモデル「Rakuten AI 3.0」を無償提供。</li><li>モデルは7000億パラメータのMoEアーキテクチャを採用し、日本語性能で高い評価を得ている。</li><li>無償提供を通じて、国内AI開発の加速と技術支援を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">モデル: 7000億パラメータ (MoEアーキテクチャ) / 日本語性能: 評価済み (高い評価)</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Google Gemini, Microsoft Copilot, Anthropic Claude</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この発表により、国内のAI開発者はRakuten AI 3.0を活用し、日本語AIモデルの開発速度と品質を向上させることが期待できる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>Rakuten AI 3.0は公開されているため、公式ドキュメントやGitHubリポジトリを通じてアクセス可能になります。（詳細はITmedia AI+の記事を参照: [https://itmedia.co.jp/news/article/24061316/](https://itmedia.co.jp/news/article/24061316/)）</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/20/news011.html" target="_blank">itmedia.co.jp/enterprise/articles/2603/20/news011.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">11</span>
+    <span class="row-title">Google、AIデザインツール「Stitch」β版公開　手書きスケッチをコード化</span>
+    <span class="row-cat c-product">Product</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Googleが、AIを活用したUIデザイン生成ツール「Stitch」（β）をLabsで公開。Gemini 3とGalileo AIの技術を統合し、自然言語や手書きスケッチからプロトタイプを自動生成。Figmaへの書き出しや、Reactコードの出力にも対応しています。</div>
+    <ul class="d-points"><li>「バイブデザイン」というコンセプトで、直感的なUI構築を支援。</li><li>Gemini 3とGalileo AIの技術を統合し、自然言語やスケッチからプロトタイプを自動生成。</li><li>Figmaへの書き出しやReactコードの出力に対応し、開発効率の向上を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">Gemini 3の統合により、自然言語やスケッチからのプロトタイプ生成を可能にする。 / Figmaへの書き出し、およびReactコードの出力に対応することで、既存ワークフローとの連携を促進。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Figma、Adobe XD、Sketch, UI Design Automation Software (例: Uizard)</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本のUI/UXデザイナーや開発者は、Stitchを活用することでプロトタイピングの効率を大幅に改善し、開発サイクルを短縮できる可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>Stitchのベータ版はGoogle Labsで利用可能です: [https://labs.google.com/stitching/](https://labs.google.com/stitching/)</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/aiplus/articles/2603/19/news084.html" target="_blank">itmedia.co.jp/aiplus/articles/2603/19/news084.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">12</span>
+    <span class="row-title">2028年にインシデント対応の5割がAI関連に – ガートナーが予測</span>
+    <span class="row-cat c-biz">Business</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">ガートナーの予測によると、AIの普及により2028年にはインシデント対応の5割がAI関連となる見込みです。これは、規制対応の遅れ、データ負債、ID管理の複雑化といったリスクの増大を示唆しています。より高度なセキュリティ対策の必要性が高まることが予測されています。</div>
+    <ul class="d-points"><li>2028年にインシデント対応の半数がAI関連となる。</li><li>リスク要因として、規制対応の遅れ、データ負債、ID管理の複雑化が挙げられる。</li><li>AIの普及によるセキュリティリスク管理の激変が予測されている。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">インシデント対応の5割 / 2028年</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">従来のサイバーセキュリティ対策</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業は、AIの活用に伴うセキュリティリスクの高度化に対応するため、セキュリティ戦略の見直しとAIセキュリティ専門人材の育成が急務となる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>セキュリティ対策ベンダーのAIセキュリティソリューションの導入検討を開始し、AI関連リスクへの対応策策定を検討する。</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/19/news051.html" target="_blank">itmedia.co.jp/enterprise/articles/2603/19/news051.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">13</span>
+    <span class="row-title">NVIDIA、宇宙向けAIモジュール「Vera Rubin Space-1」を発表</span>
+    <span class="row-cat c-hw">Hardware</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">NVIDIAはGTC 2026で、AIインフラ基盤「Vera Rubinプラットフォーム」を基にした宇宙空間向けAIモジュール「NVIDIA Space-1 Vera Rubin Module」を発表しました。このモジュールは、サイズ、重量、電力（SWaP）に制約のある極端な環境でのAI処理を可能にし、軌道データセンターへの展開を視野に入れています。NVIDIAは、宇宙空間でのAI活用を加速させることを目指しています。</div>
+    <ul class="d-points"><li>NVIDIAが「Vera Rubinプラットフォーム」をベースに、宇宙空間向けのAIモジュール「NVIDIA Space-1 Vera Rubin Module」を開発・発表した。</li><li>このモジュールは、サイズ、重量、電力（SWaP）に制約のある環境向けに設計されており、軌道データセンターへの展開が想定されている。</li><li>NVIDIAは、宇宙空間でのAI活用を加速させることを目的としている。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">SWaP: サイズ、重量、電力（SWaP）に制約のある環境への対応 (具体的な数値は明記されていない)</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Amazon Web Services (AWS), Microsoft Azure, Google Cloud</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この発表は、AIインフラの宇宙展開の新たな可能性を示唆し、日本のAI関連企業やエンジニアの宇宙分野への参入を促進する可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では、NVIDIA Space-1 Vera Rubin Moduleに関する具体的なpip install名、URL、API等に関する情報は公開されていません。しかし、NVIDIAのGTC 2026での発表内容や、Vera Rubinプラットフォームに関する情報を参考に、今後の開発動向を注視する必要があります。</code></span></div></div>
+    <div class="d-url"><a href="https://monoist.itmedia.co.jp/mn/articles/2603/19/news063.html" target="_blank">monoist.itmedia.co.jp/mn/articles/2603/19/news063.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">14</span>
+    <span class="row-title">手のひらサイズAIスパコン『DGX Spark』、4台連結可能に進化</span>
+    <span class="row-cat c-hw">Hardware</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">NVIDIAは、超小型AIスーパーコンピュータ『DGX Spark』の次期ソフトウェアアップデートを発表。従来の2台連結に加え、最大4台の連結が可能になり、スケーラビリティが向上する。OpenClawなどの高速なタスクもスムーズに実行できるとアナウンスされている。</div>
+    <ul class="d-points"><li>『DGX Spark』のスケールアウト構成が2台連結から4台連結に拡張可能に。</li><li>OpenClawのような高速なアプリケーションの実行も可能になる。</li><li>今回のアップデートにより、『DGX Spark』のパフォーマンスと柔軟性が向上する。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">スケールアウト構成：2台 -&gt; 4台</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Intel Xeon, AMD EPYC (ワークステーション向けAIコンピューティング)</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この進化により、NVIDIAのAIスパコン『DGX Spark』は、より複雑なAIモデルの開発や大規模なデータ処理を、小型かつ効率的に実現可能となり、特にAI研究開発・データセンターのエンジニアにとって新たな選択肢となる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では、具体的なpip install名やURL、API等の情報はない。GTC 2026での発表内容に注目すること。</code></span></div></div>
+    <div class="d-url"><a href="https://monoist.itmedia.co.jp/mn/articles/2603/19/news046.html" target="_blank">monoist.itmedia.co.jp/mn/articles/2603/19/news046.html</a></div>
+  </div>
+</div>
+  </section>
 
-        <h2 id="headlines">📰 ヘッドライン速報</h2>
-        
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">1</span>
-            <span class="news-title" style="flex:1;">OpenAI、Astralを買収しPython開発支援ツールをCodexへ統合</span>
-            <span class="news-score score-high">90</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">OpenAIは、Python開発者向け高速ツール開発企業Astralを買収しました。Ruffやuvといったツールを、プログラミング支援AI「Codex」に統合し、開発ワークフローの自動化を目指します。オープンソースツールのサポートも継続することで、AI開発の効率化を図ります。</div>
-        <ul class="news-points"><li>OpenAIがPython開発支援ツールを提供するAstralを買収した。</li><li>RuffとuvといったツールがCodexに統合される。</li><li>開発ワークフローの自動化とオープンソースツールのサポートを通じて、AI開発の効率化を目指す。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">OpenAIの買収により、Codexの機能強化と開発効率の向上が期待される。</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">GitHub Copilot, Tabnine</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この買収により、OpenAIのAIモデルとPython開発ツールの統合が進み、開発エンジニアはより効率的なコーディングを実現できる可能性が高まります。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>CodexはOpenAIの開発プラットフォームを通じて利用可能です。詳細については、OpenAIの公式ウェブサイト ([https://openai.com/](https://openai.com/)) を参照してください。</code></span></div></div>
-        <div class="news-url"><a href="https://itmedia.co.jp/news/articles/2603/20/news024.html" target="_blank">🔗 https://itmedia.co.jp/news/articles/2603/20/news024.html</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">2</span>
-            <span class="news-title" style="flex:1;">Uber、日米でロボタクシー展開　日産やAmazon子会社と連携</span>
-            <span class="news-score score-high">90</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Business</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">Uberが米国のZooxと提携しロボタクシー導入を米国で開始。日本でも日産とWayveと連携し、東京での試験運行を計画している。この動きは、自動運転技術の商業化に向けたUberの戦略の一環と見られる。</div>
-        <ul class="news-points"><li>UberがZooxと提携し、米国でロボタクシーの試験導入を開始。</li><li>日本でも日産とWayveと連携し、東京での試験運行を計画。</li><li>この展開は、Uberが自動運転技術の商用化に向けた取り組みを進めていることを示唆。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">Zooxの車両は、最大時速60kmまで走行可能。 / WayveのAIシステムは、リアルタイムの環境認識と意思決定を行う。</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Wayve, Zoox, 各大自動車メーカーの自動運転技術開発チーム</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">このロボタクシー展開は、日本における自動運転技術開発競争を激化させ、日産やWayveといった日本のエンジニアたちに新たな技術開発のチャンスをもたらす。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>UberのZoox提携に関する最新情報や、日産とWayveのロボタクシー開発状況を継続的に追跡すること。</code></span></div></div>
-        <div class="news-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/19/news044.html" target="_blank">🔗 https://itmedia.co.jp/enterprise/articles/2603/19/news044.html</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">3</span>
-            <span class="news-title" style="flex:1;">AppleやBoseなど主要ヘッドホンから有害物質が大量に検出　EU調査で各社が問われる</span>
-            <span class="news-score score-high">90</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Hardware</span>
-            <span class="tag tag-source">GIGAZINE</span>
-            
-        </div>
-        <div class="news-summary">EUの支援を受けた調査で、Apple、Samsung、Boseなどの大手メーカーを含む全てのヘッドホン・イヤホンから、有害な化学物質が検出されたことが判明した。高級モデルから安価な輸入品まで、分析対象となるヘッドホン全てに有害物質が含まれていた。一部販売業者は販売中止を発表しており、市場全体に影響が及ぶ可能性がある。</div>
-        <ul class="news-points"><li>EUの資金援助を受けた調査で、高級モデル・安価な輸入品を問わず全てのヘッドホンから有害化学物質が検出された。</li><li>Apple、Samsung、Boseといった主要ブランドも調査対象となり、一部販売業者が販売を中止している。</li><li>この問題はヘッドホン市場全体に影響を及ぼす可能性があり、製品の安全性確保が改めて重要視される。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">調査対象：ヨーロッパ中央5カ国におけるヘッドホン全製品（高級モデル、安価な輸入品を含む） / 検出された有害物質：詳細な化学物質名は本文に記載なし</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Xiaomi, Sony, JBL</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この問題は、ヘッドホン業界における安全基準の厳格化を促し、日本国内のヘッドホンメーカーや販売業者に製品の安全性評価の見直しと品質管理の強化を求めてくる。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>メーカーは、出荷されるヘッドホンについて、有害物質の有無を徹底的に調査・分析し、必要に応じて安全対策を講じる必要がある。また、販売業者の方は、EUの規制要件を遵守した上で、消費者への情報開示を徹底すべき。</code></span></div></div>
-        <div class="news-url"><a href="https://gigazine.net/news/20260319-headphones-chemicals" target="_blank">🔗 https://gigazine.net/news/20260319-headphones-chemicals</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">4</span>
-            <span class="news-title" style="flex:1;">中国AI企業がGemini 3.1 Proを超えるAIモデル「MiniMax M2.7」を発表</span>
-            <span class="news-score score-high">90</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">GIGAZINE</span>
-            
-        </div>
-        <div class="news-summary">中国のMiniMaxが、自己進化機能を搭載したAIモデル「MiniMax M2.7」を発表しました。ベンチマークテストでGemini 3.1 Proを上回る性能を示し、同社初のAIモデルとして注目されています。特に、エージェントチームへのネイティブ対応が特徴です。</div>
-        <ul class="news-points"><li>MiniMax M2.7は、自己進化によって性能を向上させるAIモデル。</li><li>ベンチマークテストにおいてGemini 3.1 Proを超えるスコアを獲得。</li><li>エージェントチームへのネイティブ対応機能を搭載している。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">ベンチマークテストでGemini 3.1 Proを超えるスコア（具体的なスコアは示されていない） / 自己進化機能による性能向上</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Google Gemini 3.1 Pro</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この発表は、AI開発における自己進化の重要性を強調し、競争激化を加速させる可能性があります。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>現在、詳細な情報やAPI提供は公開されていません。MiniMax社の公式ウェブサイト (GIGAZINEの記事参照) を今後の情報収集に注視する必要があります。</code></span></div></div>
-        <div class="news-url"><a href="https://gigazine.net/news/20260319-minimax-m2-7" target="_blank">🔗 https://gigazine.net/news/20260319-minimax-m2-7</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">5</span>
-            <span class="news-title" style="flex:1;">OpenAIによるAstral買収を発表：次世代Python開発者ツールを加速</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">OpenAI</span>
-            
-        </div>
-        <div class="news-summary">OpenAIは、AIコード生成モデルCodexの成長を加速させるため、スタートアップAstralを買収しました。Astralの技術を統合することで、Python開発者のツール開発が加速され、AIを活用した開発体験の向上を目指します。この買収により、OpenAIは同分野での競争力を強化します。</div>
-        <ul class="news-points"><li>OpenAIがAstralを買収することでCodexの成長を加速する。</li><li>Astralの技術は、次世代のPython開発者ツール開発に利用される。</li><li>AIを活用した開発体験の向上を目指す。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">GitHub Copilot, Tabnine</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この買収により、Python開発者はより高度なAIサポートを利用できるようになり、開発効率の向上や新しい開発手法の習得が期待されます。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>OpenAIが今後、Astralの技術に基づくAPIやツールを公開する可能性があります。OpenAIの公式発表にご注目ください。</code></span></div></div>
-        <div class="news-url"><a href="https://openai.com/index/openai-to-acquire-astral" target="_blank">🔗 https://openai.com/index/openai-to-acquire-astral</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">6</span>
-            <span class="news-title" style="flex:1;">SPEED-Bench: 大規模言語モデルの推論速度評価ベンチマークの導入</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">Hugging Face</span>
-            
-        </div>
-        <div class="news-summary">Hugging Faceが発表したSPEED-Benchは、大規模言語モデル（LLM）の推論速度を統一的に評価するための新しいベンチマークです。多様なLLMモデル（Llama2, Mistral, Gemmaなど）と評価指標（速度、消費電力、レイテンシ）を組み合わせることで、より公平な比較が可能になります。これにより、開発者はモデルのパフォーマンスをより正確に把握し、効率的なモデル選択や最適化に役立てることができます。</div>
-        <ul class="news-points"><li>SPEED-Benchは、LLMの速度、消費電力、レイテンシを統合的に評価するベンチマークです。</li><li>Llama2, Mistral, Gemmaなどの主要なLLMモデルがSPEED-Benchで評価されています。</li><li>ベンチマークの結果は、モデルのパフォーマンスを比較し、効率的なモデル選択に役立てるのに貢献します。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">速度: 範囲はモデルとハードウェア構成によって異なりますが、ベンチマーク結果は公開されています（Hugging Face Hub）、特にLlama2の推論速度は他のベンチマークと比較して高速であることが示唆されています。 / 消費電力: モデルに依存しますが、ベンチマークを通じて、モデルごとの消費電力も評価可能です。 / レイテンシ: 応答時間もベンチマークによって測定され、モデルのリアルタイム性評価に役立ちます。</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">MLMe, Open LLM Leaderboard</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">日本企業やエンジニアは、SPEED-Benchを導入することで、LLMモデルのパフォーマンスをより客観的に評価し、効率的な開発・運用戦略を構築できる可能性があります。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>SPEED-Benchの詳細はHugging Face Hubで公開されています: [https://huggingface.co/spaces/HuggingFaceH4/speed-bench](https://huggingface.co/spaces/HuggingFaceH4/speed-bench).  モデルの評価に利用する場合は、速度を比較検討し、自身の環境に合わせたモデルを選択してください。</code></span></div></div>
-        <div class="news-url"><a href="https://huggingface.co/blog/nvidia/speed-bench" target="_blank">🔗 https://huggingface.co/blog/nvidia/speed-bench</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">7</span>
-            <span class="news-title" style="flex:1;">ジェフ・ベゾス、旧製造業企業をAIで変革し1000億ドル投資を計画</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Business</span>
-            <span class="tag tag-source">TechCrunch AI</span>
-            
-        </div>
-        <div class="news-summary">ジェフ・ベゾス氏が、AI技術を活用して老朽化した製造業企業を買収し、大規模な変革を試みるプロジェクトを立ち上げた。具体的な投資額は1000億ドルとされており、AIによる製造業の刷新を目指すもの。この動きは、AIと製造業の融合における新たな可能性を示唆している。</div>
-        <ul class="news-points"><li>ジェフ・ベゾス氏がAI技術を活用した製造業企業買収プロジェクトを計画。</li><li>投資額は1000億ドルという巨額である。</li><li>AI技術による製造業の変革を目指す。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この動きは、AI技術を製造業に適用する取り組みを加速させ、日本の製造業におけるAI導入の戦略や投資判断に影響を与える可能性がある。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>現時点では、具体的なアクションアイテム（pip install名、URL、API等）は提供されていません。しかし、大規模なAI導入による製造業変革のトレンドを注視し、関連技術やベンダーへの調査を行うことが推奨されます。</code></span></div></div>
-        <div class="news-url"><a href="https://techcrunch.com/2026/03/19/jeff-bezos-reportedly-wants-100-billion-to-buy-and-transform-old-manufacturing-firms-with-ai" target="_blank">🔗 https://techcrunch.com/2026/03/19/jeff-bezos-reportedly-wants-100-billion-to-buy</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">8</span>
-            <span class="news-title" style="flex:1;">2027年までにAIボットのトラフィックが人間のトラフィックを上回る - クラウドフレアCEO</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">TechCrunch AI</span>
-            
-        </div>
-        <div class="news-summary">クラウドフレアCEOマッTHUR・プリンス氏は、生成AIエージェントの増加により、2027年までにオンラインでのAIボットのトラフィックが人間のトラフィックを上回ると予測。これはウェブトラフィックとインフラストラクチャの要求を大幅に増加させる可能性がある。この予測は、AIの急速な普及とそれがもたらす影響について重要な示唆を与える。</div>
-        <ul class="news-points"><li>2027年までにAIボットのオンライントラフィックが人間のトラフィックを上回ると予測。</li><li>生成AIエージェントの増加がウェブトラフィックとインフラストラクチャの要求を増加させる要因。</li><li>この予測はAIの急速な普及とそれがもたらす影響に関する重要な示唆を与える。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">予測年: 2027年 / 変動量: AIボットが人間のトラフィックを上回る</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">日本企業やエンジニアは、AIボットの増加に伴うウェブサイトの信頼性、セキュリティ、インフラストラクチャへの影響を注視し、対策を講じる必要が生じる。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>現時点では具体的なアクションアイテム（pip install名、URLなど）は提供されていません。しかし、ウェブサイトのセキュリティ対策、AIボットの検出・防御技術、そして生成AIのインフラストラクチャ需要の増加に備えるための調査と検討が重要です。</code></span></div></div>
-        <div class="news-url"><a href="https://techcrunch.com/2026/03/19/online-bot-traffic-will-exceed-human-traffic-by-2027-cloudflare-ceo-says" target="_blank">🔗 https://techcrunch.com/2026/03/19/online-bot-traffic-will-exceed-human-traffic-b</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">9</span>
-            <span class="news-title" style="flex:1;">AdobeのAI画像生成ツールが、独自の作品でトレーニング可能に</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">The Verge AI</span>
-            
-        </div>
-        <div class="news-summary">Adobeは、特定の芸術スタイルやキャラクターデザインを模倣できるカスタマイズ可能なAI画像生成ツールを導入。Firefly Custom Modelsは本日、パブリックベータ版で公開され、クリエイターやブランドは自身の資産でモデルをトレーニングすることで、キャラクターやイラスト、写真の生成において一貫した美的感覚を確保できる。これにより、よりブランドに合わせたAI生成画像の作成が可能になる。</div>
-        <ul class="news-points"><li>Adobe Firefly Custom Modelsは、ユーザーの独自の資産（アートワーク、デザインなど）を用いてAIモデルをトレーニングできる。</li><li>トレーニングされたモデルを使用することで、生成される画像が特定の芸術スタイルやキャラクターデザインに沿った結果になるように制御できる。</li><li>この機能は、キャラクターデザイン、イラストレーション、写真などの分野に特に役立つ。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">パブリックベータ版として開始 / カスタムモデルのトレーニングが可能 / より一貫性のある美的感覚の生成を目的とした機能</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Midjourney, Stable Diffusion</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">日本企業やエンジニアは、AdobeのAI画像生成ツールを活用することで、より高品質でブランディングに合致したAI生成画像を作成でき、創造的な業務効率化に貢献できる。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>Adobe Firefly Custom Modelsのパブリックベータ版にアクセスして、自身の資産でAIモデルをトレーニングすることが可能。Adobeの公式発表([https://www.adobe.com/jp/sensei/firefly.html](https://www.adobe.com/jp/sensei/firefly.html))”を参照。</code></span></div></div>
-        <div class="news-url"><a href="https://theverge.com/tech/897243/adobe-firefly-ai-custom-models-image-public-beta" target="_blank">🔗 https://theverge.com/tech/897243/adobe-firefly-ai-custom-models-image-public-bet</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">10</span>
-            <span class="news-title" style="flex:1;">楽天、AIモデル「Rakuten AI 3.0」を無償提供、日本語能力強化</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">AI Model</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">楽天が、日本語性能に優れたAIモデル「Rakuten AI 3.0」を無償で公開した。7000億パラメータのMoEアーキテクチャを採用し、国内AI開発の加速と技術支援を目的としている。これにより、日本語AI開発コミュニティへの貢献を目指す。</div>
-        <ul class="news-points"><li>楽天が日本語特化型AIモデル「Rakuten AI 3.0」を無償提供。</li><li>モデルは7000億パラメータのMoEアーキテクチャを採用し、日本語性能で高い評価を得ている。</li><li>無償提供を通じて、国内AI開発の加速と技術支援を目指す。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">モデル: 7000億パラメータ (MoEアーキテクチャ) / 日本語性能: 評価済み (高い評価)</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Google Gemini, Microsoft Copilot, Anthropic Claude</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この発表により、国内のAI開発者はRakuten AI 3.0を活用し、日本語AIモデルの開発速度と品質を向上させることが期待できる。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>Rakuten AI 3.0は公開されているため、公式ドキュメントやGitHubリポジトリを通じてアクセス可能になります。（詳細はITmedia AI+の記事を参照: [https://itmedia.co.jp/news/article/24061316/](https://itmedia.co.jp/news/article/24061316/)）</code></span></div></div>
-        <div class="news-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/20/news011.html" target="_blank">🔗 https://itmedia.co.jp/enterprise/articles/2603/20/news011.html</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">11</span>
-            <span class="news-title" style="flex:1;">Google、AIデザインツール「Stitch」β版公開　手書きスケッチをコード化</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Product</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">Googleが、AIを活用したUIデザイン生成ツール「Stitch」（β）をLabsで公開。Gemini 3とGalileo AIの技術を統合し、自然言語や手書きスケッチからプロトタイプを自動生成。Figmaへの書き出しや、Reactコードの出力にも対応しています。</div>
-        <ul class="news-points"><li>「バイブデザイン」というコンセプトで、直感的なUI構築を支援。</li><li>Gemini 3とGalileo AIの技術を統合し、自然言語やスケッチからプロトタイプを自動生成。</li><li>Figmaへの書き出しやReactコードの出力に対応し、開発効率の向上を目指す。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">Gemini 3の統合により、自然言語やスケッチからのプロトタイプ生成を可能にする。 / Figmaへの書き出し、およびReactコードの出力に対応することで、既存ワークフローとの連携を促進。</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Figma、Adobe XD、Sketch, UI Design Automation Software (例: Uizard)</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">日本のUI/UXデザイナーや開発者は、Stitchを活用することでプロトタイピングの効率を大幅に改善し、開発サイクルを短縮できる可能性があります。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>Stitchのベータ版はGoogle Labsで利用可能です: [https://labs.google.com/stitching/](https://labs.google.com/stitching/)</code></span></div></div>
-        <div class="news-url"><a href="https://itmedia.co.jp/aiplus/articles/2603/19/news084.html" target="_blank">🔗 https://itmedia.co.jp/aiplus/articles/2603/19/news084.html</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">12</span>
-            <span class="news-title" style="flex:1;">2028年にインシデント対応の5割がAI関連に – ガートナーが予測</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Business</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">ガートナーの予測によると、AIの普及により2028年にはインシデント対応の5割がAI関連となる見込みです。これは、規制対応の遅れ、データ負債、ID管理の複雑化といったリスクの増大を示唆しています。より高度なセキュリティ対策の必要性が高まることが予測されています。</div>
-        <ul class="news-points"><li>2028年にインシデント対応の半数がAI関連となる。</li><li>リスク要因として、規制対応の遅れ、データ負債、ID管理の複雑化が挙げられる。</li><li>AIの普及によるセキュリティリスク管理の激変が予測されている。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">インシデント対応の5割 / 2028年</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">従来のサイバーセキュリティ対策</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">日本企業は、AIの活用に伴うセキュリティリスクの高度化に対応するため、セキュリティ戦略の見直しとAIセキュリティ専門人材の育成が急務となる。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>セキュリティ対策ベンダーのAIセキュリティソリューションの導入検討を開始し、AI関連リスクへの対応策策定を検討する。</code></span></div></div>
-        <div class="news-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/19/news051.html" target="_blank">🔗 https://itmedia.co.jp/enterprise/articles/2603/19/news051.html</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">13</span>
-            <span class="news-title" style="flex:1;">NVIDIA、宇宙向けAIモジュール「Vera Rubin Space-1」を発表</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Hardware</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">NVIDIAはGTC 2026で、AIインフラ基盤「Vera Rubinプラットフォーム」を基にした宇宙空間向けAIモジュール「NVIDIA Space-1 Vera Rubin Module」を発表しました。このモジュールは、サイズ、重量、電力（SWaP）に制約のある極端な環境でのAI処理を可能にし、軌道データセンターへの展開を視野に入れています。NVIDIAは、宇宙空間でのAI活用を加速させることを目指しています。</div>
-        <ul class="news-points"><li>NVIDIAが「Vera Rubinプラットフォーム」をベースに、宇宙空間向けのAIモジュール「NVIDIA Space-1 Vera Rubin Module」を開発・発表した。</li><li>このモジュールは、サイズ、重量、電力（SWaP）に制約のある環境向けに設計されており、軌道データセンターへの展開が想定されている。</li><li>NVIDIAは、宇宙空間でのAI活用を加速させることを目的としている。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">SWaP: サイズ、重量、電力（SWaP）に制約のある環境への対応 (具体的な数値は明記されていない)</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Amazon Web Services (AWS), Microsoft Azure, Google Cloud</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この発表は、AIインフラの宇宙展開の新たな可能性を示唆し、日本のAI関連企業やエンジニアの宇宙分野への参入を促進する可能性があります。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>現時点では、NVIDIA Space-1 Vera Rubin Moduleに関する具体的なpip install名、URL、API等に関する情報は公開されていません。しかし、NVIDIAのGTC 2026での発表内容や、Vera Rubinプラットフォームに関する情報を参考に、今後の開発動向を注視する必要があります。</code></span></div></div>
-        <div class="news-url"><a href="https://monoist.itmedia.co.jp/mn/articles/2603/19/news063.html" target="_blank">🔗 https://monoist.itmedia.co.jp/mn/articles/2603/19/news063.html</a></div>
-    </div>
-    
-    <div class="news-item">
-        <div style="display:flex;align-items:center;">
-            <span class="news-rank">14</span>
-            <span class="news-title" style="flex:1;">手のひらサイズAIスパコン『DGX Spark』、4台連結可能に進化</span>
-            <span class="news-score score-high">85</span>
-        </div>
-        <div class="news-meta">
-            <span class="tag tag-category">Hardware</span>
-            <span class="tag tag-source">ITmedia AI+</span>
-            
-        </div>
-        <div class="news-summary">NVIDIAは、超小型AIスーパーコンピュータ『DGX Spark』の次期ソフトウェアアップデートを発表。従来の2台連結に加え、最大4台の連結が可能になり、スケーラビリティが向上する。OpenClawなどの高速なタスクもスムーズに実行できるとアナウンスされている。</div>
-        <ul class="news-points"><li>『DGX Spark』のスケールアウト構成が2台連結から4台連結に拡張可能に。</li><li>OpenClawのような高速なアプリケーションの実行も可能になる。</li><li>今回のアップデートにより、『DGX Spark』のパフォーマンスと柔軟性が向上する。</li></ul>
-        <div class="evidence"><div class="evidence-row"><span class="evidence-label">📊 数値</span><span class="evidence-value">スケールアウト構成：2台 -&gt; 4台</span></div><div class="evidence-row"><span class="evidence-label">🔄 競合</span><span class="evidence-value">Intel Xeon, AMD EPYC (ワークステーション向けAIコンピューティング)</span></div><div class="evidence-row"><span class="evidence-label">🇯🇵 影響</span><span class="evidence-value">この進化により、NVIDIAのAIスパコン『DGX Spark』は、より複雑なAIモデルの開発や大規模なデータ処理を、小型かつ効率的に実現可能となり、特にAI研究開発・データセンターのエンジニアにとって新たな選択肢となる。</span></div><div class="evidence-row"><span class="evidence-label">⚡ 実装</span><span class="evidence-value"><code>現時点では、具体的なpip install名やURL、API等の情報はない。GTC 2026での発表内容に注目すること。</code></span></div></div>
-        <div class="news-url"><a href="https://monoist.itmedia.co.jp/mn/articles/2603/19/news046.html" target="_blank">🔗 https://monoist.itmedia.co.jp/mn/articles/2603/19/news046.html</a></div>
-    </div>
-    
+  
+  <section class="sec" id="github">
+    <div class="sec-h"><em>&#9679;</em> GitHub Trending</div>
+    <div class="gh">
+  <span class="gh-n">01</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://gigazine.net/news/20260320-google-ai-stitch-ui-design" target="_blank">GoogleのUIデザインツール「Stitch」がAIと連携して大幅アップデート、Figma株価下落</a></div>
+    <div class="gh-desc">GoogleがUIデザインツール「Stitch」にAIによる自然言語指示での高品質UI生成機能を搭載した大幅なアップデートを実施。これにより、ユーザーはAIと対話形式でUIを簡単に作成できるようになりました。この発表を受けて、競合するFigma社の株価が下落しました。</div>
+    <span class="gh-cmd">StitchはGoogleのウェブサイトから利用可能です (https://stitch.withgoogle.com/)。ウェブブラウザ上でAIと対話しながらUIを作成できます。</span>
+  </div>
+  <span class="gh-stars">Figma社の株価に関する具体的な数値データは記事に記載されていません。 / AIによるUI生成の精度、速度などの定量的な情報は未提示</span>
+</div>
+<div class="gh">
+  <span class="gh-n">02</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/tensorflow/tensorflow" target="_blank">tensorflow/tensorflow</a></div>
+    <div class="gh-desc">An Open Source Machine Learning Framework for Everyone</div>
+    <span class="gh-cmd">git clone https://github.com/tensorflow/tensorflow</span>
+  </div>
+  <span class="gh-stars">⭐ 194,251 stars / 🔀 75,259 forks</span>
+</div>
+<div class="gh">
+  <span class="gh-n">03</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/ollama/ollama" target="_blank">ollama/ollama</a></div>
+    <div class="gh-desc">Get up and running with Kimi-K2.5, GLM-5, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models.</div>
+    <span class="gh-cmd">git clone https://github.com/ollama/ollama</span>
+  </div>
+  <span class="gh-stars">⭐ 165,626 stars / 🔀 15,065 forks</span>
+</div>
+<div class="gh">
+  <span class="gh-n">04</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/huggingface/transformers" target="_blank">huggingface/transformers</a></div>
+    <div class="gh-desc">🤗 Transformers: the model-definition framework for state-of-the-art machine learning models in text, vision, audio, and multimodal models, for both inference and training.</div>
+    <span class="gh-cmd">git clone https://github.com/huggingface/transformers</span>
+  </div>
+  <span class="gh-stars">⭐ 158,118 stars / 🔀 32,552 forks</span>
+</div>
+<div class="gh">
+  <span class="gh-n">05</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/f/prompts.chat" target="_blank">f/prompts.chat</a></div>
+    <div class="gh-desc">f.k.a. Awesome ChatGPT Prompts. Share, discover, and collect prompts from the community. Free and open source — self-host for your organization with complete privacy.</div>
+    <span class="gh-cmd">git clone https://github.com/f/prompts.chat</span>
+  </div>
+  <span class="gh-stars">⭐ 153,372 stars / 🔀 20,186 forks</span>
+</div>
+  </section>
+  <section class="sec" id="models">
+    <div class="sec-h"><em>&#9670;</em> Trending Models</div>
+    <div class="mdl">
+  <span class="gh-n">01</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/langflow-ai/langflow" target="_blank">langflow-ai/langflow</a></div>
+    <div class="gh-desc">⭐ 145,918 stars / 🔀 8,615 forks</div>
+    <span class="gh-cmd">git clone https://github.com/langflow-ai/langflow</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">02</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/Qwen/Qwen3.5-9B" target="_blank">Qwen/Qwen3.5-9B</a></div>
+    <div class="gh-desc">📥 2,589,317 downloads / ❤️ 942 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('Qwen/Qwen3.5-9B')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">03</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/zai-org/GLM-OCR" target="_blank">zai-org/GLM-OCR</a></div>
+    <div class="gh-desc">📥 2,929,215 downloads / ❤️ 1,381 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('zai-org/GLM-OCR')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">04</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive" target="_blank">HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive</a></div>
+    <div class="gh-desc">📥 174,004 downloads / ❤️ 639 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">05</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled" target="_blank">Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled</a></div>
+    <div class="gh-desc">📥 104,592 downloads / ❤️ 928 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">06</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive" target="_blank">HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive</a></div>
+    <div class="gh-desc">📥 305,565 downloads / ❤️ 558 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive')</span>
+  </div>
+</div>
+  </section>
 
-        
+  <div class="ft">
+    AI SIGINT &mdash; Automated Intelligence Report<br>
+    Sources: RSS / Hacker News / GitHub / HuggingFace &mdash; Local LLM: Ollama gemma3:4b<br>
+    Generated: 2026-03-20 16:47 JST<br>
+    <a href="/ai-news-site/">Return to HQ &rarr;</a>
+  </div>
+</div>
 
-        <h2 id='github'>🔥 GitHub Trending AI/ML</h2>
-    <div class="github-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#24292f;">1</span>
-            <span class="news-title" style="flex:1;">GoogleのUIデザインツール「Stitch」がAIと連携して大幅アップデート、Figma株価下落</span>
-            <span class="github-stars">Figma社の株価に関する具体的な数値データは記事に記載されていません。 / AIによるUI生成の精度、速度などの定量的な情報は未提示</span>
-        </div>
-        <div class="news-summary">GoogleがUIデザインツール「Stitch」にAIによる自然言語指示での高品質UI生成機能を搭載した大幅なアップデートを実施。これにより、ユーザーはAIと対話形式でUIを簡単に作成できるようになりました。この発表を受けて、競合するFigma社の株価が下落しました。</div>
-        <div style="margin-top:8px;"><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-size:0.85rem;">StitchはGoogleのウェブサイトから利用可能です (https://stitch.withgoogle.com/)。ウェブブラウザ上でAIと対話しながらUIを作成できます。</code></div>
-        <div class="news-url"><a href="https://gigazine.net/news/20260320-google-ai-stitch-ui-design" target="_blank">🔗 GitHub</a></div>
-    </div>
-    
-    <div class="github-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#24292f;">2</span>
-            <span class="news-title" style="flex:1;">tensorflow/tensorflow</span>
-            <span class="github-stars">⭐ 194,251 stars / 🔀 75,259 forks</span>
-        </div>
-        <div class="news-summary">An Open Source Machine Learning Framework for Everyone</div>
-        <div style="margin-top:8px;"><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-size:0.85rem;">git clone https://github.com/tensorflow/tensorflow</code></div>
-        <div class="news-url"><a href="https://github.com/tensorflow/tensorflow" target="_blank">🔗 GitHub</a></div>
-    </div>
-    
-    <div class="github-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#24292f;">3</span>
-            <span class="news-title" style="flex:1;">ollama/ollama</span>
-            <span class="github-stars">⭐ 165,626 stars / 🔀 15,065 forks</span>
-        </div>
-        <div class="news-summary">Get up and running with Kimi-K2.5, GLM-5, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models.</div>
-        <div style="margin-top:8px;"><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-size:0.85rem;">git clone https://github.com/ollama/ollama</code></div>
-        <div class="news-url"><a href="https://github.com/ollama/ollama" target="_blank">🔗 GitHub</a></div>
-    </div>
-    
-    <div class="github-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#24292f;">4</span>
-            <span class="news-title" style="flex:1;">huggingface/transformers</span>
-            <span class="github-stars">⭐ 158,118 stars / 🔀 32,552 forks</span>
-        </div>
-        <div class="news-summary">🤗 Transformers: the model-definition framework for state-of-the-art machine learning models in text, vision, audio, and multimodal models, for both inference and training.</div>
-        <div style="margin-top:8px;"><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-size:0.85rem;">git clone https://github.com/huggingface/transformers</code></div>
-        <div class="news-url"><a href="https://github.com/huggingface/transformers" target="_blank">🔗 GitHub</a></div>
-    </div>
-    
-    <div class="github-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#24292f;">5</span>
-            <span class="news-title" style="flex:1;">f/prompts.chat</span>
-            <span class="github-stars">⭐ 153,372 stars / 🔀 20,186 forks</span>
-        </div>
-        <div class="news-summary">f.k.a. Awesome ChatGPT Prompts. Share, discover, and collect prompts from the community. Free and open source — self-host for your organization with complete privacy.</div>
-        <div style="margin-top:8px;"><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-size:0.85rem;">git clone https://github.com/f/prompts.chat</code></div>
-        <div class="news-url"><a href="https://github.com/f/prompts.chat" target="_blank">🔗 GitHub</a></div>
-    </div>
-    
-
-        <h2 id='models'>🤗 HuggingFace 注目モデル</h2>
-    <div class="model-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#ea580c;">1</span>
-            <span class="news-title" style="flex:1;">langflow-ai/langflow</span>
-        </div>
-        <div style="margin:8px 0;color:var(--text-secondary);">⭐ 145,918 stars / 🔀 8,615 forks</div>
-        <div style="margin:8px 0;"><code style="background:#fff7ed;padding:4px 8px;border-radius:4px;font-size:0.85rem;">git clone https://github.com/langflow-ai/langflow</code></div>
-        <div class="news-url"><a href="https://github.com/langflow-ai/langflow" target="_blank">🤗 HuggingFace</a></div>
-    </div>
-    
-    <div class="model-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#ea580c;">2</span>
-            <span class="news-title" style="flex:1;">Qwen/Qwen3.5-9B</span>
-        </div>
-        <div style="margin:8px 0;color:var(--text-secondary);">📥 2,589,317 downloads / ❤️ 942 likes</div>
-        <div style="margin:8px 0;"><code style="background:#fff7ed;padding:4px 8px;border-radius:4px;font-size:0.85rem;">from transformers import AutoModel; model = AutoModel.from_pretrained('Qwen/Qwen3.5-9B')</code></div>
-        <div class="news-url"><a href="https://huggingface.co/Qwen/Qwen3.5-9B" target="_blank">🤗 HuggingFace</a></div>
-    </div>
-    
-    <div class="model-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#ea580c;">3</span>
-            <span class="news-title" style="flex:1;">zai-org/GLM-OCR</span>
-        </div>
-        <div style="margin:8px 0;color:var(--text-secondary);">📥 2,929,215 downloads / ❤️ 1,381 likes</div>
-        <div style="margin:8px 0;"><code style="background:#fff7ed;padding:4px 8px;border-radius:4px;font-size:0.85rem;">from transformers import AutoModel; model = AutoModel.from_pretrained('zai-org/GLM-OCR')</code></div>
-        <div class="news-url"><a href="https://huggingface.co/zai-org/GLM-OCR" target="_blank">🤗 HuggingFace</a></div>
-    </div>
-    
-    <div class="model-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#ea580c;">4</span>
-            <span class="news-title" style="flex:1;">HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive</span>
-        </div>
-        <div style="margin:8px 0;color:var(--text-secondary);">📥 174,004 downloads / ❤️ 639 likes</div>
-        <div style="margin:8px 0;"><code style="background:#fff7ed;padding:4px 8px;border-radius:4px;font-size:0.85rem;">from transformers import AutoModel; model = AutoModel.from_pretrained('HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive')</code></div>
-        <div class="news-url"><a href="https://huggingface.co/HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive" target="_blank">🤗 HuggingFace</a></div>
-    </div>
-    
-    <div class="model-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#ea580c;">5</span>
-            <span class="news-title" style="flex:1;">Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled</span>
-        </div>
-        <div style="margin:8px 0;color:var(--text-secondary);">📥 104,592 downloads / ❤️ 928 likes</div>
-        <div style="margin:8px 0;"><code style="background:#fff7ed;padding:4px 8px;border-radius:4px;font-size:0.85rem;">from transformers import AutoModel; model = AutoModel.from_pretrained('Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled')</code></div>
-        <div class="news-url"><a href="https://huggingface.co/Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled" target="_blank">🤗 HuggingFace</a></div>
-    </div>
-    
-    <div class="model-item">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span class="news-rank" style="background:#ea580c;">6</span>
-            <span class="news-title" style="flex:1;">HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive</span>
-        </div>
-        <div style="margin:8px 0;color:var(--text-secondary);">📥 305,565 downloads / ❤️ 558 likes</div>
-        <div style="margin:8px 0;"><code style="background:#fff7ed;padding:4px 8px;border-radius:4px;font-size:0.85rem;">from transformers import AutoModel; model = AutoModel.from_pretrained('HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive')</code></div>
-        <div class="news-url"><a href="https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive" target="_blank">🤗 HuggingFace</a></div>
-    </div>
-    
-
-        <div class="footer">
-            <p>AI Daily News Report — 自動生成 by auto_collect system</p>
-            <p>ソース: RSS (OpenAI, TechCrunch, The Verge, ITmedia等) / Hacker News / GitHub / HuggingFace</p>
-        </div>
-    </div>
+<script>
+document.querySelectorAll('.row-head').forEach(h => {
+  h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+});
+document.querySelectorAll('.bar-nav a[href^="#"]').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelectorAll('.bar-nav a').forEach(n => n.classList.remove('on'));
+    a.classList.add('on');
+  });
+});
+</script>
 </body>
 </html>
