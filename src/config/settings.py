@@ -11,7 +11,7 @@ from pathlib import Path
 class APIConfig:
     """API設定"""
     gemini_api_key: str = os.getenv('GEMINI_API_KEY', '')
-    gemini_model: str = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash-lite')
+    gemini_model: str = os.getenv('GEMINI_MODEL', 'gemini-3.1-flash-lite-preview')
     gemini_url_context_batch: int = int(os.getenv('GEMINI_URL_CONTEXT_BATCH', '20'))
 
     openai_api_key: str = os.getenv('OPENAI_API_KEY', '')

@@ -40,21 +40,29 @@ class DayNewsSlideGenerator:
             
             # Extract date from filename
             filename = file_path.stem
-            if filename.startswith('0'):
-                # Format: 0826 -> 2025-08-26
-                month = filename[0:2] if len(filename) >= 4 else '08'
-                day = filename[2:4] if len(filename) >= 4 else filename[1:3]
-                date_str = f"2025-{month}-{day}"
-                formatted_date = f"{year}年{month}月{day}日"
+            # Attempt to parse date from filename (e.g., 0826 or 20250826)
+            year = "2025"
+            month = "01"
+            day = "01"
+            
+            if len(filename) >= 4:
+                if len(filename) == 4: # 0826
+                    month = filename[0:2]
+                    day = filename[2:4]
+                elif len(filename) == 8: # 20250826
+                    year = filename[0:4]
+                    month = filename[4:6]
+                    day = filename[6:8]
+                date_str = f"{year}-{month}-{day}"
             else:
                 date_str = datetime.now().strftime('%Y-%m-%d')
-                formatted_date = datetime.now().strftime('%Y年%m月%d日')
             
-            # Normalize formatted date to ensure proper Japanese format
+            formatted_date = datetime.now().strftime('%Y年%m月%d日')
             try:
                 formatted_date = datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y年%m月%d日')
             except Exception:
                 pass
+
             # Parse the content structure
             parsed_data = self._parse_news_content(content, date_str, formatted_date)
             
@@ -75,7 +83,7 @@ class DayNewsSlideGenerator:
             r'## (.+?)(?:\n|$)',  # ## heading
         ]
         
-        title = "AI繝九Η繝ｼ繧ｹ繝上う繝ｩ繧､繝・
+        title = "AIニュースハイライト"
         for pattern in title_patterns:
             match = re.search(pattern, content)
             if match:
@@ -135,7 +143,7 @@ class DayNewsSlideGenerator:
                     summary = re.sub(r'\*\*(.+?)\*\*', r'\1', summary)
                     return summary[:500] + "..." if len(summary) > 500 else summary
         
-        return "AI繝九Η繝ｼ繧ｹ縺ｮ隧ｳ邏ｰ縺ｪ蛻・梵縺ｨ隧穂ｾ｡繧呈署萓帙＠縺ｦ縺・∪縺吶・
+        return "AIニュースの詳細な分析と評価を提供しています。"
     
     def _extract_key_points(self, content: str) -> List[str]:
         """Extract key points from content"""
@@ -190,10 +198,10 @@ class DayNewsSlideGenerator:
         
         # Look for score patterns
         score_patterns = [
-            r'繧ｨ繝ｳ繧ｸ繝九い.*?(\d+)/10',
-            r'繝薙ず繝阪せ.*?(\d+)/10',
-            r'繧ｹ繧ｳ繧｢.*?(\d+)',
-            r'隧穂ｾ｡.*?(\d+)',
+            r'エンジニア.*?(\d+)/10',
+            r'ビジネス.*?(\d+)/10',
+            r'スコア.*?(\d+)',
+            r'評価.*?(\d+)',
         ]
         
         for pattern in score_patterns:
@@ -201,21 +209,21 @@ class DayNewsSlideGenerator:
             if matches:
                 try:
                     score = int(matches[0]) * 10  # Convert to 100 scale
-                    if '繧ｨ繝ｳ繧ｸ繝九い' in pattern:
+                    if 'エンジニア' in pattern:
                         evaluation['engineer_score'] = min(score, 100)
-                    elif '繝薙ず繝阪せ' in pattern:
+                    elif 'ビジネス' in pattern:
                         evaluation['business_score'] = min(score, 100)
                 except ValueError:
                     continue
         
         # Calculate overall impact based on content indicators
         impact_indicators = [
-            ('髱ｩ譁ｰ', 20),
-            ('逕ｻ譛溽噪', 25),
-            ('驥崎ｦ・, 15),
-            ('豕ｨ逶ｮ', 10),
-            ('逋ｺ陦ｨ', 10),
-            ('繝ｪ繝ｪ繝ｼ繧ｹ', 15),
+            ('革新', 20),
+            ('画期的', 25),
+            ('重要', 15),
+            ('注目', 10),
+            ('発表', 10),
+            ('リリース', 15),
         ]
         
         for indicator, points in impact_indicators:
@@ -234,17 +242,13 @@ class DayNewsSlideGenerator:
             'technologies': []
         }
         
-        # Check for code blocks
-        if '```' in content or '繧ｳ繝ｼ繝・ in content:
-            details['has_code'] = True
-        
         # Check for API mentions
-        api_terms = ['API', 'SDK', '繧ｨ繝ｳ繝峨・繧､繝ｳ繝・]
+        api_terms = ['API', 'SDK', 'エンドポイント']
         if any(term in content for term in api_terms):
             details['has_api'] = True
         
         # Check for pricing
-        pricing_terms = ['萓｡譬ｼ', '譁咎≡', '$', '蜀・, '辟｡譁・]
+        pricing_terms = ['価格', '料金', '$', '円', '無料']
         if any(term in content for term in pricing_terms):
             details['has_pricing'] = True
         
@@ -288,13 +292,13 @@ class DayNewsSlideGenerator:
         return {
             'date': datetime.now().strftime('%Y-%m-%d'),
             'formatted_date': datetime.now().strftime('%Y年%m月%d日'),
-            'title': f"AI繝九Η繝ｼ繧ｹ - {file_path.stem}",
-            'summary': "AI繝九Η繝ｼ繧ｹ縺ｮ隧ｳ邏ｰ縺ｪ蛻・梵縺悟性縺ｾ繧後※縺・∪縺吶・,
-            'key_points': ["隧ｳ邏ｰ縺ｪ蛻・梵", "謚陦鍋噪隧穂ｾ｡", "繝薙ず繝阪せ蠖ｱ髻ｿ隧穂ｾ｡"],
+            'title': f"AIニュース - {file_path.stem}",
+            'summary': "AIニュースの詳細な分析が含まれています。",
+            'key_points': ["詳細な分析", "技術的評価", "ビジネス影響評価"],
             'evaluation': {'engineer_score': 50, 'business_score': 50, 'impact_score': 70, 'overall_confidence': 80},
             'technical_details': {'has_code': False, 'has_api': False, 'companies': [], 'technologies': []},
             'sources': [],
-            'raw_content': "繝輔ぃ繧､繝ｫ縺ｮ隗｣譫舌↓蝠城｡後′逋ｺ逕溘＠縺ｾ縺励◆縲・,
+            'raw_content': "ファイルの解析に問題が発生しました。",
             'confidence': 80,
             'impact_score': 70
         }
@@ -385,7 +389,7 @@ def main():
     generator = DayNewsSlideGenerator()
     
     # Process day folder
-    day_folder = Path("C:/Users/yoshitaka/input/day")
+    day_folder = Path("input/day")
     
     if not day_folder.exists():
         print(f"Day folder not found: {day_folder}")
@@ -413,4 +417,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
