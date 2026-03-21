@@ -708,7 +708,8 @@
     <h2 id="claude-md">CLAUDE.md設計</h2>
 
     <h3>長さルール</h3>
-    <p>CLAUDE.mdの理想的な長さは<strong>80〜120行</strong>、最大でも<strong>150行</strong>に収めてください。それ以上になると情報が希釈され、Claudeの行動精度が低下します。</p>
+    <p>公式推奨は<strong>200行以内</strong>。理想は短いほど良い（<strong>80-120行</strong>が実用的な目安）。それ以上になると情報が希釈され、Claudeの行動精度が低下します。</p>
+    <p>「<code>IMPORTANT</code>」「<code>YOU MUST</code>」などの強調表現を使うと、Claudeの遵守率が上がります。</p>
 
     <h3>Boris Cherny流テンプレート</h3>
     <p>Claude Code開発者Boris Chernyが推奨する構成テンプレートです。</p>
@@ -782,6 +783,19 @@ Test: TDD (Red → Green → Refactor)
       <p>CLAUDE.mdの長さは最重要ルールです。長すぎると情報が希釈され、Claudeの行動精度が下がります。ルールが増えたら.claude/rules/に分割しましょう。</p>
     </div>
 
+    <h3>他ファイルの参照（@import）</h3>
+    <p>CLAUDE.mdから他のファイルを参照できます。<code>@</code>プレフィックスでファイルパスを指定すると、Claudeがそのファイルの内容を読み込みます。</p>
+
+    <div class="code-label">CLAUDE.md 内の@import例</div>
+    <div class="code-block"><code>See @README.md for project overview.
+- Git workflow: @docs/git-instructions.md
+- Personal overrides: @~/.claude/my-project-instructions.md</code></div>
+
+    <ul>
+      <li>相対パスはインポート元ファイルからの相対で解決される</li>
+      <li>最大<strong>5ホップ</strong>の再帰的インポートに対応</li>
+    </ul>
+
     <!-- ===== Section 3: .claude/ ディレクトリ ===== -->
     <h2 id="claude-dir">.claude/ ディレクトリ</h2>
 
@@ -829,6 +843,17 @@ Test: TDD (Red → Green → Refactor)
       <div class="callout-title">&#x1F4DD; Note</div>
       <p>Progressive Disclosureにより、CLAUDE.mdは80行以内に保ちつつ、必要な時に詳細ルールを読み込むことができます。</p>
     </div>
+
+    <h3>パス固有のルール</h3>
+    <p>globパターン（<code>**/*.ts</code>, <code>src/**/*</code>, <code>*.{ts,tsx}</code>）で特定のファイルにのみ適用されるルールを設定できます。ルールファイルの先頭にYAMLフロントマターで対象パスを指定します。</p>
+
+    <div class="code-label">.claude/rules/api-rules.md</div>
+    <div class="code-block"><code>---
+paths:
+  - "src/api/**/*.ts"
+---
+# API開発ルール
+- すべてのAPIエンドポイントに入力バリデーションを含める</code></div>
 
     <!-- ===== Section 5: .claudeignore ===== -->
     <h2 id="claudeignore">.claudeignore</h2>
@@ -936,6 +961,8 @@ See docs/plans/ for active implementation plans.</code></div>
     <ul>
       <li><strong>保存場所</strong>: <code>~/.claude/projects/</code> 配下にプロジェクトごとのメモリが保存される</li>
       <li><strong>インデックス</strong>: <code>MEMORY.md</code> がインデックスファイルとして機能する</li>
+      <li><strong>保存単位</strong>: 自動メモリはワーキングツリー（working tree）ごとに保存される</li>
+      <li><strong>ロード制限</strong>: 最初の<strong>200行</strong>のみがセッションにロードされる</li>
     </ul>
 
     <h3>メモリタイプ</h3>
@@ -1035,7 +1062,7 @@ See docs/plans/ for active implementation plans.</code></div>
 
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>「全部CLAUDE.mdに書く」は最も多い初心者の失敗です。150行を超えたら必ず分割を検討してください。</p>
+      <p>「全部CLAUDE.mdに書く」は最も多い初心者の失敗です。200行を超えたら必ず分割を検討してください。</p>
     </div>
 
     <!-- ===== Section 11: .gitignore設計 ===== -->
