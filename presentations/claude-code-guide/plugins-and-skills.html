@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Claude Codeのプラグイン構造、スキル作成、Hooks実践、エージェント定義まで。Plugins & Skillsガイド。">
+  <title>Plugins & Skills | Claude Code 完全ガイド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-orange: #f97316;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-purple: #bc8cff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, 0.82);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .back-link {
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover {
+      color: var(--accent-orange);
+    }
+
+    .page-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary);
+      font-size: 20px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .hamburger:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      padding: 24px 16px;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--bg-sidebar);
+    }
+
+    .toc-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 12px;
+      margin-bottom: 12px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      line-height: 1.5;
+      margin-bottom: 2px;
+    }
+    .toc a:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .toc a.active {
+      color: var(--accent-orange);
+      background: rgba(249, 115, 22, 0.1);
+    }
+
+    .page-nav {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .page-nav a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      margin-bottom: 4px;
+    }
+    .page-nav a:hover {
+      color: var(--accent-orange);
+      background: rgba(249, 115, 22, 0.06);
+    }
+    .page-nav .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      opacity: 0.6;
+      margin-bottom: 2px;
+      padding: 0 12px;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .content {
+      flex: 1;
+      max-width: 820px;
+      padding: 48px 56px 80px;
+    }
+
+    .content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .content .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .content h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: -0.01em;
+    }
+
+    .content h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    .content p {
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .content ul, .content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .content li {
+      margin-bottom: 8px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .content li strong {
+      color: var(--text-heading);
+    }
+
+    .content a.inline-link {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .content a.inline-link:hover {
+      color: var(--accent-orange);
+    }
+
+    /* ===== CODE BLOCKS ===== */
+    .code-block {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .code-block code {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      background: none;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+    }
+    .code-block .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
+    }
+
+    .code-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* inline code */
+    .content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-orange);
+    }
+
+    /* ===== CALLOUTS ===== */
+    .callout {
+      border-left: 4px solid;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      background: var(--bg-card);
+    }
+    .callout-tip { border-color: var(--accent-green); }
+    .callout-warning { border-color: var(--accent-red); }
+    .callout-note { border-color: var(--accent-blue); }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .callout-tip .callout-title { color: var(--accent-green); }
+    .callout-warning .callout-title { color: var(--accent-red); }
+    .callout-note .callout-title { color: var(--accent-blue); }
+
+    .callout p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-primary);
+      opacity: 0.92;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: var(--bg-sidebar);
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    td code {
+      font-size: 13px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ===== WORKFLOW CARDS ===== */
+    .workflow-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 20px 0 24px;
+    }
+
+    .workflow-card {
+      display: flex;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .workflow-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .workflow-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--accent-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .workflow-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 6px;
+    }
+
+    .workflow-card p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ===== STEPS LIST ===== */
+    .steps-list {
+      counter-reset: step-counter;
+      list-style: none;
+      padding-left: 0;
+      margin: 16px 0 24px;
+    }
+
+    .steps-list li {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 20px;
+    }
+
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--accent-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* ===== PAGE NAV BOTTOM ===== */
+    .page-nav-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 16px;
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .page-nav-bottom a {
+      display: block;
+      flex: 1;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .page-nav-bottom a:hover {
+      border-color: var(--accent-orange);
+      background: rgba(249, 115, 22, 0.04);
+    }
+
+    .page-nav-bottom .nav-dir {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .page-nav-bottom .nav-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .page-nav-bottom .next {
+      text-align: right;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    footer a:hover {
+      color: var(--accent-orange);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        width: 280px;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+      .sidebar.open {
+        display: block;
+      }
+      .hamburger {
+        display: block;
+      }
+      .content {
+        padding: 24px 20px 60px;
+      }
+      .content h1 {
+        font-size: 26px;
+      }
+      .content h2 {
+        font-size: 19px;
+        margin-top: 40px;
+      }
+      .page-nav-bottom {
+        flex-direction: column;
+      }
+      .page-nav-bottom .next {
+        text-align: left;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger {
+        display: none;
+      }
+    }
+
+    /* ===== OVERLAY for mobile sidebar ===== */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      top: 56px;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+    .sidebar-overlay.open {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
+  <span class="page-title">Plugins & Skills</span>
+  <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
+</header>
+
+<!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ===== LAYOUT ===== -->
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="toc-label">目次</div>
+    <nav class="toc" id="toc">
+      <!-- Auto-generated by JS from h2[id] -->
+    </nav>
+    <div class="page-nav">
+      <div class="nav-label">ナビゲーション</div>
+      <a href="mcp-integration.html">&larr; 前へ: MCP連携ガイド</a>
+      <a href="recommended-resources.html">次へ: おすすめ構成・リソース集 &rarr;</a>
+      <a href="../ai_coding_agents_guide.html">&larr; ガイドTOPに戻る</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="content">
+
+    <h1>Plugins & Skills</h1>
+    <p class="subtitle">プラグインの構造理解からスキル作成、Hooks実践、エージェント定義、公式プラグインの活用まで。Claude Codeの拡張機能を体系的に解説します。</p>
+
+    <!-- ===== Section 1: プラグイン構造 ===== -->
+    <h2 id="plugin-structure">プラグイン構造</h2>
+
+    <p>プラグインはSkills, Hooks, エージェント, MCPサーバーをまとめた配布単位です。1つのプラグインに複数の機能を含めることができ、チーム間での共有やマーケットプレイスでの配布が可能です。</p>
+
+    <h3>plugin.json の構造</h3>
+    <p>プラグインのルートに配置する設定ファイルです。各フィールドでプラグインに含まれるリソースを宣言します。</p>
+
+    <div class="code-label">plugin.json</div>
+    <div class="code-block"><code>{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "description": "プラグインの説明",
+  "skills": ["skills/"],
+  "hooks": ["hooks/"],
+  "agents": ["agents/"],
+  "mcp": [".mcp.json"]
+}</code></div>
+
+    <h3>ディレクトリ構造</h3>
+    <p>プラグインの典型的なファイル配置です。各ディレクトリが機能ごとに分かれています。</p>
+
+    <div class="code-block"><code>my-plugin/
+├── plugin.json
+├── skills/
+│   └── my-skill/
+│       └── SKILL.md
+├── hooks/
+│   └── safety-check.sh
+├── agents/
+│   └── reviewer.md
+└── .mcp.json</code></div>
+
+    <h3>自動検出</h3>
+    <p><code>.claude/plugins/</code> に配置するか、<code>claude plugin marketplace add</code> でインストールすると自動的に認識されます。手動でパスを指定する必要はありません。</p>
+
+    <!-- ===== Section 2: スキル作成 ===== -->
+    <h2 id="skill-creation">スキル作成</h2>
+
+    <p>スキルは特定のタスクに対するClaude Codeの専門知識を定義する仕組みです。SKILL.mdファイルにフロントマターとコンテンツを記述します。</p>
+
+    <h3>SKILL.md のフォーマット</h3>
+
+    <div class="code-label">skills/code-review/SKILL.md</div>
+    <div class="code-block"><code>---
+name: code-review
+description: Use when the user asks to review code, check for bugs, or improve code quality. Also trigger when PR review is needed.
+---
+
+# Code Review Skill
+
+## Process
+1. Read the changed files
+2. Check for common issues
+3. Suggest improvements
+4. Summarize findings</code></div>
+
+    <h3>作成時のポイント</h3>
+
+    <ul>
+      <li><strong>フォルダ名</strong> &mdash; ケバブケース必須（<code>code-review</code>, <code>frontend-design</code>）。アンダースコアやキャメルケースは使わないでください。</li>
+      <li><strong>description</strong> &mdash; 「いつこのスキルを使うか」を超具体的に記述します。曖昧だとClaude Codeが起動タイミングを判断できません。</li>
+      <li><strong>コンテンツのロード</strong> &mdash; 起動時はdescriptionのみロードされます。呼び出し時にフルコンテンツがロードされるため、descriptionの精度が重要です。</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>descriptionは「Use when...」で始め、具体的なトリガーワードを列挙するのがベストプラクティスです。例: 「Use when the user mentions 'review', 'check code', 'PR feedback', or asks to improve code quality.」</p>
+    </div>
+
+    <!-- ===== Section 3: Skill Creator活用 ===== -->
+    <h2 id="skill-creator">Skill Creator活用</h2>
+
+    <p>Skill Creatorメタプラグインを使えば、Claude CodeにSkillを自動生成させることができます。手書きよりも効率的で、フォーマットの間違いも防げます。</p>
+
+    <h3>使い方</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>Skill Creatorプラグインをインストール</strong><br>
+        マーケットプレイスから <code>skill-creator</code> をインストールします。
+      </li>
+      <li>
+        <strong>Claudeに依頼</strong><br>
+        「フロントエンド設計のSkillを作成して」のように自然言語で依頼します。
+      </li>
+      <li>
+        <strong>自動生成</strong><br>
+        Claude CodeがSKILL.mdを自動生成します。適切なフォルダ構造も一緒に作成されます。
+      </li>
+      <li>
+        <strong>カスタマイズ</strong><br>
+        生成されたSKILL.mdを必要に応じて編集・調整します。
+      </li>
+    </ol>
+
+    <h3>プロンプト例</h3>
+
+    <div class="code-block"><code>以下のSkillを作成してください:
+- 名前: api-design
+- 用途: REST API設計時のベストプラクティスとレビュー
+- 含めるべき内容: エンドポイント命名規則、エラーハンドリング、バージョニング</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Skill Creatorは「Skillを作るSkill」です。自分でSKILL.mdを手書きする前に、まずClaude Codeに生成させて、それをカスタマイズする方が効率的です。</p>
+    </div>
+
+    <!-- ===== Section 4: カスタムコマンド ===== -->
+    <h2 id="custom-commands">カスタムコマンド</h2>
+
+    <p><code>.claude/commands/</code> にMarkdownファイルを配置すると、スラッシュコマンドとして使えるようになります。チーム内で頻繁に行う操作を定型化するのに最適です。</p>
+
+    <h3>例: <code>/review</code> コマンド</h3>
+
+    <div class="code-label">.claude/commands/review.md</div>
+    <div class="code-block"><code>---
+name: review
+description: コードレビューを実行
+---
+
+以下の手順でコードレビューを実行してください:
+1. git diff で変更ファイルを確認
+2. 各ファイルの変更内容を読む
+3. バグ、セキュリティ問題、パフォーマンス問題をチェック
+4. 改善提案をまとめる</code></div>
+
+    <h3>スキルとの統合</h3>
+    <p>2026年にカスタムコマンドとスキルが統合されました。<code>.claude/commands/review.md</code> と <code>.claude/skills/review/SKILL.md</code> は同じ <code>/review</code> コマンドとして動作します。どちらの形式で定義しても、Claude Codeが自動的に認識してくれます。</p>
+
+    <!-- ===== Section 5: Hooks実践 ===== -->
+    <h2 id="hooks">Hooks実践</h2>
+
+    <p>Hooksは <code>settings.json</code> で定義する自動実行スクリプトです。特定のイベント（ツール使用前後、ファイル書き込み後など）をトリガーに、チェックや変換を実行します。</p>
+
+    <h3>破壊操作ブロック (PreToolUse)</h3>
+    <p><code>rm -rf</code> や <code>git push --force</code> などの危険なコマンドを事前にブロックします。</p>
+
+    <div class="code-label">settings.json</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "command": "bash -c 'echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"rm -rf|git push --force|DROP TABLE\" && echo \"BLOCKED: Dangerous command detected\" && exit 1 || exit 0'"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>シークレットキーチェック (PostWrite)</h3>
+    <p>ファイル書き込み後にAPIキーやパスワードの漏洩を検出します。</p>
+
+    <div class="code-label">settings.json</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostWrite": [
+      {
+        "command": "bash -c 'grep -rn \"sk-ant-\\|ANTHROPIC_API_KEY=sk-\\|password=\" \"$CLAUDE_FILE_PATH\" && echo \"WARNING: Possible secret detected\" && exit 1 || exit 0'"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>自動lint (PostWrite)</h3>
+    <p>TypeScript/JavaScriptファイルの保存時にESLintを自動実行します。</p>
+
+    <div class="code-label">settings.json</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostWrite": [
+      {
+        "matcher": "*.ts|*.tsx|*.js|*.jsx",
+        "command": "npx eslint --fix \"$CLAUDE_FILE_PATH\""
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>長セッション警告</h3>
+    <p>トークン使用量が閾値を超えた時に警告を表示し、<code>/compact</code> の実行を促します。</p>
+
+    <div class="code-label">settings.json</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "command": "bash -c 'if [ $(echo \"$CLAUDE_TOTAL_TOKENS\" | cut -d. -f1) -gt 100000 ]; then echo \"WARNING: High token usage. Consider /compact\"; fi'"
+      }
+    ]
+  }
+}</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>HooksはCLAUDE.mdと違い、100%確実に実行されます。安全に関わるチェックは必ずHooksで実装してください。CLAUDE.mdに「rm -rfを使わないで」と書いても約80%しか守られません。</p>
+    </div>
+
+    <!-- ===== Section 6: エージェント定義 ===== -->
+    <h2 id="agents">エージェント定義</h2>
+
+    <p>サブエージェントを定義することで、特定の役割に特化したAIを呼び出せます。メインのClaude Codeセッションから、専門的なタスクをサブエージェントに委譲できます。</p>
+
+    <h3>サブエージェントのフロントマター</h3>
+
+    <div class="code-label">agents/code-reviewer.md</div>
+    <div class="code-block"><code>---
+name: code-reviewer
+description: コードレビューを実行する専門エージェント
+tools: [Read, Grep, Glob]
+model: sonnet
+isolation: worktree
+---
+
+あなたはコードレビューの専門家です。
+変更されたファイルを読み、以下の観点でレビューしてください:
+- バグの可能性
+- セキュリティ問題
+- パフォーマンス問題
+- コーディング規約違反</code></div>
+
+    <h3>Key Points</h3>
+
+    <ul>
+      <li><strong>tools</strong> &mdash; エージェントが使えるツールを制限します。最小権限の原則に従い、必要なツールのみを許可してください。</li>
+      <li><strong>model</strong> &mdash; 使用するモデルを指定します（<code>sonnet</code>, <code>opus</code>, <code>haiku</code>）。タスクの複雑さに応じて選択します。</li>
+      <li><strong>isolation: worktree</strong> &mdash; Git worktreeで隔離実行します。並列作業時にメインのワーキングツリーと競合しないため安全です。</li>
+    </ul>
+
+    <!-- ===== Section 7: 公式プラグイン ===== -->
+    <h2 id="official-plugins">公式プラグイン</h2>
+
+    <p>2026年3月時点で59個の公式プラグインがマーケットプレイスに登録されています。以下はカテゴリ別のおすすめプラグインです。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>カテゴリ</th>
+            <th>プラグイン名</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DX</td>
+            <td><code>ykdojo/claude-code-tips (dx)</code></td>
+            <td>ステータスバー、コンテキスト管理</td>
+          </tr>
+          <tr>
+            <td>ワークフロー</td>
+            <td><code>obra/superpowers</code></td>
+            <td>TDD、サブエージェント、レビュー</td>
+          </tr>
+          <tr>
+            <td>ワークフロー</td>
+            <td><code>rohitg00/pro-workflow</code></td>
+            <td>自己修正ループ、SQLite学習</td>
+          </tr>
+          <tr>
+            <td>チーム</td>
+            <td><code>garrytan/gstack</code></td>
+            <td>仮想エンジニアチーム</td>
+          </tr>
+          <tr>
+            <td>メタ</td>
+            <td><code>skill-creator</code></td>
+            <td>Skill自動生成</td>
+          </tr>
+          <tr>
+            <td>品質</td>
+            <td><code>code-reviewer</code></td>
+            <td>自動コードレビュー</td>
+          </tr>
+          <tr>
+            <td>テスト</td>
+            <td><code>test-architect</code></td>
+            <td>テスト戦略設計</td>
+          </tr>
+          <tr>
+            <td>セキュリティ</td>
+            <td><code>security-auditor</code></td>
+            <td>脆弱性検出</td>
+          </tr>
+          <tr>
+            <td>ドキュメント</td>
+            <td><code>docs-writer</code></td>
+            <td>ドキュメント自動生成</td>
+          </tr>
+          <tr>
+            <td>デバッグ</td>
+            <td><code>debugger</code></td>
+            <td>システマティックデバッグ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== Section 8: 公開・共有 ===== -->
+    <h2 id="sharing">公開・共有</h2>
+
+    <p>自作プラグインをチームや世界に共有する方法と、他のプラグインのインストール手順を解説します。</p>
+
+    <h3>マーケットプレイスからインストール</h3>
+
+    <div class="code-label">Terminal</div>
+    <div class="code-block"><code>claude plugin marketplace add ykdojo/claude-code-tips
+claude plugin install dx@ykdojo</code></div>
+
+    <h3>自作プラグインの公開</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>GitHubリポジトリに配置</strong><br>
+        <code>plugin.json</code> と必要なファイル（Skills, Hooks, Agents等）をリポジトリのルートに配置します。
+      </li>
+      <li>
+        <strong>READMEにインストール手順を記載</strong><br>
+        <code>claude plugin marketplace add username/repo-name</code> 形式のインストールコマンドを明記します。
+      </li>
+      <li>
+        <strong>awesome-claude-codeに登録申請（任意）</strong><br>
+        コミュニティのキュレーションリストにPRを送ることで、より多くのユーザーに見つけてもらえます。
+      </li>
+    </ol>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>プラグインは最初は1-2個にとどめてください。過剰導入はコンテキストを消費し、予期しない挙動の原因になります。まず少数で効果を確認し、段階的に追加していくのが安全です。</p>
+    </div>
+
+    <!-- ===== PAGE NAV BOTTOM ===== -->
+    <div class="page-nav-bottom">
+      <a href="mcp-integration.html">
+        <div class="nav-dir">&larr; 前のページ</div>
+        <div class="nav-title">MCP連携ガイド</div>
+      </a>
+      <a href="recommended-resources.html" class="next">
+        <div class="nav-dir">次のページ &rarr;</div>
+        <div class="nav-title">おすすめ構成・リソース集</div>
+      </a>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p><a href="../ai_coding_agents_guide.html">Claude Code 完全ガイド</a> &mdash; AI Intelligence Hub</p>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+  // Sidebar toggle (mobile)
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. TOC auto-generation
+    const toc = document.getElementById('toc');
+    const headings = document.querySelectorAll('.content h2[id]');
+    headings.forEach(h => {
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      toc.appendChild(a);
+    });
+
+    // 2. Scroll-spy
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+          const active = toc.querySelector(`a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -80% 0px' });
+    headings.forEach(h => observer.observe(h));
+
+    // 3. Code copy buttons
+    document.querySelectorAll('.code-block').forEach(block => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.onclick = () => {
+        const code = block.querySelector('code') || block;
+        navigator.clipboard.writeText(code.textContent.replace('Copy', '').trim());
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      };
+      block.appendChild(btn);
+    });
+
+    // 4. Close sidebar on link click (mobile)
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          toggleSidebar();
+        }
+      });
+    });
+
+    // 5. Smooth scroll for TOC links
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, '', a.getAttribute('href'));
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
