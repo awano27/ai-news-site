@@ -5,27 +5,82 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>日次スライド一覧 - AI Intelligence Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #f8fafc;
-      --fg: #0f172a;
-      --accent: #3b82f6;
-      --border: #e2e8f0;
-      --hover: #f1f5f9;
+      --bg: #06090d;
+      --bg2: #0c1018;
+      --bg3: #121a24;
+      --bg-card: #0e141c;
+      --border: #1a2a3a;
+      --border2: #243040;
+      --cyan: #00d4f0;
+      --green: #34d399;
+      --muted: #6b8399;
+      --text: #d0dde8;
+      --text2: #8da0b4;
+      --white: #f0f4f8;
+      --glow-c: rgba(0, 212, 240, 0.15);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
     }
 
-    * {
-      box-sizing: border-box
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
       background: var(--bg);
-      color: var(--fg);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif
+      color: var(--text);
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
     }
 
+    /* ===== SHARED NAV (matches TOP page) ===== */
+    .site-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6, 9, 13, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+    }
+    .site-nav-logo {
+      display: flex; align-items: center; gap: 0.7rem;
+      text-decoration: none; font-weight: 700; color: var(--white);
+    }
+    .site-nav-logo .sigil {
+      width: 32px; height: 32px; border-radius: var(--radius-xs);
+      display: grid; place-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--bg);
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      box-shadow: 0 0 16px var(--glow-c);
+    }
+    .site-nav-logo .logo-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem; letter-spacing: 0.12em; color: var(--white);
+    }
+    .site-nav-links {
+      display: flex; gap: 0.25rem; list-style: none;
+    }
+    .site-nav-links a {
+      display: flex; align-items: center; min-height: 44px;
+      padding: 0.5rem 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; color: var(--text2);
+      text-decoration: none; letter-spacing: 0.04em;
+      border-radius: var(--radius-xs);
+      transition: color 0.2s, background 0.2s;
+    }
+    .site-nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+    .site-nav-links a.active { color: var(--cyan); background: rgba(0,212,240,0.08); }
+
+    /* ===== PAGE CONTENT ===== */
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -33,18 +88,19 @@
     }
 
     h1 {
-      margin: 20px 0;
-      font-size: 2rem;
-      color: var(--fg);
+      margin: 24px 0 16px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--white);
     }
 
     .note {
-      background: #fff;
+      background: var(--bg2);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: var(--radius);
       padding: 16px;
       margin: 0 0 24px;
-      color: #475569;
+      color: var(--text2);
     }
 
     .slides-grid {
@@ -54,28 +110,29 @@
     }
 
     .slide-card {
-      background: #fff;
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: var(--radius);
       padding: 16px;
       text-decoration: none;
-      color: var(--fg);
+      color: var(--text);
       transition: all 0.2s;
       display: block;
     }
 
     .slide-card:hover {
-      border-color: var(--accent);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      border-color: var(--cyan);
+      box-shadow: 0 4px 20px rgba(0, 212, 240, 0.08);
       transform: translateY(-2px);
     }
 
     .date-badge {
       display: inline-block;
-      font-size: 12px;
-      font-weight: 800;
-      color: #fff;
-      background: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--bg);
+      background: var(--cyan);
       padding: 4px 12px;
       border-radius: 999px;
       margin-bottom: 8px;
@@ -83,38 +140,37 @@
 
     .slide-title {
       font-weight: 600;
-      font-size: 1.1rem;
-      line-height: 1.4;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text);
     }
 
-    .nav-links {
-      margin-bottom: 24px;
-      display: flex;
-      gap: 16px;
-    }
-
-    .nav-links a {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .nav-links a:hover {
-      text-decoration: underline;
+    @media (max-width: 768px) {
+      .site-nav { padding: 0 1rem; height: 52px; }
+      .site-nav-logo .logo-text { display: none; }
+      .site-nav-links a { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
+      .container { padding: 16px; }
+      h1 { font-size: 1.4rem; }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="nav-links">
-      <a href="/ai-news-site/">← ホームに戻る</a>
-      <a href="/ai-news-site/presentations/news_archive.html">ニュースアーカイブ</a>
-      <a href="/ai-news-site/presentations/ai_ranking_interactive.html">AIランキング</a>
-      <a href="/ai-news-site/presentations/auto_daily_report.html">📊 自動レポート</a>
-    </div>
+  <nav class="site-nav" aria-label="メインナビゲーション">
+    <a class="site-nav-logo" href="/ai-news-site/" aria-label="AI Intelligence Hub ホーム">
+      <div class="sigil" aria-hidden="true">AI</div>
+      <span class="logo-text">INTELLIGENCE HUB</span>
+    </a>
+    <ul class="site-nav-links" role="list">
+      <li><a href="/ai-news-site/presentations/day_slides_list.html" class="active">スライド</a></li>
+      <li><a href="/ai-news-site/presentations/auto_daily_report.html">レポート</a></li>
+      <li><a href="/ai-news-site/daily-news/">ニュース</a></li>
+      <li><a href="/ai-news-site/">TOP</a></li>
+    </ul>
+  </nav>
 
-    <h1>📅 日次AIニューススライド一覧</h1>
+  <div class="container">
+    <h1>日次AIニューススライド一覧</h1>
 
     <div class="note">
       2025年7月30日から2026年3月20日までの日次AIニューススライドです。各スライドには最新のAI技術動向、製品リリース、研究成果などがまとめられています。
