@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Claude Codeを本格的なAI駆動開発システムとして構築・運用するための完全ガイド。初心者から中級者まで対応。">
-  <title>Claude Code 完全ガイド | AI Intelligence Hub</title>
+  <meta name="description" content="Claude Code・Codex・GitHub Copilot — 3大AIコーディングエージェントの設定・構築・運用を完全ガイド。初心者から中級者まで対応。">
+  <title>AIエージェント設定ガイド | AI Intelligence Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -104,6 +104,7 @@
       inset: 0;
       background:
         radial-gradient(ellipse 60% 50% at 20% 20%, rgba(249, 115, 22, 0.08), transparent),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(63, 185, 80, 0.06), transparent),
         radial-gradient(ellipse 50% 40% at 80% 60%, rgba(88, 166, 255, 0.06), transparent);
       pointer-events: none;
     }
@@ -117,11 +118,11 @@
       display: inline-flex;
       align-items: center;
       padding: 5px 14px;
-      border: 1px solid var(--accent-orange);
+      border: 1px solid var(--accent-purple);
       border-radius: 999px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
-      color: var(--accent-orange);
+      color: var(--accent-purple);
       letter-spacing: 0.04em;
       margin-bottom: 24px;
     }
@@ -154,27 +155,8 @@
       font-size: 12px;
       color: var(--text-muted);
       font-family: 'JetBrains Mono', monospace;
-      margin-bottom: 32px;
+      margin-bottom: 0;
       opacity: 0.7;
-    }
-
-    .hero-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 28px;
-      background: linear-gradient(135deg, var(--accent-orange), #ea580c);
-      color: #fff;
-      font-weight: 700;
-      font-size: 15px;
-      border-radius: 8px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
-    }
-
-    .hero-cta:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(249, 115, 22, 0.35);
     }
 
     /* ===== SECTION COMMON ===== */
@@ -205,77 +187,281 @@
       margin-bottom: 40px;
     }
 
-    /* ===== QUICK START ===== */
-    .quickstart {
+    /* ===== COMPARISON TABLE ===== */
+    .comparison {
       border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .steps-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
+    .comparison .section-label {
+      color: var(--accent-purple);
     }
 
-    .step-card {
-      flex: 1 1 calc(33.333% - 12px);
-      min-width: 200px;
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .comparison-table {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .comparison-table thead th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+    }
+
+    .comparison-table thead th:first-child {
+      width: 120px;
+    }
+
+    .comparison-table thead th.col-claude { color: var(--accent-orange); }
+    .comparison-table thead th.col-codex  { color: var(--accent-green); }
+    .comparison-table thead th.col-copilot { color: var(--accent-blue); }
+
+    .comparison-table tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .comparison-table tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .comparison-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .comparison-table td {
+      padding: 12px 16px;
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+
+    .comparison-table td:first-child {
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    /* ===== TOOL CARDS (LARGE) ===== */
+    .tool-select {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .tool-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .tool-card {
+      display: flex;
+      flex-direction: column;
       background: var(--bg-card);
       border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 24px 20px;
-      position: relative;
-      transition: border-color 0.2s ease;
+      border-radius: 16px;
+      padding: 32px 24px 28px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
     }
 
-    .step-card:hover {
-      border-color: rgba(249, 115, 22, 0.3);
+    .tool-card:hover {
+      transform: translateY(-3px);
     }
 
-    .step-number {
+    .tool-card--claude:hover  { border-color: var(--accent-orange); }
+    .tool-card--codex:hover   { border-color: var(--accent-green); }
+    .tool-card--copilot:hover { border-color: var(--accent-blue); }
+
+    .tool-card-icon {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-orange), #ea580c);
-      color: #fff;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 24px;
       font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 14px;
+      margin-bottom: 18px;
+      color: #fff;
     }
 
-    .step-title {
-      font-size: 15px;
+    .tool-card--claude .tool-card-icon  { background: linear-gradient(135deg, var(--accent-orange), #ea580c); }
+    .tool-card--codex .tool-card-icon   { background: linear-gradient(135deg, var(--accent-green), #16a34a); }
+    .tool-card--copilot .tool-card-icon { background: linear-gradient(135deg, var(--accent-blue), #2563eb); }
+
+    .tool-card-name {
+      font-size: 22px;
       font-weight: 700;
       color: var(--text-heading);
       margin-bottom: 4px;
     }
 
-    .step-desc {
+    .tool-card-provider {
       font-size: 13px;
       color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    .step-time {
+    .tool-card-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .tool-card-badge {
       display: inline-flex;
       align-items: center;
       padding: 3px 10px;
-      background: rgba(63, 185, 80, 0.1);
-      border: 1px solid rgba(63, 185, 80, 0.2);
       border-radius: 999px;
-      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      color: var(--accent-green);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 16px;
+      width: fit-content;
     }
 
-    /* ===== TOPIC CARDS ===== */
-    .topics {
+    .tool-card--claude .tool-card-badge  {
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      color: var(--accent-orange);
+    }
+    .tool-card--codex .tool-card-badge   {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.25);
+      color: var(--accent-green);
+    }
+    .tool-card--copilot .tool-card-badge {
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.25);
+      color: var(--accent-blue);
+    }
+
+    .tool-card-features {
+      list-style: none;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+
+    .tool-card-features li {
+      font-size: 13px;
+      color: var(--text-primary);
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-card-features li::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .tool-card--claude .tool-card-features li::before  { background: var(--accent-orange); }
+    .tool-card--codex .tool-card-features li::before   { background: var(--accent-green); }
+    .tool-card--copilot .tool-card-features li::before { background: var(--accent-blue); }
+
+    .tool-card-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 8px;
+      color: #fff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-align: center;
+    }
+
+    .tool-card-cta:hover {
+      transform: translateY(-1px);
+    }
+
+    .tool-card--claude .tool-card-cta {
+      background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
+    }
+    .tool-card--claude .tool-card-cta:hover {
+      box-shadow: 0 6px 24px rgba(249, 115, 22, 0.35);
+    }
+
+    .tool-card--codex .tool-card-cta {
+      background: linear-gradient(135deg, var(--accent-green), #16a34a);
+      box-shadow: 0 4px 16px rgba(63, 185, 80, 0.25);
+    }
+    .tool-card--codex .tool-card-cta:hover {
+      box-shadow: 0 6px 24px rgba(63, 185, 80, 0.35);
+    }
+
+    .tool-card--copilot .tool-card-cta {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      box-shadow: 0 4px 16px rgba(88, 166, 255, 0.25);
+    }
+    .tool-card--copilot .tool-card-cta:hover {
+      box-shadow: 0 6px 24px rgba(88, 166, 255, 0.35);
+    }
+
+    /* ===== DETAIL SECTIONS (per tool) ===== */
+    .detail-section {
       border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .detail-header-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .detail-section--claude .detail-header-icon  { background: linear-gradient(135deg, var(--accent-orange), #ea580c); }
+    .detail-section--codex .detail-header-icon   { background: linear-gradient(135deg, var(--accent-green), #16a34a); }
+    .detail-section--copilot .detail-header-icon { background: linear-gradient(135deg, var(--accent-blue), #2563eb); }
+
+    .detail-section--claude .section-label  { color: var(--accent-orange); }
+    .detail-section--codex .section-label   { color: var(--accent-green); }
+    .detail-section--copilot .section-label { color: var(--accent-blue); }
+
+    .detail-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .detail-badge {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    /* ===== TOPIC CARDS (small, reused from original) ===== */
     .topics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -294,9 +480,12 @@
     }
 
     .topic-card:hover {
-      border-color: var(--accent-orange);
       transform: translateY(-2px);
     }
+
+    .detail-section--claude .topic-card:hover  { border-color: var(--accent-orange); }
+    .detail-section--codex .topic-card:hover   { border-color: var(--accent-green); }
+    .detail-section--copilot .topic-card:hover { border-color: var(--accent-blue); }
 
     .topic-icon {
       font-size: 28px;
@@ -390,13 +579,14 @@
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 1199px) {
-      .steps-grid {
-        gap: 12px;
+      .tool-cards-grid {
+        gap: 16px;
       }
+    }
 
-      .step-card {
-        flex: 1 1 calc(33.333% - 8px);
-        min-width: 180px;
+    @media (max-width: 900px) {
+      .tool-cards-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -421,13 +611,8 @@
         font-size: 22px;
       }
 
-      .steps-grid {
-        flex-direction: column;
-      }
-
-      .step-card {
-        flex: 1 1 100%;
-        min-width: unset;
+      .tool-cards-grid {
+        grid-template-columns: 1fr;
       }
 
       .topics-grid {
@@ -450,6 +635,10 @@
       .topbar-nav a {
         font-size: 12px;
       }
+
+      .detail-title {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -458,7 +647,7 @@
   <!-- ===== TOP BAR ===== -->
   <header class="topbar">
     <div class="container topbar-inner">
-      <span class="topbar-brand">Claude Code 完全ガイド</span>
+      <span class="topbar-brand">AIエージェント設定ガイド</span>
       <nav class="topbar-nav">
         <a href="../index.html">&larr; サイトTOP</a>
         <a href="index.html">Presentations</a>
@@ -471,73 +660,155 @@
     <section class="hero">
       <div class="container">
         <div class="hero-content">
-          <span class="hero-eyebrow">Claude Code Complete Guide</span>
-          <h1 class="hero-title">Claude Code 完全ガイド</h1>
-          <p class="hero-subtitle">AI駆動開発システム構築マニュアル</p>
-          <p class="hero-description">初心者から中級者まで、Claude Codeを「本格的なAI駆動開発システム」として構築・運用するための完全ガイドです。Xコミュニティのベストプラクティス、GitHub人気プロジェクト、公式ドキュメントを統合しました。</p>
+          <span class="hero-eyebrow">AI Coding Agent Setup Guide</span>
+          <h1 class="hero-title">AIエージェント設定ガイド</h1>
+          <p class="hero-subtitle">Claude Code・Codex・GitHub Copilot 完全構築マニュアル</p>
+          <p class="hero-description">3大AIコーディングエージェントの設定・構築・運用を完全ガイド。初心者から中級者まで、各ツールの特徴を理解し、最適な開発環境を構築できます。</p>
           <p class="hero-meta">最終更新: 2026年3月21日</p>
-          <a href="claude-code-guide/getting-started.html" class="hero-cta">Getting Started &rarr;</a>
         </div>
       </div>
     </section>
 
-    <!-- ===== QUICK START ===== -->
-    <section class="section quickstart">
+    <!-- ===== QUICK COMPARISON ===== -->
+    <section class="section comparison">
       <div class="container">
-        <p class="section-label">QUICK START</p>
-        <h2 class="section-title">6ステップで構築完了</h2>
-        <p class="section-subtitle">MVP所要時間: 1〜2時間</p>
+        <p class="section-label">COMPARISON</p>
+        <h2 class="section-title">3ツール比較</h2>
+        <p class="section-subtitle">各ツールの特徴を一目で把握</p>
 
-        <div class="steps-grid">
-          <div class="step-card">
-            <div class="step-number">1</div>
-            <div class="step-title">初期化</div>
-            <p class="step-desc"><code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;">/init</code> 実行</p>
-            <span class="step-time">10分</span>
-          </div>
-          <div class="step-card">
-            <div class="step-number">2</div>
-            <div class="step-title">CLAUDE.md</div>
-            <p class="step-desc">プロジェクトの脳を構築</p>
-            <span class="step-time">20分</span>
-          </div>
-          <div class="step-card">
-            <div class="step-number">3</div>
-            <div class="step-title">安全Hooks</div>
-            <p class="step-desc">破壊操作をブロック</p>
-            <span class="step-time">15分</span>
-          </div>
-          <div class="step-card">
-            <div class="step-number">4</div>
-            <div class="step-title">Plugins</div>
-            <p class="step-desc">dx/superpowersで強化</p>
-            <span class="step-time">10分</span>
-          </div>
-          <div class="step-card">
-            <div class="step-number">5</div>
-            <div class="step-title">Skills</div>
-            <p class="step-desc">専門知識を登録</p>
-            <span class="step-time">15分</span>
-          </div>
-          <div class="step-card">
-            <div class="step-number">6</div>
-            <div class="step-title">検証</div>
-            <p class="step-desc">小タスクでテスト</p>
-            <span class="step-time">10分</span>
-          </div>
+        <div class="table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="col-claude">Claude Code</th>
+                <th class="col-codex">Codex</th>
+                <th class="col-copilot">GitHub Copilot</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>提供元</td>
+                <td>Anthropic</td>
+                <td>OpenAI</td>
+                <td>GitHub/Microsoft</td>
+              </tr>
+              <tr>
+                <td>メインUI</td>
+                <td>ターミナルCLI</td>
+                <td>CLI + デスクトップApp</td>
+                <td>IDE拡張 + CLI + Cloud</td>
+              </tr>
+              <tr>
+                <td>指示ファイル</td>
+                <td>CLAUDE.md</td>
+                <td>AGENTS.md</td>
+                <td>copilot-instructions.md</td>
+              </tr>
+              <tr>
+                <td>設定形式</td>
+                <td>JSON</td>
+                <td>TOML</td>
+                <td>JSON/YAML</td>
+              </tr>
+              <tr>
+                <td>強み</td>
+                <td>深い推論、大規模リファクタリング</td>
+                <td>並列エージェント、サンドボックス</td>
+                <td>インライン補完、GitHub連携</td>
+              </tr>
+              <tr>
+                <td>SWE-bench</td>
+                <td>72.7%（最高）</td>
+                <td>競合水準</td>
+                <td>モデル依存</td>
+              </tr>
+              <tr>
+                <td>価格</td>
+                <td>API従量課金</td>
+                <td>API従量課金</td>
+                <td>$10-39/月</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <!-- ===== TOPIC CARDS ===== -->
-    <section class="section topics">
+    <!-- ===== TOOL SELECTION CARDS ===== -->
+    <section class="section tool-select">
       <div class="container">
-        <p class="section-label">CONTENTS</p>
-        <h2 class="section-title">トピック一覧</h2>
-        <p class="section-subtitle">各トピックを選んで詳しく学べます</p>
+        <p class="section-label">SELECT TOOL</p>
+        <h2 class="section-title">ツールを選ぶ</h2>
+        <p class="section-subtitle">各ツールのガイドへ直接アクセス</p>
+
+        <div class="tool-cards-grid">
+
+          <!-- Claude Code -->
+          <div class="tool-card tool-card--claude">
+            <div class="tool-card-icon">C</div>
+            <div class="tool-card-name">Claude Code</div>
+            <div class="tool-card-provider">Anthropic公式 ターミナルCLI エージェント</div>
+            <p class="tool-card-desc">コードベース全体を理解し、編集・実行・検証を行うCLIツール。CLAUDE.md、Hooks、Skills、MCPで拡張可能。</p>
+            <span class="tool-card-badge">全8章のガイド</span>
+            <ul class="tool-card-features">
+              <li>ターミナルネイティブ</li>
+              <li>Plan Mode</li>
+              <li>Hooks &amp; Skills</li>
+              <li>MCP連携</li>
+            </ul>
+            <a href="claude-code-guide/getting-started.html" class="tool-card-cta">Claude Code ガイドを読む &rarr;</a>
+          </div>
+
+          <!-- Codex -->
+          <div class="tool-card tool-card--codex">
+            <div class="tool-card-icon">X</div>
+            <div class="tool-card-name">Codex</div>
+            <div class="tool-card-provider">OpenAI公式 CLI + デスクトップApp エージェント</div>
+            <p class="tool-card-desc">CLI・デスクトップApp・VS Code拡張の3形態。AGENTS.mdベースの指示システム、プラットフォームネイティブのサンドボックスを搭載。</p>
+            <span class="tool-card-badge">全8章のガイド</span>
+            <ul class="tool-card-features">
+              <li>3つの承認モード</li>
+              <li>ネイティブサンドボックス</li>
+              <li>並列Worktree</li>
+              <li>Skills &amp; Automations</li>
+            </ul>
+            <a href="codex-guide/getting-started.html" class="tool-card-cta">Codex ガイドを読む &rarr;</a>
+          </div>
+
+          <!-- GitHub Copilot -->
+          <div class="tool-card tool-card--copilot">
+            <div class="tool-card-icon">G</div>
+            <div class="tool-card-name">GitHub Copilot</div>
+            <div class="tool-card-provider">GitHub/Microsoft IDE統合 + Cloud + CLI エージェント</div>
+            <p class="tool-card-desc">インライン補完からCoding Agent（Issue→PR自動化）まで。マルチモデル対応（Claude, GPT, Gemini）でGitHubエコシステムと深く統合。</p>
+            <span class="tool-card-badge">全8章のガイド</span>
+            <ul class="tool-card-features">
+              <li>Agent Mode (VS Code)</li>
+              <li>Coding Agent (Cloud)</li>
+              <li>Copilot CLI</li>
+              <li>Copilot Spaces</li>
+            </ul>
+            <a href="copilot-guide/getting-started.html" class="tool-card-cta">Copilot ガイドを読む &rarr;</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CLAUDE CODE DETAIL ===== -->
+    <section class="section detail-section detail-section--claude">
+      <div class="container">
+        <p class="section-label">CLAUDE CODE</p>
+        <div class="detail-header">
+          <div class="detail-header-icon">C</div>
+          <div>
+            <div class="detail-title">Claude Code &mdash; 全8章</div>
+            <div class="detail-badge">Anthropic</div>
+          </div>
+        </div>
 
         <div class="topics-grid">
-
           <a href="claude-code-guide/getting-started.html" class="topic-card">
             <div class="topic-icon">&#x1F680;</div>
             <div class="topic-title">Getting Started</div>
@@ -617,7 +888,198 @@
               <span class="badge badge-time">10分</span>
             </div>
           </a>
+        </div>
+      </div>
+    </section>
 
+    <!-- ===== CODEX DETAIL ===== -->
+    <section class="section detail-section detail-section--codex">
+      <div class="container">
+        <p class="section-label">CODEX</p>
+        <div class="detail-header">
+          <div class="detail-header-icon">X</div>
+          <div>
+            <div class="detail-title">Codex &mdash; 全8章</div>
+            <div class="detail-badge">OpenAI</div>
+          </div>
+        </div>
+
+        <div class="topics-grid">
+          <a href="codex-guide/getting-started.html" class="topic-card">
+            <div class="topic-icon">&#x1F680;</div>
+            <div class="topic-title">Getting Started</div>
+            <p class="topic-desc">インストール・AGENTS.md・初回起動</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">初心者</span>
+              <span class="badge badge-time">30分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/project-structure.html" class="topic-card">
+            <div class="topic-icon">&#x1F4C1;</div>
+            <div class="topic-title">プロジェクト構成</div>
+            <p class="topic-desc">AGENTS.md設計・config.toml・構成</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">初心者〜中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/cli-and-app.html" class="topic-card">
+            <div class="topic-icon">&#x1F4BB;</div>
+            <div class="topic-title">CLI &amp; App</div>
+            <p class="topic-desc">承認モード・コマンド・CLIvsApp比較</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">初心者〜中級</span>
+              <span class="badge badge-time">15分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/sandboxing.html" class="topic-card">
+            <div class="topic-icon">&#x1F6E1;&#xFE0F;</div>
+            <div class="topic-title">サンドボックス</div>
+            <p class="topic-desc">プラットフォーム別サンドボックス・安全設計</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">15分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/skills-and-automations.html" class="topic-card">
+            <div class="topic-icon">&#x1F9E9;</div>
+            <div class="topic-title">Skills &amp; Automations</div>
+            <p class="topic-desc">スキル・自動化・MCP連携</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/multi-agent.html" class="topic-card">
+            <div class="topic-icon">&#x1F465;</div>
+            <div class="topic-title">マルチエージェント</div>
+            <p class="topic-desc">並列実行・Worktree・Cloud Tasks</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/workflows.html" class="topic-card">
+            <div class="topic-icon">&#x1F504;</div>
+            <div class="topic-title">実践ワークフロー</div>
+            <p class="topic-desc">開発パターン・ハイブリッド運用</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="codex-guide/pitfalls.html" class="topic-card">
+            <div class="topic-icon">&#x26A0;&#xFE0F;</div>
+            <div class="topic-title">よくある落とし穴</div>
+            <p class="topic-desc">アンチパターン・トラブル対策</p>
+            <div class="topic-badges">
+              <span class="badge badge-level--all badge">全レベル</span>
+              <span class="badge badge-time">10分</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== GITHUB COPILOT DETAIL ===== -->
+    <section class="section detail-section detail-section--copilot">
+      <div class="container">
+        <p class="section-label">GITHUB COPILOT</p>
+        <div class="detail-header">
+          <div class="detail-header-icon">G</div>
+          <div>
+            <div class="detail-title">GitHub Copilot &mdash; 全8章</div>
+            <div class="detail-badge">GitHub/Microsoft</div>
+          </div>
+        </div>
+
+        <div class="topics-grid">
+          <a href="copilot-guide/getting-started.html" class="topic-card">
+            <div class="topic-icon">&#x1F680;</div>
+            <div class="topic-title">Getting Started</div>
+            <p class="topic-desc">製品概要・VS Code/CLI/Cloud導入</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">初心者</span>
+              <span class="badge badge-time">30分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/agent-mode.html" class="topic-card">
+            <div class="topic-icon">&#x1F916;</div>
+            <div class="topic-title">Agent Mode</div>
+            <p class="topic-desc">3つのチャットモード・エージェント種類</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">初心者〜中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/coding-agent.html" class="topic-card">
+            <div class="topic-icon">&#x2699;&#xFE0F;</div>
+            <div class="topic-title">Coding Agent</div>
+            <p class="topic-desc">Issue→PR自動化・カスタムエージェント</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/cli.html" class="topic-card">
+            <div class="topic-icon">&#x1F4BB;</div>
+            <div class="topic-title">Copilot CLI</div>
+            <p class="topic-desc">ターミナルエージェント・Planモード</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">初心者〜中級</span>
+              <span class="badge badge-time">15分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/custom-instructions.html" class="topic-card">
+            <div class="topic-icon">&#x1F4DD;</div>
+            <div class="topic-title">カスタム指示</div>
+            <p class="topic-desc">copilot-instructions.md・パス固有ルール</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">15分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/spaces-and-mcp.html" class="topic-card">
+            <div class="topic-icon">&#x1F310;</div>
+            <div class="topic-title">Spaces &amp; MCP</div>
+            <p class="topic-desc">Copilot Spaces・MCP・拡張機能</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/workflows.html" class="topic-card">
+            <div class="topic-icon">&#x1F504;</div>
+            <div class="topic-title">実践ワークフロー</div>
+            <p class="topic-desc">開発パターン・マルチツール運用</p>
+            <div class="topic-badges">
+              <span class="badge badge-level">中級</span>
+              <span class="badge badge-time">20分</span>
+            </div>
+          </a>
+
+          <a href="copilot-guide/pitfalls.html" class="topic-card">
+            <div class="topic-icon">&#x26A0;&#xFE0F;</div>
+            <div class="topic-title">よくある落とし穴</div>
+            <p class="topic-desc">レート制限・コンテキスト・料金管理</p>
+            <div class="topic-badges">
+              <span class="badge badge-level--all badge">全レベル</span>
+              <span class="badge badge-time">10分</span>
+            </div>
+          </a>
         </div>
       </div>
     </section>
@@ -626,10 +1088,11 @@
   <!-- ===== FOOTER ===== -->
   <footer class="site-footer">
     <div class="container footer-inner">
-      <p class="footer-copy">Claude Code 完全ガイド &copy; 2026</p>
+      <p class="footer-copy">AIエージェント設定ガイド &copy; 2026</p>
       <nav class="footer-links">
-        <a href="https://code.claude.com/docs" target="_blank" rel="noopener">公式ドキュメント</a>
-        <a href="https://github.com/hesreallyhim/awesome-claude-code" target="_blank" rel="noopener">awesome-claude-code</a>
+        <a href="https://code.claude.com/docs" target="_blank" rel="noopener">Claude Code Docs</a>
+        <a href="https://github.com/openai/codex" target="_blank" rel="noopener">Codex GitHub</a>
+        <a href="https://docs.github.com/copilot" target="_blank" rel="noopener">Copilot Docs</a>
         <a href="../index.html">AI Intelligence Hub</a>
       </nav>
     </div>
