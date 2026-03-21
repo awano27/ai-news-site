@@ -694,20 +694,20 @@
           <tr>
             <td><strong>stdio</strong></td>
             <td>標準入出力</td>
-            <td>ローカルツール</td>
+            <td>ローカルツール（npxで起動）</td>
             <td>Playwright, ファイル操作</td>
           </tr>
           <tr>
             <td><strong>SSE</strong></td>
             <td>Server-Sent Events</td>
-            <td>リモートサーバー</td>
+            <td>リモートサーバー（非推奨・Deprecated）</td>
             <td>SaaSツール連携</td>
           </tr>
           <tr>
             <td><strong>HTTP</strong></td>
             <td>HTTPリクエスト</td>
-            <td>Webサービス</td>
-            <td>REST API連携</td>
+            <td>Webサービス（推奨）</td>
+            <td>Notion, GitHub, Sentry等</td>
           </tr>
         </tbody>
       </table>
@@ -715,8 +715,29 @@
 
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
-      <p>最も一般的なのはstdio方式です。ローカルで動くMCPサーバーの多くがこの方式を採用しています。</p>
+      <p>2026年現在、HTTP方式が公式推奨です。多くの公式MCPサーバー（Notion、Sentry、GitHub等）がHTTPエンドポイントを提供しています。</p>
     </div>
+
+    <h3>HTTP方式の設定例</h3>
+
+    <p>HTTP方式では、URLを指定するだけで接続できます。</p>
+
+    <div class="code-label">.mcp.json（HTTP方式）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    }
+  }
+}</code></div>
+
+    <div class="code-label">Terminal</div>
+    <div class="code-block"><code>claude mcp add --transport http notion https://mcp.notion.com/mcp</code></div>
+
+    <h3>設定スコープ</h3>
+
+    <p>MCPの設定スコープ: <strong>local</strong>（デフォルト、個人・現プロジェクト）、<strong>project</strong>（.mcp.json、チーム共有）、<strong>user</strong>（全プロジェクト）</p>
 
     <!-- ===== Section 3: 実用例TOP5 ===== -->
     <h2 id="top5">実用例TOP5</h2>
@@ -747,7 +768,7 @@
         <div>
           <h4>Notion（ドキュメント連携）</h4>
           <p>Notionのページやデータベースに直接アクセスし、読み書き操作が可能になります。</p>
-          <div class="code-block"><code>claude mcp add notion -- npx @anthropic-ai/mcp-server-notion</code></div>
+          <div class="code-block"><code>claude mcp add --transport http notion https://mcp.notion.com/mcp</code></div>
           <p>env: <code>NOTION_API_KEY</code></p>
           <ul>
             <li>ページの読み書き</li>
@@ -796,7 +817,7 @@
         <div>
           <h4>GitHub</h4>
           <p>GitHub APIを通じてIssue/PRの操作やリポジトリ情報の取得ができます。</p>
-          <div class="code-block"><code>claude mcp add github -- npx @anthropic-ai/mcp-server-github</code></div>
+          <div class="code-block"><code>claude mcp add --transport http github https://api.githubcopilot.com/mcp/</code></div>
           <p>env: <code>GITHUB_TOKEN</code></p>
           <ul>
             <li>Issue/PRの操作</li>
@@ -942,6 +963,11 @@ node --version</code></div>
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
       <p>MCPサーバーが動かない場合、まず <code>claude doctor</code> を実行してください。設定の問題を自動診断してくれます。</p>
     </div>
+
+    <h3>Windowsでの注意点</h3>
+    <p>Windowsでstdioサーバーを使う場合は <code>cmd /c</code> ラッパーが必要です。</p>
+    <div class="code-label">Terminal（Windows）</div>
+    <div class="code-block"><code>claude mcp add --transport stdio my-server -- cmd /c npx -y @some/package</code></div>
 
     <h3>OAuth対応</h3>
     <ul>
