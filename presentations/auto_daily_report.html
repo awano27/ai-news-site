@@ -1,2277 +1,656 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Daily AI News — 2026-03-21 09:19 JST</title>
-  <meta name="description" content="毎日更新。AIニュースを重要度順に整理し、5分でキャッチアップできるダイジェスト。">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI SIGINT — 2026-03-20</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    :root {
-      --bg:       #06090d;
-      --bg2:      #0c1018;
-      --bg3:      #121a24;
-      --bg-card:  #0e141c;
-      --border:   #1a2a3a;
-      --border2:  #243040;
-      --cyan:     #00d4f0;
-      --cyan-soft:#58e0f5;
-      --green:    #34d399;
-      --amber:    #f59e0b;
-      --rose:     #fb7185;
-      --violet:   #a78bfa;
-      --muted:    #6b8399;
-      --text:     #d0dde8;
-      --text2:    #8da0b4;
-      --white:    #f0f4f8;
-      --glow-c:   rgba(0, 212, 240, 0.15);
-      --radius:   12px;
-      --radius-sm:8px;
-    }
+:root {
+  --bg: #06070b;
+  --surface: #0c0e14;
+  --surface2: #12151e;
+  --surface3: #191d2a;
+  --border: #1a1e2e;
+  --border-h: #282d42;
+  --t1: #e2e5ed;
+  --t2: #8b92a8;
+  --t3: #4e5570;
+  --amber: #d4a017;
+  --amber-dim: rgba(212,160,23,.08);
+  --cyan: #00bcd4;
+  --cyan-dim: rgba(0,188,212,.07);
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --blue: #5b8def;
+  --orange: #e67e22;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+}
 
-    html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Noto Sans JP', system-ui, sans-serif;
-      font-weight: 400;
-      line-height: 1.7;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: radial-gradient(circle at 1px 1px, rgba(100, 160, 200, 0.06) 1px, transparent 0);
-      background-size: 32px 32px;
-      pointer-events: none;
-      z-index: 0;
-    }
+/* ═══ TOPBAR ═══ */
+.bar {
+  position: sticky; top: 0; z-index: 100;
+  height: 44px;
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 28px;
+  background: rgba(6,7,11,.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.bar-logo { color: var(--amber); font-weight: 700; }
+.bar-sep { color: var(--t3); }
+.bar-date { color: var(--t3); font-weight: 400; }
+.bar-nav { display: flex; gap: 1px; margin-left: auto; }
+.bar-nav a {
+  color: var(--t3); text-decoration: none;
+  padding: 4px 12px; border-radius: 3px;
+  transition: color .15s, background .15s;
+}
+.bar-nav a:hover { color: var(--t2); background: var(--surface2); }
+.bar-nav a.on { color: var(--amber); background: var(--amber-dim); }
+.bar-live {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
 
-    .wrap { position: relative; z-index: 1; }
+/* ═══ CONTAINER ═══ */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px 28px 60px; }
 
-    a { color: var(--cyan); }
-    a:hover { color: var(--cyan-soft); }
+/* ═══ STATS ═══ */
+.kpi {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border); border-radius: 4px;
+  overflow: hidden; margin: 20px 0;
+}
+.kpi-cell { background: var(--surface); padding: 16px; text-align: center; }
+.kpi-n {
+  font-family: var(--mono); font-size: 1.6rem; font-weight: 700;
+  color: var(--amber);
+}
+.kpi-l {
+  font-family: var(--mono); font-size: .6rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--t3); margin-top: 2px;
+}
 
-    :focus-visible {
-      outline: 2px solid var(--cyan);
-      outline-offset: 3px;
-    }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0 24px; }
+.tag {
+  font-family: var(--mono); font-size: .65rem; font-weight: 500;
+  letter-spacing: .5px; text-transform: uppercase;
+  padding: 3px 10px; border: 1px solid var(--border); border-radius: 2px;
+  color: var(--t3);
+}
+.tag b { color: var(--amber); margin-left: 4px; }
 
-    /* ===== NAV ===== */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(6, 9, 13, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 2rem;
-      height: 60px;
-    }
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      text-decoration: none;
-      font-weight: 700;
-      color: var(--white);
-    }
-    .nav-logo .sigil {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      display: grid;
-      place-items: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--bg);
-      background: linear-gradient(135deg, var(--cyan), var(--green));
-      box-shadow: 0 0 16px var(--glow-c);
-    }
-    .nav-logo .logo-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-    }
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .nav-right a {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--text2);
-      text-decoration: none;
-      padding: 0.5rem 0.8rem;
-      border-radius: 6px;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      transition: color 0.2s, background 0.2s;
-    }
-    .nav-right a:hover {
-      color: var(--white);
-      background: rgba(255,255,255,0.06);
-    }
-    .nav-timestamp {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
+/* ═══ SECTION ═══ */
+.sec { margin: 36px 0; }
+.sec-h {
+  font-family: var(--mono); font-size: .7rem; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--t3);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.sec-h em { font-style: normal; color: var(--cyan); margin-right: 6px; }
 
-    /* ===== CONTAINER ===== */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-    }
+/* ═══ NEWS ROW ═══ */
+.row {
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.row:last-child { border-bottom: none; }
+.row:hover { background: var(--surface); }
+.row-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; cursor: pointer;
+  user-select: none;
+}
+.row-n {
+  font-family: var(--mono); font-size: .7rem; font-weight: 600;
+  color: var(--t3); min-width: 22px; text-align: right;
+}
+.row-title {
+  flex: 1; font-size: .95rem; font-weight: 500; color: var(--t1);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.row-cat {
+  font-family: var(--mono); font-size: .6rem; font-weight: 500;
+  letter-spacing: .3px; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 2px;
+  flex-shrink: 0;
+}
+.c-model { background: rgba(91,141,239,.1); color: var(--blue); }
+.c-biz { background: rgba(230,126,34,.1); color: var(--orange); }
+.c-product { background: rgba(46,204,113,.1); color: var(--green); }
+.c-research { background: rgba(155,89,182,.1); color: #9b59b6; }
+.c-hw { background: rgba(231,76,60,.1); color: var(--red); }
+.c-other { background: var(--surface3); color: var(--t3); }
 
-    /* ===== HERO ===== */
-    .hero {
-      padding: 3.5rem 0 2.5rem;
-      position: relative;
-    }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -50px;
-      left: -10%;
-      width: 600px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(0,212,240,0.06) 0%, transparent 65%);
-      pointer-events: none;
-      filter: blur(40px);
-    }
-    .hero h1 {
-      font-weight: 900;
-      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-      color: var(--white);
-      line-height: 1.3;
-      margin-bottom: 0.8rem;
-    }
-    .hero h1 em {
-      font-style: normal;
-      background: linear-gradient(135deg, var(--cyan), var(--violet));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero-note {
-      color: var(--text2);
-      font-size: 0.92rem;
-      max-width: 640px;
-      line-height: 1.75;
-    }
-    .hero-note strong {
-      color: var(--white);
-      font-weight: 600;
-    }
+.row-src {
+  font-family: var(--mono); font-size: .6rem; color: var(--t3);
+  flex-shrink: 0; max-width: 120px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.row-score {
+  font-family: var(--mono); font-size: .7rem; font-weight: 700;
+  min-width: 28px; text-align: center; flex-shrink: 0;
+}
+.s-s { color: var(--red); }
+.s-a { color: var(--amber); }
+.s-b { color: var(--green); }
+.s-c { color: var(--t3); }
 
-    /* ===== METRICS ===== */
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .metric-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      text-align: center;
-    }
-    .metric-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--cyan);
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-    }
-    .metric-label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 0.4rem;
-    }
+.row-arr {
+  font-size: .5rem; color: var(--t3);
+  transition: transform .2s; flex-shrink: 0;
+}
+.row.open .row-arr { transform: rotate(180deg); }
 
-    /* ===== GUIDE CHIPS ===== */
-    .guide-section {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem 2rem;
-      margin-bottom: 2rem;
-    }
-    .guide-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 2rem;
-      margin-bottom: 1.2rem;
-      flex-wrap: wrap;
-    }
-    .guide-header h2 {
-      font-size: 1.1rem;
-      color: var(--white);
-      font-weight: 700;
-    }
-    .guide-header .meta {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    .guide-chips {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.75rem;
-    }
-    .guide-chip {
-      border-radius: var(--radius-sm);
-      padding: 1rem 1.2rem;
-      border: 1px solid;
-    }
-    .guide-chip--high {
-      background: rgba(251, 113, 133, 0.06);
-      border-color: rgba(251, 113, 133, 0.18);
-    }
-    .guide-chip--medium {
-      background: rgba(245, 158, 11, 0.06);
-      border-color: rgba(245, 158, 11, 0.18);
-    }
-    .guide-chip--low {
-      background: rgba(107, 131, 153, 0.06);
-      border-color: rgba(107, 131, 153, 0.18);
-    }
-    .guide-chip__label {
-      font-weight: 700;
-      font-size: 0.88rem;
-      margin-bottom: 0.3rem;
-    }
-    .guide-chip--high .guide-chip__label { color: var(--rose); }
-    .guide-chip--medium .guide-chip__label { color: var(--amber); }
-    .guide-chip--low .guide-chip__label { color: var(--muted); }
-    .guide-chip__copy {
-      color: var(--text2);
-      font-size: 0.82rem;
-      line-height: 1.55;
-    }
+/* ── DETAIL ── */
+.row-detail {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .35s ease, opacity .2s, padding .2s;
+  padding: 0 16px 0 50px;
+}
+.row.open .row-detail {
+  max-height: 1200px; opacity: 1;
+  padding: 0 16px 16px 50px;
+}
+.d-summary { color: var(--t2); font-size: .88rem; line-height: 1.75; margin-bottom: 8px; }
+.d-points { padding: 0; margin: 6px 0; }
+.d-points li {
+  list-style: none; font-size: .85rem; color: var(--t2);
+  padding: 2px 0 2px 14px; position: relative;
+}
+.d-points li::before {
+  content: ""; position: absolute; left: 0; top: 10px;
+  width: 4px; height: 4px; background: var(--cyan); border-radius: 1px;
+}
 
-    /* ===== FILTERS ===== */
-    .filter-bar {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem 1.5rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-    }
-    .filter-bar .search-wrap {
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-    }
-    .filter-bar .search-wrap svg {
-      position: absolute;
-      left: 0.8rem;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      stroke: var(--muted);
-      fill: none;
-      stroke-width: 2;
-    }
-    .filter-bar input,
-    .filter-bar select {
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      color: var(--text);
-      border-radius: var(--radius-sm);
-      padding: 0.6rem 0.8rem;
-      font-size: 0.85rem;
-      font-family: inherit;
-      min-height: 44px;
-      transition: border-color 0.2s;
-    }
-    .filter-bar input {
-      padding-left: 2.4rem;
-      width: 100%;
-    }
-    .filter-bar input:focus,
-    .filter-bar select:focus {
-      border-color: var(--cyan);
-      outline: none;
-    }
-    .filter-bar select {
-      min-width: 140px;
-      cursor: pointer;
-      appearance: auto;
-    }
-    .filter-bar .btn-reset {
-      background: transparent;
-      border: 1px solid var(--border2);
-      color: var(--text2);
-      border-radius: var(--radius-sm);
-      padding: 0.6rem 1rem;
-      font-size: 0.82rem;
-      cursor: pointer;
-      min-height: 44px;
-      font-family: inherit;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .filter-bar .btn-reset:hover {
-      border-color: var(--cyan);
-      color: var(--white);
-    }
-    #searchTags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      padding: 0 1.5rem;
-    }
-    #searchTags button {
-      background: rgba(0,212,240,0.1);
-      border: 1px solid rgba(0,212,240,0.2);
-      color: var(--cyan);
-      font-size: 0.78rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 99px;
-      cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
-      transition: background 0.15s;
-    }
-    #searchTags button:hover {
-      background: rgba(0,212,240,0.2);
-    }
+.d-ev {
+  background: var(--surface2); border-left: 2px solid var(--cyan);
+  padding: 10px 14px; margin: 10px 0; border-radius: 0 3px 3px 0;
+}
+.d-ev-r { display: flex; gap: 8px; margin: 2px 0; align-items: baseline; }
+.d-ev-k {
+  font-family: var(--mono); font-size: .65rem; font-weight: 600;
+  color: var(--cyan); min-width: 50px; letter-spacing: .5px;
+  text-transform: uppercase; flex-shrink: 0;
+}
+.d-ev-v { color: var(--t2); font-size: .83rem; }
+.d-ev-v code {
+  font-family: var(--mono); font-size: .78rem;
+  background: var(--cyan-dim); color: var(--cyan);
+  padding: 1px 5px; border-radius: 2px;
+}
+.d-url {
+  margin-top: 8px;
+}
+.d-url a {
+  font-family: var(--mono); font-size: .7rem; color: var(--t3);
+  text-decoration: none; word-break: break-all;
+}
+.d-url a:hover { color: var(--cyan); }
 
-    /* ===== TABS ===== */
-    .tab-bar {
-      display: flex;
-      gap: 0.25rem;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0;
-    }
-    .tab-bar button {
-      background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text2);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      padding: 0.7rem 1.2rem;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-      min-height: 44px;
-      letter-spacing: 0.04em;
-    }
-    .tab-bar button:hover {
-      color: var(--white);
-    }
-    .tab-bar button.active {
-      color: var(--cyan);
-      border-bottom-color: var(--cyan);
-    }
+/* ═══ GITHUB ROW ═══ */
+.gh {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.gh:hover { background: var(--surface); }
+.gh:last-child { border-bottom: none; }
+.gh-n { font-family: var(--mono); font-size: .7rem; color: var(--t3); min-width: 22px; text-align: right; }
+.gh-info { flex: 1; min-width: 0; }
+.gh-name a {
+  font-weight: 600; color: var(--t1); text-decoration: none;
+  font-size: .9rem;
+}
+.gh-name a:hover { color: var(--amber); }
+.gh-desc {
+  font-size: .78rem; color: var(--t3); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gh-cmd {
+  font-family: var(--mono); font-size: .68rem;
+  color: var(--t3); background: var(--surface3);
+  padding: 1px 6px; border-radius: 2px; margin-top: 3px;
+  display: inline-block;
+}
+.gh-stars {
+  font-family: var(--mono); font-size: .75rem; font-weight: 600;
+  color: var(--amber); white-space: nowrap;
+}
 
-    /* ===== RESULTS COUNT ===== */
-    .results-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
-      padding: 0.5rem 0.8rem;
-      background: rgba(0,212,240,0.04);
-      border: 1px solid rgba(0,212,240,0.1);
-      border-radius: var(--radius-sm);
-      display: inline-block;
-    }
+/* ═══ MODEL ROW ═══ */
+.mdl {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  border-left: 2px solid var(--orange);
+  transition: background .12s;
+}
+.mdl:hover { background: var(--surface); }
+.mdl:last-child { border-bottom: none; }
 
-    /* ===== NEWS CARDS ===== */
-    .news-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 1.25rem;
-    }
-    .news-card {
-      position: relative;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-      display: flex;
-      flex-direction: column;
-    }
-    .news-card:hover {
-      border-color: rgba(0, 212, 240, 0.2);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-      transform: translateY(-2px);
-    }
-    .news-card__header {
-      padding: 1.25rem 1.25rem 0.5rem;
-    }
-    .news-card__body {
-      padding: 0.25rem 1.25rem 1rem;
-      flex: 1;
-    }
-    .news-card__footer {
-      padding: 1rem 1.25rem;
-      border-top: 1px solid var(--border);
-    }
-    .news-card__rank {
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.2rem 0.5rem;
-      border-radius: 99px;
-      background: linear-gradient(135deg, var(--cyan), var(--green));
-      color: var(--bg);
-    }
-    .news-card__title {
-      display: block;
-      color: var(--white);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1rem;
-      line-height: 1.55;
-      padding-right: 2.5rem;
-      transition: color 0.2s;
-    }
-    .news-card__title:hover {
-      color: var(--cyan);
-    }
-    .news-card__meta-top {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-top: 0.6rem;
-    }
-    .news-card__badge,
-    .news-card__freshness,
-    .news-card__reason,
-    .news-card__tag {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 99px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      line-height: 1;
-      padding: 0.35rem 0.65rem;
-    }
-    .news-card__badge {
-      font-weight: 700;
-      color: var(--bg);
-    }
-    .news-card__badge--high {
-      background: var(--rose);
-    }
-    .news-card__badge--medium {
-      background: var(--amber);
-    }
-    .news-card__badge--low {
-      background: var(--muted);
-      color: var(--white);
-    }
-    .news-card__freshness {
-      background: rgba(0, 212, 240, 0.1);
-      color: var(--cyan);
-    }
-    .news-card__reason {
-      background: rgba(107, 131, 153, 0.1);
-      color: var(--text2);
-    }
-    .news-card__summary {
-      margin: 0;
-      line-height: 1.7;
-      color: var(--text2);
-      font-size: 0.9rem;
-    }
-    .news-card__taglist {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.8rem;
-    }
-    .news-card__tag {
-      background: rgba(0, 212, 240, 0.06);
-      color: var(--cyan);
-      border: 1px solid rgba(0, 212, 240, 0.12);
-    }
-    .news-card__details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 0.6rem;
-      margin: 0;
-    }
-    .news-card__details dt {
-      margin-bottom: 0.15rem;
-      font-size: 0.7rem;
-      color: var(--muted);
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.04em;
-    }
-    .news-card__details dd {
-      margin: 0;
-      font-size: 0.85rem;
-      color: var(--text);
-    }
-    .news-card__footer-meta {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 0.8rem;
-    }
-    .news-card__trust {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 600;
-      font-size: 0.82rem;
-      padding-left: 1.8rem;
-    }
-    .news-card__trust::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 1.4rem;
-      height: 0.3rem;
-      transform: translateY(-50%);
-      border-radius: 99px;
-      background: rgba(0, 212, 240, 0.15);
-    }
-    .news-card__trust-bar {
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: calc(var(--trust-level, 0) * 1%);
-      height: 0.3rem;
-      transform: translateY(-50%);
-      border-radius: 99px;
-      background: var(--cyan);
-    }
-    .news-card__trust-note {
-      color: var(--muted);
-      font-size: 0.78rem;
-    }
-    .news-card__cta {
-      margin-left: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--cyan);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    .news-card__cta:hover {
-      color: var(--cyan-soft);
-    }
+/* ═══ FOOTER ═══ */
+.ft {
+  text-align: center; padding: 28px 0; margin-top: 40px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: .65rem;
+  letter-spacing: .8px; color: var(--t3); text-transform: uppercase;
+  line-height: 1.8;
+}
+.ft a { color: var(--t3); text-decoration: none; }
+.ft a:hover { color: var(--amber); }
 
-    #legacyData { display: none; }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    /* ===== FOOTER ===== */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem;
-      text-align: center;
-      margin-top: 3rem;
-    }
-    .footer-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-    .footer-text a {
-      color: var(--cyan);
-      text-decoration: none;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 768px) {
-      nav { padding: 0 1rem; }
-      .container { padding: 0 1rem; }
-      .metrics { grid-template-columns: repeat(2, 1fr); }
-      .guide-chips { grid-template-columns: 1fr; }
-      .news-grid { grid-template-columns: 1fr; }
-      .filter-bar { flex-direction: column; }
-      .filter-bar select { width: 100%; }
-      .hero { padding: 2.5rem 0 1.5rem; }
-      .nav-right a.hide-mobile { display: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .bar { padding: 0 12px; gap: 10px; }
+  .bar-nav { display: none; }
+  .wrap { padding: 12px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .row-head { gap: 8px; padding: 10px 8px; }
+  .row-title { white-space: normal; }
+  .row-src { display: none; }
+  .row.open .row-detail { padding-left: 38px; }
+  .gh, .mdl { padding: 10px 8px; gap: 10px; }
+}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <nav aria-label="メインナビゲーション">
-      <a class="nav-logo" href="https://awano27.github.io/ai-news-site/" aria-label="AI Intelligence Hub ホーム">
-        <div class="sigil" aria-hidden="true">AI</div>
-        <span class="logo-text">DAILY NEWS</span>
-      </a>
-      <div class="nav-right">
-        <a href="https://awano27.github.io/ai-news-site/" class="hide-mobile">Hub に戻る</a>
-        <a href="https://awano27.github.io/ai-news-site/presentations/day_slides_index.html" class="hide-mobile">日次スライド</a>
-        <span class="nav-timestamp">2026-03-21 09:19 JST</span>
-      </div>
-    </nav>
 
-    <main class="container">
-      <section class="hero">
-        <h1>今日のAIニュースを、<em>重要度順に5分で把握。</em></h1>
-        <p class="hero-note">内部スコアは非表示。<strong>見逃せない</strong>・<strong>チェック推奨</strong>・<strong>参考メモ</strong>の3段階で、上から読むだけで大きな話題を追えます。</p>
-      </section>
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo">AI SIGINT</span>
+  <span class="bar-sep">//</span>
+  <span class="bar-date">2026-03-20</span>
+  <nav class="bar-nav">
+    <a href="#headlines" class="on">SIGNALS</a>
+    
+    <a href="#github">GITHUB</a>
+    <a href="#models">MODELS</a>
+    <a href="/ai-news-site/">HQ</a>
+    <a href="/ai-news-site/presentations/day_slides_list.html">SLIDES</a>
+  </nav>
+</header>
 
-      <div class="metrics">
-        <div class="metric-card">
-          <div class="metric-value">23</div>
-          <div class="metric-label">記事数</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value">8</div>
-          <div class="metric-label">ビジネス</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value">7</div>
-          <div class="metric-label">ツール</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value">8</div>
-          <div class="metric-label">SNS / 論文</div>
-        </div>
-      </div>
-
-      <div class="guide-section">
-        <div class="guide-header">
-          <h2>重要度の見方</h2>
-          <span class="meta">更新範囲: 24h / 一次情報・主要メディア優先</span>
-        </div>
-        <div class="guide-chips">
-          <div class="guide-chip guide-chip--high">
-            <div class="guide-chip__label">見逃せない</div>
-            <p class="guide-chip__copy">公式発表・大型リリース・資金調達・研究成果など、業界に大きな影響がある話題。</p>
-          </div>
-          <div class="guide-chip guide-chip--medium">
-            <div class="guide-chip__label">チェック推奨</div>
-            <p class="guide-chip__copy">今日の動向を追うなら押さえたい更新。実用的な新機能や業界トピックが中心。</p>
-          </div>
-          <div class="guide-chip guide-chip--low">
-            <div class="guide-chip__label">参考メモ</div>
-            <p class="guide-chip__copy">個人投稿や補足情報。背景理解や現場感をつかむための話題。</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="filter-bar">
-        <div class="search-wrap">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="searchInput" placeholder="キーワードで絞り込み（Enter で追加）" aria-label="キーワード検索">
-        </div>
-        <select id="importanceFilter" aria-label="注目度で絞り込み">
-          <option value="all">すべての注目度</option>
-          <option value="high">見逃せない</option>
-          <option value="medium">チェック推奨</option>
-          <option value="low">参考メモ</option>
-        </select>
-        <select id="freshnessFilter" aria-label="新しさで絞り込み">
-          <option value="all">すべての時期</option>
-          <option value="24h">24時間以内</option>
-          <option value="3d">3日以内</option>
-          <option value="7d">1週間以内</option>
-        </select>
-        <button class="btn-reset" id="clearFilters" type="button">リセット</button>
-      </div>
-      <div id="searchTags"></div>
-
-      <div class="tab-bar" id="categoryTabs" role="tablist">
-        <button class="active" data-category="all" role="tab" aria-selected="true">すべて</button>
-        <button data-category="business" role="tab" aria-selected="false">ビジネス</button>
-        <button data-category="tools" role="tab" aria-selected="false">ツール</button>
-        <button data-category="posts" role="tab" aria-selected="false">SNS / 論文</button>
-      </div>
-
-      <div class="results-count" id="resultsCount" role="status">23件を表示中</div>
-
-      <div id="legacyData">
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="22.50"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773988182000"
-        data-rank="1"
-        data-tags="ビジネス,注目,新着"
-        data-source="redditai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 1">#01</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/artificial/comments/1ryzdsf/i_found_a_digital_thunderdome_for_ai_models_and/" target="_blank" rel="noopener">I found a digital thunderdome for AI models and now I can't stop watching them fight</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">basically you build a &amp;quot;cast&amp;quot; of AIs different models like GPT-4o, Claude, and Gemini and you just drop a topic and let them talk to each other. i currently have a group of historical figures debating the ethics of space colonisation and they're actually voting on things. it even pulls live...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T15:29:42+09:00" title="2026-03-20 15:29 JST">03/20 15:29</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/artificial/comments/1ryzdsf/i_found_a_digital_thunderdome_for_ai_models_and/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="21.50"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773993938000"
-        data-rank="2"
-        data-tags="ビジネス,注目,新着"
-        data-source="hackernews">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 2">#02</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://news.ycombinator.com/item?id=47457472" target="_blank" rel="noopener">Launch HN: Sitefire (YC W26) – Automating actions to improve AI visibility</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Hi HN! We're Vincent and Jochen from sitefire (https://sitefire.ai). Our platform makes it easy for brands to improve their visibility in AI search.We’ve been working together for years and have backgrounds in RL/optimization at Stanford and software engineering. We came to this idea after speaking ...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Hacker News</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T17:05:38+09:00" title="2026-03-20 17:05 JST">03/20 17:05</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 参考情報">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 参考情報
-            </span>
-            <span class="news-card__trust-note">補助的に見るのが向いている情報</span>
-            <a class="news-card__cta" href="https://news.ycombinator.com/item?id=47457472" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="19.75"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773981057000"
-        data-rank="3"
-        data-tags="ビジネス,注目,新着"
-        data-source="redditai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 3">#03</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/artificial/comments/1rywb4y/europes_building_its_own_ai_empire_so_why_keep/" target="_blank" rel="noopener">Europe's building its own AI empire.... so why keep funneling cash to OpenAI when we could finally break free from Silicon Valley dependency?</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Remember when Sam Altman was out there talking up 1.4 trillion dollars in spending commitments like it was already in the bag? Now CNBC says OpenAI is targeting &amp;quot;only&amp;quot; 600 billion by 2030 while dreaming of 280 billion in revenue that same year. So your telling me they're supposedly doing a...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T13:30:57+09:00" title="2026-03-20 13:30 JST">03/20 13:30</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/artificial/comments/1rywb4y/europes_building_its_own_ai_empire_so_why_keep/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="18.60"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773996422000"
-        data-rank="4"
-        data-tags="ビジネス,注目,新着"
-        data-source="redditai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 4">#04</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/artificial/comments/1rz33jy/anthropics_claude_code_had_a_workspace_trust/" target="_blank" rel="noopener">Anthropic's Claude Code had a workspace trust bypass (CVE-2026-33068). Not a prompt injection or AI attack. A configuration loading order bug. Fixed in 2.1.53.</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">An interesting data point in the AI safety discussion: Anthropic's own Claude Code CLI tool had a security vulnerability, and it was not an AI-specific attack at all. CVE-2026-33068 (CVSS 7.7 HIGH) is a workspace trust dialog bypass in Claude Code versions prior to 2.1.53. A malicious repository cou...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T17:47:02+09:00" title="2026-03-20 17:47 JST">03/20 17:47</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/artificial/comments/1rz33jy/anthropics_claude_code_had_a_workspace_trust/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="15.05"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773980145000"
-        data-rank="5"
-        data-tags="ビジネス,注目,新着"
-        data-source="mittechnologyreviewai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 5">#05</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.technologyreview.com/2026/03/20/1134448/the-download-openai-building-fully-automated-researcher-psychedelic-drug-trial/" target="_blank" rel="noopener">The Download: OpenAI is building a fully automated researcher, and a psychedelic trial blind spot</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">This is today&amp;#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&amp;#8217;s going on in the world of technology. OpenAI is throwing everything into building a fully automated researcher&amp;#160; OpenAI has a new grand challenge: building an AI researcher—a fully aut...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>MIT Technology Review AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T13:15:45+09:00" title="2026-03-20 13:15 JST">03/20 13:15</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 参考情報">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 参考情報
-            </span>
-            <span class="news-card__trust-note">補助的に見るのが向いている情報</span>
-            <a class="news-card__cta" href="https://www.technologyreview.com/2026/03/20/1134448/the-download-openai-building-fully-automated-researcher-psychedelic-drug-trial/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="14.55"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773975436000"
-        data-rank="6"
-        data-tags="ビジネス,注目,新着"
-        data-source="mittechnologyreviewai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 6">#06</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.technologyreview.com/2026/03/20/1134438/openai-is-throwing-everything-into-building-a-fully-automated-researcher/" target="_blank" rel="noopener">OpenAI is throwing everything into building a fully automated researcher</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">OpenAI is refocusing its research efforts and throwing its resources into a new grand challenge. The San Francisco firm has set its sights on building what it calls an AI researcher, a fully automated agent-based system that will be able to go off and tackle large, complex problems by itself. ​​Open...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>MIT Technology Review AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T11:57:16+09:00" title="2026-03-20 11:57 JST">03/20 11:57</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 参考情報">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 参考情報
-            </span>
-            <span class="news-card__trust-note">補助的に見るのが向いている情報</span>
-            <a class="news-card__cta" href="https://www.technologyreview.com/2026/03/20/1134438/openai-is-throwing-everything-into-building-a-fully-automated-researcher/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="14.50"
-        data-freshness="90"
-        data-freshness-bucket="24h"
-        data-published-ms="1774014701000"
-        data-rank="7"
-        data-tags="ビジネス,注目,新着"
-        data-source="redditai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 7">#07</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/artificial/comments/1rzax8q/ai_website_builder/" target="_blank" rel="noopener">AI Website Builder</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Would anyone know what the best AI Website Builders would be? I'm making a consultancy agency website. I've got a hand written website map that I'm prompting the AI with for every page on my site.  I've tried Lovable, Replit, v0, Emergent, Claude Code, Bolt, and Google Stich and Figma. Any other sug...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T22:51:41+09:00" title="2026-03-20 22:51 JST">03/20 22:51</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/artificial/comments/1rzax8q/ai_website_builder/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="business"
-        data-importance="high"
-        data-score="13.70"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1774000734000"
-        data-rank="8"
-        data-tags="ビジネス,注目,新着"
-        data-source="redditai">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 8">#08</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/artificial/comments/1rz4zkh/when_ai_forgets_you_how_memory_loss_costs_all_of/" target="_blank" rel="noopener">When AI Forgets You: How Memory Loss Costs All of Us</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--high" aria-label="重要度 見逃せない">見逃せない</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 大型アップデートや業界への影響が大きい話題">大型アップデートや業界への影響が大きい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Remember the frustration and exasperation of losing all the work you had just poured into a word processor, only to realize you hadn't saved it and now found all that hard work lost for eternity, just a decade ago? While it may not be as visceral or complete an erasure, the exact same thing happens ...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ビジネス</span>
-            <span class="news-card__tag">注目</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit AI</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T18:58:54+09:00" title="2026-03-20 18:58 JST">03/20 18:58</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/artificial/comments/1rz4zkh/when_ai_forgets_you_how_memory_loss_costs_all_of/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="90"
-        data-freshness-bucket="24h"
-        data-published-ms="1774010341000"
-        data-rank="1"
-        data-tags="ツール,新着"
-        data-source="redditmachinelearning">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 1">#01</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/MachineLearning/comments/1rz94na/p_quantized_ondevice_models_beat_whisper_large_v3/" target="_blank" rel="noopener">[P] Quantized on-device models beat Whisper Large v3 (FP16) — LALM vs transducer, 15k inference tests, fully reproducible</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">We benchmarked two architectures against Whisper Large v3 (FP16) on LibriSpeech test-clean (2,620 utterances) as part of speech-swift, an open-source Swift library for on-device speech AI. Results: - Qwen3-ASR 1.7B 8-bit: 2.35% WER (vs Whisper's 2.7%) — 26% smaller, 13% more accurate - Qwen3-ASR 0.6...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit MachineLearning</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T21:39:01+09:00" title="2026-03-20 21:39 JST">03/20 21:39</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/MachineLearning/comments/1rz94na/p_quantized_ondevice_models_beat_whisper_large_v3/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1774003096000"
-        data-rank="2"
-        data-tags="ツール,新着"
-        data-source="huggingfaceblog">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 2">#02</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://huggingface.co/blog/nvidia/domain-specific-embedding-finetune" target="_blank" rel="noopener">Build a Domain-Specific Embedding Model in Under a Day</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Build a Domain-Specific Embedding Model in Under a Day</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Hugging Face Blog</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T19:38:16+09:00" title="2026-03-20 19:38 JST">03/20 19:38</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 参考情報">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 参考情報
-            </span>
-            <span class="news-card__trust-note">補助的に見るのが向いている情報</span>
-            <a class="news-card__cta" href="https://huggingface.co/blog/nvidia/domain-specific-embedding-finetune" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1774002182000"
-        data-rank="3"
-        data-tags="ツール,新着"
-        data-source="redditmachinelearning">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 3">#03</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/MachineLearning/comments/1rz5met/d_has_ai_research_lab_become_completely/" target="_blank" rel="noopener">[D] Has "AI research lab" become completely meaningless as a term?</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Genuinely asking because I've been thinking about this a lot lately. Like, OpenAI calls itself a research lab. So does Google DeepMind. So do a bunch of much smaller orgs doing actual frontier research with no products at all. And so do many institutes operating out of universities. Are these all th...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit MachineLearning</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T19:23:02+09:00" title="2026-03-20 19:23 JST">03/20 19:23</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/MachineLearning/comments/1rz5met/d_has_ai_research_lab_become_completely/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1774000367000"
-        data-rank="4"
-        data-tags="ツール,新着"
-        data-source="redditmachinelearning">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 4">#04</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/MachineLearning/comments/1rz4tri/p_neuropt_llmguided_hyperparameter_optimization/" target="_blank" rel="noopener">[P] neuropt: LLM-guided hyperparameter optimization that reads your training curves</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">The problem: You're tuning hyperparameters. Each run takes multiple hours. You have a budget of maybe 15–20 trials before you run out of time or compute. Bayesian optimization picks your next config based entirely on the final validation score, it has no idea your model overfit at epoch 3, or that v...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit MachineLearning</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T18:52:47+09:00" title="2026-03-20 18:52 JST">03/20 18:52</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/MachineLearning/comments/1rz4tri/p_neuropt_llmguided_hyperparameter_optimization/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773996452000"
-        data-rank="5"
-        data-tags="ツール,新着"
-        data-source="redditmachinelearning">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 5">#05</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://www.reddit.com/r/MachineLearning/comments/1rz340w/p_interactive_2d_and_3d_visualization_of_gpt2/" target="_blank" rel="noopener">[P] Interactive 2D and 3D Visualization of GPT-2</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">Hi everyone, I've built an interactive web visualization of GPT-2 (124M). You can check it out at llm-visualized.com  It depicts real attention scores and activations extracted from GPT-2 during a forward pass. It's mean to be an education resource that illustrates Transformer basics and concepts su...</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Reddit MachineLearning</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T17:47:32+09:00" title="2026-03-20 17:47 JST">03/20 17:47</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://www.reddit.com/r/MachineLearning/comments/1rz340w/p_interactive_2d_and_3d_visualization_of_gpt2/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773983686000"
-        data-rank="6"
-        data-tags="ツール,新着"
-        data-source="huggingfaceblog">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 6">#06</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://huggingface.co/blog/ibm-granite/granite-libraries" target="_blank" rel="noopener">What's New in Mellea 0.4.0 + Granite Libraries Release</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">What's New in Mellea 0.4.0 + Granite Libraries Release</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Hugging Face Blog</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T14:14:46+09:00" title="2026-03-20 14:14 JST">03/20 14:14</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 参考情報">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 参考情報
-            </span>
-            <span class="news-card__trust-note">補助的に見るのが向いている情報</span>
-            <a class="news-card__cta" href="https://huggingface.co/blog/ibm-granite/granite-libraries" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="tools"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="80"
-        data-freshness-bucket="24h"
-        data-published-ms="1773983543000"
-        data-rank="7"
-        data-tags="ツール,新着"
-        data-source="machinelearningmastery">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 7">#07</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://machinelearningmastery.com/why-agents-fail-the-role-of-seed-values-and-temperature-in-agentic-loops/" target="_blank" rel="noopener">Why Agents Fail: The Role of Seed Values and Temperature in Agentic Loops</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">In the modern AI landscape, an agent loop is a cyclic, repeatable, and continuous process whereby an entity called an AI agent &amp;mdash; with a certain degree of autonomy &amp;mdash; works toward a goal.</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">ツール</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>Machine Learning Mastery</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-20T14:12:23+09:00" title="2026-03-20 14:12 JST">03/20 14:12</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 英語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 参考情報">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 参考情報
-            </span>
-            <span class="news-card__trust-note">補助的に見るのが向いている情報</span>
-            <a class="news-card__cta" href="https://machinelearningmastery.com/why-agents-fail-the-role-of-seed-values-and-temperature-in-agentic-loops/" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="5.65"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="1"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 1">#01</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/AI_Analist/status/2034909476340605128" target="_blank" rel="noopener">🧠 AI_Analist - ビジネス</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 今日の動向を追うなら押さえたい話題">今日の動向を追うなら押さえたい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">AIを活用した投資分析の効果検証結果が報告されました。日経平均が急落する局面において、AIが選定した10銘柄が市場平均を8.1%上回る超過リターンを達成したことを示し、AIによるデータ分析を用いた投資手法の有効性を明らかにしています。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255592+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/AI_Analist/status/2034909476340605128" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="5.15"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="2"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 2">#02</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/j_zw62/status/2034908968402002183" target="_blank" rel="noopener">🧠 j_zw62 - AI技術</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">AI技術への投資に対し、日本国民を監視するためのシステムとして悪用される可能性を懸念する否定的な見解が述べられています。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255591+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/j_zw62/status/2034908968402002183" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="5.65"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="3"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 3">#03</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/KanikaBK/status/2034637287729115617" target="_blank" rel="noopener">🧠 KanikaBK - AI技術</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 今日の動向を追うなら押さえたい話題">今日の動向を追うなら押さえたい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">ウォーレン・バフェットら12人の伝説的投資家をAIで再現し、各銘柄について議論させた上でAIポートフォリオマネージャーが最終判断を下す、オープンソースのAIヘッジファンドが公開されました。高額な端末や最低預入金額を必要とせず、誰でもアクセス可能な点が特徴で、個人投資家がプロ級の投資分析を無料かつ手軽に活用できる革新的なプロジェクトです。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255590+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/KanikaBK/status/2034637287729115617" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="4.60"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="4"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 4">#04</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/7_eito_7/status/2034902854255935969" target="_blank" rel="noopener">🧠 7_eito_7 - AI技術</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">世界中のニュースや金融、軍事情報をリアルタイムで収集・要約し、地図上で可視化できるオープンソースのAIツールが紹介されています。GitHubで4.1万ものスターを獲得しており、世界情勢を瞬時に把握できる利便性の高さが大きな注目を集めています。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255589+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/7_eito_7/status/2034902854255935969" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="6.70"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="5"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 5">#05</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/gagarot200/status/2034874989762285834" target="_blank" rel="noopener">🧠 gagarot200 - AI技術</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 今日の動向を追うなら押さえたい話題">今日の動向を追うなら押さえたい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">AIモデル「Claude」が進化し、NDAや業務委託契約書、法人設立書類などの専門的な契約書を弁護士レベルの品質で作成可能になった。これにより、高額な費用がかかる顧問弁護士の業務を代替できる可能性が示唆されている。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255588+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/gagarot200/status/2034874989762285834" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="5.00"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="6"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 6">#06</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/Riayn41298/status/2034906236571795639" target="_blank" rel="noopener">🧠 Riayn41298 - AI技術</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">世界的に激化しているAI規制に関する議論の重要性を指摘し、その対応のあり方が今後10年のイノベーションの行方を左右すると主張しています。AIの未来を左右する規制の是非について、広く意見を募る問いかけを行っています。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255587+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/Riayn41298/status/2034906236571795639" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="5.60"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="7"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 7">#07</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/huggingface/status/2034903918824624377" target="_blank" rel="noopener">🧠 huggingface - AI技術</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 今日の動向を追うなら押さえたい話題">今日の動向を追うなら押さえたい話題</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">NVIDIAが発表した新しいAIモデル「Nemotron-3-Nano (4B)」が注目されています。このモデルは、ハイブリッドMambaとAttentionアーキテクチャを採用しており、軽量でありながら高性能な設計が特徴です。多くの人がこの技術革新の重要性を認識し、議論すべきだと主張されています。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255584+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/huggingface/status/2034903918824624377" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-
-      <article class="news-card"
-        role="listitem"
-        data-category="posts"
-        data-importance="medium"
-        data-score="4.60"
-        data-freshness="100"
-        data-freshness-bucket="24h"
-        data-published-ms="1774052498255"
-        data-rank="8"
-        data-tags="sns/論文,新着"
-        data-source="xsnsenhanced">
-        <header class="news-card__header">
-          <span class="news-card__rank" aria-label="順位 8">#08</span>
-          <div class="news-card__headline">
-            <a class="news-card__title" href="https://twitter.com/GMGAI96/status/2034905876994433255" target="_blank" rel="noopener">🧠 GMGAI96 - ビジネス</a>
-            <div class="news-card__meta-top">
-              <span class="news-card__badge news-card__badge--medium" aria-label="重要度 チェック推奨">チェック推奨</span>
-              <span class="news-card__freshness" aria-label="鮮度 24時間以内">24時間以内</span>
-              <span class="news-card__reason" aria-label="注目理由 役立つ更新や注目トピック">役立つ更新や注目トピック</span>
-            </div>
-          </div>
-        </header>
-        <div class="news-card__body">
-          <p class="news-card__summary">5,000万ドルの資本を背景に、AIネイティブなWeb4インテリジェントプラットフォーム「Qilin」を構築するプロジェクト「GMG AI」が正式に立ち上がりました。Qilinは秩序の象徴として、ユーザーの「守護・誘導・成長」を支援する役割を担い、Web4時代の新たな幕開けを目指しています。</p>
-          <div class="news-card__taglist">
-            <span class="news-card__tag">SNS/論文</span>
-            <span class="news-card__tag">新着</span>
-          </div>
-        </div>
-        <footer class="news-card__footer">
-          <dl class="news-card__details">
-            <div>
-              <dt>ソース</dt>
-              <dd>X / SNS (Enhanced)</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd><time datetime="2026-03-21T09:21:38.255583+09:00" title="2026-03-21 09:21 JST">03/21 09:21</time></dd>
-            </div>
-            <div>
-              <dt>所要時間</dt>
-              <dd>1分で読めます</dd>
-            </div>
-            <div>
-              <dt>翻訳</dt>
-              <dd>原文: 日本語</dd>
-            </div>
-          </dl>
-          <div class="news-card__footer-meta">
-            <span class="news-card__trust" aria-label="情報源 コミュニティ">
-              <span class="news-card__trust-bar" style="--trust-level:50%"></span>
-              情報源 コミュニティ
-            </span>
-            <span class="news-card__trust-note">SNS や投稿ベースの情報</span>
-            <a class="news-card__cta" href="https://twitter.com/GMGAI96/status/2034905876994433255" target="_blank" rel="noopener">原文を開く</a>
-          </div>
-        </footer>
-      </article>
-
-      </div>
-
-      <div id="tabContent">
-        <div class="tab-pane active" id="pane-all">
-          <div class="news-grid" id="newsGrid"></div>
-        </div>
-        <div class="tab-pane" id="pane-business">
-          <div class="news-grid" id="businessGrid"></div>
-        </div>
-        <div class="tab-pane" id="pane-tools">
-          <div class="news-grid" id="toolsGrid"></div>
-        </div>
-        <div class="tab-pane" id="pane-posts">
-          <div class="news-grid" id="postsGrid"></div>
-        </div>
-      </div>
-    </main>
-
-    <footer>
-      <div class="footer-text">
-        <a href="https://awano27.github.io/ai-news-site/">AI INTELLIGENCE HUB</a> &middot; Daily News &middot; Powered by GitHub Pages
-      </div>
-    </footer>
+<div class="wrap">
+  <div class="kpi">
+    <div class="kpi-cell"><div class="kpi-n">25</div><div class="kpi-l">Signals</div></div>
+    <div class="kpi-cell"><div class="kpi-n">14</div><div class="kpi-l">High Priority</div></div>
+    <div class="kpi-cell"><div class="kpi-n">5</div><div class="kpi-l">Repos</div></div>
+    <div class="kpi-cell"><div class="kpi-n">6</div><div class="kpi-l">Models</div></div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchInput = document.getElementById('searchInput');
-      const searchTags = document.getElementById('searchTags');
-      const importanceFilter = document.getElementById('importanceFilter');
-      const freshnessFilter = document.getElementById('freshnessFilter');
-      const clearFilters = document.getElementById('clearFilters');
-      const resultsCount = document.getElementById('resultsCount');
-      const legacyData = document.getElementById('legacyData');
-      const tabButtons = document.querySelectorAll('#categoryTabs button');
+  <div class="tags"><span class="tag">AI Model <b>7</b></span><span class="tag">Business <b>3</b></span><span class="tag">Hardware <b>3</b></span><span class="tag">Product <b>1</b></span></div>
 
-      const grids = {
-        all: document.getElementById('newsGrid'),
-        business: document.getElementById('businessGrid'),
-        tools: document.getElementById('toolsGrid'),
-        posts: document.getElementById('postsGrid')
-      };
+  <section class="sec" id="headlines">
+    <div class="sec-h"><em>&#9654;</em> Priority Signals</div>
+    <div class="row">
+  <div class="row-head">
+    <span class="row-n">01</span>
+    <span class="row-title">OpenAI、Astralを買収しPython開発支援ツールをCodexへ統合</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">OpenAIは、Python開発者向け高速ツール開発企業Astralを買収しました。Ruffやuvといったツールを、プログラミング支援AI「Codex」に統合し、開発ワークフローの自動化を目指します。オープンソースツールのサポートも継続することで、AI開発の効率化を図ります。</div>
+    <ul class="d-points"><li>OpenAIがPython開発支援ツールを提供するAstralを買収した。</li><li>RuffとuvといったツールがCodexに統合される。</li><li>開発ワークフローの自動化とオープンソースツールのサポートを通じて、AI開発の効率化を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">OpenAIの買収により、Codexの機能強化と開発効率の向上が期待される。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">GitHub Copilot, Tabnine</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この買収により、OpenAIのAIモデルとPython開発ツールの統合が進み、開発エンジニアはより効率的なコーディングを実現できる可能性が高まります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>CodexはOpenAIの開発プラットフォームを通じて利用可能です。詳細については、OpenAIの公式ウェブサイト ([https://openai.com/](https://openai.com/)) を参照してください。</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/news/articles/2603/20/news024.html" target="_blank">itmedia.co.jp/news/articles/2603/20/news024.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">02</span>
+    <span class="row-title">Uber、日米でロボタクシー展開　日産やAmazon子会社と連携</span>
+    <span class="row-cat c-biz">Business</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Uberが米国のZooxと提携しロボタクシー導入を米国で開始。日本でも日産とWayveと連携し、東京での試験運行を計画している。この動きは、自動運転技術の商業化に向けたUberの戦略の一環と見られる。</div>
+    <ul class="d-points"><li>UberがZooxと提携し、米国でロボタクシーの試験導入を開始。</li><li>日本でも日産とWayveと連携し、東京での試験運行を計画。</li><li>この展開は、Uberが自動運転技術の商用化に向けた取り組みを進めていることを示唆。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">Zooxの車両は、最大時速60kmまで走行可能。 / WayveのAIシステムは、リアルタイムの環境認識と意思決定を行う。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Wayve, Zoox, 各大自動車メーカーの自動運転技術開発チーム</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">このロボタクシー展開は、日本における自動運転技術開発競争を激化させ、日産やWayveといった日本のエンジニアたちに新たな技術開発のチャンスをもたらす。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>UberのZoox提携に関する最新情報や、日産とWayveのロボタクシー開発状況を継続的に追跡すること。</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/19/news044.html" target="_blank">itmedia.co.jp/enterprise/articles/2603/19/news044.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">03</span>
+    <span class="row-title">AppleやBoseなど主要ヘッドホンから有害物質が大量に検出　EU調査で各社が問われる</span>
+    <span class="row-cat c-hw">Hardware</span>
+    <span class="row-src">GIGAZINE</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">EUの支援を受けた調査で、Apple、Samsung、Boseなどの大手メーカーを含む全てのヘッドホン・イヤホンから、有害な化学物質が検出されたことが判明した。高級モデルから安価な輸入品まで、分析対象となるヘッドホン全てに有害物質が含まれていた。一部販売業者は販売中止を発表しており、市場全体に影響が及ぶ可能性がある。</div>
+    <ul class="d-points"><li>EUの資金援助を受けた調査で、高級モデル・安価な輸入品を問わず全てのヘッドホンから有害化学物質が検出された。</li><li>Apple、Samsung、Boseといった主要ブランドも調査対象となり、一部販売業者が販売を中止している。</li><li>この問題はヘッドホン市場全体に影響を及ぼす可能性があり、製品の安全性確保が改めて重要視される。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">調査対象：ヨーロッパ中央5カ国におけるヘッドホン全製品（高級モデル、安価な輸入品を含む） / 検出された有害物質：詳細な化学物質名は本文に記載なし</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Xiaomi, Sony, JBL</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この問題は、ヘッドホン業界における安全基準の厳格化を促し、日本国内のヘッドホンメーカーや販売業者に製品の安全性評価の見直しと品質管理の強化を求めてくる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>メーカーは、出荷されるヘッドホンについて、有害物質の有無を徹底的に調査・分析し、必要に応じて安全対策を講じる必要がある。また、販売業者の方は、EUの規制要件を遵守した上で、消費者への情報開示を徹底すべき。</code></span></div></div>
+    <div class="d-url"><a href="https://gigazine.net/news/20260319-headphones-chemicals" target="_blank">gigazine.net/news/20260319-headphones-chemicals</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">04</span>
+    <span class="row-title">中国AI企業がGemini 3.1 Proを超えるAIモデル「MiniMax M2.7」を発表</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">GIGAZINE</span>
+    <span class="row-score s-s">90</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">中国のMiniMaxが、自己進化機能を搭載したAIモデル「MiniMax M2.7」を発表しました。ベンチマークテストでGemini 3.1 Proを上回る性能を示し、同社初のAIモデルとして注目されています。特に、エージェントチームへのネイティブ対応が特徴です。</div>
+    <ul class="d-points"><li>MiniMax M2.7は、自己進化によって性能を向上させるAIモデル。</li><li>ベンチマークテストにおいてGemini 3.1 Proを超えるスコアを獲得。</li><li>エージェントチームへのネイティブ対応機能を搭載している。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">ベンチマークテストでGemini 3.1 Proを超えるスコア（具体的なスコアは示されていない） / 自己進化機能による性能向上</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Google Gemini 3.1 Pro</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この発表は、AI開発における自己進化の重要性を強調し、競争激化を加速させる可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現在、詳細な情報やAPI提供は公開されていません。MiniMax社の公式ウェブサイト (GIGAZINEの記事参照) を今後の情報収集に注視する必要があります。</code></span></div></div>
+    <div class="d-url"><a href="https://gigazine.net/news/20260319-minimax-m2-7" target="_blank">gigazine.net/news/20260319-minimax-m2-7</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">05</span>
+    <span class="row-title">OpenAIによるAstral買収を発表：次世代Python開発者ツールを加速</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">OpenAI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">OpenAIは、AIコード生成モデルCodexの成長を加速させるため、スタートアップAstralを買収しました。Astralの技術を統合することで、Python開発者のツール開発が加速され、AIを活用した開発体験の向上を目指します。この買収により、OpenAIは同分野での競争力を強化します。</div>
+    <ul class="d-points"><li>OpenAIがAstralを買収することでCodexの成長を加速する。</li><li>Astralの技術は、次世代のPython開発者ツール開発に利用される。</li><li>AIを活用した開発体験の向上を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">GitHub Copilot, Tabnine</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この買収により、Python開発者はより高度なAIサポートを利用できるようになり、開発効率の向上や新しい開発手法の習得が期待されます。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>OpenAIが今後、Astralの技術に基づくAPIやツールを公開する可能性があります。OpenAIの公式発表にご注目ください。</code></span></div></div>
+    <div class="d-url"><a href="https://openai.com/index/openai-to-acquire-astral" target="_blank">openai.com/index/openai-to-acquire-astral</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">06</span>
+    <span class="row-title">SPEED-Bench: 大規模言語モデルの推論速度評価ベンチマークの導入</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">Hugging Face</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Hugging Faceが発表したSPEED-Benchは、大規模言語モデル（LLM）の推論速度を統一的に評価するための新しいベンチマークです。多様なLLMモデル（Llama2, Mistral, Gemmaなど）と評価指標（速度、消費電力、レイテンシ）を組み合わせることで、より公平な比較が可能になります。これにより、開発者はモデルのパフォーマンスをより正確に把握し、効率的なモデル選択や最適化に役立てることができます。</div>
+    <ul class="d-points"><li>SPEED-Benchは、LLMの速度、消費電力、レイテンシを統合的に評価するベンチマークです。</li><li>Llama2, Mistral, Gemmaなどの主要なLLMモデルがSPEED-Benchで評価されています。</li><li>ベンチマークの結果は、モデルのパフォーマンスを比較し、効率的なモデル選択に役立てるのに貢献します。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">速度: 範囲はモデルとハードウェア構成によって異なりますが、ベンチマーク結果は公開されています（Hugging Face Hub）、特にLlama2の推論速度は他のベンチマークと比較して高速であることが示唆されています。 / 消費電力: モデルに依存しますが、ベンチマークを通じて、モデルごとの消費電力も評価可能です。 / レイテンシ: 応答時間もベンチマークによって測定され、モデルのリアルタイム性評価に役立ちます。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">MLMe, Open LLM Leaderboard</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業やエンジニアは、SPEED-Benchを導入することで、LLMモデルのパフォーマンスをより客観的に評価し、効率的な開発・運用戦略を構築できる可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>SPEED-Benchの詳細はHugging Face Hubで公開されています: [https://huggingface.co/spaces/HuggingFaceH4/speed-bench](https://huggingface.co/spaces/HuggingFaceH4/speed-bench).  モデルの評価に利用する場合は、速度を比較検討し、自身の環境に合わせたモデルを選択してください。</code></span></div></div>
+    <div class="d-url"><a href="https://huggingface.co/blog/nvidia/speed-bench" target="_blank">huggingface.co/blog/nvidia/speed-bench</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">07</span>
+    <span class="row-title">ジェフ・ベゾス、旧製造業企業をAIで変革し1000億ドル投資を計画</span>
+    <span class="row-cat c-biz">Business</span>
+    <span class="row-src">TechCrunch AI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">ジェフ・ベゾス氏が、AI技術を活用して老朽化した製造業企業を買収し、大規模な変革を試みるプロジェクトを立ち上げた。具体的な投資額は1000億ドルとされており、AIによる製造業の刷新を目指すもの。この動きは、AIと製造業の融合における新たな可能性を示唆している。</div>
+    <ul class="d-points"><li>ジェフ・ベゾス氏がAI技術を活用した製造業企業買収プロジェクトを計画。</li><li>投資額は1000億ドルという巨額である。</li><li>AI技術による製造業の変革を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この動きは、AI技術を製造業に適用する取り組みを加速させ、日本の製造業におけるAI導入の戦略や投資判断に影響を与える可能性がある。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では、具体的なアクションアイテム（pip install名、URL、API等）は提供されていません。しかし、大規模なAI導入による製造業変革のトレンドを注視し、関連技術やベンダーへの調査を行うことが推奨されます。</code></span></div></div>
+    <div class="d-url"><a href="https://techcrunch.com/2026/03/19/jeff-bezos-reportedly-wants-100-billion-to-buy-and-transform-old-manufacturing-firms-with-ai" target="_blank">techcrunch.com/2026/03/19/jeff-bezos-reportedly-wants-100-billion-to-b</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">08</span>
+    <span class="row-title">2027年までにAIボットのトラフィックが人間のトラフィックを上回る - クラウドフレアCEO</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">TechCrunch AI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">クラウドフレアCEOマッTHUR・プリンス氏は、生成AIエージェントの増加により、2027年までにオンラインでのAIボットのトラフィックが人間のトラフィックを上回ると予測。これはウェブトラフィックとインフラストラクチャの要求を大幅に増加させる可能性がある。この予測は、AIの急速な普及とそれがもたらす影響について重要な示唆を与える。</div>
+    <ul class="d-points"><li>2027年までにAIボットのオンライントラフィックが人間のトラフィックを上回ると予測。</li><li>生成AIエージェントの増加がウェブトラフィックとインフラストラクチャの要求を増加させる要因。</li><li>この予測はAIの急速な普及とそれがもたらす影響に関する重要な示唆を与える。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">予測年: 2027年 / 変動量: AIボットが人間のトラフィックを上回る</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業やエンジニアは、AIボットの増加に伴うウェブサイトの信頼性、セキュリティ、インフラストラクチャへの影響を注視し、対策を講じる必要が生じる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では具体的なアクションアイテム（pip install名、URLなど）は提供されていません。しかし、ウェブサイトのセキュリティ対策、AIボットの検出・防御技術、そして生成AIのインフラストラクチャ需要の増加に備えるための調査と検討が重要です。</code></span></div></div>
+    <div class="d-url"><a href="https://techcrunch.com/2026/03/19/online-bot-traffic-will-exceed-human-traffic-by-2027-cloudflare-ceo-says" target="_blank">techcrunch.com/2026/03/19/online-bot-traffic-will-exceed-human-traffic</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">09</span>
+    <span class="row-title">AdobeのAI画像生成ツールが、独自の作品でトレーニング可能に</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">The Verge AI</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Adobeは、特定の芸術スタイルやキャラクターデザインを模倣できるカスタマイズ可能なAI画像生成ツールを導入。Firefly Custom Modelsは本日、パブリックベータ版で公開され、クリエイターやブランドは自身の資産でモデルをトレーニングすることで、キャラクターやイラスト、写真の生成において一貫した美的感覚を確保できる。これにより、よりブランドに合わせたAI生成画像の作成が可能になる。</div>
+    <ul class="d-points"><li>Adobe Firefly Custom Modelsは、ユーザーの独自の資産（アートワーク、デザインなど）を用いてAIモデルをトレーニングできる。</li><li>トレーニングされたモデルを使用することで、生成される画像が特定の芸術スタイルやキャラクターデザインに沿った結果になるように制御できる。</li><li>この機能は、キャラクターデザイン、イラストレーション、写真などの分野に特に役立つ。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">パブリックベータ版として開始 / カスタムモデルのトレーニングが可能 / より一貫性のある美的感覚の生成を目的とした機能</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Midjourney, Stable Diffusion</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業やエンジニアは、AdobeのAI画像生成ツールを活用することで、より高品質でブランディングに合致したAI生成画像を作成でき、創造的な業務効率化に貢献できる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>Adobe Firefly Custom Modelsのパブリックベータ版にアクセスして、自身の資産でAIモデルをトレーニングすることが可能。Adobeの公式発表([https://www.adobe.com/jp/sensei/firefly.html](https://www.adobe.com/jp/sensei/firefly.html))”を参照。</code></span></div></div>
+    <div class="d-url"><a href="https://theverge.com/tech/897243/adobe-firefly-ai-custom-models-image-public-beta" target="_blank">theverge.com/tech/897243/adobe-firefly-ai-custom-models-image-public-b</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">10</span>
+    <span class="row-title">楽天、AIモデル「Rakuten AI 3.0」を無償提供、日本語能力強化</span>
+    <span class="row-cat c-model">AI Model</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">楽天が、日本語性能に優れたAIモデル「Rakuten AI 3.0」を無償で公開した。7000億パラメータのMoEアーキテクチャを採用し、国内AI開発の加速と技術支援を目的としている。これにより、日本語AI開発コミュニティへの貢献を目指す。</div>
+    <ul class="d-points"><li>楽天が日本語特化型AIモデル「Rakuten AI 3.0」を無償提供。</li><li>モデルは7000億パラメータのMoEアーキテクチャを採用し、日本語性能で高い評価を得ている。</li><li>無償提供を通じて、国内AI開発の加速と技術支援を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">モデル: 7000億パラメータ (MoEアーキテクチャ) / 日本語性能: 評価済み (高い評価)</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Google Gemini, Microsoft Copilot, Anthropic Claude</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この発表により、国内のAI開発者はRakuten AI 3.0を活用し、日本語AIモデルの開発速度と品質を向上させることが期待できる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>Rakuten AI 3.0は公開されているため、公式ドキュメントやGitHubリポジトリを通じてアクセス可能になります。（詳細はITmedia AI+の記事を参照: [https://itmedia.co.jp/news/article/24061316/](https://itmedia.co.jp/news/article/24061316/)）</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/20/news011.html" target="_blank">itmedia.co.jp/enterprise/articles/2603/20/news011.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">11</span>
+    <span class="row-title">Google、AIデザインツール「Stitch」β版公開　手書きスケッチをコード化</span>
+    <span class="row-cat c-product">Product</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">Googleが、AIを活用したUIデザイン生成ツール「Stitch」（β）をLabsで公開。Gemini 3とGalileo AIの技術を統合し、自然言語や手書きスケッチからプロトタイプを自動生成。Figmaへの書き出しや、Reactコードの出力にも対応しています。</div>
+    <ul class="d-points"><li>「バイブデザイン」というコンセプトで、直感的なUI構築を支援。</li><li>Gemini 3とGalileo AIの技術を統合し、自然言語やスケッチからプロトタイプを自動生成。</li><li>Figmaへの書き出しやReactコードの出力に対応し、開発効率の向上を目指す。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">Gemini 3の統合により、自然言語やスケッチからのプロトタイプ生成を可能にする。 / Figmaへの書き出し、およびReactコードの出力に対応することで、既存ワークフローとの連携を促進。</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Figma、Adobe XD、Sketch, UI Design Automation Software (例: Uizard)</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本のUI/UXデザイナーや開発者は、Stitchを活用することでプロトタイピングの効率を大幅に改善し、開発サイクルを短縮できる可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>Stitchのベータ版はGoogle Labsで利用可能です: [https://labs.google.com/stitching/](https://labs.google.com/stitching/)</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/aiplus/articles/2603/19/news084.html" target="_blank">itmedia.co.jp/aiplus/articles/2603/19/news084.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">12</span>
+    <span class="row-title">2028年にインシデント対応の5割がAI関連に – ガートナーが予測</span>
+    <span class="row-cat c-biz">Business</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">ガートナーの予測によると、AIの普及により2028年にはインシデント対応の5割がAI関連となる見込みです。これは、規制対応の遅れ、データ負債、ID管理の複雑化といったリスクの増大を示唆しています。より高度なセキュリティ対策の必要性が高まることが予測されています。</div>
+    <ul class="d-points"><li>2028年にインシデント対応の半数がAI関連となる。</li><li>リスク要因として、規制対応の遅れ、データ負債、ID管理の複雑化が挙げられる。</li><li>AIの普及によるセキュリティリスク管理の激変が予測されている。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">インシデント対応の5割 / 2028年</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">従来のサイバーセキュリティ対策</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">日本企業は、AIの活用に伴うセキュリティリスクの高度化に対応するため、セキュリティ戦略の見直しとAIセキュリティ専門人材の育成が急務となる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>セキュリティ対策ベンダーのAIセキュリティソリューションの導入検討を開始し、AI関連リスクへの対応策策定を検討する。</code></span></div></div>
+    <div class="d-url"><a href="https://itmedia.co.jp/enterprise/articles/2603/19/news051.html" target="_blank">itmedia.co.jp/enterprise/articles/2603/19/news051.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">13</span>
+    <span class="row-title">NVIDIA、宇宙向けAIモジュール「Vera Rubin Space-1」を発表</span>
+    <span class="row-cat c-hw">Hardware</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">NVIDIAはGTC 2026で、AIインフラ基盤「Vera Rubinプラットフォーム」を基にした宇宙空間向けAIモジュール「NVIDIA Space-1 Vera Rubin Module」を発表しました。このモジュールは、サイズ、重量、電力（SWaP）に制約のある極端な環境でのAI処理を可能にし、軌道データセンターへの展開を視野に入れています。NVIDIAは、宇宙空間でのAI活用を加速させることを目指しています。</div>
+    <ul class="d-points"><li>NVIDIAが「Vera Rubinプラットフォーム」をベースに、宇宙空間向けのAIモジュール「NVIDIA Space-1 Vera Rubin Module」を開発・発表した。</li><li>このモジュールは、サイズ、重量、電力（SWaP）に制約のある環境向けに設計されており、軌道データセンターへの展開が想定されている。</li><li>NVIDIAは、宇宙空間でのAI活用を加速させることを目的としている。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">SWaP: サイズ、重量、電力（SWaP）に制約のある環境への対応 (具体的な数値は明記されていない)</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Amazon Web Services (AWS), Microsoft Azure, Google Cloud</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この発表は、AIインフラの宇宙展開の新たな可能性を示唆し、日本のAI関連企業やエンジニアの宇宙分野への参入を促進する可能性があります。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では、NVIDIA Space-1 Vera Rubin Moduleに関する具体的なpip install名、URL、API等に関する情報は公開されていません。しかし、NVIDIAのGTC 2026での発表内容や、Vera Rubinプラットフォームに関する情報を参考に、今後の開発動向を注視する必要があります。</code></span></div></div>
+    <div class="d-url"><a href="https://monoist.itmedia.co.jp/mn/articles/2603/19/news063.html" target="_blank">monoist.itmedia.co.jp/mn/articles/2603/19/news063.html</a></div>
+  </div>
+</div>
+<div class="row">
+  <div class="row-head">
+    <span class="row-n">14</span>
+    <span class="row-title">手のひらサイズAIスパコン『DGX Spark』、4台連結可能に進化</span>
+    <span class="row-cat c-hw">Hardware</span>
+    <span class="row-src">ITmedia AI+</span>
+    <span class="row-score s-s">85</span>
+    <span class="row-arr">&#9660;</span>
+  </div>
+  <div class="row-detail">
+    <div class="d-summary">NVIDIAは、超小型AIスーパーコンピュータ『DGX Spark』の次期ソフトウェアアップデートを発表。従来の2台連結に加え、最大4台の連結が可能になり、スケーラビリティが向上する。OpenClawなどの高速なタスクもスムーズに実行できるとアナウンスされている。</div>
+    <ul class="d-points"><li>『DGX Spark』のスケールアウト構成が2台連結から4台連結に拡張可能に。</li><li>OpenClawのような高速なアプリケーションの実行も可能になる。</li><li>今回のアップデートにより、『DGX Spark』のパフォーマンスと柔軟性が向上する。</li></ul>
+    <div class="d-ev"><div class="d-ev-r"><span class="d-ev-k">DATA</span><span class="d-ev-v">スケールアウト構成：2台 -&gt; 4台</span></div><div class="d-ev-r"><span class="d-ev-k">VS</span><span class="d-ev-v">Intel Xeon, AMD EPYC (ワークステーション向けAIコンピューティング)</span></div><div class="d-ev-r"><span class="d-ev-k">IMPACT</span><span class="d-ev-v">この進化により、NVIDIAのAIスパコン『DGX Spark』は、より複雑なAIモデルの開発や大規模なデータ処理を、小型かつ効率的に実現可能となり、特にAI研究開発・データセンターのエンジニアにとって新たな選択肢となる。</span></div><div class="d-ev-r"><span class="d-ev-k">ACTION</span><span class="d-ev-v"><code>現時点では、具体的なpip install名やURL、API等の情報はない。GTC 2026での発表内容に注目すること。</code></span></div></div>
+    <div class="d-url"><a href="https://monoist.itmedia.co.jp/mn/articles/2603/19/news046.html" target="_blank">monoist.itmedia.co.jp/mn/articles/2603/19/news046.html</a></div>
+  </div>
+</div>
+  </section>
 
-      const panes = {
-        all: document.getElementById('pane-all'),
-        business: document.getElementById('pane-business'),
-        tools: document.getElementById('pane-tools'),
-        posts: document.getElementById('pane-posts')
-      };
+  
+  <section class="sec" id="github">
+    <div class="sec-h"><em>&#9679;</em> GitHub Trending</div>
+    <div class="gh">
+  <span class="gh-n">01</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://gigazine.net/news/20260320-google-ai-stitch-ui-design" target="_blank">GoogleのUIデザインツール「Stitch」がAIと連携して大幅アップデート、Figma株価下落</a></div>
+    <div class="gh-desc">GoogleがUIデザインツール「Stitch」にAIによる自然言語指示での高品質UI生成機能を搭載した大幅なアップデートを実施。これにより、ユーザーはAIと対話形式でUIを簡単に作成できるようになりました。この発表を受けて、競合するFigma社の株価が下落しました。</div>
+    <span class="gh-cmd">StitchはGoogleのウェブサイトから利用可能です (https://stitch.withgoogle.com/)。ウェブブラウザ上でAIと対話しながらUIを作成できます。</span>
+  </div>
+  <span class="gh-stars">Figma社の株価に関する具体的な数値データは記事に記載されていません。 / AIによるUI生成の精度、速度などの定量的な情報は未提示</span>
+</div>
+<div class="gh">
+  <span class="gh-n">02</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/tensorflow/tensorflow" target="_blank">tensorflow/tensorflow</a></div>
+    <div class="gh-desc">An Open Source Machine Learning Framework for Everyone</div>
+    <span class="gh-cmd">git clone https://github.com/tensorflow/tensorflow</span>
+  </div>
+  <span class="gh-stars">⭐ 194,251 stars / 🔀 75,259 forks</span>
+</div>
+<div class="gh">
+  <span class="gh-n">03</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/ollama/ollama" target="_blank">ollama/ollama</a></div>
+    <div class="gh-desc">Get up and running with Kimi-K2.5, GLM-5, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models.</div>
+    <span class="gh-cmd">git clone https://github.com/ollama/ollama</span>
+  </div>
+  <span class="gh-stars">⭐ 165,626 stars / 🔀 15,065 forks</span>
+</div>
+<div class="gh">
+  <span class="gh-n">04</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/huggingface/transformers" target="_blank">huggingface/transformers</a></div>
+    <div class="gh-desc">🤗 Transformers: the model-definition framework for state-of-the-art machine learning models in text, vision, audio, and multimodal models, for both inference and training.</div>
+    <span class="gh-cmd">git clone https://github.com/huggingface/transformers</span>
+  </div>
+  <span class="gh-stars">⭐ 158,118 stars / 🔀 32,552 forks</span>
+</div>
+<div class="gh">
+  <span class="gh-n">05</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/f/prompts.chat" target="_blank">f/prompts.chat</a></div>
+    <div class="gh-desc">f.k.a. Awesome ChatGPT Prompts. Share, discover, and collect prompts from the community. Free and open source — self-host for your organization with complete privacy.</div>
+    <span class="gh-cmd">git clone https://github.com/f/prompts.chat</span>
+  </div>
+  <span class="gh-stars">⭐ 153,372 stars / 🔀 20,186 forks</span>
+</div>
+  </section>
+  <section class="sec" id="models">
+    <div class="sec-h"><em>&#9670;</em> Trending Models</div>
+    <div class="mdl">
+  <span class="gh-n">01</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://github.com/langflow-ai/langflow" target="_blank">langflow-ai/langflow</a></div>
+    <div class="gh-desc">⭐ 145,918 stars / 🔀 8,615 forks</div>
+    <span class="gh-cmd">git clone https://github.com/langflow-ai/langflow</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">02</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/Qwen/Qwen3.5-9B" target="_blank">Qwen/Qwen3.5-9B</a></div>
+    <div class="gh-desc">📥 2,589,317 downloads / ❤️ 942 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('Qwen/Qwen3.5-9B')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">03</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/zai-org/GLM-OCR" target="_blank">zai-org/GLM-OCR</a></div>
+    <div class="gh-desc">📥 2,929,215 downloads / ❤️ 1,381 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('zai-org/GLM-OCR')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">04</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive" target="_blank">HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive</a></div>
+    <div class="gh-desc">📥 174,004 downloads / ❤️ 639 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('HauhauCS/Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">05</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled" target="_blank">Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled</a></div>
+    <div class="gh-desc">📥 104,592 downloads / ❤️ 928 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled')</span>
+  </div>
+</div>
+<div class="mdl">
+  <span class="gh-n">06</span>
+  <div class="gh-info">
+    <div class="gh-name"><a href="https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive" target="_blank">HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive</a></div>
+    <div class="gh-desc">📥 305,565 downloads / ❤️ 558 likes</div>
+    <span class="gh-cmd">from transformers import AutoModel; model = AutoModel.from_pretrained('HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive')</span>
+  </div>
+</div>
+  </section>
 
-      const sourceCards = Array.from(legacyData.querySelectorAll('.news-card'));
+  <div class="ft">
+    AI SIGINT &mdash; Automated Intelligence Report<br>
+    Sources: RSS / Hacker News / GitHub / HuggingFace &mdash; Local LLM: Ollama gemma3:4b<br>
+    Generated: 2026-03-20 16:47 JST<br>
+    <a href="/ai-news-site/">Return to HQ &rarr;</a>
+  </div>
+</div>
 
-      function createCol(card) {
-        const col = document.createElement('div');
-        col.appendChild(card);
-        return col;
-      }
-
-      function populateGrids() {
-        Object.values(grids).forEach(g => { g.innerHTML = ''; });
-        sourceCards.forEach(card => {
-          const cat = card.dataset.category || 'all';
-          grids.all.appendChild(createCol(card.cloneNode(true)));
-          if (grids[cat]) grids[cat].appendChild(createCol(card.cloneNode(true)));
-        });
-      }
-
-      populateGrids();
-
-      // Tabs
-      let activeCategory = 'all';
-      tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          tabButtons.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
-          btn.classList.add('active');
-          btn.setAttribute('aria-selected', 'true');
-          activeCategory = btn.dataset.category;
-          Object.entries(panes).forEach(([key, pane]) => {
-            pane.classList.toggle('active', key === activeCategory);
-          });
-          applyFilters();
-        });
-      });
-
-      // Search keywords
-      let keywords = [];
-
-      function renderSearchTags() {
-        searchTags.innerHTML = keywords.map(kw =>
-          `<button type="button" data-keyword="${kw}">${kw} &times;</button>`
-        ).join('');
-        searchTags.querySelectorAll('[data-keyword]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            keywords = keywords.filter(k => k !== btn.dataset.keyword);
-            renderSearchTags();
-            applyFilters();
-          });
-        });
-      }
-
-      searchInput.addEventListener('keydown', e => {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        const v = searchInput.value.trim();
-        if (!v || keywords.includes(v)) return;
-        keywords.push(v);
-        searchInput.value = '';
-        renderSearchTags();
-        applyFilters();
-      });
-
-      function matchesFreshness(bucket, filter) {
-        if (filter === 'all') return true;
-        if (filter === '24h') return bucket === '24h';
-        if (filter === '3d') return ['24h', '72h'].includes(bucket);
-        if (filter === '7d') return ['24h', '72h', '168h'].includes(bucket);
-        return true;
-      }
-
-      function applyFilters() {
-        const imp = importanceFilter.value;
-        const fresh = freshnessFilter.value;
-        let count = 0;
-
-        Object.values(grids).forEach(grid => {
-          grid.querySelectorAll('.news-card').forEach(card => {
-            let vis = true;
-            if (imp !== 'all' && card.dataset.importance !== imp) vis = false;
-            if (vis && !matchesFreshness(card.dataset.freshnessBucket, fresh)) vis = false;
-            if (vis && keywords.length > 0) {
-              const txt = card.textContent.toLowerCase();
-              vis = keywords.every(kw => txt.includes(kw.toLowerCase()));
-            }
-            const col = card.parentElement;
-            if (col) col.style.display = vis ? '' : 'none';
-          });
-        });
-
-        const activeGrid = grids[activeCategory] || grids.all;
-        activeGrid.querySelectorAll('.news-card').forEach(card => {
-          const col = card.parentElement;
-          if (col && col.style.display !== 'none') count++;
-        });
-
-        resultsCount.textContent = `${count}件を表示中`;
-      }
-
-      importanceFilter.addEventListener('change', applyFilters);
-      freshnessFilter.addEventListener('change', applyFilters);
-      clearFilters.addEventListener('click', () => {
-        searchInput.value = '';
-        keywords = [];
-        importanceFilter.value = 'all';
-        freshnessFilter.value = 'all';
-        renderSearchTags();
-        applyFilters();
-      });
-
-      renderSearchTags();
-      applyFilters();
-    });
-  </script>
+<script>
+document.querySelectorAll('.row-head').forEach(h => {
+  h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+});
+document.querySelectorAll('.bar-nav a[href^="#"]').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelectorAll('.bar-nav a').forEach(n => n.classList.remove('on'));
+    a.classList.add('on');
+  });
+});
+</script>
 </body>
 </html>
