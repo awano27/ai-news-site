@@ -608,6 +608,11 @@
     <h1>Plugins & Skills</h1>
     <p class="subtitle">プラグインの構造理解からスキル作成、Hooks実践、エージェント定義、公式プラグインの活用まで。Claude Codeの拡張機能を体系的に解説します。</p>
 
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>SkillsはAgent Skills（agentskills.io）オープンスタンダードに準拠しています。他のAIコーディングツールとの互換性があります。</p>
+    </div>
+
     <!-- ===== Section 1: プラグイン構造 ===== -->
     <h2 id="plugin-structure">プラグイン構造</h2>
 
@@ -678,6 +683,97 @@ description: Use when the user asks to review code, check for bugs, or improve c
       <p>descriptionは「Use when...」で始め、具体的なトリガーワードを列挙するのがベストプラクティスです。例: 「Use when the user mentions 'review', 'check code', 'PR feedback', or asks to improve code quality.」</p>
     </div>
 
+    <h3>フロントマター全フィールド一覧</h3>
+    <p>SKILL.mdのフロントマターで指定可能な全フィールドです。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>フィールド</th>
+            <th>必須</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code></td>
+            <td>いいえ</td>
+            <td>表示名（デフォルトはフォルダ名）</td>
+          </tr>
+          <tr>
+            <td><code>description</code></td>
+            <td>推奨</td>
+            <td>スキルの説明と使用タイミング。自動検出に使用</td>
+          </tr>
+          <tr>
+            <td><code>argument-hint</code></td>
+            <td>いいえ</td>
+            <td>オートコンプリートヒント（例: <code>[issue-number]</code>）</td>
+          </tr>
+          <tr>
+            <td><code>disable-model-invocation</code></td>
+            <td>いいえ</td>
+            <td><code>true</code> = ユーザーのみ起動可能</td>
+          </tr>
+          <tr>
+            <td><code>user-invocable</code></td>
+            <td>いいえ</td>
+            <td><code>false</code> = /メニューに非表示</td>
+          </tr>
+          <tr>
+            <td><code>allowed-tools</code></td>
+            <td>いいえ</td>
+            <td>許可するツールを制限</td>
+          </tr>
+          <tr>
+            <td><code>model</code></td>
+            <td>いいえ</td>
+            <td>使用モデル指定</td>
+          </tr>
+          <tr>
+            <td><code>effort</code></td>
+            <td>いいえ</td>
+            <td>負荷レベル: <code>low</code>, <code>medium</code>, <code>high</code>, <code>max</code></td>
+          </tr>
+          <tr>
+            <td><code>context</code></td>
+            <td>いいえ</td>
+            <td><code>"fork"</code> でサブエージェント実行</td>
+          </tr>
+          <tr>
+            <td><code>agent</code></td>
+            <td>いいえ</td>
+            <td><code>context:fork</code> 時のサブエージェント種類</td>
+          </tr>
+          <tr>
+            <td><code>hooks</code></td>
+            <td>いいえ</td>
+            <td>スキルのライフサイクルフック</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>動的コンテキスト注入</h3>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>SKILL.md内で <code>!`コマンド`</code> 構文を使うと、スキル読み込み時にシェルコマンドの結果を動的に注入できます。</p>
+    </div>
+
+    <div class="code-label">skills/pr-summary/SKILL.md</div>
+    <div class="code-block"><code>---
+name: pr-summary
+description: PRの変更をサマリー
+context: fork
+agent: Explore
+---
+
+## PRコンテキスト
+- PR diff: !`gh pr diff`
+- PRコメント: !`gh pr view --comments`</code></div>
+
     <!-- ===== Section 3: Skill Creator活用 ===== -->
     <h2 id="skill-creator">Skill Creator活用</h2>
 
@@ -743,8 +839,13 @@ description: コードレビューを実行
 
     <p>Hooksは <code>settings.json</code> で定義する自動実行スクリプトです。特定のイベント（ツール使用前後、ファイル書き込み後など）をトリガーに、チェックや変換を実行します。</p>
 
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Hooksは4種類のハンドラーに対応: <code>command</code>（シェルコマンド）、<code>http</code>（HTTPリクエスト）、<code>prompt</code>（LLM判断）、<code>agent</code>（サブエージェント）</p>
+    </div>
+
     <h3>破壊操作ブロック (PreToolUse)</h3>
-    <p><code>rm -rf</code> や <code>git push --force</code> などの危険なコマンドを事前にブロックします。</p>
+    <p><code>rm -rf</code> や <code>git push --force</code> などの危険なコマンドを事前にブロックします。公式フォーマットではmatcher内にhooks配列をネストします。</p>
 
     <div class="code-label">settings.json</div>
     <div class="code-block"><code>{
@@ -752,7 +853,12 @@ description: コードレビューを実行
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "command": "bash -c 'echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"rm -rf|git push --force|DROP TABLE\" && echo \"BLOCKED: Dangerous command detected\" && exit 1 || exit 0'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/check-dangerous-command.sh"
+          }
+        ]
       }
     ]
   }
@@ -766,7 +872,13 @@ description: コードレビューを実行
   "hooks": {
     "PostWrite": [
       {
-        "command": "bash -c 'grep -rn \"sk-ant-\\|ANTHROPIC_API_KEY=sk-\\|password=\" \"$CLAUDE_FILE_PATH\" && echo \"WARNING: Possible secret detected\" && exit 1 || exit 0'"
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'grep -rn \"sk-ant-\\|ANTHROPIC_API_KEY=sk-\\|password=\" \"$CLAUDE_FILE_PATH\" && echo \"WARNING: Possible secret detected\" && exit 1 || exit 0'"
+          }
+        ]
       }
     ]
   }
@@ -781,7 +893,12 @@ description: コードレビューを実行
     "PostWrite": [
       {
         "matcher": "*.ts|*.tsx|*.js|*.jsx",
-        "command": "npx eslint --fix \"$CLAUDE_FILE_PATH\""
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx eslint --fix \"$CLAUDE_FILE_PATH\""
+          }
+        ]
       }
     ]
   }
@@ -795,7 +912,13 @@ description: コードレビューを実行
   "hooks": {
     "PostToolUse": [
       {
-        "command": "bash -c 'if [ $(echo \"$CLAUDE_TOTAL_TOKENS\" | cut -d. -f1) -gt 100000 ]; then echo \"WARNING: High token usage. Consider /compact\"; fi'"
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if [ $(echo \"$CLAUDE_TOTAL_TOKENS\" | cut -d. -f1) -gt 100000 ]; then echo \"WARNING: High token usage. Consider /compact\"; fi'"
+          }
+        ]
       }
     ]
   }
@@ -836,6 +959,53 @@ isolation: worktree
       <li><strong>model</strong> &mdash; 使用するモデルを指定します（<code>sonnet</code>, <code>opus</code>, <code>haiku</code>）。タスクの複雑さに応じて選択します。</li>
       <li><strong>isolation: worktree</strong> &mdash; Git worktreeで隔離実行します。並列作業時にメインのワーキングツリーと競合しないため安全です。</li>
     </ul>
+
+    <h3>追加可能なフロントマターフィールド</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>フィールド</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>permissionMode</code></td>
+            <td><code>default</code>, <code>acceptEdits</code>, <code>dontAsk</code>, <code>bypassPermissions</code>, <code>plan</code></td>
+          </tr>
+          <tr>
+            <td><code>maxTurns</code></td>
+            <td>最大ターン数</td>
+          </tr>
+          <tr>
+            <td><code>skills</code></td>
+            <td>プリロードするスキル</td>
+          </tr>
+          <tr>
+            <td><code>mcpServers</code></td>
+            <td>使用するMCPサーバー</td>
+          </tr>
+          <tr>
+            <td><code>memory</code></td>
+            <td>永続メモリ: <code>user</code>, <code>project</code>, <code>local</code></td>
+          </tr>
+          <tr>
+            <td><code>background</code></td>
+            <td><code>true</code> = バックグラウンド実行</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>エージェントの作成</h3>
+    <p><code>/agents</code> コマンドで対話的にエージェントを作成できます。</p>
+
+    <div class="code-label">Terminal</div>
+    <div class="code-block"><code>/agents</code></div>
+
+    <p>表示されるメニューから「Create new agent」を選択し、Personal（個人用）またはProject（プロジェクト共有用）を選んだ後、Claudeに自動生成させることも可能です。</p>
 
     <!-- ===== Section 7: 公式プラグイン ===== -->
     <h2 id="official-plugins">公式プラグイン</h2>
