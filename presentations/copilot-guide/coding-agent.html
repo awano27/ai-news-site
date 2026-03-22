@@ -860,6 +860,47 @@ description: コード変更に合わせてドキュメントを自動更新す�
       <p>Coding AgentはドラフトPRのみを作成します。自動マージは行われません。必ず人間のレビューを経てからマージしてください。また、セキュリティに関わる変更（認証、暗号化、アクセス制御）は人間主導で実装することを強く推奨します。</p>
     </div>
 
+    <!-- ===== Section: ブランチ保護 ===== -->
+    <h2 id="branch-protection">ブランチ保護とフェイルセーフ設計</h2>
+
+    <p>Coding Agentは <code>copilot/</code> プレフィックスのブランチにしかプッシュできません。しかし、<strong>PRのマージは自動化してはいけません</strong>。以下のブランチ保護ルールを必ず設定してください。</p>
+
+    <p><strong>必須ブランチ保護ルール（GitHub.com &rarr; Settings &rarr; Branches &rarr; Branch protection rules）:</strong></p>
+
+    <div class="code-label">Branch name pattern: main</div>
+    <div class="code-block"><code>&#x2705; Require a pull request before merging
+  &#x2705; Required approving reviews: 1（最低1名の人間レビュー必須）
+  &#x2705; Dismiss stale pull request approvals when new commits are pushed
+&#x2705; Require status checks to pass before merging
+  &#x2705; CI/CDテスト（GitHub Actions）
+  &#x2705; CodeQL分析
+&#x2705; Require conversation resolution before merging
+&#x274C; Allow auto-merge: OFF（自動マージ禁止）</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Coding Agentが作成するPRは常にドラフトPRです。しかし、ブランチ保護ルールがなければ、他のワークフローやBotがマージする可能性があります。Required reviewersの設定は保険として必ず行ってください。</p>
+    </div>
+
+    <p><strong>運用フロー:</strong></p>
+
+    <div class="code-block"><code>Issue作成 &rarr; @copilotアサイン
+  &darr;
+Coding Agentがcopilot/*ブランチで作業
+  &darr;
+セルフレビュー + CodeQL + Secret Scanning（自動）
+  &darr;
+ドラフトPR作成
+  &darr;
+&#x2605; 人間がレビュー（Required reviewers）&#x2605;
+  &darr;
+承認 &rarr; マージ &rarr; デプロイ</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>このフローにより「AI生成コードが人間のレビューなしに本番に入る」事故を100%防止できます。</p>
+    </div>
+
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
       <a href="agent-mode.html">

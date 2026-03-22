@@ -739,6 +739,50 @@ gh copilot mcp list</code></div>
       <p>MCPサーバーはCopilotに外部リソースへのアクセス権を与えます。信頼できるサーバーのみを接続し、トークンやクレデンシャルの管理に注意してください。</p>
     </div>
 
+    <h3>MCP接続の最小権限の原則</h3>
+
+    <p>MCPサーバーをCopilotに接続する際は、<strong>必要最小限の権限のみ</strong>を付与してください。</p>
+
+    <p><strong>実践ルール:</strong></p>
+    <ol class="steps-list">
+      <li><strong>読み取り専用から始める</strong> &mdash; 最初は読み取り権限のみ付与し、書き込みが必要になったら追加</li>
+      <li><strong>環境変数でトークンを管理</strong> &mdash; ハードコードしない。<code>.env</code> + <code>.copilotignore</code> で保護</li>
+      <li><strong>スコープを限定</strong> &mdash; GitHubトークンは <code>repo:read</code> のみ、DB接続は <code>SELECT</code> のみ等</li>
+      <li><strong>本番環境のMCP接続は原則禁止</strong> &mdash; 開発/ステージング環境のみ接続</li>
+    </ol>
+
+    <p><strong>mcp.json設定例（最小権限）:</strong></p>
+
+    <div class="code-label">mcp.json</div>
+    <div class="code-block"><code>{
+  "servers": {
+    "github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm",
+        "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN_READONLY}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["playwright", "mcp"],
+      "env": {}
+    }
+  }
+}</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>MCPサーバーに過剰な権限を与えると、エージェントが意図せずデータを削除・変更するリスクがあります。特にDB接続は読み取り専用から始め、書き込みが必要な場合は明示的にレビュープロセスを設けてください。</p>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; Tip</div>
+      <p>mcp.jsonファイルはリポジトリにコミットし、チームで共有できます。ただし、トークンは環境変数（<code>${VAR}</code>構文）で参照し、値をハードコードしないでください。</p>
+    </div>
+
     <!-- ===== Section 4: Copilot Extensions ===== -->
     <h2 id="extensions">Copilot Extensions</h2>
 

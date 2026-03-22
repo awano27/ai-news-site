@@ -986,6 +986,61 @@ credentials.json</code></div>
       <p><code>.copilotignore</code> は <code>.gitignore</code> と同じ構文です。機密情報を含むファイルやディレクトリを指定して、Copilotのコンテキストから除外します。</p>
     </div>
 
+    <h3>サーバーサイド Content Exclusion との違い</h3>
+
+    <p>GitHub Copilotにはファイル除外の仕組みが<strong>2種類</strong>あります:</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>.copilotignore（クライアント側）</th>
+            <th>Content Exclusion（サーバー側）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>設定場所</strong></td>
+            <td>リポジトリルートのファイル</td>
+            <td>GitHub.com &rarr; Organization Settings &rarr; Copilot &rarr; Content exclusion</td>
+          </tr>
+          <tr>
+            <td><strong>制御者</strong></td>
+            <td>開発者（個人/チーム）</td>
+            <td>管理者（Organization Admin）</td>
+          </tr>
+          <tr>
+            <td><strong>スコープ</strong></td>
+            <td>そのリポジトリ内</td>
+            <td>Organization全体、リポジトリ横断</td>
+          </tr>
+          <tr>
+            <td><strong>対象</strong></td>
+            <td>IDE上のCopilot提案・コンテキスト</td>
+            <td>すべてのCopilot機能（補完・Chat・Agent）</td>
+          </tr>
+          <tr>
+            <td><strong>用途</strong></td>
+            <td>.env、secrets等の個別除外</td>
+            <td>機密リポジトリ全体、法務関連コード等の組織的除外</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Content Exclusionの設定手順:</strong></p>
+    <ol class="steps-list">
+      <li><strong>GitHub.com &rarr; Organization Settings &rarr; Copilot &rarr; Content exclusion</strong> にアクセス</li>
+      <li><strong>「Add exclusion」をクリック</strong></li>
+      <li><strong>リポジトリ名とパスパターンを指定</strong>（例: <code>**/sensitive/**</code>, <code>legal-repo/**</code>）</li>
+    </ol>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Content Exclusionは管理者レベルの設定です。<code>.copilotignore</code>だけでは、Coding AgentやWeb版Copilotからのアクセスを完全には防げません。機密性の高いコードにはContent Exclusionの設定が必須です。</p>
+    </div>
+
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
       <a href="cli.html">
