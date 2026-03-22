@@ -144,7 +144,8 @@ def generate_html(data: Dict) -> str:
     report_date = data["date"] or date.today().isoformat()
     headlines = data["headlines"]
     funding = data["funding"]
-    github = data["github"]
+    # Filter GitHub section to only include github.com URLs
+    github = [g for g in data["github"] if "github.com" in g.get("url", "")]
     models = data["models"]
 
     total = len(headlines) + len(funding) + len(github) + len(models)
