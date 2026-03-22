@@ -980,7 +980,7 @@
       <!-- 3-Card Main Navigation -->
       <section class="section reveal" id="main-cards" style="padding-top:0">
         <div class="three-cards">
-          <a class="main-card" href="https://awano27.github.io/ai-news-site/presentations/day_slides/day_slide_2026_03_21.html">
+          <a class="main-card" id="card-slide" href="https://awano27.github.io/ai-news-site/presentations/day_slides_index.html">
             <div class="main-card-header">
               <span class="main-card-icon">📊</span>
               <span class="main-card-label">スライド</span>
@@ -996,7 +996,7 @@
             <h3 class="main-card-title">今日の1枚</h3>
             <p class="main-card-desc">1トピックをビジュアルで深掘り</p>
             <div class="main-card-footer">
-              <span class="main-card-date">2026-03-19</span>
+              <span class="main-card-date" id="date-slide">--</span>
               <span class="main-card-cta">開く →</span>
             </div>
           </a>
@@ -1016,7 +1016,7 @@
             <h3 class="main-card-title">今日の全体像</h3>
             <p class="main-card-desc">複数ソースから自動収集した分析</p>
             <div class="main-card-footer">
-              <span class="main-card-date">2026-03-21</span>
+              <span class="main-card-date" id="date-report">--</span>
               <span class="main-card-cta">開く →</span>
             </div>
           </a>
@@ -1036,7 +1036,7 @@
             <h3 class="main-card-title">今日の全記事</h3>
             <p class="main-card-desc">X/RSS/SNSの生データ一覧</p>
             <div class="main-card-footer">
-              <span class="main-card-date">2026-03-21</span>
+              <span class="main-card-date" id="date-news">--</span>
               <span class="main-card-cta">開く →</span>
             </div>
           </a>
@@ -1088,12 +1088,79 @@
         <span>AI INTELLIGENCE HUB</span> &middot; 毎日更新のスライド・アーカイブ・実務ガイド
       </div>
       <div class="footer-right">
-        Updated 2026-03-21 &middot; Powered by GitHub Pages
+        Updated <span id="footer-date">--</span> &middot; Powered by GitHub Pages
       </div>
     </footer>
   </div>
 
   <script>
+    // Auto-update dates and slide link
+    (function() {
+      var BASE = 'https://awano27.github.io/ai-news-site';
+      var today = new Date();
+      var todayStr = today.getFullYear() + '-' +
+        String(today.getMonth()+1).padStart(2,'0') + '-' +
+        String(today.getDate()).padStart(2,'0');
+
+      // Update footer
+      var footerDate = document.getElementById('footer-date');
+      if (footerDate) footerDate.textContent = todayStr;
+
+      // Find latest slide by checking recent dates
+      function trySlide(dateObj) {
+        var y = dateObj.getFullYear();
+        var m = String(dateObj.getMonth()+1).padStart(2,'0');
+        var d = String(dateObj.getDate()).padStart(2,'0');
+        return {
+          date: y + '-' + m + '-' + d,
+          file: 'day_slide_' + y + '_' + m + '_' + d + '.html',
+          url: BASE + '/presentations/day_slides/day_slide_' + y + '_' + m + '_' + d + '.html'
+        };
+      }
+
+      // Check today, then yesterday, then day before
+      var candidates = [];
+      for (var i = 0; i < 5; i++) {
+        var d = new Date(today);
+        d.setDate(d.getDate() - i);
+        candidates.push(trySlide(d));
+      }
+
+      function checkSlide(idx) {
+        if (idx >= candidates.length) return;
+        var c = candidates[idx];
+        fetch(c.url, { method: 'HEAD' }).then(function(r) {
+          if (r.ok) {
+            var cardSlide = document.getElementById('card-slide');
+            var dateSlide = document.getElementById('date-slide');
+            if (cardSlide) cardSlide.href = c.url;
+            if (dateSlide) dateSlide.textContent = c.date;
+          } else {
+            checkSlide(idx + 1);
+          }
+        }).catch(function() { checkSlide(idx + 1); });
+      }
+      checkSlide(0);
+
+      // Fetch daily-news title to get its date
+      fetch(BASE + '/daily-news/').then(function(r) { return r.text(); }).then(function(html) {
+        var m = html.match(/Daily AI News\s*[—–-]\s*(\d{4}-\d{2}-\d{2})/);
+        if (m) {
+          var dateNews = document.getElementById('date-news');
+          if (dateNews) dateNews.textContent = m[1];
+        }
+      }).catch(function() {});
+
+      // Fetch report title to get its date
+      fetch(BASE + '/presentations/auto_daily_report.html').then(function(r) { return r.text(); }).then(function(html) {
+        var m = html.match(/(\d{4}-\d{2}-\d{2})/);
+        if (m) {
+          var dateReport = document.getElementById('date-report');
+          if (dateReport) dateReport.textContent = m[1];
+        }
+      }).catch(function() {});
+    })();
+
     // Scroll reveal with IntersectionObserver
     const reveals = document.querySelectorAll('.reveal');
     if (reveals.length && 'IntersectionObserver' in window) {
