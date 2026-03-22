@@ -886,6 +886,110 @@ null チェックが不足している問題を修正して。
       <p>ツールの使い分けに正解はありません。チームの技術スタックや開発スタイルに合わせて、最も効率的な組み合わせを見つけましょう。重要なのは「全てを1つのツールで行おうとしない」ことです。</p>
     </div>
 
+    <!-- ===== Section: Claude Code風環境の構築 ===== -->
+    <h2 id="claude-like">Claude Code風の最強環境を構築する</h2>
+
+    <p>Claude Codeの強み（深い推論、大規模リファクタリング、自律ターミナル操作）をCopilotエコシステム内で再現する方法を、4つのステップで解説します。</p>
+
+    <h3>Step 1: Copilot CLIをClaude Code化</h3>
+
+    <div class="code-label">Copilot CLIのセットアップ</div>
+    <div class="code-block"><code># Copilot CLIインストール
+npm install -g @github/copilot
+copilot login
+
+# セッション内でClaudeモデルに切り替え
+/model claude-opus-4-6</code></div>
+
+    <p>Planモード（<code>Shift+Tab</code>）で計画→承認→実行のフローは、Claude Codeの「Explore→Plan→Implement」と同じ思考プロセスです。</p>
+
+    <h3>Step 2: AGENTS.mdでClaude風の深い指示を設定</h3>
+
+    <div class="code-label">AGENTS.md</div>
+    <div class="code-block"><code>### Core Principles
+- MUST: 必ずPlanモードで計画を立ててから実装する
+- MUST: テストを書いてから実装する（TDD）
+- NEVER: 確認なしで本番環境に影響する操作をしない
+
+### Self-Improvement
+ミスが発生したら、このファイルのLessons Learnedセクションに追記する</code></div>
+
+    <h3>Step 3: MCPで外部ツール接続</h3>
+
+    <div class="code-label">MCP接続の例</div>
+    <div class="code-block"><code># Playwright（ブラウザ操作）
+npx playwright mcp
+
+# GitHub MCP（Issue/PR操作）
+# VS Code設定で有効化</code></div>
+
+    <h3>Step 4: カスタムエージェントで専門化</h3>
+
+    <div class="code-label">.github/agents/code-reviewer.md</div>
+    <div class="code-block"><code>---
+description: コードレビュー専門エージェント
+---
+変更されたファイルを読み、以下の観点でレビュー:
+- バグの可能性
+- セキュリティ問題
+- パフォーマンス問題</code></div>
+
+    <h3>なぜCopilot + Claudeモデルが「上位互換」になるか</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>機能</th>
+            <th>Claude Code単体</th>
+            <th>Copilot + Claudeモデル</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Claudeの推論力</td>
+            <td>&#x2705;</td>
+            <td>&#x2705;（同じモデル）</td>
+          </tr>
+          <tr>
+            <td>IDE統合</td>
+            <td>&#x274C;（ターミナルのみ）</td>
+            <td>&#x2705;（VS Code完全統合）</td>
+          </tr>
+          <tr>
+            <td>インライン補完</td>
+            <td>&#x274C;</td>
+            <td>&#x2705;</td>
+          </tr>
+          <tr>
+            <td>マルチモデル切替</td>
+            <td>&#x274C;</td>
+            <td>&#x2705;（GPT/Geminiも選択可）</td>
+          </tr>
+          <tr>
+            <td>GitHub連携</td>
+            <td>外部ツール</td>
+            <td>ネイティブ統合</td>
+          </tr>
+          <tr>
+            <td>Spaces</td>
+            <td>&#x274C;</td>
+            <td>&#x2705;</td>
+          </tr>
+          <tr>
+            <td>Coding Agent</td>
+            <td>&#x274C;</td>
+            <td>&#x2705;（Issue→PR自動化）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>既存Claude Codeユーザーへ: <code>CLAUDE.md</code> の内容を <code>AGENTS.md</code> にコピーするだけで移行完了。構造はほぼ同一です（比較は「<a class="inline-link" href="custom-instructions.html#migration">カスタム指示 &gt; Claude Codeからの移行ガイド</a>」を参照）。</p>
+    </div>
+
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
       <a href="spaces-and-mcp.html">
