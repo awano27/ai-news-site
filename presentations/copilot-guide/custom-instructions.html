@@ -781,6 +781,19 @@ applyTo: "**/*.test.{ts,tsx}"
       <p><code>AGENTS.md</code> はCoding Agentが自律的にタスクを実行する際に特に重要です。ビルドコマンドやテストコマンドを記載しておくと、エージェントが自分でテストを実行し、エラーを修正できるようになります。</p>
     </div>
 
+    <h3>永続記憶基盤としてのAGENTS.md</h3>
+    <p>AGENTS.mdはCoding Agentへの指示だけでなく、チーム全体のエージェントルールや過去の教訓を蓄積する「永続記憶」としても機能します。</p>
+
+    <div class="code-label">Lessons Learned セクションの例</div>
+    <div class="code-block"><code>### Lessons Learned (過去の教訓)
+* 2026/03/01: PrismaクエリのN+1問題が頻発 → 関連データ取得時は常に `include` を明示指定
+* 2026/03/15: MSALログインフローでは `page.goto()` 後に `waitForURL()` で待機必須</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>Claude CodeのSelf-Improvement Loop（lessons.md → CLAUDE.mdへの昇格）と同じパターンです。エージェントがミスしたらAGENTS.mdにルールを追加し、同じミスを防ぎましょう。</p>
+    </div>
+
     <!-- ===== Section 5: エージェント除外 ===== -->
     <h2 id="exclude-agent">エージェント除外</h2>
 
@@ -886,6 +899,25 @@ excludeAgent: "coding-agent"
     <div class="callout callout-tip">
       <div class="callout-title">&#x2705; Tip</div>
       <p><a class="inline-link" href="https://github.com/PatrickJS/awesome-cursorrules" target="_blank" rel="noopener">awesome-cursorrules</a> や <a class="inline-link" href="https://github.com/bjesus/awesome-copilot" target="_blank" rel="noopener">awesome-copilot</a> リポジトリには、様々なプロジェクトタイプ向けのカスタム指示テンプレートが公開されています。自分のプロジェクトに合ったテンプレートを参考にしましょう。</p>
+    </div>
+
+    <!-- ===== Section: .copilotignore ===== -->
+    <h2 id="copilotignore">.copilotignore</h2>
+
+    <p>プロジェクトルートに <code>.copilotignore</code> を作成し、AIに読み込ませてはいけないファイルを指定します。</p>
+
+    <div class="code-label">.copilotignore</div>
+    <div class="code-block"><code># .copilotignore
+.env
+.env.*
+secrets/
+node_modules/
+*.pem
+credentials.json</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p><code>.copilotignore</code> は <code>.gitignore</code> と同じ構文です。機密情報を含むファイルやディレクトリを指定して、Copilotのコンテキストから除外します。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->

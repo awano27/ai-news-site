@@ -687,6 +687,36 @@
       <p>Premiumリクエストは高性能モデル（Claude Opus 4.6、GPT-5.3等）の利用に消費されます。GPT-4.1 miniなどの軽量モデルは通常リクエストとしてカウントされ、Premiumを消費しません。</p>
     </div>
 
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>上限を超過した場合は1リクエストあたり$0.04の従量課金となります。高負荷なAgentを多用する場合はOrganization設定での予算制御（上限管理）が必須です。</p>
+    </div>
+
+    <!-- ===== Section: セキュリティ・ガバナンス ===== -->
+    <h2 id="security">セキュリティ・ガバナンス</h2>
+
+    <h3>データ保持ポリシー</h3>
+    <p>IDE（VS Code等）経由のプロンプト・提案データは保持されません（0日）。ただし、Copilot CLI、Coding Agent、Spacesなど「IDE以外の用途」では28日間保持されます。</p>
+
+    <h3>【管理者向け】必須セキュリティ設定</h3>
+    <p>GitHub.comの組織ポリシー設定（Settings &gt; Copilot &gt; Policies）で以下を設定してください。</p>
+
+    <ol class="steps-list">
+      <li>
+        <strong>公開コード一致（Suggestions matching public code）</strong><br>
+        ライセンス侵害リスク防止のため <code>Block</code> に設定します。
+      </li>
+      <li>
+        <strong>データ収集（Product improvements）</strong><br>
+        機密情報保護のため <code>OFF</code>（無効化）に設定します。
+      </li>
+    </ol>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Enterpriseプランを使用していても、これらの設定を明示的に行わない限りデフォルトのままです。導入時に必ず確認してください。</p>
+    </div>
+
     <!-- ===== Section 3: VS Codeセットアップ ===== -->
     <h2 id="vscode">VS Codeセットアップ</h2>
 
@@ -709,12 +739,19 @@
 
     <div class="code-label">settings.json</div>
     <div class="code-block"><code>{
+  "github.copilot.nextEditSuggestions.enabled": true,
   "chat.agent.enabled": true,
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "github.copilot.chat.agent.autoApprove": "allow-listed",
   "github.copilot.enable": {
     "*": true
   }
 }</code></div>
+
+    <ul>
+      <li><strong>Next Edit Suggestions (NES)</strong> &mdash; 複数行にまたがる波及修正を自動提案。コード変更時に関連箇所の修正も提案されます。</li>
+      <li><strong>useInstructionFiles</strong> &mdash; <code>.github/copilot-instructions.md</code> や <code>.github/instructions/</code> のカスタム指示ファイルを自動読み込みします。</li>
+    </ul>
 
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
