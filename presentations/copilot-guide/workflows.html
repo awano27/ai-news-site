@@ -994,6 +994,108 @@ prompt: |
       <p>既存Claude Codeユーザーへ: <code>CLAUDE.md</code> の内容を <code>AGENTS.md</code> にコピーするだけで移行完了。構造はほぼ同一です（比較は「<a class="inline-link" href="custom-instructions.html#migration">カスタム指示 &gt; Claude Codeからの移行ガイド</a>」を参照）。</p>
     </div>
 
+    <!-- ===== Section: Spec-Kit 仕様駆動開発 ===== -->
+    <h2 id="spec-kit">Spec-Kitで仕様駆動開発</h2>
+
+    <p>GitHub公式のSpec-Kitツールキットで、「なんとなくプロンプト（vibe coding）」から「仕様駆動開発（Spec-Driven Development）」に完全移行できます。</p>
+
+    <h3>導入手順</h3>
+
+    <div class="code-label">Spec-Kit初期化</div>
+    <div class="code-block"><code># Spec-Kit初期化
+specify init</code></div>
+
+    <h3>ワークフロー</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>自然言語で要件を入力</strong><br>
+        作りたいものを自然言語で記述します。技術的な詳細は不要です。
+      </li>
+      <li>
+        <strong>AIが対話的に <code>.specify</code>（詳細仕様書）を作成</strong><br>
+        AIが質問を通じて要件を明確化し、構造化された仕様書を生成します。
+      </li>
+      <li>
+        <strong><code>/speckit.plan</code> でアーキテクチャ決定</strong><br>
+        仕様書をもとに、技術スタックやアーキテクチャの計画を策定します。
+      </li>
+      <li>
+        <strong><code>/speckit.tasks</code> でタスク分解</strong><br>
+        計画を実装可能な粒度のタスクに自動分解します。
+      </li>
+      <li>
+        <strong>各タスクを自動実装</strong><br>
+        分解されたタスクをエージェントが順次実装します。
+      </li>
+    </ol>
+
+    <h3>なぜSpec-Kitが強力か</h3>
+
+    <ul>
+      <li><strong>仕様書がSingle Source of Truth（唯一の真実）になる</strong> &mdash; チーム全員が同じ仕様を参照し、認識齟齬を防止</li>
+      <li><strong>「何を作るか」が明確なため、AIの出力精度が劇的向上</strong> &mdash; 曖昧なプロンプトによる手戻りを排除</li>
+      <li><strong>テスト仕様も同時生成されるため品質保証が容易</strong> &mdash; 仕様と実装とテストが一貫</li>
+      <li><strong>チームメンバー全員が同じ仕様を参照</strong> &mdash; オンボーディングやレビューの効率が大幅改善</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>vibe coding（なんとなくプロンプト）からの脱却。Spec-Kitを使えば、仕様→計画→タスク→実装の一貫したフローで、手戻りと認識齟齬を大幅に削減できます。</p>
+    </div>
+
+    <!-- ===== Section: 指示ファイル比較表 ===== -->
+    <h3>指示ファイルの使い分け早見表</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ファイル種別</th>
+            <th>配置場所</th>
+            <th>主な適用機能</th>
+            <th>強み</th>
+            <th>推奨用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>copilot-instructions.md</code></td>
+            <td><code>.github/</code></td>
+            <td>Chat / Code Review / Agent</td>
+            <td>リポジトリ全体の恒久ルール</td>
+            <td>コーディング規約・ビルド手順</td>
+          </tr>
+          <tr>
+            <td><code>AGENTS.md</code></td>
+            <td>任意（近接優先）</td>
+            <td>Coding Agent / Agent Mode</td>
+            <td>エージェント専門家化・教訓記憶</td>
+            <td>Lessons Learned / Boundaries</td>
+          </tr>
+          <tr>
+            <td><code>SKILL.md</code> (Skills)</td>
+            <td><code>.github/skills/xxx/</code></td>
+            <td>Agent Mode / CLI</td>
+            <td>オンデマンド専門スキル</td>
+            <td>デバッグ手順・E2Eテスト</td>
+          </tr>
+          <tr>
+            <td><code>*.instructions.md</code></td>
+            <td><code>.github/instructions/</code></td>
+            <td>Chat / Coding Agent / Review</td>
+            <td>パス固有の細分化ルール</td>
+            <td>特定フォルダ・ファイル種別</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>公式推奨: AGENTS.md + Skillsの併用でCI失敗率70%減、PRレビュー時間半減の報告あり。まずはAGENTS.md作成から始め、頻出パターンをSkillsに切り出していくのが最適な導入順序です。</p>
+    </div>
+
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
       <a href="spaces-and-mcp.html">
