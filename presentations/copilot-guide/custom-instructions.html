@@ -833,6 +833,11 @@ applyTo: "**/*.test.{ts,tsx}"
       <p><code>AGENTS.md</code> はCoding Agentが自律的にタスクを実行する際に特に重要です。ビルドコマンドやテストコマンドを記載しておくと、エージェントが自分でテストを実行し、エラーを修正できるようになります。</p>
     </div>
 
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>VS CodeでのAGENTS.md読み込みは実験的機能です。有効化するには <code>chat.useAgentsMdFile: true</code> を設定してください。Coding AgentではデフォルトでAGENTS.mdを読み込みます。</p>
+    </div>
+
     <h3>永続記憶基盤としてのAGENTS.md</h3>
     <p>AGENTS.mdはCoding Agentへの指示だけでなく、チーム全体のエージェントルールや過去の教訓を蓄積する「永続記憶」としても機能します。</p>
 
@@ -1047,8 +1052,8 @@ excludeAgent: "coding-agent"
           </tr>
           <tr>
             <td><code>.claudeignore</code></td>
-            <td><code>.copilotignore</code></td>
-            <td>同一構文</td>
+            <td>Content Exclusion（リポジトリ/Organization設定UI）</td>
+            <td>ファイルではなく設定UIで管理</td>
           </tr>
           <tr>
             <td><code>lessons.md</code></td>
@@ -1070,7 +1075,7 @@ excludeAgent: "coding-agent"
       <li><code>CLAUDE.md</code> の内容を <code>AGENTS.md</code> にコピー</li>
       <li><code>MUST/NEVER</code> ルールはそのまま使える（Copilotも強い言葉を認識）</li>
       <li><code>.claude/rules/</code> のファイルを <code>.github/instructions/</code> に移動（frontmatterの <code>applyTo</code> を追加）</li>
-      <li><code>.claudeignore</code> を <code>.copilotignore</code> にコピー（構文同一）</li>
+      <li><code>.claudeignore</code> の除外パターンをContent Exclusion設定（Settings &rarr; Copilot &rarr; Content exclusion）に登録</li>
       <li><code>lessons.md</code> の内容を <code>AGENTS.md</code> のLessons Learnedセクションに統合</li>
     </ol>
 
@@ -1079,78 +1084,40 @@ excludeAgent: "coding-agent"
       <p>移行作業は30分程度で完了します。両方を併用することも可能です（Claude Code＝ターミナル大規模作業、Copilot＝IDE日常作業）。</p>
     </div>
 
-    <!-- ===== Section: .copilotignore ===== -->
-    <h2 id="copilotignore">.copilotignore</h2>
+    <!-- ===== Section: コンテンツ除外 ===== -->
+    <h2 id="content-exclusion">コンテンツ除外（Content Exclusion）</h2>
 
-    <p>プロジェクトルートに <code>.copilotignore</code> を作成し、AIに読み込ませてはいけないファイルを指定します。</p>
+    <p>Copilotに読み込ませたくないファイルやディレクトリは、<strong>リポジトリ設定またはOrganization設定</strong>で除外します。</p>
 
-    <div class="code-label">.copilotignore</div>
-    <div class="code-block"><code># .copilotignore
-.env
-.env.*
-secrets/
-node_modules/
-*.pem
-credentials.json</code></div>
+    <h3>設定手順（リポジトリレベル）</h3>
+    <ol class="steps-list">
+      <li><strong>GitHub.com &rarr; リポジトリ Settings &rarr; Copilot &rarr; Content exclusion</strong> にアクセス</li>
+      <li><strong>「Add exclusion」をクリック</strong></li>
+      <li><strong>パスパターンを指定</strong>（例: <code>.env</code>, <code>secrets/**</code>, <code>*.pem</code>）</li>
+    </ol>
 
-    <div class="callout callout-note">
-      <div class="callout-title">&#x1F4DD; Note</div>
-      <p><code>.copilotignore</code> は <code>.gitignore</code> と同じ構文です。機密情報を含むファイルやディレクトリを指定して、Copilotのコンテキストから除外します。</p>
-    </div>
-
-    <h3>サーバーサイド Content Exclusion との違い</h3>
-
-    <p>GitHub Copilotにはファイル除外の仕組みが<strong>2種類</strong>あります:</p>
-
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>.copilotignore（クライアント側）</th>
-            <th>Content Exclusion（サーバー側）</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>設定場所</strong></td>
-            <td>リポジトリルートのファイル</td>
-            <td>GitHub.com &rarr; Organization Settings &rarr; Copilot &rarr; Content exclusion</td>
-          </tr>
-          <tr>
-            <td><strong>制御者</strong></td>
-            <td>開発者（個人/チーム）</td>
-            <td>管理者（Organization Admin）</td>
-          </tr>
-          <tr>
-            <td><strong>スコープ</strong></td>
-            <td>そのリポジトリ内</td>
-            <td>Organization全体、リポジトリ横断</td>
-          </tr>
-          <tr>
-            <td><strong>対象</strong></td>
-            <td>IDE上のCopilot提案・コンテキスト</td>
-            <td>すべてのCopilot機能（補完・Chat・Agent）</td>
-          </tr>
-          <tr>
-            <td><strong>用途</strong></td>
-            <td>.env、secrets等の個別除外</td>
-            <td>機密リポジトリ全体、法務関連コード等の組織的除外</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p><strong>Content Exclusionの設定手順:</strong></p>
+    <h3>設定手順（Organization レベル）</h3>
     <ol class="steps-list">
       <li><strong>GitHub.com &rarr; Organization Settings &rarr; Copilot &rarr; Content exclusion</strong> にアクセス</li>
-      <li><strong>「Add exclusion」をクリック</strong></li>
-      <li><strong>リポジトリ名とパスパターンを指定</strong>（例: <code>**/sensitive/**</code>, <code>legal-repo/**</code>）</li>
+      <li><strong>リポジトリ名とパスパターンを指定</strong></li>
     </ol>
 
     <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Content Exclusionは管理者レベルの設定です。<code>.copilotignore</code>だけでは、Coding AgentやWeb版Copilotからのアクセスを完全には防げません。機密性の高いコードにはContent Exclusionの設定が必須です。</p>
+      <div class="callout-title">&#x26A0;&#xFE0F; 重要</div>
+      <p>Content Exclusionは<strong>Agent Mode、Copilot CLI、Coding Agentでは現在サポートされていません</strong>。これらの機能で機密コードの除外を保証するには、リポジトリ構成で機密ファイルを分離し、人間による最終確認を徹底してください。</p>
+    </div>
+
+    <h3>推奨される機密ファイル保護策</h3>
+    <ul>
+      <li>機密情報は別リポジトリに分離</li>
+      <li><code>.env</code> は <code>.gitignore</code> で管理（リポジトリに含めない）</li>
+      <li>認証情報はGitHub Secretsやvaultで管理</li>
+      <li>Coding Agentが触れるリポジトリに機密ファイルを置かない</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>かつてコミュニティで <code>.copilotignore</code> ファイルの要望がありましたが、現時点では実装されていません。Content Exclusionは設定UIまたはREST APIで管理します。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->
