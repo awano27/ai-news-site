@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GitHub Copilotの全12章完全ガイド。インライン補完からCoding Agent、Agent HQ、資料分析ワークフローまで。初心者から上級者まで対応。">
+  <title>GitHub Copilot 完全ガイド | AIエージェント構築ガイド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-orange: #f97316;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-purple: #bc8cff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 17, 23, 0.82);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .topbar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 56px;
+    }
+
+    .topbar-brand {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .topbar-nav a {
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .topbar-nav a:hover {
+      color: var(--accent-orange);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      padding: 80px 0 64px;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(88, 166, 255, 0.10), transparent),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(249, 115, 22, 0.06), transparent),
+        radial-gradient(ellipse 50% 40% at 80% 60%, rgba(188, 140, 255, 0.06), transparent);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 720px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 14px;
+      border: 1px solid var(--accent-blue);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-blue);
+      letter-spacing: 0.04em;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--text-heading);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+
+    .hero-description {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin-bottom: 20px;
+      max-width: 640px;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(88, 166, 255, 0.08);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      color: var(--accent-blue);
+    }
+
+    .hero-badge--green {
+      background: rgba(63, 185, 80, 0.08);
+      border-color: rgba(63, 185, 80, 0.2);
+      color: var(--accent-green);
+    }
+
+    .hero-badge--purple {
+      background: rgba(188, 140, 255, 0.08);
+      border-color: rgba(188, 140, 255, 0.2);
+      color: var(--accent-purple);
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      font-weight: 700;
+      font-size: 15px;
+      border-radius: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      box-shadow: 0 4px 16px rgba(88, 166, 255, 0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hero-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(88, 166, 255, 0.35);
+    }
+
+    /* ===== SECTION COMMON ===== */
+    .section {
+      padding: 64px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+    }
+
+    /* ===== LEARNING PATH CARDS ===== */
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .path-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .path-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .path-card--beginner {
+      border-left: 3px solid var(--accent-green);
+    }
+    .path-card--beginner:hover { border-color: var(--accent-green); }
+
+    .path-card--intermediate {
+      border-left: 3px solid var(--accent-blue);
+    }
+    .path-card--intermediate:hover { border-color: var(--accent-blue); }
+
+    .path-card--advanced {
+      border-left: 3px solid var(--accent-purple);
+    }
+    .path-card--advanced:hover { border-color: var(--accent-purple); }
+
+    .path-card-route {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .path-card--beginner .path-card-route { color: var(--accent-green); }
+    .path-card--intermediate .path-card-route { color: var(--accent-blue); }
+    .path-card--advanced .path-card-route { color: var(--accent-purple); }
+
+    .path-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 12px;
+    }
+
+    .path-card-flow {
+      font-size: 13px;
+      color: var(--accent-orange);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .path-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ===== ROADMAP GRID ===== */
+    .roadmap-section .section-label {
+      color: var(--accent-orange);
+    }
+
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .roadmap-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      text-decoration: none;
+    }
+
+    .roadmap-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-orange);
+    }
+
+    .roadmap-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .roadmap-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+    }
+
+    .roadmap-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+      line-height: 1.3;
+    }
+
+    .roadmap-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      flex: 1;
+      margin-bottom: 14px;
+    }
+
+    .roadmap-card-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-time {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.2);
+      color: var(--accent-green);
+    }
+
+    .badge-beginner {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.2);
+      color: var(--accent-green);
+    }
+
+    .badge-intermediate {
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      color: var(--accent-blue);
+    }
+
+    .badge-advanced {
+      background: rgba(188, 140, 255, 0.1);
+      border: 1px solid rgba(188, 140, 255, 0.2);
+      color: var(--accent-purple);
+    }
+
+    .badge-all {
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      color: var(--accent-orange);
+    }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 32px 0;
+      margin-top: 32px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-blue);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .path-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .roadmap-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 767px) {
+      .hero {
+        padding: 48px 0 40px;
+      }
+
+      .hero-title {
+        font-size: 32px;
+      }
+
+      .hero-subtitle {
+        font-size: 16px;
+      }
+
+      .hero-description {
+        font-size: 14px;
+      }
+
+      .section-title {
+        font-size: 22px;
+      }
+
+      .roadmap-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .topbar-brand {
+        font-size: 13px;
+      }
+
+      .topbar-nav a {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <span class="topbar-brand">GitHub Copilot 完全ガイド</span>
+      <nav class="topbar-nav">
+        <a href="../ai_coding_agents_guide.html">&larr; AIエージェント構築ガイド</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <span class="hero-eyebrow">GitHub Copilot Complete Guide &mdash; 全12章</span>
+          <h1 class="hero-title">GitHub Copilot 完全ガイド</h1>
+          <p class="hero-subtitle">AIエージェント時代の開発パラダイム</p>
+          <p class="hero-description">インライン補完からCoding Agent、Agent HQ、資料分析ワークフローまで。初心者から上級者まで、GitHub Copilotを「自律型相棒」として活用するための完全マニュアル。</p>
+          <div class="hero-badges">
+            <span class="hero-badge--green hero-badge">初心者 OK</span>
+            <span class="hero-badge">Pro/Pro+ユーザー</span>
+            <span class="hero-badge--purple hero-badge">Business/Enterprise管理者</span>
+          </div>
+          <a href="getting-started.html" class="hero-cta">5分で始める &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== LEARNING PATH ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label">LEARNING PATH</p>
+        <h2 class="section-title">おすすめ学習パス</h2>
+        <p class="section-subtitle">目的とレベルに合わせて最適なルートを選択</p>
+
+        <div class="path-grid">
+
+          <!-- Route 1: Beginner -->
+          <div class="path-card path-card--beginner">
+            <div class="path-card-route">Route 1: 初心者（1時間で基本習得）</div>
+            <div class="path-card-title">最短実戦投入ルート</div>
+            <div class="path-card-flow">Getting Started &rarr; Agent Mode &rarr; Custom Instructions &rarr; Pitfalls</div>
+            <p class="path-card-desc">Copilot初心者が最短で実戦投入するためのルート。基本操作からAgent Mode、指示ファイルの書き方、よくあるミスまでを一気に学びます。</p>
+          </div>
+
+          <!-- Route 2: Intermediate -->
+          <div class="path-card path-card--intermediate">
+            <div class="path-card-route">Route 2: 中級者（半日で本格活用）</div>
+            <div class="path-card-title">本格機能マスタールート</div>
+            <div class="path-card-flow">全ルート1 + Coding Agent &rarr; CLI &rarr; Spaces &amp; MCP &rarr; Workflows</div>
+            <p class="path-card-desc">Agent Mode以降の本格機能を使いこなす。Coding Agentによる自動PR生成、CLI統合、外部ツール連携まで幅広くカバー。</p>
+          </div>
+
+          <!-- Route 3: Advanced -->
+          <div class="path-card path-card--advanced">
+            <div class="path-card-route">Route 3: 上級者（1日でプロ環境構築）</div>
+            <div class="path-card-title">生産性10倍環境構築ルート</div>
+            <div class="path-card-flow">全ルート2 + Professional Setup &rarr; Advanced Techniques &rarr; Agent HQ &rarr; Document Analysis</div>
+            <p class="path-card-desc">生産性10倍の最強環境を構築。プロ設計パターン、高度テクニック、マルチエージェント統合まで完全網羅。</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ROADMAP ===== -->
+    <section class="section roadmap-section">
+      <div class="container">
+        <p class="section-label">ROADMAP</p>
+        <h2 class="section-title">全12章ロードマップ</h2>
+        <p class="section-subtitle">各章をクリックして詳細ガイドへ</p>
+
+        <div class="roadmap-grid">
+
+          <!-- Ch.1 -->
+          <a href="getting-started.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">1</div>
+              <div class="roadmap-card-title">Getting Started</div>
+            </div>
+            <p class="roadmap-card-desc">導入・設定・核心ワークフロー</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">30分</span>
+              <span class="badge badge-beginner">初心者</span>
+            </div>
+          </a>
+
+          <!-- Ch.2 -->
+          <a href="agent-mode.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">2</div>
+              <div class="roadmap-card-title">Agent Mode</div>
+            </div>
+            <p class="roadmap-card-desc">4つのチャットモード・Agentic Loop</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-intermediate">初心者〜中級</span>
+            </div>
+          </a>
+
+          <!-- Ch.3 -->
+          <a href="coding-agent.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">3</div>
+              <div class="roadmap-card-title">Coding Agent</div>
+            </div>
+            <p class="roadmap-card-desc">Issue→PR自動化・カスタムエージェント</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-intermediate">中級</span>
+            </div>
+          </a>
+
+          <!-- Ch.4 -->
+          <a href="cli.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">4</div>
+              <div class="roadmap-card-title">Copilot CLI</div>
+            </div>
+            <p class="roadmap-card-desc">Plan/Autopilot・15分ルール</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">15分</span>
+              <span class="badge badge-intermediate">中級</span>
+            </div>
+          </a>
+
+          <!-- Ch.5 -->
+          <a href="custom-instructions.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">5</div>
+              <div class="roadmap-card-title">カスタム指示</div>
+            </div>
+            <p class="roadmap-card-desc">copilot-instructions.md・AGENTS.md</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-intermediate">中級</span>
+            </div>
+          </a>
+
+          <!-- Ch.6 -->
+          <a href="spaces-and-mcp.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">6</div>
+              <div class="roadmap-card-title">Spaces &amp; MCP</div>
+            </div>
+            <p class="roadmap-card-desc">外部ツール連携・Agentic Memory</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-intermediate">中級</span>
+            </div>
+          </a>
+
+          <!-- Ch.7 -->
+          <a href="workflows.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">7</div>
+              <div class="roadmap-card-title">実践ワークフロー</div>
+            </div>
+            <p class="roadmap-card-desc">マルチツール運用・Spec-Kit</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-intermediate">中級</span>
+            </div>
+          </a>
+
+          <!-- Ch.8 -->
+          <a href="pitfalls.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">8</div>
+              <div class="roadmap-card-title">よくある落とし穴</div>
+            </div>
+            <p class="roadmap-card-desc">PRU消費・Content Exclusion・セキュリティ</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">10分</span>
+              <span class="badge badge-all">全レベル</span>
+            </div>
+          </a>
+
+          <!-- Ch.9 -->
+          <a href="professional-setup.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">9</div>
+              <div class="roadmap-card-title">プロフェッショナル環境構築</div>
+            </div>
+            <p class="roadmap-card-desc">三位一体設計・copilot-setup-steps.yml</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">25分</span>
+              <span class="badge badge-advanced">上級</span>
+            </div>
+          </a>
+
+          <!-- Ch.10 -->
+          <a href="advanced-techniques.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">10</div>
+              <div class="roadmap-card-title">生産性10倍テクニック</div>
+            </div>
+            <p class="roadmap-card-desc">CLI+Agent+NES統合・収束パラダイム</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-advanced">上級</span>
+            </div>
+          </a>
+
+          <!-- Ch.11 -->
+          <a href="agent-hq.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">11</div>
+              <div class="roadmap-card-title">Agent HQ</div>
+            </div>
+            <p class="roadmap-card-desc">マルチエージェント統合司令塔</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">20分</span>
+              <span class="badge badge-advanced">上級</span>
+            </div>
+          </a>
+
+          <!-- Ch.12 -->
+          <a href="document-analysis.html" class="roadmap-card">
+            <div class="roadmap-card-header">
+              <div class="roadmap-number">12</div>
+              <div class="roadmap-card-title">実践: 資料分析</div>
+            </div>
+            <p class="roadmap-card-desc">GPT+Claude 2段階分析ワークフロー</p>
+            <div class="roadmap-card-meta">
+              <span class="badge badge-time">15分</span>
+              <span class="badge badge-advanced">上級</span>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-copy">最終更新: 2026年3月23日</div>
+      <div class="footer-links">
+        <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイドTOP</a>
+        <a href="https://docs.github.com/en/copilot" target="_blank" rel="noopener">GitHub Copilot公式Docs</a>
+        <a href="https://github.blog/category/copilot/" target="_blank" rel="noopener">GitHub Blog</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
