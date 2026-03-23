@@ -608,10 +608,10 @@
     <h1>Agent Mode</h1>
     <p class="subtitle">VS Code内で動作する自律型エージェント。ファイル編集、ターミナルコマンド実行、エラー自動修正を組み合わせてタスクを完了します。</p>
 
-    <!-- ===== Section 1: 3つのチャットモード ===== -->
-    <h2 id="chat-modes">3つのチャットモード</h2>
+    <!-- ===== Section 1: 4つのチャットモード ===== -->
+    <h2 id="chat-modes">4つのチャットモード</h2>
 
-    <p>GitHub Copilot Chatには3つのモードがあり、タスクの性質に応じて使い分けます。VS Codeのチャットパネル上部のドロップダウンで切り替え可能です。</p>
+    <p>GitHub Copilot Chatには4つのモードがあり、タスクの性質に応じて使い分けます。VS Codeのチャットパネル上部のドロップダウンで切り替え可能です。</p>
 
     <div class="table-wrapper">
       <table>
@@ -645,6 +645,13 @@
             <td>可能</td>
             <td>可能</td>
             <td>複数ファイルにまたがる機能実装、テスト作成</td>
+          </tr>
+          <tr>
+            <td><strong>Plan</strong></td>
+            <td>設計・計画立案</td>
+            <td>不可</td>
+            <td>ワークスペース解析</td>
+            <td>実装前のゲート。リスク特定と手戻り防止</td>
           </tr>
         </tbody>
       </table>
@@ -694,6 +701,37 @@
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
       <p>Agent Modeの各ステップでは、デフォルトでユーザーの承認が求められます。<code>github.copilot.chat.agent.autoApprove</code> 設定で自動承認のレベルを調整できますが、最初は手動承認で動作を理解することを推奨します。</p>
+    </div>
+
+    <!-- ===== Section: Agentic Loop ===== -->
+    <h2 id="agentic-loop">Agentic Loop &mdash; 自己修正ループの仕組み</h2>
+
+    <p>Agent Modeは以下の3フェーズのループ構造で「考え、実行し、修正」します。</p>
+
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 24px 0;">
+      <div style="flex: 1; min-width: 180px; padding: 20px; border-radius: 12px; border: 1px solid rgba(88, 166, 255, 0.3); background: rgba(88, 166, 255, 0.06); text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: var(--accent-blue); margin-bottom: 8px;">Phase 1</div>
+        <div style="font-weight: 700; margin-bottom: 6px;">Planning（計画）</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">ワークスペース構造を解析し、関連ファイルを特定。詳細な実装手順を作成。影響範囲と依存関係を可視化。</div>
+      </div>
+      <div style="font-size: 24px; color: var(--text-muted);">&rarr;</div>
+      <div style="flex: 1; min-width: 180px; padding: 20px; border-radius: 12px; border: 1px solid rgba(249, 115, 22, 0.3); background: rgba(249, 115, 22, 0.06); text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: var(--accent-orange); margin-bottom: 8px;">Phase 2</div>
+        <div style="font-weight: 700; margin-bottom: 6px;">Execution（実行）</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;"><code>read_file</code>, <code>edit_file</code>, <code>run_in_terminal</code> などのツールを呼び出し。複数ファイルを横断的に編集。テストやビルドをターミナルで実行。</div>
+      </div>
+      <div style="font-size: 24px; color: var(--text-muted);">&rarr;</div>
+      <div style="flex: 1; min-width: 180px; padding: 20px; border-radius: 12px; border: 1px solid rgba(63, 185, 80, 0.3); background: rgba(63, 185, 80, 0.06); text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: var(--accent-green); margin-bottom: 8px;">Phase 3</div>
+        <div style="font-weight: 700; margin-bottom: 6px;">Self-Healing（自己修正）</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">コンパイルエラーやテスト失敗を検知。自動で修正案を作成し再実行。ユーザーが承認するか、ゴールに達するまでループ継続。</div>
+      </div>
+    </div>
+    <div style="text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">&uarr; Phase 3 &rarr; Phase 1 に戻り、成功するまでループを繰り返す &uarr;</div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>Self-Healing（自己修正）がAgent Modeの真の強みです。エラーが出ても人間が介入する必要はありません。エージェントが自動でデバッグし、成功するまでリトライします。</p>
     </div>
 
     <!-- ===== Section 3: 4種類のエージェント ===== -->
