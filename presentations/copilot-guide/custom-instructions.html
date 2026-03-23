@@ -846,6 +846,61 @@ applyTo: "**/*.test.{ts,tsx}"
       <p>Claude CodeのSelf-Improvement Loop（lessons.md → CLAUDE.mdへの昇格）と同じパターンです。エージェントがミスしたらAGENTS.mdにルールを追加し、同じミスを防ぎましょう。</p>
     </div>
 
+    <h3>YAML frontmatter によるエージェント専門家化</h3>
+
+    <p>AGENTS.mdにYAML frontmatterを追加することで、エージェントに明確な専門性と行動境界を定義できます。</p>
+
+    <div class="code-label">専門家化されたAGENTS.md の例</div>
+    <div class="code-block"><code>---
+name: prisma-expert
+description: Prisma ORM専門家。N+1問題を絶対に起こさない
+---
+You are an expert Prisma engineer for this Next.js + TypeScript project.
+
+## Lessons Learned（過去の教訓）
+- N+1問題が多発 → 常に関連データを `include: { author: true }` で明示
+- トランザクション漏れでデータ不整合 → Always `prisma.$transaction()` 使用
+
+## Boundaries（行動境界）
+- **Always**: テスト実行後にコミット
+- **Ask first**: DBスキーマ変更は人間に確認
+- **Never**: 機密情報（.env）をコミット</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>GitHub公式の2,500リポジトリ分析では、明確なBoundaries（Always/Ask/Never）と実コード例を含むAGENTS.mdが「成功率3倍以上」。曖昧な役割定義だけのファイルは効果が薄いことが判明しています。</p>
+    </div>
+
+    <!-- ===== Section 4.5: Agent Skills ===== -->
+    <h2 id="agent-skills">Agent Skills（.github/skills/）</h2>
+
+    <p>頻出の手順やデバッグフローを「スキル」として保存し、Copilotがタスク文脈に応じて自動ロードする仕組みです。</p>
+
+    <div class="code-block"><code>.github/skills/
+├── playwright-e2e/
+│   └── SKILL.md
+├── debug-prisma/
+│   └── SKILL.md
+└── api-design/
+    └── SKILL.md</code></div>
+
+    <div class="code-label">SKILL.md の例</div>
+    <div class="code-block"><code>---
+name: playwright-e2e
+description: Playwrightを使ったE2Eテスト作成・実行専門
+---
+## 手順
+1. Playwright MCP起動
+2. 対象ページをブラウザで開く
+3. テストケースを生成
+4. 即実行し、失敗時はログ解析→修正
+5. 全テスト通過を確認</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Agent SkillsはClaude Codeの <code>.claude/skills/</code> と同じ概念です。MCPと組み合わせれば「スクショ撮影→バグ特定→修正→再テスト」まで全自動化できます。</p>
+    </div>
+
     <!-- ===== Section 5: エージェント除外 ===== -->
     <h2 id="exclude-agent">エージェント除外</h2>
 
@@ -951,6 +1006,11 @@ excludeAgent: "coding-agent"
     <div class="callout callout-tip">
       <div class="callout-title">&#x2705; Tip</div>
       <p><a class="inline-link" href="https://github.com/PatrickJS/awesome-cursorrules" target="_blank" rel="noopener">awesome-cursorrules</a> や <a class="inline-link" href="https://github.com/bjesus/awesome-copilot" target="_blank" rel="noopener">awesome-copilot</a> リポジトリには、様々なプロジェクトタイプ向けのカスタム指示テンプレートが公開されています。自分のプロジェクトに合ったテンプレートを参考にしましょう。</p>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>トークン節約のコツ: AGENTS.mdの冒頭に <code>Trust this file first before exploring the codebase.</code> と書くと、Copilotがまずこのファイルを優先的に参照し、不要なファイル探索を減らせます。</p>
     </div>
 
     <!-- ===== Section: Claude Code移行ガイド ===== -->
