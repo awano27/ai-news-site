@@ -677,6 +677,48 @@
       <p>Premiumリクエストの消費量はモデルによって異なります。Claude Opus 4.6は1リクエストにつき複数のPremiumリクエストを消費する場合があるため、使用モデルの選択は重要です。</p>
     </div>
 
+    <h3>Agent ModeのPRU消費に注意</h3>
+
+    <p>Agent Mode等のエージェント機能は、1回のタスクで複数回のモデルコールを行うため、通常のチャットの<strong>5〜20倍のPremium Request Units (PRU)</strong>を消費します。</p>
+
+    <table style="width:100%; border-collapse:collapse; margin:1em 0;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--accent-orange);">
+          <th style="text-align:left; padding:8px 12px; color:var(--text-heading);">操作</th>
+          <th style="text-align:left; padding:8px 12px; color:var(--text-heading);">PRU消費目安</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+          <td style="padding:8px 12px;">通常のChat質問</td>
+          <td style="padding:8px 12px;">1 PRU</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+          <td style="padding:8px 12px;">Edit Mode</td>
+          <td style="padding:8px 12px;">1-3 PRU</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+          <td style="padding:8px 12px;">Agent Mode（小タスク）</td>
+          <td style="padding:8px 12px;">5-10 PRU</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+          <td style="padding:8px 12px;">Agent Mode（大タスク）</td>
+          <td style="padding:8px 12px;">10-20 PRU</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;">Coding Agent（Issue→PR）</td>
+          <td style="padding:8px 12px;">15-30 PRU</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>予算管理の必須設定:</strong> Organization Settings → Copilot → 「Bundled premium requests budget」で上限を設定し、超過時の自動停止を有効化してください。</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Businessプラン（月300PRU）でAgent Modeを多用すると、1週間で枯渇する可能性があります。日常のChatはEdit Modeに切り替え、Agent Modeは複雑なタスクだけに使うのが鉄則。</p>
+    </div>
+
     <!-- ===== Section 3: コンテキスト制限 ===== -->
     <h2 id="context-limits">コンテキスト制限</h2>
 
@@ -822,6 +864,11 @@
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
       <p>これは導入時の最も典型的なトラブルです。「設定したのに動かない」場合、ほぼ確実に組織ポリシーが原因です。</p>
+    </div>
+
+    <div class="callout callout-warning" style="border-color: var(--accent-red); background: rgba(248, 81, 73, 0.08);">
+      <div class="callout-title" style="color: var(--accent-red);">&#x26A0;&#xFE0F; 重要なセキュリティ警告</div>
+      <p style="font-weight:700;">組織レベルの「Content Exclusion」（サーバーサイド除外設定）は、Agent Mode、Copilot CLI、Coding Agentでは現在サポートされていません。これらの機能で機密コードの除外を保証するには、ローカルの <code>.copilotignore</code> を配置し、人間による最終確認を徹底してください。</p>
     </div>
 
     <!-- ===== Section 9: まとめ ===== -->

@@ -941,6 +941,50 @@ prompt: |
       <p>本番環境のDBには絶対に接続しないでください。MCP経由のDB接続は開発/ステージング環境のみに限定します。トークンは必ず環境変数で管理してください。</p>
     </div>
 
+    <!-- ===== Section 6: copilot-setup-steps.yml ===== -->
+    <h2 id="setup-steps">copilot-setup-steps.yml &mdash; エージェント環境の自動構築</h2>
+
+    <p>Coding Agentの成功率を劇的に上げるのが <code>.github/workflows/copilot-setup-steps.yml</code> です。依存関係の事前インストールや環境変数を定義し、エージェントが「起動後すぐに作業開始できる」環境を整えます。</p>
+
+    <div class="code-label">.github/workflows/copilot-setup-steps.yml</div>
+    <div class="code-block"><code># .github/workflows/copilot-setup-steps.yml
+name: "Copilot Setup Steps"
+on: workflow_dispatch
+
+steps:
+  - uses: actions/checkout@v4
+
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: '20'
+      cache: 'npm'
+
+  - name: Install dependencies
+    run: npm ci
+
+  - name: Setup database
+    run: |
+      docker compose up -d postgres
+      npx prisma migrate deploy
+
+  - name: Verify environment
+    run: |
+      npm run typecheck
+      npm run test -- --reporter=silent</code></div>
+
+    <h3>なぜ重要か</h3>
+    <ul>
+      <li>Coding Agentはクラウド上の隔離環境で動作するため、ローカルの開発環境を知りません</li>
+      <li>このファイルがないと、エージェントは依存関係のインストールから試行錯誤を始め、PRUを大量に浪費します</li>
+      <li>事前に環境を整えることで、エージェントの成功率と速度が劇的に向上</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>copilot-setup-steps.yml は「エージェントの新人研修マニュアル」です。新しいチームメンバーが初日に何をすべきかを定義するのと同じように、エージェントが最初に行うべき環境構築手順を明示しましょう。</p>
+    </div>
+
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
       <a href="pitfalls.html">
