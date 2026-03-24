@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Codex利用時によくある落とし穴と対策。プロンプト過多、検証不足、承認モード混乱、AGENTS.mdスコープなど、失敗を避けるための実践ガイド。">
-  <title>よくある落とし穴 | Codex ガイド</title>
+  <meta name="description" content="Agents SDK連携、MCP高度活用、Cloud Tasks、並列開発、ハイブリッド運用。Codex上級テクニック集。">
+  <title>上級テクニック集 | Codex ガイド</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -426,57 +426,6 @@
       line-height: 1.6;
     }
 
-    /* ===== PITFALL CARD ===== */
-    .pitfall-card {
-      background: var(--bg-card);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 20px 0;
-    }
-
-    .pitfall-card h3 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 16px;
-    }
-
-    .pitfall-label {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-    }
-
-    .pitfall-label-symptom {
-      background: rgba(248, 81, 73, 0.15);
-      color: var(--accent-red);
-    }
-
-    .pitfall-label-cause {
-      background: rgba(249, 115, 22, 0.15);
-      color: var(--accent-orange);
-    }
-
-    .pitfall-label-fix {
-      background: rgba(63, 185, 80, 0.15);
-      color: var(--accent-green);
-    }
-
-    .pitfall-card p {
-      font-size: 14px;
-      margin-bottom: 12px;
-      line-height: 1.7;
-    }
-
-    .pitfall-card p:last-child {
-      margin-bottom: 0;
-    }
-
     /* ===== STEPS LIST ===== */
     .steps-list {
       counter-reset: step-counter;
@@ -649,7 +598,7 @@
 <!-- ===== TOP BAR ===== -->
 <header class="topbar">
   <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
-  <span class="page-title">よくある落とし穴</span>
+  <span class="page-title">上級テクニック集</span>
   <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
 </header>
 
@@ -667,8 +616,8 @@
     </nav>
     <div class="page-nav">
       <div class="nav-label">ナビゲーション</div>
-      <a href="workflows.html">&larr; 前へ: 実践ワークフロー</a>
-      <a href="professional-setup.html">次へ: プロ環境構築 &rarr;</a>
+      <a href="professional-setup.html">&larr; 前へ: プロ環境構築</a>
+      <a href="app-guide.html">次へ: App活用ガイド &rarr;</a>
       <a href="../ai_coding_agents_guide.html">&larr; ガイドTOPに戻る</a>
     </div>
     <div class="chapter-nav">
@@ -680,9 +629,9 @@
       <a href="skills-and-automations.html" class="chapter-link">5. Skills</a>
       <a href="multi-agent.html" class="chapter-link">6. マルチエージェント</a>
       <a href="workflows.html" class="chapter-link">7. ワークフロー</a>
-      <a href="pitfalls.html" class="chapter-link current">8. 落とし穴</a>
+      <a href="pitfalls.html" class="chapter-link">8. 落とし穴</a>
       <a href="professional-setup.html" class="chapter-link">9. プロ環境構築</a>
-      <a href="advanced-techniques.html" class="chapter-link">10. 上級テクニック</a>
+      <a href="advanced-techniques.html" class="chapter-link current">10. 上級テクニック</a>
       <a href="app-guide.html" class="chapter-link">11. App活用ガイド</a>
       <a href="other-uses.html" class="chapter-link">12. その他業務</a>
     </div>
@@ -696,299 +645,382 @@
       <span>&rsaquo;</span>
       <a href="index.html">Codex</a>
       <span>&rsaquo;</span>
-      <span class="current">よくある落とし穴</span>
+      <span class="current">上級テクニック集</span>
     </nav>
 
     <div class="page-meta">
       <div class="meta-item">
         <span class="meta-label">対象</span>
-        <span class="meta-value">全レベルの開発者</span>
+        <span class="meta-value">生産性を極限まで高めたい上級者</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">達成目標</span>
-        <span class="meta-value">よくある失敗パターンを事前に回避できる</span>
+        <span class="meta-value">Agents SDK・MCP・Cloud Tasksを使いこなせる</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">前提知識</span>
-        <span class="meta-value">なし</span>
+        <span class="meta-value">章9完了推奨</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">所要時間</span>
-        <span class="meta-value">10分</span>
+        <span class="meta-value">20分</span>
       </div>
     </div>
 
-    <h1>よくある落とし穴</h1>
-    <p class="subtitle">Codexの導入・運用でよく見られる失敗パターンとその対策。症状・原因・対策の3点セットで、同じ過ちを繰り返さないための実践ガイドです。</p>
+    <h1>上級テクニック集</h1>
+    <p class="subtitle">Codexの真のポテンシャルを引き出す上級テクニックを解説します。Agents SDKによるオーケストレーション、MCPサーバー連携、Cloud Tasksによるスケーラブルな並列処理、そして複数AIツールのハイブリッド運用まで。</p>
 
-    <!-- ===== Pitfall 1: プロンプトにルール詰め込み ===== -->
-    <h2 id="prompt-overload">プロンプトにルール詰め込み</h2>
+    <!-- ===== Section 1: Agents SDK連携 ===== -->
+    <h2 id="agents-sdk">Agents SDK連携</h2>
 
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p>毎回のプロンプトにコーディング規約、テスト要件、アーキテクチャルールなどを長文で記述してしまう。プロンプトが数百行に膨らみ、本来のタスク指示が埋もれる。</p>
+    <p>OpenAI Agents SDKを使うと、Codexを含む複数のエージェントを<strong>プログラマティックに</strong>オーケストレーションできます。analyzer → implementer → reviewer のような多段パイプラインを構築できます。</p>
 
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>AGENTS.mdやSkillsの存在を知らない、または活用していない。すべてのコンテキストをプロンプトで毎回渡そうとしている。</p>
+    <h3>基本的なパイプライン構成</h3>
 
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>永続的なルールは<strong>AGENTS.md</strong>に、再利用可能な手順は<strong>Skills</strong>に移動する。プロンプトには「今回のタスク」だけを書く。</p>
-    </div>
+    <div class="code-label">Python - Agents SDK パイプライン</div>
+    <div class="code-block"><code>from agents import Agent, Runner
+import asyncio
 
-    <div class="code-label">悪い例: プロンプトにすべて詰め込み</div>
-    <div class="code-block"><code># 毎回これを書いている...
-"TypeScriptで書いて、strictモードで、ESLintルールに従って、
-テストはVitestで書いて、カバレッジ80%以上にして、
-コンポーネントはPascalCaseで、変数はcamelCaseで、
-インデントは2スペースで... あとログインバグを直して"</code></div>
+# 1. 分析エージェント
+analyzer = Agent(
+    name="Analyzer",
+    instructions="""コードベースを分析し、改善点を特定してください。
+    出力は JSON 形式: {"issues": [...], "priority": "high|medium|low"}""",
+    model="o3"
+)
 
-    <div class="code-label">良い例: ルールはAGENTS.mdに</div>
-    <div class="code-block"><code># AGENTS.md にルールを記載済み
-# プロンプトはタスクだけ
-"ログイン画面のメールバリデーションバグを修正して"</code></div>
+# 2. 実装エージェント
+implementer = Agent(
+    name="Implementer",
+    instructions="""Analyzerが特定した問題を修正してください。
+    テストも追加してください。""",
+    model="o3"
+)
 
-    <!-- ===== Pitfall 2: エージェントに検証手段がない ===== -->
-    <h2 id="no-verification">エージェントに検証手段がない</h2>
+# 3. レビューエージェント
+reviewer = Agent(
+    name="Reviewer",
+    instructions="""Implementerの変更をレビューしてください。
+    問題があれば具体的な修正案を提示してください。""",
+    model="o3"
+)
 
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p>Codexがコードを生成するが、ビルドエラーやテスト失敗に気づかず、壊れたコードを提出してくる。</p>
+async def pipeline(task: str):
+    # Step 1: 分析
+    analysis = await Runner.run(analyzer, task)
 
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>AGENTS.mdにビルドコマンドやテストコマンドが記載されていない。Codexは検証手段を知らないため、生成したコードの正しさを確認できない。</p>
+    # Step 2: 実装
+    impl = await Runner.run(
+        implementer,
+        f"以下の分析結果に基づいて修正: {analysis.final_output}"
+    )
 
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>AGENTS.mdに<strong>ビルド・テスト・Lintコマンド</strong>を明記する。Codexは自動的にこれらを使って自己検証を行う。</p>
-    </div>
+    # Step 3: レビュー
+    review = await Runner.run(
+        reviewer,
+        f"以下の変更をレビュー: {impl.final_output}"
+    )
 
-    <div class="code-label">AGENTS.md に検証コマンドを追加</div>
-    <div class="code-block"><code>## Verification commands
-- Build: `pnpm build`
-- Test: `pnpm test`
-- Lint: `pnpm lint`
-- Type check: `pnpm typecheck`
+    return review.final_output
 
-## Rules
-- コード変更後は必ず `pnpm build` と `pnpm test` を実行して確認すること
-- テストが失敗する変更はコミットしないこと</code></div>
+asyncio.run(pipeline("src/ディレクトリのコード品質を改善して"))</code></div>
 
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>「変更後は必ずテストを実行して確認すること」とAGENTS.mdに明記するだけで、Codexの出力品質が劇的に向上します。検証手段を与えることは、最もコストパフォーマンスの高い改善策です。</p>
-    </div>
+    <h3>Handoff（引き継ぎ）パターン</h3>
 
-    <!-- ===== Pitfall 3: ステップごとに監視 ===== -->
-    <h2 id="over-watching">ステップごとに監視</h2>
+    <p>Agents SDKの <code>handoff</code> 機能を使うと、エージェント間でコンテキストを保持したまま作業を引き継げます。</p>
 
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p>Codexの各ステップを逐一確認し、一つひとつ承認している。結果として、手動で作業するのと変わらない速度になっている。</p>
+    <div class="code-label">Python - Handoff パターン</div>
+    <div class="code-block"><code>from agents import Agent, handoff
 
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>Suggestモードのまま使い続けている。AIに任せることへの不安から、過度に監視してしまう。</p>
-
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>信頼できるタスクは<strong>Auto EditまたはFull Auto</strong>に切り替える。並列作業を活用し、Codexがタスクを実行している間に自分の仕事を進める。</p>
-    </div>
-
-    <ul>
-      <li><strong>低リスクタスク</strong>（テスト追加、ドキュメント更新、Lint修正）&rarr; <strong>Full Auto</strong></li>
-      <li><strong>中リスクタスク</strong>（バグ修正、リファクタリング）&rarr; <strong>Auto Edit</strong></li>
-      <li><strong>高リスクタスク</strong>（認証ロジック、決済処理、データ移行）&rarr; <strong>Suggest</strong></li>
-    </ul>
+# トリアージエージェント（振り分け役）
+triage_agent = Agent(
+    name="Triage",
+    instructions="タスクを分類し、適切な専門エージェントに引き継いでください",
+    handoffs=[
+        handoff(bug_fix_agent, "バグ修正タスク"),
+        handoff(feature_agent, "新機能実装タスク"),
+        handoff(refactor_agent, "リファクタリングタスク"),
+    ]
+)</code></div>
 
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
-      <p>Codexを「もう一人のチームメイト」として扱いましょう。ペアプログラミングのように横で見張るのではなく、タスクを任せて自分は別の仕事に取り組む方が、全体の生産性は高くなります。</p>
+      <p>Agents SDKはPythonライブラリとして提供されています。Codex CLIとは別のレイヤーで動作し、より複雑なワークフローの構築に適しています。</p>
     </div>
 
-    <!-- ===== Pitfall 4: ネットワークブロック ===== -->
-    <h2 id="network-blocked">ネットワークブロック</h2>
+    <!-- ===== Section 2: MCP高度活用 ===== -->
+    <h2 id="mcp">MCP高度活用</h2>
 
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p><code>npm install</code> や <code>pip install</code> が失敗する。外部APIへのリクエストがタイムアウトする。「ネットワークに接続できません」というエラーが頻発する。</p>
+    <p>Model Context Protocol (MCP) は、AIエージェントが外部ツールやデータソースと標準化された方法で連携するためのプロトコルです。Codex CLIはMCPサーバーとして公開することも、MCPクライアントとして他のサーバーに接続することもできます。</p>
 
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>サンドボックスのデフォルト設定でネットワークアクセスが無効化されている。Full Autoモードではデフォルトでインターネット接続がブロックされる。</p>
+    <h3>Codex CLIをMCPサーバーとして公開</h3>
 
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>必要なネットワークアクセスを<code>config.toml</code>で明示的に許可する。または、パッケージインストールは事前に済ませておく。</p>
-    </div>
+    <p>Codex CLIをMCPサーバーとして起動し、他のAIツール（Claude Desktop、Cursorなど）から利用できます。</p>
 
-    <div class="code-label">.codex/config.toml</div>
-    <div class="code-block"><code># ネットワークアクセスを許可するドメインを指定
-[sandbox]
-allow_network = [
-  "registry.npmjs.org",
-  "api.github.com"
-]</code></div>
+    <div class="code-label">Terminal</div>
+    <div class="code-block"><code># Codex をMCPサーバーとして起動
+codex --mcp-server
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>ネットワークアクセスの許可は最小限にとどめましょう。すべてのネットワーク通信を許可するのではなく、必要なドメインだけをホワイトリストに追加してください。</p>
-    </div>
+# stdio モードで起動（他ツールとの接続用）
+codex --mcp-server --transport stdio</code></div>
 
-    <!-- ===== Pitfall 5: 承認モードの混乱 ===== -->
-    <h2 id="approval-confusion">承認モードの混乱</h2>
+    <div class="code-label">Claude Desktop - MCP設定</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "codex": {
+      "command": "codex",
+      "args": ["--mcp-server", "--transport", "stdio"],
+      "env": {
+        "OPENAI_API_KEY": "sk-xxxxx"
+      }
+    }
+  }
+}</code></div>
 
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p>3つの承認モード（Suggest / Auto Edit / Full Auto）の違いが分からず、常に同じモードを使っている。または、状況に合わないモードを選択してしまう。</p>
+    <h3>カスタムMCPサーバーへの接続</h3>
 
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>各モードの権限範囲と適切なユースケースを理解していない。</p>
+    <p>Codexから外部のMCPサーバーに接続して、データベースクエリやAPI呼び出しなどの機能を拡張できます。</p>
 
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>以下の基準で使い分ける。タスクのリスクレベルに応じて適切なモードを選択する。</p>
-    </div>
+    <div class="code-label">.codex/config.toml - MCP設定</div>
+    <div class="code-block"><code>[mcp_servers.database]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"]
 
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>モード</th>
-            <th>ファイル編集</th>
-            <th>コマンド実行</th>
-            <th>適切なタスク</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Suggest</strong></td>
-            <td>毎回承認</td>
-            <td>毎回承認</td>
-            <td>初めてのリポジトリ、セキュリティ関連、学習目的</td>
-          </tr>
-          <tr>
-            <td><strong>Auto Edit</strong></td>
-            <td>自動</td>
-            <td>毎回承認</td>
-            <td>日常的なコーディング、バグ修正、リファクタリング</td>
-          </tr>
-          <tr>
-            <td><strong>Full Auto</strong></td>
-            <td>自動</td>
-            <td>自動</td>
-            <td>テスト追加、定型作業、信頼度の高いタスク</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_TOKEN = "ghp_xxxxx" }
 
-    <!-- ===== Pitfall 6: AGENTS.mdスコープ不足 ===== -->
-    <h2 id="agents-md-scope">AGENTS.mdスコープ不足</h2>
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/docs"]</code></div>
 
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p>プロジェクトルートに巨大なAGENTS.mdが1つだけあり、すべてのルールが混在している。フロントエンドのルールがバックエンドの作業時にも読み込まれ、コンテキストが無駄に膨らむ。</p>
+    <h3>MCPチェーン連携</h3>
 
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>AGENTS.mdの階層的スコープ機能を活用していない。単一ファイルにすべてを詰め込んでいる。</p>
-
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>ディレクトリごとにAGENTS.mdを配置し、<strong>階層的にスコープ</strong>する。各ディレクトリのAGENTS.mdには、そのディレクトリに関連するルールだけを記述する。</p>
-    </div>
-
-    <div class="code-label">階層的AGENTS.mdの配置</div>
-    <div class="code-block"><code>project-root/
-  AGENTS.md              # 全体共通: 言語、パッケージマネージャ、基本規約
-  src/
-    frontend/
-      AGENTS.md          # フロントエンド固有: React規約、コンポーネント設計
-    backend/
-      AGENTS.md          # バックエンド固有: API設計、DB操作規約
-    shared/
-      AGENTS.md          # 共有コード: 型定義、ユーティリティの規約
-  tests/
-    AGENTS.md            # テスト固有: テストフレームワーク、モック戦略</code></div>
-
-    <p>Codexは作業対象ファイルの位置から上位ディレクトリを辿り、すべてのAGENTS.mdをマージして適用します。これにより、フロントエンドのファイルを編集する際はフロントエンド固有のルールが自動的に適用されます。</p>
-
-    <!-- ===== Pitfall 7: 生成コードの盲信 ===== -->
-    <h2 id="blind-trust">生成コードの盲信</h2>
-
-    <div class="pitfall-card">
-      <div class="pitfall-label pitfall-label-symptom">症状</div>
-      <p>Codexが生成したコードをレビューせずにそのままマージしている。セキュリティ脆弱性やロジックエラーが本番に紛れ込む。</p>
-
-      <div class="pitfall-label pitfall-label-cause">原因</div>
-      <p>AIの出力を「正しい」と過信している。Full Autoモードの利便性から、レビュープロセスを省略してしまう。</p>
-
-      <div class="pitfall-label pitfall-label-fix">対策</div>
-      <p>特に以下の領域では、<strong>必ず人間によるレビュー</strong>を行う。</p>
-    </div>
-
-    <ul>
-      <li><strong>認証・認可</strong> &mdash; トークン検証、権限チェック、セッション管理</li>
-      <li><strong>データ検証</strong> &mdash; 入力サニタイズ、SQLインジェクション対策、XSS対策</li>
-      <li><strong>暗号化</strong> &mdash; パスワードハッシュ、暗号アルゴリズム選択、鍵管理</li>
-      <li><strong>外部通信</strong> &mdash; APIキーの扱い、CORS設定、Rate Limiting</li>
-      <li><strong>データ削除</strong> &mdash; 物理削除と論理削除の判断、カスケード削除</li>
-    </ul>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>AIが生成したコードは「優秀なジュニアエンジニアが書いたコード」と同じレベルで扱いましょう。動作することは多いですが、セキュリティやエッジケースの考慮が不十分な場合があります。必ずシニアエンジニアの目でレビューしてください。</p>
-    </div>
-
-    <!-- ===== Section 8: まとめ ===== -->
-    <h2 id="summary">まとめ</h2>
-
-    <p>Codexを効果的に活用するための<strong>5つの成功原則</strong>をまとめます。</p>
+    <p>複数のMCPサーバーを組み合わせて、Codexの能力を大幅に拡張できます。</p>
 
     <div class="workflow-cards">
       <div class="workflow-card">
         <div class="workflow-number">1</div>
         <div>
-          <h4>コンテキストを構造化する</h4>
-          <p>AGENTS.mdにプロジェクトルール、Skillsに再利用手順を配置。プロンプトはタスク指示のみにする。</p>
+          <h4>DB MCP → データ取得</h4>
+          <p>PostgreSQLのMCPサーバー経由でスキーマやデータを取得し、Codexが現在のDB構造を理解します。</p>
         </div>
       </div>
       <div class="workflow-card">
         <div class="workflow-number">2</div>
         <div>
-          <h4>検証手段を提供する</h4>
-          <p>ビルド・テスト・Lintコマンドを明記し、Codexが自己検証できる環境を作る。</p>
+          <h4>Codex → コード生成</h4>
+          <p>取得したスキーマに基づいて、型安全なクエリやAPIエンドポイントを自動生成します。</p>
         </div>
       </div>
       <div class="workflow-card">
         <div class="workflow-number">3</div>
         <div>
-          <h4>タスクを適切に分割する</h4>
-          <p>1スレッド1タスクの原則を守り、具体的で範囲が限定されたタスクを割り当てる。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">4</div>
-        <div>
-          <h4>リスクに応じて信頼する</h4>
-          <p>承認モードをタスクのリスクレベルに合わせて使い分け、低リスクは任せて高リスクは監視する。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">5</div>
-        <div>
-          <h4>セキュリティは必ずレビューする</h4>
-          <p>AIの出力を盲信せず、特に認証・データ・暗号化に関わるコードは人間の目で確認する。</p>
+          <h4>GitHub MCP → PR作成</h4>
+          <p>生成されたコードをブランチにpushし、GitHub MCPサーバー経由でPRを自動作成します。</p>
         </div>
       </div>
     </div>
 
     <div class="callout callout-tip">
       <div class="callout-title">&#x2705; Tip</div>
-      <p>これらの原則は、CodexだけでなくClaude Codeや他のAIコーディングエージェントにも共通して適用できます。AIとの協業スキルは、今後のソフトウェア開発者にとって必須のコンピテンシーになるでしょう。</p>
+      <p>MCPサーバーは <code>npx -y</code> で実行するのが手軽ですが、頻繁に使う場合はグローバルインストールしてパスを直接指定する方が高速です。</p>
+    </div>
+
+    <!-- ===== Section 3: Cloud Tasks活用 ===== -->
+    <h2 id="cloud">Cloud Tasks活用</h2>
+
+    <p><code>codex cloud</code> コマンドを使うと、クラウド上のサンドボックス環境でタスクを実行できます。ローカルマシンのリソースを消費せず、長時間タスクや並列実行に最適です。</p>
+
+    <h3>基本的な使い方</h3>
+
+    <div class="code-label">Terminal</div>
+    <div class="code-block"><code># クラウドでタスクを実行
+codex cloud "全テストを実行して失敗しているテストを修正して"
+
+# タスクの状態を確認
+codex cloud status
+
+# 完了したタスクの結果を取得
+codex cloud pull &lt;task-id&gt;</code></div>
+
+    <h3>長時間タスクの活用シナリオ</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>シナリオ</th>
+            <th>所要時間</th>
+            <th>CLI vs Cloud</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>大規模リファクタリング</td>
+            <td>30-60分</td>
+            <td><strong>Cloud推奨</strong></td>
+          </tr>
+          <tr>
+            <td>全ファイルのLint修正</td>
+            <td>15-30分</td>
+            <td><strong>Cloud推奨</strong></td>
+          </tr>
+          <tr>
+            <td>依存関係の一括更新</td>
+            <td>20-40分</td>
+            <td><strong>Cloud推奨</strong></td>
+          </tr>
+          <tr>
+            <td>単一ファイルの修正</td>
+            <td>1-5分</td>
+            <td>CLI推奨</td>
+          </tr>
+          <tr>
+            <td>対話的デバッグ</td>
+            <td>可変</td>
+            <td>CLI推奨</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>トリアージ（自動振り分け）</h3>
+
+    <p>Codex Appと連携して、IssueやPRを自動的にCloudタスクとして振り分けることができます。</p>
+
+    <div class="code-label">Codex App - トリアージ設定</div>
+    <div class="code-block"><code># Automations設定で以下を定義:
+# トリガー: 新しいIssueが "bug" ラベル付きで作成された時
+# アクション: Cloud Taskとして自動実行
+# モード: full-auto
+# 完了後: PRを自動作成してレビューキューに追加</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Cloud Tasksはリモート環境で実行されるため、ローカル固有の設定（環境変数、ローカルDB接続など）に依存するタスクは失敗する可能性があります。タスクは自己完結型にしましょう。</p>
+    </div>
+
+    <!-- ===== Section 4: 並列開発の極意 ===== -->
+    <h2 id="parallel">並列開発の極意</h2>
+
+    <p>Codex App + CLI + Cloud の3つの実行環境を同時に活用することで、開発速度を劇的に向上させます。核となる原則は<strong>「1タスク = 1スレッド」</strong>です。</p>
+
+    <h3>1タスク = 1スレッドの原則</h3>
+
+    <p>各タスクを独立したスレッド（ブランチ）で実行することで、コンテキストの混在を防ぎ、並列実行の恩恵を最大限に受けます。</p>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">A</div>
+        <div>
+          <h4>App: フィーチャー開発</h4>
+          <p>Codex Appで新機能をGUI操作で開発。Worktreeで自動的に隔離されたブランチで作業します。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">B</div>
+        <div>
+          <h4>CLI: バグ修正</h4>
+          <p>ターミナルから <code>codex "このバグ直して"</code> で即座にバグ修正。対話的にデバッグしながら進めます。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">C</div>
+        <div>
+          <h4>Cloud: リファクタリング</h4>
+          <p><code>codex cloud "テストカバレッジ80%達成して"</code> でバックグラウンドで長時間タスクを実行。</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>コンテキスト分離の重要性</h3>
+
+    <p>並列実行で最も注意すべきは<strong>コンテキストの分離</strong>です。同じファイルを複数のタスクが同時に編集するとコンフリクトが発生します。</p>
+
+    <ul>
+      <li><strong>ブランチ戦略</strong> &mdash; 各タスクは独立したブランチで作業。Worktreeを活用して物理的にディレクトリを分離する</li>
+      <li><strong>スコープの明確化</strong> &mdash; タスクごとに変更対象のディレクトリ・ファイルを明確に指定する</li>
+      <li><strong>依存関係の管理</strong> &mdash; タスク間の依存がある場合は順次実行。独立したタスクのみ並列化する</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>朝の作業開始時に、その日のタスクを3つのカテゴリ（App/CLI/Cloud）に振り分けてから着手すると、並列開発の効果が最大化します。</p>
+    </div>
+
+    <!-- ===== Section 5: ハイブリッド運用 ===== -->
+    <h2 id="hybrid">ハイブリッド運用</h2>
+
+    <p>Codex、Claude Code、GitHub Copilotはそれぞれ異なる強みを持っています。3つのツールを最適に組み合わせることで、あらゆる開発シナリオに対応できます。</p>
+
+    <h3>各ツールの強み</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ツール</th>
+            <th>最大の強み</th>
+            <th>最適な用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Codex</strong></td>
+            <td>並列自動化・Cloud実行</td>
+            <td>複数タスクの同時実行、CI/CD統合、大規模リファクタリング</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Code</strong></td>
+            <td>深い推論・大規模コンテキスト</td>
+            <td>アーキテクチャ設計、複雑なデバッグ、コードベース横断分析</td>
+          </tr>
+          <tr>
+            <td><strong>GitHub Copilot</strong></td>
+            <td>IDE統合・リアルタイム補完</td>
+            <td>日常的なコーディング、インライン補完、テスト作成</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>推奨ワークフロー</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>設計フェーズ：Claude Code</strong><br>
+        アーキテクチャの検討、技術選定、設計ドキュメントの作成をClaude Codeで行います。大規模なコンテキストウィンドウを活かし、コードベース全体を見渡した判断ができます。
+      </li>
+      <li>
+        <strong>実装フェーズ：Codex + Copilot</strong><br>
+        設計に基づく実装をCodexの並列実行で高速化。細かいコーディングはCopilotのインライン補完で効率的に進めます。
+      </li>
+      <li>
+        <strong>レビューフェーズ：Codex Cloud</strong><br>
+        テスト実行、Lint、型チェックをCloud Tasksでバックグラウンド実行。人間はビジネスロジックのレビューに集中できます。
+      </li>
+      <li>
+        <strong>デバッグフェーズ：Claude Code</strong><br>
+        複雑なバグは、コードベースを深く理解しているClaude Codeに任せます。ファイル横断の因果関係を追跡する能力が活きます。
+      </li>
+    </ol>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>すべてのツールを無理に使う必要はありません。プロジェクトの規模やチーム構成に応じて、最も効果的な組み合わせを見つけましょう。小規模プロジェクトではCopilot + Claude Codeの2本立てで十分なことも多いです。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
-      <a href="workflows.html">
+      <a href="professional-setup.html">
         <div class="nav-dir">&larr; 前のページ</div>
-        <div class="nav-title">実践ワークフロー</div>
-      </a>
-      <a href="professional-setup.html" class="next">
-        <div class="nav-dir">次のページ &rarr;</div>
         <div class="nav-title">プロフェッショナル環境構築</div>
+      </a>
+      <a href="app-guide.html" class="next">
+        <div class="nav-dir">次のページ &rarr;</div>
+        <div class="nav-title">Codex App 活用ガイド</div>
       </a>
     </div>
 
