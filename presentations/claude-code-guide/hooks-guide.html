@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Claude Code運用でよくある落とし穴と対策。CLAUDE.md肥大化、コンテキスト汚染、過剰自動化、権限の罠、Git事故など7つの失敗パターンを解説。">
-  <title>よくある落とし穴 | AIエージェント構築ガイド</title>
+  <meta name="description" content="Claude CodeのHooksを完全解説。全22イベント、4ハンドラータイプ、安全系・品質系・Prompt・Agent Hooksの実践パターンを網羅。">
+  <title>Hooks完全ガイド | Claude Code ガイド</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -594,7 +594,7 @@
 <!-- ===== TOP BAR ===== -->
 <header class="topbar">
   <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
-  <span class="page-title">よくある落とし穴</span>
+  <span class="page-title">Hooks完全ガイド</span>
   <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
 </header>
 
@@ -612,8 +612,8 @@
     </nav>
     <div class="page-nav">
       <div class="nav-label">ナビゲーション</div>
-      <a href="workflows.html">&larr; 前へ: 実践ワークフロー集</a>
-      <a href="professional-setup.html">次へ: プロ環境構築 &rarr;</a>
+      <a href="advanced-techniques.html">&larr; 前へ: 上級テクニック集</a>
+      <a href="other-uses.html">次へ: その他業務 &rarr;</a>
     </div>
     <div class="chapter-nav">
       <h4 class="chapter-nav-title">全12章</h4>
@@ -624,10 +624,10 @@
       <a href="plugins-and-skills.html" class="chapter-link">5. Plugins &amp; Skills</a>
       <a href="recommended-resources.html" class="chapter-link">6. リソース集</a>
       <a href="workflows.html" class="chapter-link">7. ワークフロー</a>
-      <a href="pitfalls.html" class="chapter-link current">8. 落とし穴</a>
+      <a href="pitfalls.html" class="chapter-link">8. 落とし穴</a>
       <a href="professional-setup.html" class="chapter-link">9. プロ環境構築</a>
       <a href="advanced-techniques.html" class="chapter-link">10. 上級テクニック</a>
-      <a href="hooks-guide.html" class="chapter-link">11. Hooks完全ガイド</a>
+      <a href="hooks-guide.html" class="chapter-link current">11. Hooks完全ガイド</a>
       <a href="other-uses.html" class="chapter-link">12. その他業務</a>
     </div>
   </aside>
@@ -637,382 +637,422 @@
 
     <nav class="breadcrumb">
       <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
-      <span>›</span>
+      <span>&rsaquo;</span>
       <a href="index.html">Claude Code</a>
-      <span>›</span>
-      <span class="current">落とし穴</span>
+      <span>&rsaquo;</span>
+      <span class="current">Hooks完全ガイド</span>
     </nav>
 
     <div class="page-meta">
-      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">全レベルの開発者</span></div>
-      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">よくある失敗パターンを事前に回避できる</span></div>
-      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">なし</span></div>
-      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">10分</span></div>
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">Hooksで開発を自動化したい開発者</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">全22イベント・4ハンドラータイプを使いこなせる</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">Plugins &amp; Skills理解</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">25分</span></div>
     </div>
 
-    <h1>よくある落とし穴</h1>
-    <p class="subtitle">Claude Code運用で多くの開発者が陥る7つの失敗パターンと、その具体的な対策をまとめました。各セクションは「症状 &rarr; 原因 &rarr; 対策」の3部構成です。</p>
+    <h1>Hooks完全ガイド</h1>
+    <p class="subtitle">Claude CodeのHooksは、特定のイベントに応じて自動的にコマンドやスクリプトを実行する仕組みです。安全性の確保、品質の自動チェック、ワークフローの自動化を実現します。</p>
 
-    <!-- ===== Section 1: CLAUDE.md肥大化 ===== -->
-    <h2 id="bloated-claudemd">CLAUDE.md肥大化 &mdash; 最も多い初心者の失敗</h2>
+    <!-- ===== Section 1: Hooksの全体像 ===== -->
+    <h2 id="overview">Hooksの全体像</h2>
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>CLAUDE.mdが150行を超えたら赤信号です。即座に<code>.claude/rules/</code>への分割を検討してください。</p>
+    <p>Hooksは「いつ」「何を」「どう実行するか」を定義する仕組みです。22のイベントタイミングと4つのハンドラータイプの組み合わせで、あらゆる自動化が可能になります。</p>
+
+    <h3>主要イベント一覧</h3>
+    <p>Hooksがトリガーされるタイミングを示す主要なイベントです。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>カテゴリ</th>
+            <th>イベント名</th>
+            <th>発火タイミング</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ツール</strong></td>
+            <td><code>PreToolUse</code></td>
+            <td>ツール実行前（ブロック可能）</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><code>PostToolUse</code></td>
+            <td>ツール実行後</td>
+          </tr>
+          <tr>
+            <td><strong>ファイル</strong></td>
+            <td><code>PreWrite</code></td>
+            <td>ファイル書き込み前</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><code>PostWrite</code></td>
+            <td>ファイル書き込み後</td>
+          </tr>
+          <tr>
+            <td><strong>コマンド</strong></td>
+            <td><code>PreBash</code></td>
+            <td>Bashコマンド実行前</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><code>PostBash</code></td>
+            <td>Bashコマンド実行後</td>
+          </tr>
+          <tr>
+            <td><strong>セッション</strong></td>
+            <td><code>SessionStart</code></td>
+            <td>セッション開始時</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><code>SessionEnd</code></td>
+            <td>セッション終了時</td>
+          </tr>
+          <tr>
+            <td><strong>通知</strong></td>
+            <td><code>Notification</code></td>
+            <td>通知発生時</td>
+          </tr>
+          <tr>
+            <td><strong>停止</strong></td>
+            <td><code>Stop</code></td>
+            <td>エージェント停止時</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <h3>症状</h3>
-    <ul>
-      <li>Claudeの応答が遅くなる</li>
-      <li>指示に従わないことが増える</li>
-      <li>矛盾する指示が混在する</li>
-      <li>同じミスが繰り返される（ルールが多すぎて無視される）</li>
-    </ul>
+    <h3>4つのハンドラータイプ</h3>
 
-    <h3>原因</h3>
-    <ul>
-      <li>「とりあえずCLAUDE.mdに追記」の習慣</li>
-      <li>ルールの分割を知らない</li>
-      <li>古いルールを削除しない</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>80〜120行を厳守</strong>（最大150行以内）</li>
-      <li><strong><code>.claude/rules/</code> にカテゴリ別に分割</strong>（Progressive Disclosure）</li>
-      <li><strong>詳細はdocs/に分離</strong>し、CLAUDE.mdからリンク</li>
-      <li><strong>月1回の棚卸し</strong>（古い・重複するルールを削除）</li>
-    </ul>
-
-    <div class="code-label">Before: 肥大化したCLAUDE.md（300行超）</div>
-    <div class="code-block"><code># CLAUDE.md
-## コーディング規約（50行）
-## テスト方針（40行）
-## デプロイ手順（60行）
-## Git運用ルール（30行）
-## API設計ガイドライン（80行）
-## ... 全部ここに詰め込んでいる</code></div>
-
-    <div class="code-label">After: 整理されたCLAUDE.md（80行）</div>
-    <div class="code-block"><code># CLAUDE.md（80行以内）
-## プロジェクト概要（10行）
-## 最重要ルール（20行）
-## ディレクトリ構成（15行）
-## 詳細は以下を参照:
-# .claude/rules/coding.md
-# .claude/rules/testing.md
-# docs/deploy-guide.md</code></div>
-
-    <!-- ===== Section 2: コンテキスト汚染 ===== -->
-    <h2 id="context-pollution">コンテキスト汚染 &mdash; セッションが長いほど危険</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>長時間セッションはコンテキスト汚染の温床です。定期的な<code>/compact</code>で品質を維持してください。</p>
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">C</div>
+        <div>
+          <h4>command（コマンド実行）</h4>
+          <p>シェルコマンドを実行する最も基本的なハンドラー。<code>bash -c "..."</code>形式でスクリプトを実行。終了コード0以外でブロック。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">H</div>
+        <div>
+          <h4>http（HTTPリクエスト）</h4>
+          <p>外部APIにHTTPリクエストを送信するハンドラー。Slack通知、Webhook連携、外部サービスとの統合に使用。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">P</div>
+        <div>
+          <h4>prompt（LLM判断）</h4>
+          <p>LLMにyes/no判断をさせるハンドラー。「この変更はセキュリティリスクがあるか？」などの判断を自動化。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">A</div>
+        <div>
+          <h4>agent（サブエージェント）</h4>
+          <p>サブエージェントを起動するハンドラー。複雑な検証タスクをサブエージェントに委譲し、結果を受け取る。</p>
+        </div>
+      </div>
     </div>
 
-    <h3>症状</h3>
-    <ul>
-      <li>Claudeが以前の話題を混同する</li>
-      <li>関係ないファイルの内容に言及する</li>
-      <li>応答品質が徐々に低下する</li>
-      <li>トークン使用量が急増</li>
-    </ul>
+    <!-- ===== Section 2: 安全系Hooks実践 ===== -->
+    <h2 id="safety">安全系Hooks実践</h2>
 
-    <h3>原因</h3>
-    <ul>
-      <li>長時間セッションの放置</li>
-      <li>大量のファイルを一度に読み込む</li>
-      <li><code>/compact</code>を使わない</li>
-    </ul>
+    <p>破壊的な操作をブロックし、シークレットの漏洩を防止するHooksの設定方法を解説します。最初に設定すべき最重要のHooksです。</p>
 
-    <h3>対策</h3>
-    <ul>
-      <li><strong><code>/compact</code> をこまめに実行</strong>（目安: 50-100回のやり取りごと）</li>
-      <li><strong><code>/clear</code> で新しいタスクを始める</strong></li>
-      <li><strong>dxプラグインのステータスバー</strong>でトークン使用量を常時監視</li>
-      <li><strong>1セッション = 1タスクの原則</strong></li>
-    </ul>
+    <h3>破壊操作ブロック</h3>
+    <p>危険なコマンドの実行を事前に検知し、ブロックします。</p>
 
-    <div class="code-label">コンテキスト管理コマンド</div>
-    <div class="code-block"><code># トークン使用量を確認
-/cost
-
-# コンテキストを圧縮（重要な情報は保持）
-/compact
-
-# 完全にクリア（新しいタスクを始める時）
-/clear</code></div>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>dxプラグイン（ykdojo）を入れると、ステータスバーにトークン使用量がリアルタイム表示されます。コンテキスト管理が劇的に楽になります。</p>
-    </div>
-
-    <!-- ===== Section 3: 過剰自動化 ===== -->
-    <h2 id="over-automation">過剰自動化 &mdash; MVP主義が最善</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Hooks、MCP、Plugins、Skillsを一度に導入すると、何が動いているか把握できなくなります。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>何が動いているかわからない</li>
-      <li>デバッグが困難</li>
-      <li>Hooks/Plugins同士が競合</li>
-      <li>設定変更のたびに全体が壊れる</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>最初からHooks/MCP/Plugins/Skillsを全部入り</li>
-      <li>「良さそうなプラグイン」を片っ端からインストール</li>
-      <li>動作を理解する前に次のものを追加</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>MVP構成</strong>: dx + 安全Hooks（2-3個） + 1 Skill から始める</li>
-      <li><strong>1つずつ追加</strong>し、効果を確認してから次を入れる</li>
-      <li><strong>問題が起きたら最後に追加したものを疑う</strong></li>
-      <li><strong>プラグインは最大3-4個</strong>にとどめる</li>
-    </ul>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>「最初から完璧を目指す」は最大の落とし穴です。MVP構成で1週間使い、課題が見えてから拡張するのが成功パターンです。</p>
-    </div>
-
-    <!-- ===== Section 4: 権限の罠 ===== -->
-    <h2 id="permission-trap">権限の罠 &mdash; 自動承認の危険性</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Claudeは便利ですが、指示を誤解して危険な操作を実行する可能性があります。「自動承認 = 全権委任」と理解してください。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>意図しないファイル削除</li>
-      <li>本番データベースの変更</li>
-      <li>不要なgit push</li>
-      <li>シークレットファイルの露出</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>「毎回確認するのが面倒」で自動承認を広く設定</li>
-      <li>permissions設計をスキップ</li>
-      <li>deny設定をしていない</li>
-    </ul>
-
-    <h3>対策</h3>
-
-    <div class="code-label">settings.json &mdash; deny設定の例</div>
+    <div class="code-label">.claude/settings.json - 破壊操作ブロック</div>
     <div class="code-block"><code>{
-  "permissions": {
-    "deny": [
-      "rm -rf",
-      "git push --force",
-      "git reset --hard",
-      "DROP TABLE",
-      "DELETE FROM",
-      "TRUNCATE"
+  "hooks": {
+    "PreBash": [
+      {
+        "matcher": "rm -rf|rmdir /s|del /f",
+        "command": "echo 'BLOCKED: 破壊的なファイル削除コマンドが検出されました' && exit 1"
+      },
+      {
+        "matcher": "DROP TABLE|DROP DATABASE|TRUNCATE",
+        "command": "echo 'BLOCKED: データベース破壊コマンドが検出されました' && exit 1"
+      }
     ]
   }
 }</code></div>
 
-    <ul>
-      <li><strong>最小権限の原則</strong>: 必要なツールだけをallow</li>
-      <li><strong>危険なコマンドは必ずdeny</strong></li>
-      <li><strong>PreToolUse Hooksで二重防御</strong></li>
-    </ul>
+    <h3>シークレットチェック</h3>
+    <p>ファイル書き込み時に、APIキーやパスワードなどのシークレットが含まれていないかチェックします。</p>
 
-    <!-- ===== Section 5: Git事故 ===== -->
-    <h2 id="git-accidents">Git事故 &mdash; 取り返しがつかない操作</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>force pushは他の開発者のコミットを永久に消失させる可能性があります。Hooksで100%ブロックすることを強く推奨します。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>コミット履歴の破壊</li>
-      <li>他の開発者の変更の消失</li>
-      <li>リモートリポジトリの汚染</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li><code>git push --force</code> の実行</li>
-      <li><code>git reset --hard</code> での変更破棄</li>
-      <li><code>--no-verify</code> でhookをスキップ</li>
-      <li><code>git commit --amend</code> の連発（特にhook失敗後）</li>
-    </ul>
-
-    <h3>対策</h3>
-
-    <p>PreToolUse Hooksでforce push / reset --hardをブロックします。</p>
-
-    <div class="code-label">settings.json &mdash; Git安全Hook</div>
+    <div class="code-label">.claude/settings.json - シークレットチェック</div>
     <div class="code-block"><code>{
   "hooks": {
-    "PreToolUse": [{
-      "matcher": "Bash",
-      "command": "bash -c 'echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"push.*--force|push.*-f|reset.*--hard\" && exit 1 || exit 0'"
-    }]
+    "PreWrite": [
+      {
+        "matcher": "**/*.ts,**/*.js,**/*.py",
+        "command": "grep -nE '(sk-ant-api|AKIA[0-9A-Z]|password\\s*=\\s*[\"'\''].[\"'\'']|BEGIN RSA PRIVATE KEY)' $FILE && echo 'BLOCKED: シークレットが検出されました' && exit 1 || true"
+      }
+    ]
   }
 }</code></div>
 
-    <ul>
-      <li><strong>CLAUDE.mdに「NEVER: --no-verifyを使わない」を明記</strong></li>
-      <li><strong>新しいコミットを作る</strong>（amendではなく）</li>
-      <li><strong>Hooksで破壊的操作を自動ブロック</strong></li>
-    </ul>
+    <h3>force pushブロック</h3>
+    <p><code>git push --force</code>やその省略形をブロックし、チームの作業を守ります。</p>
 
-    <!-- ===== Section 6: Plugins/Skills過剰導入 ===== -->
-    <h2 id="plugin-overload">Plugins/Skills過剰導入 &mdash; 少ないほど良い</h2>
+    <div class="code-label">.claude/settings.json - force pushブロック</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PreBash": [
+      {
+        "matcher": "git push.*--force|git push.*-f",
+        "command": "echo 'BLOCKED: force pushは禁止されています。--force-with-leaseを使用してください。' && exit 1"
+      }
+    ]
+  }
+}</code></div>
 
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>プラグインを入れすぎるとコンテキストウィンドウが圧迫され、本来の指示が薄まります。</p>
+      <p>安全系Hooksは最初から設定してください。「後で設定しよう」と思っていると、その前に事故が起きます。特にforce pushブロックとシークレットチェックは必須です。</p>
     </div>
 
-    <h3>症状</h3>
-    <ul>
-      <li>コンテキストウィンドウの圧迫</li>
-      <li>スキル同士の競合（同じトリガーで複数起動）</li>
-      <li>予期しない挙動</li>
-      <li>起動時の遅延</li>
-    </ul>
+    <!-- ===== Section 3: 品質系Hooks実践 ===== -->
+    <h2 id="quality">品質系Hooks実践</h2>
 
-    <h3>原因</h3>
-    <ul>
-      <li>awesomeリストから「良さそうなもの」を全部インストール</li>
-      <li>効果を検証せずに次を追加</li>
-      <li>不要になったプラグインを削除しない</li>
-    </ul>
+    <p>コードの品質を自動的に維持するためのHooksを設定します。ファイル保存後の自動lint、テスト実行、型チェックなどを自動化します。</p>
 
-    <h3>対策</h3>
-    <ul>
-      <li><strong>最初は2-3個にとどめる</strong>（dx + superpowers + 1カスタムSkill）</li>
-      <li><strong>1つ追加したら1週間使って効果を検証</strong></li>
-      <li><strong>使わないプラグインは即削除</strong></li>
-      <li><strong>Skillsのdescriptionが重複しないよう管理</strong></li>
-    </ul>
+    <h3>自動lint/format（PostWrite）</h3>
+    <p>ファイルが書き込まれた直後にlinterとformatterを自動実行し、コードスタイルを統一します。</p>
+
+    <div class="code-label">.claude/settings.json - 自動lint/format</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostWrite": [
+      {
+        "matcher": "**/*.ts,**/*.tsx",
+        "command": "npx eslint --fix $FILE && npx prettier --write $FILE"
+      },
+      {
+        "matcher": "**/*.py",
+        "command": "ruff check --fix $FILE && ruff format $FILE"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>テスト自動実行</h3>
+    <p>ソースコードが変更された時に、関連するテストファイルを自動実行します。</p>
+
+    <div class="code-label">.claude/settings.json - テスト自動実行</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostWrite": [
+      {
+        "matcher": "src/**/*.ts",
+        "command": "TEST_FILE=$(echo $FILE | sed 's/src/tests/' | sed 's/.ts/.test.ts/') && [ -f $TEST_FILE ] && npx vitest run $TEST_FILE || true"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>型チェック</h3>
+    <p>TypeScriptファイルの変更後に型チェックを実行し、型エラーを即座に検出します。</p>
+
+    <div class="code-label">.claude/settings.json - 型チェック</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostWrite": [
+      {
+        "matcher": "**/*.ts,**/*.tsx",
+        "command": "npx tsc --noEmit --pretty 2>&1 | head -20"
+      }
+    ]
+  }
+}</code></div>
 
     <div class="callout callout-tip">
       <div class="callout-title">&#x2705; Tip</div>
-      <p>プラグイン選びの鉄則: 「本当に必要か？」を3回自問してからインストール。多くの場合、CLAUDE.mdに2行書くだけで済むことをプラグインで解決しようとしています。</p>
+      <p>品質系Hooksは<code>|| true</code>で終わらせることで、チェック失敗時にClaude Codeの処理をブロックせず警告だけを表示できます。逆に、厳格にブロックしたい場合は<code>&& exit 1</code>を使います。</p>
     </div>
 
-    <!-- ===== Section 7: 「AIに全部任せる」思考 ===== -->
-    <h2 id="over-reliance">「AIに全部任せる」思考 &mdash; 人間のチェックポイント</h2>
+    <!-- ===== Section 4: Prompt Hooks ===== -->
+    <h2 id="prompt-hooks">Prompt Hooks</h2>
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>AIは間違えます。特にセキュリティ、ビジネスロジック、エッジケースでは人間のレビューが不可欠です。「信頼するが検証する（Trust but Verify）」を原則にしてください。</p>
-    </div>
+    <p>Prompt HooksはLLMにyes/no判断をさせるハンドラータイプです。ルールベースでは判断が難しい複雑なケースに対して、AIの判断力を活用します。</p>
 
-    <h3>症状</h3>
+    <h3>LLMにyes/no判断させるHook</h3>
+    <p>変更内容をLLMが分析し、問題がある場合にブロックまたは警告します。</p>
+
+    <div class="code-label">Prompt Hookの設定例</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PreWrite": [
+      {
+        "matcher": "src/api/**/*.ts",
+        "type": "prompt",
+        "prompt": "以下のファイル変更を分析し、セキュリティリスクがあるかどうかをyes/noで判断してください。認証バイパス、SQLインジェクション、XSSの可能性を確認してください。リスクがある場合はyesと回答し、理由を説明してください。"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>セキュリティリスク分析</h3>
+    <p>Prompt Hooksの典型的なユースケースは、コード変更のセキュリティリスク分析です。</p>
+
     <ul>
-      <li>セキュリティ脆弱性の見逃し</li>
-      <li>ビジネスロジックの誤り</li>
-      <li>テストカバレッジの不足</li>
-      <li>技術的負債の蓄積</li>
+      <li><strong>認証・認可チェック</strong> &mdash; 新しいAPIエンドポイントに適切な認証ミドルウェアが設定されているか</li>
+      <li><strong>入力バリデーション</strong> &mdash; ユーザー入力が適切にサニタイズされているか</li>
+      <li><strong>データ漏洩リスク</strong> &mdash; レスポンスに不必要な個人情報が含まれていないか</li>
+      <li><strong>依存関係の安全性</strong> &mdash; 新しく追加されたパッケージに既知の脆弱性がないか</li>
     </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>「Claudeが書いたから大丈夫」という過信</li>
-      <li>コードレビューのスキップ</li>
-      <li>テスト実行の省略</li>
-      <li>本番デプロイの確認不足</li>
-    </ul>
-
-    <h3>対策</h3>
-    <p>人間のチェックポイントを設定:</p>
-    <ol class="steps-list">
-      <li>
-        <strong>PR作成前: 変更内容のレビュー</strong><br>
-        差分を必ず確認し、意図しない変更がないかチェックします。
-      </li>
-      <li>
-        <strong>テスト: テスト結果の確認</strong><br>
-        テストが全て通過していることを確認。カバレッジも注視します。
-      </li>
-      <li>
-        <strong>セキュリティ: 認証・認可・入力バリデーション</strong><br>
-        特に外部入力を扱うコードは、人間の目で慎重にレビューします。
-      </li>
-      <li>
-        <strong>デプロイ: ステージング環境での動作確認</strong><br>
-        本番反映前に必ずステージング環境で動作を検証します。
-      </li>
-    </ol>
-
-    <p>Claudeは「優秀だが完璧ではないジュニア開発者」として扱いましょう。重要な判断は人間が行います。</p>
-
-    <!-- ===== Section 8: まとめ ===== -->
-    <h2 id="summary">まとめ &mdash; 成功するClaude Code運用の原則</h2>
-
-    <p>7つの落とし穴を回避するための、5つの原則をまとめます。</p>
-
-    <div class="workflow-cards">
-      <div class="workflow-card">
-        <div class="workflow-number">1</div>
-        <div>
-          <h4>小さく始める</h4>
-          <p>MVP構成から段階的に拡張。Hooks、Plugins、Skillsは1つずつ追加し、効果を確認してから次を入れます。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">2</div>
-        <div>
-          <h4>ルールは短く</h4>
-          <p>CLAUDE.md 120行以内、Progressive Disclosureで詳細を分割。月1回の棚卸しで肥大化を防ぎます。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">3</div>
-        <div>
-          <h4>安全は決定的に</h4>
-          <p>HooksとPermissionsで危険な操作を100%ブロック。force push、rm -rf、DROP TABLEは絶対に自動承認しません。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">4</div>
-        <div>
-          <h4>コンテキストを管理</h4>
-          <p>/compact習慣、dxステータスバー監視。1セッション = 1タスクの原則でコンテキスト汚染を防ぎます。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">5</div>
-        <div>
-          <h4>人間が最終判断</h4>
-          <p>Trust but Verify。セキュリティ、ビジネスロジック、デプロイは必ず人間がレビューします。</p>
-        </div>
-      </div>
-    </div>
 
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
-      <p>Claude Codeは強力なツールですが、使い方を誤ると生産性を下げる要因にもなります。このページの7つの落とし穴を意識し、5つの原則を守ることで、安全かつ効率的な開発環境を構築できます。</p>
+      <p>Prompt Hooksは追加のLLM呼び出しを行うため、実行コストが増加します。全ファイルに適用するのではなく、セキュリティ上重要なファイル（API、認証、決済処理など）に限定して使用してください。</p>
+    </div>
+
+    <!-- ===== Section 5: Agent Hooks ===== -->
+    <h2 id="agent-hooks">Agent Hooks</h2>
+
+    <p>Agent Hooksはサブエージェントを起動するハンドラータイプです。単純なコマンド実行では対応できない複雑な検証タスクをサブエージェントに委譲します。</p>
+
+    <h3>サブエージェントをHookで起動</h3>
+    <p>特定のイベント発生時に、定義済みのサブエージェントを自動的に起動し、検証タスクを実行させます。</p>
+
+    <div class="code-label">Agent Hookの設定例</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostWrite": [
+      {
+        "matcher": "src/components/**/*.tsx",
+        "type": "agent",
+        "agent": "accessibility-checker",
+        "prompt": "このReactコンポーネントのアクセシビリティを検証してください。WCAG 2.1 AA準拠を確認し、問題があれば修正を提案してください。"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>ファイル検証自動化</h3>
+    <p>Agent Hooksを使って、ファイル変更時に自動的にコードレビューを実行する例です。</p>
+
+    <div class="code-label">.claude/agents/code-reviewer.md</div>
+    <div class="code-block"><code>あなたはコードレビューの専門エージェントです。
+
+## チェック項目
+1. 命名規則の遵守
+2. エラーハンドリングの適切性
+3. パフォーマンスの問題
+4. テスタビリティ
+5. DRY原則の遵守
+
+## 出力形式
+- 問題の重要度: Critical / Warning / Info
+- 該当箇所: ファイル名と行番号
+- 修正提案: 具体的なコード例</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>Agent Hooksは最もコストが高いハンドラータイプです。頻繁に発火するイベント（PostWrite等）に設定する場合は、matcherを厳密に設定して発火頻度を制限してください。</p>
+    </div>
+
+    <!-- ===== Section 6: Hooks設計パターン集 ===== -->
+    <h2 id="patterns">Hooks設計パターン集</h2>
+
+    <p>実戦で使える5つのHooks設計パターンを紹介します。コピーして自プロジェクトに適用できる形で提供します。</p>
+
+    <h3>Pattern 1: CI的Hook</h3>
+    <p>セッション開始時にCI/CDパイプラインと同等のチェックを実行し、開発開始前の品質を保証します。</p>
+
+    <div class="code-label">CI的Hookの設定</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "npm run lint && npm run type-check && npm run test -- --bail 2>&1 | tail -5"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>Pattern 2: 通知Hook</h3>
+    <p>重要なイベント（セッション終了、エラー発生など）をSlackやメールで通知します。</p>
+
+    <div class="code-label">Slack通知Hookの設定</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "type": "http",
+        "url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+        "method": "POST",
+        "body": {
+          "text": "Claude Codeセッションが終了しました: $SESSION_SUMMARY"
+        }
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>Pattern 3: 長セッション警告</h3>
+    <p>セッションが一定時間を超えた場合に警告を表示し、<code>/compact</code>の実行を促します。</p>
+
+    <div class="code-label">長セッション警告の設定</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "command": "SESSION_MINS=$((($EPOCHSECONDS - $SESSION_START) / 60)) && [ $SESSION_MINS -gt 30 ] && echo 'WARNING: セッションが30分を超えました。/compactを検討してください。' || true"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>Pattern 4: コミット前チェック</h3>
+    <p>Gitコミットの実行前に、テスト通過とlintクリアを確認します。</p>
+
+    <div class="code-label">コミット前チェックの設定</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PreBash": [
+      {
+        "matcher": "git commit",
+        "command": "npm run lint -- --quiet && npm run test -- --bail --silent || (echo 'BLOCKED: lint/testが失敗しています。修正してからコミットしてください。' && exit 1)"
+      }
+    ]
+  }
+}</code></div>
+
+    <h3>Pattern 5: MCP監視</h3>
+    <p>MCPサーバーの呼び出しを監視し、異常なリクエストパターンを検出します。</p>
+
+    <div class="code-label">MCP監視の設定</div>
+    <div class="code-block"><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__*",
+        "command": "echo \"[MCP-LOG] $(date +%H:%M:%S) Tool: $TOOL_NAME\" >> .claude/mcp-access.log"
+      }
+    ]
+  }
+}</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Hooksの設計は「最小限から始めて必要に応じて追加」が原則です。最初から全パターンを導入すると、パフォーマンスが低下し、デバッグが困難になります。まずは安全系Hooks（Pattern 4のコミット前チェック等）から始めてください。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
-      <a href="workflows.html">
+      <a href="advanced-techniques.html">
         <div class="nav-dir">&larr; 前のページ</div>
-        <div class="nav-title">実践ワークフロー集</div>
+        <div class="nav-title">上級テクニック集</div>
       </a>
-      <a href="professional-setup.html" class="next">
+      <a href="other-uses.html" class="next">
         <div class="nav-dir">次のページ &rarr;</div>
-        <div class="nav-title">プロフェッショナル環境構築</div>
+        <div class="nav-title">その他業務</div>
       </a>
     </div>
 

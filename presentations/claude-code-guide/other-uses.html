@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Claude Code運用でよくある落とし穴と対策。CLAUDE.md肥大化、コンテキスト汚染、過剰自動化、権限の罠、Git事故など7つの失敗パターンを解説。">
-  <title>よくある落とし穴 | AIエージェント構築ガイド</title>
+  <meta name="description" content="Claude Codeをコーディング以外で活用する方法。ドキュメント自動生成、コードレビュー自動化、大量資料分析、PM向け活用、学習・教育への応用を解説。">
+  <title>その他業務 | Claude Code ガイド</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -594,7 +594,7 @@
 <!-- ===== TOP BAR ===== -->
 <header class="topbar">
   <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
-  <span class="page-title">よくある落とし穴</span>
+  <span class="page-title">その他業務</span>
   <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
 </header>
 
@@ -612,8 +612,8 @@
     </nav>
     <div class="page-nav">
       <div class="nav-label">ナビゲーション</div>
-      <a href="workflows.html">&larr; 前へ: 実践ワークフロー集</a>
-      <a href="professional-setup.html">次へ: プロ環境構築 &rarr;</a>
+      <a href="hooks-guide.html">&larr; 前へ: Hooks完全ガイド</a>
+      <a href="../ai_coding_agents_guide.html">&larr; ガイドTOPに戻る</a>
     </div>
     <div class="chapter-nav">
       <h4 class="chapter-nav-title">全12章</h4>
@@ -624,11 +624,11 @@
       <a href="plugins-and-skills.html" class="chapter-link">5. Plugins &amp; Skills</a>
       <a href="recommended-resources.html" class="chapter-link">6. リソース集</a>
       <a href="workflows.html" class="chapter-link">7. ワークフロー</a>
-      <a href="pitfalls.html" class="chapter-link current">8. 落とし穴</a>
+      <a href="pitfalls.html" class="chapter-link">8. 落とし穴</a>
       <a href="professional-setup.html" class="chapter-link">9. プロ環境構築</a>
       <a href="advanced-techniques.html" class="chapter-link">10. 上級テクニック</a>
       <a href="hooks-guide.html" class="chapter-link">11. Hooks完全ガイド</a>
-      <a href="other-uses.html" class="chapter-link">12. その他業務</a>
+      <a href="other-uses.html" class="chapter-link current">12. その他業務</a>
     </div>
   </aside>
 
@@ -637,382 +637,306 @@
 
     <nav class="breadcrumb">
       <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
-      <span>›</span>
+      <span>&rsaquo;</span>
       <a href="index.html">Claude Code</a>
-      <span>›</span>
-      <span class="current">落とし穴</span>
+      <span>&rsaquo;</span>
+      <span class="current">その他業務</span>
     </nav>
 
     <div class="page-meta">
-      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">全レベルの開発者</span></div>
-      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">よくある失敗パターンを事前に回避できる</span></div>
-      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">なし</span></div>
-      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">10分</span></div>
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">コーディング以外でもClaude Codeを活用したい人</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">ドキュメント・レビュー・分析の自動化ができる</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">Getting Started完了</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">15分</span></div>
     </div>
 
-    <h1>よくある落とし穴</h1>
-    <p class="subtitle">Claude Code運用で多くの開発者が陥る7つの失敗パターンと、その具体的な対策をまとめました。各セクションは「症状 &rarr; 原因 &rarr; 対策」の3部構成です。</p>
+    <h1>その他業務</h1>
+    <p class="subtitle">Claude Codeはコーディングだけのツールではありません。ドキュメント生成、コードレビュー、大量資料分析、PM向けタスク、学習・教育など、幅広い業務を自動化・効率化できます。</p>
 
-    <!-- ===== Section 1: CLAUDE.md肥大化 ===== -->
-    <h2 id="bloated-claudemd">CLAUDE.md肥大化 &mdash; 最も多い初心者の失敗</h2>
+    <!-- ===== Section 1: ドキュメント自動生成 ===== -->
+    <h2 id="docs">ドキュメント自動生成</h2>
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>CLAUDE.mdが150行を超えたら赤信号です。即座に<code>.claude/rules/</code>への分割を検討してください。</p>
-    </div>
+    <p>Claude Codeはコードベースを読み解いて、高品質なドキュメントを自動生成できます。README、API docs、アーキテクチャ文書など、エンジニアが最も苦手とする作業を自動化します。</p>
 
-    <h3>症状</h3>
+    <h3>README自動生成・更新</h3>
+    <p>プロジェクトの構造と目的を分析し、構造化されたREADMEを生成します。</p>
+
+    <div class="code-label">README生成プロンプト</div>
+    <div class="code-block"><code>このプロジェクトのREADMEを生成して。以下の構成で:
+1. プロジェクト概要（1段落）
+2. 主要機能（箇条書き）
+3. セットアップ手順（ステップバイステップ）
+4. 使い方（基本的なコマンド例）
+5. ディレクトリ構成（ツリー形式）
+6. ライセンス
+
+コードベースを分析して、実際の内容に基づいて書いて。
+推測ではなく、事実に基づくこと。</code></div>
+
+    <h3>API ドキュメント生成</h3>
+    <p>APIのエンドポイント、リクエスト/レスポンス形式、認証方法などを自動的にドキュメント化します。</p>
+
+    <div class="code-label">API docs生成プロンプト</div>
+    <div class="code-block"><code>src/app/api/ 配下の全エンドポイントを分析し、
+OpenAPI 3.0形式のドキュメントを生成して。
+
+各エンドポイントについて:
+- HTTPメソッドとパス
+- リクエストパラメータ（型付き）
+- レスポンス形式（成功/エラー）
+- 認証要否
+- 使用例（curlコマンド）</code></div>
+
+    <h3>アーキテクチャ文書の自動更新</h3>
+    <p>コードの変更に伴い、アーキテクチャ文書を自動更新する仕組みを作ります。</p>
+
     <ul>
-      <li>Claudeの応答が遅くなる</li>
-      <li>指示に従わないことが増える</li>
-      <li>矛盾する指示が混在する</li>
-      <li>同じミスが繰り返される（ルールが多すぎて無視される）</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>「とりあえずCLAUDE.mdに追記」の習慣</li>
-      <li>ルールの分割を知らない</li>
-      <li>古いルールを削除しない</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>80〜120行を厳守</strong>（最大150行以内）</li>
-      <li><strong><code>.claude/rules/</code> にカテゴリ別に分割</strong>（Progressive Disclosure）</li>
-      <li><strong>詳細はdocs/に分離</strong>し、CLAUDE.mdからリンク</li>
-      <li><strong>月1回の棚卸し</strong>（古い・重複するルールを削除）</li>
-    </ul>
-
-    <div class="code-label">Before: 肥大化したCLAUDE.md（300行超）</div>
-    <div class="code-block"><code># CLAUDE.md
-## コーディング規約（50行）
-## テスト方針（40行）
-## デプロイ手順（60行）
-## Git運用ルール（30行）
-## API設計ガイドライン（80行）
-## ... 全部ここに詰め込んでいる</code></div>
-
-    <div class="code-label">After: 整理されたCLAUDE.md（80行）</div>
-    <div class="code-block"><code># CLAUDE.md（80行以内）
-## プロジェクト概要（10行）
-## 最重要ルール（20行）
-## ディレクトリ構成（15行）
-## 詳細は以下を参照:
-# .claude/rules/coding.md
-# .claude/rules/testing.md
-# docs/deploy-guide.md</code></div>
-
-    <!-- ===== Section 2: コンテキスト汚染 ===== -->
-    <h2 id="context-pollution">コンテキスト汚染 &mdash; セッションが長いほど危険</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>長時間セッションはコンテキスト汚染の温床です。定期的な<code>/compact</code>で品質を維持してください。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>Claudeが以前の話題を混同する</li>
-      <li>関係ないファイルの内容に言及する</li>
-      <li>応答品質が徐々に低下する</li>
-      <li>トークン使用量が急増</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>長時間セッションの放置</li>
-      <li>大量のファイルを一度に読み込む</li>
-      <li><code>/compact</code>を使わない</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong><code>/compact</code> をこまめに実行</strong>（目安: 50-100回のやり取りごと）</li>
-      <li><strong><code>/clear</code> で新しいタスクを始める</strong></li>
-      <li><strong>dxプラグインのステータスバー</strong>でトークン使用量を常時監視</li>
-      <li><strong>1セッション = 1タスクの原則</strong></li>
-    </ul>
-
-    <div class="code-label">コンテキスト管理コマンド</div>
-    <div class="code-block"><code># トークン使用量を確認
-/cost
-
-# コンテキストを圧縮（重要な情報は保持）
-/compact
-
-# 完全にクリア（新しいタスクを始める時）
-/clear</code></div>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>dxプラグイン（ykdojo）を入れると、ステータスバーにトークン使用量がリアルタイム表示されます。コンテキスト管理が劇的に楽になります。</p>
-    </div>
-
-    <!-- ===== Section 3: 過剰自動化 ===== -->
-    <h2 id="over-automation">過剰自動化 &mdash; MVP主義が最善</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Hooks、MCP、Plugins、Skillsを一度に導入すると、何が動いているか把握できなくなります。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>何が動いているかわからない</li>
-      <li>デバッグが困難</li>
-      <li>Hooks/Plugins同士が競合</li>
-      <li>設定変更のたびに全体が壊れる</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>最初からHooks/MCP/Plugins/Skillsを全部入り</li>
-      <li>「良さそうなプラグイン」を片っ端からインストール</li>
-      <li>動作を理解する前に次のものを追加</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>MVP構成</strong>: dx + 安全Hooks（2-3個） + 1 Skill から始める</li>
-      <li><strong>1つずつ追加</strong>し、効果を確認してから次を入れる</li>
-      <li><strong>問題が起きたら最後に追加したものを疑う</strong></li>
-      <li><strong>プラグインは最大3-4個</strong>にとどめる</li>
+      <li><strong>依存関係の可視化</strong> &mdash; モジュール間の依存関係をMermaid記法で図示</li>
+      <li><strong>データフローの記述</strong> &mdash; リクエストがどのように処理されるかを追跡</li>
+      <li><strong>設計判断の記録</strong> &mdash; なぜこの設計にしたかのADR（Architecture Decision Record）を生成</li>
     </ul>
 
     <div class="callout callout-tip">
       <div class="callout-title">&#x2705; Tip</div>
-      <p>「最初から完璧を目指す」は最大の落とし穴です。MVP構成で1週間使い、課題が見えてから拡張するのが成功パターンです。</p>
+      <p>ドキュメント生成はHooksと組み合わせると強力です。PostWriteフックで「変更されたファイルに関連するドキュメントを更新」を自動化すれば、ドキュメントとコードの乖離を防げます。</p>
     </div>
 
-    <!-- ===== Section 4: 権限の罠 ===== -->
-    <h2 id="permission-trap">権限の罠 &mdash; 自動承認の危険性</h2>
+    <!-- ===== Section 2: コードレビュー自動化 ===== -->
+    <h2 id="review">コードレビュー自動化</h2>
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Claudeは便利ですが、指示を誤解して危険な操作を実行する可能性があります。「自動承認 = 全権委任」と理解してください。</p>
-    </div>
+    <p>Claude Codeを使ったコードレビューの自動化フローを解説します。PR作成からレビュー、フィードバックまでの一連のプロセスを効率化します。</p>
 
-    <h3>症状</h3>
-    <ul>
-      <li>意図しないファイル削除</li>
-      <li>本番データベースの変更</li>
-      <li>不要なgit push</li>
-      <li>シークレットファイルの露出</li>
-    </ul>
+    <h3>PR作成の自動化</h3>
+    <p>変更内容を分析し、適切なPRタイトル、説明、レビュアー候補を自動生成します。</p>
 
-    <h3>原因</h3>
-    <ul>
-      <li>「毎回確認するのが面倒」で自動承認を広く設定</li>
-      <li>permissions設計をスキップ</li>
-      <li>deny設定をしていない</li>
-    </ul>
+    <div class="code-label">PR作成プロンプト</div>
+    <div class="code-block"><code># Claude Codeで変更をコミット後
+git diff main...HEAD を分析して、PRを作成して。
 
-    <h3>対策</h3>
+PRには以下を含めて:
+- 変更の概要（What）
+- 変更の理由（Why）
+- テスト方法（How to test）
+- 影響範囲（Impact）
+- スクリーンショット（UI変更の場合）</code></div>
 
-    <div class="code-label">settings.json &mdash; deny設定の例</div>
-    <div class="code-block"><code>{
-  "permissions": {
-    "deny": [
-      "rm -rf",
-      "git push --force",
-      "git reset --hard",
-      "DROP TABLE",
-      "DELETE FROM",
-      "TRUNCATE"
-    ]
-  }
-}</code></div>
+    <h3>自動レビューフロー</h3>
 
-    <ul>
-      <li><strong>最小権限の原則</strong>: 必要なツールだけをallow</li>
-      <li><strong>危険なコマンドは必ずdeny</strong></li>
-      <li><strong>PreToolUse Hooksで二重防御</strong></li>
-    </ul>
-
-    <!-- ===== Section 5: Git事故 ===== -->
-    <h2 id="git-accidents">Git事故 &mdash; 取り返しがつかない操作</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>force pushは他の開発者のコミットを永久に消失させる可能性があります。Hooksで100%ブロックすることを強く推奨します。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>コミット履歴の破壊</li>
-      <li>他の開発者の変更の消失</li>
-      <li>リモートリポジトリの汚染</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li><code>git push --force</code> の実行</li>
-      <li><code>git reset --hard</code> での変更破棄</li>
-      <li><code>--no-verify</code> でhookをスキップ</li>
-      <li><code>git commit --amend</code> の連発（特にhook失敗後）</li>
-    </ul>
-
-    <h3>対策</h3>
-
-    <p>PreToolUse Hooksでforce push / reset --hardをブロックします。</p>
-
-    <div class="code-label">settings.json &mdash; Git安全Hook</div>
-    <div class="code-block"><code>{
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Bash",
-      "command": "bash -c 'echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"push.*--force|push.*-f|reset.*--hard\" && exit 1 || exit 0'"
-    }]
-  }
-}</code></div>
-
-    <ul>
-      <li><strong>CLAUDE.mdに「NEVER: --no-verifyを使わない」を明記</strong></li>
-      <li><strong>新しいコミットを作る</strong>（amendではなく）</li>
-      <li><strong>Hooksで破壊的操作を自動ブロック</strong></li>
-    </ul>
-
-    <!-- ===== Section 6: Plugins/Skills過剰導入 ===== -->
-    <h2 id="plugin-overload">Plugins/Skills過剰導入 &mdash; 少ないほど良い</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>プラグインを入れすぎるとコンテキストウィンドウが圧迫され、本来の指示が薄まります。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>コンテキストウィンドウの圧迫</li>
-      <li>スキル同士の競合（同じトリガーで複数起動）</li>
-      <li>予期しない挙動</li>
-      <li>起動時の遅延</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>awesomeリストから「良さそうなもの」を全部インストール</li>
-      <li>効果を検証せずに次を追加</li>
-      <li>不要になったプラグインを削除しない</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>最初は2-3個にとどめる</strong>（dx + superpowers + 1カスタムSkill）</li>
-      <li><strong>1つ追加したら1週間使って効果を検証</strong></li>
-      <li><strong>使わないプラグインは即削除</strong></li>
-      <li><strong>Skillsのdescriptionが重複しないよう管理</strong></li>
-    </ul>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>プラグイン選びの鉄則: 「本当に必要か？」を3回自問してからインストール。多くの場合、CLAUDE.mdに2行書くだけで済むことをプラグインで解決しようとしています。</p>
-    </div>
-
-    <!-- ===== Section 7: 「AIに全部任せる」思考 ===== -->
-    <h2 id="over-reliance">「AIに全部任せる」思考 &mdash; 人間のチェックポイント</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>AIは間違えます。特にセキュリティ、ビジネスロジック、エッジケースでは人間のレビューが不可欠です。「信頼するが検証する（Trust but Verify）」を原則にしてください。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>セキュリティ脆弱性の見逃し</li>
-      <li>ビジネスロジックの誤り</li>
-      <li>テストカバレッジの不足</li>
-      <li>技術的負債の蓄積</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>「Claudeが書いたから大丈夫」という過信</li>
-      <li>コードレビューのスキップ</li>
-      <li>テスト実行の省略</li>
-      <li>本番デプロイの確認不足</li>
-    </ul>
-
-    <h3>対策</h3>
-    <p>人間のチェックポイントを設定:</p>
     <ol class="steps-list">
       <li>
-        <strong>PR作成前: 変更内容のレビュー</strong><br>
-        差分を必ず確認し、意図しない変更がないかチェックします。
+        <strong>差分分析</strong><br>
+        <code>git diff</code>の内容をClaude Codeに渡し、変更の意図と品質を分析。セキュリティ、パフォーマンス、保守性の観点でチェック。
       </li>
       <li>
-        <strong>テスト: テスト結果の確認</strong><br>
-        テストが全て通過していることを確認。カバレッジも注視します。
+        <strong>コメント生成</strong><br>
+        問題点や改善提案をGitHubのレビューコメント形式で生成。行番号付きで具体的な修正案を提示。
       </li>
       <li>
-        <strong>セキュリティ: 認証・認可・入力バリデーション</strong><br>
-        特に外部入力を扱うコードは、人間の目で慎重にレビューします。
-      </li>
-      <li>
-        <strong>デプロイ: ステージング環境での動作確認</strong><br>
-        本番反映前に必ずステージング環境で動作を検証します。
+        <strong>フィードバックの反映</strong><br>
+        レビューコメントに基づいて修正を自動適用。修正後に再レビューを実行し、品質を確認。
       </li>
     </ol>
 
-    <p>Claudeは「優秀だが完璧ではないジュニア開発者」として扱いましょう。重要な判断は人間が行います。</p>
+    <div class="code-label">コードレビュー実行</div>
+    <div class="code-block"><code># PRの差分をレビュー
+claude "git diff main...HEAD を読んで、コードレビューして。
+以下の観点でチェック:
+1. バグの可能性
+2. セキュリティリスク
+3. パフォーマンス問題
+4. 命名規則の遵守
+5. テストの十分性"
 
-    <!-- ===== Section 8: まとめ ===== -->
-    <h2 id="summary">まとめ &mdash; 成功するClaude Code運用の原則</h2>
+# GitHub CLIと連携してPRコメントを投稿
+claude "gh pr view 123 のレビューコメントを読んで、
+指摘事項を修正して。"</code></div>
 
-    <p>7つの落とし穴を回避するための、5つの原則をまとめます。</p>
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>自動レビューは人間のレビューを置き換えるものではなく、補完するものです。明らかなバグや規約違反は自動検出し、人間はアーキテクチャやビジネスロジックの妥当性に集中できるようにしましょう。</p>
+    </div>
+
+    <!-- ===== Section 3: 大量資料分析 ===== -->
+    <h2 id="analysis">大量資料分析</h2>
+
+    <p>大量のドキュメント、ログファイル、データセットをClaude Codeで効率的に分析するワークフローを解説します。GPT+Claudeの2段階分析で精度と効率を両立させます。</p>
+
+    <h3>2段階分析ワークフロー</h3>
 
     <div class="workflow-cards">
       <div class="workflow-card">
         <div class="workflow-number">1</div>
         <div>
-          <h4>小さく始める</h4>
-          <p>MVP構成から段階的に拡張。Hooks、Plugins、Skillsは1つずつ追加し、効果を確認してから次を入れます。</p>
+          <h4>Stage 1: 粗い分析（GPT / Haiku）</h4>
+          <p>大量の資料を高速に処理し、重要な箇所を抽出。コスト効率の良いモデルで全体をスキャンし、注目ポイントをリストアップ。</p>
         </div>
       </div>
       <div class="workflow-card">
         <div class="workflow-number">2</div>
         <div>
-          <h4>ルールは短く</h4>
-          <p>CLAUDE.md 120行以内、Progressive Disclosureで詳細を分割。月1回の棚卸しで肥大化を防ぎます。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">3</div>
-        <div>
-          <h4>安全は決定的に</h4>
-          <p>HooksとPermissionsで危険な操作を100%ブロック。force push、rm -rf、DROP TABLEは絶対に自動承認しません。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">4</div>
-        <div>
-          <h4>コンテキストを管理</h4>
-          <p>/compact習慣、dxステータスバー監視。1セッション = 1タスクの原則でコンテキスト汚染を防ぎます。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">5</div>
-        <div>
-          <h4>人間が最終判断</h4>
-          <p>Trust but Verify。セキュリティ、ビジネスロジック、デプロイは必ず人間がレビューします。</p>
+          <h4>Stage 2: 深い分析（Claude Opus）</h4>
+          <p>Stage 1で抽出された重要箇所を、高性能モデルで詳細に分析。因果関係の推論、矛盾の検出、提言の生成を行う。</p>
         </div>
       </div>
     </div>
 
+    <h3>実践例: ログ分析</h3>
+
+    <div class="code-label">大量ログの分析</div>
+    <div class="code-block"><code># Stage 1: エラーログの抽出と分類
+claude "logs/ ディレクトリの全ログファイルを分析して。
+エラーをカテゴリ別に分類し、発生頻度を集計して。
+上位10件のエラーパターンをリストアップ。"
+
+# Stage 2: 根本原因分析
+claude "Stage 1で特定された上位3件のエラーパターンについて、
+根本原因を分析して。関連するソースコードを調べ、
+修正案を優先度付きで提示して。"</code></div>
+
+    <h3>実践例: 競合分析</h3>
+
+    <div class="code-label">競合資料の比較分析</div>
+    <div class="code-block"><code>claude "docs/competitors/ ディレクトリの全資料を読んで、
+以下の観点で比較表を作成して:
+1. 主要機能の網羅性
+2. 価格帯
+3. ターゲットユーザー
+4. 技術スタック
+5. 差別化ポイント
+
+自社プロダクトとの比較も含めて。"</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>大量資料分析では、最初に<code>/compact</code>でコンテキストを確保してから開始してください。また、結果を中間ファイル（<code>analysis-results.md</code>等）に書き出しながら進めると、セッションが切れても作業を継続できます。</p>
+    </div>
+
+    <!-- ===== Section 4: PM・非エンジニア向け活用 ===== -->
+    <h2 id="pm">PM・非エンジニア向け活用</h2>
+
+    <p>プロダクトマネージャーや非エンジニアがClaude Codeを活用して、要件整理、PRD作成、論点抽出、Issue分解を効率化する方法を解説します。</p>
+
+    <h3>要件整理テンプレート</h3>
+
+    <div class="code-label">要件整理プロンプト</div>
+    <div class="code-block"><code>以下の機能要件を整理して、開発チームに渡せる形にして:
+
+[ユーザーストーリー]
+「管理者として、ユーザーの利用状況を月次レポートで
+確認したい。これにより、プランの最適化提案ができる。」
+
+以下の形式で整理して:
+1. ユーザーストーリーの明確化
+2. 受け入れ基準（Acceptance Criteria）
+3. エッジケース
+4. データ要件
+5. UI/UXの制約
+6. 優先度（Must/Should/Could/Won't）</code></div>
+
+    <h3>PRD作成</h3>
+
+    <div class="code-label">PRD作成プロンプト</div>
+    <div class="code-block"><code>以下の情報をもとにPRDを作成して:
+
+機能名: ユーザーダッシュボード刷新
+背景: 現行ダッシュボードのエンゲージメント率が低い
+目標: DAU 20%向上
+
+PRDの構成:
+1. 背景と課題
+2. ゴールと成功指標（KPI）
+3. ユーザーペルソナ
+4. 機能要件（優先度付き）
+5. 非機能要件
+6. タイムライン
+7. リスクと緩和策</code></div>
+
+    <h3>論点抽出とIssue分解</h3>
+
+    <div class="code-label">Issue分解プロンプト</div>
+    <div class="code-block"><code>以下の大きなタスクをGitHub Issueに分解して:
+
+「決済システムのStripe移行」
+
+各Issueについて:
+- タイトル（簡潔に）
+- 説明（背景、やること、受け入れ基準）
+- 見積もり（S/M/L）
+- 依存関係
+- 担当候補（frontend/backend/infra）
+
+依存関係を考慮した実行順序も提示して。</code></div>
+
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
-      <p>Claude Codeは強力なツールですが、使い方を誤ると生産性を下げる要因にもなります。このページの7つの落とし穴を意識し、5つの原則を守ることで、安全かつ効率的な開発環境を構築できます。</p>
+      <p>PM向けのプロンプトは、コードベースへのアクセス権がなくても使えるものが多いです。ただし、既存のコードベースを分析した上で要件を整理する場合は、Claude Codeのファイル読み取り機能が大きなアドバンテージになります。</p>
+    </div>
+
+    <!-- ===== Section 5: 学習・教育 ===== -->
+    <h2 id="learning">学習・教育</h2>
+
+    <p>Claude Codeを学習ツール・メンターとして活用する方法を解説します。コードベースの理解、技術調査、メンタリング的な活用が可能です。</p>
+
+    <h3>コードベース理解</h3>
+    <p>新しいプロジェクトに参加した際、Claude Codeを使ってコードベースを効率的に理解します。</p>
+
+    <div class="code-label">コードベース理解プロンプト</div>
+    <div class="code-block"><code># プロジェクト全体の理解
+claude "このプロジェクトの全体像を説明して。
+主要なモジュール、データフロー、外部依存を
+図解付きで説明して。"
+
+# 特定の機能の理解
+claude "ユーザー認証のフローを、コードを追いながら
+ステップバイステップで説明して。
+リクエストがどのファイルをどの順番で通るか示して。"
+
+# 設計判断の理解
+claude "なぜこのプロジェクトでは状態管理にReduxではなく
+Zustandを使っているのか、コードから推測して説明して。"</code></div>
+
+    <h3>技術調査</h3>
+    <p>新しい技術やライブラリの導入検討をClaude Codeに支援させます。</p>
+
+    <ul>
+      <li><strong>PoC（概念実証）の高速作成</strong> &mdash; 新しいライブラリの動作確認コードを即座に生成</li>
+      <li><strong>移行リスクの評価</strong> &mdash; 既存コードへの影響を分析し、移行コストを見積もる</li>
+      <li><strong>ベンチマーク実行</strong> &mdash; 代替技術のパフォーマンス比較を自動化</li>
+    </ul>
+
+    <h3>メンタリング的活用</h3>
+    <p>Claude Codeを「先輩エンジニア」として活用し、コーディングスキルを向上させます。</p>
+
+    <div class="code-label">メンタリング活用例</div>
+    <div class="code-block"><code># コードの改善提案を受ける
+claude "この関数をレビューして、改善点を教えて。
+なぜその改善が重要なのかも説明して。
+初心者にもわかるように。"
+
+# 設計パターンの学習
+claude "このコードにStrategy patternを適用すると
+どうなるか、Before/Afterで示して。
+適用することのメリット・デメリットも説明して。"
+
+# ベストプラクティスの学習
+claude "このエラーハンドリングを、
+TypeScriptのベストプラクティスに沿って改善して。
+各変更の理由を詳しく説明して。"</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>学習目的で使う場合は、「なぜそうするのか」「他の選択肢は何か」「トレードオフは何か」を常に質問するクセをつけましょう。単に「コードを書いて」ではなく「教えながら書いて」と指示すると、学習効果が格段に高まります。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
-      <a href="workflows.html">
+      <a href="hooks-guide.html">
         <div class="nav-dir">&larr; 前のページ</div>
-        <div class="nav-title">実践ワークフロー集</div>
+        <div class="nav-title">Hooks完全ガイド</div>
       </a>
-      <a href="professional-setup.html" class="next">
-        <div class="nav-dir">次のページ &rarr;</div>
-        <div class="nav-title">プロフェッショナル環境構築</div>
+      <a href="../ai_coding_agents_guide.html" class="next">
+        <div class="nav-dir">ガイドTOP &rarr;</div>
+        <div class="nav-title">AIエージェント構築ガイド</div>
       </a>
     </div>
 

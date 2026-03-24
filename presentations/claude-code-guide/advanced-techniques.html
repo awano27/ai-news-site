@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Claude Code運用でよくある落とし穴と対策。CLAUDE.md肥大化、コンテキスト汚染、過剰自動化、権限の罠、Git事故など7つの失敗パターンを解説。">
-  <title>よくある落とし穴 | AIエージェント構築ガイド</title>
+  <meta name="description" content="並列セッション運用、Agent Teams、サブエージェント活用、コンテキスト最適化、Copilot/Codexとのハイブリッド運用など上級テクニックを解説。">
+  <title>上級テクニック集 | Claude Code ガイド</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -594,7 +594,7 @@
 <!-- ===== TOP BAR ===== -->
 <header class="topbar">
   <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
-  <span class="page-title">よくある落とし穴</span>
+  <span class="page-title">上級テクニック集</span>
   <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
 </header>
 
@@ -612,8 +612,8 @@
     </nav>
     <div class="page-nav">
       <div class="nav-label">ナビゲーション</div>
-      <a href="workflows.html">&larr; 前へ: 実践ワークフロー集</a>
-      <a href="professional-setup.html">次へ: プロ環境構築 &rarr;</a>
+      <a href="professional-setup.html">&larr; 前へ: プロ環境構築</a>
+      <a href="hooks-guide.html">次へ: Hooks完全ガイド &rarr;</a>
     </div>
     <div class="chapter-nav">
       <h4 class="chapter-nav-title">全12章</h4>
@@ -624,9 +624,9 @@
       <a href="plugins-and-skills.html" class="chapter-link">5. Plugins &amp; Skills</a>
       <a href="recommended-resources.html" class="chapter-link">6. リソース集</a>
       <a href="workflows.html" class="chapter-link">7. ワークフロー</a>
-      <a href="pitfalls.html" class="chapter-link current">8. 落とし穴</a>
+      <a href="pitfalls.html" class="chapter-link">8. 落とし穴</a>
       <a href="professional-setup.html" class="chapter-link">9. プロ環境構築</a>
-      <a href="advanced-techniques.html" class="chapter-link">10. 上級テクニック</a>
+      <a href="advanced-techniques.html" class="chapter-link current">10. 上級テクニック</a>
       <a href="hooks-guide.html" class="chapter-link">11. Hooks完全ガイド</a>
       <a href="other-uses.html" class="chapter-link">12. その他業務</a>
     </div>
@@ -637,382 +637,374 @@
 
     <nav class="breadcrumb">
       <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
-      <span>›</span>
+      <span>&rsaquo;</span>
       <a href="index.html">Claude Code</a>
-      <span>›</span>
-      <span class="current">落とし穴</span>
+      <span>&rsaquo;</span>
+      <span class="current">上級テクニック</span>
     </nav>
 
     <div class="page-meta">
-      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">全レベルの開発者</span></div>
-      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">よくある失敗パターンを事前に回避できる</span></div>
-      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">なし</span></div>
-      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">10分</span></div>
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">生産性を極限まで高めたい上級者</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">並列セッション・Agent Teams・ワークツリーを実践できる</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">章9完了推奨</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">20分</span></div>
     </div>
 
-    <h1>よくある落とし穴</h1>
-    <p class="subtitle">Claude Code運用で多くの開発者が陥る7つの失敗パターンと、その具体的な対策をまとめました。各セクションは「症状 &rarr; 原因 &rarr; 対策」の3部構成です。</p>
+    <h1>上級テクニック集</h1>
+    <p class="subtitle">並列セッション、Agent Teams、サブエージェント、コンテキスト最適化、他ツールとのハイブリッド運用など、Claude Codeの生産性を極限まで高めるテクニックを集約しました。</p>
 
-    <!-- ===== Section 1: CLAUDE.md肥大化 ===== -->
-    <h2 id="bloated-claudemd">CLAUDE.md肥大化 &mdash; 最も多い初心者の失敗</h2>
+    <!-- ===== Section 1: 並列セッション運用 ===== -->
+    <h2 id="parallel">並列セッション運用</h2>
+
+    <p>git worktreeを使って複数のClaude Codeインスタンスを同時実行し、コンテキスト汚染ゼロで開発速度を最大化します。</p>
+
+    <h3>git worktreeの基本</h3>
+    <p>git worktreeは1つのリポジトリから複数の作業ディレクトリを作成する機能です。各ディレクトリは独立したブランチをチェックアウトでき、Claude Codeのセッション間で干渉が起きません。</p>
+
+    <div class="code-label">worktreeの作成と管理</div>
+    <div class="code-block"><code># 新しいworktreeを作成（新ブランチも同時作成）
+git worktree add -b feature/login ../myapp-login
+
+# 既存ブランチでworktreeを作成
+git worktree add ../myapp-api feature/api
+
+# worktree一覧の確認
+git worktree list
+
+# 不要になったworktreeの削除
+git worktree remove ../myapp-login</code></div>
+
+    <h3>複数インスタンスの同時実行パターン</h3>
+    <p>典型的な並列開発のパターンを紹介します。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>セッション</th>
+            <th>ディレクトリ</th>
+            <th>タスク</th>
+            <th>モデル</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Session 1</td>
+            <td><code>../app-auth</code></td>
+            <td>認証機能の実装</td>
+            <td>Opus</td>
+          </tr>
+          <tr>
+            <td>Session 2</td>
+            <td><code>../app-api</code></td>
+            <td>API エンドポイント追加</td>
+            <td>Sonnet</td>
+          </tr>
+          <tr>
+            <td>Session 3</td>
+            <td><code>../app-tests</code></td>
+            <td>テスト補強</td>
+            <td>Sonnet</td>
+          </tr>
+          <tr>
+            <td>Session 4</td>
+            <td><code>../app-docs</code></td>
+            <td>ドキュメント更新</td>
+            <td>Haiku</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>コンテキスト汚染ゼロの原則</h3>
+    <ul>
+      <li><strong>各worktreeに独立したCLAUDE.md</strong> &mdash; 共通のルールは<code>.claude/rules/</code>で共有しつつ、タスク固有の指示は各worktreeのCLAUDE.mdに記述</li>
+      <li><strong>ブランチ戦略</strong> &mdash; 各worktreeは専用のfeatureブランチを持ち、mainへのマージは1つずつ行う</li>
+      <li><strong>定期的なsync</strong> &mdash; 長時間の並列作業では、mainの変更を各worktreeにrebaseして競合を早期発見</li>
+    </ul>
 
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>CLAUDE.mdが150行を超えたら赤信号です。即座に<code>.claude/rules/</code>への分割を検討してください。</p>
+      <p>worktreeの数が多すぎると管理が煩雑になります。同時に5つ以上のworktreeを運用する場合は、タスク管理ツール（GitHub Projects等）と連携してステータスを可視化してください。</p>
     </div>
 
-    <h3>症状</h3>
-    <ul>
-      <li>Claudeの応答が遅くなる</li>
-      <li>指示に従わないことが増える</li>
-      <li>矛盾する指示が混在する</li>
-      <li>同じミスが繰り返される（ルールが多すぎて無視される）</li>
-    </ul>
+    <!-- ===== Section 2: Agent Teams ===== -->
+    <h2 id="agent-teams">Agent Teams</h2>
 
-    <h3>原因</h3>
-    <ul>
-      <li>「とりあえずCLAUDE.mdに追記」の習慣</li>
-      <li>ルールの分割を知らない</li>
-      <li>古いルールを削除しない</li>
-    </ul>
+    <p>Agent Teamsは、リードエージェントが複数のチームメイトエージェントに作業を委譲する協調型のワークフローです。Research Previewとして提供されています。</p>
 
-    <h3>対策</h3>
-    <ul>
-      <li><strong>80〜120行を厳守</strong>（最大150行以内）</li>
-      <li><strong><code>.claude/rules/</code> にカテゴリ別に分割</strong>（Progressive Disclosure）</li>
-      <li><strong>詳細はdocs/に分離</strong>し、CLAUDE.mdからリンク</li>
-      <li><strong>月1回の棚卸し</strong>（古い・重複するルールを削除）</li>
-    </ul>
-
-    <div class="code-label">Before: 肥大化したCLAUDE.md（300行超）</div>
-    <div class="code-block"><code># CLAUDE.md
-## コーディング規約（50行）
-## テスト方針（40行）
-## デプロイ手順（60行）
-## Git運用ルール（30行）
-## API設計ガイドライン（80行）
-## ... 全部ここに詰め込んでいる</code></div>
-
-    <div class="code-label">After: 整理されたCLAUDE.md（80行）</div>
-    <div class="code-block"><code># CLAUDE.md（80行以内）
-## プロジェクト概要（10行）
-## 最重要ルール（20行）
-## ディレクトリ構成（15行）
-## 詳細は以下を参照:
-# .claude/rules/coding.md
-# .claude/rules/testing.md
-# docs/deploy-guide.md</code></div>
-
-    <!-- ===== Section 2: コンテキスト汚染 ===== -->
-    <h2 id="context-pollution">コンテキスト汚染 &mdash; セッションが長いほど危険</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>長時間セッションはコンテキスト汚染の温床です。定期的な<code>/compact</code>で品質を維持してください。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>Claudeが以前の話題を混同する</li>
-      <li>関係ないファイルの内容に言及する</li>
-      <li>応答品質が徐々に低下する</li>
-      <li>トークン使用量が急増</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>長時間セッションの放置</li>
-      <li>大量のファイルを一度に読み込む</li>
-      <li><code>/compact</code>を使わない</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong><code>/compact</code> をこまめに実行</strong>（目安: 50-100回のやり取りごと）</li>
-      <li><strong><code>/clear</code> で新しいタスクを始める</strong></li>
-      <li><strong>dxプラグインのステータスバー</strong>でトークン使用量を常時監視</li>
-      <li><strong>1セッション = 1タスクの原則</strong></li>
-    </ul>
-
-    <div class="code-label">コンテキスト管理コマンド</div>
-    <div class="code-block"><code># トークン使用量を確認
-/cost
-
-# コンテキストを圧縮（重要な情報は保持）
-/compact
-
-# 完全にクリア（新しいタスクを始める時）
-/clear</code></div>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>dxプラグイン（ykdojo）を入れると、ステータスバーにトークン使用量がリアルタイム表示されます。コンテキスト管理が劇的に楽になります。</p>
-    </div>
-
-    <!-- ===== Section 3: 過剰自動化 ===== -->
-    <h2 id="over-automation">過剰自動化 &mdash; MVP主義が最善</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Hooks、MCP、Plugins、Skillsを一度に導入すると、何が動いているか把握できなくなります。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>何が動いているかわからない</li>
-      <li>デバッグが困難</li>
-      <li>Hooks/Plugins同士が競合</li>
-      <li>設定変更のたびに全体が壊れる</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>最初からHooks/MCP/Plugins/Skillsを全部入り</li>
-      <li>「良さそうなプラグイン」を片っ端からインストール</li>
-      <li>動作を理解する前に次のものを追加</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>MVP構成</strong>: dx + 安全Hooks（2-3個） + 1 Skill から始める</li>
-      <li><strong>1つずつ追加</strong>し、効果を確認してから次を入れる</li>
-      <li><strong>問題が起きたら最後に追加したものを疑う</strong></li>
-      <li><strong>プラグインは最大3-4個</strong>にとどめる</li>
-    </ul>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>「最初から完璧を目指す」は最大の落とし穴です。MVP構成で1週間使い、課題が見えてから拡張するのが成功パターンです。</p>
-    </div>
-
-    <!-- ===== Section 4: 権限の罠 ===== -->
-    <h2 id="permission-trap">権限の罠 &mdash; 自動承認の危険性</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>Claudeは便利ですが、指示を誤解して危険な操作を実行する可能性があります。「自動承認 = 全権委任」と理解してください。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>意図しないファイル削除</li>
-      <li>本番データベースの変更</li>
-      <li>不要なgit push</li>
-      <li>シークレットファイルの露出</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>「毎回確認するのが面倒」で自動承認を広く設定</li>
-      <li>permissions設計をスキップ</li>
-      <li>deny設定をしていない</li>
-    </ul>
-
-    <h3>対策</h3>
-
-    <div class="code-label">settings.json &mdash; deny設定の例</div>
-    <div class="code-block"><code>{
-  "permissions": {
-    "deny": [
-      "rm -rf",
-      "git push --force",
-      "git reset --hard",
-      "DROP TABLE",
-      "DELETE FROM",
-      "TRUNCATE"
-    ]
-  }
-}</code></div>
-
-    <ul>
-      <li><strong>最小権限の原則</strong>: 必要なツールだけをallow</li>
-      <li><strong>危険なコマンドは必ずdeny</strong></li>
-      <li><strong>PreToolUse Hooksで二重防御</strong></li>
-    </ul>
-
-    <!-- ===== Section 5: Git事故 ===== -->
-    <h2 id="git-accidents">Git事故 &mdash; 取り返しがつかない操作</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>force pushは他の開発者のコミットを永久に消失させる可能性があります。Hooksで100%ブロックすることを強く推奨します。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>コミット履歴の破壊</li>
-      <li>他の開発者の変更の消失</li>
-      <li>リモートリポジトリの汚染</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li><code>git push --force</code> の実行</li>
-      <li><code>git reset --hard</code> での変更破棄</li>
-      <li><code>--no-verify</code> でhookをスキップ</li>
-      <li><code>git commit --amend</code> の連発（特にhook失敗後）</li>
-    </ul>
-
-    <h3>対策</h3>
-
-    <p>PreToolUse Hooksでforce push / reset --hardをブロックします。</p>
-
-    <div class="code-label">settings.json &mdash; Git安全Hook</div>
-    <div class="code-block"><code>{
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Bash",
-      "command": "bash -c 'echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"push.*--force|push.*-f|reset.*--hard\" && exit 1 || exit 0'"
-    }]
-  }
-}</code></div>
-
-    <ul>
-      <li><strong>CLAUDE.mdに「NEVER: --no-verifyを使わない」を明記</strong></li>
-      <li><strong>新しいコミットを作る</strong>（amendではなく）</li>
-      <li><strong>Hooksで破壊的操作を自動ブロック</strong></li>
-    </ul>
-
-    <!-- ===== Section 6: Plugins/Skills過剰導入 ===== -->
-    <h2 id="plugin-overload">Plugins/Skills過剰導入 &mdash; 少ないほど良い</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>プラグインを入れすぎるとコンテキストウィンドウが圧迫され、本来の指示が薄まります。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>コンテキストウィンドウの圧迫</li>
-      <li>スキル同士の競合（同じトリガーで複数起動）</li>
-      <li>予期しない挙動</li>
-      <li>起動時の遅延</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>awesomeリストから「良さそうなもの」を全部インストール</li>
-      <li>効果を検証せずに次を追加</li>
-      <li>不要になったプラグインを削除しない</li>
-    </ul>
-
-    <h3>対策</h3>
-    <ul>
-      <li><strong>最初は2-3個にとどめる</strong>（dx + superpowers + 1カスタムSkill）</li>
-      <li><strong>1つ追加したら1週間使って効果を検証</strong></li>
-      <li><strong>使わないプラグインは即削除</strong></li>
-      <li><strong>Skillsのdescriptionが重複しないよう管理</strong></li>
-    </ul>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">&#x2705; Tip</div>
-      <p>プラグイン選びの鉄則: 「本当に必要か？」を3回自問してからインストール。多くの場合、CLAUDE.mdに2行書くだけで済むことをプラグインで解決しようとしています。</p>
-    </div>
-
-    <!-- ===== Section 7: 「AIに全部任せる」思考 ===== -->
-    <h2 id="over-reliance">「AIに全部任せる」思考 &mdash; 人間のチェックポイント</h2>
-
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
-      <p>AIは間違えます。特にセキュリティ、ビジネスロジック、エッジケースでは人間のレビューが不可欠です。「信頼するが検証する（Trust but Verify）」を原則にしてください。</p>
-    </div>
-
-    <h3>症状</h3>
-    <ul>
-      <li>セキュリティ脆弱性の見逃し</li>
-      <li>ビジネスロジックの誤り</li>
-      <li>テストカバレッジの不足</li>
-      <li>技術的負債の蓄積</li>
-    </ul>
-
-    <h3>原因</h3>
-    <ul>
-      <li>「Claudeが書いたから大丈夫」という過信</li>
-      <li>コードレビューのスキップ</li>
-      <li>テスト実行の省略</li>
-      <li>本番デプロイの確認不足</li>
-    </ul>
-
-    <h3>対策</h3>
-    <p>人間のチェックポイントを設定:</p>
-    <ol class="steps-list">
-      <li>
-        <strong>PR作成前: 変更内容のレビュー</strong><br>
-        差分を必ず確認し、意図しない変更がないかチェックします。
-      </li>
-      <li>
-        <strong>テスト: テスト結果の確認</strong><br>
-        テストが全て通過していることを確認。カバレッジも注視します。
-      </li>
-      <li>
-        <strong>セキュリティ: 認証・認可・入力バリデーション</strong><br>
-        特に外部入力を扱うコードは、人間の目で慎重にレビューします。
-      </li>
-      <li>
-        <strong>デプロイ: ステージング環境での動作確認</strong><br>
-        本番反映前に必ずステージング環境で動作を検証します。
-      </li>
-    </ol>
-
-    <p>Claudeは「優秀だが完璧ではないジュニア開発者」として扱いましょう。重要な判断は人間が行います。</p>
-
-    <!-- ===== Section 8: まとめ ===== -->
-    <h2 id="summary">まとめ &mdash; 成功するClaude Code運用の原則</h2>
-
-    <p>7つの落とし穴を回避するための、5つの原則をまとめます。</p>
+    <h3>リードエージェント + チームメイト構成</h3>
+    <p>Agent Teamsでは、1つのリードエージェントが全体の計画を立て、各チームメイトにサブタスクを割り振ります。</p>
 
     <div class="workflow-cards">
       <div class="workflow-card">
-        <div class="workflow-number">1</div>
+        <div class="workflow-number">L</div>
         <div>
-          <h4>小さく始める</h4>
-          <p>MVP構成から段階的に拡張。Hooks、Plugins、Skillsは1つずつ追加し、効果を確認してから次を入れます。</p>
+          <h4>リードエージェント（Lead）</h4>
+          <p>全体計画の策定、タスクの分解と割り振り、結果の統合を担当。プロジェクトの全体像を把握し、チームメイトに明確な指示を出す。</p>
         </div>
       </div>
       <div class="workflow-card">
-        <div class="workflow-number">2</div>
+        <div class="workflow-number">T1</div>
         <div>
-          <h4>ルールは短く</h4>
-          <p>CLAUDE.md 120行以内、Progressive Disclosureで詳細を分割。月1回の棚卸しで肥大化を防ぎます。</p>
+          <h4>チームメイト 1: フロントエンド担当</h4>
+          <p>UIコンポーネントの実装、スタイリング、アクセシビリティ対応を担当。リードからの設計指示に基づいて実装する。</p>
         </div>
       </div>
       <div class="workflow-card">
-        <div class="workflow-number">3</div>
+        <div class="workflow-number">T2</div>
         <div>
-          <h4>安全は決定的に</h4>
-          <p>HooksとPermissionsで危険な操作を100%ブロック。force push、rm -rf、DROP TABLEは絶対に自動承認しません。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">4</div>
-        <div>
-          <h4>コンテキストを管理</h4>
-          <p>/compact習慣、dxステータスバー監視。1セッション = 1タスクの原則でコンテキスト汚染を防ぎます。</p>
-        </div>
-      </div>
-      <div class="workflow-card">
-        <div class="workflow-number">5</div>
-        <div>
-          <h4>人間が最終判断</h4>
-          <p>Trust but Verify。セキュリティ、ビジネスロジック、デプロイは必ず人間がレビューします。</p>
+          <h4>チームメイト 2: バックエンド担当</h4>
+          <p>API設計、データベーススキーマ、ビジネスロジックの実装を担当。フロントエンドとの整合性はリードが保証する。</p>
         </div>
       </div>
     </div>
 
+    <h3>Research Previewの現状と制限</h3>
+    <ul>
+      <li><strong>現在の制限</strong> &mdash; Agent Teamsはresearch previewのため、APIの仕様が変更される可能性がある</li>
+      <li><strong>有効化方法</strong> &mdash; <code>claude config set agentTeams true</code> で有効化</li>
+      <li><strong>コスト</strong> &mdash; 各チームメイトが独立したセッションを消費するため、トークン使用量は通常の数倍になる</li>
+    </ul>
+
+    <div class="code-label">Agent Teamsの起動</div>
+    <div class="code-block"><code># Agent Teamsを有効化
+claude config set agentTeams true
+
+# リードエージェントとして起動
+claude "このプロジェクトにユーザー認証機能を追加して。
+フロントエンド（React）、バックエンド（Express）、
+テストの3つに分けてチームメイトに割り振って。"</code></div>
+
+    <h3>サブエージェントとの違い</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>特徴</th>
+            <th>Agent Teams</th>
+            <th>サブエージェント</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>実行形態</td>
+            <td>並列実行（各自独立）</td>
+            <td>親エージェントから呼び出し</td>
+          </tr>
+          <tr>
+            <td>コンテキスト</td>
+            <td>各チームメイトが独立</td>
+            <td>親のコンテキストを一部継承</td>
+          </tr>
+          <tr>
+            <td>協調方法</td>
+            <td>リードが統合</td>
+            <td>親が結果を受け取り判断</td>
+          </tr>
+          <tr>
+            <td>適用場面</td>
+            <td>大規模な機能開発</td>
+            <td>特定の専門タスク</td>
+          </tr>
+          <tr>
+            <td>コスト</td>
+            <td>高（複数セッション）</td>
+            <td>中（親セッション内）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== Section 3: サブエージェント活用 ===== -->
+    <h2 id="subagents">サブエージェント活用</h2>
+
+    <p>Agent toolを使ったサブエージェントは、メインのClaude Codeセッション内から特定の専門タスクを委譲するための仕組みです。</p>
+
+    <h3>Agent toolの基本</h3>
+    <p>Claude Codeは内部的にAgent toolを持っており、特定のタスクをサブエージェントに委譲できます。サブエージェントは独立したコンテキストで動作し、結果だけを親に返します。</p>
+
+    <div class="code-label">サブエージェントの定義（.claude/agents/）</div>
+    <div class="code-block"><code># .claude/agents/security-reviewer.md
+あなたはセキュリティレビューの専門エージェントです。
+
+## 責務
+- コードのセキュリティ脆弱性を検出
+- OWASP Top 10に基づくリスク評価
+- 修正提案の提示
+
+## 出力形式
+各脆弱性について:
+1. 重要度（Critical/High/Medium/Low）
+2. 影響範囲
+3. 修正コード例</code></div>
+
+    <h3>isolation: worktree</h3>
+    <p>サブエージェントを独立したworktreeで実行することで、メインの作業ディレクトリに影響を与えずにタスクを実行できます。</p>
+
+    <div class="code-label">worktree分離でのサブエージェント実行</div>
+    <div class="code-block"><code># メインセッションからサブエージェントを呼び出す
+# Claude Codeが自動的にworktreeを作成し、
+# サブエージェントをそのworktree内で実行する
+
+"セキュリティレビューエージェントを使って、
+src/api/ 配下の全エンドポイントをレビューして。
+worktreeで分離して実行して。"</code></div>
+
+    <h3>foreground / background使い分け</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>モード</th>
+            <th>特徴</th>
+            <th>適用場面</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>foreground</strong></td>
+            <td>結果を待ってから次に進む</td>
+            <td>結果に依存する後続タスクがある場合</td>
+          </tr>
+          <tr>
+            <td><strong>background</strong></td>
+            <td>バックグラウンドで実行、完了通知</td>
+            <td>独立したタスク（テスト実行、lint等）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>セキュリティレビューやテスト実行など、メインの開発フローをブロックしないタスクはbackgroundで実行するのが効率的です。完了通知が届いたら結果を確認し、必要に応じて修正を行います。</p>
+    </div>
+
+    <!-- ===== Section 4: コンテキスト最適化 ===== -->
+    <h2 id="context">コンテキスト最適化</h2>
+
+    <p>Claude Codeのコンテキストウィンドウを最大限に活用するためのテクニックを解説します。トークンの無駄遣いを減らし、必要な情報だけを効率的に参照します。</p>
+
+    <h3>/compact習慣</h3>
+    <p><code>/compact</code>はコンテキストを圧縮し、重要な情報を保持しつつトークン使用量を削減するコマンドです。</p>
+
+    <ul>
+      <li><strong>定期実行の目安</strong> &mdash; 50〜100回のやり取りごと、またはトークン使用量が70%を超えたら実行</li>
+      <li><strong>カスタムcompact</strong> &mdash; <code>/compact "認証機能の実装に関する情報だけ保持して"</code> のように、保持する情報を明示的に指定できる</li>
+      <li><strong>自動compact</strong> &mdash; Hooksで自動化も可能（章11で詳述）</li>
+    </ul>
+
+    <h3>トークン管理</h3>
+    <p><code>/cost</code>コマンドで現在のトークン使用量を確認できます。効率的なトークン管理のためのルールを設定しましょう。</p>
+
+    <div class="code-label">トークン管理のベストプラクティス</div>
+    <div class="code-block"><code># 現在のトークン使用量を確認
+/cost
+
+# コンテキストを圧縮（重要情報は保持）
+/compact
+
+# カスタム圧縮（特定のトピックのみ保持）
+/compact "データベース設計とAPI仕様のみ保持"
+
+# 完全クリア（新しいタスク開始時）
+/clear</code></div>
+
+    <h3>Plan Mode活用</h3>
+    <p>Plan Modeはファイルの読み取りと分析のみを行い、書き込みは行いません。コンテキストを節約しながら計画を立てるのに最適です。</p>
+
+    <ul>
+      <li><strong>Shift+Tab</strong>でPlan ModeとNormal Modeを切り替え</li>
+      <li><strong>計画フェーズ</strong>ではPlan Modeで全体設計を行い、コンテキストを消費する実装作業を最小化</li>
+      <li><strong>CLAUDE.mdに「Plan Mode Default」</strong>を記述すると、常にPlan Modeから開始される</li>
+    </ul>
+
+    <h3>効率的なファイル参照</h3>
+    <ul>
+      <li><strong>必要なファイルだけを参照</strong> &mdash; 「このディレクトリ全体を読んで」ではなく「src/auth/login.tsを読んで」と具体的に指定</li>
+      <li><strong>部分読み取り</strong> &mdash; 大きなファイルは関数名や行番号を指定して必要部分だけ読み取る</li>
+      <li><strong>.gitignoreの活用</strong> &mdash; node_modules、build成果物、ログファイルなどをClaude Codeの検索対象から除外</li>
+    </ul>
+
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
-      <p>Claude Codeは強力なツールですが、使い方を誤ると生産性を下げる要因にもなります。このページの7つの落とし穴を意識し、5つの原則を守ることで、安全かつ効率的な開発環境を構築できます。</p>
+      <p>コンテキストウィンドウの使用量はセッションの品質に直結します。トークンの70%がコードの読み取りに使われ、30%しか推論に使えない状態では、Claude Codeの回答品質が低下します。</p>
+    </div>
+
+    <!-- ===== Section 5: Copilot/Codexとのハイブリッド ===== -->
+    <h2 id="hybrid">Copilot/Codexとのハイブリッド</h2>
+
+    <p>Claude Code、GitHub Copilot、OpenAI Codexはそれぞれ異なる強みを持っています。3つを適材適所で使い分けることで、開発生産性を最大化できます。</p>
+
+    <h3>各ツールの強み</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ツール</th>
+            <th>最大の強み</th>
+            <th>最適な場面</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Claude Code</strong></td>
+            <td>大規模推論・複雑な設計判断</td>
+            <td>アーキテクチャ設計、リファクタリング、バグ調査、コードレビュー</td>
+          </tr>
+          <tr>
+            <td><strong>GitHub Copilot</strong></td>
+            <td>IDE統合・リアルタイム補完</td>
+            <td>関数の実装、定型コード生成、コメントからのコード生成</td>
+          </tr>
+          <tr>
+            <td><strong>OpenAI Codex</strong></td>
+            <td>並列自動化・バッチ処理</td>
+            <td>大量のファイル変更、リファクタリングの一括適用、テスト生成</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>ハイブリッドワークフロー</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>Claude Code: 設計・計画</strong><br>
+        Plan Modeでアーキテクチャを設計し、実装計画を策定。複雑な判断が必要な部分はClaude Codeが担当する。
+      </li>
+      <li>
+        <strong>Copilot: 実装・補完</strong><br>
+        Claude Codeの計画に基づいてVS CodeでCopilotを使いながら実装。定型的なコードはCopilotのインライン補完で高速に記述する。
+      </li>
+      <li>
+        <strong>Codex: バッチ処理</strong><br>
+        同じパターンの変更を多数のファイルに適用する場合はCodexを使用。テストの一括生成やリファクタリングの並列適用に最適。
+      </li>
+      <li>
+        <strong>Claude Code: レビュー・統合</strong><br>
+        全体の変更をClaude Codeでレビューし、整合性を確認。最終的な品質保証はClaude Codeが担当する。
+      </li>
+    </ol>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>「考えるタスクはClaude Code、書くタスクはCopilot、繰り返すタスクはCodex」と覚えておくと、使い分けが明確になります。3つのツールは競合ではなく補完関係です。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
-      <a href="workflows.html">
+      <a href="professional-setup.html">
         <div class="nav-dir">&larr; 前のページ</div>
-        <div class="nav-title">実践ワークフロー集</div>
-      </a>
-      <a href="professional-setup.html" class="next">
-        <div class="nav-dir">次のページ &rarr;</div>
         <div class="nav-title">プロフェッショナル環境構築</div>
+      </a>
+      <a href="hooks-guide.html" class="next">
+        <div class="nav-dir">次のページ &rarr;</div>
+        <div class="nav-title">Hooks完全ガイド</div>
       </a>
     </div>
 
