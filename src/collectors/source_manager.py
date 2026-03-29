@@ -263,8 +263,12 @@ class SourceManager:
                         url = parts[5] if len(parts) > 5 else f"https://twitter.com/{handle}"
                         
                         # 日付解析
-                        pub_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        
+                        try:
+                            pub_date = datetime.strptime(date_str, '%Y-%m-%d')
+                        except ValueError:
+                            logger.warning(f"Skipping X post with invalid date: {date_str}")
+                            continue
+
                         # 古い投稿をスキップ
                         if pub_date < cutoff_date:
                             continue

@@ -239,7 +239,7 @@ def rows_to_items_from_sheet(rows, mapping=None):
             url = canon_url((r[m['url']] if len(r) > m['url'] else '').strip())
             if not text or not url:
                 continue
-            # parse date
+            # parse date — skip rows with no valid date to prevent stale data
             dt = None
             if dt_raw:
                 try:
@@ -247,7 +247,8 @@ def rows_to_items_from_sheet(rows, mapping=None):
                 except Exception:
                     dt = None
             if not dt:
-                dt = datetime.now(timezone.utc)
+                log('sheet row skipped (no valid date):', dt_raw, text[:40])
+                continue
             src_name = 'x.com' if 'x.com/' in url or 'twitter.com/' in url else tldextract.extract(url).registered_domain
             out.append({
                 'title': text.split('\n')[0][:90],
