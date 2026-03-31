@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="本番運用に耐えるAntigravity環境の構築。セキュリティ、サンドボックス、チーム運用の設計。">
+  <title>プロフェッショナル環境構築 | AIエージェント構築ガイド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-red: #f85149;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, 0.82);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .back-link {
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover {
+      color: var(--accent-red);
+    }
+
+    .page-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary);
+      font-size: 20px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .hamburger:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      padding: 24px 16px;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--bg-sidebar);
+    }
+
+    .toc-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 12px;
+      margin-bottom: 12px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      line-height: 1.5;
+      margin-bottom: 2px;
+    }
+    .toc a:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .toc a.active {
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.1);
+    }
+
+    .page-nav {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .page-nav a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      margin-bottom: 4px;
+    }
+    .page-nav a:hover {
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.06);
+    }
+    .page-nav .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      opacity: 0.6;
+      margin-bottom: 2px;
+      padding: 0 12px;
+    }
+
+    /* ===== CHAPTER NAV ===== */
+    .chapter-nav { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .chapter-nav-title { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px 12px; }
+    .chapter-link { display: block; padding: 5px 12px; color: var(--text-muted); text-decoration: none; font-size: 12px; border-radius: 4px; transition: all 0.15s; }
+    .chapter-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+    .chapter-link.current { color: var(--accent-red); background: rgba(248, 81, 73, 0.1); font-weight: 700; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent-blue); }
+    .breadcrumb .current { color: var(--text-primary); }
+    .page-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px; margin-bottom: 32px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 11px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .meta-value { font-size: 14px; color: var(--text-primary); }
+    @media (max-width: 600px) { .page-meta { grid-template-columns: 1fr; } }
+
+    /* ===== MAIN CONTENT ===== */
+    .content {
+      flex: 1;
+      max-width: 820px;
+      padding: 48px 56px 80px;
+    }
+
+    .content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .content .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .content h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: -0.01em;
+    }
+
+    .content h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    .content p {
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .content ul, .content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .content li {
+      margin-bottom: 8px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .content li strong {
+      color: var(--text-heading);
+    }
+
+    .content a.inline-link {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .content a.inline-link:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== CODE BLOCKS ===== */
+    .code-block {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .code-block code {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      background: none;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+    }
+    .code-block .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
+    }
+
+    .code-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* inline code */
+    .content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-red);
+    }
+
+    /* ===== CALLOUTS ===== */
+    .callout {
+      border-left: 4px solid;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      background: var(--bg-card);
+    }
+    .callout-tip { border-color: var(--accent-green); }
+    .callout-warning { border-color: var(--accent-red); }
+    .callout-note { border-color: var(--accent-blue); }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .callout-tip .callout-title { color: var(--accent-green); }
+    .callout-warning .callout-title { color: var(--accent-red); }
+    .callout-note .callout-title { color: var(--accent-blue); }
+
+    .callout p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-primary);
+      opacity: 0.92;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: var(--bg-sidebar);
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    td code {
+      font-size: 13px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ===== WORKFLOW CARDS ===== */
+    .workflow-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 20px 0 24px;
+    }
+
+    .workflow-card {
+      display: flex;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .workflow-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .workflow-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .workflow-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 6px;
+    }
+
+    .workflow-card p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ===== STEPS LIST ===== */
+    .steps-list {
+      counter-reset: step-counter;
+      list-style: none;
+      padding-left: 0;
+      margin: 16px 0 24px;
+    }
+
+    .steps-list li {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 20px;
+    }
+
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* ===== PAGE NAV BOTTOM ===== */
+    .page-nav-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 16px;
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .page-nav-bottom a {
+      display: block;
+      flex: 1;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .page-nav-bottom a:hover {
+      border-color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.04);
+    }
+
+    .page-nav-bottom .nav-dir {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .page-nav-bottom .nav-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .page-nav-bottom .next {
+      text-align: right;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    footer a:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        width: 280px;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+      .sidebar.open {
+        display: block;
+      }
+      .hamburger {
+        display: block;
+      }
+      .content {
+        padding: 24px 20px 60px;
+      }
+      .content h1 {
+        font-size: 26px;
+      }
+      .content h2 {
+        font-size: 19px;
+        margin-top: 40px;
+      }
+      .page-nav-bottom {
+        flex-direction: column;
+      }
+      .page-nav-bottom .next {
+        text-align: left;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger {
+        display: none;
+      }
+    }
+
+    /* ===== OVERLAY for mobile sidebar ===== */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      top: 56px;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+    .sidebar-overlay.open {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
+  <span class="page-title">プロフェッショナル環境構築</span>
+  <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
+</header>
+
+<!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ===== LAYOUT ===== -->
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="toc-label">目次</div>
+    <nav class="toc" id="toc">
+      <!-- Auto-generated by JS from h2[id] -->
+    </nav>
+    <div class="page-nav">
+      <div class="nav-label">ナビゲーション</div>
+      <a href="pitfalls.html">&larr; 前へ: 落とし穴</a>
+      <a href="advanced-techniques.html">次へ: 上級テクニック &rarr;</a>
+    </div>
+    <div class="chapter-nav">
+      <h4 class="chapter-nav-title">全12章</h4>
+      <a href="getting-started.html" class="chapter-link">1. Getting Started</a>
+      <a href="project-structure.html" class="chapter-link">2. 構成設計</a>
+      <a href="editor-and-manager.html" class="chapter-link">3. Editor & Manager</a>
+      <a href="agent-skills.html" class="chapter-link">4. Agent Skills</a>
+      <a href="mcp-integration.html" class="chapter-link">5. MCP連携</a>
+      <a href="parallel-agents.html" class="chapter-link">6. 並列エージェント</a>
+      <a href="models-and-config.html" class="chapter-link">7. モデル選択・設定</a>
+      <a href="workflows.html" class="chapter-link">8. ワークフロー</a>
+      <a href="pitfalls.html" class="chapter-link">9. 落とし穴</a>
+      <a href="professional-setup.html" class="chapter-link current">10. プロ環境構築</a>
+      <a href="advanced-techniques.html" class="chapter-link">11. 上級テクニック</a>
+      <a href="other-uses.html" class="chapter-link">12. その他業務</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="content">
+
+    <nav class="breadcrumb">
+      <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
+      <span>›</span>
+      <a href="index.html">Google Antigravity</a>
+      <span>›</span>
+      <span class="current">プロフェッショナル環境構築</span>
+    </nav>
+
+    <div class="page-meta">
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">上級者</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">本番運用環境の構築</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">Ch.1-9完了</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">25分</span></div>
+    </div>
+
+    <h1>プロフェッショナル環境構築</h1>
+    <p class="subtitle">本番運用に耐えるAntigravity環境の構築。セキュリティ、サンドボックス、チーム運用の設計。</p>
+
+    <!-- ===== Section 1: サンドボックス設計 ===== -->
+    <h2 id="sandbox-design">サンドボックス設計</h2>
+
+    <p>本番環境でAntigravityを安全に運用するには、OS固有のサンドボックス機構を深く理解し、適切に設定する必要があります。</p>
+
+    <h3>macOS Seatbelt</h3>
+
+    <p>macOSでは <code>sandbox-exec</code> を使用したSeatbeltプロファイルでファイルシステムアクセスを制限します。Antigravityはデフォルトで以下のプロファイルを適用します。</p>
+
+    <div class="code-label">Seatbelt プロファイル例</div>
+    <div class="code-block"><code>(version 1)
+(deny default)
+(allow file-read* (subpath "/Users/dev/project"))
+(allow file-write* (subpath "/Users/dev/project"))
+(allow file-read* (subpath "/usr/local"))
+(allow process-exec)
+(allow network-outbound (remote tcp "*:443"))</code></div>
+
+    <p>カスタムプロファイルを作成することで、特定のディレクトリだけにアクセスを許可できます。</p>
+
+    <ul>
+      <li><strong>読み取り専用パス</strong> &mdash; <code>/usr/local</code>、<code>/opt/homebrew</code> など、ツールチェーンのパスを読み取り専用で許可</li>
+      <li><strong>書き込み許可パス</strong> &mdash; プロジェクトディレクトリと <code>/tmp</code> のみに書き込みを限定</li>
+      <li><strong>ネットワーク</strong> &mdash; HTTPS (443) のみ許可し、HTTP や他のポートはブロック</li>
+    </ul>
+
+    <h3>Linux nsjail</h3>
+
+    <p>Linuxではnsjailを使用したカーネルレベルの名前空間分離を行います。プロセス、ネットワーク、ファイルシステムを完全に隔離できます。</p>
+
+    <div class="code-label">nsjail 設定例</div>
+    <div class="code-block"><code>{
+  "mount": [
+    { "src": "/project", "dst": "/workspace", "is_bind": true, "rw": true },
+    { "src": "/usr", "dst": "/usr", "is_bind": true, "rw": false },
+    { "src": "/tmp", "dst": "/tmp", "is_bind": true, "rw": true }
+  ],
+  "clone_newnet": true,
+  "clone_newpid": true,
+  "rlimit_as": 4096,
+  "time_limit": 300
+}</code></div>
+
+    <ul>
+      <li><strong>PID名前空間</strong> &mdash; エージェントプロセスが他のプロセスを参照・操作できないよう分離</li>
+      <li><strong>ネットワーク名前空間</strong> &mdash; 外部ネットワークへのアクセスを完全に遮断（必要時のみホワイトリストで許可）</li>
+      <li><strong>リソース制限</strong> &mdash; メモリ4GB、CPU時間300秒の制限でリソース枯渇を防止</li>
+    </ul>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Docker内でnsjailを動作させるには、ホストカーネルの <code>user_namespaces</code> サポートが必要です。<code>--privileged</code> フラグなしで動作させるには、seccompプロファイルのカスタマイズが必要になる場合があります。</p>
+    </div>
+
+    <!-- ===== Section 1.5: 4ツールセキュリティ比較 ===== -->
+    <h2 id="security-comparison">4ツールのセキュリティアプローチ比較</h2>
+
+    <p>自律型AIエージェントの安全性は、各ツールで根本的に異なるアプローチを採用しています。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>機能</th>
+            <th>Antigravity</th>
+            <th>Claude Code</th>
+            <th>Cursor</th>
+            <th>VS Code Copilot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>実行隔離</strong></td>
+            <td>Strict Mode + OS Sandbox (Seatbelt/nsjail)</td>
+            <td>パーミッションモード（3段階）</td>
+            <td>Privacy Mode</td>
+            <td>Workspace Trust</td>
+          </tr>
+          <tr>
+            <td><strong>ターミナル制御</strong></td>
+            <td>Request Review / Auto / Turbo</td>
+            <td>承認 / 自動承認設定</td>
+            <td>ユーザー手動実行</td>
+            <td>Agent Mode内で承認</td>
+          </tr>
+          <tr>
+            <td><strong>ブラウザ制御</strong></td>
+            <td>browserAllowlist.txt</td>
+            <td>MCP経由</td>
+            <td>なし</td>
+            <td>なし</td>
+          </tr>
+          <tr>
+            <td><strong>ファイルアクセス</strong></td>
+            <td>Allow/Deny設定</td>
+            <td>.claudeignore</td>
+            <td>.cursorignore</td>
+            <td>.copilotignore</td>
+          </tr>
+          <tr>
+            <td><strong>ネットワーク制限</strong></td>
+            <td>Sandbox設定で制御</td>
+            <td>なし（API経由）</td>
+            <td>サーバー経由のみ</td>
+            <td>GitHub経由のみ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Antigravityはブラウザ操作機能を持つ唯一のツールであるため、<code>browserAllowlist.txt</code> によるURLホワイトリストが重要なセキュリティ境界となります。</p>
+    </div>
+
+    <h3>browserAllowlist.txt の設定</h3>
+    <p>外部サイトからの悪意あるコード読み込みやプロンプトインジェクションを防ぐため、信頼できるドメインのみを許可します。</p>
+
+    <div class="code-label">~/.gemini/antigravity/browserAllowlist.txt</div>
+    <div class="code-block"><code># 開発用
+localhost
+127.0.0.1
+
+# 公式ドキュメント
+developer.mozilla.org
+docs.github.com
+antigravity.google
+cloud.google.com
+reactjs.org
+
+# 社内ツール（必要に応じて追加）
+# internal.company.com</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>本番環境のURLはAllowlistに含めないでください。エージェントが本番サイトを操作・スクレイピングするリスクがあります。ステージング環境のURLを使用しましょう。</p>
+    </div>
+
+    <!-- ===== Section 2: セキュリティポリシー ===== -->
+    <h2 id="security-policy">セキュリティポリシー</h2>
+
+    <p>本番環境でのAntigravity運用には、明確なセキュリティポリシーの策定と実装が不可欠です。</p>
+
+    <h3>承認ポリシーの設計</h3>
+
+    <div class="code-label">settings.json - 本番用セキュリティ設定</div>
+    <div class="code-block"><code>{
+  "permissions": {
+    "allow": [
+      "Read(*.ts)",
+      "Read(*.tsx)",
+      "Read(*.json)",
+      "Write(src/**)",
+      "Write(tests/**)"
+    ],
+    "deny": [
+      "Write(.env*)",
+      "Write(*.pem)",
+      "Write(*.key)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)",
+      "Bash(curl * | bash)",
+      "Bash(DROP TABLE*)",
+      "Bash(DELETE FROM * WHERE 1=1)"
+    ]
+  }
+}</code></div>
+
+    <h3>ファイルシステムアクセス制限</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>最小権限の原則</strong><br>
+        エージェントがアクセスできるディレクトリを <code>src/</code>、<code>tests/</code>、<code>docs/</code> に限定します。設定ファイル（<code>.env</code>、<code>credentials.json</code>）へのアクセスは明示的に拒否します。
+      </li>
+      <li>
+        <strong>書き込み制限のレイヤー化</strong><br>
+        読み取りは広く許可し、書き込みは特定のディレクトリのみに制限。<code>node_modules/</code> や <code>.git/</code> への書き込みは常にブロックします。
+      </li>
+      <li>
+        <strong>機密ファイルの検出</strong><br>
+        PreToolUseフックで、書き込み対象ファイルに機密情報パターン（APIキー、パスワード、トークン）が含まれないかスキャンします。
+      </li>
+    </ol>
+
+    <h3>ネットワーク制限</h3>
+
+    <ul>
+      <li><strong>アウトバウンド制限</strong> &mdash; npmレジストリ、GitHub API、Google Cloud APIのみ許可し、他の外部アクセスをブロック</li>
+      <li><strong>インバウンド制限</strong> &mdash; ローカル開発サーバー（localhost:3000等）のみ許可</li>
+      <li><strong>DNS制限</strong> &mdash; 許可されたドメインのみ名前解決を許可（DNSトンネリングの防止）</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>セキュリティポリシーはチーム全体で共有し、<code>.antigravity/security-policy.json</code> としてリポジトリにコミットしましょう。新メンバーが参加した際に自動的に適用されます。</p>
+    </div>
+
+    <!-- ===== Section 3: チーム運用設計 ===== -->
+    <h2 id="team-setup">チーム運用設計</h2>
+
+    <p>チームでAntigravityを使う場合、個人設定とチーム共通設定を明確に分離し、一貫性のある開発体験を提供する設計が重要です。</p>
+
+    <h3>共有GEMINI.mdの設計</h3>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>ルートGEMINI.md（チーム共通）</h4>
+          <p>プロジェクト全体のルール、コーディング規約、禁止パターンを記述。リポジトリにコミットし、PRレビューの対象にします。全メンバーが同じ基準でエージェントを使えるようにします。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>ディレクトリ別GEMINI.md</h4>
+          <p><code>src/frontend/GEMINI.md</code>、<code>src/backend/GEMINI.md</code> のように、ドメイン固有のルールを分離。フロントエンドチームとバックエンドチームが独立してメンテナンスできます。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>個人設定（.gitignore対象）</h4>
+          <p><code>.antigravity/personal/</code> ディレクトリに個人の好みの設定（モデル選択、ショートカット設定等）を保存。<code>.gitignore</code> に追加してリポジトリから除外します。</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>チーム共通Skillsの管理</h3>
+
+    <ul>
+      <li><strong>デプロイSkill</strong> &mdash; ステージング/本番デプロイ手順をSkill化し、手順の属人化を防止</li>
+      <li><strong>コードレビューSkill</strong> &mdash; チームのコーディング規約に基づくレビューチェックリストをSkill化</li>
+      <li><strong>テスト実行Skill</strong> &mdash; ユニットテスト、E2Eテスト、リント実行をワンコマンドで実行</li>
+      <li><strong>リリースノートSkill</strong> &mdash; コミット履歴からリリースノートを自動生成</li>
+    </ul>
+
+    <h3>コーディング規約の統一</h3>
+
+    <div class="code-label">GEMINI.md - チーム規約セクション例</div>
+    <div class="code-block"><code># コーディング規約
+- TypeScript strict modeを常に使用
+- 関数は30行以内、ファイルは300行以内
+- テストカバレッジ80%以上を維持
+- コミットメッセージはConventional Commits形式
+- PRは1機能=1PR、レビュー前にセルフレビュー必須
+
+# 禁止パターン
+- any型の使用禁止（unknown + 型ガードを使用）
+- console.logの本番コード混入禁止
+- マジックナンバーの使用禁止（定数化すること）
+- 直接的なDOM操作禁止（React/Vueのリアクティブシステムを使用）</code></div>
+
+    <!-- ===== Section 4: CI/CD統合 ===== -->
+    <h2 id="ci-integration">CI/CD統合</h2>
+
+    <p>GitHub ActionsやCloud BuildでAntigravityをCI/CDパイプラインに組み込み、コードレビューやテスト生成を自動化できます。</p>
+
+    <h3>GitHub Actions統合</h3>
+
+    <div class="code-label">.github/workflows/antigravity-review.yml</div>
+    <div class="code-block"><code>name: Antigravity Code Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Antigravity
+        run: |
+          curl -fsSL https://antigravity.dev/install.sh | bash
+          echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> $GITHUB_ENV
+
+      - name: Run Code Review
+        run: |
+          antigravity review \
+            --model gemini-2.5-flash \
+            --diff "$(git diff origin/main...HEAD)" \
+            --output review-comments.json
+
+      - name: Post Review Comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comments = require('./review-comments.json');
+            for (const c of comments) {
+              await github.rest.pulls.createReviewComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                body: c.body,
+                path: c.path,
+                line: c.line
+              });
+            }</code></div>
+
+    <h3>Cloud Build統合</h3>
+
+    <div class="code-label">cloudbuild.yaml</div>
+    <div class="code-block"><code>steps:
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+
+  - name: 'antigravity-builder'
+    args:
+      - 'test-generate'
+      - '--coverage-target=80'
+      - '--model=gemini-2.5-flash'
+    env:
+      - 'GOOGLE_API_KEY=${_GOOGLE_API_KEY}'
+
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['test']</code></div>
+
+    <h3>CI/CDでの活用パターン</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>パイプライン段階</th>
+            <th>Antigravityタスク</th>
+            <th>推奨モデル</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PR作成時</td>
+            <td>自動コードレビュー</td>
+            <td>gemini-2.5-flash</td>
+          </tr>
+          <tr>
+            <td>テスト実行前</td>
+            <td>不足テストの自動生成</td>
+            <td>gemini-2.5-pro</td>
+          </tr>
+          <tr>
+            <td>マージ後</td>
+            <td>リリースノート生成</td>
+            <td>gemini-2.5-flash</td>
+          </tr>
+          <tr>
+            <td>デプロイ前</td>
+            <td>セキュリティスキャン</td>
+            <td>gemini-2.5-pro</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>CI/CDでのAntigravity利用では、必ず <code>--non-interactive</code> フラグを使用してください。対話的な確認プロンプトが表示されるとパイプラインがハングします。</p>
+    </div>
+
+    <!-- ===== Section 5: 監視とログ ===== -->
+    <h2 id="monitoring">監視とログ</h2>
+
+    <p>本番運用では、エージェントの活動ログ、コスト推移、品質メトリクスを継続的に監視する仕組みが必要です。</p>
+
+    <h3>エージェント活動ログ</h3>
+
+    <p>Antigravityのセッションログは <code>~/.antigravity/logs/</code> に自動保存されます。以下の情報が記録されます。</p>
+
+    <ul>
+      <li><strong>セッションID</strong> &mdash; 各セッションの一意識別子</li>
+      <li><strong>ツール呼び出し履歴</strong> &mdash; 実行されたすべてのツール（ファイル読み書き、コマンド実行）の記録</li>
+      <li><strong>トークン消費量</strong> &mdash; 入力/出力トークン数と推定コスト</li>
+      <li><strong>エラーログ</strong> &mdash; サンドボックス違反、権限エラー、API制限到達の記録</li>
+    </ul>
+
+    <h3>コスト監視</h3>
+
+    <div class="code-label">コスト監視スクリプト例</div>
+    <div class="code-block"><code>#!/bin/bash
+# 日次コストレポート生成
+antigravity logs --format json --since "24h" | \
+  jq '{
+    total_sessions: length,
+    total_tokens: [.[].tokens] | add,
+    estimated_cost: ([.[].cost] | add),
+    models_used: [.[].model] | unique
+  }'</code></div>
+
+    <h3>品質メトリクス</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>メトリクス</th>
+            <th>目標値</th>
+            <th>計測方法</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>テストカバレッジ変化率</td>
+            <td>+5% / 週</td>
+            <td>CI/CDレポートの差分</td>
+          </tr>
+          <tr>
+            <td>エージェント生成コードのバグ率</td>
+            <td>&lt; 5%</td>
+            <td>PR後のバグ修正コミット数</td>
+          </tr>
+          <tr>
+            <td>セッションあたりの平均コスト</td>
+            <td>&lt; $2</td>
+            <td>ログ集計</td>
+          </tr>
+          <tr>
+            <td>タスク完了率</td>
+            <td>&gt; 80%</td>
+            <td>セッション中の手動介入回数</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Google Cloud Monitoringやdatadog等のAPMツールと統合することで、エージェントのパフォーマンスをダッシュボードで可視化できます。異常検知アラートを設定し、コスト急増やエラー率上昇を早期に検知しましょう。</p>
+    </div>
+
+    <!-- ===== Section 6: 障害対策 ===== -->
+    <h2 id="disaster-recovery">障害対策</h2>
+
+    <p>エージェントが予期しない動作をした場合のリカバリー手順を事前に準備しておくことが重要です。</p>
+
+    <h3>エージェント暴走時の対処</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>即時停止</strong><br>
+        <code>Ctrl+C</code> を2回連続で入力してセッションを強制終了します。Always Proceedモードでも <code>Ctrl+C</code> は常に有効です。ターミナルが応答しない場合は、プロセスIDを特定して <code>kill -9</code> で強制終了します。
+      </li>
+      <li>
+        <strong>変更の確認</strong><br>
+        <code>git diff</code> と <code>git status</code> で、エージェントが行ったすべての変更を確認します。意図しない変更がないか、ファイルの作成・削除・変更を1つずつ検証します。
+      </li>
+      <li>
+        <strong>選択的ロールバック</strong><br>
+        問題のある変更のみを <code>git checkout -- &lt;file&gt;</code> で元に戻します。全体をロールバックする場合は <code>git stash</code> で現在の変更を退避してから検討します。
+      </li>
+      <li>
+        <strong>原因分析</strong><br>
+        セッションログ（<code>~/.antigravity/logs/</code>）を確認し、暴走の原因を特定します。GEMINI.mdの指示の曖昧さ、権限設定の不備、モデルの誤選択が主な原因です。
+      </li>
+    </ol>
+
+    <h3>ロールバック手順</h3>
+
+    <div class="code-label">段階的ロールバック</div>
+    <div class="code-block"><code># 1. 現在の変更を退避
+git stash
+
+# 2. 直前のコミット状態を確認
+git log --oneline -5
+
+# 3. 特定のコミットまで戻す（ソフトリセット）
+git reset --soft HEAD~1
+
+# 4. 変更内容を確認してから再コミット
+git diff --staged
+
+# 5. 問題がなければ退避した変更を適用
+git stash pop</code></div>
+
+    <h3>予防策チェックリスト</h3>
+
+    <ul>
+      <li><strong>定期的なコミット</strong> &mdash; エージェントに「10分ごとに進捗をコミットせよ」と指示し、ロールバックポイントを確保</li>
+      <li><strong>ブランチ戦略</strong> &mdash; mainブランチでの直接作業を禁止し、常にfeatureブランチで作業</li>
+      <li><strong>バックアップ</strong> &mdash; 重要なファイルは作業前にコピーを取っておく（<code>cp -r src/ src.bak/</code>）</li>
+      <li><strong>テスト実行</strong> &mdash; 変更適用前に必ずテストスイートを実行し、既存機能の破壊がないことを確認</li>
+    </ul>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>エージェントによる <code>git push --force</code> は絶対に許可しないでください。リモートリポジトリの履歴が破壊されると、チーム全体に影響します。<code>deny</code> リストに必ず追加しましょう。</p>
+    </div>
+
+    <!-- ===== PAGE NAV BOTTOM ===== -->
+    <div class="page-nav-bottom">
+      <a href="pitfalls.html">
+        <div class="nav-dir">&larr; 前のページ</div>
+        <div class="nav-title">よくある落とし穴</div>
+      </a>
+      <a href="advanced-techniques.html" class="next">
+        <div class="nav-dir">次のページ &rarr;</div>
+        <div class="nav-title">上級テクニック集</div>
+      </a>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p><a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a> &mdash; AI Intelligence Hub</p>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+  // Sidebar toggle (mobile)
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. TOC auto-generation
+    const toc = document.getElementById('toc');
+    const headings = document.querySelectorAll('.content h2[id]');
+    headings.forEach(h => {
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      toc.appendChild(a);
+    });
+
+    // 2. Scroll-spy
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+          const active = toc.querySelector(`a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -80% 0px' });
+    headings.forEach(h => observer.observe(h));
+
+    // 3. Code copy buttons
+    document.querySelectorAll('.code-block').forEach(block => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.onclick = () => {
+        const code = block.querySelector('code') || block;
+        navigator.clipboard.writeText(code.textContent.replace('Copy', '').trim());
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      };
+      block.appendChild(btn);
+    });
+
+    // 4. Close sidebar on link click (mobile)
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          toggleSidebar();
+        }
+      });
+    });
+
+    // 5. Smooth scroll for TOC links
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, '', a.getAttribute('href'));
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

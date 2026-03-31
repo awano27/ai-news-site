@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Model Context Protocol（MCP）でデータベース、クラウドサービス、内部ツールとAntigravityを直接接続するガイド。">
+  <title>MCP連携ガイド | AIエージェント構築ガイド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-red: #f85149;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, 0.82);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .back-link {
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover {
+      color: var(--accent-red);
+    }
+
+    .page-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary);
+      font-size: 20px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .hamburger:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      padding: 24px 16px;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--bg-sidebar);
+    }
+
+    .toc-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 12px;
+      margin-bottom: 12px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      line-height: 1.5;
+      margin-bottom: 2px;
+    }
+    .toc a:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .toc a.active {
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.1);
+    }
+
+    .page-nav {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .page-nav a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      margin-bottom: 4px;
+    }
+    .page-nav a:hover {
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.06);
+    }
+    .page-nav .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      opacity: 0.6;
+      margin-bottom: 2px;
+      padding: 0 12px;
+    }
+
+    /* ===== CHAPTER NAV ===== */
+    .chapter-nav { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .chapter-nav-title { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px 12px; }
+    .chapter-link { display: block; padding: 5px 12px; color: var(--text-muted); text-decoration: none; font-size: 12px; border-radius: 4px; transition: all 0.15s; }
+    .chapter-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+    .chapter-link.current { color: var(--accent-red); background: rgba(248, 81, 73, 0.1); font-weight: 700; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent-blue); }
+    .breadcrumb .current { color: var(--text-primary); }
+    .page-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px; margin-bottom: 32px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 11px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .meta-value { font-size: 14px; color: var(--text-primary); }
+    @media (max-width: 600px) { .page-meta { grid-template-columns: 1fr; } }
+
+    /* ===== MAIN CONTENT ===== */
+    .content {
+      flex: 1;
+      max-width: 820px;
+      padding: 48px 56px 80px;
+    }
+
+    .content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .content .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .content h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: -0.01em;
+    }
+
+    .content h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    .content p {
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .content ul, .content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .content li {
+      margin-bottom: 8px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .content li strong {
+      color: var(--text-heading);
+    }
+
+    .content a.inline-link {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .content a.inline-link:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== CODE BLOCKS ===== */
+    .code-block {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .code-block code {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      background: none;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+    }
+    .code-block .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
+    }
+
+    .code-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* inline code */
+    .content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-red);
+    }
+
+    /* ===== CALLOUTS ===== */
+    .callout {
+      border-left: 4px solid;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      background: var(--bg-card);
+    }
+    .callout-tip { border-color: var(--accent-green); }
+    .callout-warning { border-color: var(--accent-red); }
+    .callout-note { border-color: var(--accent-blue); }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .callout-tip .callout-title { color: var(--accent-green); }
+    .callout-warning .callout-title { color: var(--accent-red); }
+    .callout-note .callout-title { color: var(--accent-blue); }
+
+    .callout p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-primary);
+      opacity: 0.92;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: var(--bg-sidebar);
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    td code {
+      font-size: 13px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ===== WORKFLOW CARDS ===== */
+    .workflow-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 20px 0 24px;
+    }
+
+    .workflow-card {
+      display: flex;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .workflow-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .workflow-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .workflow-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 6px;
+    }
+
+    .workflow-card p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ===== STEPS LIST ===== */
+    .steps-list {
+      counter-reset: step-counter;
+      list-style: none;
+      padding-left: 0;
+      margin: 16px 0 24px;
+    }
+
+    .steps-list li {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 20px;
+    }
+
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* ===== PAGE NAV BOTTOM ===== */
+    .page-nav-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 16px;
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .page-nav-bottom a {
+      display: block;
+      flex: 1;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .page-nav-bottom a:hover {
+      border-color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.04);
+    }
+
+    .page-nav-bottom .nav-dir {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .page-nav-bottom .nav-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .page-nav-bottom .next {
+      text-align: right;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    footer a:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        width: 280px;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+      .sidebar.open {
+        display: block;
+      }
+      .hamburger {
+        display: block;
+      }
+      .content {
+        padding: 24px 20px 60px;
+      }
+      .content h1 {
+        font-size: 26px;
+      }
+      .content h2 {
+        font-size: 19px;
+        margin-top: 40px;
+      }
+      .page-nav-bottom {
+        flex-direction: column;
+      }
+      .page-nav-bottom .next {
+        text-align: left;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger {
+        display: none;
+      }
+    }
+
+    /* ===== OVERLAY for mobile sidebar ===== */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      top: 56px;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+    .sidebar-overlay.open {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
+  <span class="page-title">MCP連携ガイド</span>
+  <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
+</header>
+
+<!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ===== LAYOUT ===== -->
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="toc-label">目次</div>
+    <nav class="toc" id="toc">
+      <!-- Auto-generated by JS from h2[id] -->
+    </nav>
+    <div class="page-nav">
+      <div class="nav-label">ナビゲーション</div>
+      <a href="agent-skills.html">&larr; 前へ: Agent Skills</a>
+      <a href="parallel-agents.html">次へ: 並列エージェント &rarr;</a>
+      <a href="../ai_coding_agents_guide.html">&larr; ガイドTOPに戻る</a>
+    </div>
+    <div class="chapter-nav">
+      <h4 class="chapter-nav-title">全12章</h4>
+      <a href="getting-started.html" class="chapter-link">1. Getting Started</a>
+      <a href="project-structure.html" class="chapter-link">2. 構成設計</a>
+      <a href="editor-and-manager.html" class="chapter-link">3. Editor & Manager</a>
+      <a href="agent-skills.html" class="chapter-link">4. Agent Skills</a>
+      <a href="mcp-integration.html" class="chapter-link current">5. MCP連携</a>
+      <a href="parallel-agents.html" class="chapter-link">6. 並列エージェント</a>
+      <a href="models-and-config.html" class="chapter-link">7. モデル選択・設定</a>
+      <a href="workflows.html" class="chapter-link">8. ワークフロー</a>
+      <a href="pitfalls.html" class="chapter-link">9. 落とし穴</a>
+      <a href="professional-setup.html" class="chapter-link">10. プロ環境構築</a>
+      <a href="advanced-techniques.html" class="chapter-link">11. 上級テクニック</a>
+      <a href="other-uses.html" class="chapter-link">12. その他業務</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="content">
+
+    <nav class="breadcrumb">
+      <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
+      <span>›</span>
+      <a href="index.html">Google Antigravity</a>
+      <span>›</span>
+      <span class="current">MCP連携ガイド</span>
+    </nav>
+
+    <div class="page-meta">
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">中級者</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">MCP設定と外部サービス接続</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">Ch.1-4完了</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">20分</span></div>
+    </div>
+
+    <h1>MCP連携ガイド</h1>
+    <p class="subtitle">Model Context Protocol（MCP）でデータベース、クラウドサービス、内部ツールとAntigravityを直接接続するガイド。</p>
+
+    <!-- ===== Section 1: MCPとは ===== -->
+    <h2 id="what-is-mcp">MCPとは</h2>
+
+    <p>Model Context Protocol（MCP）は、AIエージェントが外部のデータソースやツールに直接アクセスするためのオープンプロトコルです。従来は開発者が手動でデータをコピー&ペーストしてAIに渡す必要がありましたが、MCPを使えばエージェントが自律的にデータベースのスキーマを取得したり、APIを呼び出したりできます。</p>
+
+    <p>MCPの基本構造は以下の3要素で構成されます。</p>
+
+    <ul>
+      <li><strong>MCP Host</strong> &mdash; Antigravityのようなアプリケーション。MCPサーバーに接続してツールを利用する側です。</li>
+      <li><strong>MCP Server</strong> &mdash; 特定のデータソースやサービスへのアクセスを提供するプロセス。PostgreSQL用、Firebase用など、サービスごとに専用のサーバーが存在します。</li>
+      <li><strong>MCP Client</strong> &mdash; HostとServerを仲介するプロトコル層。JSON-RPCベースの通信を行い、ツール呼び出し・リソース取得・プロンプト提供の3種類の機能を標準化しています。</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>MCPはAnthropicが2024年末に公開したオープン標準であり、Google AntigravityだけでなくClaude Code、Cursor、VS Codeなど多くのAIツールがサポートしています。一度設定すれば、どのホストからでも同じMCPサーバーを利用できます。</p>
+    </div>
+
+    <p>MCPの最大の利点は、<strong>手動コピペの排除</strong>です。例えばデータベースのテーブル構造を確認したい場合、従来はSQL Clientでスキーマを取得し、その結果をプロンプトに貼り付けていました。MCP経由であれば、エージェントが直接データベースに接続し、必要な情報を自分で取得します。</p>
+
+    <!-- ===== Section 2: MCP設定方法 ===== -->
+    <h2 id="setup">MCP設定方法</h2>
+
+    <p>AntigravityでMCPサーバーを設定するには、主に3つの方法があります。</p>
+
+    <h3>MCP Storeからのワンクリック導入</h3>
+    <p>Antigravityには<strong>MCP Store</strong>が組み込まれており、Firebase、Power BI、Slack、GitHubなどの人気サービスはワンクリックで導入できます。</p>
+
+    <ol class="steps-list">
+      <li>
+        <strong>MCP Storeを開く</strong><br>
+        Agent panelの「...」メニュー → 「Browse MCP Store」を選択します。
+      </li>
+      <li>
+        <strong>サービスを検索・インストール</strong><br>
+        使いたいサービス（例: Firebase, PostgreSQL）を検索し、「Install」をクリックします。必要な認証情報の入力画面が自動表示されます。
+      </li>
+    </ol>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>MCP Storeで導入したサーバーは <code>mcp_config.json</code> に自動追記されます。手動で設定を微調整したい場合は、ファイルを直接編集してください。</p>
+    </div>
+
+    <h3>GUIからの手動設定</h3>
+    <ol class="steps-list">
+      <li>
+        <strong>Agent panelを開く</strong><br>
+        Antigravityのメイン画面でAgent panelを展開し、右上の「...」メニューをクリックします。
+      </li>
+      <li>
+        <strong>Manage MCP Serversを選択</strong><br>
+        ドロップダウンから「Manage MCP Servers」を選択すると、設定画面が開きます。
+      </li>
+      <li>
+        <strong>サーバーを追加</strong><br>
+        「Add Server」をクリックし、サーバー名、コマンド、引数を入力します。NPXで起動するサーバーの場合は、コマンドに <code>npx</code>、引数にパッケージ名を指定します。
+      </li>
+      <li>
+        <strong>接続を確認</strong><br>
+        追加後、サーバーのステータスが「Connected」になることを確認します。ツール一覧が表示されれば正常です。
+      </li>
+    </ol>
+
+    <h3>設定ファイルからの設定</h3>
+    <p>プロジェクトルートに <code>.mcp.json</code> ファイルを作成して、MCPサーバーを宣言的に管理できます。チーム共有やバージョン管理に適した方法です。</p>
+
+    <div class="code-label">.mcp.json</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://user:pass@localhost:5432/mydb"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/path/to/allowed/directory"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p><code>.mcp.json</code> をGitにコミットする場合は、パスワードや認証情報を直接記述せず、環境変数（<code>${ENV_VAR}</code> 形式）で参照してください。<code>.env</code> ファイルと組み合わせるのが安全です。</p>
+    </div>
+
+    <!-- ===== Section 3: データベース接続 ===== -->
+    <h2 id="database">データベース接続</h2>
+
+    <p>MCPの最も一般的なユースケースがデータベース接続です。エージェントがテーブルスキーマを自動取得し、SQLクエリの生成・実行まで行えます。</p>
+
+    <h3>PostgreSQL</h3>
+    <p>公式のPostgreSQL MCPサーバーを使用します。接続後、エージェントは自動的に全テーブルのスキーマ、カラム型、インデックス情報を取得できます。</p>
+
+    <div class="code-label">.mcp.json（PostgreSQL）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://dev_user:dev_pass@localhost:5432/app_dev"
+      ]
+    }
+  }
+}</code></div>
+
+    <p>接続後にエージェントに使えるツール:</p>
+    <ul>
+      <li><strong>query</strong> &mdash; SQLクエリの実行（SELECT, INSERT, UPDATE等）</li>
+      <li><strong>list_tables</strong> &mdash; 全テーブル一覧の取得</li>
+      <li><strong>describe_table</strong> &mdash; テーブルのカラム定義・型情報の取得</li>
+      <li><strong>list_indexes</strong> &mdash; インデックス情報の取得</li>
+    </ul>
+
+    <h3>MySQL</h3>
+    <div class="code-label">.mcp.json（MySQL）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "mysql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@benborla29/mcp-server-mysql"
+      ],
+      "env": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "dev_user",
+        "MYSQL_PASSWORD": "${MYSQL_DEV_PASSWORD}",
+        "MYSQL_DATABASE": "app_dev"
+      }
+    }
+  }
+}</code></div>
+
+    <h3>SQLite</h3>
+    <p>ローカル開発やプロトタイピングに最適なSQLite接続です。ファイルパスを指定するだけで即座に利用開始できます。</p>
+
+    <div class="code-label">.mcp.json（SQLite）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "sqlite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "./data/app.db"
+      ]
+    }
+  }
+}</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>データベースMCPサーバーはデフォルトで読み書き両方の権限を持ちます。開発環境以外では必ず読み取り専用ユーザーで接続してください。詳細は「セキュリティ考慮」セクションを参照してください。</p>
+    </div>
+
+    <!-- ===== Section 4: クラウドサービス連携 ===== -->
+    <h2 id="cloud">クラウドサービス連携</h2>
+
+    <p>MCPを通じて主要なクラウドサービスと連携し、エージェントがクラウドリソースを直接操作できます。</p>
+
+    <h3>Firebase / Firestore</h3>
+    <p>Firebase MCPサーバーを使うと、Firestoreのドキュメント操作、Authentication情報の確認、Cloud Functionsのデプロイ状況確認などが可能です。</p>
+
+    <div class="code-label">.mcp.json（Firebase）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "firebase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firebase-mcp-server",
+        "--project", "my-project-id"
+      ],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${FIREBASE_SERVICE_ACCOUNT_PATH}"
+      }
+    }
+  }
+}</code></div>
+
+    <h3>Google Cloud Platform</h3>
+    <p>GCPのMCPサーバーはCloud Storage、BigQuery、Cloud Run等の主要サービスにアクセスできます。サービスアカウントのJSON鍵ファイルで認証します。</p>
+
+    <div class="code-label">.mcp.json（GCP）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "gcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-gcp",
+        "--project", "my-gcp-project"
+      ],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${GCP_KEY_PATH}"
+      }
+    }
+  }
+}</code></div>
+
+    <p>利用可能な主要ツール:</p>
+    <ul>
+      <li><strong>storage_list / storage_read</strong> &mdash; Cloud Storageのバケット操作</li>
+      <li><strong>bigquery_query</strong> &mdash; BigQueryへのSQL実行</li>
+      <li><strong>cloudrun_list</strong> &mdash; Cloud Runサービスの一覧取得</li>
+      <li><strong>logging_read</strong> &mdash; Cloud Loggingのログ取得</li>
+    </ul>
+
+    <h3>AWS</h3>
+    <p>AWSのMCPサーバーはS3、DynamoDB、Lambda、CloudWatch等と連携します。IAMロールまたはアクセスキーで認証します。</p>
+
+    <div class="code-label">.mcp.json（AWS）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "aws": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-aws",
+        "--region", "ap-northeast-1"
+      ],
+      "env": {
+        "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY}",
+        "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_KEY}"
+      }
+    }
+  }
+}</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>クラウドサービスのMCPサーバーはコミュニティ製も多く、品質にばらつきがあります。公式またはAnthropicが認定したサーバーを優先的に選択し、事前にGitHubリポジトリのスター数やメンテナンス状況を確認してください。</p>
+    </div>
+
+    <!-- ===== Section 5: カスタムMCPサーバー ===== -->
+    <h2 id="custom-server">カスタムMCPサーバー</h2>
+
+    <p>社内ツールや独自APIに対応するMCPサーバーを自分で構築できます。MCP SDKを使えば、数十行のコードでサーバーを作成可能です。</p>
+
+    <h3>TypeScriptでの構築例</h3>
+    <p>以下は社内のプロジェクト管理ツールにアクセスするカスタムMCPサーバーの実装例です。</p>
+
+    <div class="code-label">src/mcp-server.ts</div>
+    <div class="code-block"><code>import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const server = new McpServer({
+  name: "internal-project-api",
+  version: "1.0.0"
+});
+
+// ツールの定義: プロジェクト一覧取得
+server.tool(
+  "list_projects",
+  "社内プロジェクト一覧を取得する",
+  { status: z.enum(["active", "archived", "all"]).optional() },
+  async ({ status }) => {
+    const res = await fetch(
+      `https://internal-api.company.com/projects?status=${status || "active"}`,
+      { headers: { "Authorization": `Bearer ${process.env.INTERNAL_API_TOKEN}` } }
+    );
+    const data = await res.json();
+    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+  }
+);
+
+// ツールの定義: タスク作成
+server.tool(
+  "create_task",
+  "プロジェクトに新しいタスクを作成する",
+  {
+    project_id: z.string(),
+    title: z.string(),
+    description: z.string().optional(),
+    assignee: z.string().optional(),
+    priority: z.enum(["low", "medium", "high", "critical"]).optional()
+  },
+  async ({ project_id, title, description, assignee, priority }) => {
+    const res = await fetch(
+      `https://internal-api.company.com/projects/${project_id}/tasks`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.INTERNAL_API_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title, description, assignee, priority })
+      }
+    );
+    const data = await res.json();
+    return { content: [{ type: "text", text: `Task created: ${data.id}` }] };
+  }
+);
+
+// サーバー起動
+const transport = new StdioServerTransport();
+await server.connect(transport);</code></div>
+
+    <h3>サーバーの登録</h3>
+    <p>ビルド後、<code>.mcp.json</code> に追加します。</p>
+
+    <div class="code-label">.mcp.json（カスタムサーバー）</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "internal-projects": {
+      "command": "node",
+      "args": ["./mcp-servers/dist/mcp-server.js"],
+      "env": {
+        "INTERNAL_API_TOKEN": "${INTERNAL_API_TOKEN}"
+      }
+    }
+  }
+}</code></div>
+
+    <h3>Pythonでの構築</h3>
+    <p>Python SDKも利用可能です。FastMCPを使えばデコレータベースでシンプルに定義できます。</p>
+
+    <div class="code-label">mcp_server.py</div>
+    <div class="code-block"><code>from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("internal-inventory")
+
+@mcp.tool()
+def search_inventory(query: str, category: str = "all") -> str:
+    """社内在庫システムで商品を検索する"""
+    # 社内APIへのリクエスト
+    results = internal_api.search(query=query, category=category)
+    return json.dumps(results, ensure_ascii=False, indent=2)
+
+@mcp.tool()
+def get_stock_level(product_id: str) -> str:
+    """指定商品の在庫レベルを取得する"""
+    stock = internal_api.get_stock(product_id)
+    return f"Product {product_id}: {stock['quantity']} units ({stock['status']})"
+
+mcp.run()</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>カスタムMCPサーバーのツール説明文は、AIエージェントがツール選択の判断材料にします。具体的かつ正確な説明を書くことで、エージェントが適切なタイミングでツールを呼び出せるようになります。</p>
+    </div>
+
+    <!-- ===== Section 5.5: 根拠のあるコード生成 ===== -->
+    <h2 id="evidence-based">根拠のあるコード生成</h2>
+
+    <p>MCPの最も価値あるユースケースは、<strong>一次情報（公式ドキュメント、実際のDBスキーマ）を直接参照した根拠のあるコード生成</strong>です。</p>
+
+    <p>従来のAIコーディングでは、学習データに基づく「推測」でコードを生成していました。MCP経由で実際のデータソースを参照させることで、以下が実現できます。</p>
+
+    <ul>
+      <li><strong>正確なスキーマ定義</strong> &mdash; DBに直接接続し、最新のテーブル構造からモデルコードを生成</li>
+      <li><strong>最新APIの利用</strong> &mdash; 公式ドキュメントを直接参照し、非推奨APIの使用を回避</li>
+      <li><strong>環境固有の設定</strong> &mdash; 実際のインフラ設定を読み取り、正確なデプロイ設定を生成</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>「このテーブルのCRUD APIを作って」と指示する前に、MCPでDBに接続しておくと、エージェントが実際のスキーマを参照して正確な型定義を生成します。推測に基づくコードと比べて、修正の手間が大幅に減ります。</p>
+    </div>
+
+    <!-- ===== Section 6: セキュリティ考慮 ===== -->
+    <h2 id="security">セキュリティ考慮</h2>
+
+    <p>MCPは非常に強力な機能ですが、外部リソースへのアクセスを伴うため、セキュリティには細心の注意が必要です。</p>
+
+    <h3>読み取り専用アクセスの原則</h3>
+    <p>本番環境のデータベースやクラウドサービスには、<strong>必ず読み取り専用の認証情報</strong>で接続してください。</p>
+
+    <div class="code-label">PostgreSQL 読み取り専用ユーザーの作成</div>
+    <div class="code-block"><code>-- 読み取り専用ユーザーの作成
+CREATE USER mcp_readonly WITH PASSWORD 'secure_password';
+GRANT CONNECT ON DATABASE app_prod TO mcp_readonly;
+GRANT USAGE ON SCHEMA public TO mcp_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO mcp_readonly;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO mcp_readonly;</code></div>
+
+    <h3>環境分離</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>環境</th>
+            <th>推奨設定</th>
+            <th>リスクレベル</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ローカル開発</td>
+            <td>読み書き可（テストデータ）</td>
+            <td>低</td>
+          </tr>
+          <tr>
+            <td>ステージング</td>
+            <td>読み取り専用</td>
+            <td>中</td>
+          </tr>
+          <tr>
+            <td>本番</td>
+            <td>読み取り専用 + 行レベルセキュリティ</td>
+            <td>高</td>
+          </tr>
+          <tr>
+            <td>本番（書き込み）</td>
+            <td>原則禁止。使う場合はApproval必須</td>
+            <td>最高</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>認証情報の管理</h3>
+    <ul>
+      <li><strong>.envファイル</strong> &mdash; 認証情報は <code>.env</code> に記載し、<code>.gitignore</code> に追加。<code>.mcp.json</code> からは <code>${ENV_VAR}</code> 形式で参照する</li>
+      <li><strong>シークレットマネージャー</strong> &mdash; 本番環境ではGCP Secret Manager、AWS Secrets Manager、HashiCorp Vault等を利用</li>
+      <li><strong>トークンの有効期限</strong> &mdash; 長期有効なAPIキーよりも、短期トークン（OAuth 2.0）を優先する</li>
+      <li><strong>最小権限の原則</strong> &mdash; 必要最低限のスコープ・権限のみを付与する</li>
+    </ul>
+
+    <h3>ネットワーク制限</h3>
+    <p>MCPサーバーが外部ネットワークにアクセスする場合、ファイアウォールルールやVPC設定で接続先を制限することを推奨します。特に社内APIに接続するカスタムMCPサーバーは、許可されたIPアドレスからのみアクセスできるようにしてください。</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>MCPサーバーはプロンプトインジェクションの経路になり得ます。信頼できないデータソースからの応答をそのまま使用しないよう注意してください。特に、ユーザー入力が含まれるデータベースの値をエージェントが処理する際は、出力のサニタイズが重要です。</p>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>MCP接続のトラブルシューティングには、Antigravityの「MCP Inspector」が便利です。接続状態、利用可能なツール一覧、各ツールの入出力ログをリアルタイムで確認できます。問題が発生した場合は、まずInspectorでサーバーの応答を確認しましょう。</p>
+    </div>
+
+    <!-- ===== PAGE NAV BOTTOM ===== -->
+    <div class="page-nav-bottom">
+      <a href="agent-skills.html">
+        <div class="nav-dir">&larr; 前のページ</div>
+        <div class="nav-title">Agent Skills</div>
+      </a>
+      <a href="parallel-agents.html" class="next">
+        <div class="nav-dir">次のページ &rarr;</div>
+        <div class="nav-title">並列エージェント</div>
+      </a>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p><a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a> &mdash; AI Intelligence Hub</p>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+  // Sidebar toggle (mobile)
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. TOC auto-generation
+    const toc = document.getElementById('toc');
+    const headings = document.querySelectorAll('.content h2[id]');
+    headings.forEach(h => {
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      toc.appendChild(a);
+    });
+
+    // 2. Scroll-spy
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+          const active = toc.querySelector(`a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -80% 0px' });
+    headings.forEach(h => observer.observe(h));
+
+    // 3. Code copy buttons
+    document.querySelectorAll('.code-block').forEach(block => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.onclick = () => {
+        const code = block.querySelector('code') || block;
+        navigator.clipboard.writeText(code.textContent.replace('Copy', '').trim());
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      };
+      block.appendChild(btn);
+    });
+
+    // 4. Close sidebar on link click (mobile)
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          toggleSidebar();
+        }
+      });
+    });
+
+    // 5. Smooth scroll for TOC links
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, '', a.getAttribute('href'));
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
