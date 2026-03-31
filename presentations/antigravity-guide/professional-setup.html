@@ -706,6 +706,47 @@
       <p>Docker内でnsjailを動作させるには、ホストカーネルの <code>user_namespaces</code> サポートが必要です。<code>--privileged</code> フラグなしで動作させるには、seccompプロファイルのカスタマイズが必要になる場合があります。</p>
     </div>
 
+    <h3>テンプレートの共有と標準化</h3>
+
+    <p>サンドボックス設定ファイルをGitHub Gistやリポジトリで共有することで、チーム全体で一貫したセキュリティレベルを維持できます。リポジトリの <code>.antigravity/sandbox/</code> ディレクトリに設定ファイルを配置し、用途に応じて使い分けることを推奨します。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>設定セット</th>
+            <th>ファイルアクセス</th>
+            <th>ネットワーク</th>
+            <th>プロセス</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>最小セット</strong></td>
+            <td>PJディレクトリのみ R/W</td>
+            <td>HTTPS (443)のみ</td>
+            <td>制限なし</td>
+            <td>個人開発</td>
+          </tr>
+          <tr>
+            <td><strong>標準セット</strong></td>
+            <td>PJ + /tmp R/W、/usr R</td>
+            <td>HTTPS + SSH</td>
+            <td>PID分離</td>
+            <td>チーム開発</td>
+          </tr>
+          <tr>
+            <td><strong>厳格セット</strong></td>
+            <td>PJ R/W のみ</td>
+            <td>ホワイトリスト</td>
+            <td>完全分離</td>
+            <td>本番CI/CD</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- ===== Section 1.5: 4ツールセキュリティ比較 ===== -->
     <h2 id="security-comparison">4ツールのセキュリティアプローチ比較</h2>
 
@@ -788,6 +829,59 @@ reactjs.org
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
       <p>本番環境のURLはAllowlistに含めないでください。エージェントが本番サイトを操作・スクレイピングするリスクがあります。ステージング環境のURLを使用しましょう。</p>
+    </div>
+
+    <h3>拡張比較: モデル選択・拡張性・企業サポート</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>観点</th>
+            <th>Antigravity</th>
+            <th>Claude Code</th>
+            <th>Cursor</th>
+            <th>VS Code Copilot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>マルチモデル</strong></td>
+            <td>&#x2705; 6モデル切替</td>
+            <td>&#x274C; Claudeのみ</td>
+            <td>&#x2705; 複数対応</td>
+            <td>&#x2705; 複数対応</td>
+          </tr>
+          <tr>
+            <td><strong>拡張機能</strong></td>
+            <td>VS Code互換</td>
+            <td>プラグイン/Skills</td>
+            <td>独自拡張</td>
+            <td>VS Code拡張</td>
+          </tr>
+          <tr>
+            <td><strong>企業SSO</strong></td>
+            <td>&#x274C; 未対応</td>
+            <td>&#x2705; 対応</td>
+            <td>&#x2705; 対応</td>
+            <td>&#x2705; GitHub連携</td>
+          </tr>
+          <tr>
+            <td><strong>SOC 2準拠</strong></td>
+            <td>&#x274C; 未取得</td>
+            <td>&#x2705; 取得済</td>
+            <td>&#x2705; 取得済</td>
+            <td>&#x2705; GitHub準拠</td>
+          </tr>
+          <tr>
+            <td><strong>オンプレミス</strong></td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x2705; GHES対応</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- ===== Section 2: セキュリティポリシー ===== -->
@@ -1080,6 +1174,24 @@ antigravity logs --format json --since "24h" | \
       <div class="callout-title">&#x1F4DD; Note</div>
       <p>Google Cloud Monitoringやdatadog等のAPMツールと統合することで、エージェントのパフォーマンスをダッシュボードで可視化できます。異常検知アラートを設定し、コスト急増やエラー率上昇を早期に検知しましょう。</p>
     </div>
+
+    <h3>外部監視ツールとの統合</h3>
+
+    <ul>
+      <li><strong>Datadog</strong> &mdash; Antigravityのログをdd-agentで収集し、カスタムメトリクス（Work Done消費率、エラー率）をダッシュボード化。タグでセッション単位の分析が可能</li>
+      <li><strong>Prometheus</strong> &mdash; エージェント活動ログをexporterで公開し、Grafanaで可視化。アラートルールでコスト閾値超過やエラー率上昇を即時通知</li>
+    </ul>
+
+    <div class="code-label">.antigravity/monitoring.yml - 監視設定例</div>
+    <div class="code-block"><code># .antigravity/monitoring.yml
+logging:
+  level: info
+  export:
+    format: jsonl
+    path: ~/.antigravity/logs/agent-activity.jsonl
+metrics:
+  enabled: true
+  endpoint: http://localhost:9090/metrics</code></div>
 
     <!-- ===== Section 6: 障害対策 ===== -->
     <h2 id="disaster-recovery">障害対策</h2>

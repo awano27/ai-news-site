@@ -690,6 +690,19 @@
       <p>Planning Modeでの開発は<strong>「Plan提出 → 差分（Diff）作成 → ブラウザ・テスト検証」</strong>の3ステップを繰り返すのが最も効果的です。計画→実装→検証のサイクルを回すことで、手戻りを最小限に抑えられます。</p>
     </div>
 
+    <h3>モード選択フローチャート</h3>
+
+    <div class="code-label">Planning Mode が必要かどうかの判断基準</div>
+    <div class="code-block"><code>このタスクに Planning Mode は必要？
+│
+├─ ファイル数: 3つ以上に影響 → Planning Mode
+├─ リスク: 本番環境に影響する → Planning Mode
+├─ 依存関係: 他タスクとの調整が必要 → Planning Mode
+├─ 変更規模: 100行以上の変更 → Planning Mode
+│
+└─ 上記すべてNoなら → Fast Mode
+   （タイポ修正、変数名変更、コメント追加など）</code></div>
+
     <!-- ===== Section 0.5: カスタムWorkflows ===== -->
     <h2 id="custom-workflows">カスタムWorkflows</h2>
 
@@ -721,6 +734,11 @@ description: 指定ファイルのユニットテストを生成
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
       <p>Workflowsはチーム全員で共有できます。<code>.agents/workflows/</code> をGitにコミットすることで、チームの開発パターンを標準化できます。</p>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Workflowの命名規則</div>
+      <p>動詞-目的語 形式を推奨。例: <code>generate-unit-tests</code>, <code>deploy-staging</code>, <code>review-pr</code>, <code>create-migration</code>。チーム共有時はREADME.mdを<code>.agents/workflows/</code>に追加し、各Workflowの用途と引数を説明しましょう。</p>
     </div>
 
     <!-- ===== Section 1: 日常開発ワークフロー ===== -->
@@ -1046,6 +1064,27 @@ jobs:
         with:
           task: "comment"
           target: "pr"</code></div>
+
+    <h3>GitHub Actions詳細設定例</h3>
+    <p>ルールファイルやモデル指定を含む、より実践的なCI/CD統合の例です。</p>
+
+    <div class="code-label">.github/workflows/antigravity-review.yml</div>
+    <div class="code-block"><code># .github/workflows/antigravity-review.yml
+name: AI Code Review
+on: [pull_request]
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Antigravity Review
+        uses: google/antigravity-action@v1
+        with:
+          mode: review
+          model: gemini-3-flash
+          rules: .agents/rules/
+        env:
+          ANTIGRAVITY_API_KEY: ${{ secrets.ANTIGRAVITY_API_KEY }}</code></div>
 
     <h3>Cloud Build連携</h3>
     <p>Google Cloud Buildとの連携例です。ビルド失敗時にエージェントが自動的にエラー分析を行い、修正PRを提出します。</p>
