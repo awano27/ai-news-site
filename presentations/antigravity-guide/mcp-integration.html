@@ -673,6 +673,25 @@
 
     <p>MCPの最大の利点は、<strong>手動コピペの排除</strong>です。例えばデータベースのテーブル構造を確認したい場合、従来はSQL Clientでスキーマを取得し、その結果をプロンプトに貼り付けていました。MCP経由であれば、エージェントが直接データベースに接続し、必要な情報を自分で取得します。</p>
 
+    <div class="code-label">MCPアーキテクチャ概要</div>
+    <div class="code-block"><code>┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  MCP Host    │────▶│  MCP Server  │────▶│  External    │
+│ (Antigravity)│◀────│ (ローカル/    │◀────│  Service     │
+│              │     │  リモート)    │     │ (DB/API/CLI) │
+└──────────────┘     └──────────────┘     └──────────────┘
+      │                    │                     │
+      │  JSON-RPC 2.0     │  Native Protocol    │
+      │  (stdio/HTTP)     │  (SQL/REST/gRPC)    │
+      ▼                    ▼                     ▼
+┌─────────────────────────────────────────────────────────┐
+│  Data Flow:                                             │
+│  1. ユーザー: 「テーブル構造を確認して」                      │
+│  2. Host → Server: tools/call (query_schema)            │
+│  3. Server → DB: SELECT * FROM information_schema       │
+│  4. DB → Server → Host: スキーマ情報を返却                 │
+│  5. エージェント: スキーマに基づいたコード生成                  │
+└─────────────────────────────────────────────────────────┘</code></div>
+
     <!-- ===== Section 2: MCP設定方法 ===== -->
     <h2 id="setup">MCP設定方法</h2>
 
@@ -1094,6 +1113,34 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO mcp_readonly
 
     <h3>ネットワーク制限</h3>
     <p>MCPサーバーが外部ネットワークにアクセスする場合、ファイアウォールルールやVPC設定で接続先を制限することを推奨します。特に社内APIに接続するカスタムMCPサーバーは、許可されたIPアドレスからのみアクセスできるようにしてください。</p>
+
+    <h4>SSHトンネリングによるリモートDB接続</h4>
+    <p>リモートのデータベースに安全に接続するには、SSHトンネルを使用します。MCPサーバーはローカルポートに接続し、SSH経由でリモートDBに到達します。</p>
+
+    <div class="code-label">SSHトンネルの作成</div>
+    <div class="code-block"><code># ローカルの5433ポートをリモートDBの5432ポートに転送
+ssh -L 5433:db-internal.example.com:5432 bastion@bastion.example.com -N -f
+
+# .mcp.json ではローカルポートを指定
+# "connectionString": "postgresql://mcp_readonly:pass@localhost:5433/app_prod"</code></div>
+
+    <h4>VPC内サービスへの接続</h4>
+    <p>クラウド環境のVPC内にあるサービスへは、プロキシ経由で接続します。Google Cloud SQL Proxy、AWS RDS Proxyなどを利用することで、VPN不要で安全な接続が可能です。</p>
+
+    <div class="code-label">Cloud SQL Proxy の例</div>
+    <div class="code-block"><code># Cloud SQL Proxyを起動（バックグラウンド）
+cloud-sql-proxy --port 5433 my-project:asia-northeast1:my-instance &
+
+# MCPサーバーはlocalhost:5433に接続
+# IAM認証により、パスワード管理が不要になる</code></div>
+
+    <h4>ファイアウォール推奨設定</h4>
+    <p>MCPサーバーのアウトバウンド通信を制限し、意図しない外部通信を防止します。</p>
+    <ul>
+      <li><strong>許可リスト方式</strong> &mdash; MCPサーバーが通信する先のIPアドレス・ドメインを明示的に許可し、それ以外をブロック</li>
+      <li><strong>ポート制限</strong> &mdash; 必要なポート（例: PostgreSQLの5432、MySQLの3306）のみ開放</li>
+      <li><strong>ログ記録</strong> &mdash; MCPサーバーの通信ログを記録し、異常な接続パターンを検出できるようにする</li>
+    </ul>
 
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>

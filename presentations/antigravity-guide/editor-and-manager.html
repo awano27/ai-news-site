@@ -207,6 +207,20 @@
 
     <p>Editor Viewは、VS Codeユーザーにとって馴染み深いコードエディタ画面です。ファイルツリー、エディタペイン、ターミナル、そしてAntigravity固有のエージェントサイドバーで構成されます。</p>
 
+    <div class="code-label">Editor View レイアウト</div>
+    <div class="code-block"><code>┌─────────────────────────────────────────────────────────┐
+│  File Explorer │  Editor Pane          │ Agent Sidebar  │
+│  (左パネル)     │  (中央: コード編集)     │ (右: チャット)  │
+│               │                       │               │
+│  📁 src/      │  function hello() {   │  🤖 指示を入力  │
+│  📁 tests/    │    return "world"     │  ────────────  │
+│  📄 package   │  }                    │  Plan を表示中  │
+│               │                       │               │
+│───────────────│───────────────────────│───────────────│
+│  Terminal (統合ターミナル)                                │
+│  $ npm test                                            │
+└─────────────────────────────────────────────────────────┘</code></div>
+
     <h3>画面構成</h3>
     <ul>
       <li><strong>ファイルエクスプローラー</strong>（左パネル） &mdash; プロジェクトのディレクトリツリー。VS Code互換のアイコンテーマに対応</li>
@@ -283,6 +297,17 @@
     <h2 id="agent-manager">Agent Manager View</h2>
 
     <p>Agent Manager Viewは、Antigravity独自の「ミッションコントロール」画面です。複数のエージェントタスクを一覧表示し、並列実行の状態を俯瞰できるダッシュボードです。</p>
+
+    <div class="code-label">Agent Manager View レイアウト</div>
+    <div class="code-block"><code>┌─────────────────────────────────────────────────────────┐
+│  Task List       │  Task Detail          │ Approval     │
+│  (タスク一覧)     │  (選択タスクの詳細)     │ (承認キュー)  │
+│                  │                       │              │
+│  ✅ リファクタリング │  Status: Running     │ ⏳ rm -rf    │
+│  🔄 テスト作成     │  Model: Gemini Pro   │    → Approve │
+│  ⏳ デプロイ準備    │  Artifacts: 3        │    → Deny    │
+│  📋 ドキュメント    │  Duration: 2m 30s    │              │
+└─────────────────────────────────────────────────────────┘</code></div>
 
     <h3>ダッシュボード構成</h3>
     <ul>
@@ -467,6 +492,14 @@ Antigravity: Cherry-pick Changes</code></div>
       <p>Artifactはセッション終了後も <code>.agent/artifacts/</code> ディレクトリに保存されます（デフォルト設定）。過去のArtifactを参照して、エージェントの判断パターンを分析することで、GEMINI.mdの改善に活かせます。</p>
     </div>
 
+    <h3>Artifactsの保管と再利用</h3>
+    <ul>
+      <li><strong>GEMINI.mdの改善に直結</strong> &mdash; ArtifactsはGEMINI.mdの改善に直結する貴重なデータです。エージェントの出力パターンを分析し、より効果的な指示文を設計しましょう。</li>
+      <li><strong>Workflowテンプレートとして保存</strong> &mdash; 良いPlanが生成されたら、その構造をWorkflowテンプレートとして保存しましょう。類似タスクで再利用することで、エージェントの初動が高速化します。</li>
+      <li><strong>オンボーディング資料への転用</strong> &mdash; Walkthroughは新メンバーのオンボーディング資料として再利用可能です。プロジェクトの設計意図やコードベースの構造を、エージェントの視点から解説した資料になります。</li>
+      <li><strong>PRの説明文に転用</strong> &mdash; Diff ArtifactはPRの説明文に転用でき、レビュー効率が向上します。変更の意図と影響範囲が明確に記述されたArtifactは、そのままレビュアー向けの説明文として機能します。</li>
+    </ul>
+
     <!-- ===== Section 5: 承認フロー ===== -->
     <h2 id="approval-flow">承認フロー</h2>
 
@@ -550,6 +583,11 @@ Antigravity: Cherry-pick Changes</code></div>
     <div class="callout callout-tip">
       <div class="callout-title">&#x2705; Tip</div>
       <p>テストファイルの作成・編集を自動承認に設定すると、TDD（テスト駆動開発）のサイクルが高速化します。テストコードは壊れても即座に修正できるため、リスクが低い操作として扱えます。</p>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; コスト意識</div>
+      <p>並列タスク数を増やすとWork Done消費が比例して増加します。Free プランで3タスク並列実行すると、通常の3倍のクォータを消費します。コスト意識を持ち、タスク優先度に基づいて並列数を調整しましょう。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->

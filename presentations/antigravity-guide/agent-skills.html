@@ -362,6 +362,11 @@ temperature: 0.0
       <p><code>description</code> は最も重要なフィールドです。エージェントが「どのスキルを使うか」を判断する際に参照するため、具体的で正確な説明を書いてください。曖昧な説明は誤ったスキル選択につながります。</p>
     </div>
 
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; トリガーキーワード設計のコツ</div>
+      <p>SKILL.mdの<code>description</code>フィールドは、エージェントがスキルを選択する際のトリガーになります。「デプロイする」「テストを書く」「コードレビューして」など、ユーザーが実際に使う自然言語フレーズを含めましょう。多言語対応する場合は、日本語と英語の両方のキーワードを記載します。</p>
+    </div>
+
     <!-- ===== Section 3: スコープ設計 ===== -->
     <h2 id="skill-scopes">スコープ設計</h2>
 
@@ -514,6 +519,33 @@ temperature: 0.0
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <h3>スキル設計フロー</h3>
+    <p>スキルを新しく作成する前に、以下の3ステップで設計方針を固めましょう。</p>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>タスクの特定</h4>
+          <p>繰り返し発生するタスクを洗い出します。週に3回以上使うパターンはスキル化の候補です。手動で毎回同じプロンプトを書いているなら、それはスキルにすべきサインです。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>汎用 vs 特化の判断</h4>
+          <p>プロジェクト固有ならワークスペーススコープ、全プロジェクト共通ならグローバルスコープに配置します。迷ったらまずワークスペースに作り、汎用性が確認できてからグローバルに昇格させましょう。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>パターン選択</h4>
+          <p>タスクの複雑さに応じて5パターンから選択します。シンプルなものはBasic Router、外部参照が必要ならReferenceパターンが適しています。下記の5パターンを参照してください。</p>
+        </div>
+      </div>
     </div>
 
     <!-- ===== Section 4: 5つのスキルパターン ===== -->
@@ -848,6 +880,49 @@ ln -s ~/team-skills/code-review code-review-shared</code></div>
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
       <p><code>autoDetect: true</code> の場合、エージェントがユーザーの発話からトリガーキーワードを検出し、自動的にスキルをロードします。<code>false</code> にすると、明示的にスキル名を指定する必要があります（例: <code>/skill deploy-staging</code>）。</p>
+    </div>
+
+    <!-- ===== Section: スキルのバージョン管理 ===== -->
+    <h2 id="skill-versioning">スキルのバージョン管理</h2>
+
+    <p>スキルが増えてくると、バージョン管理が重要になります。特にチームで共有するスキルは、変更履歴を追跡できる仕組みが必要です。</p>
+
+    <h3>Semantic Versioning の適用</h3>
+    <p>スキルにも <strong>MAJOR.MINOR.PATCH</strong> のバージョニングを適用することを推奨します。</p>
+    <ul>
+      <li><strong>MAJOR</strong> &mdash; 破壊的変更（出力フォーマットの変更、必須パラメータの追加など）</li>
+      <li><strong>MINOR</strong> &mdash; 後方互換の機能追加（新しいステップの追加、オプションパラメータの追加）</li>
+      <li><strong>PATCH</strong> &mdash; バグ修正、プロンプトの微調整、ドキュメント修正</li>
+    </ul>
+
+    <h3>CHANGELOG.mdの運用</h3>
+    <p>各スキルディレクトリに <code>CHANGELOG.md</code> を配置し、変更履歴を記録します。</p>
+
+    <div class="code-label">CHANGELOG.md の例</div>
+    <div class="code-block"><code># Changelog - deploy-staging skill
+
+## [2.0.0] - 2026-03-15
+### Breaking Changes
+- デプロイ先をCloud RunからCloud Functionsに変更
+- 環境変数 `DEPLOY_TARGET` が必須に
+
+### Added
+- ヘルスチェックの自動実行ステップを追加
+
+## [1.1.0] - 2026-02-20
+### Added
+- Slack通知オプションを追加（`--notify` フラグ）
+
+## [1.0.0] - 2026-01-10
+### Initial Release
+- ステージング環境へのデプロイ手順を定義</code></div>
+
+    <h3>破壊的変更時の運用</h3>
+    <p>MAJORバージョンを上げる破壊的変更を行う場合は、チームへの通知が必要です。既存のワークフローが壊れる可能性があるため、移行期間を設けることを推奨します。</p>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; スコープの優先順位</div>
+      <p>同名スキルがワークスペースとグローバルの両方にある場合、ワークスペースが優先されます。意図しないオーバーライドを防ぐため、グローバルスキルには名前にプレフィックス（例: <code>global-deploy</code>）を付けることを推奨します。</p>
     </div>
 
     <!-- ===== PAGE NAV BOTTOM ===== -->

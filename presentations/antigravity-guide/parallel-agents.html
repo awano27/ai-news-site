@@ -658,6 +658,45 @@
 
     <p>Google Antigravityは最大5つのエージェントを同時に実行できます。Agent Manager Viewを使えば、複数のエージェントに異なるタスクを割り当て、それぞれの進捗をリアルタイムで監視できます。</p>
 
+    <h3>プラン別並列制限</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>プラン</th>
+            <th>最大並列数</th>
+            <th>Work Done/時間</th>
+            <th>推奨用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Free</td>
+            <td>2</td>
+            <td>週次リセット</td>
+            <td>個人学習、小規模タスク</td>
+          </tr>
+          <tr>
+            <td>Pro ($20/月)</td>
+            <td>5</td>
+            <td>5時間ごとリセット</td>
+            <td>日常開発、中規模プロジェクト</td>
+          </tr>
+          <tr>
+            <td>Ultra ($249.99/月)</td>
+            <td>10</td>
+            <td>5時間ごとリセット（最大クォータ）</td>
+            <td>チーム開発、大規模リファクタリング</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>並列数を増やすとWork Done消費が比例して増加します。Free プランで2タスク並列&times;30分 = 単独1時間分のクォータ消費と同等です。</p>
+    </div>
+
     <p>並列エージェントの主なメリット:</p>
     <ul>
       <li><strong>開発速度の大幅向上</strong> &mdash; フロントエンド、バックエンド、テストを同時進行できる。単一エージェントでの直列実行と比べ、3-5倍の速度向上が期待できます。</li>
@@ -898,6 +937,37 @@ git worktree prune</code></div>
     <h3>node_modulesの共有</h3>
     <p>Node.jsプロジェクトの場合、各worktreeで <code>npm install</code> を実行する必要があります。pnpmを使っている場合はコンテンツアドレッサブルストレージが自動的にキャッシュを共有するため、ディスク効率が良くなります。</p>
 
+    <h3>初心者向けWorktreeセットアップ</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>Step 1: メインブランチの確認</strong><br>
+        <code>git branch</code> で現在のブランチを確認し、feature用ブランチを作成する準備をします。mainブランチが最新であることを <code>git pull origin main</code> で確認してください。
+      </li>
+      <li>
+        <strong>Step 2: Worktree作成</strong><br>
+        <code>git worktree add ../project-agent-1 feature/refactor</code> を実行します。これにより親ディレクトリに <code>project-agent-1</code> フォルダが作成され、<code>feature/refactor</code> ブランチがチェックアウトされます。
+      </li>
+      <li>
+        <strong>Step 3: Antigravityで新しいワークスペースとして開く</strong><br>
+        Antigravityで <code>../project-agent-1</code> を新しいワークスペースとして開きます。Agent Manager Viewから「+ New Agent」で、ワークスペースディレクトリにこのパスを指定します。
+      </li>
+      <li>
+        <strong>Step 4: 作業完了後のクリーンアップ</strong><br>
+        <code>git worktree remove ../project-agent-1</code> で不要になったworktreeを削除します。ブランチのマージはメインリポジトリ側で行ってください。
+      </li>
+    </ol>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Worktree使用時の注意</div>
+      <p>
+        &#x2705; 各worktreeに異なるブランチを割り当てる<br>
+        &#x2705; node_modulesはシンボリックリンクで共有可能<br>
+        &#x2716; 同じブランチを複数worktreeで開かない<br>
+        &#x2716; worktree内でgit checkout mainしない
+      </p>
+    </div>
+
     <!-- ===== Section 6: ベストプラクティス ===== -->
     <h2 id="best-practices">ベストプラクティス</h2>
 
@@ -939,6 +1009,52 @@ git worktree prune</code></div>
       <li><strong>インターフェースを先に決める</strong> &mdash; API仕様やコンポーネントのプロパティを先に定義してから並列実行すると、統合がスムーズになる</li>
       <li><strong>テストを独立して実行可能にする</strong> &mdash; 各エージェントのタスク範囲内で完結するテストを書く</li>
     </ul>
+
+    <h3>タスク別の並列化適性</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>タスクタイプ</th>
+            <th>並列化</th>
+            <th>理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>フロントエンド + バックエンド実装</td>
+            <td>&#x2705; 適</td>
+            <td>依存関係が少なく独立して作業可能</td>
+          </tr>
+          <tr>
+            <td>ユニットテスト + E2Eテスト作成</td>
+            <td>&#x2705; 適</td>
+            <td>テスト対象が異なり干渉しない</td>
+          </tr>
+          <tr>
+            <td>APIエンドポイント追加 &times; 3本</td>
+            <td>&#x2705; 適</td>
+            <td>ルートごとに独立</td>
+          </tr>
+          <tr>
+            <td>DB migration + それに依存するコード変更</td>
+            <td>&#x2716; 不適</td>
+            <td>順序依存性がある</td>
+          </tr>
+          <tr>
+            <td>同一ファイルの異なるセクション修正</td>
+            <td>&#x2716; 不適</td>
+            <td>マージコンフリクトが発生</td>
+          </tr>
+          <tr>
+            <td>グローバルCSS変更 + コンポーネント修正</td>
+            <td>&#x26A0;&#xFE0F; 注意</td>
+            <td>スタイル競合の可能性</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>マージ戦略</h3>
     <div class="workflow-cards">

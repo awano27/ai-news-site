@@ -902,6 +902,58 @@ antigravity --disable-sandbox</code></div>
       <p>サンドボックスの無効化は開発環境でのみ行ってください。本番環境やCI/CDパイプラインでは、サンドボックスを有効にしたまま、必要なパスを明示的にホワイトリストに追加する方法を推奨します。</p>
     </div>
 
+    <h3>OS別サンドボックス機能比較</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>機能</th>
+            <th>macOS (Seatbelt)</th>
+            <th>Linux (nsjail)</th>
+            <th>Windows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ファイルシステム分離</strong></td>
+            <td>&#x2705; 完全</td>
+            <td>&#x2705; 完全</td>
+            <td>&#x26A0;&#xFE0F; 限定的</td>
+          </tr>
+          <tr>
+            <td><strong>ネットワーク分離</strong></td>
+            <td>&#x2705; ポート単位</td>
+            <td>&#x2705; 名前空間</td>
+            <td>&#x274C; 未対応</td>
+          </tr>
+          <tr>
+            <td><strong>プロセス分離</strong></td>
+            <td>&#x26A0;&#xFE0F; 部分的</td>
+            <td>&#x2705; PID名前空間</td>
+            <td>&#x274C; 未対応</td>
+          </tr>
+          <tr>
+            <td><strong>GPU分離</strong></td>
+            <td>&#x274C;</td>
+            <td>&#x26A0;&#xFE0F; cgroups</td>
+            <td>&#x274C;</td>
+          </tr>
+          <tr>
+            <td><strong>セットアップ難易度</strong></td>
+            <td>低（自動）</td>
+            <td>中（要設定）</td>
+            <td>N/A</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>Windowsではサンドボックス機能が制限されています。Windowsユーザーは、承認ポリシーをRequest Reviewに設定し、破壊的コマンドをDenyリストに追加することで安全性を確保してください。WSL2環境であればLinux nsjailが利用可能です。</p>
+    </div>
+
     <!-- ===== Section 4: コンテキスト汚染 ===== -->
     <h2 id="context-pollution">コンテキスト汚染</h2>
 
@@ -976,6 +1028,44 @@ antigravity --disable-sandbox</code></div>
       <p>Always Proceedモードを使う場合は、必ずPreToolUseフックで破壊的操作のブロックリストを設定してください。フックはAlways Proceedモードでも強制的に実行されるため、最後の砦として機能します。</p>
     </div>
 
+    <h3>実際に起きた事故事例</h3>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">09:00</div>
+        <div>
+          <h4>曖昧な指示</h4>
+          <p>開発者がAgent-drivenモード(Turbo)で「プロジェクトをクリーンアップして」と指示</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">09:01</div>
+        <div>
+          <h4>ファイル特定と削除実行</h4>
+          <p>エージェントが不要ファイルを特定し、<code>rm -rf</code>を実行</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">09:02</div>
+        <div>
+          <h4>重要ファイルも削除</h4>
+          <p><code>.env</code>ファイルと未コミットの設定ファイルも削除される</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">09:05</div>
+        <div>
+          <h4>復旧不可能</h4>
+          <p>開発者が気付くが、gitに未追跡のファイルは復旧不可</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; 教訓</div>
+      <p>Turboモードでは「クリーンアップ」のような曖昧な指示が破壊的操作に繋がる。Request Reviewモードなら09:01の段階でrmコマンドの確認画面が表示され、事故を防げた。</p>
+    </div>
+
     <!-- ===== Section 6: GEMINI.mdの肥大化 ===== -->
     <h2 id="gemini-md-bloat">GEMINI.mdの肥大化</h2>
 
@@ -1023,6 +1113,31 @@ antigravity --disable-sandbox</code></div>
 # テスト方針（10行）
 # デプロイ手順（10行）
 # よくある問題と対処法（15行）</code></div>
+
+    <h3>整理チェックリスト</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>Step 1: 行数確認</strong><br>
+        120行を超えていたら整理が必要
+      </li>
+      <li>
+        <strong>Step 2: スキル化候補の特定</strong><br>
+        特定タスクのみに使うルール（デプロイ手順、DB操作等）をSkillに移動
+      </li>
+      <li>
+        <strong>Step 3: ネガティブ指示の効果確認</strong><br>
+        「〜しないこと」のルールが実際に守られているか確認。守られていないルールは表現を具体化
+      </li>
+      <li>
+        <strong>Step 4: 重複の排除</strong><br>
+        AGENTS.mdやSkillsと重複するルールを削除
+      </li>
+      <li>
+        <strong>Step 5: 定期棚卸し</strong><br>
+        月1回、チームレビューで古くなったルールを削除。PRテンプレートにGEMINI.mdレビュー項目を追加
+      </li>
+    </ol>
 
     <!-- ===== Section 7: モデル選択ミス ===== -->
     <h2 id="model-mismatch">モデル選択ミス</h2>

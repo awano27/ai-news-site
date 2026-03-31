@@ -652,6 +652,76 @@
     <h1>その他業務</h1>
     <p class="subtitle">コーディング以外でのGoogle Antigravity活用パターン。ドキュメント作成、データ分析、プロジェクト管理まで。</p>
 
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; カテゴリ概要</div>
+      <p>この章では以下のカテゴリ別にAntigravityの非コーディング活用法を紹介します: &#x1F4C4; ドキュメント作成 | &#x1F4CA; データ分析 | &#x1F4CB; プロジェクト管理 | &#x1F4DA; 学習・調査 | &#x1F504; マイグレーション | &#x1F310; Browser Agent | &#x270F;&#xFE0F; コンテンツ制作 | &#x1F916; 自分OS。各ユースケースには推奨モデルと必要なSkillを明記しています。</p>
+    </div>
+
+    <h3>ユースケース別 推奨モデル一覧</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ユースケース</th>
+            <th>推奨モデル</th>
+            <th>必要なSkill</th>
+            <th>難易度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>README生成</td>
+            <td>Gemini Flash</td>
+            <td>なし</td>
+            <td>初心者</td>
+          </tr>
+          <tr>
+            <td>API仕様書作成</td>
+            <td>Gemini Pro</td>
+            <td>なし</td>
+            <td>中級</td>
+          </tr>
+          <tr>
+            <td>CSV/JSONデータ分析</td>
+            <td>Gemini Pro</td>
+            <td>なし</td>
+            <td>初心者</td>
+          </tr>
+          <tr>
+            <td>ログ分析</td>
+            <td>Claude Opus</td>
+            <td>なし</td>
+            <td>中級</td>
+          </tr>
+          <tr>
+            <td>Issue整理・進捗レポート</td>
+            <td>Gemini Flash</td>
+            <td>GitHub MCP</td>
+            <td>初心者</td>
+          </tr>
+          <tr>
+            <td>Browser自動テスト</td>
+            <td>Gemini Pro</td>
+            <td>Browser拡張</td>
+            <td>中級</td>
+          </tr>
+          <tr>
+            <td>ブログ・SNS執筆</td>
+            <td>Claude Opus</td>
+            <td>なし</td>
+            <td>初心者</td>
+          </tr>
+          <tr>
+            <td>画像生成(モックアップ)</td>
+            <td>Nano Banana Pro</td>
+            <td>なし</td>
+            <td>中級</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- ===== Section 1: ドキュメント作成 ===== -->
     <h2 id="documentation">ドキュメント作成</h2>
 
@@ -941,6 +1011,45 @@ v3への移行計画を作成して:
     <div class="callout callout-note">
       <div class="callout-title">&#x1F4DD; Note</div>
       <p>マイグレーション作業は <code>gemini-2.5-pro</code> の計画 + <code>gemini-2.5-flash</code> の実行というマルチモデル戦略が最も効果的です。Proで移行計画を立て、Flashで機械的な変換を実行し、再度Proでレビューする3段階アプローチを推奨します。</p>
+    </div>
+
+    <!-- ===== Section 5.5: 安全なデータ取り扱い ===== -->
+    <h2 id="data-security">安全なデータ取り扱い</h2>
+
+    <p>エージェントにデータを処理させる際は、個人情報や機密情報の取り扱いに細心の注意が必要です。</p>
+
+    <h3>個人情報の匿名化</h3>
+    <p>個人情報（PII）を含むデータをエージェントに渡す前に、必ずマスキング処理を行います。</p>
+
+    <div class="code-label">PII匿名化の例（sed）</div>
+    <div class="code-block"><code># メールアドレスをマスク
+sed -E 's/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/***@***.***/' data.csv
+
+# 電話番号をマスク
+sed -E 's/0[0-9]{1,4}-[0-9]{1,4}-[0-9]{4}/***-****-****/g' data.csv
+
+# 名前カラムを仮名に置換
+awk -F',' 'NR==1{print} NR>1{$2="User_"NR; print}' OFS=',' data.csv</code></div>
+
+    <h3>テレメトリの確認</h3>
+    <p>エージェントの利用データがGoogleのサーバーに送信されないよう、テレメトリ設定を確認します。</p>
+    <ul>
+      <li><strong>設定画面</strong> &mdash; Settings &rarr; Account &rarr; Enable Telemetry: <strong>OFF</strong></li>
+      <li>CLIの場合: <code>antigravity config set telemetry.enabled false</code></li>
+    </ul>
+
+    <h3>環境変数による認証情報管理</h3>
+    <p>外部APIとの連携時は、認証情報をコード内にハードコーディングせず、環境変数で管理します。</p>
+
+    <div class="code-label">.env ファイル例</div>
+    <div class="code-block"><code># .env（.gitignoreに追加すること）
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+DATABASE_URL=postgresql://user:pass@localhost:5432/mydb
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/xxx/yyy/zzz</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>エージェントに機密データを直接渡す前に、必ずデータの匿名化・マスキングを行ってください。チャット履歴はGoogleのサーバーに送信される可能性があります（テレメトリ設定による）。</p>
     </div>
 
     <!-- ===== Section 6: Browser Agentによる自動化 ===== -->

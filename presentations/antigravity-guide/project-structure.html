@@ -323,6 +323,42 @@ Cloud Run + Cloud SQL。mainブランチへのマージでCI/CDが自動実行�
       </table>
     </div>
 
+    <h3>技術スタック別テンプレート: Node.js / TypeScript</h3>
+
+    <div class="code-label">GEMINI.md（Next.js + Prisma プロジェクト）</div>
+    <div class="code-block"><code># プロジェクト概要
+Next.js 15 + TypeScript + Prisma + PostgreSQLのWebアプリケーション
+
+## 技術スタック
+- Runtime: Node.js 22 LTS
+- Framework: Next.js 15 (App Router)
+- ORM: Prisma 6
+- DB: PostgreSQL 16
+
+## コーディング規約
+- TypeScript strict mode必須
+- Server ComponentsをデフォルトとしuseClientは最小限に
+- Prisma schemaの変更時はmigrationファイルを必ず生成
+- ESLint + Prettierの設定に従うこと</code></div>
+
+    <h3>技術スタック別テンプレート: Python / Django</h3>
+
+    <div class="code-label">GEMINI.md（Django REST Framework プロジェクト）</div>
+    <div class="code-block"><code># プロジェクト概要
+Django 5.1 + Django REST Framework + Celery + PostgreSQLのAPI
+
+## 技術スタック
+- Python: 3.12
+- Framework: Django 5.1 + DRF 3.15
+- Task Queue: Celery + Redis
+- DB: PostgreSQL 16
+
+## コーディング規約
+- Type hints必須 (PEP 484)
+- ruff format + ruff checkに従うこと
+- モデル変更時はmakemigrations→migrateの順で実行
+- ViewSetはModelViewSetを継承し、permissionsを明示</code></div>
+
     <!-- ===== Section 2: .agent/ ディレクトリ ===== -->
     <h2 id="agent-directory">.agent/ ディレクトリ</h2>
 
@@ -429,6 +465,66 @@ Cloud Run + Cloud SQL。mainブランチへのマージでCI/CDが自動実行�
 ## Git規約
 - Conventional Commits（feat:, fix:, docs:, refactor:, test:）
 - PRは1機能/1バグ修正に限定</code></div>
+
+    <h3>マルチツール対応マトリクス</h3>
+
+    <p>各AIコーディングツールがどの設定ファイルを読み込むかの一覧です。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ファイル</th>
+            <th>Antigravity</th>
+            <th>Claude Code</th>
+            <th>Codex</th>
+            <th>Cursor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GEMINI.md</code></td>
+            <td>&#x2705; 読込</td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+          </tr>
+          <tr>
+            <td><code>AGENTS.md</code></td>
+            <td>&#x2705; 読込</td>
+            <td>&#x274C;</td>
+            <td>&#x2705; 読込</td>
+            <td>&#x2705; 読込</td>
+          </tr>
+          <tr>
+            <td><code>CLAUDE.md</code></td>
+            <td>&#x274C;</td>
+            <td>&#x2705; 読込</td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+          </tr>
+          <tr>
+            <td><code>.cursorrules</code></td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x2705; 読込</td>
+          </tr>
+          <tr>
+            <td><code>copilot-instructions.md</code></td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x274C;</td>
+            <td>&#x274C; (Copilot用)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p><code>AGENTS.md</code>は最も汎用性が高く、Antigravity・Codex・Cursorの3ツールで共有できます。マルチツール環境ではAGENTS.mdを共通ルールファイルとして活用し、ツール固有の設定はGEMINI.mdやCLAUDE.mdに分離するのが推奨パターンです。</p>
+    </div>
 
     <!-- ===== Section 4: スコープ設計 ===== -->
     <h2 id="scope-design">スコープ設計</h2>
@@ -623,6 +719,32 @@ globs: ["**/*.test.ts", "**/*.spec.ts"]
           <p>GEMINI.mdの変更はPRとしてレビューします。コーディング規約と同じ重要度で扱い、チーム全体の合意を得てからマージしましょう。</p>
         </div>
       </div>
+    </div>
+
+    <h3>悪い例</h3>
+    <div class="code-label">GEMINI.md（曖昧な指示）</div>
+    <div class="code-block"><code># ルール
+コードの品質を高く保つこと。
+テストを書くこと。
+セキュリティに注意すること。
+パフォーマンスを意識すること。</code></div>
+
+    <h3>良い例</h3>
+    <div class="code-label">GEMINI.md（具体的で検証可能な指示）</div>
+    <div class="code-block"><code># コーディング規約
+- any型の使用禁止。unknown + 型ガードを使うこと
+- console.logでのデバッグ禁止。logger.debug()を使うこと
+- API関数には必ずエラーハンドリングを実装すること
+- 新規コンポーネントには単体テストを必須とする
+
+# 禁止パターン
+- node_modules/、dist/、.env* への書き込み禁止
+- git push --force 禁止
+- rm -rf / 禁止</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>曖昧な指示はエージェントに無視されます。「品質を高く保つ」ではなく「any型禁止」「console.log禁止」のように、具体的で検証可能なルールを書きましょう。</p>
     </div>
 
     <div class="callout callout-tip">
