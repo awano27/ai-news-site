@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SKILL.mdの作成からスコープ設計、5つのスキルパターンまで。Google Antigravity Agent Skillsガイド。">
+  <title>Agent Skills | Google Antigravity Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-red: #f85149;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main); color: var(--text-primary); line-height: 1.7;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .topbar { position: sticky; top: 0; z-index: 200; background: rgba(15, 17, 23, 0.82); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border-bottom: 1px solid rgba(255, 255, 255, 0.06); height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .back-link { color: var(--text-muted); font-size: 14px; transition: color 0.15s; display: flex; align-items: center; gap: 6px; }
+    .back-link:hover { color: var(--accent-red); }
+    .page-title { font-weight: 700; font-size: 15px; color: var(--text-heading); letter-spacing: -0.01em; }
+    .hamburger { display: none; background: none; border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 20px; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+    .hamburger:hover { background: rgba(255,255,255,0.06); }
+
+    .layout { display: flex; min-height: calc(100vh - 56px); }
+
+    .sidebar { width: 240px; min-width: 240px; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; padding: 24px 16px; border-right: 1px solid rgba(255, 255, 255, 0.06); background: var(--bg-sidebar); }
+    .toc-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 12px; margin-bottom: 12px; }
+    .toc a { display: block; padding: 6px 12px; color: var(--text-muted); text-decoration: none; font-size: 14px; border-radius: 6px; transition: all 0.15s; line-height: 1.5; margin-bottom: 2px; }
+    .toc a:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.04); }
+    .toc a.active { color: var(--accent-red); background: rgba(248, 81, 73, 0.1); }
+
+    .page-nav { margin-top: 32px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+    .page-nav a { display: block; padding: 8px 12px; color: var(--text-muted); font-size: 13px; border-radius: 6px; transition: all 0.15s; margin-bottom: 4px; }
+    .page-nav a:hover { color: var(--accent-red); background: rgba(248, 81, 73, 0.06); }
+    .page-nav .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.6; margin-bottom: 2px; padding: 0 12px; }
+
+    .chapter-nav { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .chapter-nav-title { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px 12px; }
+    .chapter-link { display: block; padding: 5px 12px; color: var(--text-muted); text-decoration: none; font-size: 12px; border-radius: 4px; transition: all 0.15s; }
+    .chapter-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+    .chapter-link.current { color: var(--accent-red); background: rgba(248, 81, 73, 0.1); font-weight: 700; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent-blue); }
+    .breadcrumb .current { color: var(--text-primary); }
+    .page-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px; margin-bottom: 32px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 11px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .meta-value { font-size: 14px; color: var(--text-primary); }
+    @media (max-width: 600px) { .page-meta { grid-template-columns: 1fr; } }
+
+    .content { flex: 1; max-width: 820px; padding: 48px 56px 80px; }
+    .content h1 { font-size: 32px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; letter-spacing: -0.02em; }
+    .content .subtitle { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; line-height: 1.6; }
+    .content h2 { font-size: 22px; font-weight: 700; color: var(--text-heading); margin-top: 56px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); letter-spacing: -0.01em; }
+    .content h3 { font-size: 17px; font-weight: 700; color: var(--text-heading); margin-top: 32px; margin-bottom: 12px; }
+    .content p { margin-bottom: 16px; color: var(--text-primary); font-size: 15px; line-height: 1.8; }
+    .content ul, .content ol { margin-bottom: 16px; padding-left: 24px; }
+    .content li { margin-bottom: 8px; font-size: 15px; line-height: 1.7; }
+    .content li strong { color: var(--text-heading); }
+    .content a.inline-link { color: var(--accent-blue); text-decoration: underline; text-underline-offset: 2px; }
+    .content a.inline-link:hover { color: var(--accent-red); }
+
+    .code-block { position: relative; background: var(--bg-code); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-primary); overflow-x: auto; line-height: 1.6; margin-bottom: 16px; }
+    .code-block code { font-family: inherit; font-size: inherit; color: inherit; background: none; }
+    .code-block .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .code-block .copy-btn:hover { background: rgba(255, 255, 255, 0.18); color: var(--text-primary); }
+    .code-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+    .content code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: rgba(255, 255, 255, 0.06); padding: 2px 6px; border-radius: 4px; color: var(--accent-red); }
+
+    .callout { border-left: 4px solid; padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; background: var(--bg-card); }
+    .callout-tip { border-color: var(--accent-green); }
+    .callout-warning { border-color: var(--accent-red); }
+    .callout-note { border-color: var(--accent-blue); }
+    .callout-title { font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .callout-tip .callout-title { color: var(--accent-green); }
+    .callout-warning .callout-title { color: var(--accent-red); }
+    .callout-note .callout-title { color: var(--accent-blue); }
+    .callout p { font-size: 14px; margin-bottom: 0; color: var(--text-primary); opacity: 0.92; }
+
+    .table-wrapper { overflow-x: auto; margin: 16px 0 24px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: var(--bg-sidebar); }
+    th { text-align: left; padding: 12px 16px; font-weight: 700; color: var(--text-heading); border-bottom: 1px solid rgba(255, 255, 255, 0.1); white-space: nowrap; }
+    td { padding: 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-primary); }
+    td code { font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .workflow-cards { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 20px 0 24px; }
+    .workflow-card { display: flex; gap: 16px; background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 20px; transition: border-color 0.2s; }
+    .workflow-card:hover { border-color: rgba(255, 255, 255, 0.12); }
+    .workflow-number { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: rgba(248, 81, 73, 0.12); color: var(--accent-red); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+    .workflow-card h4 { font-size: 15px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px; }
+    .workflow-card p { font-size: 14px; margin-bottom: 0; color: var(--text-muted); line-height: 1.6; }
+
+    .steps-list { counter-reset: step-counter; list-style: none; padding-left: 0; margin: 16px 0 24px; }
+    .steps-list li { counter-increment: step-counter; position: relative; padding-left: 40px; margin-bottom: 20px; }
+    .steps-list li::before { content: counter(step-counter); position: absolute; left: 0; top: 2px; width: 28px; height: 28px; border-radius: 50%; background: rgba(248, 81, 73, 0.12); color: var(--accent-red); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+
+    .page-nav-bottom { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+    .page-nav-bottom a { display: block; flex: 1; padding: 20px 24px; background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; transition: all 0.2s; }
+    .page-nav-bottom a:hover { border-color: var(--accent-red); background: rgba(248, 81, 73, 0.04); }
+    .page-nav-bottom .nav-dir { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .page-nav-bottom .nav-title { font-size: 15px; font-weight: 700; color: var(--text-heading); }
+    .page-nav-bottom .next { text-align: right; }
+
+    footer { border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 32px 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+    footer a { color: var(--accent-blue); text-decoration: underline; text-underline-offset: 2px; }
+    footer a:hover { color: var(--accent-red); }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; position: fixed; z-index: 100; width: 280px; left: 0; top: 56px; bottom: 0; box-shadow: 4px 0 24px rgba(0,0,0,0.4); }
+      .sidebar.open { display: block; }
+      .hamburger { display: block; }
+      .content { padding: 24px 20px 60px; }
+      .content h1 { font-size: 26px; }
+      .content h2 { font-size: 19px; margin-top: 40px; }
+      .page-nav-bottom { flex-direction: column; }
+      .page-nav-bottom .next { text-align: left; }
+    }
+    @media (min-width: 769px) { .hamburger { display: none; } }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; top: 56px; background: rgba(0,0,0,0.5); z-index: 99; }
+    .sidebar-overlay.open { display: block; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
+  <span class="page-title">Agent Skills</span>
+  <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
+</header>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="toc-label">目次</div>
+    <nav class="toc" id="toc"></nav>
+    <div class="page-nav">
+      <div class="nav-label">ナビゲーション</div>
+      <a href="editor-and-manager.html">&larr; 前へ: Editor & Manager</a>
+      <a href="mcp-integration.html">次へ: MCP連携 &rarr;</a>
+      <a href="../ai_coding_agents_guide.html">&larr; ガイドTOPに戻る</a>
+    </div>
+    <div class="chapter-nav">
+      <h4 class="chapter-nav-title">全12章</h4>
+      <a href="getting-started.html" class="chapter-link">1. Getting Started</a>
+      <a href="project-structure.html" class="chapter-link">2. 構成設計</a>
+      <a href="editor-and-manager.html" class="chapter-link">3. Editor & Manager</a>
+      <a href="agent-skills.html" class="chapter-link current">4. Agent Skills</a>
+      <a href="mcp-integration.html" class="chapter-link">5. MCP連携</a>
+      <a href="parallel-agents.html" class="chapter-link">6. 並列エージェント</a>
+      <a href="models-and-config.html" class="chapter-link">7. モデル選択・設定</a>
+      <a href="workflows.html" class="chapter-link">8. ワークフロー</a>
+      <a href="pitfalls.html" class="chapter-link">9. 落とし穴</a>
+      <a href="professional-setup.html" class="chapter-link">10. プロ環境構築</a>
+      <a href="advanced-techniques.html" class="chapter-link">11. 上級テクニック</a>
+      <a href="other-uses.html" class="chapter-link">12. その他業務</a>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <nav class="breadcrumb">
+      <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
+      <span>›</span>
+      <a href="index.html">Google Antigravity</a>
+      <span>›</span>
+      <span class="current">Agent Skills</span>
+    </nav>
+
+    <div class="page-meta">
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">中級者</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">カスタムSkill作成</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">Ch.1-3完了</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">25分</span></div>
+    </div>
+
+    <h1>Agent Skills</h1>
+    <p class="subtitle">SKILL.mdの作成からスコープ設計、5つのスキルパターンまで。エージェントを汎用AIから専門家に変えるSkillsシステム。</p>
+
+    <!-- ===== Section 1: Agent Skillsとは ===== -->
+    <h2 id="what-are-skills">Agent Skillsとは</h2>
+
+    <p>Agent Skillsは、汎用的なAIモデルを特定のタスクの「専門家」に変えるための仕組みです。SKILL.mdファイルに定義された指示・参照情報・手順がエージェントのコンテキストにロードされ、タスクに最適化された振る舞いを実現します。</p>
+
+    <h3>なぜSkillsが必要なのか</h3>
+    <ul>
+      <li><strong>精度の向上</strong> &mdash; 汎用モデルに「デプロイ手順書」を渡すことで、プロジェクト固有のデプロイコマンドを正確に実行</li>
+      <li><strong>一貫性の確保</strong> &mdash; 複数のチームメンバーが同じSkillを使うことで、作業品質のばらつきを排除</li>
+      <li><strong>コンテキスト効率</strong> &mdash; 必要なSkillだけがロードされるため、コンテキストウィンドウを無駄に消費しない</li>
+      <li><strong>再利用性</strong> &mdash; 一度作成したSkillは複数プロジェクトで共有可能</li>
+    </ul>
+
+    <h3>SkillとGEMINI.mdの違い</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>GEMINI.md</th>
+            <th>SKILL.md</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ロードタイミング</strong></td>
+            <td>常にロード</td>
+            <td>必要時のみロード</td>
+          </tr>
+          <tr>
+            <td><strong>スコープ</strong></td>
+            <td>プロジェクト全体</td>
+            <td>特定のタスク</td>
+          </tr>
+          <tr>
+            <td><strong>内容</strong></td>
+            <td>プロジェクト概要・規約</td>
+            <td>タスク固有の手順・参照情報</td>
+          </tr>
+          <tr>
+            <td><strong>長さの目安</strong></td>
+            <td>80〜120行</td>
+            <td>50〜300行（パターンによる）</td>
+          </tr>
+          <tr>
+            <td><strong>更新頻度</strong></td>
+            <td>月1回程度</td>
+            <td>手順変更時に随時</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Skillsは「エージェントが呼び出す辞書」と考えてください。すべての情報をGEMINI.mdに詰め込むとコンテキストが溢れます。共通の指示はGEMINI.md、タスク固有の詳細はSkillsに分離するのがベストプラクティスです。</p>
+    </div>
+
+    <!-- ===== Section 2: SKILL.md の構造 ===== -->
+    <h2 id="skill-md">SKILL.md の構造</h2>
+
+    <p>SKILL.mdはYAMLフロントマターとMarkdownボディで構成されます。フロントマターにメタ情報を、ボディに具体的な指示を記述します。</p>
+
+    <div class="code-label">基本構造</div>
+    <div class="code-block"><code>---
+name: deploy-production
+description: "本番環境へのデプロイ手順を実行するスキル"
+trigger: "deploy, デプロイ, 本番反映, リリース"
+model: gemini-3-pro
+temperature: 0.0
+---
+
+# Deploy Production
+
+## 前提条件
+- mainブランチにいること
+- 全テストがパスしていること
+- CHANGELOG.mdが更新されていること
+
+## 手順
+
+1. テストの実行
+   ```bash
+   npm run test:all
+   ```
+
+2. ビルド
+   ```bash
+   npm run build:production
+   ```
+
+3. デプロイ前チェック
+   - ビルドアーティファクトのサイズを確認（前回比+10%以上なら警告）
+   - 環境変数の設定を確認
+
+4. デプロイ実行
+   ```bash
+   gcloud run deploy my-service \
+     --image gcr.io/my-project/my-service:latest \
+     --region asia-northeast1 \
+     --platform managed
+   ```
+
+5. ヘルスチェック
+   ```bash
+   curl -f https://api.example.com/health || echo "DEPLOY FAILED"
+   ```
+
+## 注意事項
+- デプロイは平日10:00-17:00のみ実行可能
+- 金曜日のデプロイは禁止（週末のインシデント対応を避けるため）
+- ロールバック手順: `gcloud run services update-traffic --to-revisions=PREVIOUS=100`</code></div>
+
+    <h3>フロントマターのフィールド</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>フィールド</th>
+            <th>必須</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code></td>
+            <td>必須</td>
+            <td>スキルの一意識別名。ケバブケース推奨（例: <code>deploy-production</code>）</td>
+          </tr>
+          <tr>
+            <td><code>description</code></td>
+            <td>必須</td>
+            <td>スキルの説明。エージェントがスキルを選択する際の判断材料</td>
+          </tr>
+          <tr>
+            <td><code>trigger</code></td>
+            <td>推奨</td>
+            <td>スキルを起動するキーワード（カンマ区切り）。ユーザーの発話にキーワードが含まれると自動的にロード</td>
+          </tr>
+          <tr>
+            <td><code>model</code></td>
+            <td>任意</td>
+            <td>このスキルで使用するモデル。省略時はデフォルトモデルを使用</td>
+          </tr>
+          <tr>
+            <td><code>temperature</code></td>
+            <td>任意</td>
+            <td>生成のランダム性（0.0〜1.0）。手順実行は0.0、クリエイティブ作業は0.7推奨</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p><code>description</code> は最も重要なフィールドです。エージェントが「どのスキルを使うか」を判断する際に参照するため、具体的で正確な説明を書いてください。曖昧な説明は誤ったスキル選択につながります。</p>
+    </div>
+
+    <!-- ===== Section 3: スコープ設計 ===== -->
+    <h2 id="skill-scopes">スコープ設計</h2>
+
+    <p>Skillsはワークスペーススコープとグローバルスコープの2層で管理できます。プロジェクト固有のスキルと汎用スキルを分離することで、メンテナンス性が向上します。</p>
+
+    <h3>ワークスペーススコープ</h3>
+    <p>プロジェクトの <code>.agent/skills/</code> ディレクトリに配置します。プロジェクト固有のタスク（デプロイ、データ移行、特定のテスト実行など）に使用します。</p>
+
+    <div class="code-label">ワークスペーススキルの配置</div>
+    <div class="code-block"><code>my-project/
+└── .agent/
+    └── skills/
+        ├── deploy/
+        │   └── SKILL.md        # 本番デプロイ手順
+        ├── db-migration/
+        │   └── SKILL.md        # DBマイグレーション手順
+        ├── api-test/
+        │   ├── SKILL.md        # APIテスト実行手順
+        │   └── test-data.json  # テストデータ（参照ファイル）
+        └── code-review/
+            └── SKILL.md        # コードレビューチェックリスト</code></div>
+
+    <h3>グローバルスコープ</h3>
+    <p><code>~/.gemini/antigravity/skills/</code> に配置します。プロジェクトに関係なく使用する汎用スキル（Gitワークフロー、ドキュメント生成、リファクタリングパターンなど）に使用します。</p>
+
+    <div class="code-label">グローバルスキルの配置</div>
+    <div class="code-block"><code>~/.gemini/antigravity/
+└── skills/
+    ├── git-workflow/
+    │   └── SKILL.md            # Git操作の標準手順
+    ├── documentation/
+    │   └── SKILL.md            # ドキュメント生成ルール
+    ├── security-audit/
+    │   └── SKILL.md            # セキュリティチェック
+    └── performance/
+        └── SKILL.md            # パフォーマンス分析手順</code></div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>スコープ</th>
+            <th>場所</th>
+            <th>Git管理</th>
+            <th>適切な用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ワークスペース</strong></td>
+            <td><code>.agent/skills/</code></td>
+            <td>チーム共有推奨</td>
+            <td>デプロイ、DB操作、PJ固有テスト</td>
+          </tr>
+          <tr>
+            <td><strong>グローバル</strong></td>
+            <td><code>~/.gemini/antigravity/skills/</code></td>
+            <td>個人（dotfiles管理可）</td>
+            <td>Git操作、ドキュメント生成、セキュリティ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>同名のスキルがワークスペースとグローバルの両方にある場合、ワークスペースのスキルが優先されます。これにより、汎用スキルをプロジェクト固有にオーバーライドできます。</p>
+    </div>
+
+    <!-- ===== Section 3.5: Progressive Disclosure ===== -->
+    <h2 id="progressive-disclosure">Progressive Disclosure（段階的開示）</h2>
+
+    <p>Skillsが解決する最大の課題は、<strong>システムプロンプトの肥大化</strong>です。すべてのルールをGEMINI.mdに書くと、コンテキストウィンドウを無駄に消費し、重要な指示が埋もれます。</p>
+
+    <p>Skillsは「<strong>Progressive Disclosure（段階的開示）</strong>」のパターンで、必要な時だけ知識をロードします。</p>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>常時ロード（GEMINI.md）</h4>
+          <p>すべてのタスクに適用される基本ルール：セキュリティ、コーディング規約、言語設定。80〜120行に抑える。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>必要時ロード（Skills）</h4>
+          <p>特定タスクの専門知識：デプロイ手順、DB操作、テストパターンなど。ユーザーのリクエストがSkillのdescriptionと一致した時だけロード。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>手動呼び出し（Manual Skills）</h4>
+          <p>頻度の低い作業：マイグレーションガイド、リリース手順など。ユーザーが明示的に呼び出した場合のみ。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Skillsの仕組みにより、GEMINI.mdを100行以下に保ちつつ、数十ページ分の専門知識をエージェントに持たせることができます。「常に必要なもの」と「たまに必要なもの」を明確に分けましょう。</p>
+    </div>
+
+    <h3>実践的な5つのスキル例</h3>
+
+    <p>よく使われる具体的なSkill活用パターンです。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>スキル名</th>
+            <th>用途</th>
+            <th>パターン</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Git Commit整形</td>
+            <td>Conventional Commitsに準拠したメッセージ生成</td>
+            <td>Basic Router</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>ライセンスヘッダー追加</td>
+            <td>新規ファイルにライセンスヘッダーを自動追加</td>
+            <td>Reference</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>JSON→Pydantic変換</td>
+            <td>JSONスキーマからPydanticモデルを自動生成</td>
+            <td>Few-shot</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>DBスキーマ検証</td>
+            <td>マイグレーションファイルの整合性チェック</td>
+            <td>Tool Use</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>資料作成・リサーチ</td>
+            <td>技術調査結果のMarkdownレポート生成</td>
+            <td>All-in-One</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== Section 4: 5つのスキルパターン ===== -->
+    <h2 id="five-patterns">5つのスキルパターン（構造）</h2>
+
+    <p>Skillsの設計には5つの基本パターンがあります。タスクの性質に応じて最適なパターンを選択してください。</p>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>Basic Router</h4>
+          <p>最もシンプルなパターン。SKILL.mdに短い手順を記述するだけ。単一コマンドの実行や、簡単なチェックリストに適しています。50行以下が目安です。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>Reference</h4>
+          <p>外部ドキュメントや設定ファイルを参照するパターン。SKILL.mdから別ファイル（API仕様書、設定例など）をインクルードして、エージェントに豊富な参考情報を提供します。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>Few-shot</h4>
+          <p>入力/出力の具体例を含めるパターン。コードレビューコメントのトーン、エラーメッセージの書き方など、「こう書いてほしい」という例を提示して品質を制御します。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">4</div>
+        <div>
+          <h4>Tool Use</h4>
+          <p>MCPサーバーやCLIツールとの連携を定義するパターン。「Slack通知を送る」「JIRAチケットを更新する」など、外部ツールとの統合手順を記述します。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">5</div>
+        <div>
+          <h4>All-in-One</h4>
+          <p>上記パターンを組み合わせた包括的なスキル。複雑なワークフロー（PR作成→レビュー→デプロイ→通知）を1つのスキルで完結させます。200〜300行が目安です。</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>パターン比較</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>パターン</th>
+            <th>行数目安</th>
+            <th>参照ファイル</th>
+            <th>適切な場面</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Basic Router</strong></td>
+            <td>20〜50行</td>
+            <td>なし</td>
+            <td>単一コマンド、簡単なチェック</td>
+          </tr>
+          <tr>
+            <td><strong>Reference</strong></td>
+            <td>50〜100行</td>
+            <td>1〜3ファイル</td>
+            <td>API仕様準拠、設定テンプレート</td>
+          </tr>
+          <tr>
+            <td><strong>Few-shot</strong></td>
+            <td>80〜150行</td>
+            <td>なし</td>
+            <td>コードレビュー、文書生成</td>
+          </tr>
+          <tr>
+            <td><strong>Tool Use</strong></td>
+            <td>50〜120行</td>
+            <td>MCPサーバー設定</td>
+            <td>外部ツール連携、通知</td>
+          </tr>
+          <tr>
+            <td><strong>All-in-One</strong></td>
+            <td>200〜300行</td>
+            <td>複数ファイル</td>
+            <td>エンドツーエンドワークフロー</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Reference パターンの例</h3>
+
+    <div class="code-label">.agent/skills/api-endpoint/SKILL.md</div>
+    <div class="code-block"><code>---
+name: create-api-endpoint
+description: "API仕様に準拠した新しいエンドポイントを作成する"
+trigger: "エンドポイント作成, API追加, 新しいAPI"
+---
+
+# Create API Endpoint
+
+新しいAPIエンドポイントを作成する際は、以下の仕様に従ってください。
+
+## 参照ファイル
+- `docs/api-spec.yaml` - OpenAPI仕様書
+- `internal/api/middleware.go` - 認証・ログミドルウェア
+- `internal/api/handler_example.go` - ハンドラの実装例
+
+## 実装手順
+1. OpenAPI仕様書にエンドポイント定義を追加
+2. `internal/api/` にハンドラファイルを作成
+3. `internal/domain/` にビジネスロジックを実装
+4. `internal/infra/` にリポジトリ実装を追加
+5. ルーティングに新エンドポイントを登録
+6. テーブル駆動テストを作成
+
+## 必須チェック
+- [ ] OpenAPI仕様との整合性
+- [ ] 認証ミドルウェアの適用
+- [ ] バリデーション（入力検証）
+- [ ] エラーレスポンスの統一
+- [ ] テストカバレッジ80%以上</code></div>
+
+    <h3>Few-shot パターンの例</h3>
+
+    <div class="code-label">.agent/skills/code-review/SKILL.md</div>
+    <div class="code-block"><code>---
+name: code-review
+description: "プロジェクト規約に基づいたコードレビューを実行する"
+trigger: "レビュー, review, コードチェック"
+temperature: 0.2
+---
+
+# Code Review
+
+## レビューコメントのトーン（Few-shot Examples）
+
+### 良い例
+- "この変数名を `userEmail` から `recipientEmail` に変更すると、メール送信の文脈がより明確になります"
+- "ここで early return を使うとネストが1段浅くなり、可読性が向上します"
+- "このクエリにインデックスが効いているか確認してください。users テーブルの email カラムにインデックスはありますか？"
+
+### 悪い例（避けるべきトーン）
+- "この書き方はダメです" → 代替案なしの否定
+- "なんでこう書いたんですか？" → 攻撃的な質問
+- "普通はこう書きます" → 根拠のない慣習の押し付け
+
+## チェック項目
+1. エラーハンドリングの漏れ
+2. N+1クエリ
+3. 未使用のインポート/変数
+4. ハードコードされた値（マジックナンバー）
+5. テストの欠如</code></div>
+
+    <!-- ===== Section 5: スキル作成実践 ===== -->
+    <h2 id="creating-skill">スキル作成実践</h2>
+
+    <p>実際にデプロイスキルを作成するステップバイステップの実践です。</p>
+
+    <ol class="steps-list">
+      <li>
+        <strong>ディレクトリを作成</strong><br>
+        <code>.agent/skills/deploy-staging/</code> ディレクトリを作成します。スキル名はケバブケースで、用途が一目でわかる名前にしてください。
+      </li>
+      <li>
+        <strong>SKILL.md を作成</strong><br>
+        YAMLフロントマターに <code>name</code>、<code>description</code>、<code>trigger</code> を記述します。<code>description</code> はエージェントが適切にスキルを選択できるよう、具体的な説明を書いてください。
+      </li>
+      <li>
+        <strong>手順を記述</strong><br>
+        Markdownボディに具体的な手順を記述します。コマンドはコードブロックで囲み、条件分岐や注意事項も明記します。
+      </li>
+      <li>
+        <strong>テスト実行</strong><br>
+        エージェントパネルでトリガーキーワードを含む指示を出し、スキルが正しくロードされるか確認します。例: 「ステージング環境にデプロイして」
+      </li>
+      <li>
+        <strong>反復改善</strong><br>
+        エージェントの出力を確認し、不足している情報や曖昧な手順があれば SKILL.md を修正します。2〜3回の反復で実用的なスキルが完成します。
+      </li>
+    </ol>
+
+    <div class="code-label">.agent/skills/deploy-staging/SKILL.md（完成例）</div>
+    <div class="code-block"><code>---
+name: deploy-staging
+description: "ステージング環境へのデプロイ手順。テスト→ビルド→デプロイ→ヘルスチェックの一連の流れを実行する"
+trigger: "ステージング, staging, ステージングデプロイ"
+model: gemini-3-pro
+temperature: 0.0
+---
+
+# Deploy to Staging
+
+## 前提条件チェック
+- [ ] developブランチの最新状態であること (`git pull origin develop`)
+- [ ] ローカルテストが全てパスしていること
+- [ ] .env.staging ファイルが存在すること
+
+## 手順
+
+### 1. テスト実行
+```bash
+npm run test:unit && npm run test:integration
+```
+全テストがパスしない場合は中断してエラーを報告してください。
+
+### 2. ビルド
+```bash
+NODE_ENV=staging npm run build
+```
+
+### 3. Dockerイメージのビルドとプッシュ
+```bash
+docker build -t gcr.io/my-project/my-app:staging-$(git rev-parse --short HEAD) .
+docker push gcr.io/my-project/my-app:staging-$(git rev-parse --short HEAD)
+```
+
+### 4. デプロイ
+```bash
+kubectl set image deployment/my-app \
+  my-app=gcr.io/my-project/my-app:staging-$(git rev-parse --short HEAD) \
+  --namespace=staging
+```
+
+### 5. ヘルスチェック（30秒待機後）
+```bash
+sleep 30
+curl -f https://staging.example.com/health
+```
+
+## トラブルシューティング
+- イメージプッシュ失敗: `gcloud auth configure-docker` を実行
+- Pod起動失敗: `kubectl logs -n staging deployment/my-app` でログ確認
+- ヘルスチェック失敗: 前のリビジョンにロールバック
+
+## ロールバック手順
+```bash
+kubectl rollout undo deployment/my-app --namespace=staging
+```</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>SKILL.mdにシークレット（APIキー、パスワード、トークンなど）を直接記述しないでください。環境変数やシークレットマネージャーを参照する形で記述します。SKILL.mdはGitにコミットされるため、機密情報が漏洩するリスクがあります。</p>
+    </div>
+
+    <!-- ===== Section 6: スキル管理 ===== -->
+    <h2 id="management">スキル管理</h2>
+
+    <p>スキルの数が増えてきたら、効率的な管理方法を導入しましょう。</p>
+
+    <h3>CLIからのスキル管理</h3>
+
+    <div class="code-label">コマンドパレット / ターミナル</div>
+    <div class="code-block"><code># インストール済みスキル一覧
+antigravity skills list
+
+# スキルの詳細表示
+antigravity skills show deploy-staging
+
+# Gitリポジトリからスキルをインストール
+antigravity skills install https://github.com/team/shared-skills.git
+
+# スキルの有効化/無効化
+antigravity skills enable deploy-staging
+antigravity skills disable deploy-staging
+
+# スキルの削除
+antigravity skills remove deploy-staging</code></div>
+
+    <h3>Gitリポジトリからのインストール</h3>
+    <p>チーム共有のスキルライブラリをGitリポジトリで管理し、各プロジェクトからインストールできます。</p>
+
+    <div class="code-label">共有スキルリポジトリの構成</div>
+    <div class="code-block"><code>team-skills/
+├── README.md
+├── deploy/
+│   └── SKILL.md
+├── code-review/
+│   └── SKILL.md
+├── security-audit/
+│   └── SKILL.md
+└── documentation/
+    └── SKILL.md</code></div>
+
+    <div class="code-label">インストールコマンド</div>
+    <div class="code-block"><code># リポジトリ全体をインストール
+antigravity skills install https://github.com/team/shared-skills.git
+
+# 特定のスキルのみインストール
+antigravity skills install https://github.com/team/shared-skills.git --skill deploy
+
+# 特定のブランチ/タグからインストール
+antigravity skills install https://github.com/team/shared-skills.git --ref v2.0.0</code></div>
+
+    <h3>Symlink方式</h3>
+    <p>チーム全体で同一のスキルリポジトリをクローンし、シンボリックリンクで各プロジェクトに紐付ける方法もあります。</p>
+
+    <div class="code-label">Symlink方式の設定</div>
+    <div class="code-block"><code># 共有スキルリポジトリをクローン
+git clone https://github.com/team/shared-skills.git ~/team-skills
+
+# プロジェクトのスキルディレクトリにシンボリックリンク
+cd my-project/.agent/skills
+ln -s ~/team-skills/deploy deploy-shared
+ln -s ~/team-skills/code-review code-review-shared</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>スキルの品質を維持するために、スキルリポジトリにもCIを設定しましょう。SKILL.mdのフロントマターバリデーション、Markdownリンティング、必須フィールドのチェックを自動化することで、壊れたスキルの混入を防げます。</p>
+    </div>
+
+    <h3>スキルの有効化/無効化</h3>
+    <p>プロジェクト設定でスキルの有効/無効を制御できます。不要なスキルを無効化することで、エージェントの判断精度が向上します。</p>
+
+    <div class="code-label">.agent/config/settings.json</div>
+    <div class="code-block"><code>{
+  "skills": {
+    "enabled": [
+      "deploy-staging",
+      "code-review",
+      "api-endpoint"
+    ],
+    "disabled": [
+      "deploy-production"
+    ],
+    "autoDetect": true
+  }
+}</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p><code>autoDetect: true</code> の場合、エージェントがユーザーの発話からトリガーキーワードを検出し、自動的にスキルをロードします。<code>false</code> にすると、明示的にスキル名を指定する必要があります（例: <code>/skill deploy-staging</code>）。</p>
+    </div>
+
+    <!-- ===== PAGE NAV BOTTOM ===== -->
+    <div class="page-nav-bottom">
+      <a href="editor-and-manager.html">
+        <div class="nav-dir">&larr; 前のページ</div>
+        <div class="nav-title">Editor & Manager</div>
+      </a>
+      <a href="mcp-integration.html" class="next">
+        <div class="nav-dir">次のページ &rarr;</div>
+        <div class="nav-title">MCP連携</div>
+      </a>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <p><a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a> &mdash; AI Intelligence Hub</p>
+</footer>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const toc = document.getElementById('toc');
+    const headings = document.querySelectorAll('.content h2[id]');
+    headings.forEach(h => {
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      toc.appendChild(a);
+    });
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+          const active = toc.querySelector(`a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -80% 0px' });
+    headings.forEach(h => observer.observe(h));
+
+    document.querySelectorAll('.code-block').forEach(block => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.onclick = () => {
+        const code = block.querySelector('code') || block;
+        navigator.clipboard.writeText(code.textContent.replace('Copy', '').trim());
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      };
+      block.appendChild(btn);
+    });
+
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', () => { if (window.innerWidth <= 768) toggleSidebar(); });
+    });
+
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, '', a.getAttribute('href'));
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

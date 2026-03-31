@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="コーディング以外でのGoogle Antigravity活用パターン。ドキュメント作成、データ分析、プロジェクト管理まで。">
+  <title>その他業務 | AIエージェント構築ガイド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-red: #f85149;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, 0.82);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .back-link {
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover {
+      color: var(--accent-red);
+    }
+
+    .page-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary);
+      font-size: 20px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .hamburger:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      padding: 24px 16px;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--bg-sidebar);
+    }
+
+    .toc-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 12px;
+      margin-bottom: 12px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      line-height: 1.5;
+      margin-bottom: 2px;
+    }
+    .toc a:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .toc a.active {
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.1);
+    }
+
+    .page-nav {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .page-nav a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      margin-bottom: 4px;
+    }
+    .page-nav a:hover {
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.06);
+    }
+    .page-nav .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      opacity: 0.6;
+      margin-bottom: 2px;
+      padding: 0 12px;
+    }
+
+    /* ===== CHAPTER NAV ===== */
+    .chapter-nav { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .chapter-nav-title { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px 12px; }
+    .chapter-link { display: block; padding: 5px 12px; color: var(--text-muted); text-decoration: none; font-size: 12px; border-radius: 4px; transition: all 0.15s; }
+    .chapter-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+    .chapter-link.current { color: var(--accent-red); background: rgba(248, 81, 73, 0.1); font-weight: 700; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent-blue); }
+    .breadcrumb .current { color: var(--text-primary); }
+    .page-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px; margin-bottom: 32px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 11px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .meta-value { font-size: 14px; color: var(--text-primary); }
+    @media (max-width: 600px) { .page-meta { grid-template-columns: 1fr; } }
+
+    /* ===== MAIN CONTENT ===== */
+    .content {
+      flex: 1;
+      max-width: 820px;
+      padding: 48px 56px 80px;
+    }
+
+    .content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .content .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .content h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: -0.01em;
+    }
+
+    .content h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    .content p {
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .content ul, .content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .content li {
+      margin-bottom: 8px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .content li strong {
+      color: var(--text-heading);
+    }
+
+    .content a.inline-link {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .content a.inline-link:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== CODE BLOCKS ===== */
+    .code-block {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .code-block code {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      background: none;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+    }
+    .code-block .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
+    }
+
+    .code-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* inline code */
+    .content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-red);
+    }
+
+    /* ===== CALLOUTS ===== */
+    .callout {
+      border-left: 4px solid;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      background: var(--bg-card);
+    }
+    .callout-tip { border-color: var(--accent-green); }
+    .callout-warning { border-color: var(--accent-red); }
+    .callout-note { border-color: var(--accent-blue); }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .callout-tip .callout-title { color: var(--accent-green); }
+    .callout-warning .callout-title { color: var(--accent-red); }
+    .callout-note .callout-title { color: var(--accent-blue); }
+
+    .callout p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-primary);
+      opacity: 0.92;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: var(--bg-sidebar);
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    td code {
+      font-size: 13px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ===== WORKFLOW CARDS ===== */
+    .workflow-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 20px 0 24px;
+    }
+
+    .workflow-card {
+      display: flex;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .workflow-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .workflow-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .workflow-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 6px;
+    }
+
+    .workflow-card p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ===== STEPS LIST ===== */
+    .steps-list {
+      counter-reset: step-counter;
+      list-style: none;
+      padding-left: 0;
+      margin: 16px 0 24px;
+    }
+
+    .steps-list li {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 20px;
+    }
+
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* ===== PAGE NAV BOTTOM ===== */
+    .page-nav-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 16px;
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .page-nav-bottom a {
+      display: block;
+      flex: 1;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .page-nav-bottom a:hover {
+      border-color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.04);
+    }
+
+    .page-nav-bottom .nav-dir {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .page-nav-bottom .nav-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .page-nav-bottom .next {
+      text-align: right;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    footer a:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        width: 280px;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+      .sidebar.open {
+        display: block;
+      }
+      .hamburger {
+        display: block;
+      }
+      .content {
+        padding: 24px 20px 60px;
+      }
+      .content h1 {
+        font-size: 26px;
+      }
+      .content h2 {
+        font-size: 19px;
+        margin-top: 40px;
+      }
+      .page-nav-bottom {
+        flex-direction: column;
+      }
+      .page-nav-bottom .next {
+        text-align: left;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger {
+        display: none;
+      }
+    }
+
+    /* ===== OVERLAY for mobile sidebar ===== */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      top: 56px;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+    .sidebar-overlay.open {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <a href="../ai_coding_agents_guide.html" class="back-link">&#9664; ガイドTOP</a>
+  <span class="page-title">その他業務</span>
+  <button class="hamburger" aria-label="メニュー" onclick="toggleSidebar()">&#9776;</button>
+</header>
+
+<!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ===== LAYOUT ===== -->
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="toc-label">目次</div>
+    <nav class="toc" id="toc">
+      <!-- Auto-generated by JS from h2[id] -->
+    </nav>
+    <div class="page-nav">
+      <div class="nav-label">ナビゲーション</div>
+      <a href="advanced-techniques.html">&larr; 前へ: 上級テクニック</a>
+      <a href="index.html">ガイドTOPに戻る &rarr;</a>
+    </div>
+    <div class="chapter-nav">
+      <h4 class="chapter-nav-title">全12章</h4>
+      <a href="getting-started.html" class="chapter-link">1. Getting Started</a>
+      <a href="project-structure.html" class="chapter-link">2. 構成設計</a>
+      <a href="editor-and-manager.html" class="chapter-link">3. Editor & Manager</a>
+      <a href="agent-skills.html" class="chapter-link">4. Agent Skills</a>
+      <a href="mcp-integration.html" class="chapter-link">5. MCP連携</a>
+      <a href="parallel-agents.html" class="chapter-link">6. 並列エージェント</a>
+      <a href="models-and-config.html" class="chapter-link">7. モデル選択・設定</a>
+      <a href="workflows.html" class="chapter-link">8. ワークフロー</a>
+      <a href="pitfalls.html" class="chapter-link">9. 落とし穴</a>
+      <a href="professional-setup.html" class="chapter-link">10. プロ環境構築</a>
+      <a href="advanced-techniques.html" class="chapter-link">11. 上級テクニック</a>
+      <a href="other-uses.html" class="chapter-link current">12. その他業務</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="content">
+
+    <nav class="breadcrumb">
+      <a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a>
+      <span>›</span>
+      <a href="index.html">Google Antigravity</a>
+      <span>›</span>
+      <span class="current">その他業務</span>
+    </nav>
+
+    <div class="page-meta">
+      <div class="meta-item"><span class="meta-label">対象</span><span class="meta-value">全レベル</span></div>
+      <div class="meta-item"><span class="meta-label">達成目標</span><span class="meta-value">コーディング以外の活用法習得</span></div>
+      <div class="meta-item"><span class="meta-label">前提知識</span><span class="meta-value">Ch.1完了</span></div>
+      <div class="meta-item"><span class="meta-label">所要時間</span><span class="meta-value">15分</span></div>
+    </div>
+
+    <h1>その他業務</h1>
+    <p class="subtitle">コーディング以外でのGoogle Antigravity活用パターン。ドキュメント作成、データ分析、プロジェクト管理まで。</p>
+
+    <!-- ===== Section 1: ドキュメント作成 ===== -->
+    <h2 id="documentation">ドキュメント作成</h2>
+
+    <p>Antigravityはコードを読んで理解する能力を活かして、高品質なドキュメントを自動生成できます。手動で書くと数時間かかるドキュメントも、数分で生成可能です。</p>
+
+    <h3>README自動生成</h3>
+
+    <p>プロジェクトのコードベースを分析し、構造化されたREADMEを自動生成します。</p>
+
+    <div class="code-label">プロンプト例</div>
+    <div class="code-block"><code>プロジェクト全体を分析して、以下の構成でREADME.mdを生成して:
+- プロジェクト概要（1段落）
+- 主な機能（箇条書き）
+- 技術スタック
+- セットアップ手順（コマンド付き）
+- ディレクトリ構成（tree形式）
+- 環境変数の説明
+- 貢献ガイドライン</code></div>
+
+    <h3>API仕様書の生成</h3>
+
+    <ul>
+      <li><strong>OpenAPI/Swagger</strong> &mdash; ルートハンドラーのコードからOpenAPI 3.0仕様書を自動生成。リクエスト/レスポンスの型情報も自動抽出</li>
+      <li><strong>GraphQLスキーマドキュメント</strong> &mdash; スキーマ定義からクエリ/ミューテーションのドキュメントを生成</li>
+      <li><strong>内部APIドキュメント</strong> &mdash; モジュール間のインターフェースを文書化し、チーム内の共有知識を形式化</li>
+    </ul>
+
+    <h3>設計書の自動生成</h3>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>アーキテクチャ設計書</h4>
+          <p>コードの依存関係を分析し、C4モデル（Context、Container、Component、Code）形式の設計書を生成します。Mermaidダイアグラムを含むマークダウン出力が可能です。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>データフロー図</h4>
+          <p>APIリクエストの処理フロー、データベースの読み書きパターン、外部サービスとの連携を図示化します。新メンバーのオンボーディングに特に有効です。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>変更履歴（CHANGELOG）</h4>
+          <p>Gitコミット履歴を分析し、Conventional Commits形式のCHANGELOGを自動生成。バージョンごとの変更内容を整理します。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>ドキュメント生成は <code>gemini-2.5-flash</code> で十分です。高速かつ低コストで、良質なマークダウン出力が得られます。ただし、アーキテクチャ設計書の場合は <code>gemini-2.5-pro</code> の方が構造の理解が深くなります。</p>
+    </div>
+
+    <!-- ===== Section 2: データ分析 ===== -->
+    <h2 id="data-analysis">データ分析</h2>
+
+    <p>Antigravityはファイルの読み書きとコマンド実行ができるため、データ分析ワークフロー全体をエージェントに任せることができます。</p>
+
+    <h3>CSV/JSONファイルの分析</h3>
+
+    <div class="code-label">プロンプト例</div>
+    <div class="code-block"><code>data/sales_2025.csv を分析して、以下のレポートを生成して:
+1. 月別売上サマリー
+2. 上位10商品のランキング
+3. 前年同月比の増減率
+4. 異常値の検出と考察
+結果をmarkdownのテーブルで出力して。</code></div>
+
+    <p>Antigravityは内部でPythonスクリプトを生成・実行して分析を行います。pandasやmatplotlibがインストールされている環境では、グラフ生成も可能です。</p>
+
+    <h3>ログファイルの分析</h3>
+
+    <ul>
+      <li><strong>エラーパターンの検出</strong> &mdash; アプリケーションログから頻出エラーを抽出し、発生頻度・時間帯・影響範囲を分析</li>
+      <li><strong>パフォーマンス分析</strong> &mdash; アクセスログからレスポンスタイムの分布、遅延エンドポイント、ピーク時間帯を特定</li>
+      <li><strong>セキュリティ監査</strong> &mdash; 認証ログから不正アクセスの試行パターン、ブルートフォース攻撃の兆候を検出</li>
+    </ul>
+
+    <h3>レポート生成</h3>
+
+    <div class="code-label">自動レポート生成の例</div>
+    <div class="code-block"><code># 週次レポートを自動生成するプロンプト
+以下のデータソースから週次レポートを生成して:
+- logs/access.log（アクセスログ）
+- data/metrics.json（パフォーマンスメトリクス）
+- data/errors.csv（エラーログサマリー）
+
+レポート形式:
+- エグゼクティブサマリー（3行以内）
+- 主要KPIの推移（テーブル形式）
+- 注意が必要な項目（箇条書き）
+- 推奨アクション（優先度付き）
+
+出力: reports/weekly_report_YYYY-MM-DD.md</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>大きなデータファイル（100MB以上）は直接読み込むとコンテキストウィンドウを圧迫します。Antigravityに「まずファイルの先頭100行を読んで構造を理解し、Pythonスクリプトで全体を処理して」と指示するのが効率的です。</p>
+    </div>
+
+    <!-- ===== Section 3: プロジェクト管理 ===== -->
+    <h2 id="project-management">プロジェクト管理</h2>
+
+    <p>Antigravityをプロジェクト管理ツールとして活用し、Issue整理、進捗レポート、スプリント計画を効率化できます。</p>
+
+    <h3>Issue整理</h3>
+
+    <div class="code-label">GitHub Issuesの整理</div>
+    <div class="code-block"><code># 未整理のIssueを分析して整理するプロンプト
+gh issue list --state open --json number,title,body,labels | \
+  antigravity pipe "これらのIssueを以下の基準で分類して:
+    - Priority: P0(障害)/P1(重要)/P2(改善)/P3(要望)
+    - Type: bug/feature/refactor/docs
+    - Effort: S(1日以内)/M(1週間)/L(1ヶ月)
+    重複しているIssueがあれば指摘して"</code></div>
+
+    <h3>進捗レポート生成</h3>
+
+    <ul>
+      <li><strong>日次スタンドアップレポート</strong> &mdash; 前日のコミット履歴とPRマージ状況から、自動で「昨日やったこと」レポートを生成</li>
+      <li><strong>週次進捗レポート</strong> &mdash; Sprint期間のコミット数、PR数、クローズしたIssue数をサマリー化</li>
+      <li><strong>月次振り返りレポート</strong> &mdash; コードベースの変更量、テストカバレッジ推移、技術的負債の増減を可視化</li>
+    </ul>
+
+    <h3>スプリント計画支援</h3>
+
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>バックログの優先順位付け</h4>
+          <p>未対応のIssueとPRを分析し、ビジネスインパクトと技術的リスクに基づいた優先順位を提案します。依存関係も考慮した実行順序を提示します。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>工数見積もり</h4>
+          <p>Issueの内容とコードベースの複雑さを分析し、ストーリーポイントの目安を提案します。過去の実績データがあれば精度が向上します。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>リスク分析</h4>
+          <p>計画中のタスクについて、技術的リスク（未知の技術、複雑な依存関係）とスケジュールリスク（外部依存、ブロッカー）を事前に洗い出します。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Section 4: 学習・調査 ===== -->
+    <h2 id="learning">学習・調査</h2>
+
+    <p>新技術の調査やコードベースの理解にAntigravityを活用すると、学習効率が大幅に向上します。</p>
+
+    <h3>新技術の調査</h3>
+
+    <div class="code-label">技術調査プロンプト例</div>
+    <div class="code-block"><code>以下の技術について調査レポートを作成して:
+- 技術名: Bun v2.0
+- 調査項目:
+  1. Node.jsとの互換性（Breaking Changes含む）
+  2. パフォーマンスベンチマーク（公式データ）
+  3. 当プロジェクトへの移行コスト見積もり
+  4. リスクと注意点
+  5. 移行ステップ案
+
+出力: docs/research/bun-v2-migration.md</code></div>
+
+    <h3>コードベース理解</h3>
+
+    <p>新しくプロジェクトに参加した際、Antigravityに質問しながらコードベースを理解するのが最も効率的です。</p>
+
+    <ul>
+      <li><strong>「このプロジェクトの全体アーキテクチャを説明して」</strong> &mdash; ディレクトリ構造と主要コンポーネントの関係を解説</li>
+      <li><strong>「認証フローの全体像を追跡して」</strong> &mdash; ログイン〜セッション管理〜トークン更新の一連のコードパスを追跡</li>
+      <li><strong>「このプロジェクトで使われているデザインパターンを列挙して」</strong> &mdash; Repository、Factory、Observer等のパターンとその適用箇所を特定</li>
+      <li><strong>「技術的負債を洗い出して」</strong> &mdash; TODO/FIXME/HACKコメント、古い依存関係、テスト不足の箇所を報告</li>
+    </ul>
+
+    <h3>チュートリアル生成</h3>
+
+    <div class="code-label">カスタムチュートリアル生成</div>
+    <div class="code-block"><code># チームメンバー向けチュートリアルを生成
+このプロジェクトの新メンバー向けチュートリアルを作成して:
+1. 環境構築手順（コマンド付き）
+2. 最初のPRを出すまでのハンズオン
+3. よくあるトラブルとその解決法
+4. コーディング規約の要約
+5. レビューで指摘されやすいポイント
+
+対象: React/TypeScript経験者、このプロジェクトは初めて
+出力: docs/onboarding/tutorial.md</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>Plan Modeで「このモジュールの責務と依存関係を教えて」と聞くと、コードを変更せずにアーキテクチャの理解を深められます。新しいプロジェクトでは、最初の30分をPlan Modeでの探索に使うことをおすすめします。</p>
+    </div>
+
+    <!-- ===== Section 5: マイグレーション支援 ===== -->
+    <h2 id="migration">マイグレーション支援</h2>
+
+    <p>フレームワークの移行やAPI更新などの大規模な変更作業は、Antigravityが最も威力を発揮する領域の1つです。</p>
+
+    <h3>フレームワーク移行</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>移行パターン</th>
+            <th>Antigravityの役割</th>
+            <th>推奨アプローチ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>React Class → Hooks</td>
+            <td>コンポーネントの自動変換</td>
+            <td>1ファイルずつ段階的に変換</td>
+          </tr>
+          <tr>
+            <td>Express → Fastify</td>
+            <td>ルート定義とミドルウェアの書換</td>
+            <td>互換レイヤー経由で段階移行</td>
+          </tr>
+          <tr>
+            <td>JavaScript → TypeScript</td>
+            <td>型注釈の自動追加</td>
+            <td>strictモードを段階的に有効化</td>
+          </tr>
+          <tr>
+            <td>REST → GraphQL</td>
+            <td>スキーマとリゾルバの生成</td>
+            <td>既存RESTを維持しつつGraphQL追加</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>API版更新</h3>
+
+    <div class="code-label">API移行プロンプト例</div>
+    <div class="code-block"><code># API v2 → v3 移行計画の作成
+プロジェクト内のAPI v2の使用箇所をすべて特定して、
+v3への移行計画を作成して:
+
+1. 影響を受けるファイルの一覧
+2. 各ファイルの変更内容（diff形式）
+3. Breaking Changesの一覧
+4. テストの更新が必要な箇所
+5. 段階的な移行手順（優先度順）
+
+まずPlan Modeで全体像を把握してから実行して。</code></div>
+
+    <h3>依存関係更新の計画と実行</h3>
+
+    <ol class="steps-list">
+      <li>
+        <strong>依存関係の分析</strong><br>
+        <code>npm outdated</code> の結果を分析し、セキュリティ脆弱性のあるパッケージ、メジャーアップデートが必要なパッケージ、非推奨パッケージを分類します。
+      </li>
+      <li>
+        <strong>影響分析</strong><br>
+        各パッケージのCHANGELOGとBreaking Changesを確認し、プロジェクトへの影響度を評価。高リスクの更新は個別に対応します。
+      </li>
+      <li>
+        <strong>段階的更新</strong><br>
+        パッチ更新 → マイナー更新 → メジャー更新の順に実行。各段階でテストスイートを実行し、問題がないことを確認してからコミットします。
+      </li>
+      <li>
+        <strong>互換性テスト</strong><br>
+        更新後にE2Eテストを実行し、アプリケーション全体の動作に問題がないことを確認します。CI/CDパイプラインでの自動検証も設定します。
+      </li>
+    </ol>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+      <p>大規模なマイグレーションは必ずfeatureブランチで行い、段階的にPRを作成してください。一度に全ファイルを変更すると、レビューが困難になり、問題の切り分けも難しくなります。「1PR = 1パッケージの更新」が安全なルールです。</p>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>マイグレーション作業は <code>gemini-2.5-pro</code> の計画 + <code>gemini-2.5-flash</code> の実行というマルチモデル戦略が最も効果的です。Proで移行計画を立て、Flashで機械的な変換を実行し、再度Proでレビューする3段階アプローチを推奨します。</p>
+    </div>
+
+    <!-- ===== Section 6: Browser Agentによる自動化 ===== -->
+    <h2 id="browser-agent">Browser Agentによる自動化</h2>
+
+    <p>Antigravityの強力な差別化ポイントである「Browser Agent」は、コーディング以外でも威力を発揮します。</p>
+
+    <h3>UIテストの完全自動化</h3>
+    <p>エージェントがChromeを操作し、実際のブラウザ上でE2Eテストを実行します。Playwright/Cypressのテストコードを書く前に、まずBrowser Agentでフローを確認し、その動作をテストコードに変換するワークフローが効率的です。</p>
+
+    <div class="code-label">プロンプト例</div>
+    <div class="code-block"><code>localhost:3000 にアクセスして、以下のユーザーフローを実行し、
+各ステップのスクリーンショットを取得して:
+1. トップページを開く
+2. ログインボタンをクリック
+3. テスト用のメールアドレスとパスワードを入力
+4. ダッシュボードが表示されることを確認
+5. 問題があれば報告して</code></div>
+
+    <h3>Webスクレイピング</h3>
+    <p>構造化データの取得や競合分析のためのスクレイピングをエージェントに委任できます。ただし、<code>browserAllowlist.txt</code> で許可されたドメインのみ対象となります。</p>
+
+    <h3>録画の取得</h3>
+    <p>Browser Agentの操作を録画として保存し、バグ報告やデモ動画として活用できます。</p>
+
+    <!-- ===== Section 7: コンテンツ制作 ===== -->
+    <h2 id="content-creation">コンテンツ制作</h2>
+
+    <p>Antigravityをコンテンツ制作のパイプラインとして活用する応用例です。</p>
+
+    <h3>ブログ執筆・SNS投稿</h3>
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h4>論点圧縮</h4>
+          <p>長文の技術メモやミーティングノートを、エージェントに要約させます。「このメモをブログ記事のアウトラインに変換して」と指示すると、論理的な構成案が得られます。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h4>構造化・量産</h4>
+          <p>1つのアウトラインから、ブログ記事・Twitter/Xスレッド・LinkedIn投稿・社内Slack通知を一括生成できます。「このブログ記事を5つのツイートに分割して」のような変換が得意です。</p>
+        </div>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-number">3</div>
+        <div>
+          <h4>PowerPoint等の資料構成</h4>
+          <p>技術資料やプレゼンテーションの構成案をMarkdownで生成し、そのままHTMLスライドに変換できます。Marpやreveal.jsとの連携が効果的です。</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>画像生成（Nano Banana Pro連携）</h3>
+    <p>Antigravityの<strong>Nano Banana Pro</strong>（画像生成モデル）を活用すると、UIモックアップやアーキテクチャ図をチャットから直接生成できます。</p>
+
+    <div class="code-label">プロンプト例</div>
+    <div class="code-block"><code># UIモックアップの生成
+「ダッシュボード画面のモックアップを作成して。
+左サイドバーにナビゲーション、中央にグラフ3つ、
+右上に通知ベル。ダークテーマで。」
+
+# アーキテクチャ図の生成
+「このマイクロサービスのアーキテクチャ図を作成して。
+API Gateway → Auth Service → User Service → DB の構成で。」</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>生成された画像は精度が限定的なため、最終成果物ではなく<strong>ラフスケッチ・アイデア検討</strong>の段階で活用するのが効果的です。Figmaやデザインツールへの入力素材として使いましょう。</p>
+    </div>
+
+    <!-- ===== Section 8: 自分OS構築 ===== -->
+    <h2 id="personal-os">「自分OS」構築プロンプト</h2>
+
+    <p>Antigravityを「万能アシスタント」として日常業務全体を自動化する「自分OS」の構築例です。非エンジニアでも活用できるプロンプトテンプレートです。</p>
+
+    <div class="code-label">自分OS構築テンプレート（GEMINI.mdに追記）</div>
+    <div class="code-block"><code># 自分OS ルール
+
+## 朝のルーティン
+- 「おはよう」と言ったら、以下を実行:
+  1. 未読のGitHub通知を要約
+  2. 今日のカレンダー予定を確認
+  3. 昨日の作業ログから今日の優先タスクを提案
+
+## 調査パイプライン
+- 「〜について調べて」と言ったら:
+  1. 公式ドキュメントを検索（Browser Agent）
+  2. 主要な情報を箇条書きで整理
+  3. 「もっと詳しく」と言ったら深掘り
+
+## 資料作成パイプライン
+- 「〜の資料を作って」と言ったら:
+  1. アウトライン案を3パターン提示
+  2. 承認されたパターンで本文生成
+  3. HTMLプレゼンテーション形式で出力</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>「自分OS」はAgent Skillsとして定義すると、必要な時だけロードされコンテキストを節約できます。<code>.agent/skills/morning-routine/SKILL.md</code> のように分割して管理しましょう。</p>
+    </div>
+
+    <!-- ===== PAGE NAV BOTTOM ===== -->
+    <div class="page-nav-bottom">
+      <a href="advanced-techniques.html">
+        <div class="nav-dir">&larr; 前のページ</div>
+        <div class="nav-title">上級テクニック集</div>
+      </a>
+      <div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p><a href="../ai_coding_agents_guide.html">AIエージェント構築ガイド</a> &mdash; AI Intelligence Hub</p>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+  // Sidebar toggle (mobile)
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. TOC auto-generation
+    const toc = document.getElementById('toc');
+    const headings = document.querySelectorAll('.content h2[id]');
+    headings.forEach(h => {
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      toc.appendChild(a);
+    });
+
+    // 2. Scroll-spy
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+          const active = toc.querySelector(`a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -80% 0px' });
+    headings.forEach(h => observer.observe(h));
+
+    // 3. Code copy buttons
+    document.querySelectorAll('.code-block').forEach(block => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.onclick = () => {
+        const code = block.querySelector('code') || block;
+        navigator.clipboard.writeText(code.textContent.replace('Copy', '').trim());
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      };
+      block.appendChild(btn);
+    });
+
+    // 4. Close sidebar on link click (mobile)
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          toggleSidebar();
+        }
+      });
+    });
+
+    // 5. Smooth scroll for TOC links
+    document.querySelectorAll('.toc a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, '', a.getAttribute('href'));
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
