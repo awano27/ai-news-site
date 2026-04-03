@@ -586,6 +586,34 @@
     .sidebar-overlay.open {
       display: block;
     }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .back-to-top:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(248, 81, 73, 0.4);
+    }
+    .back-to-top.visible {
+      display: flex;
+    }
   </style>
 </head>
 <body>
@@ -733,21 +761,29 @@
 
     <h3>モデル選択フローチャート</h3>
 
-    <div class="code-label">タスク規模に応じたモデル選択</div>
-    <div class="code-block"><code>タスクの規模は？
-│
-├─ 大規模（設計・リファクタリング）
-│  └─ 推論の深さが必要？
-│     ├─ Yes → Claude Opus 4.6
-│     └─ No  → Gemini 3.1 Pro (High)
-│
-├─ 中規模（機能実装・バグ修正）
-│  └─ コスト重視？
-│     ├─ Yes → Gemini 3.1 Pro (Low)
-│     └─ No  → Claude Sonnet 4.6
-│
-└─ 小規模（タイポ修正・変数名変更）
-   └─ Gemini 3 Flash</code></div>
+    <div class="workflow-cards">
+      <div class="workflow-card" style="border-left: 3px solid var(--accent-red);">
+        <div class="workflow-number" style="background: rgba(248,81,73,0.15); font-size: 12px;">大</div>
+        <div>
+          <h4>大規模タスク（設計・リファクタリング）</h4>
+          <p>深い推論が必要 → <strong>Claude Opus 4.6</strong><br>構造化された実装 → <strong>Gemini 3.1 Pro (High)</strong></p>
+        </div>
+      </div>
+      <div class="workflow-card" style="border-left: 3px solid var(--accent-blue);">
+        <div class="workflow-number" style="background: rgba(88,166,255,0.15); color: var(--accent-blue); font-size: 12px;">中</div>
+        <div>
+          <h4>中規模タスク（機能実装・バグ修正）</h4>
+          <p>コスト重視 → <strong>Gemini 3.1 Pro (Low)</strong><br>品質重視 → <strong>Claude Sonnet 4.6</strong></p>
+        </div>
+      </div>
+      <div class="workflow-card" style="border-left: 3px solid var(--accent-green);">
+        <div class="workflow-number" style="background: rgba(63,185,80,0.15); color: var(--accent-green); font-size: 12px;">小</div>
+        <div>
+          <h4>小規模タスク（タイポ修正・変数名変更）</h4>
+          <p>→ <strong>Gemini 3 Flash</strong>（最速・低コスト）</p>
+        </div>
+      </div>
+    </div>
 
     <h3>タスク別推奨モデル</h3>
 
@@ -861,52 +897,52 @@
         <tbody>
           <tr>
             <td>ファイル読み取り</td>
-            <td><code>Auto</code></td>
+            <td><span style="color: var(--accent-green); font-weight: 700;">Auto</span></td>
             <td>安全、副作用なし</td>
           </tr>
           <tr>
             <td>テスト実行</td>
-            <td><code>Auto</code></td>
+            <td><span style="color: var(--accent-green); font-weight: 700;">Auto</span></td>
             <td>読み取り専用の検証作業</td>
           </tr>
           <tr>
             <td>リンター実行</td>
-            <td><code>Auto</code></td>
+            <td><span style="color: var(--accent-green); font-weight: 700;">Auto</span></td>
             <td>コードを変更しない</td>
           </tr>
           <tr>
             <td>ファイル書き込み(src/)</td>
-            <td><code>Auto</code></td>
+            <td><span style="color: var(--accent-green); font-weight: 700;">Auto</span></td>
             <td>開発対象ディレクトリ</td>
           </tr>
           <tr>
             <td>ファイル書き込み(.env, *.key)</td>
-            <td><code>Ask</code>（常に確認）</td>
+            <td><span style="color: #f0ad4e; font-weight: 700;">Ask</span></td>
             <td>機密情報ファイル</td>
           </tr>
           <tr>
             <td>パッケージインストール</td>
-            <td><code>Ask</code></td>
+            <td><span style="color: #f0ad4e; font-weight: 700;">Ask</span></td>
             <td>サプライチェーン攻撃リスク</td>
           </tr>
           <tr>
             <td>git push</td>
-            <td><code>Ask</code></td>
+            <td><span style="color: #f0ad4e; font-weight: 700;">Ask</span></td>
             <td>リモートへの不可逆操作</td>
           </tr>
           <tr>
             <td>git push --force</td>
-            <td><code>Deny</code>（拒否）</td>
+            <td><span style="color: var(--accent-red); font-weight: 700;">Deny</span></td>
             <td>履歴破壊の危険性</td>
           </tr>
           <tr>
             <td>rm -rf</td>
-            <td><code>Deny</code>（拒否）</td>
+            <td><span style="color: var(--accent-red); font-weight: 700;">Deny</span></td>
             <td>データ消失の危険性</td>
           </tr>
           <tr>
             <td>デプロイコマンド</td>
-            <td><code>Ask</code></td>
+            <td><span style="color: #f0ad4e; font-weight: 700;">Ask</span></td>
             <td>本番環境への影響</td>
           </tr>
         </tbody>
@@ -1138,6 +1174,14 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 600);
+      });
+    }
+
     // 1. TOC auto-generation
     const toc = document.getElementById('toc');
     const headings = document.querySelectorAll('.content h2[id]');
@@ -1197,5 +1241,6 @@
   });
 </script>
 
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&#9650;</button>
 </body>
 </html>

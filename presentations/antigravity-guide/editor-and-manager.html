@@ -142,6 +142,44 @@
 
     .sidebar-overlay { display: none; position: fixed; inset: 0; top: 56px; background: rgba(0,0,0,0.5); z-index: 99; }
     .sidebar-overlay.open { display: block; }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .back-to-top:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(248, 81, 73, 0.4);
+    }
+    .back-to-top.visible {
+      display: flex;
+    }
+
+    .content h2[id]::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      background: var(--accent-red);
+      margin-bottom: 16px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -207,6 +245,7 @@
 
     <p>Editor Viewは、VS Codeユーザーにとって馴染み深いコードエディタ画面です。ファイルツリー、エディタペイン、ターミナル、そしてAntigravity固有のエージェントサイドバーで構成されます。</p>
 
+    <p style="font-size: 13px; color: var(--accent-red); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em;">画面レイアウト</p>
     <div class="code-label">Editor View レイアウト</div>
     <div class="code-block"><code>┌─────────────────────────────────────────────────────────┐
 │  File Explorer │  Editor Pane          │ Agent Sidebar  │
@@ -298,6 +337,7 @@
 
     <p>Agent Manager Viewは、Antigravity独自の「ミッションコントロール」画面です。複数のエージェントタスクを一覧表示し、並列実行の状態を俯瞰できるダッシュボードです。</p>
 
+    <p style="font-size: 13px; color: var(--accent-red); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em;">画面レイアウト</p>
     <div class="code-label">Agent Manager View レイアウト</div>
     <div class="code-block"><code>┌─────────────────────────────────────────────────────────┐
 │  Task List       │  Task Detail          │ Approval     │
@@ -665,8 +705,18 @@ Antigravity: Cherry-pick Changes</code></div>
         }
       });
     });
+
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 600);
+      });
+    }
   });
 </script>
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&#9650;</button>
 
 </body>
 </html>

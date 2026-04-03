@@ -586,6 +586,45 @@
     .sidebar-overlay.open {
       display: block;
     }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .back-to-top:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(248, 81, 73, 0.4);
+    }
+    .back-to-top.visible {
+      display: flex;
+    }
+
+    /* ===== SECTION SEPARATORS ===== */
+    .content h2[id]::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      background: var(--accent-red);
+      margin-bottom: 16px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -957,8 +996,8 @@ antigravity --disable-sandbox</code></div>
       </table>
     </div>
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4A1; Windowsユーザーへ</div>
       <p>Windowsではサンドボックス機能が制限されています。Windowsユーザーは、承認ポリシーをRequest Reviewに設定し、破壊的コマンドをDenyリストに追加することで安全性を確保してください。WSL2環境であればLinux nsjailが利用可能です。</p>
     </div>
 
@@ -1232,6 +1271,14 @@ antigravity --disable-sandbox</code></div>
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 600);
+      });
+    }
+
     // 1. TOC auto-generation
     const toc = document.getElementById('toc');
     const headings = document.querySelectorAll('.content h2[id]');
@@ -1291,5 +1338,6 @@ antigravity --disable-sandbox</code></div>
   });
 </script>
 
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&#9650;</button>
 </body>
 </html>

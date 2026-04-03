@@ -586,6 +586,44 @@
     .sidebar-overlay.open {
       display: block;
     }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .back-to-top:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(248, 81, 73, 0.4);
+    }
+    .back-to-top.visible {
+      display: flex;
+    }
+
+    .content h2[id]::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      background: var(--accent-red);
+      margin-bottom: 16px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -693,15 +731,22 @@
     <h3>モード選択フローチャート</h3>
 
     <div class="code-label">Planning Mode が必要かどうかの判断基準</div>
-    <div class="code-block"><code>このタスクに Planning Mode は必要？
-│
-├─ ファイル数: 3つ以上に影響 → Planning Mode
-├─ リスク: 本番環境に影響する → Planning Mode
-├─ 依存関係: 他タスクとの調整が必要 → Planning Mode
-├─ 変更規模: 100行以上の変更 → Planning Mode
-│
-└─ 上記すべてNoなら → Fast Mode
-   （タイポ修正、変数名変更、コメント追加など）</code></div>
+    <div class="workflow-cards">
+      <div class="workflow-card" style="border-left: 3px solid var(--accent-red);">
+        <div class="workflow-number">P</div>
+        <div>
+          <h4>Planning Mode を使う場合</h4>
+          <p>3つ以上のファイルに影響 / 本番環境に影響 / 他タスクとの依存関係あり / 100行以上の変更</p>
+        </div>
+      </div>
+      <div class="workflow-card" style="border-left: 3px solid var(--accent-green);">
+        <div class="workflow-number">F</div>
+        <div>
+          <h4>Fast Mode で十分な場合</h4>
+          <p>タイポ修正 / 変数名変更 / コメント追加 / 1ファイルの軽微な修正</p>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== Section 0.5: カスタムWorkflows ===== -->
     <h2 id="custom-workflows">カスタムWorkflows</h2>
@@ -1216,8 +1261,18 @@ jobs:
         }
       });
     });
+
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 600);
+      });
+    }
   });
 </script>
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&#9650;</button>
 
 </body>
 </html>
