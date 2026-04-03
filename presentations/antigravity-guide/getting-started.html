@@ -586,6 +586,45 @@
     .sidebar-overlay.open {
       display: block;
     }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .back-to-top:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(248, 81, 73, 0.4);
+    }
+    .back-to-top.visible {
+      display: flex;
+    }
+
+    /* ===== SECTION SEPARATORS ===== */
+    .content h2[id]::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      background: var(--accent-red);
+      margin-bottom: 16px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -797,8 +836,8 @@
       </li>
     </ol>
 
-    <div class="callout callout-warning">
-      <div class="callout-title">&#x26A0;&#xFE0F; Windowsの注意点</div>
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4A1; Windowsの注意点</div>
       <p>不具合を防ぐため、<strong>インストール先のパスに日本語を含めない</strong>でください（半角英数字のみ推奨）。例: <code>C:\Users\taro\AppData\Local\Antigravity</code> は OK、<code>C:\Users\太郎\</code> は NG。</p>
     </div>
 
@@ -870,31 +909,31 @@ sudo apt update && sudo apt install google-antigravity</code></div>
         <tbody>
           <tr>
             <td>Setup Flow</td>
-            <td><strong>Start Fresh</strong></td>
+            <td style="color: var(--accent-green); font-weight: 700;"><strong>Start Fresh</strong></td>
             <td>Import from VS Code</td>
             <td>予期せぬ権限の持ち込み防止</td>
           </tr>
           <tr>
             <td>使用モード</td>
-            <td><strong>Review-driven</strong></td>
+            <td style="color: var(--accent-green); font-weight: 700;"><strong>Review-driven</strong></td>
             <td>Agent-driven</td>
             <td>暴走防止、計画承認の習慣化</td>
           </tr>
           <tr>
             <td>Terminal Policy</td>
-            <td><strong>Request Review</strong></td>
+            <td style="color: var(--accent-green); font-weight: 700;"><strong>Request Review</strong></td>
             <td>Turbo</td>
             <td>rm等の破壊的コマンド実行防止</td>
           </tr>
           <tr>
             <td>Review Policy</td>
-            <td><strong>Request Review</strong></td>
+            <td style="color: var(--accent-green); font-weight: 700;"><strong>Request Review</strong></td>
             <td>Auto-approve</td>
             <td>節目での人間確認を保証</td>
           </tr>
           <tr>
             <td>JS Execution</td>
-            <td><strong>Request Review</strong></td>
+            <td style="color: var(--accent-green); font-weight: 700;"><strong>Request Review</strong></td>
             <td>Auto</td>
             <td>プロンプトインジェクション防止</td>
           </tr>
@@ -1165,6 +1204,14 @@ cloud.google.com</code></div>
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 600);
+      });
+    }
+
     // 1. TOC auto-generation
     const toc = document.getElementById('toc');
     const headings = document.querySelectorAll('.content h2[id]');
@@ -1224,5 +1271,6 @@ cloud.google.com</code></div>
   });
 </script>
 
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&#9650;</button>
 </body>
 </html>
