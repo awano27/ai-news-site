@@ -8,7 +8,7 @@ from typing import List, Dict, Optional
 
 import requests
 
-from .config import OLLAMA_CHAT_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT
+from .config import OLLAMA_URL, OLLAMA_CHAT_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -198,17 +198,18 @@ class OllamaProcessor:
 
         try:
             resp = requests.post(
-                OLLAMA_CHAT_URL,
+                OLLAMA_URL,
                 json={
                     "model": OLLAMA_MODEL,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "prompt": prompt,
                     "stream": False,
+                    "options": {"num_predict": 500},
                 },
                 timeout=OLLAMA_TIMEOUT
             )
             resp.raise_for_status()
             data = resp.json()
-            text = data["choices"][0]["message"]["content"]
+            text = data.get("response", "")
 
             parsed = self._extract_json(text)
             if parsed:
