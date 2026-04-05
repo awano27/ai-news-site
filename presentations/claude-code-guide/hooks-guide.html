@@ -587,6 +587,42 @@
     .sidebar-overlay.open {
       display: block;
     }
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-orange);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .back-to-top:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+    }
+    .back-to-top.visible {
+      display: flex;
+    }
+    .content h2[id]::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      background: var(--accent-orange);
+      margin-bottom: 16px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -1131,8 +1167,17 @@
         }
       });
     });
+
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 600);
+      });
+    }
   });
 </script>
 
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&#9650;</button>
 </body>
 </html>
