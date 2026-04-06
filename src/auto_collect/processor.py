@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Optional
 
 import requests
@@ -12,31 +13,13 @@ from .config import OLLAMA_URL, OLLAMA_CHAT_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
-SUMMARIZE_PROMPT = """以下のAIニュース記事を日本語で要約し、エビデンス情報を抽出してください。
-
-タイトル: {title}
-ソース: {source}
-内容: {content}
-
-以下のJSON形式のみで回答してください（説明文不要）:
-{{
-  "title_ja": "日本語タイトル",
-  "summary": "3文以内の日本語要約",
-  "points": ["・ポイント1", "・ポイント2", "・ポイント3"],
-  "score": 50,
-  "category": "AI Model",
-  "metrics": ["具体的な数値データがあれば抽出（例: 精度95%, コスト$0.5/1M tokens, 3倍高速）"],
-  "competitors": ["競合・比較対象があれば記載"],
-  "impact_ja": "日本企業・エンジニアへの影響を1文で",
-  "actionable": "エンジニアが今すぐ試せるか（pip install名、URL、API等）"
-}}
-
-scoreは20-100の重要度:
-- 90-100: 業界を変える発表（新モデル、大型買収、規制変更）
-- 70-89: エンジニア必読（新ツール、重要ベンチマーク更新）
-- 50-69: 注目すべき動き
-- 20-49: 参考情報
-categoryは AI Model / Business / Research / Product / Hardware のいずれか"""
+SUMMARIZE_PROMPT = """AI記事→JSON。説明不要、JSONのみ出力。
+タイトル:{title}
+ソース:{source}
+内容:{content}
+{{"title_ja":"日本語タイトル","summary":"2文要約","points":["点1","点2"],"score":50,"category":"AI Model","metrics":["数値"],"competitors":["競合"],"impact_ja":"影響1文","actionable":"pip/URL"}}
+score:90-100=業界変革,70-89=必読,50-69=注目,20-49=参考
+category:AI Model/Business/Research/Product/Hardware"""
 
 
 class OllamaProcessor:
@@ -53,26 +36,27 @@ class OllamaProcessor:
             logger.warning("[Processor] Ollama not available, using fallback scoring")
             return False
 
-    def process_batch(self, articles: List[Dict]) -> List[Dict]:
-        """Process all articles with evidence extraction."""
-        processed = []
-
-        for i, article in enumerate(articles):
-            try:
-                if self.available:
-                    result = self._process_with_ollama(article)
-                else:
-                    result = self._fallback_process(article)
-
-                if result:
-                    processed.append(result)
-
-                if self.available and i < len(articles) - 1:
-                    time.sleep(1)
-
-            except Exception as e:
-                logger.warning(f"[Processor] Error: '{article.get('name', '?')}': {e}")
+    def _process_one(self, article: Dict) -> Optional[Dict]:
+        """Process a single article with Ollama or fallback."""
+        try:
+            if self.available:
+                result = self._process_with_ollama(article)
+            else:
                 result = self._fallback_process(article)
+            return result
+        except Exception as e:
+            logger.warning(f"[Processor] Error: '{article.get('name', '?')}': {e}")
+            return self._fallback_process(article)
+
+    def process_batch(self, articles: List[Dict]) -> List[Dict]:
+        """Process all articles with parallel execution."""
+        processed = []
+        workers = 3 if self.available else 1
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(self._process_one, a): a for a in articles}
+            for future in as_completed(futures):
+                result = future.result()
                 if result:
                     processed.append(result)
 
@@ -203,7 +187,7 @@ class OllamaProcessor:
                     "model": OLLAMA_MODEL,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {"num_predict": 500},
+                    "options": {"num_predict": 300},
                 },
                 timeout=OLLAMA_TIMEOUT
             )
