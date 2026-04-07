@@ -15,7 +15,7 @@ LOG_DIR = PROJECT_ROOT / "logs" / "auto_collect"
 # Ollama
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_CHAT_URL = "http://localhost:11434/v1/chat/completions"
-OLLAMA_MODEL = "gemma4"
+OLLAMA_MODEL = "gemma3:4b"
 OLLAMA_TIMEOUT = 120
 
 # RSS feeds (English)

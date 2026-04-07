@@ -13,13 +13,31 @@ from .config import OLLAMA_URL, OLLAMA_CHAT_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
-SUMMARIZE_PROMPT = """AI記事→JSON。説明不要、JSONのみ出力。
-タイトル:{title}
-ソース:{source}
-内容:{content}
-{{"title_ja":"日本語タイトル","summary":"2文要約","points":["点1","点2"],"score":50,"category":"AI Model","metrics":["数値"],"competitors":["競合"],"impact_ja":"影響1文","actionable":"pip/URL"}}
-score:90-100=業界変革,70-89=必読,50-69=注目,20-49=参考
-category:AI Model/Business/Research/Product/Hardware"""
+SUMMARIZE_PROMPT = """以下のAIニュース記事を日本語で要約し、エビデンス情報を抽出してください。
+
+タイトル: {title}
+ソース: {source}
+内容: {content}
+
+以下のJSON形式のみで回答してください（説明文不要）:
+{{
+  "title_ja": "日本語タイトル",
+  "summary": "3文以内の日本語要約",
+  "points": ["・ポイント1", "・ポイント2", "・ポイント3"],
+  "score": 50,
+  "category": "AI Model",
+  "metrics": ["具体的な数値データがあれば抽出"],
+  "competitors": ["競合・比較対象があれば記載"],
+  "impact_ja": "日本企業・エンジニアへの影響を1文で",
+  "actionable": "エンジニアが今すぐ試せるか（pip install名、URL、API等）"
+}}
+
+scoreは20-100の重要度:
+- 90-100: 業界を変える発表
+- 70-89: エンジニア必読
+- 50-69: 注目すべき動き
+- 20-49: 参考情報
+categoryは AI Model / Business / Research / Product / Hardware のいずれか"""
 
 
 class OllamaProcessor:
@@ -182,18 +200,17 @@ class OllamaProcessor:
 
         try:
             resp = requests.post(
-                OLLAMA_URL,
+                OLLAMA_CHAT_URL,
                 json={
                     "model": OLLAMA_MODEL,
-                    "prompt": prompt,
+                    "messages": [{"role": "user", "content": prompt}],
                     "stream": False,
-                    "options": {"num_predict": 300},
                 },
                 timeout=OLLAMA_TIMEOUT
             )
             resp.raise_for_status()
             data = resp.json()
-            text = data.get("response", "")
+            text = data["choices"][0]["message"]["content"]
 
             parsed = self._extract_json(text)
             if parsed:
