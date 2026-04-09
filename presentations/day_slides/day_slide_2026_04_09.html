@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Managed Agents：インフラの呪縛からの解放 - 2026/04/09</title>
+  <style>
+    :root {
+      --primary: #B45309;
+      --primary-dark: #92400E;
+      --primary-deep: #451A03;
+      --primary-light: #D97706;
+      --primary-bright: #FBBF24;
+      --bg-dark: #1C0E02;
+      --bg-card: #FFFBEB;
+      --bg-light: #FFFBEB;
+      --text: #0F172A;
+      --text-light: #64748B;
+      --border: #FDE68A;
+      --accent: #0891B2;
+      --accent-light: #06B6D4;
+      --accent-bright: #67E8F9;
+      --warm: #F59E0B;
+      --danger: #EF4444;
+      --safe: #10B981;
+      --safe-light: #6EE7B7;
+      --rose: #F43F5E;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      color: var(--text); line-height: 1.8; padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.12); overflow: hidden; }
+    header {
+      background: linear-gradient(135deg, #1C0E02 0%, #451A03 40%, #B45309 100%);
+      color: white; padding: 56px 48px; text-align: center; position: relative; overflow: hidden;
+    }
+    header::before {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(180,83,9,0.35) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(8,145,178,0.18) 0%, transparent 50%);
+      animation: headerPulse 20s ease-in-out infinite;
+    }
+    @keyframes headerPulse { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-10px,-10px) scale(1.05); } }
+    .breaking-badge {
+      display: inline-block; background: rgba(180,83,9,0.28); border: 1px solid var(--primary-light);
+      color: var(--primary-bright); padding: 8px 24px; border-radius: 20px; margin-bottom: 16px;
+      font-weight: 700; font-size: 1.05rem; backdrop-filter: blur(10px); position: relative; z-index: 1;
+    }
+    h1 {
+      font-size: 2.8rem; font-weight: 900; margin-bottom: 12px; position: relative; z-index: 1;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+      background: linear-gradient(90deg, #ffffff, #FBBF24, #67E8F9);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .subtitle { font-size: 1.2rem; opacity: 0.95; position: relative; z-index: 1; font-weight: 500; margin-bottom: 8px; color: var(--accent-bright); }
+    .date { font-size: 1rem; opacity: 0.7; position: relative; z-index: 1; color: #FBBF24; }
+    main { padding: 48px; }
+    .section { margin-bottom: 60px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 3px solid var(--primary); }
+    .section-icon { font-size: 2rem; }
+    h2 { font-size: 2rem; font-weight: 800; }
+    a { color: var(--primary-dark); text-decoration: none; font-weight: 600; }
+    a:hover { color: var(--accent); text-decoration: underline; }
+
+    .story-block { background: white; border-radius: 16px; padding: 36px; margin-bottom: 32px; border: 2px solid #FFFBEB; box-shadow: 0 4px 16px rgba(180,83,9,0.08); position: relative; }
+    .story-block::before { content: attr(data-chapter); position: absolute; top: -14px; left: 32px; background: var(--primary); color: white; padding: 4px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; }
+    .story-block.ch1 { border-left: 5px solid var(--danger); } .story-block.ch1::before { background: var(--danger); }
+    .story-block.ch2 { border-left: 5px solid var(--primary); } .story-block.ch2::before { background: var(--primary); }
+    .story-block.ch3 { border-left: 5px solid var(--accent); } .story-block.ch3::before { background: var(--accent); }
+    .story-block.ch4 { border-left: 5px solid var(--warm); } .story-block.ch4::before { background: var(--warm); }
+    .story-block.ch5 { border-left: 5px solid var(--safe); } .story-block.ch5::before { background: var(--safe); }
+    .story-block h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .story-block p { font-size: 1.05rem; line-height: 2; color: #334155; margin-bottom: 12px; }
+    .story-block .scene { font-style: italic; color: var(--text-light); background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 16px 20px; border-radius: 10px; margin: 16px 0; border-left: 3px solid var(--primary-bright); }
+
+    .quote-box.dark { background: linear-gradient(135deg, var(--bg-dark), #451A03); border: 2px solid var(--primary); color: white; padding: 32px; margin: 32px 0; border-radius: 16px; text-align: center; }
+    .quote-text { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; line-height: 1.9; color: white; }
+    .quote-author { font-size: 0.95rem; color: var(--primary-bright); font-weight: 700; }
+
+    .highlight-box { background: linear-gradient(135deg, rgba(180,83,9,0.06), rgba(8,145,178,0.04)); border-left: 5px solid var(--primary); padding: 24px; margin-bottom: 32px; border-radius: 8px; font-size: 1.05rem; line-height: 1.9; }
+    .highlight-box.accent { border-left-color: var(--accent); background: linear-gradient(135deg, rgba(8,145,178,0.06), rgba(8,145,178,0.02)); }
+    .highlight-box.warm { border-left-color: var(--warm); background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02)); }
+    .highlight-box.danger { border-left-color: var(--danger); background: linear-gradient(135deg, rgba(239,68,68,0.06), rgba(239,68,68,0.02)); }
+    .highlight-box.safe { border-left-color: var(--safe); background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02)); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 32px 0; }
+    .stat-item { background: linear-gradient(135deg, var(--bg-dark), #451A03); padding: 28px; border-radius: 16px; text-align: center; border: 2px solid rgba(180,83,9,0.4); }
+    .stat-number { font-size: 2.2rem; font-weight: 900; color: var(--primary-bright); display: block; margin-bottom: 8px; }
+    .stat-label { font-size: 0.85rem; color: #FCD34D; font-weight: 600; }
+
+    .wall-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 32px 0; }
+    .wall-card { background: linear-gradient(135deg, #FEF2F2, #FFF1F2); border: 2px solid rgba(239,68,68,0.2); border-radius: 16px; padding: 24px; text-align: center; }
+    .wall-card .w-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .wall-card h3 { color: var(--danger); font-size: 1rem; margin-bottom: 8px; }
+    .wall-card p { color: #64748B; font-size: 0.88rem; line-height: 1.6; }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 32px 0; }
+    .concept-card { background: linear-gradient(135deg, var(--bg-dark), #451A03); border-radius: 16px; padding: 32px; color: white; border: 2px solid rgba(180,83,9,0.4); position: relative; }
+    .concept-card::before { content: attr(data-num); position: absolute; top: -16px; right: 24px; background: var(--primary); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; border: 3px solid white; }
+    .concept-card .c-icon { font-size: 2.4rem; margin-bottom: 12px; }
+    .concept-card h3 { color: var(--primary-bright); font-size: 1.25rem; margin-bottom: 10px; }
+    .concept-card p { color: #FDE68A; font-size: 0.92rem; line-height: 1.75; }
+    .concept-card code { background: rgba(180,83,9,0.35); padding: 2px 8px; border-radius: 4px; color: var(--accent-bright); font-size: 0.85rem; }
+
+    .agent-tree { background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border: 2px solid var(--primary-bright); border-radius: 16px; padding: 32px; margin: 32px 0; }
+    .lead-agent { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 20px 28px; border-radius: 14px; text-align: center; max-width: 320px; margin: 0 auto 20px; position: relative; box-shadow: 0 6px 20px rgba(180,83,9,0.35); }
+    .lead-agent h4 { font-size: 1.1rem; margin-bottom: 4px; color: #FFF; }
+    .lead-agent p { font-size: 0.85rem; color: #FDE68A; }
+    .tree-branch { text-align: center; color: var(--primary); font-size: 2rem; margin: -8px 0 12px; }
+    .sub-agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .sub-agent { background: white; border: 2px solid var(--primary-light); border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(180,83,9,0.08); }
+    .sub-agent .s-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .sub-agent h4 { color: var(--primary-dark); font-size: 0.98rem; margin-bottom: 4px; }
+    .sub-agent p { color: #64748B; font-size: 0.82rem; line-height: 1.5; }
+
+    .cost-compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin: 32px 0; }
+    .cost-card { padding: 32px; border-radius: 16px; text-align: center; }
+    .cost-card.before { background: linear-gradient(135deg, #FEF2F2, #FFF1F2); border: 2px solid var(--danger); }
+    .cost-card.before h3 { color: var(--danger); margin-bottom: 12px; }
+    .cost-card.before .cost-val { font-size: 2.5rem; font-weight: 900; color: var(--danger); margin: 16px 0; }
+    .cost-card.after { background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border: 2px solid var(--primary); }
+    .cost-card.after h3 { color: var(--primary-dark); margin-bottom: 12px; }
+    .cost-card.after .cost-val { font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 16px 0; }
+    .cost-card p { color: #475569; font-size: 0.92rem; line-height: 1.7; }
+    .cost-arrow { font-size: 2.5rem; color: var(--accent); font-weight: 900; }
+
+    .case-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 32px 0; }
+    .case-card { background: linear-gradient(135deg, var(--bg-dark), #451A03); border-radius: 16px; padding: 32px; color: white; border-left: 5px solid var(--primary); }
+    .case-card .company { display: inline-block; background: var(--primary); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; margin-bottom: 12px; }
+    .case-card h3 { color: var(--primary-bright); font-size: 1.15rem; margin-bottom: 10px; }
+    .case-card p { color: #FDE68A; font-size: 0.9rem; line-height: 1.75; }
+    .case-card .timing { color: var(--accent-bright); font-weight: 800; font-size: 1rem; margin-top: 8px; display: block; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 32px 0; }
+    .summary-card { background: linear-gradient(135deg, var(--bg-dark), #451A03); border-radius: 16px; padding: 28px; text-align: center; color: white; border: 1px solid rgba(180,83,9,0.4); }
+    .summary-card h3 { color: var(--primary-bright); margin-bottom: 8px; font-size: 1rem; }
+    .summary-card p { color: #FDE68A; font-size: 0.85rem; line-height: 1.6; }
+    .summary-icon { font-size: 2rem; margin-bottom: 8px; }
+
+    .links-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 24px 0; }
+    .link-item { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; }
+
+    .back-to-top { position: fixed; top: 30px; left: 30px; z-index: 1000; background: rgba(28,14,2,0.92); backdrop-filter: blur(12px); padding: 12px 24px; border-radius: 50px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); border: 1px solid rgba(180,83,9,0.5); display: flex; align-items: center; gap: 10px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; font-weight: 600; font-size: 1rem; text-decoration: none; }
+    .back-to-top:hover { transform: translateY(-3px) scale(1.05); background: rgba(180,83,9,0.92); color: white; text-decoration: none; }
+    footer { background: var(--bg-dark); color: #FDE68A; padding: 32px 48px; text-align: center; }
+
+    @media (max-width: 768px) {
+      body { padding: 0; } .container { border-radius: 0; } header { padding: 36px 20px; }
+      h1 { font-size: 1.8rem; } main { padding: 24px 20px; }
+      .back-to-top { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.85rem; }
+      .wall-grid { grid-template-columns: 1fr; }
+      .concept-grid { grid-template-columns: 1fr; }
+      .sub-agents { grid-template-columns: 1fr; }
+      .cost-compare { grid-template-columns: 1fr; } .cost-arrow { transform: rotate(90deg); }
+      .case-grid { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .story-block { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="../../index.html" class="back-to-top">&#x1F3E0; TOPに戻る</a>
+
+  <div class="container">
+    <header>
+      <div class="breaking-badge">&#x1F527; 2026年4月9日速報 | Anthropic Claude Managed Agents — Public Beta</div>
+      <h1>Claude Managed Agents：インフラの呪縛からの解放</h1>
+      <p class="subtitle">Agent PaaS × Multi-agent Orchestration — 「AIを作る」から「AIを使う」時代へ</p>
+      <p class="date">2026年4月9日</p>
+    </header>
+
+    <main>
+
+      <!-- ===== 製品紹介 ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F527;</span>
+          <h2>製品紹介：Claude Managed Agents（Public Beta）</h2>
+        </div>
+
+        <div class="highlight-box">
+          <strong>&#x1F4A1; 一言でいうと：</strong>2026年4月8日にAnthropicが発表した <strong>「Agent PaaS（AWS Lambdaのエージェント版）」</strong>。LLMだけでなく、エージェントが動くための<strong>インフラ（実行基盤）までAnthropicが完全マネージド</strong>で提供する革命的サービス。
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">80%</span>
+            <span class="stat-label">従来の開発時間の<br>インフラ構築比率</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">$0.08</span>
+            <span class="stat-label">コンテナ実行<br>アクティブ時間/時間</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">4</span>
+            <span class="stat-label">設定する<br>たった4つの概念</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">数ヶ月&rarr;数日</span>
+            <span class="stat-label">プロトタイプから<br>本番デプロイ</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">0円</span>
+            <span class="stat-label">アイドル時の<br>コンテナ課金</span>
+          </div>
+        </div>
+
+        <div class="quote-box dark">
+          <p class="quote-text">「AIの頭脳が良くなったのではない。<br>AIを本番環境で動かすための『OS』を、Anthropicが肩代わりしたのだ」</p>
+          <p class="quote-author">— これがClaude Managed Agentsの真の革命</p>
+        </div>
+      </div>
+
+      <!-- ===== 第1章：インフラ構築の迷宮 ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F300;</span>
+          <h2>第1章：果てしないインフラ構築の迷宮</h2>
+        </div>
+
+        <div class="story-block ch1" data-chapter="CHAPTER 1 — 迷宮">
+          <h3>&#x1F32B;&#xFE0F; 「AIを作っているのか、分散システムを作っているのか分からない」</h3>
+          <div class="scene">あるIT企業の朝会。PMが意気揚々と宣言した。「LLMのAPIを使えばすぐに自律型AIができるはずだ」。だが、3ヶ月後——開発チームは疲弊しきっていた。書いているコードの大半はエージェント本体ではなく、Kubernetes、Redis、監視システム、コンテナ環境、エラー復旧機構……。「これ、AIプロジェクトだっけ？それともSRE案件だっけ？」誰かが自嘲気味に呟いた。</div>
+          <p>業務効率化のために「AIエージェント」の開発に着手したある開発チームとPM。「LLMのAPIを使えばすぐに自律型AIができるだろう」と考えていましたが、現実は残酷でした。</p>
+          <p>エージェントを本番運用しようとすると、自律的に思考ループを回す仕組み、記憶（状態）の保持、コードやWeb検索を安全に実行するためのコンテナ（サンドボックス）環境、監視やエラー復旧のシステム——<strong>LLM以外の「インフラ構築」にプロジェクトの80%以上の時間が奪われてしまった</strong>のです。</p>
+        </div>
+
+        <div class="wall-grid">
+          <div class="wall-card">
+            <div class="w-icon">&#x1F504;</div>
+            <h3>思考ループ基盤</h3>
+            <p>自律的に Plan→Act→Reflect を回す仕組みを自前実装</p>
+          </div>
+          <div class="wall-card">
+            <div class="w-icon">&#x1F9E0;</div>
+            <h3>状態管理</h3>
+            <p>セッションごとの記憶・コンテキストをRedis/DBで永続化</p>
+          </div>
+          <div class="wall-card">
+            <div class="w-icon">&#x1F4E6;</div>
+            <h3>サンドボックス</h3>
+            <p>bash・コード実行のための安全なコンテナ隔離環境</p>
+          </div>
+          <div class="wall-card">
+            <div class="w-icon">&#x1F440;</div>
+            <h3>監視・復旧</h3>
+            <p>ログ、メトリクス、エラー検知、自動リトライの仕組み</p>
+          </div>
+        </div>
+
+        <div class="highlight-box danger">
+          <strong>&#x26A0;&#xFE0F; 80%の呪縛：</strong>LLMのアルゴリズムやプロンプトよりも、<strong>それを支える分散システムの構築に時間と工数の80%以上が消費される</strong>現実。PoCから本番化までに数ヶ月かかり、「AIプロジェクト」が実質「インフラ構築プロジェクト」に化けていく。
+        </div>
+      </div>
+
+      <!-- ===== 第2章：魔法の杖 ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x2728;</span>
+          <h2>第2章：魔法の杖「Claude Managed Agents」の登場</h2>
+        </div>
+
+        <div class="story-block ch2" data-chapter="CHAPTER 2 — 救い">
+          <h3>&#x1F4E2; 2026年4月8日、Anthropicからの福音</h3>
+          <div class="scene">疲弊しきった開発チームのSlackに、誰かがAnthropicのブログリンクを貼った。「Claude Managed Agents — Public Beta」。リードエンジニアがクイックスタートを開く。たった4つの概念、10行ほどの設定ファイル、そしてコンソールの「Deploy」ボタン。30秒後、セキュアでスケーラブルな自律エージェントが本番環境で動き始めた——誰もインフラを書くことなく。</div>
+          <p>そんな彼らの前に、2026年4月8日にAnthropicが発表した<strong>「Claude Managed Agents（public beta）」</strong>が現れます。これは単なるLLMのAPIではなく、<strong>エージェントが動くためのインフラ（実行基盤）までをAnthropicがすべて管理・提供する「Agent PaaS」</strong>——AWS Lambdaのエージェント版のような存在でした。</p>
+          <p>チームは、たった<strong>4つの概念</strong>を設定するだけで、セキュアでスケーラブルなエージェントを起動できることに驚愕します。</p>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card" data-num="1">
+            <div class="c-icon">&#x1F9E9;</div>
+            <h3>Agent</h3>
+            <p>モデル、システムプロンプト、使えるツール（<code>bash</code>、ファイル操作、Web検索など）の定義。エージェントの「人格と能力」を決める。</p>
+          </div>
+          <div class="concept-card" data-num="2">
+            <div class="c-icon">&#x1F4E6;</div>
+            <h3>Environment</h3>
+            <p>必要なパッケージがインストールされた、クラウド上の<strong>安全なコンテナ環境</strong>。Anthropicが隔離・管理するサンドボックス。</p>
+          </div>
+          <div class="concept-card" data-num="3">
+            <div class="c-icon">&#x1F9E0;</div>
+            <h3>Session</h3>
+            <p>状態を<strong>永続化</strong>し、数時間〜数日にわたって自律実行を続けるインスタンス。記憶を持ったエージェントの「生命」。</p>
+          </div>
+          <div class="concept-card" data-num="4">
+            <div class="c-icon">&#x1F4E1;</div>
+            <h3>Events</h3>
+            <p>リアルタイムでの<strong>ストリーミング監視</strong>や、人間による途中介入の仕組み。AIを暴走させず、人間が舵を取り続けられる。</p>
+          </div>
+        </div>
+
+        <div class="highlight-box accent">
+          <strong>&#x1F4A1; Agent PaaSのアナロジー：</strong>AWS Lambdaが「サーバーを意識せずコードを実行できる」ようにしたように、Claude Managed Agentsは<strong>「インフラを意識せず自律エージェントを実行できる」</strong>世界を実現。開発者は「何をさせるか」だけに集中できる。
+        </div>
+      </div>
+
+      <!-- ===== 第3章：Multi-agent ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F465;</span>
+          <h2>第3章：Multi-agentがもたらす「最強のAI専門家チーム」</h2>
+        </div>
+
+        <div class="story-block ch3" data-chapter="CHAPTER 3 — チーム結成">
+          <h3>&#x1F31F; 1人のスーパーマンから、専門家チームへ</h3>
+          <div class="scene">PMは、さらに「Multi-agent orchestration（研究プレビュー）」という文字に目が留まった。これまでは1つのエージェントに「コードも書いて、テストも作って、リスクも評価して」と全部押しつけていた。結果、コンテキストは混乱し、品質は下がり、時間もかかった。だが今は違う。リードエージェントにタスクを投げるだけで、3人の専門家が同時に動き始めた。</div>
+          <p>これまでは1つのエージェントにすべてを任せてコンテキストが混乱していましたが、この機能により<strong>「AIの専門家チーム」を結成</strong>できるようになったのです。PMの指示を受けた<strong>「リードエージェント」</strong>がタスクを自動分解し、専門のサブエージェントたちを並列で呼び出します。</p>
+          <p>各サブエージェントは独立したスレッドで作業に集中し、最後にリードエージェントが結果を統合することで、単一エージェントの時とは比べ物にならない<strong>速度と品質</strong>を達成しました。</p>
+        </div>
+
+        <div class="agent-tree">
+          <div class="lead-agent">
+            <h4>&#x1F9ED; Lead Agent</h4>
+            <p>タスクを自動分解し、専門家に委譲・統合</p>
+          </div>
+          <div class="tree-branch">&#x2193; &#x2193; &#x2193;</div>
+          <div class="sub-agents">
+            <div class="sub-agent">
+              <div class="s-icon">&#x1F4BB;</div>
+              <h4>CodeWriter</h4>
+              <p>コードの生成・実装を専門に担当</p>
+            </div>
+            <div class="sub-agent">
+              <div class="s-icon">&#x1F9EA;</div>
+              <h4>TestGenerator</h4>
+              <p>単体テスト・統合テストを自動生成</p>
+            </div>
+            <div class="sub-agent">
+              <div class="s-icon">&#x26A0;&#xFE0F;</div>
+              <h4>RiskAnalyzer</h4>
+              <p>セキュリティ・リスク評価を専門に担当</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <strong>&#x1F4CA; なぜ速くなるのか：</strong>3つのサブエージェントが<strong>独立スレッドで並列動作</strong>し、それぞれが自分のコンテキストだけに集中できる。単一エージェントに全部押し付けると起きる「コンテキスト汚染」「長文プロンプトによる推論劣化」から解放される。
+        </div>
+      </div>
+
+      <!-- ===== 第4章：コスト ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F4B0;</span>
+          <h2>第4章：コストの透明化と圧倒的なROI</h2>
+        </div>
+
+        <div class="story-block ch4" data-chapter="CHAPTER 4 — 経営判断">
+          <h3>&#x1F4B5; 「暴走によるコスト爆発」の不安は無用だった</h3>
+          <div class="scene">経営陣の会議室。CFOが眉をひそめた。「AIが勝手に動くのはいい。だが、料金は？"AIが夜中に勝手にAPIを叩き続けて、朝起きたら100万ドル請求"なんてのはゴメンだぞ」。CTOは微笑んで資料をめくった。「$0.08/時間、しかもアイドル時は無料です。そして人間が60分かけていた仕事を、1ドル以下でAIが数分で終えます」。CFOは黙って頷いた。</div>
+          <p>経営陣が最も気にしていたのは<strong>「暴走によるコスト爆発」</strong>でしたが、その心配も無用でした。料金体系は非常に明快で、通常の「トークン課金」に加え、コンテナがアクティブに動いている時間に対してのみ<strong>$0.08 / 時間</strong>が加算され、<strong>アイドル時（待機中）は無料</strong>だったからです。</p>
+        </div>
+
+        <div class="cost-compare">
+          <div class="cost-card before">
+            <h3>&#x274C; 人間の手作業</h3>
+            <div class="cost-val">60分</div>
+            <p><strong>知的定型作業</strong><br>エラーログの調査<br>再現コードの作成<br>(人件費：$30-90)</p>
+          </div>
+          <div class="cost-arrow">&#x2192;</div>
+          <div class="cost-card after">
+            <h3>&#x2705; Managed Agents</h3>
+            <div class="cost-val">$0.3-0.7</div>
+            <p><strong>数分で完了</strong><br>AIが自律的に調査<br>再現コードも自動生成<br>(ROI：数十倍)</p>
+          </div>
+        </div>
+
+        <div class="highlight-box warm">
+          <strong>&#x1F4A1; ROIの真の意味：</strong>「人間が30〜90分かけて行う知的な定型作業」において、わずか<strong>$0.30〜$0.70ほどのコストで数分で完了</strong>。ROIは数十倍に達する。しかもアイドル時は課金されないため、「使いすぎて破産」という心配が構造的に存在しない。
+        </div>
+      </div>
+
+      <!-- ===== 第5章：数ヶ月が数日に ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x26A1;</span>
+          <h2>第5章：数ヶ月の遅れが「数日」に変わる</h2>
+        </div>
+
+        <div class="story-block ch5" data-chapter="CHAPTER 5 — 解放">
+          <h3>&#x1F680; インフラの呪縛から解き放たれたチーム</h3>
+          <div class="scene">金曜日の夕方、リードエンジニアは自前で組んでいた2,000行のKubernetesマニフェストファイルとRedisクラスタの設定コードを、静かに<code>git rm</code>した。もう必要ない。すべてClaude Managed Agentsへ移行した。月曜日には、数ヶ月かけて作っていたはずの本番エージェントが、すでに動いていた。PMは会議で、チームではなくビジネスの話をしていた。</div>
+          <p>チームは自前で組んでいたインフラのコードをすべて捨て、Claude Managed Agentsへ完全移行しました。その結果、<strong>プロトタイプから本番デプロイまで数ヶ月かかっていた作業が、わずか「数日」で完了</strong>してしまったのです。</p>
+          <p>もはや開発者はインフラの保守に悩まされることはなくなり、PMは<strong>「業務ワークフローをどうAIに落とし込むか」という本来のビジネス価値の創出に100%集中</strong>できるようになったのです。</p>
+        </div>
+
+        <div class="case-grid">
+          <div class="case-card">
+            <span class="company">Rakuten</span>
+            <h3>&#x1F3EA; 営業・財務向け専門エージェント</h3>
+            <p>社内の営業・財務部門向けに、業務特化型AIエージェントを展開。従来なら半年かかっていた専門AIの構築が、Claude Managed Agentsで一気に短縮された。</p>
+            <span class="timing">&#x23F1;&#xFE0F; わずか1週間で展開</span>
+          </div>
+          <div class="case-card">
+            <span class="company">Sentry</span>
+            <h3>&#x1F41B; バグ検知→修正PR自動化</h3>
+            <p>エラーモニタリングの大手Sentryが、バグ検知から修正PR作成までを一気通貫で実現。開発者のデバッグワークフロー全体をAIエージェントが代行。</p>
+            <span class="timing">&#x26A1; エンドツーエンド自動化</span>
+          </div>
+        </div>
+
+        <div class="highlight-box safe">
+          <strong>&#x1F3AF; 企業開発の新常識：</strong>「AIエージェントの本番化」が<strong>週単位</strong>の話になった。これまで「技術スタックと格闘していたエンジニア」が、「ビジネスワークフローに集中できるエンジニア」に変わる構造転換が始まっている。
+        </div>
+      </div>
+
+      <!-- ===== 結論 ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F3C1;</span>
+          <h2>結論：何が本当にすごいのか？</h2>
+        </div>
+
+        <div class="story-block ch5" data-chapter="CONCLUSION — 本質">
+          <h3>&#x1F30F; パラダイムシフトの正体</h3>
+          <p>Claude Managed Agentsの真の価値は「AIの頭脳が良くなったこと」ではなく、<strong>「AIを本番環境で動かすためのインフラ（OS）をAnthropicが肩代わりしたこと」</strong>にあります。</p>
+          <p>この技術的パラダイムシフトにより、企業はインフラ構築の泥沼から解放され、<strong>アイデアを即座に安全な「AIチーム」として現場に投入できる未来</strong>を手に入れました。「AIを作る」時代から「AIを使う」時代への移行は、この4月8日をもって確定的になったのです。</p>
+        </div>
+
+        <div class="quote-box dark">
+          <p class="quote-text">「AIの頭脳ではなく、AIのOSが競争の主戦場になる」<br>—— Agent PaaS時代の幕開け</p>
+          <p class="quote-author">Claude Managed Agents × Multi-agent Orchestration = AI Workforceの標準実行基盤</p>
+        </div>
+      </div>
+
+      <!-- ===== まとめ ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F4CB;</span>
+          <h2>まとめ</h2>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-icon">&#x1F4E6;</div>
+            <h3>Agent PaaS</h3>
+            <p>インフラの80%を<br>Anthropicが肩代わり<br>AWS Lambda for AI</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">&#x1F9E9;</div>
+            <h3>4つの概念</h3>
+            <p>Agent / Environment<br>Session / Events<br>これだけで起動</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">&#x1F465;</div>
+            <h3>Multi-agent</h3>
+            <p>Lead + 専門家チームで<br>並列実行・高品質<br>コンテキスト汚染ゼロ</p>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">&#x1F4B0;</div>
+            <h3>$0.08/時間</h3>
+            <p>アクティブ時のみ課金<br>アイドル無料<br>ROI数十倍</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 参考リンク ===== -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">&#x1F517;</span>
+          <h2>参考リンク</h2>
+        </div>
+        <div class="links-grid">
+          <div class="link-item">&#x1F4E2; <a href="https://claude.com/blog/claude-managed-agents" target="_blank">公式ブログ（リリース発表）</a></div>
+          <div class="link-item">&#x1F4DA; <a href="https://platform.claude.com/docs" target="_blank">公式ドキュメント（実装詳細）</a></div>
+          <div class="link-item">&#x1F680; <a href="https://platform.claude.com/workspaces/default/agent-quickstart" target="_blank">Console クイックスタート</a></div>
+          <div class="link-item">&#x1F4B0; <a href="https://docs.anthropic.com/en/docs/about-claude/pricing" target="_blank">料金体系の詳細</a></div>
+          <div class="link-item">&#x1F4DD; <a href="https://claude.com/form/claude-managed-agents" target="_blank">Multi-agent Research Previewアクセス申請</a></div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>
+      <p>&#x1F4F0; AI News Archive — 2026年4月9日 | &#x1F527; Claude Managed Agents: Agent PaaS Era</p>
+      <p style="margin-top:8px;"><a href="../day_slides_index.html" style="color:var(--primary-bright);">&#x1F4C5; スライド一覧に戻る</a></p>
+    </footer>
+  </div>
+
+</body>
+</html>
