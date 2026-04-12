@@ -947,6 +947,361 @@
       <p><code>.vscode/mcp.json</code> はプロジェクトスコープの設定です。リポジトリにコミットしてチーム共有できます。ユーザーレベルの設定（settings.json）より優先されます。</p>
     </div>
 
+    <!-- ===== Section: MCP詳細設定 ===== -->
+    <h2 id="mcp-advanced">MCP詳細設定ガイド</h2>
+
+    <p>MCPサーバーの追加方法は<strong>3通り</strong>あります。用途に応じて使い分けてください。</p>
+
+    <h3>方法A: コマンドパレットでGUI追加（最速）</h3>
+    <ol class="steps-list">
+      <li><kbd>Ctrl + Shift + P</kbd> &rarr; 「MCP: Add Server」</li>
+      <li><strong>Workspace</strong>（プロジェクト用）か <strong>Global</strong>（全プロジェクト共通）を選択</li>
+      <li>サーバー種別を選択:
+        <ul>
+          <li><strong>STDIO（Local）</strong> &mdash; <code>npx</code> などでローカル起動（Playwright等）</li>
+          <li><strong>HTTP（Remote）</strong> &mdash; リモートURL（GitHub公式MCP、context7等）</li>
+        </ul>
+      </li>
+      <li>名前・コマンド・env変数を入力 &rarr; 保存</li>
+      <li>信頼確認ダイアログで「Trust」&rarr; 即起動</li>
+    </ol>
+
+    <h3>方法B: mcp.json直接編集（チーム共有推奨）</h3>
+
+    <p><code>.vscode/mcp.json</code> をプロジェクトルートに配置し、GitHubにコミットしてチーム全員で共有できます。</p>
+
+    <div class="code-label">.vscode/mcp.json（実践テンプレート）</div>
+    <div class="code-block"><code>{
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "X-MCP-Toolsets": "default,copilot_spaces"
+      }
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "excel": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-excel-server"],
+      "env": {}
+    },
+    "ppt": {
+      "command": "PptMcp.McpServer",
+      "args": [],
+      "env": {}
+    }
+  }
+}</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; Tip: IntelliSense対応</div>
+      <p><code>mcp.json</code> はVS CodeのIntelliSense完備。env変数は <code>${env:VARIABLE_NAME}</code> 構文で <code>.env</code> から自動読み込み可能です。トークンをハードコードする必要はありません。</p>
+    </div>
+
+    <h3>方法C: Copilot CLI設定</h3>
+
+    <p>ターミナルからCopilot CLIを使う場合は、<code>~/.copilot/mcp-config.json</code> に設定します。</p>
+
+    <div class="code-label">~/.copilot/mcp-config.json</div>
+    <div class="code-block"><code>{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "type": "local",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; VS Code と CLI の設定キー名が異なる</div>
+      <p>VS Code: <code>"servers": { ... }</code> / CLI: <code>"mcpServers": { ... }</code>。混在するとサーバーが認識されません。</p>
+    </div>
+
+    <p><strong>CLIでのインタラクティブ追加:</strong></p>
+    <div class="code-block"><code># CLI起動後
+/mcp add
+# → Tab でフォーム入力 → Ctrl+S で保存</code></div>
+
+    <!-- ===== Section: Excel/PPT MCP ===== -->
+    <h2 id="mcp-office">Office連携MCPサーバー（Excel / PowerPoint）</h2>
+
+    <p>MCPを使えば、CopilotがExcel・PowerPointファイルを<strong>直接作成・編集</strong>できます。Agent Modeで自然言語指示するだけで、手作業ゼロでOfficeファイルが完成します。</p>
+
+    <h3>Excel MCPサーバー</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>サーバー</th>
+            <th>方式</th>
+            <th>特徴</th>
+            <th>要件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>sbroenne/excel-mcp</strong></td>
+            <td>COM API</td>
+            <td>25ツール / 230操作。Power Query・DAX・Pivot・Chart・VBA全対応</td>
+            <td>Windows + Excelインストール必須</td>
+          </tr>
+          <tr>
+            <td><strong>haris-musa/excel-mcp-server</strong></td>
+            <td>openpyxl</td>
+            <td>Excelインストール不要。軽量なファイル生成向き</td>
+            <td>Python 3.10+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>PowerPoint MCPサーバー</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>サーバー</th>
+            <th>方式</th>
+            <th>特徴</th>
+            <th>要件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>trsdn/mcp-server-ppt</strong></td>
+            <td>COM API</td>
+            <td>33ツール。PowerPoint直接操作、テンプレート活用</td>
+            <td>Windows + PowerPoint + .NET</td>
+          </tr>
+          <tr>
+            <td><strong>GongRzhe/Office-PowerPoint-MCP-Server</strong></td>
+            <td>python-pptx</td>
+            <td>32ツール。PowerPointインストール不要</td>
+            <td>Python 3.10+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>インストール手順</h3>
+
+    <div class="code-label">Excel MCP（COM API版・最速）</div>
+    <div class="code-block"><code># VS Code Extensions → 「excel mcp」検索 → sbroenne.excel-mcp インストール
+# → 自動でmcp.jsonに登録される
+
+# または手動追加（.vscode/mcp.json）
+"excel": {
+  "command": "npx",
+  "args": ["-y", "excel-mcp-server"]
+}</code></div>
+
+    <div class="code-label">PowerPoint MCP（.NET版）</div>
+    <div class="code-block"><code># インストール
+dotnet tool install --global PptMcp.McpServer
+
+# .vscode/mcp.json に追加
+"ppt": {
+  "command": "PptMcp.McpServer",
+  "args": []
+}</code></div>
+
+    <h3>使い方例（Agent Mode）</h3>
+    <div class="code-block"><code># Excel作成
+「SalesReport.xlsxを作成して、A1:C10にサンプルデータを入れ、
+ 売上合計のPivotTableと棒グラフを追加して」
+
+# PowerPoint作成
+「2026年度事業計画.pptxを作成。スライド10枚、
+ タイトルは"プロジェクト進捗"、各スライドにチャート挿入」
+
+# Excel→PPT連携
+「月次レポート.xlsxのデータを分析して、
+ 結果をsummary.pptxにグラフ付きでまとめて」</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; Tip: Claude Code CLIとのハイブリッド</div>
+      <p>Claude Code CLIでPython（openpyxl / python-pptx）のプロトタイプを作成 &rarr; Copilot Agent ModeでMCPサーバー経由の本番実行。このハイブリッドが最も効率的です。</p>
+    </div>
+
+    <!-- ===== Section: Skills ===== -->
+    <h2 id="agent-skills">Agent Skills（再利用可能ワークフロー）</h2>
+
+    <p>Agent Skillsは、専門タスク専用の<strong>再利用可能ワークフロー</strong>です。フォルダ単位でSKILL.md（指示書）＋スクリプト・リソースをバンドルし、Agent Modeで自動ロードされます。</p>
+
+    <h3>配置場所</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>場所</th>
+            <th>スコープ</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>.github/skills/スキル名/</code></td>
+            <td>プロジェクト</td>
+            <td>リポジトリ固有の専門タスク（GitHubにコミット）</td>
+          </tr>
+          <tr>
+            <td><code>.claude/skills/</code></td>
+            <td>プロジェクト</td>
+            <td>Claude Code互換のスキル配置</td>
+          </tr>
+          <tr>
+            <td><code>~/.copilot/skills/</code></td>
+            <td>個人共通</td>
+            <td>全プロジェクトで使い回す汎用スキル</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Skill作成手順</h3>
+    <ol class="steps-list">
+      <li>フォルダ作成: <code>.github/skills/ppt-excel-generator/</code></li>
+      <li><code>SKILL.md</code> に指示を記述（下記テンプレート参照）</li>
+      <li>必要ならスクリプト・テンプレートを同梱</li>
+      <li>Agent Mode起動時に自動検出される</li>
+    </ol>
+
+    <div class="code-label">SKILL.md テンプレート例（PPT/Excel生成Skill）</div>
+    <div class="code-block"><code>---
+name: ppt-excel-generator
+description: python-pptx / openpyxlでOfficeファイルを自動生成
+tools: ["excel-mcp", "ppt-mcp"]
+---
+
+# PPT/Excel自動生成スキル
+
+## 目的
+自然言語の指示からExcel/PowerPointファイルを自動生成する。
+
+## ルール
+- Excelはopenpyxlまたはexcel-mcp経由で作成
+- PowerPointはpython-pptxまたはppt-mcp経由で作成
+- チャートは必ずデータソースと連動させる
+- テンプレートがある場合は templates/ フォルダを参照
+- 出力先は deliverables/ フォルダに統一
+
+## 出力フォーマット
+- Excel: .xlsx（マクロ不要時）/ .xlsm（VBA含む時）
+- PowerPoint: .pptx
+- ファイル名: YYYYMMDD_テーマ.拡張子</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; Note</div>
+      <p>Agent Modeでの呼び出し例: 「<code>@skill ppt-excel-generator</code> を使ってAIPO2の月次レポート.pptxを作成して」</p>
+    </div>
+
+    <!-- ===== Section: Plugins ===== -->
+    <h2 id="plugins">Agent Plugins（Skills + MCP + Hooks統合パッケージ）</h2>
+
+    <p>PluginはSkills + MCP + Hooksを<strong>1パッケージ</strong>にまとめた拡張単位です。インストール1回で複数機能が有効になります。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>導入方法</th>
+            <th>対象環境</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Copilot CLI</strong></td>
+            <td>ターミナル</td>
+            <td><code>copilot plugin install &lt;name&gt;</code></td>
+          </tr>
+          <tr>
+            <td><strong>VS Code Marketplace</strong></td>
+            <td>IDE</td>
+            <td>Copilot Extensions として導入。<code>@extension-name</code> でChat呼び出し</td>
+          </tr>
+          <tr>
+            <td><strong>GitHub Marketplace</strong></td>
+            <td>Web</td>
+            <td>Copilot Extensions からインストール</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>公式リソース:</strong></p>
+    <ul>
+      <li><a href="https://github.com/github/copilot-plugins" target="_blank" rel="noopener" style="color: var(--accent-blue);">github/copilot-plugins</a> &mdash; MCPサーバー・Skill・Plugin一括カタログ</li>
+      <li><a href="https://github.com/topics/awesome-copilot" target="_blank" rel="noopener" style="color: var(--accent-blue);">awesome-copilot</a> &mdash; コミュニティ厳選リスト</li>
+    </ul>
+
+    <!-- ===== Section: MCP検証 ===== -->
+    <h2 id="mcp-troubleshooting">MCP検証 &amp; トラブルシューティング</h2>
+
+    <h3>接続確認（5ステップ）</h3>
+    <ol class="steps-list">
+      <li><kbd>Ctrl + Shift + P</kbd> &rarr; <strong>MCP: List Servers</strong> で全サーバー一覧を確認</li>
+      <li>Copilot Chat &rarr; 「Configure Tools」ボタンで各ツールのON/OFFを切替</li>
+      <li>Outputパネル &rarr; 「MCP Servers」でログを確認</li>
+      <li>初回接続時は「Trust」承認が必須（後から <strong>MCP: Reset Trust</strong> でリセット可能）</li>
+      <li>Agent Mode（チャットドロップダウンで「Agent」選択）が必須 &mdash; Ask / Editモードではツールが無効</li>
+    </ol>
+
+    <h3>よくある問題と対策</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>症状</th>
+            <th>原因</th>
+            <th>対策</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MCPツールが表示されない</td>
+            <td>Agent Mode未選択</td>
+            <td>チャットドロップダウンで「Agent」に切替</td>
+          </tr>
+          <tr>
+            <td>サーバーがOffline表示</td>
+            <td>コマンドパスが不正</td>
+            <td>Outputパネルでエラーログ確認。<code>npx</code> のパスやNode.jsバージョンを確認</td>
+          </tr>
+          <tr>
+            <td>既存MCPが認識されない</td>
+            <td>設定キー名の不一致</td>
+            <td>VS Code: <code>"servers"</code> / CLI: <code>"mcpServers"</code> を確認</td>
+          </tr>
+          <tr>
+            <td>Trust確認が繰り返し出る</td>
+            <td>サーバー再起動のたびにリセット</td>
+            <td><strong>MCP: Reset Trust</strong> &rarr; 再Trust。永続化はWorkspace設定推奨</td>
+          </tr>
+          <tr>
+            <td>Org環境で接続できない</td>
+            <td>ポリシーで無効</td>
+            <td>管理者が Settings &rarr; Copilot &rarr; Policies &rarr; 「MCP servers in Copilot」をONに</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- ===== Section 4: Copilot Extensions ===== -->
     <h2 id="extensions">Copilot Extensions</h2>
 
