@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="minimal-second-brain を使って Claude Code・Codex・GitHub Copilot・Google Antigravity 全ツールのナレッジを一元管理する構築ガイド">
+  <title>AIナレッジ管理ガイド | AI Intelligence Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent: #bc8cff;
+      --accent-dim: rgba(188, 140, 255, 0.12);
+      --accent-orange: #f97316;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15, 17, 23, 0.85);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .topbar-inner { display: flex; justify-content: space-between; align-items: center; height: 56px; max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .topbar-brand { font-weight: 700; font-size: 15px; color: var(--text-heading); }
+    .topbar-nav { display: flex; gap: 20px; align-items: center; }
+    .topbar-nav a { font-size: 13px; color: var(--text-muted); transition: color 0.2s; }
+    .topbar-nav a:hover { color: var(--text-primary); }
+
+    /* ===== HERO ===== */
+    .hero { padding: 64px 0 48px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 600px 400px at 50% 0%, rgba(188,140,255,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-dim); color: var(--accent); font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; margin-bottom: 20px; letter-spacing: 0.04em; }
+    .hero h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; color: var(--text-heading); line-height: 1.3; margin-bottom: 12px; }
+    .hero h1 span { background: linear-gradient(135deg, var(--accent), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 15px; color: var(--text-muted); max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+    /* ===== SECTION ===== */
+    h2 {
+      font-size: 22px; font-weight: 700; color: var(--text-heading); margin: 56px 0 8px; padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent); display: inline-block;
+    }
+    h2 + .section-lead { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+    h3 { font-size: 17px; font-weight: 700; color: var(--text-heading); margin: 28px 0 10px; }
+
+    p { margin-bottom: 14px; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 20px 22px; margin-bottom: 16px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+    @media (max-width: 640px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ===== CODE ===== */
+    pre {
+      background: var(--bg-code); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px; padding: 18px 20px; overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+      margin: 12px 0 18px; color: var(--text-primary);
+    }
+    code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+    p code, li code {
+      background: rgba(188,140,255,0.10); padding: 2px 6px; border-radius: 4px; color: var(--accent);
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrap { overflow-x: auto; margin: 12px 0 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: rgba(188,140,255,0.08); }
+    th { padding: 10px 14px; text-align: left; font-weight: 700; color: var(--text-heading); white-space: nowrap; }
+    td { padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.04); }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .badge-orange { background: rgba(249,115,22,0.15); color: var(--accent-orange); }
+    .badge-blue  { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
+    .badge-green { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+    .badge-red   { background: rgba(248,81,73,0.15); color: var(--accent-red); }
+    .badge-purple { background: rgba(188,140,255,0.15); color: var(--accent); }
+
+    /* ===== LIST ===== */
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; font-size: 14px; }
+    li::marker { color: var(--accent); }
+
+    /* ===== CALLOUT ===== */
+    .callout {
+      background: var(--accent-dim); border-left: 3px solid var(--accent);
+      border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 14px;
+    }
+    .callout-warn {
+      background: rgba(249,115,22,0.08); border-left-color: var(--accent-orange);
+    }
+    .callout strong { color: var(--text-heading); }
+
+    /* ===== WORKFLOW ===== */
+    .workflow-card {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 18px 20px; margin-bottom: 12px;
+    }
+    .workflow-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 10px; font-weight: 700; font-size: 15px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff; flex-shrink: 0;
+    }
+    .workflow-body { flex: 1; }
+    .workflow-body strong { color: var(--text-heading); font-size: 15px; }
+    .workflow-body p { font-size: 14px; color: var(--text-muted); margin: 4px 0 0; }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200;
+      width: 44px; height: 44px; border-radius: 12px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff;
+      font-size: 20px; display: none; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(188,140,255,0.3); transition: transform 0.2s, opacity 0.2s;
+    }
+    .back-to-top:hover { transform: translateY(-2px); }
+    .back-to-top.visible { display: flex; }
+
+    /* ===== FOOTER ===== */
+    footer { margin-top: 64px; padding: 32px 0; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; }
+    footer p { font-size: 13px; color: var(--text-muted); }
+    footer a { color: var(--accent); }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <a href="ai_coding_agents_guide.html" class="topbar-brand">&larr; AIエージェント構築ガイド</a>
+    <div class="topbar-nav">
+      <a href="#why">Why</a>
+      <a href="#install">導入</a>
+      <a href="#structure">構造</a>
+      <a href="#tools">ツール対応</a>
+      <a href="#daily">運用</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-badge">CROSS-TOOL GUIDE</div>
+    <h1><span>AIナレッジ管理</span>ガイド</h1>
+    <p class="hero-sub">minimal-second-brain を使って、Claude Code・Codex・GitHub Copilot・Google Antigravity — 全ツールのナレッジを一元管理する構築・運用ガイド</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ===== 1. WHY ===== -->
+  <h2 id="why">なぜAIナレッジ管理が必要か</h2>
+  <p class="section-lead">4つのAIツールを使い分けるだけでは足りない。知識を「蓄積・検索・再利用」する仕組みが生産性の鍵。</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">問題: ナレッジの散逸</div>
+      <ul>
+        <li>AIとの会話は使い捨て — 翌日には見つからない</li>
+        <li>ツールごとに設定ファイルが違い管理が分断</li>
+        <li>「前に調べたはず」の再調査で時間を浪費</li>
+        <li>チーム共有が困難（Slackに流れて消える）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">解決: Second Brain パターン</div>
+      <ul>
+        <li>3フォルダ構成で迷わず整理（Inbox / Projects / Knowledge）</li>
+        <li>Markdown = 全ツール共通フォーマット</li>
+        <li>Git管理で履歴・チーム共有が自然</li>
+        <li><code>AGENTS.md</code> で全AIツールが同じ知識を参照</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 2. PREREQUISITES ===== -->
+  <h2 id="prereq">前提条件</h2>
+  <p class="section-lead">必要なツールを確認。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ツール</th><th>バージョン</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td>Git</td><td>2.30+</td><td>バージョン管理・チーム共有</td></tr>
+        <tr><td>Obsidian</td><td>1.5+</td><td>ナレッジ閲覧・編集・グラフビュー</td></tr>
+        <tr><td>Node.js</td><td>18+</td><td>Obsidian プラグイン（任意）</td></tr>
+        <tr><td>AIツール</td><td>いずれか1つ以上</td><td>Claude Code / Codex / Copilot / Antigravity</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Obsidian は必須ではありません。</strong> minimal-second-brain は純粋なMarkdownフォルダなので、VS Code や任意のエディタでも運用可能です。Obsidian を使うとグラフビュー・バックリンク・テンプレートなどが便利になります。
+  </div>
+
+  <!-- ===== 3. INSTALL ===== -->
+  <h2 id="install">インストール</h2>
+  <p class="section-lead">3ステップで完了。</p>
+
+  <div class="workflow-card">
+    <div class="workflow-num">1</div>
+    <div class="workflow-body">
+      <strong>リポジトリをクローン</strong>
+      <p>テンプレートをローカルにコピー</p>
+    </div>
+  </div>
+  <pre>git clone https://github.com/breferrari/minimal-second-brain.git my-brain
+cd my-brain</pre>
+
+  <div class="workflow-card">
+    <div class="workflow-num">2</div>
+    <div class="workflow-body">
+      <strong>フォルダ構成を確認</strong>
+      <p>3つのフォルダ + 設定ファイルが生成される</p>
+    </div>
+  </div>
+  <pre>my-brain/
+├── Inbox/          # 未整理のメモ・AIとの会話ログ
+├── Projects/       # プロジェクト単位の作業メモ
+├── Knowledge/      # 整理済みナレッジベース
+├── AGENTS.md       # AIツール共通指示ファイル
+├── MANIFEST.md     # Vault構造の自動更新マップ
+└── .obsidian/      # Obsidian設定（任意）</pre>
+
+  <div class="workflow-card">
+    <div class="workflow-num">3</div>
+    <div class="workflow-body">
+      <strong>Obsidianで開く（任意）</strong>
+      <p>「Open folder as vault」で <code>my-brain/</code> を選択</p>
+    </div>
+  </div>
+
+  <!-- ===== 4. STRUCTURE ===== -->
+  <h2 id="structure">3フォルダ構造</h2>
+  <p class="section-lead">CODE (Collect → Organize → Distill → Express) メソッドに基づく設計。</p>
+
+  <div class="grid-3">
+    <div class="card" style="border-top: 3px solid var(--accent-green);">
+      <div class="card-title" style="color: var(--accent-green);">Inbox/</div>
+      <p style="font-size:13px; color: var(--text-muted);">とにかく放り込む。整理は後回し。</p>
+      <ul>
+        <li>AIとの会話の要点</li>
+        <li>Webクリップ・メモ</li>
+        <li>思いつき・アイデア</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent-blue);">
+      <div class="card-title" style="color: var(--accent-blue);">Projects/</div>
+      <p style="font-size:13px; color: var(--text-muted);">アクティブな作業単位で整理。</p>
+      <ul>
+        <li>プロジェクトごとのフォルダ</li>
+        <li>TODO・進捗メモ</li>
+        <li>設計ドキュメント</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent);">
+      <div class="card-title" style="color: var(--accent);">Knowledge/</div>
+      <p style="font-size:13px; color: var(--text-muted);">再利用可能な知識を蓄積。</p>
+      <ul>
+        <li>技術TIL（Today I Learned）</li>
+        <li>ベストプラクティス集</li>
+        <li>コマンドチートシート</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>フォルダ運用ルール</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ルール</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>Inbox は空にする</td><td>週1回、Projects か Knowledge に振り分ける</td></tr>
+        <tr><td>Projects は完了したら移動</td><td>完了 → Knowledge に転記 or アーカイブ</td></tr>
+        <tr><td>Knowledge はタグで分類</td><td><code>#python</code> <code>#devops</code> <code>#architecture</code> など</td></tr>
+        <tr><td>ファイル名は検索しやすく</td><td><code>YYYY-MM-DD_topic.md</code> 推奨</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 5. TOOL MATRIX ===== -->
+  <h2 id="tools">4ツール対応マトリクス</h2>
+  <p class="section-lead">各AIツールがどのファイルを参照するか。AGENTS.md が全ツール共通のブリッジになる。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ファイル / 仕組み</th>
+          <th><span class="badge badge-orange">Claude Code</span></th>
+          <th><span class="badge badge-green">Codex</span></th>
+          <th><span class="badge badge-blue">Copilot</span></th>
+          <th><span class="badge badge-red">Antigravity</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>AGENTS.md</code></td>
+          <td>CLAUDE.md から参照</td>
+          <td>AGENTS.md 直接読み込み</td>
+          <td>.github/copilot-instructions.md から参照</td>
+          <td>GEMINI.md から参照</td>
+        </tr>
+        <tr>
+          <td><code>MANIFEST.md</code></td>
+          <td>自動読み込み</td>
+          <td>自動読み込み</td>
+          <td>プロンプトで指定</td>
+          <td>自動読み込み</td>
+        </tr>
+        <tr>
+          <td>Inbox/ 参照</td>
+          <td>Read ツールで直接</td>
+          <td>Read ツールで直接</td>
+          <td>#file 指定</td>
+          <td>Read ツールで直接</td>
+        </tr>
+        <tr>
+          <td>Knowledge/ 検索</td>
+          <td>Grep / Glob</td>
+          <td>Grep / Glob</td>
+          <td>@workspace 検索</td>
+          <td>Grep / Glob</td>
+        </tr>
+        <tr>
+          <td>ツール固有設定</td>
+          <td>CLAUDE.md</td>
+          <td>AGENTS.md</td>
+          <td>.github/copilot-instructions.md</td>
+          <td>GEMINI.md</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>ポイント:</strong> <code>AGENTS.md</code> はOpenAI Codex が提唱した規約ですが、Claude Code は <code>CLAUDE.md</code>、Antigravity は <code>GEMINI.md</code> からインクルードする形で互換運用できます。minimal-second-brain のテンプレートにはこの橋渡しが組み込まれています。
+  </div>
+
+  <!-- ===== 6. AGENTS.MD ===== -->
+  <h2 id="agents">AGENTS.md テンプレート</h2>
+  <p class="section-lead">全ツールが読む共通指示ファイルの書き方。</p>
+
+  <pre># AGENTS.md
+
+## Project Context
+このVaultはAI開発ナレッジベースです。
+- Inbox/: 未整理メモ。整理を手伝ってください。
+- Projects/: アクティブプロジェクト。
+- Knowledge/: 確定済みナレッジ。
+
+## Rules
+1. 新しい知見は Inbox/ にファイルを作成してください。
+2. ファイル名は `YYYY-MM-DD_topic.md` 形式。
+3. Knowledge/ のファイルを変更する前に確認してください。
+4. MANIFEST.md を更新してください（追加・移動時）。
+
+## Style
+- 日本語で記述。技術用語は英語のまま。
+- 見出しは ## から開始（# はタイトルのみ）。
+- コードブロックには言語指定をつける。</pre>
+
+  <h3>ツール別ブリッジ設定</h3>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title" style="color: var(--accent-orange);">CLAUDE.md（Claude Code）</div>
+      <pre style="margin:8px 0 0; font-size:12px;">## Knowledge Base
+See AGENTS.md for shared rules.
+Vault location: ./my-brain/</pre>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--accent-red);">GEMINI.md（Antigravity）</div>
+      <pre style="margin:8px 0 0; font-size:12px;">## Knowledge Base
+See AGENTS.md for shared rules.
+Vault location: ./my-brain/</pre>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--accent-blue);">copilot-instructions.md</div>
+      <pre style="margin:8px 0 0; font-size:12px;">## Knowledge Base
+Refer to AGENTS.md in project root.
+Use @workspace to search Knowledge/.</pre>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color: var(--accent-green);">Codex</div>
+      <pre style="margin:8px 0 0; font-size:12px;">AGENTS.md を直接読み込むため、
+追加設定は不要です。</pre>
+    </div>
+  </div>
+
+  <!-- ===== 7. MANIFEST.MD ===== -->
+  <h2 id="manifest">MANIFEST.md 自動更新</h2>
+  <p class="section-lead">Vaultの構造マップ。AIツールがフォルダ全体を把握するために使う。</p>
+
+  <pre># MANIFEST.md (自動生成)
+
+## Inbox (3 files)
+- 2026-04-01_react-server-actions.md
+- 2026-04-03_gemini-api-changes.md
+- 2026-04-05_copilot-cloud-agent.md
+
+## Projects (2 folders)
+- ai-news-site/ (5 files)
+- mobile-app/ (3 files)
+
+## Knowledge (4 files)
+- git-workflow-best-practices.md
+- python-async-patterns.md
+- docker-compose-cheatsheet.md
+- prompt-engineering-tips.md
+
+Last updated: 2026-04-06T10:00:00Z</pre>
+
+  <div class="callout">
+    <strong>更新方法:</strong> MANIFEST.md はAIツールにファイル追加・移動時に更新を依頼するか、以下のスクリプトで自動生成できます。
+  </div>
+
+  <pre># MANIFEST.md 自動生成スクリプト (Bash)
+#!/bin/bash
+echo "# MANIFEST.md" > MANIFEST.md
+echo "" >> MANIFEST.md
+for dir in Inbox Projects Knowledge; do
+  count=$(find "$dir" -name "*.md" 2>/dev/null | wc -l)
+  echo "## $dir ($count files)" >> MANIFEST.md
+  find "$dir" -name "*.md" -printf "- %P\n" 2>/dev/null | sort >> MANIFEST.md
+  echo "" >> MANIFEST.md
+done
+echo "Last updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> MANIFEST.md</pre>
+
+  <!-- ===== 8. DAILY USAGE ===== -->
+  <h2 id="daily">日常ワークフロー</h2>
+  <p class="section-lead">毎日5分のルーティンでナレッジが蓄積される。</p>
+
+  <div class="workflow-card">
+    <div class="workflow-num">1</div>
+    <div class="workflow-body">
+      <strong>Capture（キャプチャ）</strong>
+      <p>AIとの会話で得た知見を Inbox/ にメモ。AIに「要点をInboxに保存して」と依頼するだけ。</p>
+    </div>
+  </div>
+
+  <div class="workflow-card">
+    <div class="workflow-num">2</div>
+    <div class="workflow-body">
+      <strong>Organize（整理）— 週1回</strong>
+      <p>Inbox/ のファイルを Projects/ か Knowledge/ に移動。AIに「Inboxを整理して」と依頼可能。</p>
+    </div>
+  </div>
+
+  <div class="workflow-card">
+    <div class="workflow-num">3</div>
+    <div class="workflow-body">
+      <strong>Distill（蒸留）</strong>
+      <p>Knowledge/ のメモを洗練。重複を統合、古い情報を更新。</p>
+    </div>
+  </div>
+
+  <div class="workflow-card">
+    <div class="workflow-num">4</div>
+    <div class="workflow-body">
+      <strong>Express（活用）</strong>
+      <p>Knowledge/ の知見を実務に適用。AIに「Knowledge/からベストプラクティスを探して」と検索依頼。</p>
+    </div>
+  </div>
+
+  <h3>実践例: バグ修正で得た知見の保存</h3>
+  <pre># Claude Code での例
+You: このバグの原因と対策をInbox/に保存して
+
+# Claude Code が以下のファイルを作成:
+# Inbox/2026-04-06_react-hydration-mismatch.md
+---
+tags: [react, debugging, hydration]
+---
+# React Hydration Mismatch の原因と対策
+## 原因
+- サーバー側とクライアント側で異なるデータを参照していた
+## 対策
+- useEffect 内でクライアント固有の処理を行う
+- suppressHydrationWarning は最終手段</pre>
+
+  <!-- ===== 9. AGENTFILES PLUGIN ===== -->
+  <h2 id="agentfiles">Agentfiles プラグイン（推奨）</h2>
+  <p class="section-lead">Obsidian + AI ツールの連携をさらに強化。</p>
+
+  <div class="card">
+    <div class="card-title">obsidian-mind (breferrari/obsidian-mind)</div>
+    <p style="font-size:14px; color: var(--text-muted);">Obsidian Vault を AI エージェントのナレッジベースとして最適化するコミュニティプラグイン。</p>
+    <ul>
+      <li><strong>MANIFEST.md 自動更新</strong> — ファイル追加・移動時に自動で構造マップを再生成</li>
+      <li><strong>AGENTS.md テンプレート</strong> — ベストプラクティスに基づいた指示ファイルを自動生成</li>
+      <li><strong>Vault Health Check</strong> — 孤立ファイル・タグ未設定ファイルの検出</li>
+      <li><strong>エクスポート機能</strong> — Knowledge/ をプロジェクトにシンボリックリンクまたはコピー</li>
+    </ul>
+  </div>
+
+  <h3>インストール方法</h3>
+  <ol>
+    <li>Obsidian → Settings → Community plugins → Browse</li>
+    <li>「obsidian-mind」で検索してインストール</li>
+    <li>Enable して Vault ルートを指定</li>
+  </ol>
+
+  <div class="callout-warn callout">
+    <strong>注意:</strong> obsidian-mind はコミュニティプラグインのため、Obsidian の「制限モード」を解除する必要があります。プラグインのソースコードは GitHub で公開されています。
+  </div>
+
+  <!-- ===== 10. WORKFLOWS ===== -->
+  <h2 id="workflows">ワークフロー例</h2>
+  <p class="section-lead">ツール横断での具体的な活用パターン。</p>
+
+  <h3>パターン1: 新技術の調査 → ナレッジ化</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ステップ</th><th>ツール</th><th>操作</th></tr></thead>
+      <tbody>
+        <tr><td>1. 調査</td><td><span class="badge badge-red">Antigravity</span></td><td>並列エージェントで公式ドキュメント・GitHub・ブログを同時調査</td></tr>
+        <tr><td>2. 要約保存</td><td><span class="badge badge-red">Antigravity</span></td><td>「調査結果を Inbox/ に保存して」で自動メモ作成</td></tr>
+        <tr><td>3. 整理</td><td><span class="badge badge-orange">Claude Code</span></td><td>「Inbox/ の調査メモを Knowledge/ に整理して」</td></tr>
+        <tr><td>4. 実装</td><td><span class="badge badge-blue">Copilot</span></td><td>Knowledge/ のメモを参照しながら @workspace でコード生成</td></tr>
+        <tr><td>5. レビュー</td><td><span class="badge badge-green">Codex</span></td><td>AGENTS.md + Knowledge/ を参照した自動コードレビュー</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>パターン2: チーム内ナレッジ共有</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ステップ</th><th>操作</th></tr></thead>
+      <tbody>
+        <tr><td>1. Vault を Git リポジトリとして共有</td><td><code>git remote add origin ...</code></td></tr>
+        <tr><td>2. チームメンバーがクローン</td><td><code>git clone ... my-brain</code></td></tr>
+        <tr><td>3. 各自のAIツールが AGENTS.md を参照</td><td>共通ルールで統一された出力品質</td></tr>
+        <tr><td>4. 知見をプルリクエストで共有</td><td>Knowledge/ への追加をレビュー</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>パターン3: プロジェクト引き継ぎ</h3>
+  <div class="card">
+    <div class="card-title">引き継ぎを5分で完了</div>
+    <p style="font-size:14px;">Projects/ フォルダにプロジェクトの経緯・設計判断・既知の問題をまとめておけば、新しいメンバーはAIに「このプロジェクトの概要を教えて」と聞くだけで、AGENTS.md + MANIFEST.md 経由で全体像を把握できます。</p>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p style="margin-bottom: 8px;"><a href="ai_coding_agents_guide.html">&larr; AIエージェント構築ガイド トップに戻る</a></p>
+    <p>関連: <a href="claude-code-guide/index.html">Claude Code</a> &middot; <a href="codex-guide/index.html">Codex</a> &middot; <a href="copilot-guide/index.html">Copilot</a> &middot; <a href="antigravity-guide/index.html">Antigravity</a></p>
+    <p style="margin-top: 12px;">最終更新: 2026年4月6日 &middot; <a href="https://github.com/breferrari/minimal-second-brain" target="_blank" rel="noopener">minimal-second-brain GitHub</a></p>
+  </div>
+</footer>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップに戻る">&uarr;</button>
+<script>
+  const btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  });
+</script>
+
+</body>
+</html>
