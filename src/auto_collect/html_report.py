@@ -299,8 +299,16 @@ def _esc(text: str) -> str:
     return (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
+ARCHIVE_DIR = PROJECT_ROOT / "presentations" / "daily_reports"
+
+
 def generate_html_report(txt_path: Path = None):
-    """Main entry: parse txt and generate HTML."""
+    """Main entry: parse txt and generate HTML.
+
+    Saves to both:
+      - presentations/auto_daily_report.html (latest, always overwritten)
+      - presentations/daily_reports/auto_daily_report_YYYY_MM_DD.html (archive)
+    """
     if txt_path is None:
         mmdd = date.today().strftime("%m%d")
         txt_path = INPUT_DAY_DIR / f"{mmdd}.txt"
@@ -313,8 +321,18 @@ def generate_html_report(txt_path: Path = None):
     data = parse_daily_txt(txt_path)
     html = generate_html(data)
 
+    # Save latest
     OUTPUT_PATH.write_text(html, encoding="utf-8")
     logger.info(f"[HTML] Report saved: {OUTPUT_PATH}")
+
+    # Save dated archive
+    report_date = data.get("date") or date.today().isoformat()
+    archive_filename = f"auto_daily_report_{report_date.replace('-', '_')}.html"
+    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    archive_path = ARCHIVE_DIR / archive_filename
+    archive_path.write_text(html, encoding="utf-8")
+    logger.info(f"[HTML] Archive saved: {archive_path}")
+
     return OUTPUT_PATH
 
 

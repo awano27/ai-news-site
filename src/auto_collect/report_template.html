@@ -608,35 +608,50 @@ body {
     });
   }
 
-  // Day navigation — check prev/next report existence
+  // Day navigation — link to archived reports
   var titleMatch = document.title.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (titleMatch) {
     var current = new Date(titleMatch[1], titleMatch[2] - 1, titleMatch[3]);
     var dayNav = document.getElementById('day-nav');
+    var BASE_ARCHIVE = '/ai-news-site/presentations/daily_reports/';
     function fmtNav(d) {
       return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
-    // For now, show prev/next links (they'll 404 if no report exists for that day)
-    var prev = new Date(current); prev.setDate(prev.getDate() - 1);
-    var next = new Date(current); next.setDate(next.getDate() + 1);
-    var today = new Date(); today.setHours(0,0,0,0);
+    function archiveUrl(d) {
+      return BASE_ARCHIVE + 'auto_daily_report_' + fmtNav(d).replace(/-/g, '_') + '.html';
+    }
+
     if (dayNav) {
-      var prevLink = document.createElement('a');
-      prevLink.href = '/ai-news-site/presentations/auto_daily_report_' + fmtNav(prev).replace(/-/g,'_') + '.html';
-      prevLink.textContent = '← ' + fmtNav(prev);
-      // Check if prev exists by trying to find the common report URL pattern
-      // Fallback: just link to the main report which always shows latest
-      prevLink.href = '/ai-news-site/presentations/auto_daily_report.html';
-      prevLink.textContent = '← 最新レポート';
+      // Find previous report (check up to 7 days back)
+      var checks = [];
+      for (var i = 1; i <= 7; i++) {
+        var prev = new Date(current); prev.setDate(prev.getDate() - i);
+        checks.push({ date: prev, url: archiveUrl(prev) });
+      }
+      Promise.all(checks.map(function(c) {
+        return fetch(c.url, { method: 'HEAD' })
+          .then(function(r) { return r.ok ? c : null; })
+          .catch(function() { return null; });
+      })).then(function(results) {
+        var found = results.find(function(r) { return r !== null; });
 
-      var nextInfo = document.createElement('span');
-      nextInfo.style.cssText = 'font-family:var(--mono);font-size:.75rem;color:var(--t3)';
-      nextInfo.textContent = fmtNav(current);
+        // Previous link
+        if (found) {
+          var prevLink = document.createElement('a');
+          prevLink.href = found.url;
+          prevLink.textContent = '← ' + fmtNav(found.date);
+          dayNav.insertBefore(prevLink, dayNav.firstChild);
+        }
+      });
 
-      dayNav.appendChild(prevLink);
-      dayNav.appendChild(nextInfo);
+      // Current date label
+      var dateLabel = document.createElement('span');
+      dateLabel.style.cssText = 'font-family:var(--mono);font-size:.78rem;color:var(--t2);padding:8px 0';
+      dateLabel.textContent = fmtNav(current);
+      dayNav.appendChild(dateLabel);
 
-      // If not today, add link to latest
+      // Next / latest link
+      var today = new Date(); today.setHours(0,0,0,0);
       if (current < today) {
         var latestLink = document.createElement('a');
         latestLink.href = '/ai-news-site/presentations/auto_daily_report.html';
