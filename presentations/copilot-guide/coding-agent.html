@@ -1032,6 +1032,11 @@ description: コード変更に合わせてドキュメントを自動更新す�
             <td>1回のセッションで変更可能なファイル数に実質的な上限あり</td>
             <td>タスクを小さく分割してIssueを複数作成</td>
           </tr>
+          <tr>
+            <td><strong>GitHub専用</strong></td>
+            <td>Azure DevOps・GitLab・Bitbucket等では動作しない。GitHub.comまたはGitHub Enterprise Cloudのみ対応</td>
+            <td>Agent Mode（VS Code内）やCopilot CLIはリポジトリホスト先に依存せず利用可能</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -1039,6 +1044,23 @@ description: コード変更に合わせてドキュメントを自動更新す�
     <div class="callout callout-warning">
       <div class="callout-title">&#x26A0;&#xFE0F; Warning</div>
       <p>Coding AgentはドラフトPRのみを作成します。自動マージは行われません。必ず人間のレビューを経てからマージしてください。また、セキュリティに関わる変更（認証、暗号化、アクセス制御）は人間主導で実装することを強く推奨します。</p>
+    </div>
+
+    <div class="callout" style="border-left-color: var(--accent-blue);">
+      <div class="callout-title">&#x1F4A1; Azure DevOps環境でCoding Agentが使えない理由</div>
+      <p>Azure DevOpsにもPull Request・Pipelinesの機能がありますが、Coding Agentは以下の4つの要素がすべて<strong>GitHub専用に実装</strong>されているため動作しません:</p>
+      <ul style="margin: 12px 0; padding-left: 20px; line-height: 2;">
+        <li><strong>Webhook起動</strong> &mdash; GitHubのIssue Webhookイベントで自律エージェントVMを起動。Azure DevOpsのService Hooksとはプロトコルが異なる</li>
+        <li><strong>API直結</strong> &mdash; ブランチ作成・コミット・PR作成・レビューコメント取得をGitHub REST/GraphQL APIで実行。Azure DevOps REST APIとはエンドポイント・スキーマが全く異なる</li>
+        <li><strong>CI連携</strong> &mdash; PR作成後のテスト実行をGitHub Actionsのステータスチェックで確認。Azure Pipelinesのステータス通知とは統合されていない</li>
+        <li><strong>認証基盤</strong> &mdash; GitHub Appとしてリポジトリにインストールされ、GitHub OAuth/App tokenで認証。Azure DevOpsはEntra ID + PATベースで認証体系が異なる</li>
+      </ul>
+      <p style="margin-top: 12px;"><strong>Azure DevOps環境での代替手段:</strong></p>
+      <ul style="margin: 8px 0; padding-left: 20px; line-height: 2;">
+        <li><strong>Copilot Agent Mode（VS Code内）</strong> &mdash; ローカル実行のためリポジトリのホスト先に依存しない</li>
+        <li><strong>Copilot CLI</strong> &mdash; ターミナルベースでgitリモートがAzure DevOpsでも動作</li>
+        <li><strong>Claude Code / Codex</strong> &mdash; <code>az repos</code> コマンドと組み合わせてPR作成を自動化可能</li>
+      </ul>
     </div>
 
     <!-- ===== Section: ブランチ保護 ===== -->

@@ -609,6 +609,10 @@
       .tool-cards-grid {
         grid-template-columns: 1fr;
       }
+
+      .diff-section [style*="grid-template-columns:repeat(2"] {
+        grid-template-columns: 1fr !important;
+      }
     }
 
     @media (max-width: 767px) {
@@ -689,7 +693,7 @@
           <h1 class="hero-title">AIエージェント構築ガイド</h1>
           <p class="hero-subtitle">Claude Code・Codex・GitHub Copilot・Google Antigravity 完全構築マニュアル</p>
           <p class="hero-description">4大AIコーディングエージェントの設定・構築・運用を完全ガイド。初心者から中級者まで、各ツールの特徴を理解し、最適な開発環境を構築できます。</p>
-          <p class="hero-meta">最終更新: 2026年4月2日</p>
+          <p class="hero-meta">最終更新: 2026年4月12日</p>
         </div>
       </div>
     </section>
@@ -763,9 +767,290 @@
                 <td>$10-39/月</td>
                 <td>無料〜$249.99/月</td>
               </tr>
+              <tr>
+                <td>AIモデル</td>
+                <td>Claude Opus 4.6 / Sonnet 4.6（Anthropic専用）</td>
+                <td>o3-pro / o4-mini / codex-1（OpenAI専用）</td>
+                <td>Claude / GPT / Gemini（マルチモデル選択可）</td>
+                <td>Gemini 3.1 Pro / Claude Opus / GPT-OSS（マルチモデル）</td>
+              </tr>
+              <tr>
+                <td>実行環境</td>
+                <td>ローカルマシン上で直接実行。ファイルシステムに完全アクセス</td>
+                <td>ローカル or クラウドサンドボックス。ネットワーク隔離</td>
+                <td>IDE内 / GitHub Cloud VM / ターミナル。3環境を横断</td>
+                <td>専用IDE内蔵。Editor View + Agent Managerの2画面構成</td>
+              </tr>
+              <tr>
+                <td>サンドボックス</td>
+                <td>なし（ユーザー承認制で安全性を確保）</td>
+                <td>OS別ネイティブ実装（macOS: Seatbelt、Linux: Landlock）</td>
+                <td>Cloud Agent用GitHub VM。IDE内はローカル実行</td>
+                <td>Docker/Firecracker VM。セキュアコンテナ内で実行</td>
+              </tr>
+              <tr>
+                <td>並列実行</td>
+                <td>git worktreeで手動分離。Agent SDK経由でサブエージェント</td>
+                <td>git worktreeベース並列。Cloud Tasksで自動分散</td>
+                <td>Agent HQで複数エージェント一元管理。Coding Agent並列</td>
+                <td>Agent Managerで最大5並列。GUI上でリアルタイム監視</td>
+              </tr>
+              <tr>
+                <td>拡張システム</td>
+                <td>Hooks + Skills + MCP + Plugins（59個以上）</td>
+                <td>Skills + Automations + MCP</td>
+                <td>VS Code拡張 + MCP + カスタムエージェント</td>
+                <td>Agent Skills + MCP + Extensions</td>
+              </tr>
+              <tr>
+                <td>コンテキスト窓</td>
+                <td>最大1Mトークン（Opus 4.6）。自動圧縮あり</td>
+                <td>最大192Kトークン。セッション間で自動引継ぎ</td>
+                <td>モデル依存（Claude選択時200K、GPT選択時128K）</td>
+                <td>最大2Mトークン（Gemini 3.1 Pro）。大規模コードベース対応</td>
+              </tr>
+              <tr>
+                <td>自律性レベル</td>
+                <td>3段階: allowlist / ask毎回承認 / yolo全自動</td>
+                <td>3段階: suggest / auto-edit / full-auto</td>
+                <td>IDE: 手動承認 / Coding Agent: 完全自律（PR作成まで）</td>
+                <td>3段階: Assisted / Review / Autopilot</td>
+              </tr>
+              <tr>
+                <td>Git統合</td>
+                <td>直接gitコマンド実行。コミット・PR作成支援</td>
+                <td>Worktree自動管理。ブランチ切り替え・マージ自動化</td>
+                <td>GitHub完全統合。Issue→PR→Review→Mergeの全自動化</td>
+                <td>Git基本操作。ブランチ作成・コミット・プッシュ</td>
+              </tr>
+              <tr>
+                <td>IDE対応</td>
+                <td>VS Code拡張 / JetBrains拡張 / ターミナル / デスクトップApp / Web</td>
+                <td>VS Code拡張 / ターミナル / デスクトップApp</td>
+                <td>VS Code / JetBrains / Xcode / Eclipse / ターミナル / Web</td>
+                <td>専用IDE（VS Code fork）のみ</td>
+              </tr>
+              <tr>
+                <td>学習曲線</td>
+                <td>中程度 — CLI慣れが必要だが直感的</td>
+                <td>低め — GUIアプリで視覚的に操作可能</td>
+                <td>低い — 既存IDE内で段階的に機能拡張</td>
+                <td>低い — 専用IDEが全機能を統合提供</td>
+              </tr>
+              <tr>
+                <td>オフライン</td>
+                <td>不可（API接続必須）</td>
+                <td>不可（API接続必須）</td>
+                <td>インライン補完のみローカルモデルで一部可能</td>
+                <td>不可（クラウド接続必須）</td>
+              </tr>
             </tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== DETAILED DIFFERENTIATION ===== -->
+    <section class="section diff-section" style="border-top: 1px solid rgba(255,255,255,0.06);">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-purple);">DEEP DIVE</p>
+        <h2 class="section-title">ツール別 差別化ポイント詳細</h2>
+        <p class="section-subtitle">各ツールが「他にはない」決定的な違い</p>
+
+        <!-- Claude Code vs Others -->
+        <div style="margin-bottom:48px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-orange), #ea580c);">C</div>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Claude Code の独自優位性</h3>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+            <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F9E0; 深い推論力（Think Mode）</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Claude Opus 4.6の推論能力により、大規模リファクタリングや複雑なバグ修正で他ツールを凌駕。「考える過程」を可視化するThink Modeで、なぜその変更が必要かを段階的に説明。Codexのcodex-1モデルは速度重視、CopilotはモデルがGPTベースのため推論深度に限界あり。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1FA9D; Hooks — 唯一の自動介入システム</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">PreToolUse / PostToolUse / Stop の3フックポイントでエージェントの行動をプログラム的に制御。「git push前に必ずテスト実行」「ファイル書込み前にlint」等をシェルスクリプトで定義可能。Codex/Copilot/Antigravityにはこのレベルの行動制御機構が存在しない。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F4E6; プラグインエコシステム（59+）</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">公式・コミュニティ合わせて59以上のプラグインが利用可能。Skills・Agents・Hooks・Commandsを1パッケージで配布。Codexはスキル定義のみ、Copilotは VS Code拡張依存、Antigravityは Agent Skillsのみ。Claude Codeだけが「プラグイン」という統合パッケージ形式を持つ。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F310; 最多プラットフォーム対応</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">ターミナルCLI・VS Code・JetBrains・デスクトップApp・Web（claude.ai/code）の5形態。Codexは3形態（CLI/App/VS Code）、Copilotは多IDE対応だがCLIは別ツール、Antigravityは専用IDEのみ。開発者の好みの環境を選べる自由度が最も高い。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Codex vs Others -->
+        <div style="margin-bottom:48px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-green), #16a34a);">X</div>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Codex の独自優位性</h3>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+            <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F6E1;&#xFE0F; ネイティブサンドボックス</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">OS別に最適化されたサンドボックス（macOS: Seatbelt、Linux: Landlock + seccomp）を搭載。ネットワークアクセスを完全遮断した状態でコード実行が可能。Claude Codeはサンドボックスなし（承認制）、Copilotはクラウドのみ、Antigravityはコンテナ依存。プロダクション環境の安全性で最も優位。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F5A5;&#xFE0F; デスクトップApp — 非エンジニア向けGUI</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">ターミナル不要のGUIアプリで、プロジェクトマネージャーやデザイナーもコード変更を依頼可能。Claude Codeは基本CLI（デスクトップAppもあるが機能限定）、CopilotはIDE必須、Antigravityは専用IDE。「コードを書かない人」が使えるのはCodexが最も優れている。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x2601;&#xFE0F; Cloud Tasks — サーバーサイド並列</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">クラウド上で複数タスクを同時並列実行。ローカルマシンのリソースを消費せず、大規模リポジトリでの一括修正が可能。Claude Codeのworktreeは手動分離、Copilotの Coding Agentは逐次処理、AntigravityはGUI内5並列のみ。スケーラビリティで最も優位。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F4CB; TOML設定 — 宣言的で明確</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">設定ファイルがTOML形式で、承認ルール・モデル選択・サンドボックスポリシーを宣言的に記述。JSON（Claude Code/Copilot）やYAML（Antigravity）と比べてコメントが書きやすく、設定の意図が伝わりやすい。チーム開発での設定共有に最適。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- GitHub Copilot vs Others -->
+        <div style="margin-bottom:48px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-blue), #2563eb);">G</div>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">GitHub Copilot の独自優位性</h3>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+            <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F3DB; Agent HQ — マルチツール司令塔</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Claude Code・Codex・Copilot自身を含む複数エージェントを1つのダッシュボードで統合管理。タスクの割り振り・進捗監視・結果のマージを一元化。他3ツールにはこの「メタ管理」機能がない。異なるAIツールを併用する開発チームにとって唯一無二の価値。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F916; Coding Agent — Issue→PR完全自動</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">GitHubのIssueにラベルを付けるだけで、クラウドVM上でブランチ作成→コード変更→テスト→PR作成まで完全自動化。Claude Codeは手動トリガー、Codexは個別タスク、Antigravityはローカル限定。「人間が寝ている間にPRが上がっている」体験はCopilotだけ。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F500; マルチモデル自由選択</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">同一プロジェクト内でClaude・GPT・Geminiを自由に切り替え可能。タスクの性質に応じて最適なモデルを選べる。Claude CodeはClaude専用、CodexはOpenAI専用。Antigravityもマルチモデルだが、Copilotは最も早く・最も多くのモデルをサポートしてきた実績がある。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F30D; Copilot Spaces — ナレッジベース統合</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">コードリポジトリ + ドキュメント + Webページを1つの「Space」にまとめ、エージェントがプロジェクト全体の文脈を理解した上で回答。Claude Codeのメモリは会話ベース、Codexはセッション限定、AntigravityはGEMINI.md限定。組織のナレッジ活用で最も強力。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Antigravity vs Others -->
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-red), #dc2626);">A</div>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Google Antigravity の独自優位性</h3>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+            <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F4B0; 無料でClaude Opus利用可能</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Antigravityの無料プランでもClaude Opusが利用可能。通常Claude Codeで同モデルを使うとAPI課金が発生し、月数十ドル以上になるケースも。Copilotは月額$10〜、Codexも従量課金。「コスト」が障壁の開発者にとって最も参入しやすい選択肢。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F3AE; Agent Manager — GUI並列制御</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">最大5つのエージェントをGUI上でリアルタイム監視・操作。各エージェントの進捗バー・ログ・結果を一画面で確認可能。Claude Codeの並列はターミナル分割、Codexはバックグラウンド実行、CopilotのAgent HQはWeb別画面。「視覚的な並列管理」で最も直感的。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F4D0; 2Mトークン — 最大コンテキスト窓</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Gemini 3.1 Proの2Mトークンコンテキストは4ツール中最大。大規模モノレポやレガシーコードベース全体を一度に読み込める。Claude Codeは1M、Codexは192K、Copilotはモデル依存（最大200K）。巨大プロジェクトの全体把握で他を圧倒。</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F3A8; エージェント・ファーストIDE</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">VS Code forkだが、最初からAIエージェント運用を前提に設計。Editor View（コーディング）とAgent Manager View（タスク管理）が統合されたネイティブ体験。Claude Code/Codexはエディタ外ツール、CopilotはIDEの追加機能。「AIファースト」な開発体験で最もシームレス。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Use Case Matrix -->
+        <div style="margin-top:48px;">
+          <h3 style="font-size:18px; font-weight:700; color:var(--text-heading); margin-bottom:16px;">&#x1F3AF; ユースケース別おすすめツール</h3>
+          <div class="table-wrapper">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>ユースケース</th>
+                  <th class="col-claude" style="text-align:center;">Claude Code</th>
+                  <th class="col-codex" style="text-align:center;">Codex</th>
+                  <th class="col-copilot" style="text-align:center;">Copilot</th>
+                  <th class="col-antigravity" style="text-align:center;">Antigravity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>大規模リファクタリング</td>
+                  <td style="text-align:center; color:var(--accent-orange); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>Issue→PR自動化</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-blue); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;</td>
+                </tr>
+                <tr>
+                  <td>セキュアなコード実行</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-green); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>非エンジニアの利用</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-green); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>巨大コードベース分析</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-red); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>マルチツール併用管理</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-blue); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>カスタム自動化パイプライン</td>
+                  <td style="text-align:center; color:var(--accent-orange); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;</td>
+                </tr>
+                <tr>
+                  <td>コスト最小化</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center;">&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-red); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>複雑なバグ調査</td>
+                  <td style="text-align:center; color:var(--accent-orange); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                </tr>
+                <tr>
+                  <td>チーム導入のしやすさ</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                  <td style="text-align:center; color:var(--accent-blue); font-weight:700;">&#9733;&#9733;&#9733;</td>
+                  <td style="text-align:center;">&#9733;&#9733;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </section>
 
