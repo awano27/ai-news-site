@@ -171,7 +171,10 @@ def generate_html(data: Dict) -> str:
     models_html = "\n".join(_render_model_row(i, item) for i, item in enumerate(models, 1))
 
     funding_section = f'''<section class="sec" id="funding">
-    <div class="sec-h"><em>&#9650;</em> Market &amp; Funding</div>
+    <div class="sec-actions">
+      <div class="sec-h"><em>&#9650;</em> Market &amp; Funding</div>
+      <button class="expand-btn" data-target="funding">すべて開く</button>
+    </div>
     {funding_html}
   </section>''' if funding else ""
 
