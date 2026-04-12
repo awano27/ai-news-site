@@ -1251,6 +1251,202 @@ cd customer-acme-202603</code></div>
       <p>これらのテンプレートを <code>.github/skills/pm-toolkit/SKILL.md</code> として保存しておけば、Copilotが文脈に応じて自動ロードします。PMの日常業務を劇的に効率化。</p>
     </div>
 
+    <!-- ===== Section: AIPM完全自動化 ===== -->
+    <h2 id="aipm">AIPM &mdash; AI Project Management完全自動化</h2>
+
+    <p>PPT/Excel作成にとどまらず、<strong>要件定義 &rarr; 計画 &rarr; タスク分解 &rarr; 資料作成 &rarr; 進捗管理 &rarr; レビュー &rarr; Second Brain更新</strong>までを自然言語だけで回すAI PM環境を構築します。</p>
+
+    <h3>AIPM特化 おすすめMCPサーバー</h3>
+
+    <p>既存のMCPサーバー（context7・playwright・atlassian）と組み合わせることで、PM業務の全工程をカバーできます。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>カテゴリ</th>
+            <th>MCPサーバー</th>
+            <th>AIPM用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>プロジェクト管理</strong></td>
+            <td>kunwarVivek/mcp-github-project-manager</td>
+            <td>Issues/PR/Board自動更新、タスク分解、トレーサビリティ</td>
+          </tr>
+          <tr>
+            <td><strong>Office全般</strong></td>
+            <td>Microsoft 365 MCP（公式）</td>
+            <td>Word/Outlook/Teams/SharePoint/Planner &rarr; 報告書・議事録・メール自動生成</td>
+          </tr>
+          <tr>
+            <td><strong>構造化思考</strong></td>
+            <td>Task Master / Sequential Thinking MCP</td>
+            <td>ステップバイステップ計画、バックログ生成、リスク分析、RAIDログ</td>
+          </tr>
+          <tr>
+            <td><strong>ナレッジ連携</strong></td>
+            <td>Obsidian MCP（Vault直結版）</td>
+            <td>Second Brain直接更新、Zettelkasten自動化、PARA構造との連携</td>
+          </tr>
+          <tr>
+            <td><strong>デザイン/調査</strong></td>
+            <td>Figma MCP + Playwright（既存）</td>
+            <td>プロトタイプ生成 + Web調査自動化</td>
+          </tr>
+          <tr>
+            <td><strong>記憶/文脈</strong></td>
+            <td>Context7（既存） + Knowledge Graph MCP</td>
+            <td>長期記憶保持、プロジェクト全履歴参照</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; Tip: MCPサーバー追加は1行</div>
+      <p><code>.mcp.json</code> に1行追加 &rarr; <code>copilot mcp reload</code> で即反映。手作業ゼロで全部動きます。</p>
+    </div>
+
+    <h3>PM専用Skills &amp; Plugins</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>スキル/プラグイン</th>
+            <th>内容</th>
+            <th>導入方法</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>product-on-purpose/pm-skills</strong></td>
+            <td>32個のPMベストプラクティス &mdash; PRD、User Stories、Experiment Plan、Retrospective、RACI、Gantt（Mermaid）</td>
+            <td>GitHubからclone &rarr; <code>.github/skills/</code> に配置</td>
+          </tr>
+          <tr>
+            <td><strong>awesome-copilot PMスキルセット</strong></td>
+            <td>breakdown-plan / breakdown-epic-pm / status-report など</td>
+            <td>GitHubからclone &rarr; Skillsフォルダに配置</td>
+          </tr>
+          <tr>
+            <td><strong>Copilot-Cockpit</strong></td>
+            <td>計画 &rarr; 承認 &rarr; 実行 &rarr; レビューの段階的自律化</td>
+            <td>VS Code Extensionsからインストール</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>カスタムSkill推奨（プロジェクト固有）</h3>
+    <ul>
+      <li><strong>PRD生成スキル</strong> &mdash; プロジェクト固有のテンプレートで製品要件定義書を自動生成</li>
+      <li><strong>KPIダッシュボードスキル</strong> &mdash; Excel自動更新 + Mermaidグラフ + PPTエクスポート</li>
+      <li><strong>コンテンツ企画→公開フロースキル</strong> &mdash; 記事企画 &rarr; 下書き &rarr; レビュー &rarr; 公開の全工程自動化</li>
+    </ul>
+
+    <h3>AIPM実践ワークフロー</h3>
+
+    <p>Claude Code CLIとCopilot Agentのハイブリッドで、PM業務を1プロンプトで完了させます。</p>
+
+    <div class="code-label">ワークフロー例</div>
+    <div class="code-block"><code># Step 1: Claude Code CLIで要件をドラフト
+claude "AIPO2第2回試験のロードマップを要件定義レベルで整理して"
+
+# Step 2: Copilot Agent Mode起動（MCP/Skills全ロード）
+copilot --agent
+
+# Step 3: 1プロンプトでPM作業を一括実行
+「以下を順番に実行して:
+ 1. @deliverables/requirements.md を基にJiraにEpic+Storyを作成
+ 2. Obsidian vault（c:/develop/obsidian/2026/）にZettelkasten追加
+ 3. 週次進捗レポートをWord+PPTで作成（deliverables/に保存）
+ 4. Slackの#project-updateチャンネルにサマリーを投稿」</code></div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0;&#xFE0F; Warning: 段階的に検証</div>
+      <p>MCP経由でJira/Slack/Obsidianへ書き込む場合は、最初は<strong>読み取り専用</strong>で動作確認してから書き込み権限を追加してください。autoApproveは <code>low</code> から始め、意図しない操作がないことを確認してからレベルを上げることを推奨します。</p>
+    </div>
+
+    <h3>AIPM環境の全体像</h3>
+
+    <div class="code-label">完成版 .mcp.json（AIPM対応）</div>
+    <div class="code-block"><code>{
+  "servers": {
+    // --- 基盤MCP ---
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": { "X-MCP-Toolsets": "default,copilot_spaces" }
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+
+    // --- Office MCP ---
+    "excel": {
+      "command": "npx",
+      "args": ["-y", "excel-mcp-server"]
+    },
+    "ppt": {
+      "command": "PptMcp.McpServer",
+      "args": []
+    },
+
+    // --- AIPM特化MCP ---
+    "github-projects": {
+      "command": "npx",
+      "args": ["-y", "mcp-github-project-manager"],
+      "env": { "GITHUB_TOKEN": "${env:GITHUB_TOKEN}" }
+    },
+    "obsidian": {
+      "command": "npx",
+      "args": ["-y", "obsidian-mcp-server"],
+      "env": { "VAULT_PATH": "c:/develop/obsidian/2026" }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "sequential-thinking-mcp"]
+    }
+  }
+}</code></div>
+
+    <div class="code-label">AGENTS.md サンプル（AIPM対応）</div>
+    <div class="code-block"><code># AGENTS.md - AI PM Environment
+
+## Core Principles
+- MUST: タスクは4時間以内で完了可能な粒度に分解する
+- MUST: 全成果物にAcceptance Criteriaを付与する
+- MUST: 外部サービスへの書き込み前に必ず確認を求める
+- NEVER: 本番環境のデータを直接変更しない
+- NEVER: 機密情報（API Key等）をコミットしない
+
+## ツール連携
+- Jira/GitHub Issues: タスク管理の唯一の情報源
+- Obsidian: Second Brain（Zettelkasten + PARA構造）
+- Excel/PPT: 成果物はdeliverables/フォルダに出力
+
+## Lessons Learned
+* 2026/04/01: MCP書き込みは必ず読み取り→書き込みの順で検証
+* 2026/04/05: PRDは要件→ストーリー→Issueの3段階で分解すると精度向上
+
+## Skills
+- pm-toolkit: PRD/User Stories/Issue分解
+- ppt-excel-generator: レポート・ダッシュボード自動生成
+- obsidian-zettel: Second Brain自動更新</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; 結果: 手作業ほぼゼロ</div>
+      <p>この構成で「ロードマップ作成 &rarr; Jiraにタスク登録 &rarr; ObsidianにZettel追加 &rarr; 週次レポートをWord+PPTで作成」まで<strong>1プロンプト</strong>で完了します。GitHub + Obsidian + Office が全部繋がったAI PM環境の完成です。</p>
+    </div>
+
     <!-- ===== PAGE NAV BOTTOM ===== -->
     <div class="page-nav-bottom">
       <a href="agent-hq.html">
