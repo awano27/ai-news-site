@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Intelligence Hub</title>
   <meta name="description" content="毎日更新されるAIニュースを、スライド・アーカイブ・データで整理して追うプラットフォーム" />
+  <link rel="canonical" href="https://awano27.github.io/ai-news-site/" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%2306090d'/><text x='50' y='68' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='48' fill='%2300d4f0'>AI</text></svg>" />
+
+  <!-- OGP -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AI Intelligence Hub — AIの最前線を5分で把握" />
+  <meta property="og:description" content="毎日更新のスライド・レポート・ニュースで、AI業界を即キャッチアップ。230+スライド、毎朝07:00更新。" />
+  <meta property="og:url" content="https://awano27.github.io/ai-news-site/" />
+  <meta property="og:image" content="https://awano27.github.io/ai-news-site/assets/og-image.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:site_name" content="AI Intelligence Hub" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Intelligence Hub — AIの最前線を5分で把握" />
+  <meta name="twitter:description" content="毎日更新のスライド・レポート・ニュースで、AI業界を即キャッチアップ。" />
+  <meta name="twitter:image" content="https://awano27.github.io/ai-news-site/assets/og-image.png" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AI Intelligence Hub",
+    "url": "https://awano27.github.io/ai-news-site/",
+    "description": "毎日更新されるAIニュースを、スライド・アーカイブ・データで整理して追うプラットフォーム",
+    "inLanguage": "ja",
+    "publisher": {
+      "@type": "Person",
+      "name": "awano27"
+    }
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,6 +45,11 @@
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap"
     rel="stylesheet"
   />
+  <style>
+    /* Prevent FOIT: fallback fonts while Google Fonts load */
+    @font-face { font-family: 'JetBrains Mono'; font-display: swap; }
+    @font-face { font-family: 'Noto Sans JP'; font-display: swap; }
+  </style>
 
   <style>
     *, *::before, *::after {
@@ -969,9 +1007,9 @@
           毎日更新のスライド・レポート・ニュースで、AI業界を即キャッチアップ。
         </p>
         <div class="stat-strip-inline" aria-label="サイト統計">
-          <span>230+スライド</span>
+          <span id="stat-slides">270+スライド</span>
           <span class="stat-sep">/</span>
-          <span>50+アーカイブ日数</span>
+          <span id="stat-days">270+アーカイブ日数</span>
           <span class="stat-sep">/</span>
           <span>毎日07:00更新</span>
         </div>
@@ -1057,7 +1095,7 @@
           <a class="res-card" href="https://awano27.github.io/ai-news-site/presentations/day_slides_index.html">
             <span class="res-icon">SLIDES</span>
             <h4>日次スライド一覧</h4>
-            <p>230日分以上のスライドを日付で探せる。過去の振り返りに。</p>
+            <p>270日分以上のスライドを日付で探せる。過去の振り返りに。</p>
           </a>
           <a class="res-card" href="https://awano27.github.io/ai-news-site/presentations/recommended_tools.html">
             <span class="res-icon">TOOLS</span>
@@ -1094,79 +1132,109 @@
   </div>
 
   <script>
-    // Auto-update dates and slide link
     (function() {
       var BASE = 'https://awano27.github.io/ai-news-site';
-      var today = new Date();
-      var todayStr = today.getFullYear() + '-' +
-        String(today.getMonth()+1).padStart(2,'0') + '-' +
-        String(today.getDate()).padStart(2,'0');
+      var latestDates = [];
 
-      // Update footer
-      var footerDate = document.getElementById('footer-date');
-      if (footerDate) footerDate.textContent = todayStr;
-
-      // Find latest slide by checking recent dates
-      function trySlide(dateObj) {
+      function fmtDate(dateObj) {
         var y = dateObj.getFullYear();
         var m = String(dateObj.getMonth()+1).padStart(2,'0');
         var d = String(dateObj.getDate()).padStart(2,'0');
-        return {
-          date: y + '-' + m + '-' + d,
-          file: 'day_slide_' + y + '_' + m + '_' + d + '.html',
-          url: BASE + '/presentations/day_slides/day_slide_' + y + '_' + m + '_' + d + '.html'
-        };
+        return { str: y+'-'+m+'-'+d, file: 'day_slide_'+y+'_'+m+'_'+d+'.html' };
       }
 
-      // Check today, then yesterday, then day before
-      var candidates = [];
-      for (var i = 0; i < 5; i++) {
+      function setDate(id, dateStr) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = dateStr;
+      }
+
+      function setFallback(id, text) {
+        var el = document.getElementById(id);
+        if (el && el.textContent === '--') el.textContent = text;
+      }
+
+      // Track latest dates across fetches, update footer with actual latest
+      function trackDate(dateStr) {
+        if (dateStr) latestDates.push(dateStr);
+        if (latestDates.length > 0) {
+          latestDates.sort();
+          var footerDate = document.getElementById('footer-date');
+          if (footerDate) footerDate.textContent = latestDates[latestDates.length - 1];
+        }
+      }
+
+      // Find latest slide: check today down to 7 days ago (parallel fetch)
+      var today = new Date();
+      var slideChecks = [];
+      for (var i = 0; i < 7; i++) {
         var d = new Date(today);
         d.setDate(d.getDate() - i);
-        candidates.push(trySlide(d));
+        slideChecks.push(fmtDate(d));
       }
 
-      function checkSlide(idx) {
-        if (idx >= candidates.length) return;
-        var c = candidates[idx];
-        fetch(c.url, { method: 'HEAD' }).then(function(r) {
-          if (r.ok) {
-            var cardSlide = document.getElementById('card-slide');
-            var dateSlide = document.getElementById('date-slide');
-            if (cardSlide) cardSlide.href = c.url;
-            if (dateSlide) dateSlide.textContent = c.date;
-          } else {
-            checkSlide(idx + 1);
-          }
-        }).catch(function() { checkSlide(idx + 1); });
-      }
-      checkSlide(0);
+      Promise.all(slideChecks.map(function(s) {
+        return fetch(BASE + '/presentations/day_slides/' + s.file, { method: 'HEAD' })
+          .then(function(r) { return r.ok ? s : null; })
+          .catch(function() { return null; });
+      })).then(function(results) {
+        var found = results.find(function(r) { return r !== null; });
+        if (found) {
+          var cardSlide = document.getElementById('card-slide');
+          if (cardSlide) cardSlide.href = BASE + '/presentations/day_slides/' + found.file;
+          setDate('date-slide', found.str);
+          trackDate(found.str);
+        } else {
+          setFallback('date-slide', '一覧へ');
+        }
+      });
 
-      // Fetch daily-news title to get its date
+      // Fetch daily-news date
       fetch(BASE + '/daily-news/').then(function(r) { return r.text(); }).then(function(html) {
         var m = html.match(/Daily AI News\s*[—–-]\s*(\d{4}-\d{2}-\d{2})/);
-        if (m) {
-          var dateNews = document.getElementById('date-news');
-          if (dateNews) dateNews.textContent = m[1];
+        if (m) { setDate('date-news', m[1]); trackDate(m[1]); }
+        else { setFallback('date-news', '最新を見る'); }
+      }).catch(function() { setFallback('date-news', '最新を見る'); });
+
+      // Fetch report date
+      fetch(BASE + '/presentations/auto_daily_report.html').then(function(r) { return r.text(); }).then(function(html) {
+        var m = html.match(/(\d{4}-\d{2}-\d{2})/);
+        if (m) { setDate('date-report', m[1]); trackDate(m[1]); }
+        else { setFallback('date-report', '最新を見る'); }
+      }).catch(function() { setFallback('date-report', '最新を見る'); });
+
+      // Dynamic stats: count slides from day_slides_index
+      fetch(BASE + '/presentations/day_slides_index.html').then(function(r) { return r.text(); }).then(function(html) {
+        var matches = html.match(/day_slide_\d{4}_\d{2}_\d{2}\.html/g);
+        if (matches) {
+          var unique = new Set(matches);
+          var count = unique.size;
+          var statSlides = document.getElementById('stat-slides');
+          var statDays = document.getElementById('stat-days');
+          if (statSlides) statSlides.textContent = count + '+スライド';
+          if (statDays) statDays.textContent = count + '+アーカイブ日数';
         }
       }).catch(function() {});
 
-      // Fetch report title to get its date
-      fetch(BASE + '/presentations/auto_daily_report.html').then(function(r) { return r.text(); }).then(function(html) {
-        var m = html.match(/(\d{4}-\d{2}-\d{2})/);
-        if (m) {
-          var dateReport = document.getElementById('date-report');
-          if (dateReport) dateReport.textContent = m[1];
+      // Fallback: if no dates resolved after 5s, show graceful message
+      setTimeout(function() {
+        setFallback('date-slide', '一覧へ');
+        setFallback('date-report', '最新を見る');
+        setFallback('date-news', '最新を見る');
+        // Footer fallback: use today if no date was tracked
+        var footerDate = document.getElementById('footer-date');
+        if (footerDate && footerDate.textContent === '--') {
+          var t = new Date();
+          footerDate.textContent = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
         }
-      }).catch(function() {});
+      }, 5000);
     })();
 
     // Scroll reveal with IntersectionObserver
-    const reveals = document.querySelectorAll('.reveal');
+    var reveals = document.querySelectorAll('.reveal');
     if (reveals.length && 'IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
+      var observer = new IntersectionObserver(
+        function(entries) {
+          entries.forEach(function(entry) {
             if (entry.isIntersecting) {
               entry.target.classList.add('visible');
               observer.unobserve(entry.target);
@@ -1175,9 +1243,9 @@
         },
         { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
       );
-      reveals.forEach((el) => observer.observe(el));
+      reveals.forEach(function(el) { observer.observe(el); });
     } else {
-      reveals.forEach((el) => el.classList.add('visible'));
+      reveals.forEach(function(el) { el.classList.add('visible'); });
     }
   </script>
 </body>
