@@ -396,23 +396,8 @@ def main():
 
     items = []
     only_sheets = os.getenv('NEWS_ONLY_SHEETS') == '1'
-    if not only_sheets:
-        for f in feeds:
-            try:
-                items.extend(fetch_feed(f))
-            except Exception as ex:
-                log('feed err', f, ex)
-            if time.time() - start_time > GLOBAL_TIMEOUT_SEC:
-                break
 
-    # SNS
-    if not only_sheets:
-        if time.time() - start_time <= GLOBAL_TIMEOUT_SEC:
-            items.extend(fetch_x_api(x_users))
-        if time.time() - start_time <= GLOBAL_TIMEOUT_SEC:
-            items.extend(fetch_x_rss(x_rss_base, x_rss_users))
-
-    # Google Sheets
+    # Google Sheets FIRST (SNS source) so FAST_MODE caps don't drop them
     for s in (sheets or []):
         try:
             sid = s.get('id')
@@ -427,6 +412,31 @@ def main():
     manual_rows = load_manual_sns(os.path.join(ROOT, 'news', 'manual_sns.tsv'))
     if manual_rows:
         items.extend(rows_to_items_from_sheet(manual_rows, {'date':0,'handle':1,'text':2,'url':4}))
+
+    # RSS feeds
+    if not only_sheets:
+        for f in feeds:
+            try:
+                items.extend(fetch_feed(f))
+            except Exception as ex:
+                log('feed err', f, ex)
+            if time.time() - start_time > GLOBAL_TIMEOUT_SEC:
+                break
+
+    # X API / X RSS
+    if not only_sheets:
+        if time.time() - start_time <= GLOBAL_TIMEOUT_SEC:
+            items.extend(fetch_x_api(x_users))
+        if time.time() - start_time <= GLOBAL_TIMEOUT_SEC:
+            items.extend(fetch_x_rss(x_rss_base, x_rss_users))
+
+    # sort by published desc so newest items win the quotas
+    def _pub_key(it):
+        try:
+            return dateparser.parse(it.get('published') or '').timestamp()
+        except Exception:
+            return 0
+    items.sort(key=_pub_key, reverse=True)
 
     # dedup by URL & title
     uniq = []
@@ -458,8 +468,17 @@ def main():
     verified = pruned if FAST_MODE else [it for it in pruned if head_ok(it['url'])]
 
     # enrich with text, llm/fallback summary, score, category
+    # section-aware quotas so SNS doesn't crowd out news (and vice versa)
+    from collections import Counter as _Ctr
+    section_counts = _Ctr()
+    SECTION_QUOTA = {'sns': 30, 'company': 30, 'tools': 20, 'business': 20}
+    TOTAL_CAP = 120
     enriched = []
     for it in verified:
+        # quick pre-classify to decide quota without paying enrichment cost
+        pre_cat = 'sns' if it.get('source_name') == 'x.com' else (classify(it) or ['company'])[0]
+        if FAST_MODE and section_counts[pre_cat] >= SECTION_QUOTA.get(pre_cat, 20):
+            continue
         body = extract_text(it['url'])
         llm = llm_summarize(it['title'], body or it['summary'], it['url'])
         cats = classify(it)
@@ -487,7 +506,8 @@ def main():
             item_out['source'] = {'name': handle or 'X', 'url': it['url']}
             item_out['category'] = 'sns'
         enriched.append(item_out)
-        if FAST_MODE and len(enriched) >= 80:
+        section_counts[item_out['category']] += 1
+        if FAST_MODE and len(enriched) >= TOTAL_CAP:
             break
         if time.time() - start_time > GLOBAL_TIMEOUT_SEC:
             break
