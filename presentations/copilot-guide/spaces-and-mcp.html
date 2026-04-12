@@ -1302,6 +1302,105 @@ tools: ["excel-mcp", "ppt-mcp"]
       </table>
     </div>
 
+    <!-- ===== Section: X調査 最新動向 ===== -->
+    <h2 id="mcp-latest">MCP / Skills / Plugin 最新動向（2026年4月 X調査）</h2>
+
+    <p>X（旧Twitter）のLatestモード検索およびGitHub Copilot CLI公式changelog bot、日本語ユーザー投稿から確認された最新情報です。</p>
+
+    <h3>設定ファイルの変更: .mcp.json</h3>
+
+    <p>2026年4月時点で、MCPの設定ファイル名が <code>.vscode/mcp.json</code> から <strong><code>.mcp.json</code></strong>（プロジェクトルート直下）に統一される流れがあります。グローバル設定として推奨されつつあります。</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; Tip</div>
+      <p>現時点では <code>.vscode/mcp.json</code> も引き続き動作します。移行期間中は両方を配置しておくと安全です。</p>
+    </div>
+
+    <h3>Copilot CLI: MCPセッション管理コマンド</h3>
+
+    <div class="code-block"><code># MCPサーバーの有効化/無効化（セッション間で永続化）
+/mcp enable
+/mcp disable
+
+# MCPサーバー管理（一覧・追加・削除）
+copilot mcp
+copilot mcp list
+copilot mcp add &lt;server-name&gt;
+
+# Pluginマーケットプレース操作
+/plugin marketplace add &lt;plugin-name&gt;
+/plugin marketplace list</code></div>
+
+    <h3>注目のPlugin: Copilot-Cockpit</h3>
+
+    <p><strong>Copilot-Cockpit</strong> はVS Code拡張として提供されるプラグインで、Agent Modeのワークフローを段階的に自律化します。</p>
+
+    <ul>
+      <li><strong>計画フェーズ</strong> &mdash; タスクを分解し実行計画を提示</li>
+      <li><strong>承認フェーズ</strong> &mdash; 人間がレビュー・修正・承認</li>
+      <li><strong>実行フェーズ</strong> &mdash; 承認された計画をAgent Modeで自動実行</li>
+      <li><strong>レビューフェーズ</strong> &mdash; 結果を自動検証し、問題があれば修正提案</li>
+    </ul>
+
+    <h3>Claude Code環境との連携</h3>
+
+    <p>Claude CodeもMCPクライアントに対応しているため、<strong>同じMCPサーバーをCopilotとClaude Codeで共有</strong>できます。</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>連携パターン</th>
+            <th>説明</th>
+            <th>メリット</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>MCPサーバー共有</strong></td>
+            <td>context-mode、context7、playwright、Excel/PPT MCPなどを両環境で利用</td>
+            <td>設定の二重管理が不要。同じツールチェーンを共有</td>
+          </tr>
+          <tr>
+            <td><strong>役割分担</strong></td>
+            <td>Claude Code（深い推論・大規模リファクタリング）+ Copilot Agent（高速プロトタイプ・IDE統合）</td>
+            <td>タスク特性に応じて最適なツールを選択</td>
+          </tr>
+          <tr>
+            <td><strong>Skills互換</strong></td>
+            <td><code>.claude/skills/</code> と <code>.github/skills/</code> を同一リポジトリに併置</td>
+            <td>どちらのツールからも専門スキルを利用可能</td>
+          </tr>
+          <tr>
+            <td><strong>ハイブリッド実行</strong></td>
+            <td>Claude Code CLIでPythonプロトタイプ作成 &rarr; Copilot AgentでMCP経由の本番実行</td>
+            <td>開発速度とMCP統合の両立</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">ハイブリッド環境のディレクトリ構成例</div>
+    <div class="code-block"><code>project-root/
+├── .mcp.json              # MCP設定（両ツール共有可能）
+├── .vscode/mcp.json       # VS Code / Copilot用（移行期間中）
+├── .claude/
+│   └── skills/            # Claude Code用スキル
+├── .github/
+│   ├── skills/            # Copilot Agent用スキル
+│   │   ├── ppt-generator/
+│   │   │   └── SKILL.md
+│   │   └── excel-analyzer/
+│   │       └── SKILL.md
+│   └── copilot-instructions.md
+├── CLAUDE.md              # Claude Code指示
+└── AGENTS.md              # 共通エージェント指示</code></div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DD; X調査のソースについて</div>
+      <p>上記情報はX（旧Twitter）のLatestモード検索、GitHub Copilot CLI公式changelog bot、日本語開発者コミュニティの投稿に基づいています。MCP / Skills / Plugin機能はWeeklyレベルで急速に進化中のため、最新の仕様は<a class="inline-link" href="https://docs.github.com/en/copilot" target="_blank" rel="noopener">公式ドキュメント</a>を確認してください。</p>
+    </div>
+
     <!-- ===== Section 4: Copilot Extensions ===== -->
     <h2 id="extensions">Copilot Extensions</h2>
 
