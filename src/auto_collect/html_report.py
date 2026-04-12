@@ -172,19 +172,19 @@ def generate_html(data: Dict) -> str:
 
     funding_section = f'''<section class="sec" id="funding">
     <div class="sec-actions">
-      <div class="sec-h"><em>&#9650;</em> Market &amp; Funding</div>
+      <div class="sec-h"><em>&#9650;</em> マーケット・資金動向</div>
       <button class="expand-btn" data-target="funding">すべて開く</button>
     </div>
     {funding_html}
   </section>''' if funding else ""
 
     github_section = f'''<section class="sec" id="github">
-    <div class="sec-h"><em>&#9679;</em> GitHub Trending</div>
+    <div class="sec-h"><em>&#9679;</em> GitHub トレンド</div>
     {github_html}
   </section>''' if github else ""
 
     models_section = f'''<section class="sec" id="models">
-    <div class="sec-h"><em>&#9670;</em> Trending Models</div>
+    <div class="sec-h"><em>&#9670;</em> 注目モデル</div>
     {models_html}
   </section>''' if models else ""
 
@@ -198,9 +198,9 @@ def generate_html(data: Dict) -> str:
     html = html.replace("{{CAT_TAGS}}", cat_tags)
     html = html.replace("{{HEADLINES}}", headlines_html)
     html = html.replace("{{NOW}}", now)
-    html = html.replace("{{NAV_FUNDING}}", '<a href="#funding">MARKET</a>' if funding else "")
-    html = html.replace("{{NAV_GITHUB}}", '<a href="#github">GITHUB</a>' if github else "")
-    html = html.replace("{{NAV_MODELS}}", '<a href="#models">MODELS</a>' if models else "")
+    html = html.replace("{{NAV_FUNDING}}", '<a href="#funding">マーケット</a>' if funding else "")
+    html = html.replace("{{NAV_GITHUB}}", '<a href="#github">GitHub</a>' if github else "")
+    html = html.replace("{{NAV_MODELS}}", '<a href="#models">モデル</a>' if models else "")
     html = html.replace("{{FUNDING_SECTION}}", funding_section)
     html = html.replace("{{GITHUB_SECTION}}", github_section)
     html = html.replace("{{MODELS_SECTION}}", models_section)
