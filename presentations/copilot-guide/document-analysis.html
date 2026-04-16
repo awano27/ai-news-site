@@ -1251,6 +1251,159 @@ cd customer-acme-202603</code></div>
       <p>これらのテンプレートを <code>.github/skills/pm-toolkit/SKILL.md</code> として保存しておけば、Copilotが文脈に応じて自動ロードします。PMの日常業務を劇的に効率化。</p>
     </div>
 
+    <!-- ===== Section: PM実践ワークフロー ===== -->
+    <h2 id="pm-workflows">PM実践ワークフロー プロンプト集</h2>
+
+    <p>PM業務の主要8カテゴリをカバーするコピペ即使用プロンプト集です。Agent Mode / Copilot CLIで使用し、<code>@docs/</code> <code>@deliverables/</code> のパス規約に従います。</p>
+
+    <h3>1. スプリント計画・バックログ管理</h3>
+
+    <div class="code-label">スプリント計画</div>
+    <div class="code-block"><code>@deliverables/backlog.md
+次スプリント（2週間）の計画を作成せよ:
+- チームベロシティ: [X]ポイント/スプリント
+- 優先度順にストーリーを選択（Must &rarr; Should）
+- 各ストーリーにAssignee候補とDependencyを明記
+- スプリントゴールを1文で定義
+- リスクバッファ（ベロシティの20%）を確保
+出力: deliverables/sprint-plan-v1.md</code></div>
+
+    <div class="code-label">バックログ整理</div>
+    <div class="code-block"><code>@deliverables/backlog.md @docs/requirements/**
+バックログを整理せよ:
+1. 完了済み・重複アイテムを【削除候補】タグで明示
+2. 未着手アイテムを優先度（Must/Should/Could）で再分類
+3. 粒度が大きすぎるアイテム（8SP超）を分割提案
+4. 依存関係グラフをMermaid形式で出力
+5. 「Ready for Sprint」条件を満たすアイテムに【Ready】タグ
+出力: deliverables/backlog-groomed.md</code></div>
+
+    <h3>2. 見積もり・複雑度分析</h3>
+
+    <div class="code-block"><code>@deliverables/prd-v1.md
+各ユーザーストーリーのストーリーポイントを見積もれ:
+- フィボナッチ数列（1/2/3/5/8/13）で評価
+- 評価軸: 実装複雑度・不確実性・作業量
+- 8SP以上は分割を提案
+- 見積もり根拠を1行で付記
+- 合計ポイントとベロシティ比較表を出力
+
+| ストーリー | 複雑度 | 不確実性 | 作業量 | SP | 根拠 |
+出力: deliverables/estimation-v1.md</code></div>
+
+    <h3>3. 会議 &rarr; アクションアイテム &rarr; チケット化</h3>
+
+    <div class="code-block"><code>@docs/meeting-notes/YYYY-MM-DD.md
+この議事録からアクションアイテムを抽出しチケット化せよ:
+1. 発言者ごとにアクションアイテムを抽出
+2. 各アイテムに期限・担当者・優先度を付与
+3. GitHub Issue形式で出力（タイトル + Description + Labels）
+4. 決定事項を【決定】タグ、未決定を【要確認】タグで分類
+5. 次回会議のアジェンダ案を生成
+出力: deliverables/action-items-YYYY-MM-DD.md</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; Tip: MCP連携</div>
+      <p>GitHub Projects MCPを接続していれば、抽出したIssueを <code>@copilot Issueとして作成して</code> で直接登録可能。Obsidian MCPと併用すれば決定事項のZettelkasten自動更新も実現します。</p>
+    </div>
+
+    <h3>4. ステークホルダーレポート</h3>
+
+    <div class="code-label">週次ステータスレポート</div>
+    <div class="code-block"><code>@deliverables/sprint-plan-v1.md @docs/jira-export.csv
+週次ステータスレポートを作成せよ:
+- サマリー（3行以内）
+- 完了タスク一覧（今週）
+- 進行中タスク + 完了予定日
+- ブロッカー・リスク（&#x1F534;&#x1F7E1;&#x1F7E2; ステータス付き）
+- 来週の予定
+- KPI進捗（計画 vs 実績）
+出力形式: Markdown + Mermaid進捗グラフ
+出力: deliverables/weekly-status-YYYY-MM-DD.md</code></div>
+
+    <div class="code-label">エグゼクティブサマリー</div>
+    <div class="code-block"><code>@deliverables/weekly-status-*.md
+直近4週の週次レポートからエグゼクティブサマリーを生成せよ:
+- プロジェクト全体の健全度（&#x1F7E2;&#x1F7E1;&#x1F534;）
+- マイルストーン進捗（Mermaid Ganttチャート）
+- 主要リスクTOP3と対策状況
+- 予算消化率 vs 進捗率の乖離分析
+- 経営層への推奨アクション
+PPT用のスライド構成案も併記。
+出力: deliverables/exec-summary-YYYY-MM.md</code></div>
+
+    <h3>5. リスク管理（RAIDログ）</h3>
+
+    <div class="code-block"><code>@deliverables/prd-v1.md @docs/**
+RAIDログを作成せよ:
+
+| カテゴリ | ID | 内容 | 影響度 | 確率 | 対策 | 担当 | 期限 | ステータス |
+
+- Risk: 技術・スケジュール・外部依存リスク
+- Assumption: 前提条件（崩れた場合の影響も記載）
+- Issue: 現在発生中の課題
+- Dependency: 外部チーム・サービスへの依存
+
+各項目に【高/中/低】の影響度スコアを付与。
+週次で差分レビュー可能な形式で出力。
+出力: deliverables/raid-log-v1.md</code></div>
+
+    <h3>6. レトロスペクティブ</h3>
+
+    <div class="code-block"><code>@deliverables/sprint-plan-v1.md @docs/jira-export.csv
+スプリントレトロスペクティブを準備せよ:
+1. KPT形式で整理:
+   - Keep: うまくいったこと（データで裏付け）
+   - Problem: 課題（ベロシティ低下原因、ブロッカー分析）
+   - Try: 改善アクション（具体的・計測可能）
+2. 前回Tryの実施状況を追跡
+3. ベロシティトレンド（直近5スプリント）をMermaidグラフで可視化
+4. チーム満足度サーベイのテンプレートを付与
+出力: deliverables/retro-sprint-XX.md</code></div>
+
+    <h3>7. ロードマップ可視化（Mermaid）</h3>
+
+    <div class="code-block"><code>@deliverables/prd-v1.md
+プロジェクトロードマップをMermaid Ganttチャートで生成せよ:
+- フェーズ: Discovery &rarr; Design &rarr; Development &rarr; Testing &rarr; Launch
+- 各マイルストーンに開始日・終了日・依存関係を設定
+- クリティカルパスをハイライト
+- リソース制約を考慮した現実的なスケジュール
+
+gantt
+  title プロジェクトロードマップ
+  dateFormat YYYY-MM-DD
+  section Discovery
+    要件定義        :a1, 2026-05-01, 14d
+  section Design
+    UI/UXデザイン   :a2, after a1, 10d
+  section Development
+    バックエンド     :a3, after a2, 21d
+    フロントエンド   :a4, after a2, 21d
+  section Testing
+    統合テスト       :a5, after a3, 7d
+  section Launch
+    本番デプロイ     :milestone, after a5, 0d
+
+出力: deliverables/roadmap-v1.md</code></div>
+
+    <h3>8. OKR / KPIトラッキング</h3>
+
+    <div class="code-block"><code>@deliverables/okr-*.md @docs/metrics/**
+OKR進捗ダッシュボードを生成せよ:
+- 各Objectiveの達成率（0-100%）
+- Key Result別の進捗バー（Mermaid pie chart）
+- 赤信号KRのボトルネック分析と推奨アクション
+- 四半期トレンド（前四半期比較）
+- 次四半期のOKR案（現在の進捗と学びを反映）
+出力: deliverables/okr-dashboard-QX.md
+Excel出力が必要な場合は @excel MCP を使用。</code></div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip: Skills化で自動ロード</div>
+      <p>上記プロンプトを <code>.github/skills/pm-workflows/SKILL.md</code> に保存すれば、Agent Modeで「スプリント計画して」「レトロ準備して」と指示するだけで対応プロンプトが自動ロードされます。</p>
+    </div>
+
     <!-- ===== Section: AIPM完全自動化 ===== -->
     <h2 id="aipm">AIPM &mdash; AI Project Management完全自動化</h2>
 
