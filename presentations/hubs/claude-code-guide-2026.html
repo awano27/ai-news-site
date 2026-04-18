@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  AI Intelligence Hub — Hub #1
+  Claude Code 完全ガイド 2026
+  ------------------------------------------------------------
+  Draft by Claude Code, edited by awano27 (Claudian).
+  Complies with Google Publisher Policies / AdSense guidelines.
+  ============================================================
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Code 完全ガイド2026｜CLI インストール・MCP・料金・実運用パターン</title>
+  <meta name="description" content="Anthropic の Claude Code CLI を毎日使っている運営者 awano27 が、インストール・基本コマンド・MCP連携・料金・向き不向き・ハマりどころを2026年時点で最新の情報にまとめた完全ガイド。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/hubs/claude-code-guide-2026.html" />
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large" />
+  <meta name="author" content="awano27 (Claudian)" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="AI Intelligence Hub" />
+  <meta property="og:title" content="Claude Code 完全ガイド2026｜CLI インストール・MCP・料金・実運用パターン" />
+  <meta property="og:description" content="Claude Code を毎日実運用している運営者が、インストールから MCP 連携・料金・ハマりどころまでを1ページで解説。" />
+  <meta property="og:url" content="https://visionhub.jp/presentations/hubs/claude-code-guide-2026.html" />
+  <meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Code 完全ガイド2026" />
+  <meta name="twitter:description" content="Anthropic Claude Code の導入・実運用パターンを、毎日使っている運営者が解説。" />
+  <meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Claude Code 完全ガイド2026｜CLI インストール・MCP・料金・実運用パターン",
+    "alternativeHeadline": "Anthropic Claude Code CLI を毎日使うエンジニアの実運用ガイド",
+    "datePublished": "2026-04-19",
+    "dateModified": "2026-04-19",
+    "inLanguage": "ja",
+    "author": {
+      "@type": "Person",
+      "name": "awano27",
+      "alternateName": "Claudian",
+      "url": "https://visionhub.jp/about.html"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AI Intelligence Hub",
+      "url": "https://visionhub.jp/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://visionhub.jp/assets/og/default.png",
+        "width": 1200,
+        "height": 630
+      }
+    },
+    "image": ["https://visionhub.jp/assets/og/default.png"],
+    "mainEntityOfPage": "https://visionhub.jp/presentations/hubs/claude-code-guide-2026.html",
+    "articleSection": "Guide",
+    "keywords": "Claude Code, Anthropic, Claude Opus, Claude Sonnet, MCP, CLI, AI エージェント, Prompt Engineering",
+    "about": [
+      {"@type": "SoftwareApplication", "name": "Claude Code", "operatingSystem": "Windows, macOS, Linux"}
+    ]
+  }
+  </script>
+
+  <!-- GA4 loader -->
+  <script src="/assets/js/analytics.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#070F26; --panel:#0D1733; --panel2:#121E42;
+      --ink:#EDF2FF; --mute:#8A9ABF; --mute2:#B5C3E1;
+      --accent:#FFCC00; --accent2:#5EE7DF; --line:rgba(255,255,255,.08);
+      --code-bg:#08122A;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);
+      font-family:"Inter","Noto Sans JP",system-ui,sans-serif;line-height:1.85;
+      font-size:16px}
+    a{color:var(--accent2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:880px;margin:0 auto;padding:0 24px}
+
+    header.site-header{border-bottom:1px solid var(--line);padding:18px 0;
+      background:rgba(7,15,38,.92);backdrop-filter:saturate(140%) blur(8px);
+      position:sticky;top:0;z-index:10}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center;color:var(--ink);font-weight:700}
+    .brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;
+      background:var(--accent);color:#111;font-weight:900}
+    .nav a{color:var(--mute);margin-left:18px;font-size:14px;font-weight:600}
+    .nav a:hover{color:var(--ink)}
+
+    main{padding:56px 0 96px}
+
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--mute);
+      font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .eyebrow .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+    h1{font-size:clamp(28px,4.5vw,44px);line-height:1.25;margin:0 0 14px;letter-spacing:-.01em}
+    h1 .accent{color:var(--accent)}
+    .lede{color:var(--mute2);font-size:18px;margin:0 0 32px;max-width:66ch}
+    .byline{color:var(--mute);font-size:13px;margin:-16px 0 32px}
+    .byline a{color:var(--mute2)}
+
+    h2{font-size:clamp(22px,3vw,28px);margin:56px 0 14px;padding-left:14px;
+      border-left:4px solid var(--accent);scroll-margin-top:80px}
+    h3{font-size:18px;margin:28px 0 8px;color:var(--accent2)}
+
+    p{margin:10px 0 14px}
+
+    .toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+      padding:20px 26px;margin:10px 0 36px}
+    .toc h2{margin:0 0 8px;font-size:16px;letter-spacing:.04em;text-transform:uppercase;
+      border:none;padding-left:0;color:var(--mute)}
+    .toc ol{margin:0;padding-left:22px;font-size:15px}
+    .toc li{margin:4px 0}
+
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+      padding:22px 26px;margin:18px 0}
+
+    code{background:var(--code-bg);padding:2px 7px;border-radius:4px;
+      font-family:"JetBrains Mono","Menlo",Consolas,monospace;font-size:.92em;
+      color:var(--accent2)}
+    pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+      padding:16px 20px;margin:16px 0;overflow-x:auto;line-height:1.6}
+    pre code{background:transparent;padding:0;color:var(--ink);font-size:13.5px}
+
+    ul,ol{padding-left:22px;margin:8px 0 16px}
+    li{margin:6px 0}
+
+    .pill{display:inline-block;padding:4px 10px;border:1px solid var(--line);
+      border-radius:999px;font-size:12px;color:var(--mute2);margin:2px 6px 2px 0;
+      background:rgba(255,255,255,.02)}
+
+    .kicker{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.08em;
+      text-transform:uppercase}
+    .quote{border-left:3px solid var(--accent2);padding:6px 16px;color:var(--mute2);
+      margin:18px 0;font-style:italic;background:rgba(94,231,223,.04)}
+
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px}
+    th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+    th{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+    tr:hover td{background:rgba(255,255,255,.02)}
+
+    .cc-callout{display:block;margin:16px 0;padding:14px 16px;
+      background:rgba(255,204,0,.08);border-left:3px solid var(--accent);border-radius:8px;
+      font-size:14.5px;line-height:1.75;color:var(--ink)}
+    .cc-callout strong{color:var(--accent)}
+
+    footer.site-footer{border-top:1px solid var(--line);padding:28px 0;color:var(--mute);font-size:13px}
+    .footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+    .related{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+    .related a{display:block;background:var(--panel);border:1px solid var(--line);
+      border-radius:10px;padding:12px 14px;color:var(--ink);font-size:14px;line-height:1.5}
+    .related a:hover{border-color:var(--accent);text-decoration:none}
+    .related .date{display:block;color:var(--mute);font-size:12px;margin-bottom:4px}
+
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;
+      background:var(--accent);color:#111;font-weight:800;font-size:14px}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .btn:hover{text-decoration:none;filter:brightness(1.08)}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/">
+        <span class="brand-mark">AI</span>
+        <span>INTELLIGENCE HUB</span>
+      </a>
+      <nav class="nav" aria-label="グローバル">
+        <a href="/">ホーム</a>
+        <a href="/about.html">運営者</a>
+        <a href="/privacy-policy.html">プライバシー</a>
+        <a href="/contact.html">お問い合わせ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="container">
+      <div class="eyebrow"><span class="dot"></span><span>HUB · DEVELOPER TOOLS</span></div>
+      <h1>Claude Code <span class="accent">完全ガイド</span>2026<br>
+        CLI インストール・MCP・料金・実運用パターン</h1>
+      <p class="byline">
+        更新：2026-04-19 ／ 著：<a href="/about.html">awano27 (Claudian)</a> ／
+        このガイドは Anthropic Claude Code CLI を 2025 年リリース直後から毎日使っている運営者が、実体験をもとにまとめたものです。
+      </p>
+      <p class="lede">
+        「Claude Code って結局どこまで便利なの？」「Cursor や Copilot とどう違うの？」という問いに、
+        <strong>一次情報と実運用の肌感覚</strong>だけで答えるガイドです。コマンド表や料金だけでなく、
+        本当に効くワークフローとハマりどころまで含めて、エンジニアが 30 分で導入判断できる構成にしています。
+      </p>
+
+      <!-- TOC -->
+      <nav class="toc" aria-label="目次">
+        <h2>このページで分かること</h2>
+        <ol>
+          <li><a href="#what">Claude Code とは — 他ツールと何が違うのか</a></li>
+          <li><a href="#install">インストールとセットアップ（Windows / macOS / Linux）</a></li>
+          <li><a href="#commands">よく使うコマンドと基本ワークフロー</a></li>
+          <li><a href="#mcp">MCP (Model Context Protocol) で外部ツールと連携する</a></li>
+          <li><a href="#patterns">運営者が毎日やっている活用パターン</a></li>
+          <li><a href="#pricing">料金・プランと Anthropic API との関係</a></li>
+          <li><a href="#pitfalls">よくあるハマりどころと回避策</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#related">関連する最新ニュース</a></li>
+        </ol>
+      </nav>
+
+      <!-- 1. What -->
+      <section id="what">
+        <h2>1. Claude Code とは — 他ツールと何が違うのか</h2>
+        <p>
+          <strong>Claude Code</strong> は Anthropic が提供するターミナル常駐型の AI 開発エージェントです。
+          VS Code の拡張や JetBrains IDE プラグインでも動作しますが、本体は CLI で、
+          「<strong>リポジトリ全体を理解した上で、複数ファイルをまたぐ編集・リファクタ・実装タスクを代行する</strong>」
+          のが最大の特長です。
+        </p>
+        <h3>類似ツールとの立ち位置</h3>
+        <table>
+          <thead>
+            <tr><th>ツール</th><th>得意領域</th><th>Claude Code との違い</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>GitHub Copilot</td><td>行単位の補完</td><td>Claude Code は「タスク単位」で複数ファイルを書き換える</td></tr>
+            <tr><td>Cursor</td><td>エディタ常駐</td><td>Claude Code は CLI で CI / スクリプト / 非 IDE 環境にも入る</td></tr>
+            <tr><td>OpenAI Codex CLI</td><td>CLI 代行</td><td>Claude 系モデル（Opus / Sonnet / Haiku）の強みを直接使える</td></tr>
+            <tr><td>Gemini CLI</td><td>長文コンテキスト</td><td>Claude Code は MCP + プロンプトキャッシュで料金と速度の両立が強い</td></tr>
+          </tbody>
+        </table>
+        <div class="cc-callout">
+          <strong>運営者メモ。</strong>「補完」ではなく「<em>意図を伝えたら複数ファイルを並行編集して帰ってくる</em>」
+          のが Claude Code の本質です。visionhub.jp の日次スライド更新・sitemap 自動化・OG 画像生成といった作業は、
+          ほぼすべて Claude Code に「こうしたい」と自然文で渡すだけで回っています。
+        </div>
+      </section>
+
+      <!-- 2. Install -->
+      <section id="install">
+        <h2>2. インストールとセットアップ</h2>
+        <p>公式手順：<a href="https://docs.anthropic.com/claude/docs/claude-code" rel="noopener">docs.anthropic.com/claude/docs/claude-code</a>
+          （一次情報は常に公式を参照してください）</p>
+
+        <h3>macOS / Linux</h3>
+        <pre><code># npm 経由（Node 18+ 推奨）
+npm install -g @anthropic-ai/claude-code
+
+# 初回起動 → ブラウザでログイン
+claude-code
+
+# Anthropic API キーを別に使いたい場合
+export ANTHROPIC_API_KEY="sk-ant-..."</code></pre>
+
+        <h3>Windows (PowerShell)</h3>
+        <pre><code>npm install -g @anthropic-ai/claude-code
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+claude-code</code></pre>
+
+        <h3>VS Code 連携</h3>
+        <p>Claude Code 公式拡張を VS Code マーケットプレイスからインストールすると、
+          サイドパネルに Claude チャットが出ます。CLI と同じアカウントで連携するので、
+          ターミナル派 / IDE 派どちらでもシームレスに切り替え可能です。</p>
+      </section>
+
+      <!-- 3. Commands -->
+      <section id="commands">
+        <h2>3. よく使うコマンドと基本ワークフロー</h2>
+        <h3>基本コマンド</h3>
+        <ul>
+          <li><code>claude-code</code> — インタラクティブセッション開始</li>
+          <li><code>/plan</code> — 現在のタスクを実装する計画をまず立てさせる（いきなりコードを書かせない）</li>
+          <li><code>/resume</code> — 直近のセッションを再開</li>
+          <li><code>/cost</code> — セッション内のトークン消費・コスト確認</li>
+          <li><code>/compact</code> — コンテキストが長くなったら圧縮</li>
+        </ul>
+
+        <h3>推奨ワークフロー（3ステップ）</h3>
+        <ol>
+          <li><strong>タスクを自然文で伝える</strong>：コードでも仕様でもなく「<em>何を達成したいか</em>」を書く</li>
+          <li><strong>計画を必ず先に出させる</strong>（<code>plan mode</code> または「まず計画を立てて」と依頼）</li>
+          <li><strong>計画を承認してから実装</strong>：Claude Code が複数ファイルを自動で編集 → 差分を確認 → コミット</li>
+        </ol>
+
+        <div class="cc-callout">
+          <strong>運営者の使い分け。</strong>細かい補完は Cursor / Copilot、
+          「1時間かけて複数ファイルを書き換える仕事」は Claude Code、と分業しています。
+          時給換算すると後者のコスパが圧倒的に高い。
+        </div>
+      </section>
+
+      <!-- 4. MCP -->
+      <section id="mcp">
+        <h2>4. MCP (Model Context Protocol) で外部ツールと連携する</h2>
+        <p>
+          <strong>MCP</strong> は Anthropic が提唱した、LLM と外部ツール（DB, API, 業務システム）をつなぐ
+          オープンプロトコルです。Claude Code は MCP サーバに接続することで、
+          「<strong>自分のターミナルから、Slack / Jira / GitHub / BigQuery などを直接操作する</strong>」ことが可能になります。
+        </p>
+        <h3>よく使う MCP サーバ</h3>
+        <ul>
+          <li><code>@modelcontextprotocol/server-github</code> — Issue / PR の読み書き</li>
+          <li><code>@modelcontextprotocol/server-filesystem</code> — 指定フォルダだけを読ませる</li>
+          <li><code>@modelcontextprotocol/server-postgres</code> — 本番 DB への read-only クエリ</li>
+          <li>コンテキストモード系 — 大きな出力を Claude のコンテキストに入れずにサンドボックス処理</li>
+        </ul>
+        <h3>設定例（<code>~/.claude/claude_desktop_config.json</code>）</h3>
+        <pre><code>{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_..." }
+    }
+  }
+}</code></pre>
+      </section>
+
+      <!-- 5. Patterns -->
+      <section id="patterns">
+        <h2>5. 運営者が毎日やっている活用パターン</h2>
+        <p>このサイト visionhub.jp の運営で実際に Claude Code に回しているワークフローを公開します。
+          そのままコピーして自分のリポジトリで動かせます。</p>
+
+        <h3>パターンA: 日次ニュース要約 → スライド化</h3>
+        <ol>
+          <li><code>input/day/MMDD.txt</code> に当日の AI ニュース生テキストを投入</li>
+          <li>「このニュースを 5 分で読めるスライドにして、既存テンプレと同じ構造で HTML を書いて」と Claude Code に指示</li>
+          <li>3〜5 分で 1 スライド（5〜8 セクション、コード例・図表つき）が完成 → 目視確認して公開</li>
+        </ol>
+        <p class="kicker">時間削減: 手作業 45 分 → 5 分</p>
+
+        <h3>パターンB: 既存スライドへの SEO/OG 一括注入</h3>
+        <p>今まさに Claude Code で組んだ injection スクリプト群がそれです：</p>
+        <ul>
+          <li><code>scripts/inject_seo_meta.py</code> — description/OG/Twitter Card 一括追加</li>
+          <li><code>scripts/inject_newsarticle_jsonld.py</code> — Schema.org JSON-LD を全件注入</li>
+          <li><code>scripts/generate_og_images.py</code> — Pillow で 1200×630 を自動生成</li>
+        </ul>
+        <p>「<em>既存の 278 スライドにこういう meta を冪等に入れるスクリプトを作って</em>」と依頼しただけで、
+          完全に動くものが 30 分で出来上がりました。</p>
+
+        <h3>パターンC: リサーチ → Markdown 要約</h3>
+        <p>Anthropic 公式ブログや arXiv の PDF を Claude Code に読ませて、
+          <strong>一次情報のまま 500 字以内で要約</strong>させる。
+          ハルシネーションを抑えたいので <q>原文にない推測は書かないで、引用部分は行番号も残して</q>
+          と必ずプロンプトに含めます。</p>
+      </section>
+
+      <!-- 6. Pricing -->
+      <section id="pricing">
+        <h2>6. 料金・プランと Anthropic API との関係</h2>
+        <p>2026 年 4 月時点の主要プラン（最新は
+          <a href="https://www.anthropic.com/pricing" rel="noopener">公式ページ</a> を参照してください）：</p>
+        <table>
+          <thead>
+            <tr><th>プラン</th><th>月額</th><th>主な対象</th><th>メモ</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Claude Pro</td><td>$20</td><td>個人ユーザー</td><td>Claude Code を標準プランで利用可能</td></tr>
+            <tr><td>Claude Max</td><td>$100 / $200</td><td>パワーユーザー</td><td>Opus を大量利用したい人向け</td></tr>
+            <tr><td>API 従量課金</td><td>トークン単価</td><td>自社アプリ組込み</td><td>プロンプトキャッシュで最大90%削減可能</td></tr>
+          </tbody>
+        </table>
+        <p>個人開発者が Claude Code を毎日「普通に」使う分には <strong>Pro ($20) でほぼ足ります</strong>。
+          巨大なリファクタやバッチ処理を走らせる場合のみ Max か API 直叩きを検討。</p>
+      </section>
+
+      <!-- 7. Pitfalls -->
+      <section id="pitfalls">
+        <h2>7. よくあるハマりどころと回避策</h2>
+        <ul>
+          <li><strong>コンテキストがすぐ溢れる</strong> → <code>/compact</code> か MCP のサンドボックス処理を併用</li>
+          <li><strong>ファイルを勝手に壊される</strong> → 必ず clean な git branch で動かし、差分を目視レビュー</li>
+          <li><strong>計画なしで書き始めて暴走</strong> → <code>/plan</code> を癖にする。最初に「まず計画して」を言う</li>
+          <li><strong>同じ質問でコストが増える</strong> → プロンプトキャッシュを前提に、共通指示は最初に1回だけ</li>
+          <li><strong>機密情報が API に乗る不安</strong> → Pro/Max は学習に使われない明記あり。とはいえ秘匿度の高い情報は別途評価</li>
+        </ul>
+      </section>
+
+      <!-- 8. FAQ -->
+      <section id="faq">
+        <h2>8. FAQ</h2>
+
+        <h3>Q. Copilot と Claude Code、どちらを先に入れるべき？</h3>
+        <p>A. 両方入れる前提で、用途で使い分けるのが正解です。コード中の「次の一行」は Copilot、
+          「このファイル全体をリファクタして」は Claude Code。</p>
+
+        <h3>Q. 日本語での指示は精度が落ちる？</h3>
+        <p>A. ほぼ落ちません。Claude 4.x 系は日本語の意図理解が強く、
+          日常的にそのまま日本語でタスクを渡して問題なく動いています。</p>
+
+        <h3>Q. オフラインでは使える？</h3>
+        <p>A. 使えません。Anthropic のクラウド API 必須です。社内ネット閉域で使いたい場合は
+          Claude Enterprise プランか、別の On-premise モデルを検討してください。</p>
+
+        <h3>Q. セキュリティレビューは必要？</h3>
+        <p>A. Pro/Max プランでは学習に利用しない契約ですが、
+          企業で使う場合は <a href="https://www.anthropic.com/legal" rel="noopener">Anthropic の DPA / Subprocessor 一覧</a>
+          を必ず法務・情報システムに共有して判断を仰いでください。</p>
+      </section>
+
+      <!-- 9. Related -->
+      <section id="related">
+        <h2>9. 関連する最新ニュース</h2>
+        <p>visionhub.jp のデイリースライドから、Claude / Anthropic 関連のピックアップ：</p>
+        <div class="related">
+          <a href="/presentations/day_slides/day_slide_2026_04_18.html">
+            <span class="date">2026-04-18</span>
+            Codex for (almost) everything — 開発作業を並列代行する次世代AIワークスペース
+          </a>
+          <a href="/presentations/day_slides/day_slide_2026_04_17.html">
+            <span class="date">2026-04-17</span>
+            最新 AI ニュース日次まとめ
+          </a>
+          <a href="/presentations/day_slides/day_slide_2026_04_16.html">
+            <span class="date">2026-04-16</span>
+            最新 AI ニュース日次まとめ
+          </a>
+          <a href="/presentations/ai_coding_agents_guide.html">
+            <span class="date">GUIDE</span>
+            AIコーディングエージェント完全比較（Claude Code / Codex / Copilot / Gemini）
+          </a>
+          <a href="/presentations/recommended_tools.html">
+            <span class="date">GUIDE</span>
+            おすすめAIツール厳選集2026
+          </a>
+        </div>
+
+        <div class="cta-row">
+          <a class="btn" href="/">最新スライド一覧へ</a>
+          <a class="btn ghost" href="/about.html">運営者について</a>
+          <a class="btn ghost" href="/contact.html">質問を送る</a>
+        </div>
+      </section>
+
+      <p style="color:var(--mute);font-size:12px;margin-top:48px;text-align:center">
+        最終更新：2026-04-19 ／ このガイドは随時アップデートされます ／
+        © 2026 awano27 — AI Intelligence Hub
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© 2026 awano27 — AI Intelligence Hub — AIの最前線を5分で</span>
+      <span>
+        <a href="/about.html">About</a> ·
+        <a href="/privacy-policy.html">Privacy</a> ·
+        <a href="/contact.html">Contact</a> ·
+        <a href="https://github.com/awano27/ai-news-site">GitHub</a>
+      </span>
+    </div>
+  </footer>
+</body>
+</html>
