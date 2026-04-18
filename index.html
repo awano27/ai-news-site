@@ -174,32 +174,36 @@
       background-color: var(--navy);
       isolation: isolate;
     }
-    /* Layer 1: Planck portrait, monochrome with cool tint, anchored right */
+    /* Layer 1: Planck portrait, monochrome with cool tint, anchored to right half */
     .hero-bg {
-      position: absolute; inset: 0;
+      position: absolute;
+      top: 0; bottom: 0;
+      right: 0;
+      width: 50%;
       background-image: url('assets/hero-planck.jpg');
-      background-position: 75% center;
+      background-position: 70% center;
       background-repeat: no-repeat;
       background-size: cover;
-      filter: grayscale(100%) contrast(1.05) brightness(0.85);
-      opacity: 0.55;
+      filter: grayscale(100%) contrast(1.08) brightness(0.95);
+      opacity: 0.95;
       z-index: -2;
     }
-    /* Layer 2: navy/blue color wash to brand-tint the photo */
+    /* Layer 2: navy/blue color wash and left-edge fade to blend the photo into the dark side */
     .hero-tint {
-      position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(7,15,38,0.35) 0%, rgba(13,33,75,0.45) 100%);
-      mix-blend-mode: multiply;
+      position: absolute;
+      top: 0; bottom: 0; right: 0;
+      width: 50%;
+      background:
+        linear-gradient(90deg, rgba(7,15,38,1) 0%, rgba(7,15,38,0.85) 8%, rgba(7,15,38,0.30) 22%, transparent 50%, rgba(7,15,38,0.30) 100%),
+        linear-gradient(180deg, rgba(13,33,75,0.22) 0%, rgba(7,15,38,0.42) 100%);
       z-index: -2;
       pointer-events: none;
     }
-    /* Layer 3: dark gradient that keeps the left side legible for text */
+    /* Layer 3: subtle warmth on the text side */
     .hero::before {
       content: '';
       position: absolute; inset: 0;
-      background:
-        linear-gradient(95deg, rgba(7,15,38,0.96) 0%, rgba(7,15,38,0.85) 35%, rgba(7,15,38,0.55) 60%, rgba(7,15,38,0.30) 85%, rgba(7,15,38,0.55) 100%),
-        radial-gradient(900px 500px at 12% 80%, rgba(255,204,0,0.10) 0, transparent 55%);
+      background: radial-gradient(900px 500px at 12% 80%, rgba(255,204,0,0.10) 0, transparent 55%);
       pointer-events: none;
       z-index: -1;
     }
@@ -229,13 +233,16 @@
     .hero-credit a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.25); }
     .hero-credit a:hover { color: var(--yellow); }
     @media (max-width: 920px) {
-      .hero-bg { background-position: 70% center; opacity: 0.40; }
-      .hero::before { background: linear-gradient(180deg, rgba(7,15,38,0.92) 0%, rgba(7,15,38,0.80) 60%, rgba(7,15,38,0.65) 100%); }
+      .hero-bg { width: 100%; opacity: 0.40; background-position: 70% 25%; background-size: cover; }
+      .hero-tint { width: 100%; background: linear-gradient(180deg, rgba(7,15,38,0.55) 0%, rgba(7,15,38,0.85) 50%, rgba(7,15,38,0.95) 100%); }
     }
 
     .hero-inner {
       position: relative; z-index: 2;
-      max-width: 920px;
+      max-width: 480px;
+    }
+    @media (max-width: 920px) {
+      .hero-inner { max-width: 100%; padding-top: 30vh; }
     }
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 14px;
@@ -254,7 +261,7 @@
     .hero-eyebrow .sep { color: var(--on-dark-mu2); }
     .hero-title {
       font-weight: 700;
-      font-size: clamp(30px, 5.4vw, 64px);
+      font-size: clamp(30px, 4.4vw, 54px);
       line-height: 1.3;
       letter-spacing: 0.005em;
       color: var(--on-dark);
