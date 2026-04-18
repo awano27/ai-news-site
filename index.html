@@ -813,11 +813,17 @@
     'use strict';
 
     // ====== Configuration ======
+    var LATEST_JSON   = 'news/latest.json';
     var ARCHIVE_INDEX = 'public-pages/news/archive_index.json';
     var dailyJsonForDate = function (dateStr) { return 'news/' + dateStr + '.json'; };
     var slideForDate = function (dateStr) {
       return 'presentations/day_slides/day_slide_' + dateStr.replace(/-/g, '_') + '.html';
     };
+    function dateFromIso(iso) {
+      // 'YYYY-MM-DDTHH:MM:SS+09:00' → 'YYYY-MM-DD' (in original timezone)
+      var m = /^(\d{4}-\d{2}-\d{2})/.exec(iso || '');
+      return m ? m[1] : null;
+    }
 
     // ====== Helpers ======
     var WEEKDAY_JP = ['日','月','火','水','木','金','土'];
@@ -991,40 +997,54 @@
       });
     }
 
-    fetchJson(ARCHIVE_INDEX).then(function (entries) {
-      // entries: [{date, file, count}, ...] sorted newest first
-      if (!Array.isArray(entries) || !entries.length) return;
-      renderWeek(entries);
-      renderStats(entries);
-      var latest = entries[0].date;
+    // Boot: fetch latest (today's highlight) and archive index in parallel.
+    // - latest.json drives the hero (today's date + today's highlight/categories)
+    // - archive_index.json drives This Week + stats
+    var latestPromise  = fetchJson(LATEST_JSON).catch(function () { return null; });
+    var archivePromise = fetchJson(ARCHIVE_INDEX).catch(function () { return null; });
 
-      // Hero card item count
-      var ic = document.getElementById('heroCardItems');
-      if (ic) {
-        ic.textContent = (entries[0].count || 0) + ' ITEMS';
-        clearSkel(ic);
+    Promise.all([latestPromise, archivePromise]).then(function (results) {
+      var latest = results[0];   // {generated_at, highlight, sections} or null
+      var entries = results[1];  // [{date, file, count}, ...] or null
+
+      // Decide today's date: prefer latest.json, fall back to archive_index[0]
+      var todayDate = null;
+      if (latest && latest.generated_at) todayDate = dateFromIso(latest.generated_at);
+      if (!todayDate && Array.isArray(entries) && entries.length) todayDate = entries[0].date;
+
+      // Hero
+      if (todayDate) {
+        renderHero(todayDate, latest);
+        if (latest) renderCategories(latest);
+      } else {
+        clearSkel(document.getElementById('heroDate'));
+        clearSkel(document.getElementById('heroHighlight'));
+        clearSkel(document.getElementById('heroCardItems'));
       }
 
-      // Try to fetch the day's news JSON for highlight + categories
-      fetchJson(dailyJsonForDate(latest)).then(function (daily) {
-        renderHero(latest, daily);
-        renderCategories(daily);
-      }).catch(function () {
-        // Fallback: render hero with date only
-        renderHero(latest, null);
-      });
-    }).catch(function (err) {
-      // Total failure: clear shimmer placeholders so page is still readable
-      ['heroDate','heroHighlight','heroCardItems'].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) {
-          clearSkel(el);
-          if (id === 'heroDate') el.textContent = '';
-          if (id === 'heroHighlight') el.textContent = '今日のスライドをご覧ください。';
-          if (id === 'heroCardItems') el.textContent = '';
+      // Hero card item count: prefer today's archive entry count, else fall back to latest entry
+      var ic = document.getElementById('heroCardItems');
+      if (ic && Array.isArray(entries) && entries.length) {
+        var todayEntry = entries.find ? entries.find(function (e) { return e.date === todayDate; }) : null;
+        var count = (todayEntry && todayEntry.count) || entries[0].count || 0;
+        ic.textContent = count + ' ITEMS';
+        clearSkel(ic);
+      } else if (ic) {
+        clearSkel(ic);
+        ic.textContent = '';
+      }
+
+      // This Week + stats from archive_index
+      if (Array.isArray(entries) && entries.length) {
+        // If today's date isn't yet in archive_index, prepend a synthetic entry
+        // so the week grid leads with today's slide.
+        var weekEntries = entries.slice();
+        if (todayDate && weekEntries[0].date !== todayDate) {
+          weekEntries.unshift({ date: todayDate, count: weekEntries[0].count || 0 });
         }
-      });
-      console.warn('[index] archive fetch failed:', err);
+        renderWeek(weekEntries);
+        renderStats(weekEntries);
+      }
     });
   })();
   </script>
