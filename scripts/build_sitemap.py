@@ -27,6 +27,7 @@ ROOT_PAGES: list[tuple[str, str, float]] = [
     ("about.html", "monthly", 0.8),
     ("contact.html", "yearly", 0.5),
     ("privacy-policy.html", "yearly", 0.5),
+    ("credits.html", "yearly", 0.3),
 ]
 
 PRESENTATION_DIRS = [
