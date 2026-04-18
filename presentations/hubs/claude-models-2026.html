@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!-- Hub #5 — Claude モデル別 料金・性能比較 2026 -->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude モデル別 料金・性能比較2026｜Opus 4.7 / Sonnet 4.6 / Haiku 4.5 の使い分け</title>
+  <meta name="description" content="Anthropic Claude の現行モデル（Opus 4.7・Sonnet 4.6・Haiku 4.5）を料金・性能・向き不向き・コンテキスト長・プロンプトキャッシュ対応で比較。毎日使っている運営者 awano27 が実運用視点で使い分け指針をまとめました。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/hubs/claude-models-2026.html" />
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large" />
+  <meta name="author" content="awano27 (Claudian)" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="AI Intelligence Hub" />
+  <meta property="og:title" content="Claude モデル別 料金・性能比較2026｜Opus / Sonnet / Haiku" />
+  <meta property="og:description" content="Claude 4.x 系3モデルを料金・性能・用途別に比較。毎日使う運営者の実運用ベース。" />
+  <meta property="og:url" content="https://visionhub.jp/presentations/hubs/claude-models-2026.html" />
+  <meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude モデル別 料金・性能比較2026" />
+  <meta name="twitter:description" content="Opus 4.7 / Sonnet 4.6 / Haiku 4.5 を運営者の実運用で比較。" />
+  <meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Article",
+   "headline":"Claude モデル別 料金・性能比較2026｜Opus 4.7 / Sonnet 4.6 / Haiku 4.5",
+   "datePublished":"2026-04-19","dateModified":"2026-04-19","inLanguage":"ja",
+   "author":{"@type":"Person","name":"awano27","alternateName":"Claudian","url":"https://visionhub.jp/about.html"},
+   "publisher":{"@type":"Organization","name":"AI Intelligence Hub","url":"https://visionhub.jp/",
+     "logo":{"@type":"ImageObject","url":"https://visionhub.jp/assets/og/default.png","width":1200,"height":630}},
+   "image":["https://visionhub.jp/assets/og/default.png"],
+   "mainEntityOfPage":"https://visionhub.jp/presentations/hubs/claude-models-2026.html",
+   "articleSection":"Guide",
+   "keywords":"Claude, Anthropic, Opus, Sonnet, Haiku, 料金, 性能, 比較, モデル"}
+  </script>
+  <script src="/assets/js/analytics.js" defer></script>
+  <style>
+    :root{--bg:#070F26;--panel:#0D1733;--panel2:#121E42;--ink:#EDF2FF;--mute:#8A9ABF;--mute2:#B5C3E1;--accent:#FFCC00;--accent2:#5EE7DF;--line:rgba(255,255,255,.08);--code-bg:#08122A}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP",system-ui,sans-serif;line-height:1.85;font-size:16px}
+    a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+    .container{max-width:880px;margin:0 auto;padding:0 24px}
+    header.site-header{border-bottom:1px solid var(--line);padding:18px 0;background:rgba(7,15,38,.92);backdrop-filter:saturate(140%) blur(8px);position:sticky;top:0;z-index:10}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center;color:var(--ink);font-weight:700}
+    .brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--accent);color:#111;font-weight:900}
+    .nav a{color:var(--mute);margin-left:18px;font-size:14px;font-weight:600}.nav a:hover{color:var(--ink)}
+    main{padding:56px 0 96px}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .eyebrow .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+    h1{font-size:clamp(28px,4.5vw,42px);line-height:1.25;margin:0 0 14px;letter-spacing:-.01em}
+    h1 .accent{color:var(--accent)}
+    .lede{color:var(--mute2);font-size:17px;margin:0 0 24px;max-width:66ch}
+    .byline{color:var(--mute);font-size:13px;margin:-6px 0 32px}.byline a{color:var(--mute2)}
+    h2{font-size:clamp(22px,3vw,28px);margin:48px 0 12px;padding-left:14px;border-left:4px solid var(--accent);scroll-margin-top:80px}
+    h3{font-size:18px;margin:24px 0 8px;color:var(--accent2)}
+    p{margin:8px 0 14px}
+    .toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 26px;margin:10px 0 36px}
+    .toc h2{margin:0 0 8px;font-size:16px;letter-spacing:.04em;text-transform:uppercase;border:none;padding-left:0;color:var(--mute)}
+    .toc ol{margin:0;padding-left:22px;font-size:15px}.toc li{margin:4px 0}
+    ul,ol{padding-left:22px;margin:8px 0 16px}li{margin:6px 0}
+    table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+    th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+    th{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+    .cc-callout{display:block;margin:16px 0;padding:14px 16px;background:rgba(255,204,0,.08);border-left:3px solid var(--accent);border-radius:8px;font-size:14.5px;line-height:1.75}
+    .cc-callout strong{color:var(--accent)}
+    code{background:var(--code-bg);padding:2px 7px;border-radius:4px;font-family:"JetBrains Mono","Menlo",Consolas,monospace;font-size:.92em;color:var(--accent2)}
+    .verdict{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:20px 26px;margin:18px 0}
+    .verdict h3{color:var(--accent);margin-top:0}
+    .related{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+    .related a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--ink);font-size:14px;line-height:1.5}
+    .related a:hover{border-color:var(--accent);text-decoration:none}
+    .related .date{display:block;color:var(--mute);font-size:12px;margin-bottom:4px}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;background:var(--accent);color:#111;font-weight:800;font-size:14px}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .btn:hover{text-decoration:none;filter:brightness(1.08)}
+    footer.site-footer{border-top:1px solid var(--line);padding:28px 0;color:var(--mute);font-size:13px}
+    .footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/"><span class="brand-mark">AI</span><span>INTELLIGENCE HUB</span></a>
+      <nav class="nav" aria-label="グローバル">
+        <a href="/">ホーム</a><a href="/about.html">運営者</a>
+        <a href="/privacy-policy.html">プライバシー</a><a href="/contact.html">お問い合わせ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="container">
+      <div class="eyebrow"><span class="dot"></span><span>HUB · CLAUDE MODELS</span></div>
+      <h1>Claude モデル別 <span class="accent">料金・性能比較</span> 2026<br>Opus 4.7 / Sonnet 4.6 / Haiku 4.5</h1>
+      <p class="byline">更新：2026-04-19 ／ 著：<a href="/about.html">awano27 (Claudian)</a></p>
+      <p class="lede">
+        「Opus と Sonnet どっち使えばいい？」という質問に、<strong>運営者の実運用タスクごとの使い分け表</strong>で
+        答えるガイドです。Anthropic 公式の価格・コンテキスト長・プロンプトキャッシュ対応を整理したうえで、
+        visionhub.jp を実際に回している観点からの推奨を付記します。
+      </p>
+
+      <nav class="toc" aria-label="目次">
+        <h2>このページで分かること</h2>
+        <ol>
+          <li><a href="#lineup">2026年4月時点のラインナップ</a></li>
+          <li><a href="#pricing">API 料金の比較</a></li>
+          <li><a href="#caching">プロンプトキャッシュの効き方</a></li>
+          <li><a href="#bench">性能の実運用ベンチ（運営者基準）</a></li>
+          <li><a href="#use">タスク別使い分け表</a></li>
+          <li><a href="#tips">料金を 1/3 に抑える3つの運用テク</a></li>
+          <li><a href="#related">関連記事</a></li>
+        </ol>
+      </nav>
+
+      <section id="lineup">
+        <h2>1. ラインナップ</h2>
+        <table>
+          <thead><tr><th>モデル</th><th>コード名</th><th>コンテキスト</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td>Claude Opus 4.7</td><td><code>claude-opus-4-7</code></td><td>1M tokens</td><td>難題・複雑な推論・最高品質のコード生成</td></tr>
+            <tr><td>Claude Sonnet 4.6</td><td><code>claude-sonnet-4-6</code></td><td>1M tokens</td><td>日次運用・コーディング主力</td></tr>
+            <tr><td>Claude Haiku 4.5</td><td><code>claude-haiku-4-5-20251001</code></td><td>200K tokens</td><td>高速分類・要約・大量バッチ</td></tr>
+          </tbody>
+        </table>
+        <p class="cc-callout"><strong>注意。</strong>価格・コンテキスト上限は Anthropic 側で変更されることがあります。
+          最新値は必ず <a href="https://www.anthropic.com/pricing" rel="noopener">公式価格ページ</a> で確認してください。</p>
+      </section>
+
+      <section id="pricing">
+        <h2>2. API 料金</h2>
+        <table>
+          <thead><tr><th>モデル</th><th>Input (/1M)</th><th>Output (/1M)</th><th>Cache write</th><th>Cache read</th></tr></thead>
+          <tbody>
+            <tr><td>Opus 4.7</td><td>$15</td><td>$75</td><td>$18.75</td><td>$1.50</td></tr>
+            <tr><td>Sonnet 4.6</td><td>$3</td><td>$15</td><td>$3.75</td><td>$0.30</td></tr>
+            <tr><td>Haiku 4.5</td><td>$0.25</td><td>$1.25</td><td>$0.31</td><td>$0.025</td></tr>
+          </tbody>
+        </table>
+        <p>Opus と Haiku の差は <strong>最大 60 倍</strong>。同じタスクでも「どのモデルを選ぶか」で
+          月額 API 料金が桁で変わります。</p>
+      </section>
+
+      <section id="caching">
+        <h2>3. プロンプトキャッシュ</h2>
+        <p>2026 年の Claude API は<strong>プロンプトキャッシュ標準装備</strong>です。
+          以下の条件を満たすと、過去 5 分以内の同一プレフィックスは<strong>最大 90% 割引</strong>で再利用できます：</p>
+        <ul>
+          <li>キャッシュしたいブロックに <code>cache_control: {"type": "ephemeral"}</code> を付ける</li>
+          <li>1024 トークン以上のブロックが対象（小さすぎると対象外）</li>
+          <li>TTL は 5 分（5m）と 1 時間（1h）の2種類</li>
+          <li>システムプロンプト・tool 定義・長文 reference を前方に置き、そこまでをキャッシュ</li>
+        </ul>
+        <p class="cc-callout"><strong>運営者の運用例。</strong>
+          visionhub.jp で使っている下書きプロンプト（共通指示 + 既存スライドテンプレート + スタイルガイド、
+          合計 8〜10 K トークン）はキャッシュ前提で設計。1 スライド生成のコストが数セントに収まっています。</p>
+      </section>
+
+      <section id="bench">
+        <h2>4. 性能の実運用ベンチ（運営者基準）</h2>
+        <p>抽象的なベンチ数値は公式サイトを見てもらうとして、ここでは<strong>実タスクでの体感</strong>を
+          5 点満点で示します：</p>
+        <table>
+          <thead><tr><th>タスク</th><th>Opus 4.7</th><th>Sonnet 4.6</th><th>Haiku 4.5</th></tr></thead>
+          <tbody>
+            <tr><td>多ファイル同時リファクタ</td><td>★★★★★</td><td>★★★★</td><td>★★</td></tr>
+            <tr><td>スライド本文の生成</td><td>★★★★★</td><td>★★★★★</td><td>★★★</td></tr>
+            <tr><td>日本語要約</td><td>★★★★★</td><td>★★★★★</td><td>★★★★</td></tr>
+            <tr><td>JSON 分類</td><td>★★★★★</td><td>★★★★</td><td>★★★★★</td></tr>
+            <tr><td>応答速度</td><td>★★</td><td>★★★★</td><td>★★★★★</td></tr>
+            <tr><td>コスパ（時給換算）</td><td>★★★</td><td>★★★★★</td><td>★★★★</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="use">
+        <h2>5. タスク別使い分け表</h2>
+        <div class="verdict">
+          <h3>日次スライド生成・SEO改善・複数ファイル編集</h3>
+          <p>→ <strong>Sonnet 4.6</strong> が第一選択。コスパと品質のバランスが抜群。</p>
+        </div>
+        <div class="verdict">
+          <h3>アーキテクチャ設計・難バグの根本原因解析</h3>
+          <p>→ <strong>Opus 4.7</strong>。料金は張るが「時間を買う」価値あり。</p>
+        </div>
+        <div class="verdict">
+          <h3>ニュース分類・タグ付け・短い要約の大量バッチ</h3>
+          <p>→ <strong>Haiku 4.5</strong>。数千件の処理でも数百円で終わる。</p>
+        </div>
+        <div class="verdict">
+          <h3>エンタープライズ RAG の回答生成</h3>
+          <p>→ <strong>Sonnet + キャッシュ</strong>。Opus は必要な場面だけ選択的に呼ぶ。</p>
+        </div>
+      </section>
+
+      <section id="tips">
+        <h2>6. 料金を 1/3 に抑える3つの運用テク</h2>
+        <ol>
+          <li><strong>Sonnet をデフォルト、Opus は明示ルート</strong>：
+            「難しいタスクのみ Opus」という分岐をアプリ側で入れる</li>
+          <li><strong>長い reference は必ずキャッシュ</strong>：
+            システムプロンプトと共通指示ブロックを <code>ephemeral</code> 付きで最初に置く</li>
+          <li><strong>分類・ラベリングは Haiku に流す</strong>：
+            この工程で Opus を使うのは最もコスパが悪い</li>
+        </ol>
+      </section>
+
+      <section id="related">
+        <h2>7. 関連記事</h2>
+        <div class="related">
+          <a href="/presentations/hubs/claude-code-guide-2026.html">
+            <span class="date">HUB</span>Claude Code 完全ガイド2026
+          </a>
+          <a href="/presentations/hubs/ai-model-comparison-2026.html">
+            <span class="date">HUB</span>Claude vs ChatGPT vs Gemini 比較
+          </a>
+          <a href="/presentations/hubs/mcp-complete-guide.html">
+            <span class="date">HUB</span>MCP 完全ガイド
+          </a>
+          <a href="/presentations/hubs/ai-funding-2026.html">
+            <span class="date">HUB</span>AI資金調達まとめ2026
+          </a>
+        </div>
+        <div class="cta-row">
+          <a class="btn" href="/">最新スライドを見る</a>
+          <a class="btn ghost" href="/contact.html">質問を送る</a>
+        </div>
+      </section>
+
+      <p style="color:var(--mute);font-size:12px;margin-top:48px;text-align:center">
+        最終更新：2026-04-19 ／ © 2026 awano27 — AI Intelligence Hub
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© 2026 awano27 — AI Intelligence Hub — AIの最前線を5分で</span>
+      <span>
+        <a href="/about.html">About</a> ·
+        <a href="/privacy-policy.html">Privacy</a> ·
+        <a href="/contact.html">Contact</a> ·
+        <a href="https://github.com/awano27/ai-news-site">GitHub</a>
+      </span>
+    </div>
+  </footer>
+</body>
+</html>

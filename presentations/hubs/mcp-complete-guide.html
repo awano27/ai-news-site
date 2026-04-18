@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!-- Hub #3 — MCP (Model Context Protocol) 完全ガイド / Draft by Claude Code -->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP (Model Context Protocol) 完全ガイド2026｜仕組み・主要サーバ・Claude Code連携</title>
+  <meta name="description" content="Anthropic が提唱する Model Context Protocol (MCP) の基本から、実務で使える主要 MCP サーバ（GitHub / Postgres / Filesystem / Slack）の導入、Claude Code との接続手順まで解説。毎日使っている運営者 awano27 による実践ガイドです。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/hubs/mcp-complete-guide.html" />
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large" />
+  <meta name="author" content="awano27 (Claudian)" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="AI Intelligence Hub" />
+  <meta property="og:title" content="MCP (Model Context Protocol) 完全ガイド2026" />
+  <meta property="og:description" content="MCP の仕組み・主要サーバ・Claude Code 連携手順を、毎日使っている運営者が実務視点で解説。" />
+  <meta property="og:url" content="https://visionhub.jp/presentations/hubs/mcp-complete-guide.html" />
+  <meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MCP 完全ガイド2026" />
+  <meta name="twitter:description" content="Model Context Protocol の仕組みと実務活用を完全解説。" />
+  <meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Article",
+   "headline":"MCP (Model Context Protocol) 完全ガイド2026",
+   "datePublished":"2026-04-19","dateModified":"2026-04-19","inLanguage":"ja",
+   "author":{"@type":"Person","name":"awano27","alternateName":"Claudian","url":"https://visionhub.jp/about.html"},
+   "publisher":{"@type":"Organization","name":"AI Intelligence Hub","url":"https://visionhub.jp/",
+     "logo":{"@type":"ImageObject","url":"https://visionhub.jp/assets/og/default.png","width":1200,"height":630}},
+   "image":["https://visionhub.jp/assets/og/default.png"],
+   "mainEntityOfPage":"https://visionhub.jp/presentations/hubs/mcp-complete-guide.html",
+   "articleSection":"Guide",
+   "keywords":"MCP, Model Context Protocol, Anthropic, Claude Code, AI エージェント, tool use"}
+  </script>
+  <script src="/assets/js/analytics.js" defer></script>
+  <style>
+    :root{--bg:#070F26;--panel:#0D1733;--panel2:#121E42;--ink:#EDF2FF;--mute:#8A9ABF;--mute2:#B5C3E1;--accent:#FFCC00;--accent2:#5EE7DF;--line:rgba(255,255,255,.08);--code-bg:#08122A}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP",system-ui,sans-serif;line-height:1.85;font-size:16px}
+    a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+    .container{max-width:880px;margin:0 auto;padding:0 24px}
+    header.site-header{border-bottom:1px solid var(--line);padding:18px 0;background:rgba(7,15,38,.92);backdrop-filter:saturate(140%) blur(8px);position:sticky;top:0;z-index:10}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center;color:var(--ink);font-weight:700}
+    .brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--accent);color:#111;font-weight:900}
+    .nav a{color:var(--mute);margin-left:18px;font-size:14px;font-weight:600}.nav a:hover{color:var(--ink)}
+    main{padding:56px 0 96px}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .eyebrow .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+    h1{font-size:clamp(28px,4.5vw,42px);line-height:1.25;margin:0 0 14px;letter-spacing:-.01em}
+    h1 .accent{color:var(--accent)}
+    .lede{color:var(--mute2);font-size:17px;margin:0 0 24px;max-width:66ch}
+    .byline{color:var(--mute);font-size:13px;margin:-6px 0 32px}.byline a{color:var(--mute2)}
+    h2{font-size:clamp(22px,3vw,28px);margin:48px 0 12px;padding-left:14px;border-left:4px solid var(--accent);scroll-margin-top:80px}
+    h3{font-size:18px;margin:24px 0 8px;color:var(--accent2)}
+    p{margin:8px 0 14px}
+    .toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 26px;margin:10px 0 36px}
+    .toc h2{margin:0 0 8px;font-size:16px;letter-spacing:.04em;text-transform:uppercase;border:none;padding-left:0;color:var(--mute)}
+    .toc ol{margin:0;padding-left:22px;font-size:15px}.toc li{margin:4px 0}
+    ul,ol{padding-left:22px;margin:8px 0 16px}li{margin:6px 0}
+    pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;overflow-x:auto;line-height:1.6}
+    pre code{background:transparent;padding:0;color:var(--ink);font-size:13px}
+    code{background:var(--code-bg);padding:2px 7px;border-radius:4px;font-family:"JetBrains Mono","Menlo",Consolas,monospace;font-size:.92em;color:var(--accent2)}
+    table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+    th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+    th{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+    .cc-callout{display:block;margin:16px 0;padding:14px 16px;background:rgba(255,204,0,.08);border-left:3px solid var(--accent);border-radius:8px;font-size:14.5px;line-height:1.75}
+    .cc-callout strong{color:var(--accent)}
+    .related{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+    .related a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--ink);font-size:14px;line-height:1.5}
+    .related a:hover{border-color:var(--accent);text-decoration:none}
+    .related .date{display:block;color:var(--mute);font-size:12px;margin-bottom:4px}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;background:var(--accent);color:#111;font-weight:800;font-size:14px}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .btn:hover{text-decoration:none;filter:brightness(1.08)}
+    footer.site-footer{border-top:1px solid var(--line);padding:28px 0;color:var(--mute);font-size:13px}
+    .footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/"><span class="brand-mark">AI</span><span>INTELLIGENCE HUB</span></a>
+      <nav class="nav" aria-label="グローバル">
+        <a href="/">ホーム</a><a href="/about.html">運営者</a>
+        <a href="/privacy-policy.html">プライバシー</a><a href="/contact.html">お問い合わせ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="container">
+      <div class="eyebrow"><span class="dot"></span><span>HUB · AGENT PROTOCOL</span></div>
+      <h1>MCP <span class="accent">(Model Context Protocol)</span><br>完全ガイド2026</h1>
+      <p class="byline">更新：2026-04-19 ／ 著：<a href="/about.html">awano27 (Claudian)</a></p>
+      <p class="lede">
+        MCP は「<strong>LLM と外部ツールをつなぐ、USB Type-C のようなオープン標準</strong>」です。
+        2024 年末に Anthropic が公開して以来、2026 年現在では OpenAI・Google も準拠を発表、
+        AI エージェントの<strong>de facto スタンダード</strong>になりつつあります。
+        このガイドでは MCP の仕組み・主要サーバ・Claude Code 連携を実務視点で解説します。
+      </p>
+
+      <nav class="toc" aria-label="目次">
+        <h2>このページで分かること</h2>
+        <ol>
+          <li><a href="#what">MCP とは何か / 何が嬉しいのか</a></li>
+          <li><a href="#architecture">アーキテクチャ（Client / Server / Transport）</a></li>
+          <li><a href="#servers">実務で使える主要 MCP サーバ</a></li>
+          <li><a href="#setup">Claude Code / Claude Desktop での設定</a></li>
+          <li><a href="#build">自作 MCP サーバの書き方（Python）</a></li>
+          <li><a href="#security">セキュリティと運用上の注意</a></li>
+          <li><a href="#related">関連記事</a></li>
+        </ol>
+      </nav>
+
+      <section id="what">
+        <h2>1. MCP とは何か</h2>
+        <p>
+          <strong>Model Context Protocol</strong> は、LLM（Claude / GPT 等）が
+          外部ツール・データソースにアクセスするための共通プロトコルです。
+          従来、各 LLM ベンダーが「Function Calling」「Plugin」「Custom GPTs」など
+          独自仕様で Tool Use を実装していたのを、<strong>ベンダー横断の標準</strong>に統一する試みです。
+        </p>
+        <div class="cc-callout">
+          <strong>アナロジー。</strong>
+          USB Type-C が登場するまで、各メーカーが独自コネクタを作っていたように、
+          MCP 登場前は各 LLM ベンダーが独自 Tool Use 仕様を作っていました。
+          MCP はこの乱立を終わらせる統一規格です。
+        </div>
+      </section>
+
+      <section id="architecture">
+        <h2>2. アーキテクチャ</h2>
+        <p>3つの要素で構成されます：</p>
+        <ul>
+          <li><strong>Host</strong>：LLM が動く環境（Claude Desktop / Claude Code / VS Code 拡張）</li>
+          <li><strong>Client</strong>：Host 内で MCP Server と会話する通信代理</li>
+          <li><strong>Server</strong>：ツールの実体。GitHub API・DB・ファイルシステム等を MCP 経由で提供する</li>
+        </ul>
+        <p>Transport には <code>stdio</code>（ローカルプロセス）と <code>SSE/HTTP</code>（リモート）の2種類があります。
+          個人利用なら stdio で十分、企業ネット越しなら SSE を選択。</p>
+      </section>
+
+      <section id="servers">
+        <h2>3. 実務で使える主要 MCP サーバ</h2>
+        <table>
+          <thead><tr><th>サーバ</th><th>用途</th><th>おすすめ度</th></tr></thead>
+          <tbody>
+            <tr><td><code>server-filesystem</code></td><td>指定ディレクトリへの読み書き</td><td>★★★★★ 必須</td></tr>
+            <tr><td><code>server-github</code></td><td>Issue / PR / コード検索</td><td>★★★★★</td></tr>
+            <tr><td><code>server-postgres</code></td><td>read-only SQL 実行</td><td>★★★★</td></tr>
+            <tr><td><code>server-slack</code></td><td>メッセージ送受信</td><td>★★★★</td></tr>
+            <tr><td><code>server-google-drive</code></td><td>Drive / Docs へのアクセス</td><td>★★★</td></tr>
+            <tr><td><code>context-mode</code>（サードパーティ）</td><td>大出力をサンドボックスで処理、Claude の context を節約</td><td>★★★★★</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="setup">
+        <h2>4. Claude Code / Claude Desktop での設定</h2>
+        <p>Mac/Linux の場合 <code>~/.claude/claude_desktop_config.json</code>、Windows は <code>%APPDATA%\Claude\claude_desktop_config.json</code> を編集：</p>
+        <pre><code>{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/develop/ai-news-site"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_..." }
+    }
+  }
+}</code></pre>
+        <p>保存後、Claude Desktop / Claude Code を再起動すると接続済みサーバ一覧が表示されます。</p>
+      </section>
+
+      <section id="build">
+        <h2>5. 自作 MCP サーバの書き方</h2>
+        <p>Python 版 SDK (<code>mcp</code>) を使うと数十行で自作できます：</p>
+        <pre><code># pip install "mcp[cli]"
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("my-weather")
+
+@mcp.tool()
+def get_weather(city: str) -> str:
+    """指定都市の天気を返す"""
+    return f"{city} は晴れです"
+
+if __name__ == "__main__":
+    mcp.run()</code></pre>
+        <p><code>claude_desktop_config.json</code> で <code>"command": "python", "args": ["my_weather.py"]</code>
+          を指すだけで Claude から呼び出せるようになります。</p>
+      </section>
+
+      <section id="security">
+        <h2>6. セキュリティと運用上の注意</h2>
+        <ul>
+          <li><strong>API キーは必ず環境変数経由</strong>：設定ファイルに直書きしない</li>
+          <li><strong>write 系ツールは最小権限で</strong>：read-only で済むなら read-only にする</li>
+          <li><strong>ファイルシステムサーバは対象パス限定</strong>：ホームディレクトリ全体を渡さない</li>
+          <li><strong>本番 DB は基本繋がない</strong>：レプリカ or サンドボックスを推奨</li>
+          <li><strong>Prompt Injection 対策</strong>：外部コンテンツを読ませる時は、そのコンテンツが LLM に命令を出せることを前提に設計</li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>7. 関連記事</h2>
+        <div class="related">
+          <a href="/presentations/hubs/claude-code-guide-2026.html">
+            <span class="date">HUB</span>Claude Code 完全ガイド2026
+          </a>
+          <a href="/presentations/hubs/ai-model-comparison-2026.html">
+            <span class="date">HUB</span>Claude vs ChatGPT vs Gemini 比較
+          </a>
+          <a href="/presentations/ai_coding_agents_guide.html">
+            <span class="date">GUIDE</span>AIコーディングエージェント完全比較
+          </a>
+          <a href="/">
+            <span class="date">LATEST</span>visionhub.jp 日次AIニュース
+          </a>
+        </div>
+        <div class="cta-row">
+          <a class="btn" href="/">最新スライドを見る</a>
+          <a class="btn ghost" href="/contact.html">質問を送る</a>
+        </div>
+      </section>
+
+      <p style="color:var(--mute);font-size:12px;margin-top:48px;text-align:center">
+        最終更新：2026-04-19 ／ © 2026 awano27 — AI Intelligence Hub
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© 2026 awano27 — AI Intelligence Hub — AIの最前線を5分で</span>
+      <span>
+        <a href="/about.html">About</a> ·
+        <a href="/privacy-policy.html">Privacy</a> ·
+        <a href="/contact.html">Contact</a> ·
+        <a href="https://github.com/awano27/ai-news-site">GitHub</a>
+      </span>
+    </div>
+  </footer>
+</body>
+</html>
