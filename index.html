@@ -171,39 +171,67 @@
       display: flex; align-items: center;
       padding-block: clamp(80px, 12vw, 160px);
       overflow: hidden;
-      background:
-        radial-gradient(1200px 600px at 80% 20%, rgba(13,110,253,0.18) 0, transparent 50%),
-        radial-gradient(900px 500px at 10% 80%, rgba(255,204,0,0.08) 0, transparent 55%),
-        linear-gradient(180deg, #070F26 0%, #0a1530 100%);
+      background-color: var(--navy);
+      isolation: isolate;
     }
-    /* Blueprint grid lines */
+    /* Layer 1: Planck portrait, monochrome with cool tint, anchored right */
+    .hero-bg {
+      position: absolute; inset: 0;
+      background-image: url('assets/hero-planck.jpg');
+      background-position: 75% center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      filter: grayscale(100%) contrast(1.05) brightness(0.85);
+      opacity: 0.55;
+      z-index: -2;
+    }
+    /* Layer 2: navy/blue color wash to brand-tint the photo */
+    .hero-tint {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(7,15,38,0.35) 0%, rgba(13,33,75,0.45) 100%);
+      mix-blend-mode: multiply;
+      z-index: -2;
+      pointer-events: none;
+    }
+    /* Layer 3: dark gradient that keeps the left side legible for text */
     .hero::before {
       content: '';
       position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 80px 80px;
-      mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
-      -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+      background:
+        linear-gradient(95deg, rgba(7,15,38,0.96) 0%, rgba(7,15,38,0.85) 35%, rgba(7,15,38,0.55) 60%, rgba(7,15,38,0.30) 85%, rgba(7,15,38,0.55) 100%),
+        radial-gradient(900px 500px at 12% 80%, rgba(255,204,0,0.10) 0, transparent 55%);
       pointer-events: none;
+      z-index: -1;
     }
-    /* Decorative concentric rings */
+    /* Layer 4: blueprint grid for tech texture, soft */
     .hero::after {
       content: '';
-      position: absolute;
-      right: -200px; top: 50%;
-      width: 700px; height: 700px;
-      transform: translateY(-50%);
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, transparent 38%, rgba(255,204,0,0.18) 39%, rgba(255,204,0,0.18) 40%, transparent 41%),
-        radial-gradient(circle, transparent 48%, rgba(13,110,253,0.20) 49%, rgba(13,110,253,0.20) 50%, transparent 51%),
-        radial-gradient(circle, transparent 58%, rgba(255,255,255,0.08) 59%, rgba(255,255,255,0.08) 60%, transparent 61%);
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 90% at 30% 50%, black 20%, transparent 90%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 90% at 30% 50%, black 20%, transparent 90%);
       pointer-events: none;
-      opacity: 0.85;
+      z-index: -1;
     }
-    @media (max-width: 920px) { .hero::after { right: -350px; opacity: 0.4; } }
+    /* Photo credit, lower right */
+    .hero-credit {
+      position: absolute;
+      right: 24px; bottom: 16px;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.45);
+      writing-mode: horizontal-tb;
+      z-index: 1;
+    }
+    .hero-credit a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.25); }
+    .hero-credit a:hover { color: var(--yellow); }
+    @media (max-width: 920px) {
+      .hero-bg { background-position: 70% center; opacity: 0.40; }
+      .hero::before { background: linear-gradient(180deg, rgba(7,15,38,0.92) 0%, rgba(7,15,38,0.80) 60%, rgba(7,15,38,0.65) 100%); }
+    }
 
     .hero-inner {
       position: relative; z-index: 2;
@@ -673,6 +701,8 @@
 
     <!-- =============== Hero =============== -->
     <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-tint" aria-hidden="true"></div>
       <div class="container">
         <div class="hero-inner reveal d1">
           <div class="hero-eyebrow">
@@ -705,6 +735,9 @@
             </a>
           </div>
         </div>
+      </div>
+      <div class="hero-credit">
+        Portrait: Max Planck (1938) by Hugo Erfurth · <a href="https://commons.wikimedia.org/wiki/File:Max_Planck_by_Hugo_Erfurth_1938cr_-_restoration1.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>
       </div>
     </section>
 
