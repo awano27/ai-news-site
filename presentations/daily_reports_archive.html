@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!--
+  AI Intelligence Hub — Daily Reports Archive
+  ------------------------------------------------------------
+  Past daily reports (日次スライド + 月次 digest) listed chronologically.
+  Reads public-pages/news/archive_index.json + presentations/digests/*
+  so it stays up-to-date automatically as new daily reports land.
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>デイリーレポート・アーカイブ | AI Intelligence Hub</title>
+  <meta name="description" content="visionhub.jp が毎日公開しているAIデイリーレポートの過去アーカイブ。日付・キーワードで絞り込み可能。月次ダイジェストと日次スライドをまとめて俯瞰できます。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/daily_reports_archive.html" />
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large" />
+  <meta name="author" content="awano27 (Claudian)" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="AI Intelligence Hub" />
+  <meta property="og:title" content="デイリーレポート・アーカイブ | AI Intelligence Hub" />
+  <meta property="og:description" content="過去のAIデイリーレポートをまとめて検索・閲覧できるアーカイブページ。" />
+  <meta property="og:url" content="https://visionhub.jp/presentations/daily_reports_archive.html" />
+  <meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="デイリーレポート・アーカイブ" />
+  <meta name="twitter:description" content="過去のAIデイリーレポートをまとめて閲覧。" />
+  <meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"CollectionPage",
+   "name":"デイリーレポート・アーカイブ | AI Intelligence Hub",
+   "url":"https://visionhub.jp/presentations/daily_reports_archive.html",
+   "inLanguage":"ja",
+   "author":{"@type":"Person","name":"awano27","url":"https://visionhub.jp/about.html"},
+   "publisher":{"@type":"Organization","name":"AI Intelligence Hub","url":"https://visionhub.jp/",
+     "logo":{"@type":"ImageObject","url":"https://visionhub.jp/assets/og/default.png","width":1200,"height":630}}}
+  </script>
+  <script src="/assets/js/analytics.js" defer></script>
+  <style>
+    :root{--bg:#070F26;--panel:#0D1733;--panel2:#121E42;--ink:#EDF2FF;--mute:#8A9ABF;--mute2:#B5C3E1;--accent:#FFCC00;--accent2:#5EE7DF;--line:rgba(255,255,255,.08)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP",system-ui,sans-serif;line-height:1.7}
+    a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+    .container{max-width:1080px;margin:0 auto;padding:0 24px}
+    header.site-header{border-bottom:1px solid var(--line);padding:18px 0;position:sticky;top:0;background:rgba(7,15,38,.92);backdrop-filter:saturate(140%) blur(8px);z-index:10}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center;color:var(--ink);font-weight:700}
+    .brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--accent);color:#111;font-weight:900}
+    .nav a{color:var(--mute);margin-left:18px;font-size:14px;font-weight:600}.nav a:hover{color:var(--ink)}
+    main{padding:48px 0 80px}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .eyebrow .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+    h1{font-size:clamp(28px,4vw,38px);line-height:1.25;margin:0 0 10px}
+    h1 .accent{color:var(--accent)}
+    .lede{color:var(--mute2);font-size:16px;margin:0 0 24px;max-width:68ch}
+    h2{font-size:20px;margin:40px 0 12px;padding-left:12px;border-left:4px solid var(--accent)}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0 22px}
+    .controls label{display:flex;flex-direction:column;gap:6px;color:var(--mute);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+    .controls input,.controls select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--ink);font-size:14px;min-width:180px}
+    .controls input:focus,.controls select:focus{outline:none;border-color:var(--accent)}
+    .count{color:var(--mute);font-size:13px;margin-left:auto;align-self:center}
+    .digest-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+    .digest-card{background:linear-gradient(180deg,var(--panel2) 0%,var(--panel) 100%);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:block;transition:border-color .15s,transform .15s}
+    .digest-card:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
+    .digest-card .m{display:block;color:var(--accent);font-weight:900;font-size:22px;letter-spacing:-.01em}
+    .digest-card .s{display:block;color:var(--mute);font-size:12px;margin-top:4px}
+    .day-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+    .day-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:grid;grid-template-columns:100px 1fr auto;gap:16px;align-items:center;transition:border-color .15s}
+    .day-item:hover{border-color:var(--accent)}
+    .day-item .date{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;color:var(--accent2);font-size:13px;font-weight:700}
+    .day-item .title{color:var(--ink);font-size:14.5px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .day-item a{color:inherit}.day-item a:hover{text-decoration:none;color:var(--accent)}
+    .day-item .cta{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+    @media (max-width:700px){
+      .day-item{grid-template-columns:80px 1fr;gap:10px}
+      .day-item .cta{grid-column:1/-1;justify-self:start}
+    }
+    .empty{color:var(--mute);text-align:center;padding:30px;background:var(--panel);border:1px dashed var(--line);border-radius:10px}
+    footer.site-footer{border-top:1px solid var(--line);padding:24px 0;color:var(--mute);font-size:13px}
+    .footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/"><span class="brand-mark">AI</span><span>INTELLIGENCE HUB</span></a>
+      <nav class="nav" aria-label="グローバル">
+        <a href="/">ホーム</a><a href="/about.html">運営者</a>
+        <a href="/privacy-policy.html">プライバシー</a><a href="/contact.html">お問い合わせ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="eyebrow"><span class="dot"></span><span>DAILY REPORTS · ARCHIVE</span></div>
+      <h1>デイリーレポート <span class="accent">アーカイブ</span></h1>
+      <p class="lede">
+        visionhub.jp が毎日 07:00 JST に公開している AIデイリーレポートの過去ログをまとめて閲覧できます。
+        月別ダイジェスト（当月の重要トピック抜粋）と、日別スライド（1トピック深掘り）の 2 系統で残しています。
+      </p>
+
+      <h2>月次ダイジェスト</h2>
+      <p class="lede" style="margin-top:-8px">
+        その月の重要ニュースをカテゴリ別に整理した月次版。SEOクエリ「YYYY年◯月 AIニュース まとめ」対応。
+      </p>
+      <div id="digestRow" class="digest-row">
+        <div class="empty">月次ダイジェストを読み込み中…</div>
+      </div>
+
+      <h2>日次レポート（日付順）</h2>
+      <div class="controls">
+        <label>キーワード
+          <input id="q" type="search" placeholder="タイトルで絞込み…" autocomplete="off" />
+        </label>
+        <label>年
+          <select id="yearSel">
+            <option value="">すべて</option>
+          </select>
+        </label>
+        <label>月
+          <select id="monthSel">
+            <option value="">すべて</option>
+          </select>
+        </label>
+        <span id="countLabel" class="count">読み込み中…</span>
+      </div>
+      <ul id="dayList" class="day-list"></ul>
+
+      <p style="color:var(--mute);font-size:12px;margin-top:32px;text-align:center">
+        © 2026 awano27 — AI Intelligence Hub — 毎日 07:00 JST 更新
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© 2026 awano27 — AI Intelligence Hub — AIの最前線を5分で</span>
+      <span>
+        <a href="/about.html">About</a> ·
+        <a href="/privacy-policy.html">Privacy</a> ·
+        <a href="/contact.html">Contact</a> ·
+        <a href="/credits.html">Credits</a>
+      </span>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    'use strict';
+    var ARCHIVE_INDEX = '/public-pages/news/archive_index.json';
+
+    function fmtDate(iso){
+      var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+      return m ? m[1]+'.'+m[2]+'.'+m[3] : iso;
+    }
+    function ymFromIso(iso){
+      var m = /^(\d{4})-(\d{2})/.exec(iso);
+      return m ? m[1]+'-'+m[2] : '';
+    }
+    function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+    // Static: months that have a digest page under presentations/digests/
+    var DIGEST_MONTHS = ['2026-04','2026-03','2026-02','2026-01','2025-12','2025-11','2025-10','2025-09','2025-08'];
+    var MONTH_JP = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+    function renderDigests(){
+      var row = document.getElementById('digestRow');
+      row.innerHTML = DIGEST_MONTHS.map(function(ym){
+        var p = ym.split('-');
+        var href = 'digests/'+ym+'.html';
+        return '<a class="digest-card" href="'+href+'">'+
+                 '<span class="m">'+(+p[0])+'年 '+MONTH_JP[+p[1]-1]+'</span>'+
+                 '<span class="s">'+ym+' ダイジェスト</span>'+
+               '</a>';
+      }).join('');
+    }
+
+    function renderDays(entries, filter){
+      var list = document.getElementById('dayList');
+      var q = filter.q.toLowerCase();
+      var y = filter.year;
+      var m = filter.month;
+
+      var filtered = entries.filter(function(e){
+        if (q && !(e.title||'').toLowerCase().includes(q) && !(e.date||'').includes(q)) return false;
+        if (y && !e.date.startsWith(y)) return false;
+        if (m && !e.date.includes('-'+m+'-')) return false;
+        return true;
+      });
+
+      document.getElementById('countLabel').textContent = filtered.length + ' / ' + entries.length + ' 件';
+
+      if (!filtered.length){
+        list.innerHTML = '<li class="empty">条件に一致するレポートがありません。</li>';
+        return;
+      }
+      list.innerHTML = filtered.slice(0, 500).map(function(e){
+        var slidePath = 'day_slides/day_slide_' + e.date.replace(/-/g,'_') + '.html';
+        var title = e.title || ('AIデイリーレポート ' + fmtDate(e.date));
+        return '<li class="day-item">'+
+                 '<span class="date">'+fmtDate(e.date)+'</span>'+
+                 '<span class="title"><a href="'+esc(slidePath)+'">'+esc(title)+'</a></span>'+
+                 '<a class="cta" href="'+esc(slidePath)+'">レポートを開く →</a>'+
+               '</li>';
+      }).join('');
+    }
+
+    function populateYearMonth(entries){
+      var years = {}, months = {};
+      entries.forEach(function(e){
+        var y = (e.date||'').slice(0,4);
+        var mm = (e.date||'').slice(5,7);
+        if (y) years[y] = 1;
+        if (mm) months[mm] = 1;
+      });
+      var yS = document.getElementById('yearSel');
+      Object.keys(years).sort().reverse().forEach(function(y){
+        var o = document.createElement('option'); o.value = y; o.textContent = y+'年'; yS.appendChild(o);
+      });
+      var mS = document.getElementById('monthSel');
+      Object.keys(months).sort().forEach(function(mm){
+        var o = document.createElement('option'); o.value = mm; o.textContent = (+mm)+'月'; mS.appendChild(o);
+      });
+    }
+
+    renderDigests();
+
+    fetch(ARCHIVE_INDEX+'?t='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.ok?r.json():[]})
+      .then(function(idx){
+        if(!Array.isArray(idx)) idx = [];
+        // Sort by date desc
+        idx.sort(function(a,b){return a.date<b.date?1:-1});
+        populateYearMonth(idx);
+
+        var state = {q:'',year:'',month:''};
+        function rerender(){renderDays(idx, state)}
+        document.getElementById('q').addEventListener('input', function(e){state.q=e.target.value;rerender()});
+        document.getElementById('yearSel').addEventListener('change', function(e){state.year=e.target.value;rerender()});
+        document.getElementById('monthSel').addEventListener('change', function(e){state.month=e.target.value;rerender()});
+        rerender();
+      })
+      .catch(function(){
+        document.getElementById('dayList').innerHTML = '<li class="empty">日次レポートの一覧を読み込めませんでした。<a href="/presentations/day_slides_index.html">日次スライド索引</a>から直接閲覧できます。</li>';
+        document.getElementById('countLabel').textContent = '—';
+      });
+  })();
+  </script>
+</body>
+</html>
