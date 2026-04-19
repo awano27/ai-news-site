@@ -75,7 +75,7 @@
   <header class="mast">
     <div class="inner">
       <div class="brand">Daily AI News</div>
-      <nav class="nav"><a href="./">Presentations</a><a href="daily_ai_news_report_latest.html">Report</a></nav>
+      <nav class="nav"><a href="./">Presentations</a><a href="auto_daily_report.html">Report</a></nav>
     </div>
   </header>
   <div class="wrap">
@@ -114,7 +114,7 @@
   </div>
 
   <script>
-  const SRC = 'daily_ai_news_report_latest.html';
+  const SRC = 'auto_daily_report.html';
   const state = { items: [], filtered: [], q: '', min: 0, band: 'all' };
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -177,25 +177,47 @@
 
   function parseItems(html){
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const rows = Array.from(doc.querySelectorAll('.news-item'));
-    const items = rows.map((row, idx) => {
-      const title = row.querySelector('.news-title')?.textContent?.trim() || '';
-      const score = parseInt(row.querySelector('.news-score')?.textContent || '0', 10) || 0;
-      const rank = parseInt(row.querySelector('.news-rank')?.textContent || String(idx+1), 10) || (idx+1);
-      let url = '';
-      const metaText = row.querySelector('.news-meta')?.textContent || '';
-      const m = metaText.match(/URL\s*=\s*([^,\s]+)/);
-      if (m) url = m[1];
-      let date = '';
-      const md = metaText.match(/謚慕ｨｿ日=([^,]+)/);
-      if (md) date = md[1].trim();
-      let summary = '';
-      const pAfter = row.querySelector('p');
-      if (pAfter) summary = pAfter.textContent.trim();
-      const points = Array.from(row.querySelectorAll('ul li')).slice(0,3).map(li=>li.textContent.trim()).filter(Boolean);
-      const label = labelFor(score);
-      return { title, score, rank, url, summary, date, points, label, idx };
+    const items = [];
+
+    // News rows (headlines + funding): div.row
+    Array.from(doc.querySelectorAll('div.row')).forEach((row, idx) => {
+      const title = row.querySelector('.row-title')?.textContent?.trim() || '';
+      if (!title) return;
+      const score = parseInt(row.querySelector('.row-score')?.textContent?.trim() || '0', 10) || 0;
+      const category = row.querySelector('.row-cat')?.textContent?.trim() || '';
+      const source = row.querySelector('.row-src')?.textContent?.trim() || '';
+      const summary = row.querySelector('.row-detail .d-summary')?.textContent?.trim() || '';
+      const points = Array.from(row.querySelectorAll('.row-detail .d-points li')).slice(0,5).map(li=>li.textContent.trim()).filter(Boolean);
+      const url = row.querySelector('.row-detail .d-url a')?.getAttribute('href') || '';
+      const rank = items.length + 1;
+      items.push({ title, score, rank, url, summary, date: '', points, label: labelFor(score), category, source, idx });
     });
+
+    // GitHub trending: div.gh
+    Array.from(doc.querySelectorAll('div.gh')).forEach((row) => {
+      const title = row.querySelector('.gh-name a')?.textContent?.trim() || '';
+      if (!title) return;
+      const url = row.querySelector('.gh-name a')?.getAttribute('href') || '';
+      const summary = row.querySelector('.gh-desc')?.textContent?.trim() || '';
+      const stars = row.querySelector('.gh-stars')?.textContent?.trim() || '';
+      const cmd = row.querySelector('.gh-cmd')?.textContent?.trim() || '';
+      const score = 60;
+      const rank = items.length + 1;
+      items.push({ title, score, rank, url, summary: [summary, stars].filter(Boolean).join(' / '), date: '', points: cmd?[cmd]:[], label: labelFor(score), category: 'GitHub', source: 'GitHub Trending', idx: rank-1 });
+    });
+
+    // HuggingFace / trending models: div.mdl
+    Array.from(doc.querySelectorAll('div.mdl')).forEach((row) => {
+      const title = row.querySelector('.gh-name a')?.textContent?.trim() || '';
+      if (!title) return;
+      const url = row.querySelector('.gh-name a')?.getAttribute('href') || '';
+      const summary = row.querySelector('.gh-desc')?.textContent?.trim() || '';
+      const cmd = row.querySelector('.gh-cmd')?.textContent?.trim() || '';
+      const score = 55;
+      const rank = items.length + 1;
+      items.push({ title, score, rank, url, summary, date: '', points: cmd?[cmd]:[], label: labelFor(score), category: 'AI Model', source: 'HuggingFace', idx: rank-1 });
+    });
+
     return items.map((x,i)=>({...x, idx:i})).sort((a,b)=> b.score - a.score || a.rank - b.rank);
   }
 
