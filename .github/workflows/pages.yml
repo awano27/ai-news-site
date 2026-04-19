@@ -1,9 +1,14 @@
 name: Deploy to GitHub Pages
 
+# Triggers on push to main, plus manual dispatch and a daily safety-net
+# cron (08:00 UTC = 17:00 JST) so the live site self-heals once a day
+# even if an external workflow partially broke it.
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
 
 permissions:
   contents: read
@@ -18,18 +23,45 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (sparse - site files only)
+      # Full checkout. The previous sparse-checkout excluded assets/,
+      # about.html, contact.html, privacy-policy.html, credits.html,
+      # 404.html, ads.txt, robots.txt, sitemap.xml, config/, CNAME,
+      # and ai-news-site/ — which caused periodic 404s every time a
+      # data-only workflow auto-committed news JSON.
+      - name: Checkout (full tree)
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            index.html
-            presentations
-            public-pages
-            news
-            templates
-            data
-            .nojekyll
-          sparse-checkout-cone-mode: false
+
+      - name: Strip server-side / dev-only paths before deploy
+        # Keep the artifact small + avoid leaking local helpers to the CDN.
+        run: |
+          rm -rf \
+            __pycache__ \
+            backup_untracked \
+            input \
+            script \
+            scripts \
+            src \
+            tests \
+            tools \
+            frontend \
+            data/__pycache__ \
+            .worktrees \
+            logs \
+            reports \
+            test-results \
+            _review_output \
+            .venv \
+            venv \
+            node_modules \
+            .playwright-mcp \
+            tmp_* \
+            tmpclaude-* \
+            *.pdf \
+            *.pptx \
+            *.patch || true
+          # Remove large PNG screenshots at repo root (dev captures)
+          rm -f index-*.png live-*.png verify-*.png nttdata-*.png \
+                antigravity_*.png *.bak *.bak.* || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

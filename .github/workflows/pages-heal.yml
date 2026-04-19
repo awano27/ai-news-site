@@ -1,0 +1,53 @@
+name: Pages self-heal
+
+# Hourly safety-net: probes a handful of critical URLs and, if any
+# returns 404, fires a fresh Pages build. Keeps the live site resilient
+# against GitHub Pages partial-deploy glitches and Fastly cached 404s.
+on:
+  schedule:
+    - cron: '17 * * * *'   # every hour at :17
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe critical URLs
+        id: probe
+        run: |
+          set +e
+          URLS=(
+            "https://visionhub.jp/"
+            "https://visionhub.jp/about.html"
+            "https://visionhub.jp/contact.html"
+            "https://visionhub.jp/privacy-policy.html"
+            "https://visionhub.jp/credits.html"
+            "https://visionhub.jp/404.html"
+            "https://visionhub.jp/ads.txt"
+            "https://visionhub.jp/robots.txt"
+            "https://visionhub.jp/sitemap.xml"
+            "https://visionhub.jp/assets/js/analytics.js"
+            "https://visionhub.jp/assets/hero-planck.jpg"
+            "https://visionhub.jp/assets/og/default.png"
+          )
+          FAILED=0
+          for u in "${URLS[@]}"; do
+            CODE=$(curl -sS -o /dev/null -w "%{http_code}" -H "Cache-Control: no-cache" "$u")
+            echo "$CODE  $u"
+            if [ "$CODE" != "200" ]; then
+              FAILED=$((FAILED + 1))
+            fi
+          done
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Trigger Pages rebuild if any failure
+        if: steps.probe.outputs.failed != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::warning::${{ steps.probe.outputs.failed }} URL(s) failed — triggering Pages rebuild"
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
