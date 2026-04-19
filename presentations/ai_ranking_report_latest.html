@@ -1,38 +1,251 @@
 <!DOCTYPE html>
+<!--
+  AI News Ranking — Latest (auto-refresh from public-pages/news/archive_index.json)
+  -------------------------------------------------------------------------------
+  Replaces the previous hardcoded 5-item stub with a page that loads the
+  latest day's JSON and renders the top items by importance score. Degrades
+  gracefully with a static fallback when the fetch fails.
+-->
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ランキング・レポート（最新）</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIニュース・ランキング（最新版）| AI Intelligence Hub</title>
+  <meta name="description" content="毎日更新のAIニュースから、重要度スコア上位を自動でランキング。モデル・ツール・研究発表・資金調達を俯瞰できる1ページ。運営者 awano27 の視点付き。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/ai_ranking_report_latest.html" />
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large" />
+  <meta name="author" content="awano27 (Claudian)" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="AI Intelligence Hub" />
+  <meta property="og:title" content="AIニュース・ランキング（最新版）" />
+  <meta property="og:description" content="AIニュースを毎日スコアリングしてランキング化。上位トピックだけ拾い読みできます。" />
+  <meta property="og:url" content="https://visionhub.jp/presentations/ai_ranking_report_latest.html" />
+  <meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AIニュース・ランキング（最新版）" />
+  <meta name="twitter:description" content="AIニュースを毎日スコアリングしてランキング化。" />
+  <meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org","@type":"ItemList","name":"AIニュース・ランキング（最新版）",
+    "url":"https://visionhub.jp/presentations/ai_ranking_report_latest.html","inLanguage":"ja",
+    "author":{"@type":"Person","name":"awano27","url":"https://visionhub.jp/about.html"}
+  }
+  </script>
+  <script src="/assets/js/analytics.js" defer></script>
   <style>
-    :root{--bg:#ffffff;--fg:#0f172a;--border:#e2e8f0;--accent:#3b82f6}
+    :root{--bg:#070F26;--panel:#0D1733;--panel2:#121E42;--ink:#EDF2FF;--mute:#8A9ABF;
+      --mute2:#B5C3E1;--accent:#FFCC00;--accent2:#5EE7DF;--line:rgba(255,255,255,.08)}
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
-    .wrap{max-width:960px;margin:0 auto;padding:20px}
-    .title{font-size:22px;font-weight:800;margin:0 0 10px}
-    .note{color:#64748b;margin:0 0 16px}
-    .list{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px}
-    .item{display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:10px 0}
-    .item:last-child{border-bottom:none}
-    .badge{display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:2px 8px;margin-right:8px}
-    a{color:var(--accent);text-decoration:none}
+    body{margin:0;background:var(--bg);color:var(--ink);
+      font-family:"Inter","Noto Sans JP",system-ui,sans-serif;line-height:1.75}
+    a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+    .container{max-width:880px;margin:0 auto;padding:0 24px}
+    header.site-header{border-bottom:1px solid var(--line);padding:18px 0;
+      position:sticky;top:0;background:rgba(7,15,38,.92);backdrop-filter:blur(8px);z-index:10}
+    .header-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center;font-weight:700;color:var(--ink)}
+    .brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;
+      background:var(--accent);color:#111;font-weight:900}
+    .nav a{color:var(--mute);margin-left:18px;font-size:14px;font-weight:600}
+    .nav a:hover{color:var(--ink)}
+    main{padding:48px 0 80px}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;
+      letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .eyebrow .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+    h1{font-size:clamp(28px,4vw,38px);line-height:1.25;margin:0 0 10px}
+    h1 .accent{color:var(--accent)}
+    .lede{color:var(--mute2);font-size:16px;margin:0 0 18px;max-width:64ch}
+    .date-meta{color:var(--mute);font-size:13px;margin-bottom:28px}
+    .rank{display:grid;gap:14px;margin:20px 0 32px}
+    .rank-item{display:grid;grid-template-columns:56px 1fr auto;gap:16px;
+      background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+    .rank-item .num{font-size:26px;font-weight:900;color:var(--accent);text-align:center;line-height:1}
+    .rank-item .title{font-size:17px;font-weight:700;line-height:1.45;color:var(--ink)}
+    .rank-item .meta{color:var(--mute);font-size:13px;margin-top:6px}
+    .rank-item .stars{color:var(--accent);font-weight:700;letter-spacing:.08em;font-size:14px;white-space:nowrap}
+    .rank-item .blurb{color:var(--mute2);font-size:14px;margin-top:8px;line-height:1.7}
+    .skel{background:linear-gradient(90deg,rgba(255,255,255,.03),rgba(255,255,255,.08),rgba(255,255,255,.03));
+      background-size:200% 100%;animation:sh 1.6s linear infinite;border-radius:6px;color:transparent}
+    @keyframes sh{to{background-position:-200% 0}}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 8px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;
+      background:var(--accent);color:#111;font-weight:800;font-size:14px}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .btn:hover{text-decoration:none;filter:brightness(1.08)}
+    footer.site-footer{border-top:1px solid var(--line);padding:26px 0;color:var(--mute);font-size:13px}
+    .footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .error{color:#ffb199;background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);
+      border-radius:10px;padding:12px 16px;margin:16px 0;font-size:14px}
   </style>
-<!-- GA4_INJECTED v1 -->
-<script src="/assets/js/analytics.js" defer></script>
 </head>
 <body>
-  <div class="wrap">
-    <h1 class="title">ランキング・レポート（最新）</h1>
-    <p class="note">簡易版を表示中です。詳細は「インタラクティブ版」をご利用ください。</p>
-    <div class="list">
-      <div class="item"><div><span class="badge">1</span>LongCat-Flash 560B MoE</div><div>Impact 96</div></div>
-      <div class="item"><div><span class="badge">2</span>MiniCPM‑V 4.5</div><div>Impact 94</div></div>
-      <div class="item"><div><span class="badge">3</span>OpenAI Codex (update)</div><div>Impact 95</div></div>
-      <div class="item"><div><span class="badge">4</span>Google MLE‑STAR</div><div>Impact 83</div></div>
-      <div class="item"><div><span class="badge">5</span>AlphaEarth Foundations</div><div>Impact 85</div></div>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/"><span class="brand-mark">AI</span><span>INTELLIGENCE HUB</span></a>
+      <nav class="nav" aria-label="グローバル">
+        <a href="/">ホーム</a><a href="/about.html">運営者</a>
+        <a href="/privacy-policy.html">プライバシー</a><a href="/contact.html">お問い合わせ</a>
+      </nav>
     </div>
-    <p class="note" style="margin-top:14px">インタラクティブ版: <a href="ai_ranking_interactive.html">こちら</a></p>
-  </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="eyebrow"><span class="dot"></span><span>DAILY RANKING · AUTO-REFRESH</span></div>
+      <h1>AIニュース<span class="accent">ランキング</span>（最新版）</h1>
+      <p class="lede">
+        直近1日のAI関連ニュースから、運営者が設定したスコアリング基準で<strong>重要度上位</strong>を
+        自動でピックアップしています。スコアは見出しの新規性・一次ソースの有無・業界インパクトで算出。
+      </p>
+      <div id="dateMeta" class="date-meta skel">読み込み中…</div>
+
+      <div class="cta-row">
+        <a class="btn" href="/presentations/ai_ranking_interactive.html">🔎 インタラクティブ版へ</a>
+        <a class="btn ghost" href="/">最新日次スライドへ</a>
+        <a class="btn ghost" href="/presentations/hubs/ai-model-comparison-2026.html">モデル比較ガイド</a>
+      </div>
+
+      <div id="rankList" class="rank">
+        <div class="rank-item"><span class="num skel">1</span><div><div class="title skel">読み込み中…</div></div><span class="stars skel">—</span></div>
+        <div class="rank-item"><span class="num skel">2</span><div><div class="title skel">読み込み中…</div></div><span class="stars skel">—</span></div>
+        <div class="rank-item"><span class="num skel">3</span><div><div class="title skel">読み込み中…</div></div><span class="stars skel">—</span></div>
+        <div class="rank-item"><span class="num skel">4</span><div><div class="title skel">読み込み中…</div></div><span class="stars skel">—</span></div>
+        <div class="rank-item"><span class="num skel">5</span><div><div class="title skel">読み込み中…</div></div><span class="stars skel">—</span></div>
+      </div>
+
+      <p style="color:var(--mute);font-size:12px;margin-top:24px">
+        ランキングは毎日 07:00 JST に自動更新されます。詳細な分析はインタラクティブ版をご利用ください。
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© 2026 awano27 — AI Intelligence Hub — AIの最前線を5分で</span>
+      <span>
+        <a href="/about.html">About</a> ·
+        <a href="/privacy-policy.html">Privacy</a> ·
+        <a href="/contact.html">Contact</a> ·
+        <a href="/credits.html">Credits</a>
+      </span>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+    var LATEST = '/news/latest.json';
+    var ARCHIVE = '/public-pages/news/archive_index.json';
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, function (c) {
+        return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+      });
+    }
+    function stars(n) {
+      n = Math.max(0, Math.min(5, Math.round(+n || 0)));
+      return '★'.repeat(n) + '☆'.repeat(5 - n);
+    }
+    function renderDate(iso) {
+      var el = document.getElementById('dateMeta');
+      if (!el) return;
+      el.classList.remove('skel');
+      var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+      el.textContent = m
+        ? m[1] + '年' + (+m[2]) + '月' + (+m[3]) + '日 の重要ニュース上位'
+        : '最新日の重要ニュース上位';
+    }
+
+    function collectItems(data) {
+      var pool = [];
+      if (data.highlight && data.highlight.title) {
+        pool.push({
+          title: data.highlight.title,
+          blurb: data.highlight.summary || '',
+          stars: data.highlight.stars || 5,
+          source: (data.highlight.sources || [{}])[0],
+          category: data.highlight.category || 'HIGHLIGHT'
+        });
+      }
+      var seen = {};
+      pool.forEach(function (p) { seen[p.title] = 1; });
+
+      var sections = data.sections || {};
+      Object.keys(sections).forEach(function (cat) {
+        (sections[cat] || []).forEach(function (raw) {
+          if (!raw || !raw.title || seen[raw.title]) return;
+          seen[raw.title] = 1;
+          pool.push({
+            title: raw.title,
+            blurb: raw.blurb || '',
+            stars: raw.stars || 0,
+            source: raw.source || {},
+            category: cat
+          });
+        });
+      });
+
+      pool.sort(function (a, b) { return (b.stars || 0) - (a.stars || 0); });
+      return pool.slice(0, 10);
+    }
+
+    function render(items) {
+      var list = document.getElementById('rankList');
+      if (!list) return;
+      if (!items.length) {
+        list.innerHTML = '<div class="error">最新のランキング情報が取得できませんでした。<a href="/">トップ</a>から直近のスライドをご覧ください。</div>';
+        return;
+      }
+      list.innerHTML = items.map(function (it, i) {
+        var src = it.source || {};
+        var srcHtml = src.url
+          ? ' · <a href="' + escapeHtml(src.url) + '" rel="noopener">' + escapeHtml(src.name || 'source') + ' ↗</a>'
+          : '';
+        return '<div class="rank-item">' +
+          '<span class="num">' + (i + 1) + '</span>' +
+          '<div>' +
+            '<div class="title">' + escapeHtml(it.title) + '</div>' +
+            (it.blurb ? '<div class="blurb">' + escapeHtml(it.blurb).slice(0, 160) + '…</div>' : '') +
+            '<div class="meta">' + escapeHtml(it.category || 'news') + srcHtml + '</div>' +
+          '</div>' +
+          '<span class="stars" title="' + it.stars + '">' + stars(it.stars) + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    function fetchLatest() {
+      return fetch(LATEST + '?t=' + Date.now())
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+    function fetchArchiveLatest() {
+      return fetch(ARCHIVE + '?t=' + Date.now())
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (idx) {
+          if (!idx || !Array.isArray(idx) || !idx.length) return null;
+          var sorted = idx.slice().sort(function (a, b) { return (a.date < b.date) ? 1 : -1; });
+          var target = sorted[0];
+          if (!target || !target.date) return null;
+          return fetch('/news/' + target.date + '.json?t=' + Date.now())
+            .then(function (r) { return r.ok ? r.json() : null; });
+        })
+        .catch(function () { return null; });
+    }
+
+    (fetchLatest().then(function (d) {
+      return d || fetchArchiveLatest();
+    })).then(function (data) {
+      if (!data) {
+        render([]);
+        renderDate(null);
+        return;
+      }
+      renderDate(data.generated_at || '');
+      render(collectItems(data));
+    });
+  })();
+  </script>
 </body>
 </html>
