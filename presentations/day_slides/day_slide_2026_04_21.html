@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemograph — AIの「記憶崩壊」を止める次世代メモリエンジン | 2026-04-21 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #07090d;
+  --bg-2: #04060a;
+  --surface: #0c1018;
+  --surface2: #11161f;
+  --surface3: #18202c;
+  --border: #1c2230;
+  --border-h: #2a3243;
+  --t1: #e8eef5;
+  --t2: #a8b3c2;
+  --t3: #5e6a7c;
+  --teal: #5fc8d6;
+  --teal-2: #87d8e3;
+  --teal-dim: rgba(95,200,214,.08);
+  --cream: #e8f1f5;
+  --amber: #e8a951;
+  --amber-dim: rgba(232,169,81,.08);
+  --green: #7dc28a;
+  --red: #d96159;
+  --blue: #6f9be8;
+  --plum: #b489b9;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  --serif: 'Fraunces', 'Times New Roman', Georgia, serif;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg); color: var(--t1); font-size: 16px; line-height: 1.75; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; position: relative; overflow-x: hidden; }
+
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: linear-gradient(rgba(95,200,214,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(95,200,214,.025) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: .5; mix-blend-mode: overlay;
+}
+.bar, .wrap { position: relative; z-index: 2; }
+
+.bar {
+  position: sticky; top: 0; z-index: 100; height: 52px;
+  display: flex; align-items: center; gap: 20px; padding: 0 32px;
+  background: rgba(7,9,13,.85); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase;
+}
+.bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--teal), transparent); opacity: .35; }
+.bar-logo { color: var(--cream); font-family: var(--serif); font-style: italic; font-size: 1.05rem; text-transform: none; }
+.bar-logo b { color: var(--teal); font-style: normal; font-weight: 600; }
+.bar-sep { color: var(--t3); }
+.bar-date { color: var(--t3); font-weight: 400; }
+.bar-nav { display: flex; gap: 1px; margin-left: auto; }
+.bar-nav a { color: var(--t2); text-decoration: none; padding: 7px 14px; border-radius: 3px; min-height: 36px; display: inline-flex; align-items: center; font-size: .78rem; letter-spacing: 1.1px; transition: color .15s, background .15s; }
+.bar-nav a:hover { color: var(--t1); background: var(--surface2); }
+.bar-nav a.on { color: var(--teal); background: var(--teal-dim); }
+.bar-live { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2.5s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px 80px; }
+
+.hero { position: relative; padding: 64px 0 40px; border-bottom: 1px solid var(--border); overflow: hidden; }
+.hero::before { content: ""; position: absolute; top: -40%; left: 20%; width: 60%; height: 140%; background: radial-gradient(ellipse at center, rgba(95,200,214,.18) 0%, transparent 60%); pointer-events: none; filter: blur(30px); }
+.hero-meta { display: flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: .78rem; letter-spacing: 1.8px; text-transform: uppercase; color: var(--t2); }
+.hero-meta .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 10px var(--teal); }
+.hero-meta .rule { flex: 0 0 40px; height: 1px; background: var(--border-h); }
+.hero-issue { color: var(--teal); font-weight: 500; }
+
+.hero-headline { font-family: var(--serif); font-weight: 350; font-size: clamp(2.4rem, 5.6vw, 4.2rem); line-height: 1.05; letter-spacing: -.025em; color: var(--cream); margin: 22px 0 10px; }
+.hero-headline .accent { font-style: italic; background: linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 60%, var(--cream) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .05em; }
+.hero-kicker { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 1.4rem; color: var(--teal-2); margin: 10px 0 18px; line-height: 1.3; }
+
+.hero-sub { font-family: var(--sans); font-size: 1.02rem; font-weight: 400; color: var(--t2); max-width: 72ch; line-height: 1.85; margin-top: 14px; }
+.hero-sub strong { color: var(--cream); font-weight: 500; }
+
+.hero-cover { margin: 36px 0 0; border-radius: 4px; overflow: hidden; position: relative; border: 1px solid var(--border); box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(95,200,214,.1); }
+.hero-cover img { width: 100%; display: block; }
+.hero-cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(7,9,13,.2)); pointer-events: none; }
+.hero-caption { font-family: var(--mono); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-top: 14px; display: flex; align-items: center; gap: 10px; }
+.hero-caption::before { content: ""; width: 22px; height: 1px; background: var(--teal); }
+
+.kpi { display: grid; grid-template-columns: repeat(5, 1fr); margin: 44px 0 36px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; }
+.kpi::before, .kpi::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--teal-dim) 30%, var(--teal-dim) 70%, transparent); }
+.kpi::before { top: -1px; } .kpi::after { bottom: -1px; }
+.kpi-cell { padding: 26px 20px 22px; position: relative; }
+.kpi-cell + .kpi-cell::before { content: ""; position: absolute; left: 0; top: 24px; bottom: 24px; width: 1px; background: var(--border); }
+.kpi-cell::after { content: attr(data-idx); position: absolute; top: 12px; right: 14px; font-family: var(--mono); font-size: .7rem; color: var(--t3); letter-spacing: 1px; }
+.kpi-n { font-family: var(--serif); font-weight: 400; font-size: 2.7rem; line-height: 1; color: var(--teal); font-variant-numeric: tabular-nums lining-nums; letter-spacing: -.02em; }
+.kpi-l { font-family: var(--mono); font-size: .72rem; letter-spacing: 2.2px; text-transform: uppercase; color: var(--t2); margin-top: 12px; font-weight: 500; }
+
+.sec { margin: 64px 0 0; padding-top: 40px; border-top: 1px solid var(--border); }
+.sec:first-of-type { border-top: none; padding-top: 20px; }
+.sec-meta { display: flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--t3); margin-bottom: 14px; }
+.sec-meta .rule { flex: 0 0 32px; height: 1px; background: var(--teal); }
+.sec-num { color: var(--teal); font-weight: 600; }
+.sec-h { font-family: var(--serif); font-weight: 400; font-size: clamp(1.6rem, 3.4vw, 2.4rem); line-height: 1.15; letter-spacing: -.015em; color: var(--cream); margin-bottom: 10px; }
+.sec-h em { font-style: italic; color: var(--teal-2); }
+.sec-lede { font-size: 1rem; color: var(--t2); max-width: 72ch; line-height: 1.8; }
+.sec-lede strong { color: var(--cream); font-weight: 500; }
+
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 28px 0 0; }
+.compare-col { background: var(--surface); padding: 28px 26px; }
+.compare-col.pro { background: linear-gradient(160deg, rgba(95,200,214,.06), var(--surface)); }
+.compare-tag { font-family: var(--mono); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--t3); margin-bottom: 10px; }
+.compare-col.pro .compare-tag { color: var(--teal); }
+.compare-col h3 { font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+.compare-col.pro h3 { color: var(--teal-2); }
+.compare-col ul { list-style: none; padding: 0; }
+.compare-col li { padding: 10px 0 10px 24px; border-bottom: 1px dashed var(--border); font-size: .92rem; line-height: 1.65; color: var(--t2); position: relative; }
+.compare-col li:last-child { border-bottom: none; }
+.compare-col li::before { content: "—"; position: absolute; left: 0; color: var(--t3); font-weight: 500; }
+.compare-col.pro li { color: var(--t1); }
+.compare-col.pro li::before { content: "▸"; color: var(--teal); }
+
+.pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 28px 0 0; }
+.pillar { background: var(--surface); padding: 28px 22px; position: relative; transition: background .2s; }
+.pillar:hover { background: var(--surface2); }
+.pillar .p-n { font-family: var(--mono); font-size: .68rem; letter-spacing: 2px; color: var(--teal); margin-bottom: 14px; }
+.pillar h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 400; color: var(--cream); margin-bottom: 10px; letter-spacing: -.01em; }
+.pillar h3 em { font-style: italic; color: var(--teal-2); }
+.pillar p { font-size: .86rem; color: var(--t2); line-height: 1.7; }
+
+.fig { margin: 32px 0 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.fig img { width: 100%; display: block; }
+.fig-cap { padding: 14px 22px; font-family: var(--mono); font-size: .74rem; letter-spacing: 1.4px; color: var(--t2); text-transform: uppercase; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.fig-cap::before { content: attr(data-fignum); color: var(--teal); font-weight: 600; }
+
+.fig-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 32px 0 0; }
+.fig-duo .fig { margin: 0; }
+
+.tl { margin: 32px 0 0; position: relative; padding-left: 36px; }
+.tl::before { content: ""; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(180deg, var(--teal), var(--border) 90%); }
+.tl-item { margin-bottom: 32px; position: relative; }
+.tl-item::before { content: ""; position: absolute; left: -34px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 2px solid var(--teal); }
+.tl-item:last-child { margin-bottom: 0; }
+.tl-time { font-family: var(--mono); font-size: .72rem; letter-spacing: 2px; color: var(--teal); text-transform: uppercase; margin-bottom: 6px; }
+.tl-item h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 400; color: var(--cream); margin-bottom: 8px; letter-spacing: -.01em; }
+.tl-item h3 em { font-style: italic; color: var(--teal-2); }
+.tl-item p { color: var(--t2); font-size: .94rem; line-height: 1.8; }
+.tl-item code { font-family: var(--mono); font-size: .82rem; color: var(--teal-2); background: var(--teal-dim); padding: 2px 8px; border-radius: 2px; border: 1px solid var(--border); }
+
+.approval { margin: 32px 0 0; padding: 28px 32px; background: linear-gradient(160deg, rgba(125,194,138,.06), var(--surface)); border: 1px solid rgba(125,194,138,.25); border-radius: 4px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; position: relative; overflow: hidden; }
+.approval::before { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--green); }
+.approval .ap-mark { font-family: var(--serif); font-size: 3rem; color: var(--green); font-style: italic; line-height: 1; }
+.approval h3 { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; color: var(--cream); margin-bottom: 8px; font-style: italic; }
+.approval p { color: var(--t2); font-size: .94rem; line-height: 1.8; }
+.approval strong { color: var(--cream); font-weight: 500; }
+
+.tbl { width: 100%; border-collapse: separate; border-spacing: 0; margin: 28px 0 0; font-size: .88rem; }
+.tbl th, .tbl td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+.tbl th { font-family: var(--mono); font-size: .72rem; letter-spacing: 1.8px; text-transform: uppercase; color: var(--t2); font-weight: 500; border-bottom: 1px solid var(--border-h); background: var(--surface); }
+.tbl th.highlight { color: var(--teal); border-bottom-color: var(--teal); }
+.tbl td { color: var(--t2); }
+.tbl td:first-child { font-family: var(--mono); font-size: .78rem; letter-spacing: .5px; color: var(--t3); text-transform: uppercase; width: 170px; }
+.tbl td.highlight { color: var(--cream); background: rgba(95,200,214,.04); border-left: 1px solid var(--teal-dim); border-right: 1px solid var(--teal-dim); }
+
+.code { margin: 24px 0 0; font-family: var(--mono); font-size: .86rem; line-height: 1.75; color: var(--t1); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 22px 24px; overflow-x: auto; position: relative; }
+.code::before { content: attr(data-lang); position: absolute; top: 10px; right: 14px; font-size: .68rem; color: var(--teal); letter-spacing: 2px; font-weight: 600; }
+.code .cm { color: var(--t3); font-style: italic; }
+.code .kw { color: var(--teal); font-weight: 500; }
+.code .str { color: var(--green); }
+.code .fn { color: var(--blue); }
+.code .var { color: var(--teal-2); }
+
+.setup-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 28px 0 0; }
+.setup-card { padding: 28px 24px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); position: relative; transition: border-color .2s, background .2s; }
+.setup-card:hover { border-color: var(--teal-dim); background: var(--surface2); }
+.setup-card .s-n { font-family: var(--serif); font-size: 2.4rem; color: var(--teal); line-height: 1; margin-bottom: 10px; font-weight: 400; font-style: italic; }
+.setup-card h3 { font-family: var(--serif); font-size: 1.15rem; font-weight: 400; color: var(--cream); margin-bottom: 8px; }
+.setup-card p { font-size: .88rem; color: var(--t2); line-height: 1.7; }
+.setup-card code { font-family: var(--mono); font-size: .8rem; color: var(--teal-2); background: var(--teal-dim); padding: 1px 6px; border-radius: 2px; }
+
+.links-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 28px 0 0; }
+.link-row { background: var(--surface); padding: 20px 24px; text-decoration: none; display: block; transition: background .2s; position: relative; }
+.link-row:hover { background: var(--surface2); }
+.link-row::after { content: "→"; position: absolute; right: 22px; top: 50%; transform: translateY(-50%); color: var(--t3); font-size: 1rem; transition: color .2s, transform .2s; }
+.link-row:hover::after { color: var(--teal); transform: translateY(-50%) translateX(4px); }
+.link-cat { font-family: var(--mono); font-size: .68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+.link-row h4 { font-family: var(--serif); font-size: 1.05rem; font-weight: 400; color: var(--cream); margin-bottom: 4px; padding-right: 30px; letter-spacing: -.01em; }
+.link-row .meta { font-family: var(--mono); font-size: .74rem; color: var(--t3); letter-spacing: .5px; }
+
+.pullquote { margin: 44px 0 0; padding: 32px 0 0; border-top: 1px solid var(--border); position: relative; }
+.pullquote::before { content: "“"; position: absolute; top: 8px; left: -6px; font-family: var(--serif); font-size: 4rem; color: var(--teal); line-height: 1; font-style: italic; }
+.pullquote q { display: block; font-family: var(--serif); font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 350; font-style: italic; color: var(--cream); line-height: 1.5; letter-spacing: -.015em; padding-left: 40px; quotes: none; }
+.pullquote q::before, .pullquote q::after { content: ""; }
+.pullquote cite { display: block; margin-top: 18px; padding-left: 40px; font-family: var(--mono); font-size: .74rem; color: var(--teal); letter-spacing: 2px; text-transform: uppercase; font-style: normal; }
+
+footer { margin-top: 80px; padding: 40px 32px 32px; border-top: 1px solid var(--border); text-align: center; position: relative; z-index: 2; }
+footer::before { content: ""; position: absolute; top: -1px; left: 50%; transform: translateX(-50%); width: 80px; height: 1px; background: linear-gradient(90deg, transparent, var(--teal), transparent); }
+footer .f-title { font-family: var(--serif); font-size: 1.05rem; font-style: italic; color: var(--cream); margin-bottom: 10px; }
+footer .f-title b { color: var(--teal); font-style: normal; font-weight: 500; }
+footer .f-meta { font-family: var(--mono); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-bottom: 18px; }
+footer .f-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+footer .f-links a { font-family: var(--mono); font-size: .76rem; letter-spacing: 1.4px; color: var(--t2); text-decoration: none; padding: 6px 14px; border: 1px solid var(--border); border-radius: 2px; text-transform: uppercase; transition: color .2s, border-color .2s, background .2s; }
+footer .f-links a:hover { color: var(--teal); border-color: var(--teal); background: var(--teal-dim); }
+
+@media (max-width: 960px) {
+  .wrap { padding: 0 22px 56px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+  .compare, .fig-duo, .setup-grid, .links-grid { grid-template-columns: 1fr; }
+  .bar { padding: 0 18px; gap: 12px; }
+  .bar-nav { display: none; }
+  .tbl td:first-child { width: 110px; }
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
+  <span class="bar-sep">—</span>
+  <span class="bar-date">2026-04-21 · Tue</span>
+  <nav class="bar-nav">
+    <a href="#hero" class="on">記事</a>
+    <a href="#pillars">3層</a>
+    <a href="#timeline">活用</a>
+    <a href="#landscape">比較</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-meta">
+      <span class="dot"></span>
+      <span class="hero-issue">Issue № 04/21</span>
+      <span class="rule"></span>
+      <span>The Daily AI Intelligence Brief</span>
+    </div>
+    <h1 class="hero-headline">
+      <span class="accent">Mnemograph</span><br>
+      AIの<em style="font-style:italic;color:var(--t1);">「記憶崩壊」</em>を止める
+    </h1>
+    <p class="hero-kicker">— ベクトルDBの次に来た、出典証明とGit的バージョン管理を備えた知識グラフ。</p>
+    <p class="hero-sub">
+      長期稼働するAIエージェントを蝕む<strong>「記憶の矛盾」「出典の喪失」「ロールバック不能」</strong>という3つの壁を、<strong>知識グラフ × イベントソーシング × バージョン管理</strong>の3層構造で解決。<strong>SQLiteで完全ローカル動作</strong>、<code style="color:var(--teal-2);background:var(--teal-dim);padding:2px 6px;border-radius:2px;font-family:var(--mono);font-size:.92em;">claude mcp add mnemograph</code> でClaude Codeに即接続。<strong>運用工数60%削減</strong>を実現する、次世代エージェントメモリの標準候補。
+    </p>
+    <div class="hero-cover">
+      <img src="images/0421/cover.jpg" alt="Mnemograph — AIエージェントの記憶崩壊を防ぐ次世代メモリエンジン" loading="lazy">
+    </div>
+    <div class="hero-caption">FIG 01 · Mnemographの3層解決アーキテクチャと従来型RAG（ベクトルDB）との比較サマリ</div>
+  </section>
+
+  <!-- KPI -->
+  <section class="kpi">
+    <div class="kpi-cell" data-idx="01"><div class="kpi-n">60<span style="font-size:0.6em;">%</span></div><div class="kpi-l">運用工数 削減</div></div>
+    <div class="kpi-cell" data-idx="02"><div class="kpi-n">3<span style="font-size:0.6em;">層</span></div><div class="kpi-l">統合アーキテクチャ</div></div>
+    <div class="kpi-cell" data-idx="03"><div class="kpi-n">5<span style="font-size:0.6em;">分</span></div><div class="kpi-l">導入完了時間</div></div>
+    <div class="kpi-cell" data-idx="04"><div class="kpi-n">$0</div><div class="kpi-l">SQLite Local</div></div>
+    <div class="kpi-cell" data-idx="05"><div class="kpi-n">1<span style="font-size:0.6em;">行</span></div><div class="kpi-l">Claude MCP 接続</div></div>
+  </section>
+
+  <!-- PARADIGM SHIFT -->
+  <section class="sec" id="paradigm">
+    <div class="sec-meta"><span class="rule"></span><span>§ 01</span><span style="color:var(--t2);">The Wall</span></div>
+    <h2 class="sec-h">賢いはずのAIが<em>「バカ」になる日</em>——記憶崩壊の正体</h2>
+    <p class="sec-lede">数週間、数ヶ月と稼働させた長期エージェントは、ある日突然<strong>奇妙な行動</strong>をとり始める。「東京から大阪に変わった」と伝えても両方の住所を信じ込み、前回決めたアーキテクチャをセッションごとに忘れる。原因は<strong>ベクトルDBの構造そのもの</strong>にある。</p>
+    <div class="fig">
+      <img src="images/0421/page_3.jpg" alt="Why memory collapses — flat accumulation without provenance" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 02">入力 → 蓄積 → 崩壊。古い記憶と新しい記憶がフラットに並び、判断不能でパニックを起こす</div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">旧世代 · Flat Vector</div>
+        <h3>従来型ベクトルDB</h3>
+        <ul>
+          <li>情報は時系列なくフラットに蓄積される</li>
+          <li>「いつ・誰が・何を根拠に」が記録されない</li>
+          <li>新旧の矛盾が放置されハルシネーションの温床に</li>
+          <li>間違った記憶を「消す・戻す」が原理的に不可能</li>
+          <li>運用が長引くほど記憶が肥大化し性能劣化</li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">新世代 · Structured Memory</div>
+        <h3>Mnemograph</h3>
+        <ul>
+          <li>ノード（事実）×エッジ（関係）の知識グラフで構造化</li>
+          <li>全情報に出典証明（provenance）を自動付与</li>
+          <li>信頼度と新しさを基準に矛盾を自動解決</li>
+          <li><code style="font-family:var(--mono);font-size:.86em;color:var(--teal-2);">git revert</code> 同様に間違った記憶を打ち消せる</li>
+          <li>過去の任意時点へ「タイムトラベル」で巻き戻し可</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="sec" id="arch">
+    <div class="sec-meta"><span class="rule"></span><span>§ 02</span><span style="color:var(--t2);">3-Layer Architecture</span></div>
+    <h2 class="sec-h">3層が連動して<em>「矛盾のない永続記憶」</em>を生む</h2>
+    <p class="sec-lede"><strong>知識グラフ層（意味の理解）</strong>、<strong>イベント保存層（不変の操作ログ）</strong>、<strong>履歴管理層（分岐と巻き戻し）</strong>。この3つが噛み合うことで、長期運用しても破綻しない記憶基盤が初めて完成する。</p>
+    <div class="fig">
+      <img src="images/0421/page_7.jpg" alt="3-layer architecture — Knowledge Graph + Event Sourcing + History" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 03">知識グラフ → イベント保存 → 履歴管理。3層構造の同期で永続的なメモリ基盤が成立</div>
+    </div>
+  </section>
+
+  <!-- 4 PILLARS -->
+  <section class="sec" id="pillars">
+    <div class="sec-meta"><span class="rule"></span><span>§ 03</span><span style="color:var(--t2);">Four Pillars</span></div>
+    <h2 class="sec-h">Mnemographを支える<em>4つのコア機能</em></h2>
+    <p class="sec-lede">「点」から「線」へ、「累積」から「証明」へ、「上書き」から「Git管理」へ——Mnemographは記憶の扱いを4段階で根底から作り直す。</p>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-n">PILLAR 01</div>
+        <h3><em>Knowledge</em> Graph</h3>
+        <p>記憶を Entities × Relations × Observations の知識グラフへ。「2025年は寿司好き、2026年にヴィーガン化」など時系列・意味関係を保持。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 02</div>
+        <h3><em>Provenance-</em>First</h3>
+        <p>イベントソーシングで「いつ・どこから・誰が追加したか」を全情報に自動付与。AIの回答根拠を完全に追跡・監査できる。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 03</div>
+        <h3><em>Conflict</em> Resolution</h3>
+        <p>新旧情報が衝突したら、信頼度と新しさを基準にMnemographが自動で整理。記憶を常にクリーンな状態へ保つ。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 04</div>
+        <h3><em>Git-Like</em> Versioning</h3>
+        <p><code style="font-family:var(--mono);font-size:.85em;color:var(--teal-2);">revert</code>で誤記憶を取り消し、<code style="font-family:var(--mono);font-size:.85em;color:var(--teal-2);">branch</code>で実験、過去の特定時点まで巻き戻し。コードと同じ感覚。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROVENANCE DETAIL -->
+  <section class="sec" id="provenance">
+    <div class="sec-meta"><span class="rule"></span><span>§ 04</span><span style="color:var(--t2);">Provenance</span></div>
+    <h2 class="sec-h">すべての記憶に<em>「デジタルの刻印」</em>を打つ</h2>
+    <p class="sec-lede">情報ブロックに対し、<strong>記録時刻 / 記録者 / 情報の根拠</strong>がタグとして自動で添付される。情報の衝突は自動で解決され、AIの判断はすべて出典まで遡れる——ハルシネーションが構造的に減るのは、この「証明可能性」が根底にあるため。</p>
+    <div class="fig">
+      <img src="images/0421/page_9.jpg" alt="Provenance — every memory carries timestamp, author, evidence" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 04">情報ブロックに付与される「いつ・誰が・何を根拠に」のデジタル刻印が衝突を自動解決</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>Audit-Ready by Design — 監査が「設計の前提」</h3>
+        <p>すべてのメモリ書き込みは<strong>不変イベントログ</strong>として保存される。「なぜAIがそう答えたか」を後から完全再現でき、規制業界（金融・医療・公共）でのエージェント実運用を初めて<strong>監査可能な水準</strong>に押し上げる。事故時には該当イベントだけを安全に取り消せる。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- USECASES -->
+  <section class="sec" id="timeline">
+    <div class="sec-meta"><span class="rule"></span><span>§ 05</span><span style="color:var(--t2);">A Day With Mnemograph</span></div>
+    <h2 class="sec-h">記憶が「育つ」<em>長期エージェントの1日</em></h2>
+    <p class="sec-lede">朝の問い合わせ、昼のコード会話、夜の振り返り——セッションを跨いでも文脈は失われず、矛盾は自動で解消される。「毎回ゼロから説明する」消耗から、ついに解放される。</p>
+
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-time">09:00 · Customer Support</div>
+        <h3>顧客対応AI——<em>過去の会話と矛盾しない</em>完璧な応対</h3>
+        <p>住所変更・契約変更などライフイベントを、<code>graph.update</code> でノード差し替え。<strong>古い住所と新しい住所が混在</strong>することがなく、人手の修正・運用工数を <strong>60%削減</strong>。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">14:00 · Coding Assistant</div>
+        <h3>コーディング相棒——<em>セッションを跨いで</em>暗黙知を共有</h3>
+        <p>「このAPIは認証が古い形式」「リファクタは段階的に」といったプロジェクトの<strong>暗黙知</strong>を長期記憶に保持。新セッションでもゼロからの再説明が不要に。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">18:00 · Conflict Detected</div>
+        <h3>衝突の<em>自動解消</em></h3>
+        <p>古い仕様書と新しい仕様書を同時に取り込んでも、Mnemographが信頼度・タイムスタンプ・出典でランク付けして<strong>クリーンな状態</strong>を維持。手動マージは不要。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">22:00 · Time Travel</div>
+        <h3>記憶を<em>「先週月曜」</em>に巻き戻す</h3>
+        <p>エージェントが間違った学習をした疑いがあれば、<code>git checkout</code> 同様に過去スナップショットへ復帰。原因の切り分けと再現が可能になり、デバッグ工数が激減。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANDSCAPE -->
+  <section class="sec" id="landscape">
+    <div class="sec-meta"><span class="rule"></span><span>§ 06</span><span style="color:var(--t2);">Landscape</span></div>
+    <h2 class="sec-h">RAG / ベクトルDC との<em>立ち位置</em></h2>
+    <p class="sec-lede">既存のRAG（ベクトルDB）は<strong>「検索の補助線」</strong>、Mnemographは<strong>「永続的な記憶基盤」</strong>。両者は競合ではなく、エージェントスタックで併用される共生関係に近い。</p>
+
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>従来型RAG (ベクトルDB)</th>
+          <th class="highlight">Mnemograph</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>記憶の単位</td>
+          <td>文書のembedding</td>
+          <td class="highlight">知識グラフ + 出典証明</td>
+        </tr>
+        <tr>
+          <td>矛盾への対処</td>
+          <td>放置（ハルシネーション源）</td>
+          <td class="highlight">信頼度ベースで自動解決</td>
+        </tr>
+        <tr>
+          <td>履歴管理</td>
+          <td>なし</td>
+          <td class="highlight">Gitによる完全管理 (revert / branch)</td>
+        </tr>
+        <tr>
+          <td>信頼性</td>
+          <td>高 (ハルシネーション残存)</td>
+          <td class="highlight">監査可能 (出典まで遡れる)</td>
+        </tr>
+        <tr>
+          <td>運用コスト</td>
+          <td>長期化で多大な運用</td>
+          <td class="highlight">自動整理で約60%削減</td>
+        </tr>
+        <tr>
+          <td>ストレージ</td>
+          <td>クラウドベクトルDB依存</td>
+          <td class="highlight">SQLite — 完全ローカル / $0</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- OUTCOME -->
+  <section class="sec" id="outcome">
+    <div class="sec-meta"><span class="rule"></span><span>§ 07</span><span style="color:var(--t2);">The Outcome</span></div>
+    <h2 class="sec-h">真の<em>「相棒」</em>の誕生——導入後に何が変わるか</h2>
+    <p class="sec-lede">「過去の決定」と「チームの暗黙知」を完全に理解した、長期稼働する真の自律型エージェント。導入企業は<strong>運用工数60%削減</strong>を実現している。</p>
+    <div class="fig">
+      <img src="images/0421/page_11.jpg" alt="Outcome — 60% operational cost reduction" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 05">過去の苦労（毎回の説明・記憶修正）から、運用工数60%削減の自律エージェントへ</div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="sec" id="setup">
+    <div class="sec-meta"><span class="rule"></span><span>§ 08</span><span style="color:var(--t2);">Get Started</span></div>
+    <h2 class="sec-h">5分で導入できる<em>未来のメモリ</em></h2>
+    <p class="sec-lede">SQLiteベースで完全ローカル動作。クラウド費用ゼロ・データ流出ゼロ。Claude Codeなら<code style="font-family:var(--mono);font-size:.92em;color:var(--teal-2);background:var(--teal-dim);padding:2px 6px;border-radius:2px;">claude mcp add</code> 1行で接続が完了する。</p>
+
+    <div class="setup-grid">
+      <div class="setup-card">
+        <div class="s-n">01</div>
+        <h3>Install</h3>
+        <p>pipで一発インストール。ランタイムはPythonのみ、追加サーバ不要。<code>pip install mnemograph</code></p>
+      </div>
+      <div class="setup-card">
+        <div class="s-n">02</div>
+        <h3>Wire to Claude Code</h3>
+        <p>MCPサーバとして登録。Claude Codeから即座に <code>graph.add</code> / <code>graph.query</code> が呼べる。</p>
+      </div>
+      <div class="setup-card">
+        <div class="s-n">03</div>
+        <h3>Run &amp; Audit</h3>
+        <p>記憶は<code>~/.mnemograph/</code> にSQLiteで永続化。<code>git log</code> 同様にイベント履歴を確認可能。</p>
+      </div>
+    </div>
+
+    <div class="code" data-lang="BASH">
+<span class="cm"># Mnemograph quickstart — Claude CodeにMCPで接続</span>
+$ <span class="fn">pip install</span> mnemograph
+$ <span class="fn">claude</span> mcp add mnemograph
+
+<span class="cm"># 動作確認 — 記憶を1つ追加して取り出す</span>
+$ <span class="fn">mnemograph</span> add <span class="str">"user lives in Tokyo"</span> <span class="var">--source</span> chat
+$ <span class="fn">mnemograph</span> query <span class="str">"where does user live?"</span>
+<span class="cm">→ Tokyo  (ts: 2026-04-21T09:32, src: chat, confidence: 0.92)</span>
+    </div>
+  </section>
+
+  <!-- LIMITS -->
+  <section class="sec" id="limits">
+    <div class="sec-meta"><span class="rule"></span><span>§ 09</span><span style="color:var(--t2);">Caveats</span></div>
+    <h2 class="sec-h">採用前に押さえておきたい<em>注意点</em></h2>
+    <p class="sec-lede">注目度の高い新興OSSである一方、エンタープライズ運用にはまだ評価期間が必要。以下の点は導入前に確認しておきたい。</p>
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Watch · リスク</div>
+        <h3>留意すべき点</h3>
+        <ul>
+          <li>2026年4月公開の新興OSS — 大規模運用実績はまだ蓄積中</li>
+          <li>SQLiteベースのため、超高並列書き込み環境はチューニング必要</li>
+          <li>知識グラフ設計（entityスキーマ）はチームでの合意が前提</li>
+          <li>Embeddingベースの曖昧検索は別途RAGとの併用推奨</li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">Plan · 段階的導入</div>
+        <h3>推奨アプローチ</h3>
+        <ul>
+          <li>まずローカル開発のClaude Code併用で「相棒」体験を検証</li>
+          <li>顧客対応・社内QAなど<strong>監査価値が高い領域</strong>から本番投入</li>
+          <li>既存RAGは残し、Mnemographは「永続記憶層」として追加配置</li>
+          <li><code style="font-family:var(--mono);font-size:.86em;color:var(--teal-2);">revert</code>でロールバック可能なため、フェイルセーフ運用に向く</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULLQUOTE -->
+  <div class="pullquote">
+    <q>記憶を管理し、AIを真の相棒へ進化させよう。</q>
+    <cite>— Mnemograph Manifesto · 2026年4月</cite>
+  </div>
+
+  <!-- LINKS -->
+  <section class="sec" id="links">
+    <div class="sec-meta"><span class="rule"></span><span>§ 10</span><span style="color:var(--t2);">References</span></div>
+    <h2 class="sec-h">公式リソース &amp; <em>参考リンク</em></h2>
+    <div class="links-grid">
+      <a href="https://github.com/tm42/mnemograph" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">GitHub</div>
+        <h4>tm42/mnemograph</h4>
+        <div class="meta">公式リポジトリ · OSS · SQLite-based memory engine</div>
+      </a>
+      <a href="https://modelcontextprotocol.io" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Spec</div>
+        <h4>Model Context Protocol</h4>
+        <div class="meta">Mnemograph が準拠する Claude Code 連携プロトコル</div>
+      </a>
+      <a href="https://martinfowler.com/eaaDev/EventSourcing.html" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Concept</div>
+        <h4>Event Sourcing — Martin Fowler</h4>
+        <div class="meta">Mnemograph の中核「不変イベントログ」の理論的源流</div>
+      </a>
+      <a href="https://www.sqlite.org/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Storage</div>
+        <h4>SQLite</h4>
+        <div class="meta">完全ローカル動作を支える組み込みデータベース</div>
+      </a>
+      <a href="https://docs.claude.com/en/docs/claude-code/mcp" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Claude Code</div>
+        <h4>Claude Code · MCP Integration Guide</h4>
+        <div class="meta">claude mcp add で外部サーバを接続する公式手順</div>
+      </a>
+      <a href="https://neo4j.com/developer/graph-database/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Background</div>
+        <h4>Knowledge Graph 基礎</h4>
+        <div class="meta">Entities × Relations × Observations の概念整理</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="f-title"><b>Daily AI</b> Briefing · 2026-04-21 — <em style="font-style:italic;">Mnemograph Edition</em></div>
+  <div class="f-meta">Source: github.com/tm42/mnemograph · NotebookLM Whitepaper</div>
+  <div class="f-links">
+    <a href="../index.html">Hub</a>
+    <a href="../day_slides_index.html">All Slides</a>
+    <a href="day_slide_2026_04_20.html">← 04/20 CraftBot</a>
+  </div>
+</footer>
+
+</body>
+</html>
