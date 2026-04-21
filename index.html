@@ -1219,12 +1219,27 @@
     var latestPromise  = fetchJson(LATEST_JSON).catch(function () { return null; });
     var archivePromise = fetchJson(ARCHIVE_INDEX).catch(function () { return null; });
 
-    Promise.all([latestPromise, archivePromise]).then(function (results) {
+    // 今日(JST)のスライドファイルが存在すれば、その日付を todayDate の最優先ソースにする。
+    // archive_index.json（デイリーニュース同期）の遅延に左右されずに週グリッドを含む全UIを追従させる。
+    var todaySlideProbe = (function(){
+      var j = new Date(Date.now() + (new Date().getTimezoneOffset() + 9*60) * 60000);
+      var y = j.getFullYear();
+      var m = String(j.getMonth()+1).padStart(2,'0');
+      var d = String(j.getDate()).padStart(2,'0');
+      var iso = y + '-' + m + '-' + d;
+      var url = 'presentations/day_slides/day_slide_' + y + '_' + m + '_' + d + '.html';
+      return fetch(url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r){ return r.ok ? iso : null; })
+        .catch(function(){ return null; });
+    })();
+
+    Promise.all([latestPromise, archivePromise, todaySlideProbe]).then(function (results) {
       var latest = results[0];
       var entries = results[1];
+      var todaySlideDate = results[2];
 
-      var todayDate = null;
-      if (latest && latest.generated_at) todayDate = dateFromIso(latest.generated_at);
+      var todayDate = todaySlideDate;  // 実在するスライド日付を最優先
+      if (!todayDate && latest && latest.generated_at) todayDate = dateFromIso(latest.generated_at);
       if (!todayDate && Array.isArray(entries) && entries.length) todayDate = entries[0].date;
 
       if (todayDate) {
