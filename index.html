@@ -1245,5 +1245,36 @@
     });
   })();
   </script>
+  <script>
+  /* 自動: 今日（JST）のスライドファイルが存在すれば、archive_indexの遅延に関わらず
+     全スライドリンクとhero日付を今日の値に上書きする。スライド作成日と
+     daily news JSONの同期ラグで「最新スライドが反映されない」問題を解消。 */
+  (function(){
+    function jstToday() {
+      var j = new Date(Date.now() + (new Date().getTimezoneOffset() + 9*60) * 60000);
+      var y = j.getFullYear();
+      var m = String(j.getMonth()+1).padStart(2,'0');
+      var d = String(j.getDate()).padStart(2,'0');
+      var w = ['日','月','火','水','木','金','土'][j.getDay()];
+      return { date: y+'-'+m+'-'+d, weekday: w, underscore: y+'_'+m+'_'+d };
+    }
+    var t = jstToday();
+    var url = 'presentations/day_slides/day_slide_' + t.underscore + '.html';
+    fetch(url, { method: 'HEAD', cache: 'no-store' }).then(function(r){
+      if (!r.ok) return;
+      ['latestSlideHeroBtn','heroSlideBtn','todaySlideCard'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el && 'href' in el) el.href = url;
+      });
+      var heroDate = document.getElementById('heroDate');
+      if (heroDate) {
+        heroDate.textContent = t.date + ' · ' + t.weekday;
+        heroDate.classList.remove('skel');
+      }
+      var todayDateEl = document.getElementById('todaySlideDate');
+      if (todayDateEl) todayDateEl.textContent = t.date;
+    }).catch(function(){});
+  })();
+  </script>
 </body>
 </html>
