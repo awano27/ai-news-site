@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Workspace Agents — 「人間API」から「デジタル同僚」へ | 2026-04-23 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Palette aligned to TOP page (index.html) */
+  --navy:        #070F26;
+  --navy-2:      #0c1733;
+  --navy-3:      #142042;
+  --navy-line:   rgba(255,255,255,0.08);
+  --navy-line-2: rgba(255,255,255,0.16);
+
+  --bg:          #f5f7fa;
+  --surface:     #ffffff;
+  --surface-2:   #fafbfd;
+  --surface-3:   #eef1f5;
+  --border:      #e3e7ee;
+  --border-2:    #c7cfdb;
+
+  --t1:          #1a1f2e;
+  --t2:          #4a5260;
+  --t3:          #7a8294;
+  --on-dark:     #ffffff;
+  --on-dark-mu:  #a8b2c3;
+  --on-dark-mu2: #6e7a8d;
+
+  --yellow:      #FFCC00;
+  --yellow-d:    #e6b800;
+  --yellow-dim:  rgba(255,204,0,0.15);
+  --blue:        #0d6efd;
+  --blue-d:      #0a59cf;
+  --blue-dim:    rgba(13,110,253,0.10);
+  --green:       #1e9c5a;
+  --red:         #c0392b;
+
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ═══ TOPBAR ═══ */
+.bar {
+  position: sticky; top: 0; z-index: 100; height: 56px;
+  display: flex; align-items: center; gap: 20px; padding: 0 32px;
+  background: rgba(7,15,38,0.92);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--navy-line);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--on-dark-mu);
+}
+.bar-logo {
+  color: var(--on-dark);
+  font-family: var(--sans);
+  font-style: normal; font-size: .85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.bar-logo b { color: var(--yellow); font-weight: 800; }
+.bar-sep { color: var(--on-dark-mu2); }
+.bar-date { color: var(--on-dark-mu); font-weight: 400; }
+.bar-nav { display: flex; gap: 2px; margin-left: auto; }
+.bar-nav a {
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  min-height: 36px;
+  display: inline-flex; align-items: center;
+  font-size: .76rem; letter-spacing: .08em;
+  transition: color .15s, background .15s;
+}
+.bar-nav a:hover { color: var(--on-dark); background: rgba(255,255,255,0.06); }
+.bar-nav a.on { color: var(--yellow); background: rgba(255,204,0,0.12); }
+.bar-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 8px rgba(255,204,0,0.7);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ═══ CONTAINER ═══ */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px 80px; }
+
+/* ═══ HERO (dark navy, like TOP hero) ═══ */
+.hero {
+  position: relative;
+  margin: 0 -32px;
+  padding: 72px 32px 56px;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: var(--on-dark);
+  border-bottom: 4px solid var(--yellow);
+  overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: -30%; right: -10%;
+  width: 60%; height: 130%;
+  background: radial-gradient(ellipse at center, rgba(255,204,0,0.12) 0%, transparent 60%);
+  pointer-events: none; filter: blur(40px);
+}
+.hero > * { position: relative; }
+.hero-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono); font-size: .76rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--on-dark-mu);
+}
+.hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.hero-meta .rule { flex: 0 0 40px; height: 1px; background: var(--navy-line-2); }
+.hero-issue { color: var(--yellow); font-weight: 700; }
+
+/* Hero brand block — distinct, scannable product mark */
+.hero-brand {
+  margin: 28px 0 26px;
+  display: inline-block;
+  padding: 18px 26px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--navy-line-2);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+.hero-brand-tag {
+  display: block;
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.hero-brand-name {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  font-weight: 900;
+  color: var(--on-dark);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin: 4px 0 8px;
+}
+.hero-brand-model {
+  display: block;
+  font-family: var(--mono);
+  font-size: .76rem;
+  color: var(--on-dark-mu);
+  letter-spacing: .04em;
+}
+.hero-brand-model code {
+  font-family: var(--mono);
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+/* Hero headline — high-contrast 2-line story */
+.hero-headline {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--on-dark);
+  margin: 18px 0 18px;
+}
+.hero-headline .hl-from {
+  display: inline-block;
+  position: relative;
+  color: var(--on-dark-mu);
+  font-weight: 700;
+}
+.hero-headline .hl-from::after {
+  content: "";
+  position: absolute;
+  left: -2%; right: -2%; top: 52%;
+  height: 4px;
+  background: var(--on-dark-mu2);
+  transform: rotate(-3deg);
+  opacity: 0.85;
+}
+.hero-headline .hl-to {
+  display: inline-block;
+  color: var(--navy);
+  background: var(--yellow);
+  padding: 4px 18px 6px;
+  border-radius: 6px;
+  font-weight: 900;
+  box-shadow: 0 6px 24px rgba(255,204,0,0.25);
+}
+.hero-kicker {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.08rem;
+  color: var(--on-dark-mu);
+  margin: 18px 0 18px;
+  line-height: 1.7;
+  max-width: 60ch;
+}
+.hero-kicker .hk-br { display: inline; }
+@media (max-width: 720px) { .hero-kicker .hk-br { display: none; } }
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.02rem;
+  font-weight: 400;
+  color: var(--on-dark-mu);
+  max-width: 76ch;
+  line-height: 1.9;
+  margin-top: 14px;
+}
+.hero-sub strong { color: var(--on-dark); font-weight: 700; }
+
+.hero-cover {
+  margin: 36px 0 0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--navy-line-2);
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+.hero-cover img { width: 100%; display: block; }
+.hero-caption {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-top: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-caption::before { content: ""; width: 22px; height: 1px; background: var(--yellow); }
+
+/* ═══ KPI ═══ */
+.kpi {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 56px 0 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.kpi-cell {
+  padding: 28px 22px 24px;
+  position: relative;
+  background: var(--surface);
+}
+.kpi-cell + .kpi-cell { border-left: 1px solid var(--border); }
+.kpi-cell::after {
+  content: attr(data-idx);
+  position: absolute; top: 12px; right: 16px;
+  font-family: var(--mono); font-size: .7rem;
+  color: var(--t3); letter-spacing: 1px;
+}
+.kpi-n {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: 2.6rem; line-height: 1;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -.025em;
+}
+.kpi-l {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-top: 14px; font-weight: 600;
+}
+
+/* ═══ SECTIONS ═══ */
+.sec { margin: 64px 0 0; padding-top: 48px; border-top: 1px solid var(--border); }
+.sec:first-of-type { border-top: none; padding-top: 24px; }
+.sec-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 16px;
+}
+.sec-meta .rule { flex: 0 0 40px; height: 2px; background: var(--yellow); }
+.sec-num, .sec-meta span:nth-child(2) { color: var(--blue); font-weight: 700; }
+.sec-h {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.sec-h em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .12em;
+  color: var(--navy);
+}
+.sec-lede {
+  font-size: 1rem;
+  color: var(--t2);
+  max-width: 76ch;
+  line-height: 1.9;
+}
+.sec-lede strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ COMPARE ═══ */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.compare-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 26px;
+}
+.compare-col.pro {
+  background: linear-gradient(160deg, rgba(255,204,0,0.08), var(--surface));
+  border-color: var(--yellow);
+  border-width: 1px;
+  box-shadow: 0 6px 20px rgba(255,204,0,0.06);
+}
+.compare-tag {
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 10px;
+}
+.compare-col.pro .compare-tag { color: var(--blue); font-weight: 700; }
+.compare-col h3 {
+  font-family: var(--sans);
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+.compare-col.pro h3 { color: var(--navy); }
+.compare-col ul { list-style: none; padding: 0; }
+.compare-col li {
+  padding: 12px 0 12px 26px;
+  border-bottom: 1px dashed var(--border);
+  font-size: .92rem;
+  line-height: 1.7;
+  color: var(--t2);
+  position: relative;
+}
+.compare-col li:last-child { border-bottom: none; }
+.compare-col li::before {
+  content: "—"; position: absolute; left: 0;
+  color: var(--t3); font-weight: 600;
+}
+.compare-col.pro li { color: var(--t1); }
+.compare-col.pro li::before { content: "▸"; color: var(--yellow); font-weight: 800; }
+.compare-col li strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ PILLARS ═══ */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 32px 0 0;
+}
+.pillar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 22px;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.pillar:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.pillar .p-n {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 14px;
+}
+.pillar h3 {
+  font-family: var(--sans);
+  font-size: 1.18rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 12px;
+  letter-spacing: -.01em;
+}
+.pillar h3 em {
+  font-style: normal;
+  color: var(--blue);
+  font-weight: 800;
+}
+.pillar p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.pillar p strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ FIGURE ═══ */
+.fig {
+  margin: 32px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.fig img { width: 100%; display: block; }
+.fig-cap {
+  padding: 16px 24px;
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--t2);
+  text-transform: uppercase;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: center; gap: 10px;
+}
+.fig-cap::before {
+  content: attr(data-fignum);
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.fig-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.fig-duo .fig { margin: 0; }
+
+/* ═══ TIMELINE ═══ */
+.tl {
+  margin: 32px 0 0;
+  position: relative;
+  padding-left: 36px;
+}
+.tl::before {
+  content: ""; position: absolute;
+  left: 8px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--yellow), var(--border) 90%);
+}
+.tl-item { margin-bottom: 32px; position: relative; }
+.tl-item::before {
+  content: ""; position: absolute;
+  left: -34px; top: 4px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--yellow);
+}
+.tl-item:last-child { margin-bottom: 0; }
+.tl-time {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .16em;
+  color: var(--blue); font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.tl-item h3 {
+  font-family: var(--sans);
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+  letter-spacing: -.01em;
+}
+.tl-item h3 em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .1em;
+  color: var(--navy);
+}
+.tl-item p {
+  color: var(--t2);
+  font-size: .94rem;
+  line-height: 1.85;
+}
+.tl-item p strong { color: var(--navy); font-weight: 700; }
+.tl-item code {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ═══ APPROVAL / CALLOUT BOX ═══ */
+.approval {
+  margin: 32px 0 0;
+  padding: 28px 32px;
+  background: linear-gradient(160deg, rgba(13,110,253,0.06), var(--surface));
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(13,110,253,0.06);
+}
+.approval::before {
+  content: ""; position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--blue);
+}
+.approval .ap-mark {
+  font-family: var(--sans);
+  font-size: 2.6rem; font-weight: 900;
+  color: var(--blue); line-height: 1;
+}
+.approval h3 {
+  font-family: var(--sans);
+  font-size: 1.25rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.approval p {
+  color: var(--t2);
+  font-size: .95rem;
+  line-height: 1.85;
+}
+.approval strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ TABLE ═══ */
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 32px 0 0;
+  font-size: .9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tbl th, .tbl td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.tbl tr:last-child th, .tbl tr:last-child td { border-bottom: none; }
+.tbl th {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--t2); font-weight: 700;
+  border-bottom: 2px solid var(--border-2);
+  background: var(--surface-2);
+}
+.tbl th.highlight {
+  color: var(--blue);
+  border-bottom-color: var(--yellow);
+  background: rgba(255,204,0,0.08);
+}
+.tbl td { color: var(--t2); }
+.tbl td:first-child {
+  font-family: var(--mono);
+  font-size: .8rem; letter-spacing: .04em;
+  color: var(--navy);
+  font-weight: 600;
+  width: 180px;
+  background: var(--surface-2);
+}
+.tbl td.highlight {
+  color: var(--navy);
+  background: rgba(255,204,0,0.06);
+  font-weight: 500;
+}
+.tbl td strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ CODE BLOCK (kept dark for syntax legibility) ═══ */
+.code {
+  margin: 28px 0 0;
+  font-family: var(--mono);
+  font-size: .88rem;
+  line-height: 1.8;
+  color: #e8eef5;
+  background: var(--navy);
+  border: 1px solid var(--navy-2);
+  border-radius: 12px;
+  padding: 24px 26px 24px 26px;
+  overflow-x: auto;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(7,15,38,0.12);
+}
+.code::before {
+  content: attr(data-lang);
+  position: absolute; top: 12px; right: 18px;
+  font-size: .68rem;
+  color: var(--yellow);
+  letter-spacing: .2em; font-weight: 700;
+}
+.code .cm { color: #6e7a8d; font-style: italic; }
+.code .kw { color: var(--yellow); font-weight: 600; }
+.code .str { color: #7dd49f; }
+.code .fn { color: #5fc8d6; }
+.code .var { color: #f3c17a; }
+
+/* ═══ SETUP CARDS ═══ */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.setup-card {
+  padding: 30px 26px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  position: relative;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.setup-card:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.setup-card .s-n {
+  font-family: var(--sans);
+  font-size: 2.4rem; font-weight: 900;
+  color: var(--yellow);
+  line-height: 1; margin-bottom: 12px;
+}
+.setup-card h3 {
+  font-family: var(--sans);
+  font-size: 1.15rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+.setup-card p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.setup-card code {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ═══ LINKS GRID ═══ */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 32px 0 0;
+}
+.link-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 26px;
+  text-decoration: none;
+  display: block;
+  transition: border-color .2s, background .2s, transform .2s;
+  position: relative;
+}
+.link-row:hover {
+  border-color: var(--blue);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+.link-row::after {
+  content: "→"; position: absolute;
+  right: 24px; top: 50%; transform: translateY(-50%);
+  color: var(--t3); font-size: 1.1rem;
+  transition: color .2s, transform .2s;
+}
+.link-row:hover::after {
+  color: var(--blue);
+  transform: translateY(-50%) translateX(4px);
+}
+.link-cat {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 6px;
+}
+.link-row h4 {
+  font-family: var(--sans);
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+  padding-right: 32px;
+  letter-spacing: -.005em;
+}
+.link-row .meta {
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--t3);
+  letter-spacing: .04em;
+}
+
+/* ═══ PULL QUOTE ═══ */
+.pullquote {
+  margin: 56px 0 0;
+  padding: 40px 0 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+.pullquote::before {
+  content: """;
+  position: absolute; top: 18px; left: -6px;
+  font-family: var(--sans);
+  font-size: 5rem;
+  color: var(--yellow);
+  line-height: 1; font-weight: 900;
+}
+.pullquote q {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.3rem, 2.6vw, 1.85rem);
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.55;
+  letter-spacing: -.01em;
+  padding-left: 50px;
+  quotes: none;
+}
+.pullquote q::before, .pullquote q::after { content: ""; }
+.pullquote cite {
+  display: block;
+  margin-top: 18px;
+  padding-left: 50px;
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--blue);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* ═══ FOOTER (dark navy) ═══ */
+footer {
+  margin: 80px -32px 0;
+  padding: 48px 32px 36px;
+  background: var(--navy);
+  color: var(--on-dark-mu);
+  text-align: center;
+  border-top: 4px solid var(--yellow);
+  position: relative;
+}
+footer .f-title {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--on-dark);
+  margin-bottom: 10px;
+}
+footer .f-title b { color: var(--yellow); font-weight: 800; }
+footer .f-title em { font-style: normal; color: var(--yellow); }
+footer .f-meta {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-bottom: 22px;
+}
+footer .f-links {
+  display: flex; gap: 12px;
+  justify-content: center; flex-wrap: wrap;
+}
+footer .f-links a {
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--navy-line-2);
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: color .2s, border-color .2s, background .2s;
+}
+footer .f-links a:hover {
+  color: var(--navy);
+  border-color: var(--yellow);
+  background: var(--yellow);
+}
+
+@media (max-width: 960px) {
+  .wrap { padding: 0 22px 56px; }
+  .hero { margin: 0 -22px; padding: 56px 22px 44px; }
+  footer { margin: 64px -22px 0; padding: 40px 22px 28px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .kpi-cell { border-left: none !important; border-bottom: 1px solid var(--border); }
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+  .compare, .fig-duo, .setup-grid, .links-grid { grid-template-columns: 1fr; }
+  .bar { padding: 0 18px; gap: 12px; }
+  .bar-nav { display: none; }
+  .tbl td:first-child { width: 110px; font-size: .74rem; }
+}
+</style>
+<!-- SEO_META_INJECTED v1 -->
+<meta name="description" content="AI Daily Briefing — 2026-04-23 · Thu 記事 実践 安全 競合 活用 戻る Issue № 04/23 The Daily AI Intelligence Brief OpenAI Workspace Agents 「人間API」から「デジタル同僚」へ。24時間自律稼働×承認ゲート×Codex 推論…" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_23.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="OpenAI Workspace Agents — 「人間API」から「デジタル同僚」へ | 2026-04-23 · AI Daily Briefing" />
+<meta property="og:description" content="AI Daily Briefing — 2026-04-23 · Thu 記事 実践 安全 競合 活用 戻る Issue № 04/23 The Daily AI Intelligence Brief OpenAI Workspace Agents 「人間API」から「デジタル同僚」へ。24時間自律稼働×承認ゲート×Codex 推論…" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_23.html" />
+<meta property="og:image" content="https://visionhub.jp/assets/og/day_slide_2026_04_23.png" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="OpenAI Workspace Agents — 「人間API」から「デジタル同僚」へ | 2026-04-23 · AI Daily Briefing" />
+<meta name="twitter:description" content="AI Daily Briefing — 2026-04-23 · Thu 記事 実践 安全 競合 活用 戻る Issue № 04/23 The Daily AI Intelligence Brief OpenAI Workspace Agents 「人間API」から「デジタル同僚」へ。24時間自律稼働×承認ゲート×Codex 推論…" />
+<meta name="twitter:image" content="https://visionhub.jp/assets/og/day_slide_2026_04_23.png" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<!-- JSONLD_INJECTED v1 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "OpenAI Workspace Agents — 「人間API」から「デジタル同僚」へ | 2026-04-23 · AI Daily Briefing",
+  "datePublished": "2026-04-23",
+  "dateModified": "2026-04-23",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "alternateName": "Claudian",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": [
+    "https://visionhub.jp/assets/og/day_slide_2026_04_23.png"
+  ],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_23.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_23.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+<!-- INTERNAL_LINKS_INJECTED v1 -->
+<aside class="related-nav" aria-label="関連ガイド" style="background:#0D1733;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 18px;font:13px/1.4 'Noto Sans JP',system-ui,sans-serif;color:#8A9ABF;display:flex;gap:14px;flex-wrap:wrap;align-items:center;position:relative;z-index:100"><span style="color:#FFCC00;font-weight:700;letter-spacing:.04em">関連ガイド</span><a href="/presentations/hubs/claude-code-guide-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude Code 完全ガイド</a> <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude vs ChatGPT vs Gemini 比較</a> <a href="/presentations/hubs/mcp-complete-guide.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">MCP 完全ガイド</a> <a href="/presentations/hubs/claude-models-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude モデル料金比較</a> <a href="/presentations/hubs/ai-funding-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">AI資金調達まとめ</a> <a href="/presentations/digests/2026-04.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">2026年4月のまとめ</a></aside>
+
+
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
+  <span class="bar-sep">—</span>
+  <span class="bar-date">2026-04-23 · Thu</span>
+  <nav class="bar-nav">
+    <a href="#hero" class="on">記事</a>
+    <a href="#story">実践</a>
+    <a href="#engine">中核</a>
+    <a href="#safety">安全</a>
+    <a href="#usecase">活用</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-meta">
+      <span class="dot"></span>
+      <span class="hero-issue">Issue № 04/23</span>
+      <span class="rule"></span>
+      <span>The Daily AI Intelligence Brief</span>
+    </div>
+    <div class="hero-brand">
+      <span class="hero-brand-tag">PLATFORM · OPENAI</span>
+      <h2 class="hero-brand-name">Workspace Agents</h2>
+      <span class="hero-brand-model">engine: <code>Codex</code> · in ChatGPT</span>
+    </div>
+    <h1 class="hero-headline">
+      <span class="hl-from">「人間API」</span>から、<br>
+      <span class="hl-to">デジタル同僚</span>へ。
+    </h1>
+    <p class="hero-kicker">24時間クラウド自律稼働 × 数十ツール直結 × Always-Ask 承認ゲート。<br class="hk-br">ChatGPT がついに「回答するAI」から「共に働く労働力」へ。</p>
+    <p class="hero-sub">
+      OpenAI が 2026-04-22 に発表した <strong>Workspace Agents</strong> は、単なる機能追加ではなく、<strong>「人間がツールと情報の間を手動でつなぎ合わせている」現代の知的労働の構造的欠陥（手作業のオーケストレーション問題）</strong>を根本から解決するパラダイムシフトだ。<strong>Codex を推論エンジン</strong>に、<strong>クラウド上で 24 時間自律稼働</strong>し、Slack・Salesforce・Linear・Jira・CRM・Gong など<strong>数十のツールに直接アクセス</strong>、多段階の業務プロセスを自律完了させる。Rippling の実運用では<strong>営業担当 1 人あたり週 5〜6 時間の作業削減</strong>を達成。<strong>Always-Ask 承認ゲート・RBAC・Compliance API</strong> で企業統制も両立する。月額 <strong>$20</strong>（Business プラン）から導入できる、<strong>「AIが組織のメンバーとして共に働く時代」</strong>の最初の実装例だ。
+    </p>
+    <div class="hero-cover">
+      <img src="images/0423/cover.jpg" alt="OpenAI Workspace Agents — 人間API からデジタル同僚へ" loading="lazy">
+    </div>
+    <div class="hero-caption">FIG 01 · 「人間ワークフローエンジン」から「デジタル労働力」へ——ChatGPT が自律稼働する組織のメンバーに進化</div>
+  </section>
+
+  <!-- KPI -->
+  <section class="kpi">
+    <div class="kpi-cell" data-idx="01"><div class="kpi-n">24<span style="font-size:0.6em;">/7</span></div><div class="kpi-l">クラウド自律稼働</div></div>
+    <div class="kpi-cell" data-idx="02"><div class="kpi-n">5〜6<span style="font-size:0.5em;">h/週</span></div><div class="kpi-l">営業 1 人あたり削減</div></div>
+    <div class="kpi-cell" data-idx="03"><div class="kpi-n">$20<span style="font-size:0.5em;">/月〜</span></div><div class="kpi-l">Business プラン〜導入</div></div>
+    <div class="kpi-cell" data-idx="04"><div class="kpi-n">Codex</div><div class="kpi-l">多段階推論エンジン</div></div>
+    <div class="kpi-cell" data-idx="05"><div class="kpi-n">RBAC</div><div class="kpi-l">承認ゲート + 監査ログ</div></div>
+  </section>
+
+  <!-- § 01 PROBLEM -->
+  <section class="sec" id="problem">
+    <div class="sec-meta"><span class="rule"></span><span>§ 01</span><span style="color:var(--t2);">The Human-API Problem</span></div>
+    <h2 class="sec-h">私たちは皆、疲弊する<em>「人間API」</em>だった</h2>
+    <p class="sec-lede">現代のビジネスパーソンは、ツールの海に溺れている。PM は毎朝 Slack のフィードバックを巡回し Linear や Jira に手動で起票、営業は新規リードのたびに LinkedIn・企業サイト・CRM・Gong を往復しメール下書きを書く。<strong>複数 SaaS を手動で横断し、情報をコピペで繋ぐ「人間ワークフローエンジン」</strong>として、貴重な時間が「作業」に奪われていた。</p>
+
+    <div class="fig">
+      <img src="images/0423/page_2.jpg" alt="手作業のオーケストレーション問題 — 人間APIの疲弊" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 02">手作業のオーケストレーション問題：Slack → Linear → Salesforce → Gong → メール、と人間がツールを手で繋ぐ</div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Before · 〜 2025 年</div>
+        <h3>従来の ChatGPT / Custom GPTs</h3>
+        <ul>
+          <li>人間がプロンプトを打ち込み<strong>回答を受け取る</strong>、その場限りのツール</li>
+          <li>ツール間の連携は<strong>人間が手動でコピペ</strong>してつなぐ</li>
+          <li>セッションが閉じれば<strong>文脈が消失</strong>、継続作業は不可</li>
+          <li>PM・営業・CS は<strong>SaaS を巡回する「作業者」</strong>に留まる</li>
+          <li>ルーティン判断に時間を奪われ<strong>戦略思考の余白がない</strong></li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">After · Workspace Agents</div>
+        <h3>Workspace Agents のあり方</h3>
+        <ul>
+          <li><strong>クラウドで 24 時間自律稼働</strong>する「デジタル同僚」</li>
+          <li>Slack・CRM・Linear・Gong など<strong>数十ツールへ直結</strong></li>
+          <li><strong>多段階プロセス</strong>（調査→分析→下書き→更新）を一気通貫</li>
+          <li>人間の仕事は<strong>「承認（Approve）」</strong>ボタンを押すだけ</li>
+          <li><strong>チームで共有できる</strong>再利用可能なエージェント</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- § 02 STORY -->
+  <section class="sec" id="story">
+    <div class="sec-meta"><span class="rule"></span><span>§ 02</span><span style="color:var(--t2);">Before / After Story</span></div>
+    <h2 class="sec-h">劇的な<em>Before / After</em>——営業の朝と PM の金曜</h2>
+    <p class="sec-lede">Workspace Agents を導入した組織では、日常の景色はどう変わるのか。<strong>Rippling など実運用事例</strong>が示す「営業の朝」と「PM の金曜夕方」の 2 シーンで、その威力を具体化する。人間の仕事は<strong>「やる／やらない」の承認</strong>へ完全にシフトする。</p>
+
+    <div class="fig">
+      <img src="images/0423/page_5.jpg" alt="Lead Outreach Agent — 営業の朝を自動化する" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 03">シーン 1：深夜の新規リード → 自律調査・CRM 参照・パーソナライズ下書き → 朝イチで「承認」ボタンのみ</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>Rippling の実運用 — <em>営業 1 人あたり週 5〜6 時間削減</em></h3>
+        <p>急成長企業 Rippling の実事例では、たった 1 つの「Lead Outreach Agent」が深夜のリード到着から企業リサーチ・CRM 履歴参照・リード適格性スコアリング・パーソナライズメール下書き・CRM 更新までを自律完了。営業担当者が朝やることは、Slack に届いたディールブリーフとメール下書きに対して<strong>「承認」ボタンを押すだけ</strong>。<strong>営業担当 1 人あたり週 5〜6 時間の作業削減</strong>を達成した（CryptoPunk 氏の投稿より）。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0423/page_6.jpg" alt="Weekly Metrics Reporter — PMの金曜地獄からの解放" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 04">シーン 2：毎週金曜 17:00 に自動起動 → GA/CRM/社内 DB 集計 → 異常値検知 → PPT 生成 → 経営チャンネル配信</div>
+    </div>
+  </section>
+
+  <!-- § 03 ENGINE -->
+  <section class="sec" id="engine">
+    <div class="sec-meta"><span class="rule"></span><span>§ 03</span><span style="color:var(--t2);">The Agent Engine</span></div>
+    <h2 class="sec-h"><em>4 つの設計原理</em>が「自律稼働」を成立させる</h2>
+    <p class="sec-lede">Workspace Agents はただの「プロンプト実行」ではなく、<strong>エンタープライズの厳しい要件を満たす設計</strong>になっている。中核となる <strong>Codex 推論エンジン</strong>と、クラウド永続性・多ツール連携・監査ガバナンスの 4 本柱で、初めて「安全に任せられる労働力」が成立する。</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-n">PILLAR 01</div>
+        <h3><em>Codex</em> Engine</h3>
+        <p>単純な LLM ではなく、<strong>コード実行・複雑なツール連携に特化した Codex</strong> が、専用サンドボックスで<strong>多段階推論と実行</strong>を安全に行う。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 02</div>
+        <h3><em>Cloud</em> Persistent</h3>
+        <p>ユーザーがブラウザを閉じても<strong>クラウド上の独立インスタンスとして稼働継続</strong>。深夜のリード到着にも即時に反応し、朝までに仕事を終える。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 03</div>
+        <h3><em>Tool</em> Connectors</h3>
+        <p>Slack・Salesforce・Linear・Jira・Gong・Google Drive など<strong>数十の SaaS へ直接アクセス</strong>。ツール間の橋渡しを人間から AI へ完全移譲。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 04</div>
+        <h3><em>Shareable</em> Agents</h3>
+        <p>作ったエージェントは<strong>チームで共有・再利用可能</strong>。特定社員の個人ハックではなく、組織の資産として蓄積される「ワイルドで実用的」な存在。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0423/page_7.jpg" alt="Codex Engine — 多段階推論とツール連携のサンドボックス" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 05">エージェントの心臓部：Codex 推論 + クラウド永続 + 数十ツール直結 + チーム共有、の 4 本柱</div>
+    </div>
+  </section>
+
+  <!-- § 04 SAFETY / GOVERNANCE -->
+  <section class="sec" id="safety">
+    <div class="sec-meta"><span class="rule"></span><span>§ 04</span><span style="color:var(--t2);">Enterprise Safety</span></div>
+    <h2 class="sec-h">鉄壁の<em>ガバナンス</em>——承認ゲート × RBAC × Compliance API</h2>
+    <p class="sec-lede">これほど自律的な AI を企業に導入するのはリスクがあるように思える。しかし Workspace Agents は<strong>エンタープライズの厳しい要件を満たす設計</strong>だ。最大の鍵は「Always-Ask」——影響の大きいアクションには<strong>人間の承認を必ず要求</strong>できる。さらに RBAC・Compliance API・CrowdStrike 監査連携で、組織が安心して統制をとれる。</p>
+
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>従来（Custom GPTs 等）</th>
+          <th class="highlight">Workspace Agents</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>アクション承認</td>
+          <td>都度プロンプトで指示、統制不能</td>
+          <td class="highlight"><strong>Always-Ask</strong>：メール送信・DB 更新など重要操作は必ず人間承認</td>
+        </tr>
+        <tr>
+          <td>権限管理</td>
+          <td>ユーザー個人のアカウントに依存</td>
+          <td class="highlight"><strong>RBAC</strong>（役割ベースのアクセス制御）を組織単位で付与</td>
+        </tr>
+        <tr>
+          <td>監査・ログ</td>
+          <td>ChatGPT 履歴のみ、体系的監査は不可</td>
+          <td class="highlight"><strong>Compliance API</strong> で全操作ログを CrowdStrike 等へ出力</td>
+        </tr>
+        <tr>
+          <td>実行基盤</td>
+          <td>ブラウザセッション依存、閉じれば停止</td>
+          <td class="highlight">専用<strong>サンドボックス環境</strong>でクラウド永続稼働</td>
+        </tr>
+        <tr>
+          <td>多段階アクション</td>
+          <td>人間が一段ずつプロンプト入力</td>
+          <td class="highlight">Codex が<strong>自律的に多段階ツール連携と推論</strong>を完了</td>
+        </tr>
+        <tr>
+          <td>導入コスト</td>
+          <td>Enterprise 契約が前提</td>
+          <td class="highlight"><strong>Business プラン $20/月〜</strong>（企業統制機能付き）</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- § 05 USECASES -->
+  <section class="sec" id="usecase">
+    <div class="sec-meta"><span class="rule"></span><span>§ 05</span><span style="color:var(--t2);">A Day With Workspace Agents</span></div>
+    <h2 class="sec-h">そのまま<em>組織に組み込める</em>デジタル労働力</h2>
+    <p class="sec-lede"><strong>Codex 推論 × 多ツール直結 × 承認ゲート</strong>の揃った Workspace Agents は、個人ハックではなく<strong>「組織のメンバー」</strong>として業務フローに定着する。営業・PM・CS・オペ・エンジニアの代表的な 4 シーンで、人間の役割がどう「作業者」から「意思決定者」にシフトするかを描く。</p>
+
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-time">00:00 · Sales · Lead Outreach</div>
+        <h3>営業の深夜リード対応——<em>朝にメール下書きが完成</em></h3>
+        <p>深夜に新規リードが到着すると、<strong>Lead Outreach Agent</strong> が即時起動。企業情報を Web で調査し、CRM 過去履歴を読み込み、リード適格性をスコアリングし、相手に合わせた<strong>パーソナライズメール下書き</strong>と <strong>CRM 更新</strong>を完了。朝、担当者は Slack のディールブリーフを開いて「承認」を押すだけ。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">17:00 · PM · Weekly Report</div>
+        <h3>PM の金曜レポート——<em>コピペ地獄からの解放</em></h3>
+        <p>毎週金曜 17:00、<strong>Weekly Metrics Reporter</strong> がスケジュール実行。GA／CRM／社内 DB からデータを集計し、前週比を計算し、異常値を検知して自然言語のインサイトを執筆、<strong>PowerPoint 形式のレポートを生成</strong>し、Slack の経営チャンネルへ自動配信。PM は定時退社できる。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">10:00 · CS · Ticket Triage</div>
+        <h3>CS のチケット振り分け——<em>1 次回答と優先度判定が並行稼働</em></h3>
+        <p>Zendesk / Intercom のチケットを<strong>Triage Agent</strong> が自律巡回。過去事例と製品ドキュメントから<strong>1 次回答を下書き</strong>し、緊急度・顧客ティア・影響範囲でスコアリングして適切な担当へルーティング。CS マネージャは「キューを捌く人」から「難案件を解く人」へ。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">14:00 · Ops · Finance Close</div>
+        <h3>経理・オペの月次締め——<em>請求書突合と SaaS 棚卸しを夜間バッチ化</em></h3>
+        <p>各 SaaS の請求書 PDF を自動読込、勘定科目マッピング・社内 ERP との突合・異常値検出を<strong>ひと晩で完了</strong>。重要な振替・支払承認のみ <strong>Always-Ask</strong> で人間に確認。締め作業の 3 日が半日に短縮される。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0423/page_9.jpg" alt="Use Case — Sales Lead Outreach Agent" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 06">Rippling の実事例：1 つのエージェントが営業 1 人あたり<strong>週 5〜6 時間</strong>の作業を削減、パイプライン速度を底上げ</div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0423/page_10.jpg" alt="Use Case — PM Weekly Metrics Reporter" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 07">PM の金曜 17:00：GA／CRM／社内 DB を集計し異常値を検知、PowerPoint と Slack 配信まで自律完了</div>
+    </div>
+  </section>
+
+  <!-- § 06 CAVEATS -->
+  <section class="sec" id="caveats">
+    <div class="sec-meta"><span class="rule"></span><span>§ 06</span><span style="color:var(--t2);">Caveats</span></div>
+    <h2 class="sec-h">採用前に押さえる<em>注意点</em></h2>
+    <p class="sec-lede">自律稼働するほど、<strong>誤作動の影響範囲も自動で広がる</strong>。権限設計・承認ゲート・監査可観測性の 3 領域で運用設計が必須。導入は<strong>「読み取り専用タスクから → 承認付きアクションへ → 完全自動化へ」</strong>と段階を踏むのが基本。</p>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Watch · Risks</div>
+        <h3>留意すべき点</h3>
+        <ul>
+          <li>自律 AI が<strong>誤った情報で CRM やメールを更新</strong>するリスク</li>
+          <li>Slack・Salesforce など<strong>広い権限付与による情報漏洩</strong>懸念</li>
+          <li>Codex の推論コストは従量課金——<strong>暴走時の請求爆発</strong>に注意</li>
+          <li>外部 SaaS の API 仕様変更で<strong>エージェント停止</strong>が起こりうる</li>
+          <li>従業員の<strong>スキル空洞化</strong>（承認しか押さない問題）を監視</li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">Plan · Rollout</div>
+        <h3>推奨アプローチ</h3>
+        <ul>
+          <li>まず<strong>読み取り専用の調査・レポート系</strong>エージェントから導入</li>
+          <li>メール送信・DB 更新は<strong>Always-Ask</strong> を必ずオンに</li>
+          <li>RBAC で<strong>部門単位に権限を絞った</strong>共有設計を設計思想に</li>
+          <li>Compliance API で<strong>全操作ログを監査基盤に常時出力</strong></li>
+          <li>3〜6 ヶ月で<strong>削減時間・誤作動件数</strong>を KPI 化しレビュー</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULLQUOTE -->
+  <div class="pullquote">
+    <q>人間の仕事は「How（どうやるか）」から解放され、「What/Why（何をなぜやるか）」の判断・意思決定・承認に集中する。</q>
+    <cite>— Workspace Agents の思想 · 2026-04-23</cite>
+  </div>
+
+  <!-- § 07 LINKS -->
+  <section class="sec" id="links">
+    <div class="sec-meta"><span class="rule"></span><span>§ 07</span><span style="color:var(--t2);">References</span></div>
+    <h2 class="sec-h">公式リソース &amp; <em>参考リンク</em></h2>
+    <div class="links-grid">
+      <a href="https://openai.com/index/introducing-workspace-agents-in-chatgpt/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">OpenAI</div>
+        <h4>Introducing Workspace Agents in ChatGPT</h4>
+        <div class="meta">Codex × Cloud Persistent × Always-Ask · 公式発表</div>
+      </a>
+      <a href="https://x.com/OpenAI/status/2047008987665809771" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">OpenAI · X</div>
+        <h4>OpenAI 公式 X 発表</h4>
+        <div class="meta">2026-04-22 · Workspace Agents のローンチ投稿</div>
+      </a>
+      <a href="https://x.com/minchoi/status/2047063130736300169" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Analyst · X</div>
+        <h4>Min Choi — ワイルドで実用的なエージェント解説</h4>
+        <div class="meta">代表的なエージェント使用例のデモ</div>
+      </a>
+      <a href="https://x.com/cryptopunk7213/status/2047037122972934536" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Case · X</div>
+        <h4>CryptoPunk — Rippling 週 5〜6h 削減事例</h4>
+        <div class="meta">実組織での削減時間データ（営業 1 人あたり）</div>
+      </a>
+      <a href="https://x.com/akira_papa_IT/status/2047090149750874546" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">JP Analyst</div>
+        <h4>Akira Papa — 日本語での徹底解説</h4>
+        <div class="meta">日本語環境での実用的な解説とデモ</div>
+      </a>
+      <a href="/presentations/hubs/ai-model-comparison-2026.html" class="link-row">
+        <div class="link-cat">Hub</div>
+        <h4>Claude vs ChatGPT vs Gemini 2026比較</h4>
+        <div class="meta">3 大モデルの料金・性能・向き不向き</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="f-title"><b>Daily AI</b> Briefing · 2026-04-23 — <em style="font-style:italic;">OpenAI Workspace Agents Edition</em></div>
+  <div class="f-meta">Source: OpenAI 公式 · X 発表（Rippling 事例含む）· コミュニティ解説統合</div>
+  <div class="f-links">
+    <a href="../index.html">Hub</a>
+    <a href="../day_slides_index.html">All Slides</a>
+    <a href="day_slide_2026_04_22.html">← 04/22 Images 2.0</a>
+  </div>
+</footer>
+
+</body>
+</html>
