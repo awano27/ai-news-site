@@ -1252,6 +1252,143 @@ tools: ["excel-mcp", "ppt-mcp"]
       <li><a href="https://github.com/topics/awesome-copilot" target="_blank" rel="noopener" style="color: var(--accent-blue);">awesome-copilot</a> &mdash; コミュニティ厳選リスト</li>
     </ul>
 
+    <!-- ===== Section: 画像編集 Skills / Plugin ===== -->
+    <h2 id="image-editing">&#x1F5BC;&#xFE0F; 画像編集プラグイン &amp; スキル（ImageMagick / fal AI）</h2>
+
+    <p>GitHub Copilot の <strong>Agent Mode</strong> から自然言語で画像を編集・変換・AI加工するための Plugin &amp; Skills 設定ガイドです。Excel/PPT作成（Office MCP）と並ぶ「非コード系作業」の代表例で、デザイナー・マーケター・開発者すべての生産性を底上げします。</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F3AF; できること（例）</div>
+      <ul style="margin: 8px 0 0 18px;">
+        <li>画像の背景透過・切り抜き・リサイズ・フォーマット変換（ImageMagick ベース）</li>
+        <li>AI でスタイル変換・オブジェクト除去・背景差し替え・ロゴ合成（fal.ai モデル）</li>
+        <li>バッチ処理（フォルダ内を一括で WebP 化、サムネ生成など）</li>
+      </ul>
+    </div>
+
+    <h3>前提設定（1回だけ）</h3>
+    <p>VS Code の <code>settings.json</code> で Agent Skills を有効化します。</p>
+    <pre><code>{
+  "chat.useAgentSkills": true
+}</code></pre>
+
+    <h3>最速インストール（Copilot CLI）</h3>
+    <p>プロジェクトルートで以下を実行するだけで、<code>.github/skills/</code> 以下に自動生成されます。</p>
+    <pre><code># ImageMagick ベースの画像編集（リサイズ・変換・バッチ処理）
+copilot plugin install image-manipulation-image-magick@awesome-copilot
+
+# fal.ai によるAI画像編集（スタイル変換・背景差替え・オブジェクト除去）
+copilot plugin install fal-image-edit@awesome-copilot</code></pre>
+
+    <p>インストール後のディレクトリ構造：</p>
+    <pre><code>.github/skills/
+├── image-manipulation-image-magick/   ← ImageMagickでリサイズ・変換・バッチ処理
+│   └── SKILL.md
+└── fal-image-edit/                    ← AIでスタイル変換・オブジェクト除去・背景変更
+    └── SKILL.md</code></pre>
+
+    <h3>手動インストール（SKILL.md テンプレート）</h3>
+    <p>CLI が使えない環境や、独自スキルを作る場合は <code>.github/skills/&lt;skill-name&gt;/SKILL.md</code> を手動で作成します。</p>
+    <pre><code>---
+name: image-manipulation-image-magick
+description: ImageMagickを使って画像をリサイズ・変換・合成・バッチ処理する
+tools:
+  - name: run_shell
+    description: ImageMagickコマンドを実行
+---
+
+# Image Manipulation Skill
+
+## 使い方
+- 画像を添付、またはパスを指定
+- 「この画像を正方形にクロップして」「WebPに変換して」など自然言語で指示
+
+## 対応コマンド（例）
+- `convert input.png -resize 512x512 output.png`
+- `convert input.jpg -quality 80 output.webp`
+- `convert input.png -background none -gravity center -extent 1024x1024 padded.png`
+
+## 前提
+- ImageMagick（`magick` または `convert`）がPATHに通っていること</code></pre>
+
+    <h3>2つのスキルの使い分け</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>スキル</th>
+            <th>用途</th>
+            <th>依存</th>
+            <th>コスト</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>image-manipulation-image-magick</strong></td>
+            <td>リサイズ・切り抜き・フォーマット変換・バッチ処理・透過</td>
+            <td>ローカルの <code>magick</code> コマンド</td>
+            <td>無料</td>
+          </tr>
+          <tr>
+            <td><strong>fal-image-edit</strong></td>
+            <td>AIスタイル変換・背景差替え・オブジェクト除去・高解像度化</td>
+            <td>fal.ai APIキー（環境変数 <code>FAL_KEY</code>）</td>
+            <td>従量課金（1リクエスト $0.003〜）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>使用例（Agent Mode）</h3>
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4AC; プロンプト例</div>
+      <ul style="margin: 8px 0 0 18px;">
+        <li>画像を添付 → <code>@skill image-manipulation-image-magick この画像を正方形にクロップして deliverables/icon.png として保存して</code></li>
+        <li><code>@skill fal-image-edit 背景をオフィス風に変えて、人物はそのまま</code></li>
+        <li><code>@skill image-manipulation-image-magick assets/raw/ 以下のPNGを全て 80% 品質のWebPに変換して assets/web/ へ出力して</code></li>
+      </ul>
+    </div>
+
+    <h3>よくある問題と対策</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>症状</th>
+            <th>原因</th>
+            <th>対策</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>@skill</code> が補完されない</td>
+            <td>Agent Skills 未有効化</td>
+            <td><code>settings.json</code> に <code>"chat.useAgentSkills": true</code> を追加 &rarr; VS Code 再起動</td>
+          </tr>
+          <tr>
+            <td>ImageMagickが呼べない</td>
+            <td><code>magick</code> がPATH未登録</td>
+            <td>Windows: <code>winget install ImageMagick.ImageMagick</code> / Mac: <code>brew install imagemagick</code></td>
+          </tr>
+          <tr>
+            <td>fal.aiで401エラー</td>
+            <td>APIキー未設定</td>
+            <td><code>.env</code> に <code>FAL_KEY=xxx</code> を設定、または <code>fal auth login</code></td>
+          </tr>
+          <tr>
+            <td>スキルが <strong>Configure Tools</strong> に出ない</td>
+            <td>Agent Mode未選択</td>
+            <td>チャットドロップダウンで「Agent」を選択（Ask / Editでは動作しない）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4A1; 関連</div>
+      <p>Excel / PowerPoint を扱う <a href="#mcp-office" style="color: var(--accent-blue);">Office連携MCP</a> と同じ Agent Mode 上で併用できます。「ダッシュボード画像を3枚生成 &rarr; PPTに挿入」のような複合ワークフローも1プロンプトで完結します。</p>
+    </div>
+
     <!-- ===== Section: MCP検証 ===== -->
     <h2 id="mcp-troubleshooting">MCP検証 &amp; トラブルシューティング</h2>
 
