@@ -1389,6 +1389,143 @@ tools:
       <p>Excel / PowerPoint を扱う <a href="#mcp-office" style="color: var(--accent-blue);">Office連携MCP</a> と同じ Agent Mode 上で併用できます。「ダッシュボード画像を3枚生成 &rarr; PPTに挿入」のような複合ワークフローも1プロンプトで完結します。</p>
     </div>
 
+    <!-- ===== Section: 実践ワークフロー（要件定義モックアップ） ===== -->
+    <h2 id="image-workflow-mockup">&#x1F4DD; 実践ワークフロー: スクリーンショット &rarr; 要件定義モックアップ</h2>
+
+    <p><strong>目的:</strong> 既存Webサイト（特に予約システムなどの業務画面）のスクリーンショットをベースに、Copilot + カスタムスキルで新機能のモックアップを生成し、要件定義資料にそのまま使える画像を効率的に作る。Figma や Photoshop なしで「Before &rarr; [New]注釈入りAfter」が1プロンプトで完成します。</p>
+
+    <h3>全体の流れ（全8ステップ）</h3>
+
+    <h4>ステップ1: 準備</h4>
+    <ol class="steps-list">
+      <li>VS Code に <strong>GitHub Copilot Business</strong> を導入</li>
+      <li><code>.vscode/settings.json</code> に以下を追加：
+        <pre><code>{
+  "chat.useAgentSkills": true
+}</code></pre>
+      </li>
+      <li><strong>ImageMagick</strong> をインストール（Windows: <a href="https://imagemagick.org/script/download.php#windows" target="_blank" rel="noopener" style="color: var(--accent-blue);">公式サイト</a> / macOS: <code>brew install imagemagick</code>）</li>
+      <li>プロジェクト内に以下のフォルダを作成：
+        <pre><code>screenshots/              # 元画像保存用
+deliverables/requirements/ # 完成モックアップ保存用
+.github/skills/brand-image-processor/</code></pre>
+      </li>
+    </ol>
+
+    <h4>ステップ2: スクリーンショットの撮影</h4>
+    <ol class="steps-list">
+      <li>Chrome で対象サイトを開く</li>
+      <li><kbd>F12</kbd> &rarr; <kbd>Ctrl + Shift + P</kbd> &rarr; <strong>Capture full size screenshot</strong> で撮影</li>
+      <li>画像を <code>screenshots/</code> に保存（例: <code>20260423_dashboard.png</code>）</li>
+    </ol>
+
+    <h4>ステップ3: ブランドスキルの作成</h4>
+    <p><code>.github/skills/brand-image-processor/SKILL.md</code> を作成します。Beautiful版（v4.0）— 要件定義に特化したルールを記述します。</p>
+    <pre><code>---
+name: brand-image-processor
+description: スクリーンショットに新機能モックアップ注釈を付けるブランド準拠スキル
+tools:
+  - name: run_shell
+    description: ImageMagick (magick) でのみ画像加工を行う（Python/Pillow禁止）
+---
+
+# Brand Image Processor (v4.0 Beautiful)
+
+## ルール
+- 新機能部分は **青い破線 (#0A66C2)** で囲む (stroke-width: 3, stroke-dasharray: 8 6)
+- 枠の左上に **[New]** ラベル（白文字・青背景・角丸4px）
+- **赤い矢印 + 日本語注釈** で変更内容を説明（font: Noto Sans JP 700, 16px）
+- 画像加工は **ImageMagick のみ**。Python/Pillow の使用は禁止
+- 出力先は常に `deliverables/requirements/&lt;YYYYMMDD&gt;_&lt;機能名&gt;_&lt;画面名&gt;.png`
+
+## コマンド例
+magick input.png \
+  -fill none -stroke "#0A66C2" -strokewidth 3 -strokedasharray 8 6 \
+  -draw "rectangle 120,200 540,340" \
+  -fill "#0A66C2" -draw "roundRectangle 120,180 180,204 4,4" \
+  -fill white -pointsize 14 -annotate +132+198 "[New]" \
+  -fill "#E02424" -strokewidth 2 -draw "line 560,260 680,260" \
+  -fill "#111827" -pointsize 16 -annotate +690+265 "その他患者 3名を追加" \
+  deliverables/requirements/20260423_reservation_dashboard.png</code></pre>
+
+    <h4>ステップ4: Agent Mode で編集</h4>
+    <p>VS Code の Agent Mode を開き、画像を添付してプロンプトを実行します。</p>
+    <pre><code>@skill brand-image-processor
+この画像の「07:00 - 07:30」の枠を「その他患者 3名」に変更してください。
+青い破線と [New] ラベル、赤い矢印注釈を美しく配置してください。</code></pre>
+
+    <h4>ステップ5: 出力と管理</h4>
+    <ul>
+      <li>生成画像は自動で <code>deliverables/requirements/</code> に保存</li>
+      <li>ファイル名規約: <code>YYYYMMDD_機能名_画面名.png</code>（例: <code>20260423_reservation_dashboard.png</code>）</li>
+    </ul>
+
+    <h4>ステップ6: 要件定義資料への活用</h4>
+    <ul>
+      <li>生成画像を <strong>Notion / Confluence / Markdown</strong> に貼付</li>
+      <li><strong>Before/After 比較</strong> や注釈付きで使用（2枚並べて掲載）</li>
+      <li>Jira / Linear のチケット添付資料にもそのまま使える</li>
+    </ul>
+
+    <h4>ステップ7: スキルの改善（バージョン運用）</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>バージョン</th>
+            <th>内容</th>
+            <th>評価</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>初期版</td>
+            <td>Python / Pillow 使用</td>
+            <td>&#x26A0;&#xFE0F; 遅くて不安定</td>
+          </tr>
+          <tr>
+            <td>Beautiful版 (v4.0)</td>
+            <td>ImageMagick 強制 + 美しさ重視</td>
+            <td>&#x2705; 改善（ブランド準拠）</td>
+          </tr>
+          <tr>
+            <td><strong>シンプル版（推奨）</strong></td>
+            <td>処理を軽くして速さ重視</td>
+            <td>&#x1F3C6; 現在のおすすめ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>ステップ8: 限界を知って賢く使う</h4>
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Copilot + Skills が得意なこと</div>
+      <ul style="margin: 8px 0 0 18px;">
+        <li>正確な位置制御（ピクセル単位で枠・矢印を配置）</li>
+        <li>ブランドルールの一貫適用（色・フォント・角丸）</li>
+        <li>注釈・破線・[New]ラベルの自動追加</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-tip" style="border-left-color: var(--accent-orange);">
+      <div class="callout-title">&#x26A0;&#xFE0F; 苦手なこと</div>
+      <p>「自然で美しいデザイン生成」は <strong>GPT Image 2</strong> の方が圧倒的に優位です。スクリーンショットに手を加えず、ゼロから画面デザインを作るならそちらを使ってください。</p>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F3AF; 最終おすすめ</div>
+      <ul style="margin: 8px 0 0 18px;">
+        <li><strong>品質最優先:</strong> GPT Image 2（ChatGPT Plus）でデザイン生成 &rarr; Copilot スキルで注釈・ブランド準拠の後加工 <em>(ハイブリッド)</em></li>
+        <li><strong>無料で完結:</strong> シンプル＆高速なカスタムスキル + 良いプロンプト（上記 SKILL.md をベースに調整）</li>
+      </ul>
+    </div>
+
+    <h3>今すぐ試すプロンプト</h3>
+    <pre><code>@skill brand-image-processor
+この画像の「07:00 - 07:30」の枠を「その他患者 3名」に変更してください。
+青い破線で囲み、[New] ラベルと赤い矢印注釈を美しく配置してください。
+全体の見た目が資料にそのまま使えるレベルにしてください。</code></pre>
+
     <!-- ===== Section: MCP検証 ===== -->
     <h2 id="mcp-troubleshooting">MCP検証 &amp; トラブルシューティング</h2>
 
