@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ | 2026-04-24 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Palette aligned to TOP page (index.html) */
+  --navy:        #070F26;
+  --navy-2:      #0c1733;
+  --navy-3:      #142042;
+  --navy-line:   rgba(255,255,255,0.08);
+  --navy-line-2: rgba(255,255,255,0.16);
+
+  --bg:          #f5f7fa;
+  --surface:     #ffffff;
+  --surface-2:   #fafbfd;
+  --surface-3:   #eef1f5;
+  --border:      #e3e7ee;
+  --border-2:    #c7cfdb;
+
+  --t1:          #1a1f2e;
+  --t2:          #4a5260;
+  --t3:          #7a8294;
+  --on-dark:     #ffffff;
+  --on-dark-mu:  #a8b2c3;
+  --on-dark-mu2: #6e7a8d;
+
+  --yellow:      #FFCC00;
+  --yellow-d:    #e6b800;
+  --yellow-dim:  rgba(255,204,0,0.15);
+  --blue:        #0d6efd;
+  --blue-d:      #0a59cf;
+  --blue-dim:    rgba(13,110,253,0.10);
+  --green:       #1e9c5a;
+  --red:         #c0392b;
+
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ═══ TOPBAR ═══ */
+.bar {
+  position: sticky; top: 0; z-index: 100; height: 56px;
+  display: flex; align-items: center; gap: 20px; padding: 0 32px;
+  background: rgba(7,15,38,0.92);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--navy-line);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--on-dark-mu);
+}
+.bar-logo {
+  color: var(--on-dark);
+  font-family: var(--sans);
+  font-style: normal; font-size: .85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.bar-logo b { color: var(--yellow); font-weight: 800; }
+.bar-sep { color: var(--on-dark-mu2); }
+.bar-date { color: var(--on-dark-mu); font-weight: 400; }
+.bar-nav { display: flex; gap: 2px; margin-left: auto; }
+.bar-nav a {
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  min-height: 36px;
+  display: inline-flex; align-items: center;
+  font-size: .76rem; letter-spacing: .08em;
+  transition: color .15s, background .15s;
+}
+.bar-nav a:hover { color: var(--on-dark); background: rgba(255,255,255,0.06); }
+.bar-nav a.on { color: var(--yellow); background: rgba(255,204,0,0.12); }
+.bar-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 8px rgba(255,204,0,0.7);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ═══ CONTAINER ═══ */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px 80px; }
+
+/* ═══ HERO (dark navy, like TOP hero) ═══ */
+.hero {
+  position: relative;
+  margin: 0 -32px;
+  padding: 72px 32px 56px;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: var(--on-dark);
+  border-bottom: 4px solid var(--yellow);
+  overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: -30%; right: -10%;
+  width: 60%; height: 130%;
+  background: radial-gradient(ellipse at center, rgba(255,204,0,0.12) 0%, transparent 60%);
+  pointer-events: none; filter: blur(40px);
+}
+.hero > * { position: relative; }
+.hero-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono); font-size: .76rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--on-dark-mu);
+}
+.hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.hero-meta .rule { flex: 0 0 40px; height: 1px; background: var(--navy-line-2); }
+.hero-issue { color: var(--yellow); font-weight: 700; }
+
+/* Hero brand block — distinct, scannable product mark */
+.hero-brand {
+  margin: 28px 0 26px;
+  display: inline-block;
+  padding: 18px 26px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--navy-line-2);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+.hero-brand-tag {
+  display: block;
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.hero-brand-name {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  font-weight: 900;
+  color: var(--on-dark);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin: 4px 0 8px;
+}
+.hero-brand-model {
+  display: block;
+  font-family: var(--mono);
+  font-size: .76rem;
+  color: var(--on-dark-mu);
+  letter-spacing: .04em;
+}
+.hero-brand-model code {
+  font-family: var(--mono);
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+/* Hero headline — high-contrast 2-line story */
+.hero-headline {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--on-dark);
+  margin: 18px 0 18px;
+}
+.hero-headline .hl-from {
+  display: inline-block;
+  position: relative;
+  color: var(--on-dark-mu);
+  font-weight: 700;
+}
+.hero-headline .hl-from::after {
+  content: "";
+  position: absolute;
+  left: -2%; right: -2%; top: 52%;
+  height: 4px;
+  background: var(--on-dark-mu2);
+  transform: rotate(-3deg);
+  opacity: 0.85;
+}
+.hero-headline .hl-to {
+  display: inline-block;
+  color: var(--navy);
+  background: var(--yellow);
+  padding: 4px 18px 6px;
+  border-radius: 6px;
+  font-weight: 900;
+  box-shadow: 0 6px 24px rgba(255,204,0,0.25);
+}
+.hero-kicker {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.08rem;
+  color: var(--on-dark-mu);
+  margin: 18px 0 18px;
+  line-height: 1.7;
+  max-width: 60ch;
+}
+.hero-kicker .hk-br { display: inline; }
+@media (max-width: 720px) { .hero-kicker .hk-br { display: none; } }
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.02rem;
+  font-weight: 400;
+  color: var(--on-dark-mu);
+  max-width: 76ch;
+  line-height: 1.9;
+  margin-top: 14px;
+}
+.hero-sub strong { color: var(--on-dark); font-weight: 700; }
+
+.hero-cover {
+  margin: 36px 0 0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--navy-line-2);
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+.hero-cover img { width: 100%; display: block; }
+.hero-caption {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-top: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-caption::before { content: ""; width: 22px; height: 1px; background: var(--yellow); }
+
+/* ═══ KPI ═══ */
+.kpi {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 56px 0 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.kpi-cell {
+  padding: 28px 22px 24px;
+  position: relative;
+  background: var(--surface);
+}
+.kpi-cell + .kpi-cell { border-left: 1px solid var(--border); }
+.kpi-cell::after {
+  content: attr(data-idx);
+  position: absolute; top: 12px; right: 16px;
+  font-family: var(--mono); font-size: .7rem;
+  color: var(--t3); letter-spacing: 1px;
+}
+.kpi-n {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: 2.6rem; line-height: 1;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -.025em;
+}
+.kpi-l {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-top: 14px; font-weight: 600;
+}
+
+/* ═══ SECTIONS ═══ */
+.sec { margin: 64px 0 0; padding-top: 48px; border-top: 1px solid var(--border); }
+.sec:first-of-type { border-top: none; padding-top: 24px; }
+.sec-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 16px;
+}
+.sec-meta .rule { flex: 0 0 40px; height: 2px; background: var(--yellow); }
+.sec-num, .sec-meta span:nth-child(2) { color: var(--blue); font-weight: 700; }
+.sec-h {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.sec-h em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .12em;
+  color: var(--navy);
+}
+.sec-lede {
+  font-size: 1rem;
+  color: var(--t2);
+  max-width: 76ch;
+  line-height: 1.9;
+}
+.sec-lede strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ COMPARE ═══ */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.compare-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 26px;
+}
+.compare-col.pro {
+  background: linear-gradient(160deg, rgba(255,204,0,0.08), var(--surface));
+  border-color: var(--yellow);
+  border-width: 1px;
+  box-shadow: 0 6px 20px rgba(255,204,0,0.06);
+}
+.compare-tag {
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 10px;
+}
+.compare-col.pro .compare-tag { color: var(--blue); font-weight: 700; }
+.compare-col h3 {
+  font-family: var(--sans);
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+.compare-col.pro h3 { color: var(--navy); }
+.compare-col ul { list-style: none; padding: 0; }
+.compare-col li {
+  padding: 12px 0 12px 26px;
+  border-bottom: 1px dashed var(--border);
+  font-size: .92rem;
+  line-height: 1.7;
+  color: var(--t2);
+  position: relative;
+}
+.compare-col li:last-child { border-bottom: none; }
+.compare-col li::before {
+  content: "—"; position: absolute; left: 0;
+  color: var(--t3); font-weight: 600;
+}
+.compare-col.pro li { color: var(--t1); }
+.compare-col.pro li::before { content: "▸"; color: var(--yellow); font-weight: 800; }
+.compare-col li strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ PILLARS ═══ */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 32px 0 0;
+}
+.pillar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 22px;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.pillar:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.pillar .p-n {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 14px;
+}
+.pillar h3 {
+  font-family: var(--sans);
+  font-size: 1.18rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 12px;
+  letter-spacing: -.01em;
+}
+.pillar h3 em {
+  font-style: normal;
+  color: var(--blue);
+  font-weight: 800;
+}
+.pillar p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.pillar p strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ FIGURE ═══ */
+.fig {
+  margin: 32px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.fig img { width: 100%; display: block; }
+.fig-cap {
+  padding: 16px 24px;
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--t2);
+  text-transform: uppercase;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: center; gap: 10px;
+}
+.fig-cap::before {
+  content: attr(data-fignum);
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.fig-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.fig-duo .fig { margin: 0; }
+
+/* ═══ TIMELINE ═══ */
+.tl {
+  margin: 32px 0 0;
+  position: relative;
+  padding-left: 36px;
+}
+.tl::before {
+  content: ""; position: absolute;
+  left: 8px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--yellow), var(--border) 90%);
+}
+.tl-item { margin-bottom: 32px; position: relative; }
+.tl-item::before {
+  content: ""; position: absolute;
+  left: -34px; top: 4px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--yellow);
+}
+.tl-item:last-child { margin-bottom: 0; }
+.tl-time {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .16em;
+  color: var(--blue); font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.tl-item h3 {
+  font-family: var(--sans);
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+  letter-spacing: -.01em;
+}
+.tl-item h3 em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .1em;
+  color: var(--navy);
+}
+.tl-item p {
+  color: var(--t2);
+  font-size: .94rem;
+  line-height: 1.85;
+}
+.tl-item p strong { color: var(--navy); font-weight: 700; }
+.tl-item code {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ═══ APPROVAL / CALLOUT BOX ═══ */
+.approval {
+  margin: 32px 0 0;
+  padding: 28px 32px;
+  background: linear-gradient(160deg, rgba(13,110,253,0.06), var(--surface));
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(13,110,253,0.06);
+}
+.approval::before {
+  content: ""; position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--blue);
+}
+.approval .ap-mark {
+  font-family: var(--sans);
+  font-size: 2.6rem; font-weight: 900;
+  color: var(--blue); line-height: 1;
+}
+.approval h3 {
+  font-family: var(--sans);
+  font-size: 1.25rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.approval p {
+  color: var(--t2);
+  font-size: .95rem;
+  line-height: 1.85;
+}
+.approval strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ TABLE ═══ */
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 32px 0 0;
+  font-size: .9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tbl th, .tbl td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.tbl tr:last-child th, .tbl tr:last-child td { border-bottom: none; }
+.tbl th {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--t2); font-weight: 700;
+  border-bottom: 2px solid var(--border-2);
+  background: var(--surface-2);
+}
+.tbl th.highlight {
+  color: var(--blue);
+  border-bottom-color: var(--yellow);
+  background: rgba(255,204,0,0.08);
+}
+.tbl td { color: var(--t2); }
+.tbl td:first-child {
+  font-family: var(--mono);
+  font-size: .8rem; letter-spacing: .04em;
+  color: var(--navy);
+  font-weight: 600;
+  width: 180px;
+  background: var(--surface-2);
+}
+.tbl td.highlight {
+  color: var(--navy);
+  background: rgba(255,204,0,0.06);
+  font-weight: 500;
+}
+.tbl td strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ CODE BLOCK (kept dark for syntax legibility) ═══ */
+.code {
+  margin: 28px 0 0;
+  font-family: var(--mono);
+  font-size: .88rem;
+  line-height: 1.8;
+  color: #e8eef5;
+  background: var(--navy);
+  border: 1px solid var(--navy-2);
+  border-radius: 12px;
+  padding: 24px 26px 24px 26px;
+  overflow-x: auto;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(7,15,38,0.12);
+}
+.code::before {
+  content: attr(data-lang);
+  position: absolute; top: 12px; right: 18px;
+  font-size: .68rem;
+  color: var(--yellow);
+  letter-spacing: .2em; font-weight: 700;
+}
+.code .cm { color: #6e7a8d; font-style: italic; }
+.code .kw { color: var(--yellow); font-weight: 600; }
+.code .str { color: #7dd49f; }
+.code .fn { color: #5fc8d6; }
+.code .var { color: #f3c17a; }
+
+/* ═══ SETUP CARDS ═══ */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.setup-card {
+  padding: 30px 26px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  position: relative;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.setup-card:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.setup-card .s-n {
+  font-family: var(--sans);
+  font-size: 2.4rem; font-weight: 900;
+  color: var(--yellow);
+  line-height: 1; margin-bottom: 12px;
+}
+.setup-card h3 {
+  font-family: var(--sans);
+  font-size: 1.15rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+.setup-card p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.setup-card code {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ═══ LINKS GRID ═══ */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 32px 0 0;
+}
+.link-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 26px;
+  text-decoration: none;
+  display: block;
+  transition: border-color .2s, background .2s, transform .2s;
+  position: relative;
+}
+.link-row:hover {
+  border-color: var(--blue);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+.link-row::after {
+  content: "→"; position: absolute;
+  right: 24px; top: 50%; transform: translateY(-50%);
+  color: var(--t3); font-size: 1.1rem;
+  transition: color .2s, transform .2s;
+}
+.link-row:hover::after {
+  color: var(--blue);
+  transform: translateY(-50%) translateX(4px);
+}
+.link-cat {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 6px;
+}
+.link-row h4 {
+  font-family: var(--sans);
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+  padding-right: 32px;
+  letter-spacing: -.005em;
+}
+.link-row .meta {
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--t3);
+  letter-spacing: .04em;
+}
+
+/* ═══ PULL QUOTE ═══ */
+.pullquote {
+  margin: 56px 0 0;
+  padding: 40px 0 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+.pullquote::before {
+  content: """;
+  position: absolute; top: 18px; left: -6px;
+  font-family: var(--sans);
+  font-size: 5rem;
+  color: var(--yellow);
+  line-height: 1; font-weight: 900;
+}
+.pullquote q {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.3rem, 2.6vw, 1.85rem);
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.55;
+  letter-spacing: -.01em;
+  padding-left: 50px;
+  quotes: none;
+}
+.pullquote q::before, .pullquote q::after { content: ""; }
+.pullquote cite {
+  display: block;
+  margin-top: 18px;
+  padding-left: 50px;
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--blue);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* ═══ FOOTER (dark navy) ═══ */
+footer {
+  margin: 80px -32px 0;
+  padding: 48px 32px 36px;
+  background: var(--navy);
+  color: var(--on-dark-mu);
+  text-align: center;
+  border-top: 4px solid var(--yellow);
+  position: relative;
+}
+footer .f-title {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--on-dark);
+  margin-bottom: 10px;
+}
+footer .f-title b { color: var(--yellow); font-weight: 800; }
+footer .f-title em { font-style: normal; color: var(--yellow); }
+footer .f-meta {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-bottom: 22px;
+}
+footer .f-links {
+  display: flex; gap: 12px;
+  justify-content: center; flex-wrap: wrap;
+}
+footer .f-links a {
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--navy-line-2);
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: color .2s, border-color .2s, background .2s;
+}
+footer .f-links a:hover {
+  color: var(--navy);
+  border-color: var(--yellow);
+  background: var(--yellow);
+}
+
+@media (max-width: 960px) {
+  .wrap { padding: 0 22px 56px; }
+  .hero { margin: 0 -22px; padding: 56px 22px 44px; }
+  footer { margin: 64px -22px 0; padding: 40px 22px 28px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .kpi-cell { border-left: none !important; border-bottom: 1px solid var(--border); }
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+  .compare, .fig-duo, .setup-grid, .links-grid { grid-template-columns: 1fr; }
+  .bar { padding: 0 18px; gap: 12px; }
+  .bar-nav { display: none; }
+  .tbl td:first-child { width: 110px; font-size: .74rem; }
+}
+</style>
+<!-- SEO_META_INJECTED v1 -->
+<meta name="description" content="AI Daily Briefing — 2026-04-24 · Fri 記事 物語 技術 注意 戻る Issue № 04/24 The Daily AI Intelligence Brief OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ。自律ループ×自己検証×SWE-bench 最高記録…" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_24.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ | 2026-04-24 · AI Daily Briefing" />
+<meta property="og:description" content="AI Daily Briefing — 2026-04-24 · Fri 記事 物語 技術 注意 戻る Issue № 04/24 The Daily AI Intelligence Brief OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ。自律ループ×自己検証×SWE-bench 最高記録…" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_24.html" />
+<meta property="og:image" content="https://visionhub.jp/assets/og/day_slide_2026_04_24.png" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ | 2026-04-24 · AI Daily Briefing" />
+<meta name="twitter:description" content="AI Daily Briefing — 2026-04-24 · Fri 記事 物語 技術 注意 戻る Issue № 04/24 The Daily AI Intelligence Brief OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ。自律ループ×自己検証×SWE-bench 最高記録…" />
+<meta name="twitter:image" content="https://visionhub.jp/assets/og/day_slide_2026_04_24.png" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<!-- JSONLD_INJECTED v1 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "OpenAI GPT-5.5 — 「指示待ちAI」から「自立する同僚」へ | 2026-04-24 · AI Daily Briefing",
+  "datePublished": "2026-04-24",
+  "dateModified": "2026-04-24",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "alternateName": "Claudian",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": [
+    "https://visionhub.jp/assets/og/day_slide_2026_04_24.png"
+  ],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_24.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_24.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+<!-- INTERNAL_LINKS_INJECTED v1 -->
+<aside class="related-nav" aria-label="関連ガイド" style="background:#0D1733;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 18px;font:13px/1.4 'Noto Sans JP',system-ui,sans-serif;color:#8A9ABF;display:flex;gap:14px;flex-wrap:wrap;align-items:center;position:relative;z-index:100"><span style="color:#FFCC00;font-weight:700;letter-spacing:.04em">関連ガイド</span><a href="/presentations/hubs/claude-code-guide-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude Code 完全ガイド</a> <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude vs ChatGPT vs Gemini 比較</a> <a href="/presentations/hubs/mcp-complete-guide.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">MCP 完全ガイド</a> <a href="/presentations/hubs/claude-models-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude モデル料金比較</a> <a href="/presentations/hubs/ai-funding-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">AI資金調達まとめ</a> <a href="/presentations/digests/2026-04.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">2026年4月のまとめ</a></aside>
+
+
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
+  <span class="bar-sep">—</span>
+  <span class="bar-date">2026-04-24 · Fri</span>
+  <nav class="bar-nav">
+    <a href="#hero" class="on">序章</a>
+    <a href="#ch1">第1章</a>
+    <a href="#ch2">第2章</a>
+    <a href="#ch3">第3章</a>
+    <a href="#engine">中核</a>
+    <a href="#epilogue">終章</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-meta">
+      <span class="dot"></span>
+      <span class="hero-issue">Issue № 04/24</span>
+      <span class="rule"></span>
+      <span>The Daily AI Intelligence Brief</span>
+    </div>
+    <div class="hero-brand">
+      <span class="hero-brand-tag">MODEL · OPENAI</span>
+      <h2 class="hero-brand-name">GPT-5.5</h2>
+      <span class="hero-brand-model">The Autonomous Colleague · 2026-04-23 発表</span>
+    </div>
+    <h1 class="hero-headline">
+      <span class="hl-from">「指示待ちAI」</span>から、<br>
+      <span class="hl-to">自立する同僚</span>へ。
+    </h1>
+    <p class="hero-kicker">GPT-5.4 と同等の応答速度を維持しつつ、<strong>目的だけで最後までやり遂げる</strong>。<br class="hk-br">監視（babysitting）はもう要らない。</p>
+    <p class="hero-sub">
+      2026-04-23、OpenAI は <strong>GPT-5.5</strong> を発表した。これまでの LLM は便利な道具だが、<strong>一行ずつ指示しないと途中で止まる「指示待ち」</strong>の存在だった。GPT-5.5 は、目的を渡すだけで<strong>自ら計画を立て → ツールを使い → テストし → 自己検証して修正</strong>し、最後まで仕事を完遂する「<strong>自立したエージェント（デジタル同僚）</strong>」へ進化した。本号では、エンジニア・知識労働者・研究者の 3 名が抱えていた<strong>根深い課題</strong>が、GPT-5.5 によってどう変わったのか——<strong>3 つの実話ストーリー</strong>で紐解く。そこから浮かび上がるのは、<strong>「How（どうやるか）」から「What（何を達成したいか）」へ</strong>という、私たち自身の働き方の静かな革命だ。
+    </p>
+    <div class="hero-cover">
+      <img src="images/0424/cover.jpg" alt="OpenAI GPT-5.5 — 指示待ちAI から自立する同僚へ" loading="lazy">
+    </div>
+    <div class="hero-caption">FIG 01 · 「指示を待つ道具」から「目的を委任できる同僚」へ——3 つの実話が示す、私たちの働き方の次の章</div>
+  </section>
+
+  <!-- KPI -->
+  <section class="kpi">
+    <div class="kpi-cell" data-idx="01"><div class="kpi-n">10,000<span style="font-size:0.5em;">+人</span></div><div class="kpi-l">NVIDIA 社内展開</div></div>
+    <div class="kpi-cell" data-idx="02"><div class="kpi-n">71,637<span style="font-size:0.5em;">p</span></div><div class="kpi-l">K-1税務フォーム自動監査</div></div>
+    <div class="kpi-cell" data-idx="03"><div class="kpi-n">-2<span style="font-size:0.5em;">週</span></div><div class="kpi-l">OpenAI 財務の短縮実績</div></div>
+    <div class="kpi-cell" data-idx="04"><div class="kpi-n">28,000<span style="font-size:0.5em;">遺伝子</span></div><div class="kpi-l">免疫学データ自律解析</div></div>
+    <div class="kpi-cell" data-idx="05"><div class="kpi-n">Ramsey</div><div class="kpi-l">数学未解決問題の新証明</div></div>
+  </section>
+
+  <!-- § 01 PROLOGUE -->
+  <section class="sec" id="prologue">
+    <div class="sec-meta"><span class="rule"></span><span>§ 01</span><span style="color:var(--t2);">Prologue · 指示待ちAI の限界</span></div>
+    <h2 class="sec-h">なぜ AI は<em>「途中で止まる」</em>のか——3 つの人の叫び</h2>
+    <p class="sec-lede">2026 年春までの LLM は、驚くほど賢いが<strong>「監督なしでは最後までたどり着けない」</strong>という根深い限界を抱えていた。エンジニア、プロダクトマネージャーや財務担当、研究者——役割の異なる 3 名が、毎日同じ感覚を共有していた。「<strong>AI は途中までしか一緒に走ってくれない</strong>」。</p>
+
+    <div class="fig">
+      <img src="images/0424/page_2.jpg" alt="指示待ちAI の限界 — 3 つの職種が抱える共通の疲弊" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 02">指示待ち AI の限界：プロンプト1行で完結しないタスクに直面するたびに、人間の「伴走コスト」が跳ね上がる</div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Before · GPT-5.4 まで</div>
+        <h3>便利な「道具」だが、止まる</h3>
+        <ul>
+          <li>エンジニアは<strong>一行ずつ指示</strong>し、コードを手で繋ぎ、テスト地獄に沈む</li>
+          <li>PM／財務は Slack・議事録・<strong>数万ページの契約書</strong>を手で構造化</li>
+          <li>研究者は<strong>データ解析・仮説・文献調査の反復</strong>に数ヶ月〜数年</li>
+          <li>AI の出力を<strong>「確認して貼り直す」作業</strong>が本業を圧迫</li>
+          <li>人間は「何を達成したいか」より「どう指示するか」に忙殺</li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">After · GPT-5.5</div>
+        <h3>目的を渡すだけで<em>やり遂げる</em>同僚</h3>
+        <ul>
+          <li>「<strong>この壊れた状態を直せ</strong>」——と一言で自律デバッグ開始</li>
+          <li><strong>24,771 件 / 71,637 ページ</strong>の税務書類を自律監査</li>
+          <li><strong>62 サンプル × 28,000 遺伝子</strong>を数分で解析 + 仮説提案</li>
+          <li>自ら<strong>計画 → 実行 → 検証 → 修正</strong>を多段階ループ</li>
+          <li>人間は<strong>「What／Why」</strong>の意思決定だけに集中できる</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- § 02 CHAPTER 1 · Engineer -->
+  <section class="sec" id="ch1">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 1</span><span style="color:var(--t2);">エンジニアの苦悩を救う「自律型開発チーム」</span></div>
+    <h2 class="sec-h">リリース直後、<em>本番ダウン</em>——そのとき AI に何を任せられるか</h2>
+    <p class="sec-lede"><strong>状況：</strong> 金曜の夜、リリース直後の本番環境でシステムが落ちた。GPT-5.4 では解決できず、優秀なエンジニアが数日かけて手で直す——そんな事態だった。エンジニアが GPT-5.5 に投げたのは、<strong>たった一行の命令</strong>だけだった。</p>
+
+    <div class="fig">
+      <img src="images/0424/page_5.jpg" alt="Chapter 1 — 本番障害の自律復旧ストーリー" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 03">「この壊れた状態を修正せよ」——GPT-5.5 が <strong>システム全体の文脈を読み解き → 原因推測 → 関連コード修正 → テスト実行 → 自己修正</strong>を自律ループ</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>人間の最適解とほぼ同じ修正</em>を自動で完了</h3>
+        <p>GPT-5.5 は「この壊れた状態を直せ」の 1 行から、<strong>関連コードの修正 → テスト実行 → 自己検証 → 再修正</strong>を自律ループし、人間のエンジニアが数日かけて導き出したであろう最適解と<strong>ほぼ同じ修正</strong>を自動で完了させた。さらに NVIDIA 社内では、<strong>1 万人以上の社員</strong>が専用環境で GPT-5.5 搭載の <code>Codex</code> 利用を開始。<strong>数日かかっていたデバッグが数時間に、数週間の実験が一晩で完了</strong>する劇的な生産性向上が起きている。「AI を監視する仕事」はもう終わった。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0424/page_7.jpg" alt="NVIDIA 社内 1 万人展開 — Codex with GPT-5.5" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 04">NVIDIA 社内：10,000+ 人のエンジニアが GPT-5.5 搭載 Codex を使い、日次で実験サイクルを圧倒的に加速</div>
+    </div>
+  </section>
+
+  <!-- § 03 CHAPTER 2 · Knowledge Worker -->
+  <section class="sec" id="ch2">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 2</span><span style="color:var(--t2);">知識労働者とバックオフィスを解放する「デジタル従業員」</span></div>
+    <h2 class="sec-h">OpenAI 財務チームが直面した<em>71,637 ページ</em>の山</h2>
+    <p class="sec-lede"><strong>状況：</strong> OpenAI の財務チームは、<strong>24,771 件（計 71,637 ページ）</strong>の K-1 税務フォームの監査という山積みのタスクに直面していた。人力では前年レベルの工数がかかる——プロダクトマネージャーや財務担当が毎日直面している「<strong>散らかった情報の構造化</strong>」そのものだ。Slack の議論、議事録、契約書や税務書類を読み、要件定義やスプレッドシートにまとめる——<strong>本業の意思決定前に、一日が終わる</strong>。</p>
+
+    <div class="fig">
+      <img src="images/0424/page_9.jpg" alt="Chapter 2 — 24,771 件 / 71,637 ページの K-1 監査タスク" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 05">24,771 件 × 71,637 ページ——人間が手で読めば何週間も消える量を、GPT-5.5 が自律ループで一気通貫に処理</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>作業期間を前年より 2 週間短縮</em></h3>
+        <p>GPT-5.5 は複数のツールを横断して自ら文書を読み解き、必要な情報を抽出・監査して<strong>一気通貫で処理</strong>。結果として、<strong>作業期間を前年より 2 週間短縮</strong>した。これは「AI に一部を手伝わせる」のではなく、<strong>プロジェクト丸ごとを委任する</strong>という働き方のシフトだ。人間は「AI が作業する間、どう最終意思決定の準備をするか」を考えるだけでいい。この変化は、法務・税務・監査・データ運用など、<strong>あらゆるバックオフィス業務</strong>に波及していく。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0424/page_10.jpg" alt="Backoffice Delegation — 部分的手伝いから丸ごと委任へ" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 06">バックオフィスの新定義：<strong>「部分的な手伝い」</strong>から<strong>「プロジェクト丸ごとの委任」</strong>へ</div>
+    </div>
+  </section>
+
+  <!-- § 04 CHAPTER 3 · Researcher -->
+  <section class="sec" id="ch3">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 3</span><span style="color:var(--t2);">研究者の限界を突破する「共同研究者」</span></div>
+    <h2 class="sec-h"><em>28,000 遺伝子</em>のデータと「新しい生物学的技術」の発明</h2>
+    <p class="sec-lede"><strong>状況：</strong> 科学と数学の最前線では、膨大なデータの解析、仮説の立案、文献調査の反復が<strong>数ヶ月・数年</strong>を食い潰していた。ある免疫学教授が GPT-5.5 に託したのは、<strong>62 サンプル・約 28,000 の遺伝子発現</strong>という膨大なデータセット。指示は「解析してほしい」——ただそれだけだった。</p>
+
+    <div class="fig">
+      <img src="images/0424/page_12.jpg" alt="Chapter 3 — 28,000 遺伝子の自律解析" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 07">62 サンプル × 約 28,000 遺伝子発現——GPT-5.5 は数分で「集計」ではなく「<strong>研究レポート + 検証可能な新仮説 + 次の実験レイアウト</strong>」まで自律提案</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>「新しい生物学的技術を発明した」</em>と教授が驚く</h3>
+        <p>数分後、GPT-5.5 は集計ではなく<strong>詳細な研究レポート</strong>、<strong>検証可能な新仮説</strong>、さらには<strong>次の実験レイアウト</strong>まで提案してきた。教授自身が「<em>新しい生物学的技術を発明した</em>」と驚くほどの成果。また、数学では<strong>未解決問題 Ramsey 数</strong>に関する新たな証明を AI 自身が発見し、形式検証ツール <code>Lean</code> で<strong>正しさを機械的に証明</strong>——研究者顔負けの<strong>「新規発見」</strong>まで成し遂げた。これはもう「調べ物の補助」ではない。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0424/page_13.jpg" alt="Ramsey 数の新証明 — Lean で形式検証" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 08">数学未解決問題 Ramsey 数：GPT-5.5 が新証明を発見し、形式検証ツール <code>Lean</code> で正しさを機械的に証明</div>
+    </div>
+  </section>
+
+  <!-- § 05 ENGINE · How It Works -->
+  <section class="sec" id="engine">
+    <div class="sec-meta"><span class="rule"></span><span>§ 05</span><span style="color:var(--t2);">The Autonomous Engine</span></div>
+    <h2 class="sec-h">なぜ GPT-5.5 は<em>最後までやり遂げられる</em>のか</h2>
+    <p class="sec-lede">3 つのストーリーに共通する「やり遂げる力」の正体は、<strong>単一モデルの賢さ</strong>ではなく<strong>自律ループの設計</strong>にある。GPT-5.4 と同等の応答速度を維持しながら、目的と制約だけで走り切る——その裏側にある <strong>4 本の柱</strong>を解剖する。</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-n">PILLAR 01</div>
+        <h3><em>Plan</em> 自律計画</h3>
+        <p>目的と制約を受け取ると、<strong>サブゴールへ分解</strong>し、実行順とツール選択を自前で組み立てる。「一行ずつ指示」は不要に。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 02</div>
+        <h3><em>Act</em> 多ツール実行</h3>
+        <p>コード実行・Web 検索・ファイル操作・API 呼出を<strong>多段階で横断</strong>。Codex 系の強みが業務横断にまで拡張された。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 03</div>
+        <h3><em>Verify</em> 自己検証</h3>
+        <p>出力を<strong>テスト実行・反例探索・型チェック</strong>等で自ら検証。Ramsey 数の証明は <code>Lean</code> による形式検証まで自走した。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 04</div>
+        <h3><em>Repair</em> 自己修復</h3>
+        <p>検証が失敗すれば<strong>原因を切り分けて修正</strong>し、再度 Verify に戻る。数日かかる本番復旧が、数時間で閉じる所以。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0424/page_15.jpg" alt="Plan → Act → Verify → Repair — GPT-5.5 の自律ループ" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 09">自律ループの心臓部：<strong>Plan → Act → Verify → Repair</strong>。GPT-5.4 同等の速度で、<em>最後までやり遂げる</em>まで止まらない</div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0424/page_17.jpg" alt="SWE-bench / OSWorld などでの性能向上" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 10">SWE-bench 等のエージェント系ベンチで顕著な底上げ——「速さを落とさず、完遂率を上げる」という設計思想</div>
+    </div>
+  </section>
+
+  <!-- § 06 EPILOGUE / CAVEATS -->
+  <section class="sec" id="epilogue">
+    <div class="sec-meta"><span class="rule"></span><span>Epilogue</span><span style="color:var(--t2);">How から What へ、働き方の静かな革命</span></div>
+    <h2 class="sec-h">委任の時代に、<em>私たちが手放してよいもの／握り続けるもの</em></h2>
+    <p class="sec-lede">「やり遂げる AI」が手に入ったいま、問うべきは<strong>「何を委任し、何を自分で持ち続けるか」</strong>だ。エンジニアの監視地獄、バックオフィスの単調作業、研究の反復労働——これらは手放していい。一方、<strong>目的の定義・倫理判断・最終責任</strong>は人間側に握り続ける。その境界を、以下の 2 列で整理する。</p>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Hand Off · 委任してよい</div>
+        <h3>AI に任せられる領域</h3>
+        <ul>
+          <li>本番障害の<strong>自律デバッグ</strong>と修正 PR の作成</li>
+          <li>契約書・税務・議事録の<strong>構造化と要約</strong></li>
+          <li>データセットの<strong>統計解析と一次仮説生成</strong></li>
+          <li>リサーチの<strong>文献横断と再現性チェック</strong></li>
+          <li>定型的な<strong>レポート・ドキュメント生成</strong></li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">Hold On · 手放してはいけない</div>
+        <h3>人間が握り続ける領域</h3>
+        <ul>
+          <li><strong>目的の定義</strong>——何を達成するか（What／Why）</li>
+          <li>倫理・法務・<strong>最終的な意思決定</strong>と説明責任</li>
+          <li>顧客・同僚との<strong>信頼関係と交渉</strong></li>
+          <li>AI 出力の<strong>サンプリング監査</strong>（空洞化を防ぐ）</li>
+          <li><strong>暴走・誤委任</strong>を止めるガバナンス設計そのもの</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULLQUOTE -->
+  <div class="pullquote">
+    <q>「How（どうやるか）」を細かく教えるのではなく、「What（何を達成したいか）」を委任する——働き方そのものが次の章に入った。</q>
+    <cite>— GPT-5.5 が告げた、2026 年春の転機 · 2026-04-24</cite>
+  </div>
+
+  <!-- § 07 LINKS -->
+  <section class="sec" id="links">
+    <div class="sec-meta"><span class="rule"></span><span>§ 07</span><span style="color:var(--t2);">References</span></div>
+    <h2 class="sec-h">公式リソース &amp; <em>参考リンク</em></h2>
+    <div class="links-grid">
+      <a href="https://openai.com/index/introducing-gpt-5-5/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">OpenAI</div>
+        <h4>Introducing GPT-5.5</h4>
+        <div class="meta">自律ループ × SWE-bench 最高記録 · 公式発表</div>
+      </a>
+      <a href="https://www.swebench.com/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Benchmark</div>
+        <h4>SWE-bench · 本物のエンジニアリング能力</h4>
+        <div class="meta">GPT-5.5 のエージェント性能を測る代表的ベンチ</div>
+      </a>
+      <a href="https://x.com/akira_papa_IT/status/2047432618900406383" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">JP Analyst · X</div>
+        <h4>Akira Papa — GPT-5.5 の進化を日本語で解説</h4>
+        <div class="meta">3 つのストーリーと自律ループの意義</div>
+      </a>
+      <a href="https://leanprover.github.io/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Verify</div>
+        <h4>Lean — 形式検証ツール</h4>
+        <div class="meta">Ramsey 数の新証明を機械的に検証した環境</div>
+      </a>
+      <a href="day_slide_2026_04_23.html" class="link-row">
+        <div class="link-cat">Prev</div>
+        <h4>04/23 · OpenAI Workspace Agents</h4>
+        <div class="meta">同日系譜：ChatGPT 側の「デジタル同僚」発表</div>
+      </a>
+      <a href="/presentations/hubs/ai-model-comparison-2026.html" class="link-row">
+        <div class="link-cat">Hub</div>
+        <h4>Claude vs ChatGPT vs Gemini 2026比較</h4>
+        <div class="meta">3 大モデルの料金・性能・向き不向き</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="f-title"><b>Daily AI</b> Briefing · 2026-04-24 — <em style="font-style:italic;">OpenAI GPT-5.5 — The Autonomous Colleague Edition</em></div>
+  <div class="f-meta">Source: OpenAI 公式 · SWE-bench · NVIDIA 社内事例 · 免疫学／数学の新規発見レポート</div>
+  <div class="f-links">
+    <a href="../index.html">Hub</a>
+    <a href="../day_slides_index.html">All Slides</a>
+    <a href="day_slide_2026_04_23.html">← 04/23 Workspace Agents</a>
+  </div>
+</footer>
+
+</body>
+</html>
