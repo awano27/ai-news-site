@@ -1272,23 +1272,31 @@ tools: ["excel-mcp", "ppt-mcp"]
   "chat.useAgentSkills": true
 }</code></pre>
 
-    <h3>最速インストール（Copilot CLI）</h3>
-    <p>プロジェクトルートで以下を実行するだけで、<code>.github/skills/</code> 以下に自動生成されます。</p>
-    <pre><code># ImageMagick ベースの画像編集（リサイズ・変換・バッチ処理）
-copilot plugin install image-manipulation-image-magick@awesome-copilot
+    <h3>インストール方法</h3>
+    <p>GitHub Copilot の Skills は <strong><code>.github/skills/&lt;skill-name&gt;/SKILL.md</code></strong> を配置するだけで有効になります。Marketplace からコピーするか、下記テンプレートをそのまま貼り付けてください。</p>
 
-# fal.ai によるAI画像編集（スタイル変換・背景差替え・オブジェクト除去）
-copilot plugin install fal-image-edit@awesome-copilot</code></pre>
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x1F4C2; 推奨リポジトリ（コピペ元）</div>
+      <ul style="margin: 8px 0 0 18px;">
+        <li><a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener" style="color: var(--accent-blue);">github/awesome-copilot</a> &mdash; 公式キュレーション。<code>skills/image-manipulation-image-magick/</code> などのディレクトリを自プロジェクトの <code>.github/skills/</code> 以下にコピー</li>
+        <li><a href="https://github.com/github/copilot-plugins" target="_blank" rel="noopener" style="color: var(--accent-blue);">github/copilot-plugins</a> &mdash; MCPサーバー・Skill・Plugin 一括カタログ</li>
+      </ul>
+    </div>
 
-    <p>インストール後のディレクトリ構造：</p>
+    <p>目標のディレクトリ構造：</p>
     <pre><code>.github/skills/
 ├── image-manipulation-image-magick/   ← ImageMagickでリサイズ・変換・バッチ処理
 │   └── SKILL.md
 └── fal-image-edit/                    ← AIでスタイル変換・オブジェクト除去・背景変更
     └── SKILL.md</code></pre>
 
-    <h3>手動インストール（SKILL.md テンプレート）</h3>
-    <p>CLI が使えない環境や、独自スキルを作る場合は <code>.github/skills/&lt;skill-name&gt;/SKILL.md</code> を手動で作成します。</p>
+    <div class="callout callout-tip" style="border-left-color: var(--accent-orange);">
+      <div class="callout-title">&#x26A0;&#xFE0F; 注意</div>
+      <p><code>copilot plugin install &lt;name&gt;@awesome-copilot</code> のようなワンラインCLIは一部プレビュー環境でのみ提供されており、安定した方法ではありません。本ガイドでは <strong>SKILL.md を手動配置する方式</strong> を推奨します。</p>
+    </div>
+
+    <h3>SKILL.md テンプレート（そのままコピペ可）</h3>
+    <p>独自スキルを作る場合は <code>.github/skills/&lt;skill-name&gt;/SKILL.md</code> を作成します。</p>
     <pre><code>---
 name: image-manipulation-image-magick
 description: ImageMagickを使って画像をリサイズ・変換・合成・バッチ処理する
@@ -1303,13 +1311,14 @@ tools:
 - 画像を添付、またはパスを指定
 - 「この画像を正方形にクロップして」「WebPに変換して」など自然言語で指示
 
-## 対応コマンド（例）
-- `convert input.png -resize 512x512 output.png`
-- `convert input.jpg -quality 80 output.webp`
-- `convert input.png -background none -gravity center -extent 1024x1024 padded.png`
+## 対応コマンド（例 / ImageMagick 7+ は magick を使用）
+- `magick input.png -resize 512x512 output.png`
+- `magick input.jpg -quality 80 output.webp`
+- `magick input.png -background none -gravity center -extent 1024x1024 padded.png`
 
 ## 前提
-- ImageMagick（`magick` または `convert`）がPATHに通っていること</code></pre>
+- ImageMagick 7+（<code>magick</code> コマンド）がPATHに通っていること
+- ImageMagick 6系を使う環境では <code>convert</code> に読み替え可（非推奨）</code></pre>
 
     <h3>2つのスキルの使い分け</h3>
     <div class="table-wrapper">
@@ -1333,7 +1342,7 @@ tools:
             <td><strong>fal-image-edit</strong></td>
             <td>AIスタイル変換・背景差替え・オブジェクト除去・高解像度化</td>
             <td>fal.ai APIキー（環境変数 <code>FAL_KEY</code>）</td>
-            <td>従量課金（1リクエスト $0.003〜）</td>
+            <td>従量課金（モデル別 &mdash; <a href="https://fal.ai/pricing" target="_blank" rel="noopener" style="color: var(--accent-blue);">fal.ai/pricing</a> を参照）</td>
           </tr>
         </tbody>
       </table>
@@ -1373,7 +1382,7 @@ tools:
           <tr>
             <td>fal.aiで401エラー</td>
             <td>APIキー未設定</td>
-            <td><code>.env</code> に <code>FAL_KEY=xxx</code> を設定、または <code>fal auth login</code></td>
+            <td><a href="https://fal.ai/dashboard/keys" target="_blank" rel="noopener" style="color: var(--accent-blue);">fal.ai/dashboard/keys</a> で発行 &rarr; <code>.env</code> または OS環境変数に <code>FAL_KEY=xxx</code> を設定</td>
           </tr>
           <tr>
             <td>スキルが <strong>Configure Tools</strong> に出ない</td>
@@ -1420,7 +1429,7 @@ deliverables/requirements/ # 完成モックアップ保存用
     </ol>
 
     <h4>ステップ3: ブランドスキルの作成</h4>
-    <p><code>.github/skills/brand-image-processor/SKILL.md</code> を作成します。Beautiful版（v4.0）— 要件定義に特化したルールを記述します。</p>
+    <p><code>.github/skills/brand-image-processor/SKILL.md</code> を作成します。まずは以下の <strong>シンプル版（推奨ベースライン）</strong> をそのまま貼り付け、必要に応じて色・フォント・枠スタイルをプロジェクトのブランドガイドに合わせて調整してください。</p>
     <pre><code>---
 name: brand-image-processor
 description: スクリーンショットに新機能モックアップ注釈を付けるブランド準拠スキル
@@ -1429,13 +1438,13 @@ tools:
     description: ImageMagick (magick) でのみ画像加工を行う（Python/Pillow禁止）
 ---
 
-# Brand Image Processor (v4.0 Beautiful)
+# Brand Image Processor (シンプル版ベースライン)
 
 ## ルール
 - 新機能部分は **青い破線 (#0A66C2)** で囲む (stroke-width: 3, stroke-dasharray: 8 6)
 - 枠の左上に **[New]** ラベル（白文字・青背景・角丸4px）
-- **赤い矢印 + 日本語注釈** で変更内容を説明（font: Noto Sans JP 700, 16px）
-- 画像加工は **ImageMagick のみ**。Python/Pillow の使用は禁止
+- **赤い矢印 + 日本語注釈** で変更内容を説明（font: 環境にある日本語フォント。未インストールなら -font オプションを外して既定フォント）
+- 画像加工は **ImageMagick 7+（magick）のみ**。Python/Pillow の使用は禁止
 - 出力先は常に `deliverables/requirements/&lt;YYYYMMDD&gt;_&lt;機能名&gt;_&lt;画面名&gt;.png`
 
 ## コマンド例
@@ -1467,7 +1476,8 @@ magick input.png \
       <li>Jira / Linear のチケット添付資料にもそのまま使える</li>
     </ul>
 
-    <h4>ステップ7: スキルの改善（バージョン運用）</h4>
+    <h4>ステップ7: スキルの改善（バージョン運用の教訓）</h4>
+    <p>実際に運用してみて得られた「やってはいけない／やるべき」は SKILL.md の版として残しておくと、社内展開時にも再利用しやすくなります。</p>
     <div class="table-wrapper">
       <table>
         <thead>
@@ -1481,17 +1491,17 @@ magick input.png \
           <tr>
             <td>初期版</td>
             <td>Python / Pillow 使用</td>
-            <td>&#x26A0;&#xFE0F; 遅くて不安定</td>
+            <td>&#x26A0;&#xFE0F; フォント依存・実行遅延で不安定</td>
           </tr>
           <tr>
             <td>Beautiful版 (v4.0)</td>
-            <td>ImageMagick 強制 + 美しさ重視</td>
-            <td>&#x2705; 改善（ブランド準拠）</td>
+            <td>ImageMagick 強制 + ブランド美しさ重視で指定過多</td>
+            <td>&#x26A0;&#xFE0F; ルールが厳しすぎて失敗率UP</td>
           </tr>
           <tr>
             <td><strong>シンプル版（推奨）</strong></td>
-            <td>処理を軽くして速さ重視</td>
-            <td>&#x1F3C6; 現在のおすすめ</td>
+            <td>必須ルールだけを残し、位置・色指定は最小限</td>
+            <td>&#x1F3C6; 現在のおすすめ（上記 SKILL.md）</td>
           </tr>
         </tbody>
       </table>
