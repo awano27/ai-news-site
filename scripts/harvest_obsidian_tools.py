@@ -34,6 +34,10 @@ DEFAULT_OUT_DIR = PROJECT_ROOT / "tmp"
 
 URL_RE = re.compile(r"https?://[^\s<>\"\)\]\}]+")
 
+# Twitter often breaks long URLs across lines for display. Glue them back
+# before extraction so e.g. "https://\ngithub.com/foo/bar" becomes one URL.
+URL_LINEBREAK_RE = re.compile(r"(https?://)\s*\n\s*(\S+)", re.IGNORECASE)
+
 EXCLUDE_HOSTS = {
     "x.com", "twitter.com", "t.co",
     "pbs.twimg.com", "video.twimg.com", "twimg.com",
@@ -48,6 +52,18 @@ TOOL_KEYWORDS = (
     "API", "SDK", "CLI", "MCP",
     "AI",
 )
+
+# Tokens too generic to use alone as dedupe match keys. Multi-word phrases
+# containing them are still allowed (e.g. "Google Finance" passes), but the
+# bare token won't trigger a duplicate match against an existing card.
+COMMON_NAME_TOKENS = {
+    "ai", "the", "for", "of", "and", "or", "to",
+    "claude", "google", "github", "open", "source",
+    "tool", "tools", "plus", "pro", "enterprise",
+    "code", "py", "skill", "skills", "agent", "agents",
+    "deep", "research", "studio", "manager", "api", "sdk", "cli",
+    "io", "dev", "app", "lab", "labs",
+}
 
 
 @dataclass
@@ -92,7 +108,8 @@ def parse_clip(path: Path) -> Candidate | None:
 
     raw_urls: list[str] = []
     for src in (body_section, description):
-        for url in URL_RE.findall(src):
+        glued = URL_LINEBREAK_RE.sub(r"\1\2", src)
+        for url in URL_RE.findall(glued):
             raw_urls.append(url.rstrip(".,!)】」"))
 
     external: list[str] = []
@@ -107,7 +124,12 @@ def parse_clip(path: Path) -> Candidate | None:
         external.append(url)
 
     text_for_signal = " ".join((body_section, memo_section, description))
-    has_signals = any(kw in text_for_signal for kw in TOOL_KEYWORDS)
+    has_keyword = any(kw in text_for_signal for kw in TOOL_KEYWORDS)
+    # Strict signal: a clip is considered a tool candidate only if it has
+    # both a tool keyword AND at least one external URL (any non-Twitter
+    # link). Pure opinion/news clips that mention "AI" but link nowhere
+    # get demoted to the low-signal bucket.
+    has_signals = has_keyword and bool(external)
 
     date_value = str(fm.get("date") or fm.get("published") or "")[:10]
 
@@ -159,16 +181,50 @@ def existing_tool_names(html_path: Path) -> list[str]:
     return [n.strip() for n in names if n.strip()]
 
 
+def make_match_keys(name: str) -> list[str]:
+    """Generate dedupe search keys from an existing tool-card name.
+
+    Returns the full lowercased name plus shorter variants — first two
+    words, and any distinctive 4+ char tokens not in COMMON_NAME_TOKENS —
+    so a card "Google Finance Deep Research" can still match a tweet body
+    that only says "Google Finance", and "Claude Advisor" can match a
+    body that says "Advisor Tool".
+    """
+    n = name.strip().lower()
+    if not n:
+        return []
+    keys: list[str] = [n]
+    words = [w for w in n.split() if w]
+    if len(words) >= 2:
+        keys.append(" ".join(words[:2]))
+    for w in words:
+        if len(w) >= 4 and w not in COMMON_NAME_TOKENS:
+            keys.append(w)
+    seen: set[str] = set()
+    out: list[str] = []
+    for k in keys:
+        if k and k not in seen:
+            seen.add(k)
+            out.append(k)
+    return out
+
+
 def match_existing(cand: Candidate, names: list[str]) -> list[str]:
     haystack = " ".join((cand.body, cand.description, cand.memo)).lower()
     matched: list[str] = []
     for name in names:
-        nlow = name.lower().strip()
-        if len(nlow) < 3:
-            continue
-        pattern = r"(?<![a-z0-9_\-])" + re.escape(nlow) + r"(?![a-z0-9_\-])"
-        if re.search(pattern, haystack):
-            matched.append(name)
+        for key in make_match_keys(name):
+            if len(key) < 3:
+                continue
+            if " " in key:
+                if key in haystack:
+                    matched.append(name)
+                    break
+            else:
+                pattern = r"(?<![a-z0-9_\-])" + re.escape(key) + r"(?![a-z0-9_\-])"
+                if re.search(pattern, haystack):
+                    matched.append(name)
+                    break
     return matched
 
 
