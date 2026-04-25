@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>源内（Gennai）— デジタル庁の「主権AI基盤」OSS、日本企業のAI導入を変える | 2026-04-25 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Palette aligned to TOP page (index.html) */
+  --navy:        #070F26;
+  --navy-2:      #0c1733;
+  --navy-3:      #142042;
+  --navy-line:   rgba(255,255,255,0.08);
+  --navy-line-2: rgba(255,255,255,0.16);
+
+  --bg:          #f5f7fa;
+  --surface:     #ffffff;
+  --surface-2:   #fafbfd;
+  --surface-3:   #eef1f5;
+  --border:      #e3e7ee;
+  --border-2:    #c7cfdb;
+
+  --t1:          #1a1f2e;
+  --t2:          #4a5260;
+  --t3:          #7a8294;
+  --on-dark:     #ffffff;
+  --on-dark-mu:  #a8b2c3;
+  --on-dark-mu2: #6e7a8d;
+
+  --yellow:      #FFCC00;
+  --yellow-d:    #e6b800;
+  --yellow-dim:  rgba(255,204,0,0.15);
+  --blue:        #0d6efd;
+  --blue-d:      #0a59cf;
+  --blue-dim:    rgba(13,110,253,0.10);
+  --green:       #1e9c5a;
+  --red:         #c0392b;
+
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ═══ TOPBAR ═══ */
+.bar {
+  position: sticky; top: 0; z-index: 100; height: 56px;
+  display: flex; align-items: center; gap: 20px; padding: 0 32px;
+  background: rgba(7,15,38,0.92);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--navy-line);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--on-dark-mu);
+}
+.bar-logo {
+  color: var(--on-dark);
+  font-family: var(--sans);
+  font-style: normal; font-size: .85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.bar-logo b { color: var(--yellow); font-weight: 800; }
+.bar-sep { color: var(--on-dark-mu2); }
+.bar-date { color: var(--on-dark-mu); font-weight: 400; }
+.bar-nav { display: flex; gap: 2px; margin-left: auto; }
+.bar-nav a {
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  min-height: 36px;
+  display: inline-flex; align-items: center;
+  font-size: .76rem; letter-spacing: .08em;
+  transition: color .15s, background .15s;
+}
+.bar-nav a:hover { color: var(--on-dark); background: rgba(255,255,255,0.06); }
+.bar-nav a.on { color: var(--yellow); background: rgba(255,204,0,0.12); }
+.bar-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 8px rgba(255,204,0,0.7);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ═══ CONTAINER ═══ */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px 80px; }
+
+/* ═══ HERO (dark navy, like TOP hero) ═══ */
+.hero {
+  position: relative;
+  margin: 0 -32px;
+  padding: 72px 32px 56px;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: var(--on-dark);
+  border-bottom: 4px solid var(--yellow);
+  overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: -30%; right: -10%;
+  width: 60%; height: 130%;
+  background: radial-gradient(ellipse at center, rgba(255,204,0,0.12) 0%, transparent 60%);
+  pointer-events: none; filter: blur(40px);
+}
+.hero > * { position: relative; }
+.hero-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono); font-size: .76rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--on-dark-mu);
+}
+.hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.hero-meta .rule { flex: 0 0 40px; height: 1px; background: var(--navy-line-2); }
+.hero-issue { color: var(--yellow); font-weight: 700; }
+
+/* Hero brand block — distinct, scannable product mark */
+.hero-brand {
+  margin: 28px 0 26px;
+  display: inline-block;
+  padding: 18px 26px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--navy-line-2);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+.hero-brand-tag {
+  display: block;
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.hero-brand-name {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  font-weight: 900;
+  color: var(--on-dark);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin: 4px 0 8px;
+}
+.hero-brand-model {
+  display: block;
+  font-family: var(--mono);
+  font-size: .76rem;
+  color: var(--on-dark-mu);
+  letter-spacing: .04em;
+}
+.hero-brand-model code {
+  font-family: var(--mono);
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+/* Hero headline — high-contrast 2-line story */
+.hero-headline {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--on-dark);
+  margin: 18px 0 18px;
+}
+.hero-headline .hl-from {
+  display: inline-block;
+  position: relative;
+  color: var(--on-dark-mu);
+  font-weight: 700;
+}
+.hero-headline .hl-from::after {
+  content: "";
+  position: absolute;
+  left: -2%; right: -2%; top: 52%;
+  height: 4px;
+  background: var(--on-dark-mu2);
+  transform: rotate(-3deg);
+  opacity: 0.85;
+}
+.hero-headline .hl-to {
+  display: inline-block;
+  color: var(--navy);
+  background: var(--yellow);
+  padding: 4px 18px 6px;
+  border-radius: 6px;
+  font-weight: 900;
+  box-shadow: 0 6px 24px rgba(255,204,0,0.25);
+}
+.hero-kicker {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.08rem;
+  color: var(--on-dark-mu);
+  margin: 18px 0 18px;
+  line-height: 1.7;
+  max-width: 60ch;
+}
+.hero-kicker .hk-br { display: inline; }
+@media (max-width: 720px) { .hero-kicker .hk-br { display: none; } }
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.02rem;
+  font-weight: 400;
+  color: var(--on-dark-mu);
+  max-width: 76ch;
+  line-height: 1.9;
+  margin-top: 14px;
+}
+.hero-sub strong { color: var(--on-dark); font-weight: 700; }
+
+.hero-cover {
+  margin: 36px 0 0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--navy-line-2);
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+.hero-cover img { width: 100%; display: block; }
+.hero-caption {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-top: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-caption::before { content: ""; width: 22px; height: 1px; background: var(--yellow); }
+
+/* ═══ KPI ═══ */
+.kpi {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 56px 0 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.kpi-cell {
+  padding: 28px 22px 24px;
+  position: relative;
+  background: var(--surface);
+}
+.kpi-cell + .kpi-cell { border-left: 1px solid var(--border); }
+.kpi-cell::after {
+  content: attr(data-idx);
+  position: absolute; top: 12px; right: 16px;
+  font-family: var(--mono); font-size: .7rem;
+  color: var(--t3); letter-spacing: 1px;
+}
+.kpi-n {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: 2.6rem; line-height: 1;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -.025em;
+}
+.kpi-l {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-top: 14px; font-weight: 600;
+}
+
+/* ═══ SECTIONS ═══ */
+.sec { margin: 64px 0 0; padding-top: 48px; border-top: 1px solid var(--border); }
+.sec:first-of-type { border-top: none; padding-top: 24px; }
+.sec-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 16px;
+}
+.sec-meta .rule { flex: 0 0 40px; height: 2px; background: var(--yellow); }
+.sec-num, .sec-meta span:nth-child(2) { color: var(--blue); font-weight: 700; }
+.sec-h {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.sec-h em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .12em;
+  color: var(--navy);
+}
+.sec-lede {
+  font-size: 1rem;
+  color: var(--t2);
+  max-width: 76ch;
+  line-height: 1.9;
+}
+.sec-lede strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ COMPARE ═══ */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.compare-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 26px;
+}
+.compare-col.pro {
+  background: linear-gradient(160deg, rgba(255,204,0,0.08), var(--surface));
+  border-color: var(--yellow);
+  border-width: 1px;
+  box-shadow: 0 6px 20px rgba(255,204,0,0.06);
+}
+.compare-tag {
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 10px;
+}
+.compare-col.pro .compare-tag { color: var(--blue); font-weight: 700; }
+.compare-col h3 {
+  font-family: var(--sans);
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+.compare-col.pro h3 { color: var(--navy); }
+.compare-col ul { list-style: none; padding: 0; }
+.compare-col li {
+  padding: 12px 0 12px 26px;
+  border-bottom: 1px dashed var(--border);
+  font-size: .92rem;
+  line-height: 1.7;
+  color: var(--t2);
+  position: relative;
+}
+.compare-col li:last-child { border-bottom: none; }
+.compare-col li::before {
+  content: "—"; position: absolute; left: 0;
+  color: var(--t3); font-weight: 600;
+}
+.compare-col.pro li { color: var(--t1); }
+.compare-col.pro li::before { content: "▸"; color: var(--yellow); font-weight: 800; }
+.compare-col li strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ PILLARS ═══ */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 32px 0 0;
+}
+.pillar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 22px;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.pillar:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.pillar .p-n {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 14px;
+}
+.pillar h3 {
+  font-family: var(--sans);
+  font-size: 1.18rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 12px;
+  letter-spacing: -.01em;
+}
+.pillar h3 em {
+  font-style: normal;
+  color: var(--blue);
+  font-weight: 800;
+}
+.pillar p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.pillar p strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ FIGURE ═══ */
+.fig {
+  margin: 32px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.fig img { width: 100%; display: block; }
+.fig-cap {
+  padding: 16px 24px;
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--t2);
+  text-transform: uppercase;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: center; gap: 10px;
+}
+.fig-cap::before {
+  content: attr(data-fignum);
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.fig-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.fig-duo .fig { margin: 0; }
+
+/* ═══ TIMELINE ═══ */
+.tl {
+  margin: 32px 0 0;
+  position: relative;
+  padding-left: 36px;
+}
+.tl::before {
+  content: ""; position: absolute;
+  left: 8px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--yellow), var(--border) 90%);
+}
+.tl-item { margin-bottom: 32px; position: relative; }
+.tl-item::before {
+  content: ""; position: absolute;
+  left: -34px; top: 4px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--yellow);
+}
+.tl-item:last-child { margin-bottom: 0; }
+.tl-time {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .16em;
+  color: var(--blue); font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.tl-item h3 {
+  font-family: var(--sans);
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+  letter-spacing: -.01em;
+}
+.tl-item h3 em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .1em;
+  color: var(--navy);
+}
+.tl-item p {
+  color: var(--t2);
+  font-size: .94rem;
+  line-height: 1.85;
+}
+.tl-item p strong { color: var(--navy); font-weight: 700; }
+.tl-item code {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ═══ APPROVAL / CALLOUT BOX ═══ */
+.approval {
+  margin: 32px 0 0;
+  padding: 28px 32px;
+  background: linear-gradient(160deg, rgba(13,110,253,0.06), var(--surface));
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(13,110,253,0.06);
+}
+.approval::before {
+  content: ""; position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--blue);
+}
+.approval .ap-mark {
+  font-family: var(--sans);
+  font-size: 2.6rem; font-weight: 900;
+  color: var(--blue); line-height: 1;
+}
+.approval h3 {
+  font-family: var(--sans);
+  font-size: 1.25rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.approval p {
+  color: var(--t2);
+  font-size: .95rem;
+  line-height: 1.85;
+}
+.approval strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ TABLE ═══ */
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 32px 0 0;
+  font-size: .9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tbl th, .tbl td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.tbl tr:last-child th, .tbl tr:last-child td { border-bottom: none; }
+.tbl th {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--t2); font-weight: 700;
+  border-bottom: 2px solid var(--border-2);
+  background: var(--surface-2);
+}
+.tbl th.highlight {
+  color: var(--blue);
+  border-bottom-color: var(--yellow);
+  background: rgba(255,204,0,0.08);
+}
+.tbl td { color: var(--t2); }
+.tbl td:first-child {
+  font-family: var(--mono);
+  font-size: .8rem; letter-spacing: .04em;
+  color: var(--navy);
+  font-weight: 600;
+  width: 180px;
+  background: var(--surface-2);
+}
+.tbl td.highlight {
+  color: var(--navy);
+  background: rgba(255,204,0,0.06);
+  font-weight: 500;
+}
+.tbl td strong { color: var(--navy); font-weight: 700; }
+
+/* ═══ CODE BLOCK (kept dark for syntax legibility) ═══ */
+.code {
+  margin: 28px 0 0;
+  font-family: var(--mono);
+  font-size: .88rem;
+  line-height: 1.8;
+  color: #e8eef5;
+  background: var(--navy);
+  border: 1px solid var(--navy-2);
+  border-radius: 12px;
+  padding: 24px 26px 24px 26px;
+  overflow-x: auto;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(7,15,38,0.12);
+}
+.code::before {
+  content: attr(data-lang);
+  position: absolute; top: 12px; right: 18px;
+  font-size: .68rem;
+  color: var(--yellow);
+  letter-spacing: .2em; font-weight: 700;
+}
+.code .cm { color: #6e7a8d; font-style: italic; }
+.code .kw { color: var(--yellow); font-weight: 600; }
+.code .str { color: #7dd49f; }
+.code .fn { color: #5fc8d6; }
+.code .var { color: #f3c17a; }
+
+/* ═══ SETUP CARDS ═══ */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.setup-card {
+  padding: 30px 26px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  position: relative;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.setup-card:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.setup-card .s-n {
+  font-family: var(--sans);
+  font-size: 2.4rem; font-weight: 900;
+  color: var(--yellow);
+  line-height: 1; margin-bottom: 12px;
+}
+.setup-card h3 {
+  font-family: var(--sans);
+  font-size: 1.15rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+.setup-card p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.setup-card code {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ═══ LINKS GRID ═══ */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 32px 0 0;
+}
+.link-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 26px;
+  text-decoration: none;
+  display: block;
+  transition: border-color .2s, background .2s, transform .2s;
+  position: relative;
+}
+.link-row:hover {
+  border-color: var(--blue);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+.link-row::after {
+  content: "→"; position: absolute;
+  right: 24px; top: 50%; transform: translateY(-50%);
+  color: var(--t3); font-size: 1.1rem;
+  transition: color .2s, transform .2s;
+}
+.link-row:hover::after {
+  color: var(--blue);
+  transform: translateY(-50%) translateX(4px);
+}
+.link-cat {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 6px;
+}
+.link-row h4 {
+  font-family: var(--sans);
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+  padding-right: 32px;
+  letter-spacing: -.005em;
+}
+.link-row .meta {
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--t3);
+  letter-spacing: .04em;
+}
+
+/* ═══ PULL QUOTE ═══ */
+.pullquote {
+  margin: 56px 0 0;
+  padding: 40px 0 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+.pullquote::before {
+  content: """;
+  position: absolute; top: 18px; left: -6px;
+  font-family: var(--sans);
+  font-size: 5rem;
+  color: var(--yellow);
+  line-height: 1; font-weight: 900;
+}
+.pullquote q {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.3rem, 2.6vw, 1.85rem);
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.55;
+  letter-spacing: -.01em;
+  padding-left: 50px;
+  quotes: none;
+}
+.pullquote q::before, .pullquote q::after { content: ""; }
+.pullquote cite {
+  display: block;
+  margin-top: 18px;
+  padding-left: 50px;
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--blue);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* ═══ FOOTER (dark navy) ═══ */
+footer {
+  margin: 80px -32px 0;
+  padding: 48px 32px 36px;
+  background: var(--navy);
+  color: var(--on-dark-mu);
+  text-align: center;
+  border-top: 4px solid var(--yellow);
+  position: relative;
+}
+footer .f-title {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--on-dark);
+  margin-bottom: 10px;
+}
+footer .f-title b { color: var(--yellow); font-weight: 800; }
+footer .f-title em { font-style: normal; color: var(--yellow); }
+footer .f-meta {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-bottom: 22px;
+}
+footer .f-links {
+  display: flex; gap: 12px;
+  justify-content: center; flex-wrap: wrap;
+}
+footer .f-links a {
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--navy-line-2);
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: color .2s, border-color .2s, background .2s;
+}
+footer .f-links a:hover {
+  color: var(--navy);
+  border-color: var(--yellow);
+  background: var(--yellow);
+}
+
+@media (max-width: 960px) {
+  .wrap { padding: 0 22px 56px; }
+  .hero { margin: 0 -22px; padding: 56px 22px 44px; }
+  footer { margin: 64px -22px 0; padding: 40px 22px 28px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .kpi-cell { border-left: none !important; border-bottom: 1px solid var(--border); }
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+  .compare, .fig-duo, .setup-grid, .links-grid { grid-template-columns: 1fr; }
+  .bar { padding: 0 18px; gap: 12px; }
+  .bar-nav { display: none; }
+  .tbl td:first-child { width: 110px; font-size: .74rem; }
+}
+</style>
+<!-- SEO_META_INJECTED v1 -->
+<meta name="description" content="AI Daily Briefing — 2026-04-25 · Sat 序章 第1章 第2章 第3章 中核 終章 戻る Issue № 04/25 The Daily AI Intelligence Brief 源内（Gennai）— デジタル庁の主権AI基盤OSS。SAML/SSO×監査ログ×疎結合プラグインで「野良AI」と「ロックイン」を終わらせる…" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_25.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="源内（Gennai）— デジタル庁の「主権AI基盤」OSS、日本企業のAI導入を変える | 2026-04-25 · AI Daily Briefing" />
+<meta property="og:description" content="AI Daily Briefing — 2026-04-25 · Sat 序章 第1章 第2章 第3章 中核 終章 戻る Issue № 04/25 The Daily AI Intelligence Brief 源内（Gennai）— デジタル庁の主権AI基盤OSS。SAML/SSO×監査ログ×疎結合プラグインで「野良AI」と「ロックイン」を終わらせる…" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_25.html" />
+<meta property="og:image" content="https://visionhub.jp/assets/og/day_slide_2026_04_25.png" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="源内（Gennai）— デジタル庁の「主権AI基盤」OSS、日本企業のAI導入を変える | 2026-04-25 · AI Daily Briefing" />
+<meta name="twitter:description" content="AI Daily Briefing — 2026-04-25 · Sat 序章 第1章 第2章 第3章 中核 終章 戻る Issue № 04/25 The Daily AI Intelligence Brief 源内（Gennai）— デジタル庁の主権AI基盤OSS。SAML/SSO×監査ログ×疎結合プラグインで「野良AI」と「ロックイン」を終わらせる…" />
+<meta name="twitter:image" content="https://visionhub.jp/assets/og/day_slide_2026_04_25.png" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<!-- JSONLD_INJECTED v1 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "源内（Gennai）— デジタル庁の「主権AI基盤」OSS、日本企業のAI導入を変える | 2026-04-25 · AI Daily Briefing",
+  "datePublished": "2026-04-25",
+  "dateModified": "2026-04-25",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "alternateName": "Claudian",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": [
+    "https://visionhub.jp/assets/og/day_slide_2026_04_25.png"
+  ],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_25.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_25.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+<!-- INTERNAL_LINKS_INJECTED v1 -->
+<aside class="related-nav" aria-label="関連ガイド" style="background:#0D1733;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 18px;font:13px/1.4 'Noto Sans JP',system-ui,sans-serif;color:#8A9ABF;display:flex;gap:14px;flex-wrap:wrap;align-items:center;position:relative;z-index:100"><span style="color:#FFCC00;font-weight:700;letter-spacing:.04em">関連ガイド</span><a href="/presentations/hubs/claude-code-guide-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude Code 完全ガイド</a> <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude vs ChatGPT vs Gemini 比較</a> <a href="/presentations/hubs/mcp-complete-guide.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">MCP 完全ガイド</a> <a href="/presentations/hubs/claude-models-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude モデル料金比較</a> <a href="/presentations/hubs/ai-funding-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">AI資金調達まとめ</a> <a href="/presentations/digests/2026-04.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">2026年4月のまとめ</a></aside>
+
+
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
+  <span class="bar-sep">—</span>
+  <span class="bar-date">2026-04-25 · Sat</span>
+  <nav class="bar-nav">
+    <a href="#hero" class="on">序章</a>
+    <a href="#ch1">第1章</a>
+    <a href="#ch2">第2章</a>
+    <a href="#ch3">第3章</a>
+    <a href="#engine">中核</a>
+    <a href="#epilogue">終章</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+    <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-meta">
+      <span class="dot"></span>
+      <span class="hero-issue">Issue № 04/25</span>
+      <span class="rule"></span>
+      <span>The Daily AI Intelligence Brief</span>
+    </div>
+    <div class="hero-brand">
+      <span class="hero-brand-tag">PLATFORM · デジタル庁 OSS</span>
+      <h2 class="hero-brand-name">源内 / Gennai</h2>
+      <span class="hero-brand-model">日本のAI主権を取り戻す「魔法の土台」 · 2026-04-24 公開</span>
+    </div>
+    <h1 class="hero-headline">
+      <span class="hl-from">「野良AI」と「八方塞がり」</span>から、<br>
+      <span class="hl-to">主権AI基盤</span>へ。
+    </h1>
+    <p class="hero-kicker">全府省庁 18 万人想定の<strong>政府品質ガバナンス</strong>を、無償OSSで自社環境に。<br class="hk-br">SAML/SSO × 監査ログ × 疎結合プラグイン。</p>
+    <p class="hero-sub">
+      2026-04-24、デジタル庁は <strong>ガバメントAI「源内（Gennai）」</strong>のソースコードを<strong>商用利用可能なOSS</strong>として無償公開した。社員が無料の汎用AIに機密情報を流す<strong>「野良AI（シャドーAI）」</strong>、ハルシネーションで実務に使えない汎用SaaS、自社RAGをゼロから作る<strong>数千万〜数億円のロックイン</strong>——日本企業の「八方塞がり」を、源内は<strong>WebポータルとAI処理層を完全分離する疎結合マイクロサービス</strong>で根本から解く。SAML 認証によるSSO、詳細な監査ログ、部署別チーム管理、JSONスキーマだけでAIアプリを差し込める仕組み——AWS/Azure/Google Cloud の<strong>専門家AIを着せ替え自由</strong>に、ライセンス料ゼロで導入できる「<strong>標準インフラ</strong>」が、ついに日本のDXに到来した。
+    </p>
+    <div class="hero-cover">
+      <img src="images/0425/cover.jpg" alt="源内 Gennai — デジタル庁の主権AI基盤OSS" loading="lazy">
+    </div>
+    <div class="hero-caption">FIG 01 · デジタル庁が日本企業に贈る「主権AI基盤」——車輪の再発明を終わらせる、政府品質のOSSポータル</div>
+  </section>
+
+    <!-- KPI -->
+  <section class="kpi">
+    <div class="kpi-cell" data-idx="01"><div class="kpi-n">180,000<span style="font-size:0.5em;">人</span></div><div class="kpi-l">全府省庁の想定利用規模</div></div>
+    <div class="kpi-cell" data-idx="02"><div class="kpi-n">¥0</div><div class="kpi-l">ソフトウェアライセンス料</div></div>
+    <div class="kpi-cell" data-idx="03"><div class="kpi-n">-50〜60<span style="font-size:0.5em;">%</span></div><div class="kpi-l">法務レビュー時間の削減</div></div>
+    <div class="kpi-cell" data-idx="04"><div class="kpi-n">2<span style="font-size:0.5em;">層</span></div><div class="kpi-l">疎結合：Web × AI-API</div></div>
+    <div class="kpi-cell" data-idx="05"><div class="kpi-n">SAML</div><div class="kpi-l">SSO + 監査ログ + RBAC</div></div>
+  </section>
+
+
+    <!-- § 01 PROLOGUE -->
+  <section class="sec" id="prologue">
+    <div class="sec-meta"><span class="rule"></span><span>§ 01</span><span style="color:var(--t2);">Prologue · 「野良AI」と八方塞がり</span></div>
+    <h2 class="sec-h">情シスを苦しめる<em>「3 つのジレンマ」</em></h2>
+    <p class="sec-lede">中堅企業の情シス担当者は、現場の「AIを使いたい」という熱と、経営の「セキュリティと予算」という冷気の間で板挟みになっていた。<strong>「導入を止めれば現場は無断で使う」「許せば情報が漏れる」「自社開発すれば数千万〜数億円とロックイン」</strong>——どこを選んでも痛い、AI 導入の<strong>八方塞がり</strong>がそこにあった。</p>
+
+    <div class="fig">
+      <img src="images/0425/page_2.jpg" alt="シャドーAI — 機密情報が無料汎用AIに流れる現実" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 02">シャドーAIの実害：個人判断で無料AIを使い、機密情報が学習データへ流れるリスクが現場に蔓延</div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Before · 〜 2026 年春</div>
+        <h3>八方塞がりの三択</h3>
+        <ul>
+          <li><strong>野良AI（シャドーAI）</strong>の蔓延で機密情報が漏れる</li>
+          <li>汎用SaaSは<strong>日本の法令・行政文書に弱く</strong>ハルシネーション多発</li>
+          <li>自社RAG構築は<strong>数千万〜数億円</strong>＋長期開発</li>
+          <li>特定ベンダーへの<strong>ロックイン</strong>は避けられない</li>
+          <li>「車輪の再発明」を全国の企業・自治体が<strong>個別に重複</strong></li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">After · 源内 OSS</div>
+        <h3>「主権AI基盤」が一気に揃う</h3>
+        <ul>
+          <li>政府品質の<strong>SAML/SSO・監査ログ・RBAC</strong>を即時導入</li>
+          <li>WebとAI層が<strong>疎結合</strong>でクラウド・モデルを着せ替え自由</li>
+          <li>JSON スキーマだけで<strong>専用フォームが自動生成</strong></li>
+          <li>ライセンス料 <strong>¥0</strong>（API利用料とホスティングのみ）</li>
+          <li>非競争領域の開発から解放、<strong>業務ロジックに集中</strong></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+    <!-- § 02 CHAPTER 1 · 魔法の器 -->
+  <section class="sec" id="ch1">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 1</span><span style="color:var(--t2);">魔法の器「源内Web」との出会い</span></div>
+    <h2 class="sec-h">全府省庁<em>18 万人</em>が使う前提で作られた「広場」を、自社環境に</h2>
+    <p class="sec-lede"><strong>状況：</strong> その情シス担当者は、デジタル庁の発表で目を疑った。全府省庁<strong>約 18 万人</strong>の利用を想定した政府AI基盤のソースが、<strong>商用利用可能な OSS</strong> として GitHub に公開されたのだ。中身を覗くと、ただのチャット画面ではなかった。それは組織のための「<strong>安全な広場（魔法の器）</strong>」だった。</p>
+
+    <div class="fig">
+      <img src="images/0425/page_4.jpg" alt="genai-web — ポータル層 OSS" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 03">ポータル層 <code>digital-go-jp/genai-web</code>：SSO・監査・チーム管理を統合したエンタープライズ級UI</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>政府品質ガバナンス</em>が「数日」で自社環境に立ち上がる</h3>
+        <p>源内 Web は<strong>SAML 認証によるSSO</strong>、<strong>詳細な監査ログ</strong>、そして「<strong>法務部には契約レビューAIだけを見せる</strong>」「営業には議事録要約だけ見せる」といった部署別の<strong>チーム管理機能</strong>を備えていた。情シス担当者がこれを社内に立ち上げた瞬間、<strong>社員のAI利用窓口は一本化</strong>され、シャドーAIは消滅。「自前で組み上げると半年〜1 年かかる統制機能」が、<strong>政府が無償公開した既製の OSS</strong>として、わずか数日で稼働を始めた。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0425/page_5.jpg" alt="SAML SSO・監査ログ・チーム管理" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 04">広場のガバナンス：SSO で誰が／いつ／何を使ったかを<strong>監査ログ</strong>で全捕捉、部署単位で公開アプリを制御</div>
+    </div>
+  </section>
+
+
+    <!-- § 03 CHAPTER 2 · 疎結合 -->
+  <section class="sec" id="ch2">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 2</span><span style="color:var(--t2);">専門家を呼び込む「疎結合」の魔法</span></div>
+    <h2 class="sec-h"><em>JSON スキーマを書くだけ</em>で AI アプリが「広場」に並ぶ</h2>
+    <p class="sec-lede"><strong>状況：</strong> 安全な器（広場）はできた。しかし広場が空っぽでは意味がない。情シス担当者が次に必要としたのは、<strong>業務に役立つ専門家AI（中身）</strong>だった。源内の真骨頂は、Web ポータルと AI 処理ロジックが<strong>完全に切り離された疎結合マイクロサービス</strong>にある——その仕組みを、彼は手品のように味方につけた。</p>
+
+    <div class="fig">
+      <img src="images/0425/page_7.jpg" alt="genai-ai-api — AIアプリ層 OSS" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 05">AIアプリ層 <code>digital-go-jp/genai-ai-api</code>：JSON スキーマでアプリ仕様を宣言するだけで、Web 側に専用フォームが自動生成</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>AWS／Azure／Google Cloud の専門家AI</em>を「着せ替え自由」に並べる</h3>
+        <p>情シス担当者は、<strong>AWS の行政実務 RAG</strong>、<strong>Azure の閉域 LLM</strong>、<strong>Google Cloud の法制度 AI</strong>——3 つのクラウドにある強力な機能を<strong>シームレスに源内 Web へプラグイン</strong>として追加した。Web 側のコードは 1 行も書き換えていない。<strong>JSON スキーマで API 仕様を宣言</strong>するだけで、入力フォーム・実行・結果表示が自動生成される。これにより、特定モデル・クラウドへの依存は完全に解消し、<strong>AI の中身を業務ごとに着せ替え</strong>できる柔軟性を手に入れた。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0425/page_8.jpg" alt="マルチクラウドのAIアプリをプラグイン化" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 06">疎結合の威力：法務はAzure、営業はGoogle、開発はAWS——<strong>同じ広場に異なる専門家AI</strong>を並べる</div>
+    </div>
+  </section>
+
+
+    <!-- § 04 CHAPTER 3 · 業務激変 -->
+  <section class="sec" id="ch3">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 3</span><span style="color:var(--t2);">実務特化AIによる業務の激変</span></div>
+    <h2 class="sec-h">法務は<em>50〜60% 短縮</em>、営業は議事録から Notion 投稿まで自動</h2>
+    <p class="sec-lede"><strong>状況：</strong> 土台と中身が揃った。あとは「<strong>現場が使うか</strong>」だけが残された問い。日本語の公用文・法令に最適化された源内のプロンプトは、<strong>国産の高額ツール並みの精度</strong>を、ライセンス料ゼロで提供する。最初に飛びついたのは、<strong>法務・総務</strong>と<strong>営業・企画</strong>だった。</p>
+
+    <div class="fig">
+      <img src="images/0425/page_10.jpg" alt="Lawsy 型法制度AI — 出典明示の一次レビュー" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 07">法務・総務：Lawsy 型法制度 AI が<strong>「根拠は就業規則 第3条です」</strong>と出典付きで一次チェック、レビュー時間 50〜60% 削減</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>会議メモ → 議事録 → Notion／Teams 投稿</em>まで半自動化</h3>
+        <p>営業・企画部は、会議の<strong>録音データやメモ</strong>を源内に投げ込むだけで、<strong>議事録の要約・アクションアイテムの抽出・Notion／Teams への自動投稿</strong>までが走るアプリを構築した。日本語公用文・法令に最適化されたプロンプトが組み込まれているため、汎用 SaaS では拾えない<strong>役職・敬語・社内用語のニュアンス</strong>まで一次出力に乗ってくる。<strong>ソフトウェアライセンス料は ¥0</strong>。発生コストは LLM の API 利用料とホスティング費だけ——「国産高額ツール並みの精度」が、運用費だけで現場に立った。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0425/page_11.jpg" alt="議事録 → アクションアイテム → Notion自動投稿" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 08">営業・企画：録音→議事録要約→アクションアイテム抽出→Notion/Teams 投稿の半自動パイプライン</div>
+    </div>
+  </section>
+
+
+  
+
+    <!-- § 05 ENGINE · How It Works -->
+  <section class="sec" id="engine">
+    <div class="sec-meta"><span class="rule"></span><span>§ 05</span><span style="color:var(--t2);">The Sovereignty Engine</span></div>
+    <h2 class="sec-h">なぜ源内は<em>「主権AI基盤」</em>として成立するのか</h2>
+    <p class="sec-lede">3 つの章を貫く「<strong>速さ × 安全 × 自由</strong>」の正体は、源内の<strong>4 本柱の設計</strong>にある。単一クラウドや単一モデルへの依存をシステム的に拒絶しながら、政府品質の統制を外さない——その仕組みを 4 つに分解して解剖する。</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-n">PILLAR 01</div>
+        <h3><em>Portal</em> 安全な広場</h3>
+        <p><code>genai-web</code>：SAML/SSO・監査ログ・部署別アクセス制御を内蔵。<strong>シャドーAI を物理的に消滅</strong>させる「組織の窓口」。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 02</div>
+        <h3><em>AI-API</em> 中身の差し替え</h3>
+        <p><code>genai-ai-api</code>：マイクロサービスとして独立稼働。AWS/Azure/Google を自由に並べ、<strong>モデル＝資産ではなく交換可能な部品</strong>へ。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 03</div>
+        <h3><em>Schema</em> 自動UI生成</h3>
+        <p>JSON スキーマで API 仕様を宣言するだけで、<strong>入力フォーム・実行・結果表示が自動生成</strong>。Web 側は 1 行も書き換えなくていい。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 04</div>
+        <h3><em>Sovereignty</em> 主権の回復</h3>
+        <p>商用利用可OSS。<strong>ライセンス料ゼロ × ロックインなし × 出典付き応答</strong>。AI を「特定ベンダーから買う」から「自国で運用する」へ。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0425/page_6.jpg" alt="Portal × AI-API × Schema × Sovereignty — 源内アーキテクチャ" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 09">主権AIエンジンの心臓部：<strong>Portal × AI-API × Schema × Sovereignty</strong>。クラウドにもモデルにも縛られない、日本のための標準形</div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0425/page_9.jpg" alt="日本語公用文・法令最適化プロンプトのチューニング" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 10">日本語公用文・法令に最適化された<strong>プロンプト基盤</strong>：汎用 SaaS では届かない精度を、運用費だけで再現</div>
+    </div>
+  </section>
+
+
+    <!-- § 06 EPILOGUE -->
+  <section class="sec" id="epilogue">
+    <div class="sec-meta"><span class="rule"></span><span>Epilogue</span><span style="color:var(--t2);">作る から 使いこなす へ</span></div>
+    <h2 class="sec-h">非競争領域は<em>政府が引き受け、企業は高付加価値に集中する</em></h2>
+    <p class="sec-lede">この企業は、<strong>高額な初期開発費を払わず、わずか数週間で</strong>自社専用の次世代AIポータルを完成させた。デジタル庁が「源内」を OSS で公開した本当の目的は——日本中の企業・自治体が同じシステムをゼロから個別に作る「<strong>車輪の再発明</strong>」を終わらせることだった。「インフラ」を委ねた先で、企業は何に向き合うべきか——その境界を 2 列で整理する。</p>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Hand Off · 委ねてよい</div>
+        <h3>非競争領域（源内に任せる）</h3>
+        <ul>
+          <li>SSO・監査ログ・RBAC など<strong>統制機能の共通実装</strong></li>
+          <li>マルチクラウド AI を束ねる<strong>API ゲートウェイ</strong></li>
+          <li>JSON スキーマからの<strong>UI 自動生成</strong>基盤</li>
+          <li>日本語公用文・法令向けの<strong>共通プロンプト土台</strong></li>
+          <li>OSS としての<strong>セキュリティ更新と長期メンテ</strong></li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">Hold On · 自社で握る</div>
+        <h3>高付加価値領域（自社の差別化）</h3>
+        <ul>
+          <li>自社固有の<strong>業務ロジックとワークフロー</strong></li>
+          <li>独自データの<strong>整備・品質管理・RAG 設計</strong></li>
+          <li>顧客・現場との<strong>運用ループと改善サイクル</strong></li>
+          <li>AI 出力の<strong>サンプリング監査と説明責任</strong></li>
+          <li>長期的な<strong>AIガバナンスと人材育成</strong></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+    <!-- PULLQUOTE -->
+  <div class="pullquote">
+    <q>源内が終わらせるのは「車輪の再発明」だ——日本企業は AI を<em>「作る」</em>側から、自社の業務で<em>「使いこなす」</em>側へ移れる。</q>
+    <cite>— デジタル庁 OSS 公開、2026-04-24 の意味</cite>
+  </div>
+
+    <!-- § 07 LINKS -->
+  <section class="sec" id="links">
+    <div class="sec-meta"><span class="rule"></span><span>§ 07</span><span style="color:var(--t2);">References</span></div>
+    <h2 class="sec-h">公式リソース &amp; <em>参考リンク</em></h2>
+    <div class="links-grid">
+      <a href="https://github.com/digital-go-jp/genai-web" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">GitHub · Portal</div>
+        <h4>digital-go-jp/genai-web</h4>
+        <div class="meta">SSO・監査・チーム管理を統合した源内 Web ポータルの公式リポジトリ</div>
+      </a>
+      <a href="https://github.com/digital-go-jp/genai-ai-api" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">GitHub · AI API</div>
+        <h4>digital-go-jp/genai-ai-api</h4>
+        <div class="meta">JSON スキーマで AI アプリを定義・差し替え自由なマイクロサービス層</div>
+      </a>
+      <a href="https://www.digital.go.jp/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Government</div>
+        <h4>デジタル庁 公式サイト</h4>
+        <div class="meta">ガバメントAI「源内」の発表元・関連政策ドキュメント</div>
+      </a>
+      <a href="https://saml.xml.org/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Standard</div>
+        <h4>SAML 2.0 — SSO 標準</h4>
+        <div class="meta">源内が採用するエンタープライズSSO の業界標準</div>
+      </a>
+      <a href="day_slide_2026_04_24.html" class="link-row">
+        <div class="link-cat">Prev</div>
+        <h4>04/24 · OpenAI GPT-5.5 自立する同僚</h4>
+        <div class="meta">前日：自律エージェントが個人の働き方を変える</div>
+      </a>
+      <a href="/presentations/hubs/ai-model-comparison-2026.html" class="link-row">
+        <div class="link-cat">Hub</div>
+        <h4>Claude vs ChatGPT vs Gemini 2026比較</h4>
+        <div class="meta">3 大モデルの料金・性能・向き不向き</div>
+      </a>
+    </div>
+  </section>
+
+
+</div>
+
+<footer>
+  <div class="f-title"><b>Daily AI</b> Briefing · 2026-04-25 — <em style="font-style:italic;">源内（Gennai）— Japan's Sovereign AI Edition</em></div>
+  <div class="f-meta">Source: デジタル庁 公式 · digital-go-jp/genai-web · digital-go-jp/genai-ai-api · 公開実装の解説統合</div>
+  <div class="f-links">
+    <a href="../index.html">Hub</a>
+    <a href="../day_slides_index.html">All Slides</a>
+    <a href="day_slide_2026_04_24.html">← 04/24 GPT-5.5</a>
+  </div>
+</footer>
+
+</body>
+</html>
