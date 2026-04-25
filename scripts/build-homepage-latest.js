@@ -86,16 +86,17 @@ function starsFor(article) {
 }
 
 function buildSections() {
-  if (!fs.existsSync(DAILY_LATEST_JSON)) return {};
+  if (!fs.existsSync(DAILY_LATEST_JSON)) return { sections: {}, dailyDate: null };
 
   let data;
   try {
     data = JSON.parse(fs.readFileSync(DAILY_LATEST_JSON, 'utf8'));
   } catch {
-    return {};
+    return { sections: {}, dailyDate: null };
   }
 
   const sections = {};
+  const extractedAt = data.metadata && data.metadata.extracted_at ? String(data.metadata.extracted_at).slice(0, 10) : null;
   const articles = Array.isArray(data.articles) ? data.articles : [];
   for (const article of articles) {
     const category = article.category || 'posts';
@@ -112,7 +113,7 @@ function buildSections() {
     });
   }
 
-  return sections;
+  return { sections, dailyDate: extractedAt };
 }
 
 function main() {
@@ -125,9 +126,11 @@ function main() {
   const title = extractTitle(html, slide.date);
   const summary = extractSummary(html, title);
   const slideUrl = `presentations/day_slides/${slide.name}`;
+  const latestNews = buildSections();
 
   const data = {
     generated_at: toJstIso(slide.date),
+    news_date: latestNews.dailyDate,
     highlight: {
       category: '本日のスライド',
       stars: 5,
@@ -140,7 +143,7 @@ function main() {
         },
       ],
     },
-    sections: buildSections(),
+    sections: latestNews.sections,
   };
 
   fs.mkdirSync(NEWS_DIR, { recursive: true });
