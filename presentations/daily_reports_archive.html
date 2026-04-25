@@ -2,8 +2,8 @@
 <!--
   AI Intelligence Hub — Daily Reports Archive
   ------------------------------------------------------------
-  Past daily reports (日次スライド + 月次 digest) listed chronologically.
-  Reads public-pages/news/archive_index.json + presentations/digests/*
+  Past daily reports (auto_daily_report_*.html) + monthly digests listed chronologically.
+  Reads presentations/daily_reports/index.json + presentations/digests/*
   so it stays up-to-date automatically as new daily reports land.
 -->
 <html lang="ja">
@@ -11,7 +11,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>デイリーレポート・アーカイブ | AI Intelligence Hub</title>
-  <meta name="description" content="visionhub.jp が毎日公開しているAIデイリーレポートの過去アーカイブ。日付・キーワードで絞り込み可能。月次ダイジェストと日次スライドをまとめて俯瞰できます。" />
+  <meta name="description" content="visionhub.jp が毎日公開しているAIデイリーレポートの過去アーカイブ。日付・キーワードで絞り込み可能。月次ダイジェストと日次レポートをまとめて俯瞰できます。" />
   <link rel="canonical" href="https://visionhub.jp/presentations/daily_reports_archive.html" />
   <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large" />
   <meta name="author" content="awano27 (Claudian)" />
@@ -96,8 +96,9 @@
       <div class="eyebrow"><span class="dot"></span><span>DAILY REPORTS · ARCHIVE</span></div>
       <h1>デイリーレポート <span class="accent">アーカイブ</span></h1>
       <p class="lede">
-        visionhub.jp が毎日 07:00 JST に公開している AIデイリーレポートの過去ログをまとめて閲覧できます。
-        月別ダイジェスト（当月の重要トピック抜粋）と、日別スライド（1トピック深掘り）の 2 系統で残しています。
+        visionhub.jp が毎日 07:00 JST に公開している AIデイリーレポート（<code>auto_daily_report</code> 形式・1日のサマリ）の過去ログをまとめて閲覧できます。
+        月別ダイジェスト（当月の重要トピック抜粋）と、日別レポート（カテゴリ別サマリ）の 2 系統で残しています。
+        ※ 1トピック深掘りの日次スライドは <a href="day_slides_index.html">日次スライド索引</a> / <a href="day_slides_list.html">スライド一覧</a> を参照してください。
       </p>
 
       <h2>月次ダイジェスト</h2>
@@ -148,15 +149,11 @@
   <script>
   (function(){
     'use strict';
-    var ARCHIVE_INDEX = '/public-pages/news/archive_index.json';
+    var REPORT_INDEX = '/presentations/daily_reports/index.json';
 
     function fmtDate(iso){
       var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
       return m ? m[1]+'.'+m[2]+'.'+m[3] : iso;
-    }
-    function ymFromIso(iso){
-      var m = /^(\d{4})-(\d{2})/.exec(iso);
-      return m ? m[1]+'-'+m[2] : '';
     }
     function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
@@ -196,12 +193,12 @@
         return;
       }
       list.innerHTML = filtered.slice(0, 500).map(function(e){
-        var slidePath = 'day_slides/day_slide_' + e.date.replace(/-/g,'_') + '.html';
+        var reportPath = 'daily_reports/' + e.file;
         var title = e.title || ('AIデイリーレポート ' + fmtDate(e.date));
         return '<li class="day-item">'+
                  '<span class="date">'+fmtDate(e.date)+'</span>'+
-                 '<span class="title"><a href="'+esc(slidePath)+'">'+esc(title)+'</a></span>'+
-                 '<a class="cta" href="'+esc(slidePath)+'">レポートを開く →</a>'+
+                 '<span class="title"><a href="'+esc(reportPath)+'">'+esc(title)+'</a></span>'+
+                 '<a class="cta" href="'+esc(reportPath)+'">レポートを開く →</a>'+
                '</li>';
       }).join('');
     }
@@ -226,23 +223,22 @@
 
     renderDigests();
 
-    fetch(ARCHIVE_INDEX+'?t='+Date.now(),{cache:'no-store'})
-      .then(function(r){return r.ok?r.json():[]})
+    fetch(REPORT_INDEX+'?t='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.ok?r.json():{reports:[]}})
       .then(function(idx){
-        if(!Array.isArray(idx)) idx = [];
-        // Sort by date desc
-        idx.sort(function(a,b){return a.date<b.date?1:-1});
-        populateYearMonth(idx);
+        var reports = (idx && Array.isArray(idx.reports)) ? idx.reports.slice() : [];
+        reports.sort(function(a,b){return a.date<b.date?1:-1});
+        populateYearMonth(reports);
 
         var state = {q:'',year:'',month:''};
-        function rerender(){renderDays(idx, state)}
+        function rerender(){renderDays(reports, state)}
         document.getElementById('q').addEventListener('input', function(e){state.q=e.target.value;rerender()});
         document.getElementById('yearSel').addEventListener('change', function(e){state.year=e.target.value;rerender()});
         document.getElementById('monthSel').addEventListener('change', function(e){state.month=e.target.value;rerender()});
         rerender();
       })
       .catch(function(){
-        document.getElementById('dayList').innerHTML = '<li class="empty">日次レポートの一覧を読み込めませんでした。<a href="/presentations/day_slides_index.html">日次スライド索引</a>から直接閲覧できます。</li>';
+        document.getElementById('dayList').innerHTML = '<li class="empty">日次レポートの一覧を読み込めませんでした。</li>';
         document.getElementById('countLabel').textContent = '—';
       });
   })();
