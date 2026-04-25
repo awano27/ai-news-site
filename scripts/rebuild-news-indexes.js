@@ -32,7 +32,7 @@ function buildIndexes() {
     .filter((name) => name.endsWith('.json'))
     .filter((name) => !['archive_index.json', 'daily_index.json', 'daily_latest.json', 'version.json'].includes(name));
 
-  const archiveEntries = [];
+  const archiveEntriesByDate = new Map();
   const dailyEntries = [];
   let newestDaily = null;
 
@@ -53,7 +53,14 @@ function buildIndexes() {
     const isDaily = name.endsWith('_daily.json');
     const entry = { date, file: name, count };
 
-    archiveEntries.push(entry);
+    const existingArchiveEntry = archiveEntriesByDate.get(date);
+    if (
+      !existingArchiveEntry ||
+      (isDaily && !existingArchiveEntry.file.endsWith('_daily.json')) ||
+      (isDaily === existingArchiveEntry.file.endsWith('_daily.json') && name.localeCompare(existingArchiveEntry.file) < 0)
+    ) {
+      archiveEntriesByDate.set(date, entry);
+    }
 
     if (isDaily) {
       const dailyEntry = {
@@ -71,7 +78,7 @@ function buildIndexes() {
     }
   }
 
-  archiveEntries.sort((a, b) => {
+  const archiveEntries = Array.from(archiveEntriesByDate.values()).sort((a, b) => {
     if (a.date !== b.date) return b.date.localeCompare(a.date);
     return a.file.localeCompare(b.file);
   });

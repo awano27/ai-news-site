@@ -904,20 +904,50 @@
       </div>
     </section>
     <script>
-    /* Dynamically update the "今日の 1 枚" card to point to the latest day slide */
+    /* Dynamically update the "今日の 1 枚" card to point to the latest existing day slide. */
     (function(){
-      fetch('public-pages/news/archive_index.json?t='+Date.now(),{cache:'no-store'})
-        .then(function(r){return r.ok?r.json():null})
-        .then(function(idx){
-          if(!idx||!Array.isArray(idx)||!idx.length) return;
-          var sorted = idx.slice().sort(function(a,b){return a.date<b.date?1:-1});
-          var latest = sorted[0];
-          if(!latest||!latest.date) return;
-          var slideUrl = 'presentations/day_slides/day_slide_'+latest.date.replace(/-/g,'_')+'.html';
+      function slideUrlFor(date) {
+        return 'presentations/day_slides/day_slide_'+date.replace(/-/g,'_')+'.html';
+      }
+      function jstToday() {
+        return new Date(Date.now() + (new Date().getTimezoneOffset() + 9*60) * 60000);
+      }
+      function probeLatestSlide() {
+        var base = jstToday();
+        var candidates = [];
+        for (var i = 0; i < 14; i++) {
+          var d = new Date(base.getTime() - i * 86400000);
+          var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+          candidates.push(iso);
+        }
+        function probe(i) {
+          if (i >= candidates.length) return Promise.resolve(null);
+          var date = candidates[i];
+          return fetch(slideUrlFor(date), { method: 'HEAD', cache: 'no-store' })
+            .then(function(r){ return r.ok ? date : probe(i + 1); })
+            .catch(function(){ return probe(i + 1); });
+        }
+        return probe(0);
+      }
+      function latestArchiveDate() {
+        return fetch('public-pages/news/archive_index.json?t='+Date.now(),{cache:'no-store'})
+          .then(function(r){return r.ok?r.json():null})
+          .then(function(idx){
+            if(!idx||!Array.isArray(idx)||!idx.length) return null;
+            var sorted = idx.slice().sort(function(a,b){return a.date<b.date?1:-1});
+            return sorted[0] && sorted[0].date ? sorted[0].date : null;
+          })
+          .catch(function(){ return null; });
+      }
+      probeLatestSlide().then(function(date){
+        return date || latestArchiveDate();
+      }).then(function(date){
+          if(!date) return;
+          var slideUrl = slideUrlFor(date);
           var a = document.getElementById('todaySlideCard');
           var d = document.getElementById('todaySlideDate');
           if(a) a.href = slideUrl;
-          if(d) d.textContent = latest.date;
+          if(d) d.textContent = date;
         })
         .catch(function(){});
     })();
@@ -1081,6 +1111,15 @@
       var m = /^(\d{4}-\d{2}-\d{2})/.exec(iso || '');
       return m ? m[1] : null;
     }
+    function latestDate(latest) {
+      if (!latest) return null;
+      return dateFromIso(latest.generated_at) ||
+        dateFromIso(latest.date) ||
+        (latest.highlight ? dateFromIso(latest.highlight.date) : null);
+    }
+    function latestForDate(latest, date) {
+      return latest && date && latestDate(latest) === date ? latest : null;
+    }
 
     var WEEKDAY_JP = ['日','月','火','水','木','金','土'];
     var MONTH_EN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -1169,7 +1208,13 @@
     };
     function renderCategories(latest) {
       var grid = document.getElementById('catGrid');
-      if (!grid || !latest || !latest.sections) return;
+      if (!grid) return;
+      if (!latest || !latest.sections) {
+        grid.innerHTML =
+          '<div class="cat-card"><div class="cat-label">UPDATING</div><div class="cat-title">今日の注目ニュースを更新中です。</div><div class="cat-source"><span>Latest data pending</span></div></div>' +
+          '<div class="cat-card"><div class="cat-label">ARCHIVE</div><div class="cat-title">最新スライドと過去ニュースはアーカイブから確認できます。</div><div class="cat-source"><span>AI Intelligence Hub</span></div></div>';
+        return;
+      }
       var sections = latest.sections;
       var keys = Object.keys(sections).filter(function (k) {
         return Array.isArray(sections[k]) && sections[k].length > 0;
@@ -1251,12 +1296,14 @@
       var todayDate = latestSlideDate;  // 実在する最新スライドを最優先
       if (!todayDate && latest && latest.generated_at) todayDate = dateFromIso(latest.generated_at);
       if (!todayDate && Array.isArray(entries) && entries.length) todayDate = entries[0].date;
+      var currentLatest = latestForDate(latest, todayDate);
 
       if (todayDate) {
-        renderHero(todayDate, latest);
-        if (latest) renderCategories(latest);
+        renderHero(todayDate, currentLatest);
+        renderCategories(currentLatest);
       } else {
         clearSkel(document.getElementById('heroDate'));
+        renderCategories(null);
       }
 
       if (Array.isArray(entries) && entries.length) {
