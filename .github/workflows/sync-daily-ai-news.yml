@@ -17,6 +17,8 @@ permissions:
 jobs:
   sync-daily-news:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,9 +46,10 @@ jobs:
           python extract_daily_news.py
 
           # 抽出結果を確認
-          if [ -f "public-pages/news/$(date +%Y-%m-%d)_daily.json" ]; then
+          TODAY="$(date +%F)"
+          if [ -f "public-pages/news/${TODAY}_daily.json" ]; then
             echo "extracted=true" >> $GITHUB_OUTPUT
-            echo "file_path=public-pages/news/$(date +%Y-%m-%d)_daily.json" >> $GITHUB_OUTPUT
+            echo "file_path=public-pages/news/${TODAY}_daily.json" >> $GITHUB_OUTPUT
           else
             echo "extracted=false" >> $GITHUB_OUTPUT
             echo "⚠️ Daily AI News data extraction failed or no new data"
@@ -60,7 +63,7 @@ jobs:
         if: steps.extract.outputs.extracted == 'true'
         run: |
           echo "Updating data source in ai_ranking_interactive.html..."
-          TODAY=$(date +%Y-%m-%d)
+          TODAY=$(date +%F)
 
           # ai_ranking_interactive.htmlのデータソースを最新日付に更新
           if [ -f "presentations/ai_ranking_interactive.html" ]; then
@@ -82,7 +85,7 @@ jobs:
           # 変更があればコミット
           if ! git diff --cached --quiet; then
             ARTICLE_COUNT=$(python -c "import json; data=json.load(open('${{ steps.extract.outputs.file_path }}')); print(data['metadata']['total_articles'])" 2>/dev/null || echo "N/A")
-            git commit -m "chore(archive): sync Daily AI News data (${ARTICLE_COUNT} articles) - $(date -u +%Y-%m-%d)"
+            git commit -m "chore(archive): sync Daily AI News data (${ARTICLE_COUNT} articles) - $(date +%F)"
             git push
             echo "✓ Changes committed and pushed successfully"
           else
@@ -92,7 +95,7 @@ jobs:
       - name: Record workflow heartbeat
         if: github.event_name == 'schedule'
         run: |
-          DAY_OF_MONTH="$(date -u +%d)"
+          DAY_OF_MONTH="$(date +%d)"
           if [ "${DAY_OF_MONTH}" != "01" ]; then
             echo "Skipping heartbeat; only recorded on the first day of each month"
             exit 0
@@ -102,7 +105,7 @@ jobs:
           mkdir -p "$(dirname "${HEARTBEAT_FILE}")"
           {
             echo "workflow=sync-daily-ai-news"
-            echo "recorded_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "recorded_at=$(date +%Y-%m-%dT%H:%M:%S%z)"
             echo "purpose=keep scheduled workflows active"
           } > "${HEARTBEAT_FILE}"
 
@@ -111,7 +114,7 @@ jobs:
           git add "${HEARTBEAT_FILE}"
 
           if ! git diff --cached --quiet; then
-            git commit -m "chore: record sync workflow heartbeat ($(date -u +%Y-%m))"
+            git commit -m "chore: record sync workflow heartbeat ($(date +%Y-%m))"
             git push
             echo "Heartbeat committed"
           else

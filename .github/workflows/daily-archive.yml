@@ -12,6 +12,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,7 +55,7 @@ jobs:
       - name: Write version.json (cache buster)
         run: |
           mkdir -p public-pages
-          echo "{\n  \"sha\": \"${GITHUB_SHA}\",\n  \"ts\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n}" > public-pages/version.json
+          echo "{\n  \"sha\": \"${GITHUB_SHA}\",\n  \"ts\": \"$(date +%Y-%m-%dT%H:%M:%S%z)\"\n}" > public-pages/version.json
 
       - name: Link check (lychee)
         uses: lycheeverse/lychee-action@v1
@@ -70,7 +72,7 @@ jobs:
           git add public-pages/version.json presentations/advanced_intelligence_report_latest.html presentations/day_slides_index.html || true
           git add presentations/ai_ranking_interactive.html || true
           if ! git diff --cached --quiet; then
-            git commit -m "chore: daily archive + Daily AI News data: $(date -u +%Y-%m-%d)"
+            git commit -m "chore: daily archive + Daily AI News data: $(date +%F)"
             git push
           else
             echo "No changes to commit"
