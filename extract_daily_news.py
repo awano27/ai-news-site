@@ -80,20 +80,39 @@ class NewsCardParser(HTMLParser):
             self.articles.append(self.current_article)
             self.current_article = None
 
-def fetch_and_parse(url):
-    """URLからHTMLを取得してパース"""
+def fetch_html(url):
+    """URLからHTMLを取得"""
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (AI News Archiver)'}
         request = Request(url, headers=headers)
         with urlopen(request, timeout=30) as response:
-            html = response.read().decode('utf-8')
-
-        parser = NewsCardParser()
-        parser.feed(html)
-        return parser.articles
+            return response.read().decode('utf-8')
     except Exception as e:
         print(f"Error fetching {url}: {e}", file=sys.stderr)
+        return ''
+
+def fetch_and_parse(url):
+    """URLからHTMLを取得してパース"""
+    html = fetch_html(url)
+    if not html:
         return []
+
+    parser = NewsCardParser()
+    parser.feed(html)
+    return parser.articles
+
+def extract_source_date(html):
+    """Daily AI Newsページ自体の日付を抽出"""
+    patterns = [
+        r'<title>Daily AI News\s*[—-]\s*(\d{4}-\d{2}-\d{2})',
+        r'Daily AI News\s*[—-]\s*(\d{4}-\d{2}-\d{2})',
+        r'最終更新.*?(\d{4}-\d{2}-\d{2})',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, html)
+        if match:
+            return match.group(1)
+    return datetime.now().strftime('%Y-%m-%d')
 
 def extract_metadata(html):
     """HTMLからメタデータを抽出"""
@@ -131,22 +150,28 @@ def main():
     url = 'https://awano27.github.io/daily-ai-news-pages/'
 
     print(f"Fetching data from {url}...")
-    articles = fetch_and_parse(url)
+    html = fetch_html(url)
+    articles = []
+    if html:
+        parser = NewsCardParser()
+        parser.feed(html)
+        articles = parser.articles
 
     if not articles:
         print("No articles found!", file=sys.stderr)
         return 1
 
     # 日付ベースのファイル名
-    today = datetime.now().strftime('%Y-%m-%d')
+    source_date = extract_source_date(html)
     output_dir = Path('public-pages/news')
-    output_path = output_dir / f'{today}_daily.json'
+    output_path = output_dir / f'{source_date}_daily.json'
 
     # JSON出力
     output_data = {
         'metadata': {
             'source': 'daily-ai-news-pages',
             'url': url,
+            'source_date': source_date,
             'extracted_at': datetime.now().isoformat(),
             'total_articles': len(articles)
         },

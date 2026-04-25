@@ -411,27 +411,20 @@
 
         const data = await response.json();
 
-        // 日付ごとにグループ化
-        const groupedByDate = {};
-        data.items.forEach(item => {
-          if (!groupedByDate[item.date]) {
-            groupedByDate[item.date] = [];
-          }
-          groupedByDate[item.date].push(item);
-        });
-
-        // アーカイブデータに変換
-        archiveData = Object.keys(groupedByDate)
-          .sort((a, b) => b.localeCompare(a)) // 新しい順
-          .map(date => ({
-            date: date,
-            file: `daily-news.json#${date}`,
-            count: groupedByDate[date].length,
-            items: groupedByDate[date]
-          }));
+        const sourceEntries = Array.isArray(data.entries) ? data.entries : data.items;
+        archiveData = (sourceEntries || [])
+          .map(entry => ({
+            date: entry.date,
+            file: entry.file || entry.filename || `daily-news.json#${entry.date}`,
+            count: entry.count || (entry.items ? entry.items.length : 1),
+            items: entry.items && entry.items.length ? entry.items : [entry],
+            title: entry.title,
+            summary: entry.summary
+          }))
+          .sort((a, b) => b.date.localeCompare(a.date));
 
         // 統計情報を計算
-        allItems = data.totalCount;
+        allItems = data.totalArticles || archiveData.reduce((sum, entry) => sum + (entry.count || 0), 0);
 
         // 統計情報を表示
         document.getElementById('totalEntries').textContent = archiveData.length;

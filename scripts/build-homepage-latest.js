@@ -96,8 +96,13 @@ function buildSections() {
   }
 
   const sections = {};
-  const extractedAt = data.metadata && data.metadata.extracted_at ? String(data.metadata.extracted_at).slice(0, 10) : null;
+  const sourceDate = data.metadata && data.metadata.source_date ? String(data.metadata.source_date).slice(0, 10) : null;
   const articles = Array.isArray(data.articles) ? data.articles : [];
+  const publishedDates = articles
+    .map(article => String(article.published_at || '').slice(0, 10))
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    .sort((a, b) => b.localeCompare(a));
+  const effectiveDate = sourceDate || publishedDates[0] || null;
   for (const article of articles) {
     const category = article.category || 'posts';
     if (!sections[category]) sections[category] = [];
@@ -113,7 +118,7 @@ function buildSections() {
     });
   }
 
-  return { sections, dailyDate: extractedAt };
+  return { sections, dailyDate: effectiveDate };
 }
 
 function main() {

@@ -3,7 +3,8 @@
 /**
  * Daily AI News JSON Generator
  *
- * input/day/配下のテキストファイルを読み込み、JSON形式で出力します。
+ * public-pages/news/配下の日次ニューススナップショットを読み込み、
+ * 旧 presentations/api 互換のJSON形式で出力します。
  *
  * 使い方:
  *   node scripts/generate-daily-news-json.js
@@ -17,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 // パス設定
-const INPUT_DIR = path.join(__dirname, '../input/day');
+const NEWS_DIR = path.join(__dirname, '../public-pages/news');
 const OUTPUT_DIR = path.join(__dirname, '../presentations/api');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'daily-news.json');
 const OUTPUT_LATEST_FILE = path.join(OUTPUT_DIR, 'daily-news-latest.json');
@@ -62,6 +63,114 @@ function extractFallbackSummary(content, title) {
     .filter(line => line !== title);
 
   return lines.slice(0, 4).join(' ').slice(0, 280);
+}
+
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+}
+
+function articleToNewsItem(article, snapshotDate, filename) {
+  const sourceName = article.source || 'source';
+  const sourceUrl = article.url || '';
+  return {
+    date: snapshotDate,
+    filename,
+    title: article.title || 'タイトル不明',
+    summary: article.summary || '',
+    surprise: '',
+    sources: sourceUrl ? [{ text: sourceName, url: sourceUrl }] : [],
+    engineerPoints: '',
+    businessPoints: '',
+    comparison: '',
+    category: article.category || '',
+    importance: article.importance || '',
+    score: article.score || 0,
+    rank: article.rank || 0,
+    publishedAt: article.published_at || '',
+    source: sourceName,
+    url: sourceUrl,
+  };
+}
+
+function effectiveDailyDate(data, fallbackDate) {
+  const sourceDate = data?.metadata?.source_date;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(sourceDate || '')) return sourceDate;
+
+  const articles = Array.isArray(data?.articles) ? data.articles : [];
+  const publishedDates = articles
+    .map(article => String(article.published_at || '').slice(0, 10))
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    .sort((a, b) => b.localeCompare(a));
+
+  return publishedDates[0] || fallbackDate;
+}
+
+function loadDailySnapshots() {
+  const indexPath = path.join(NEWS_DIR, 'daily_index.json');
+  let entries;
+
+  if (fs.existsSync(indexPath)) {
+    entries = readJson(indexPath);
+  } else {
+    entries = fs.readdirSync(NEWS_DIR)
+      .filter(name => /^\d{4}-\d{2}-\d{2}_daily\.json$/.test(name))
+      .map(file => ({ date: file.replace('_daily.json', ''), file }));
+  }
+
+  const seenDates = new Set();
+
+  return entries
+    .filter(entry => entry && entry.date && entry.file)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .map(entry => {
+      const filePath = path.join(NEWS_DIR, entry.file);
+      if (!fs.existsSync(filePath)) {
+        return {
+          date: entry.date,
+          filename: entry.file,
+          file: entry.file,
+          title: `Daily AI News ${entry.date}`,
+          summary: '',
+          count: entry.count || 0,
+          items: [],
+        };
+      }
+
+      let data;
+      try {
+        data = readJson(filePath);
+      } catch (error) {
+        console.error(`Error reading ${entry.file}:`, error.message);
+        return {
+          date: entry.date,
+          filename: entry.file,
+          file: entry.file,
+          title: `Daily AI News ${entry.date}`,
+          summary: '',
+          count: entry.count || 0,
+          items: [],
+        };
+      }
+
+      const articles = Array.isArray(data.articles) ? data.articles : [];
+      const effectiveDate = effectiveDailyDate(data, entry.date);
+      if (seenDates.has(effectiveDate)) return null;
+      seenDates.add(effectiveDate);
+
+      const first = articles[0] ? articleToNewsItem(articles[0], effectiveDate, entry.file) : null;
+      return {
+        date: effectiveDate,
+        snapshotDate: entry.date,
+        filename: entry.file,
+        file: entry.file,
+        title: first ? first.title : `Daily AI News ${effectiveDate}`,
+        summary: first ? first.summary : '',
+        count: entry.count || articles.length,
+        items: articles.slice(0, 3).map(article => articleToNewsItem(article, effectiveDate, entry.file)),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /**
@@ -173,26 +282,9 @@ function main() {
     console.log(`✅ Created output directory: ${OUTPUT_DIR}`);
   }
 
-  // input/day/ 配下のファイルを取得
-  const files = fs.readdirSync(INPUT_DIR)
-    .filter(file => file.endsWith('.txt'))
-    .sort(); // ファイル名でソート
-
-  console.log(`📁 Found ${files.length} text files in ${INPUT_DIR}\n`);
-
-  // 各ファイルを解析
-  const newsItems = [];
-  for (const file of files) {
-    const filePath = path.join(INPUT_DIR, file);
-    const newsItem = parseNewsFile(filePath, file);
-
-    if (newsItem) {
-      newsItems.push(newsItem);
-      console.log(`✅ Parsed: ${file} - ${newsItem.title}`);
-    } else {
-      console.log(`⚠️  Skipped: ${file} (empty or invalid)`);
-    }
-  }
+  const newsItems = loadDailySnapshots();
+  const totalArticles = newsItems.reduce((total, entry) => total + (entry.count || 0), 0);
+  console.log(`📁 Loaded ${newsItems.length} daily snapshots from ${NEWS_DIR}\n`);
 
   // 日付降順にソート（新しい順）
   newsItems.sort((a, b) => b.date.localeCompare(a.date));
@@ -201,18 +293,23 @@ function main() {
   const fullData = {
     generatedAt: new Date().toISOString(),
     totalCount: newsItems.length,
+    totalArticles,
+    entries: newsItems,
     items: newsItems
   };
 
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(fullData, null, 2), 'utf-8');
   console.log(`\n✅ Generated full JSON: ${OUTPUT_FILE}`);
-  console.log(`   Total items: ${newsItems.length}`);
+  console.log(`   Total days: ${newsItems.length}`);
+  console.log(`   Total articles: ${totalArticles}`);
 
   // 最新10件版JSON出力
   const latestData = {
     generatedAt: new Date().toISOString(),
     totalCount: newsItems.length,
+    totalArticles,
     latestCount: Math.min(10, newsItems.length),
+    entries: newsItems.slice(0, 10),
     items: newsItems.slice(0, 10)
   };
 

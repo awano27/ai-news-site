@@ -27,13 +27,26 @@ function getDateFromName(name) {
   return match ? match[1] : null;
 }
 
+function effectiveDailyDate(data, fallbackDate) {
+  const sourceDate = data?.metadata?.source_date;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(sourceDate || '')) return sourceDate;
+
+  const articles = Array.isArray(data?.articles) ? data.articles : [];
+  const publishedDates = articles
+    .map((article) => String(article?.published_at || '').slice(0, 10))
+    .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    .sort((a, b) => b.localeCompare(a));
+
+  return publishedDates[0] || fallbackDate;
+}
+
 function buildIndexes() {
   const files = fs.readdirSync(NEWS_DIR)
     .filter((name) => name.endsWith('.json'))
     .filter((name) => !['archive_index.json', 'daily_index.json', 'daily_latest.json', 'version.json'].includes(name));
 
   const archiveEntriesByDate = new Map();
-  const dailyEntries = [];
+  const dailyEntriesByDate = new Map();
   let newestDaily = null;
 
   for (const name of files) {
@@ -51,29 +64,38 @@ function buildIndexes() {
 
     const count = getCount(data);
     const isDaily = name.endsWith('_daily.json');
-    const entry = { date, file: name, count };
+    const entryDate = isDaily ? effectiveDailyDate(data, date) : date;
+    const entry = { date: entryDate, file: name, count };
+    if (isDaily && entryDate !== date) {
+      entry.snapshot_date = date;
+    }
 
-    const existingArchiveEntry = archiveEntriesByDate.get(date);
+    const existingArchiveEntry = archiveEntriesByDate.get(entryDate);
     if (
       !existingArchiveEntry ||
       (isDaily && !existingArchiveEntry.file.endsWith('_daily.json')) ||
       (isDaily === existingArchiveEntry.file.endsWith('_daily.json') && name.localeCompare(existingArchiveEntry.file) < 0)
     ) {
-      archiveEntriesByDate.set(date, entry);
+      archiveEntriesByDate.set(entryDate, entry);
     }
 
     if (isDaily) {
       const dailyEntry = {
-        date,
+        date: entryDate,
         file: name,
         count,
+        snapshot_date: entryDate !== date ? date : undefined,
         extracted_at: data?.metadata?.extracted_at || data?.extracted_at || '',
+        source_date: data?.metadata?.source_date || '',
         source: data?.metadata?.source || data?.source || '',
       };
-      dailyEntries.push(dailyEntry);
+      const existingDailyEntry = dailyEntriesByDate.get(entryDate);
+      if (!existingDailyEntry || name.localeCompare(existingDailyEntry.file) < 0) {
+        dailyEntriesByDate.set(entryDate, dailyEntry);
+      }
 
-      if (!newestDaily || date > newestDaily.date) {
-        newestDaily = { date, data };
+      if (!newestDaily || entryDate > newestDaily.date) {
+        newestDaily = { date: entryDate, data };
       }
     }
   }
@@ -82,7 +104,7 @@ function buildIndexes() {
     if (a.date !== b.date) return b.date.localeCompare(a.date);
     return a.file.localeCompare(b.file);
   });
-  dailyEntries.sort((a, b) => b.date.localeCompare(a.date));
+  const dailyEntries = Array.from(dailyEntriesByDate.values()).sort((a, b) => b.date.localeCompare(a.date));
 
   fs.writeFileSync(ARCHIVE_INDEX, JSON.stringify(archiveEntries, null, 2), 'utf8');
   fs.writeFileSync(DAILY_INDEX, JSON.stringify(dailyEntries, null, 2), 'utf8');

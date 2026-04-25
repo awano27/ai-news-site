@@ -46,10 +46,12 @@ jobs:
           python extract_daily_news.py
 
           # 抽出結果を確認
-          TODAY="$(date +%F)"
-          if [ -f "public-pages/news/${TODAY}_daily.json" ]; then
+          SOURCE_DATE="$(python -c "import json, pathlib; p=pathlib.Path('public-pages/news/daily_latest.json'); print(json.loads(p.read_text(encoding='utf-8')).get('metadata', {}).get('source_date', '') if p.exists() else '')")"
+          FILE_PATH="public-pages/news/${SOURCE_DATE}_daily.json"
+          if [ -n "${SOURCE_DATE}" ] && [ -f "${FILE_PATH}" ]; then
             echo "extracted=true" >> $GITHUB_OUTPUT
-            echo "file_path=public-pages/news/${TODAY}_daily.json" >> $GITHUB_OUTPUT
+            echo "file_path=${FILE_PATH}" >> $GITHUB_OUTPUT
+            echo "source_date=${SOURCE_DATE}" >> $GITHUB_OUTPUT
           else
             echo "extracted=false" >> $GITHUB_OUTPUT
             echo "⚠️ Daily AI News data extraction failed or no new data"
@@ -63,7 +65,7 @@ jobs:
         if: steps.extract.outputs.extracted == 'true'
         run: |
           echo "Updating data source in ai_ranking_interactive.html..."
-          TODAY=$(date +%F)
+          TODAY="${{ steps.extract.outputs.source_date }}"
 
           # ai_ranking_interactive.htmlのデータソースを最新日付に更新
           if [ -f "presentations/ai_ranking_interactive.html" ]; then
@@ -85,7 +87,7 @@ jobs:
           # 変更があればコミット
           if ! git diff --cached --quiet; then
             ARTICLE_COUNT=$(python -c "import json; data=json.load(open('${{ steps.extract.outputs.file_path }}')); print(data['metadata']['total_articles'])" 2>/dev/null || echo "N/A")
-            git commit -m "chore(archive): sync Daily AI News data (${ARTICLE_COUNT} articles) - $(date +%F)"
+            git commit -m "chore(archive): sync Daily AI News data (${ARTICLE_COUNT} articles) - ${{ steps.extract.outputs.source_date }}"
             git push
             echo "✓ Changes committed and pushed successfully"
           else
