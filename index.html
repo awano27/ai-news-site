@@ -385,6 +385,14 @@
     }
     .section-light .section-title { color: var(--on-light); }
     .section-dark  .section-title { color: var(--on-dark); }
+    .section-note {
+      margin-top: 12px;
+      max-width: 560px;
+      font-size: 14px;
+      line-height: 1.85;
+    }
+    .section-light .section-note { color: var(--on-light-mu); }
+    .section-dark .section-note { color: var(--on-dark-mu); }
 
     .section-link {
       font-size: 14px;
@@ -400,12 +408,15 @@
     .section-dark .section-link:hover { color: var(--yellow); border-bottom-color: var(--yellow); }
 
     /* ==================== This week (light) ==================== */
+    #this-week {
+      background:
+        linear-gradient(135deg, rgba(15, 98, 254, 0.07) 0%, rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, var(--white) 0%, var(--grey-50) 100%);
+    }
     .week-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1px;
-      background: var(--grey-200);
-      border: 1px solid var(--grey-200);
+      gap: 16px;
     }
     @media (max-width: 1080px) { .week-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 720px)  { .week-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -414,18 +425,43 @@
     .week-card {
       display: flex; flex-direction: column;
       background: var(--white);
-      padding: 28px 24px 22px;
-      min-height: 200px;
+      border: 1px solid rgba(8, 18, 46, 0.12);
+      border-radius: 8px;
+      padding: 24px 22px 20px;
+      min-height: 214px;
       color: var(--on-light);
-      transition: background 0.15s ease;
+      box-shadow: 0 18px 42px rgba(8, 18, 46, 0.07);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
       position: relative;
+      overflow: hidden;
     }
-    .week-card:hover { background: var(--grey-50); color: var(--on-light); }
+    .week-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--yellow));
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+    .week-card:hover {
+      background: var(--white);
+      border-color: rgba(15, 98, 254, 0.35);
+      color: var(--on-light);
+      box-shadow: 0 24px 56px rgba(8, 18, 46, 0.12);
+      transform: translateY(-2px);
+    }
+    .week-card:hover::before { opacity: 1; }
     .week-card.is-today {
-      background: var(--navy);
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255,204,0,0.20), transparent 28%),
+        linear-gradient(135deg, var(--navy) 0%, #132a63 100%);
+      border-color: rgba(255,204,0,0.45);
       color: var(--on-dark);
+      box-shadow: 0 28px 70px rgba(8, 18, 46, 0.28);
     }
-    .week-card.is-today:hover { background: var(--navy-2); }
+    .week-card.is-today::before { opacity: 1; background: var(--yellow); }
+    .week-card.is-today:hover { background: linear-gradient(135deg, var(--navy-2) 0%, #183271 100%); }
     .week-card.is-today .week-day,
     .week-card.is-today .week-month,
     .week-card.is-today .week-count { color: var(--on-dark-mu); border-color: var(--navy-line); }
@@ -446,7 +482,7 @@
     }
     .week-date {
       font-weight: 700;
-      font-size: 36px;
+      font-size: 40px;
       line-height: 1.05;
       margin-top: 8px;
       letter-spacing: -0.02em;
@@ -462,7 +498,7 @@
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 12px;
       color: var(--on-light-mu);
-      padding-top: 18px;
+      padding-top: 20px;
       border-top: 1px solid var(--grey-200);
     }
     .count-pill {
@@ -483,33 +519,61 @@
     }
 
     /* ==================== Categories (dark) ==================== */
+    #categories {
+      background:
+        linear-gradient(140deg, rgba(255,204,0,0.08) 0%, rgba(255,204,0,0) 28%),
+        radial-gradient(circle at 92% 10%, rgba(15,98,254,0.20), transparent 34%),
+        var(--navy);
+    }
     .cat-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
     }
+    @media (max-width: 980px) { .cat-grid { grid-template-columns: 1fr; } }
     .cat-card {
-      background: var(--navy-3);
-      border: 1px solid var(--navy-line);
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.11);
       border-radius: 8px;
-      padding: 28px 26px;
+      padding: 26px;
       display: flex; flex-direction: column; gap: 16px;
-      min-height: 220px;
+      min-height: 238px;
       color: var(--on-dark);
-      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
       position: relative;
       overflow: hidden;
     }
     .cat-card::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: var(--yellow);
-      transform: scaleX(0); transform-origin: left;
-      transition: transform 0.25s ease;
+      position: absolute;
+      top: 18px; right: 18px;
+      width: 48px; height: 48px;
+      border: 1px solid rgba(255,204,0,0.34);
+      border-radius: 50%;
+      opacity: 0.5;
+      transition: transform 0.25s ease, opacity 0.25s ease;
     }
-    .cat-card:hover { border-color: var(--navy-line-2); background: #1a2853; color: var(--on-dark); }
-    .cat-card:hover::before { transform: scaleX(1); }
+    .cat-card::after {
+      content: '';
+      position: absolute;
+      top: 41px; right: 30px;
+      width: 24px; height: 1px;
+      background: rgba(255,204,0,0.7);
+      transform: rotate(-35deg);
+    }
+    .cat-card:hover {
+      border-color: rgba(255,204,0,0.55);
+      background: rgba(255,255,255,0.075);
+      color: var(--on-dark);
+      transform: translateY(-2px);
+    }
+    .cat-card:hover::before { transform: scale(1.12); opacity: 1; }
     .cat-label {
+      align-self: flex-start;
+      border: 1px solid rgba(255,204,0,0.35);
+      border-radius: 999px;
+      padding: 6px 10px;
       font-size: 11px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -517,12 +581,12 @@
       font-weight: 700;
     }
     .cat-title {
-      font-weight: 500;
-      font-size: 16px;
-      line-height: 1.7;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1.65;
       color: var(--on-dark);
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -538,19 +602,44 @@
     .cat-source .arr { color: var(--yellow); font-size: 16px; font-weight: 700; }
 
     /* ==================== Archive CTA (light) ==================== */
+    #archive {
+      background:
+        linear-gradient(90deg, rgba(8,18,46,0.04) 0 1px, transparent 1px) 0 0 / 44px 44px,
+        linear-gradient(180deg, var(--grey-50) 0%, var(--white) 100%);
+    }
     .archive-wrap {
-      max-width: 880px;
+      max-width: 980px;
       margin: 0 auto;
       text-align: center;
+      background: var(--white);
+      border: 1px solid rgba(8,18,46,0.12);
+      border-radius: 12px;
+      padding: clamp(34px, 5vw, 58px);
+      box-shadow: 0 26px 80px rgba(8,18,46,0.10);
+      position: relative;
+      overflow: hidden;
+    }
+    .archive-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 6px;
+      background: linear-gradient(90deg, var(--navy), var(--blue), var(--yellow));
     }
     .archive-stats {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 0 60px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
       margin: 36px 0 40px;
     }
+    @media (max-width: 720px) { .archive-stats { grid-template-columns: 1fr; } }
     .archive-stat {
       display: flex; flex-direction: column; align-items: center;
       gap: 4px;
+      background: var(--grey-50);
+      border: 1px solid var(--grey-200);
+      border-radius: 8px;
+      padding: 22px 16px;
     }
     .archive-stat-num {
       font-size: clamp(36px, 4.8vw, 56px);
@@ -572,49 +661,73 @@
     }
     .archive-cta {
       display: inline-flex; align-items: center; gap: 12px;
-      background: var(--blue); color: var(--white);
+      background: var(--navy); color: var(--white);
       padding: 18px 40px;
-      border-radius: 999px;
+      border-radius: 8px;
       font-size: 16px;
       font-weight: 700;
-      transition: background 0.15s ease;
+      box-shadow: 0 16px 36px rgba(8,18,46,0.22);
+      transition: background 0.15s ease, transform 0.15s ease;
     }
-    .archive-cta:hover { background: var(--blue-d); color: var(--white); }
+    .section-light .archive-cta,
+    .section-light .archive-cta:visited {
+      color: var(--white);
+    }
+    .archive-cta:hover { background: var(--blue-d); color: var(--white); transform: translateY(-1px); }
+    @media (max-width: 540px) {
+      .archive-cta {
+        width: 100%;
+        justify-content: center;
+        padding-inline: 18px;
+      }
+    }
     .archive-sublinks {
       margin-top: 36px;
-      display: inline-flex; flex-wrap: wrap; gap: 8px 32px; justify-content: center;
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
       font-size: 14px;
     }
     .archive-sublinks a {
       color: var(--on-light-mu);
       font-weight: 500;
-      padding-bottom: 3px;
-      border-bottom: 1px solid var(--grey-200);
+      padding: 9px 12px;
+      border: 1px solid var(--grey-200);
+      border-radius: 999px;
+      background: var(--white);
     }
-    .archive-sublinks a:hover { color: var(--blue); border-color: var(--blue); }
+    .archive-sublinks a:hover { color: var(--blue); border-color: rgba(15,98,254,0.35); background: rgba(15,98,254,0.06); }
 
     /* ==================== Resources (dark) ==================== */
+    #resources {
+      background:
+        linear-gradient(180deg, #071027 0%, #0b1738 100%);
+    }
     .res-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
     }
     @media (max-width: 980px) { .res-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 540px) { .res-grid { grid-template-columns: 1fr; } }
     .res-card {
       display: flex; flex-direction: column;
-      background: var(--navy-3);
-      border: 1px solid var(--navy-line);
-      border-radius: 4px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 8px;
       overflow: hidden;
       color: var(--on-dark);
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
       position: relative;
     }
-    .res-card:hover { border-color: var(--yellow); color: var(--on-dark); transform: translateY(-2px); }
+    .res-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,204,0,0.55);
+      color: var(--on-dark);
+      transform: translateY(-3px);
+    }
     .res-thumb {
       display: block;
-      aspect-ratio: 16/10;
+      aspect-ratio: 16/9;
       position: relative;
       overflow: hidden;
       background: var(--navy-2);
@@ -654,7 +767,7 @@
     }
     .res-body {
       display: flex; flex-direction: column; gap: 12px;
-      padding: 24px 24px 28px;
+      padding: 24px 24px 26px;
       flex: 1;
     }
     .res-title {
@@ -760,7 +873,7 @@
         <a href="about.html">About</a>
         <a href="privacy-policy.html">Privacy</a>
         <a href="contact.html">Contact</a>
-        <a id="latestSlideHeroBtn" class="cta" href="presentations/day_slides_index.html">今日のスライド <span aria-hidden="true">→</span></a>
+        <a class="cta" href="#featured-reports">今日の3本 <span aria-hidden="true">→</span></a>
       </nav>
     </div>
   </header>
@@ -921,6 +1034,7 @@
       .main-card::after {
         content: '';
         position: absolute;
+        z-index: 4;
         inset: auto 18px 18px auto;
         width: 58px;
         height: 1px;
@@ -949,14 +1063,100 @@
         height: 100%;
         object-fit: cover;
         object-position: center;
-        opacity: .62;
-        filter: saturate(.92) contrast(1.06);
+        opacity: .18;
+        filter: saturate(.88) contrast(1.12) blur(.2px);
         transform: scale(1.01);
         transition: transform .35s ease, opacity .25s ease;
       }
       .main-card:hover .card-thumb {
-        opacity: .72;
+        opacity: .24;
         transform: scale(1.045);
+      }
+      .card-visual {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        opacity: .72;
+      }
+      .card-visual::before,
+      .card-visual::after {
+        content: '';
+        position: absolute;
+      }
+      .visual-slide {
+        background:
+          linear-gradient(90deg, transparent 0 38%, rgba(255,204,0,.14) 38% 41%, transparent 41%),
+          linear-gradient(180deg, transparent 0 67%, rgba(255,255,255,.14) 67% 73%, transparent 73%),
+          radial-gradient(circle at 76% 24%, rgba(255,204,0,.22), transparent 18%);
+      }
+      .visual-slide::before {
+        left: 56%;
+        bottom: 14%;
+        width: 34%;
+        height: 42%;
+        border: 1px solid rgba(255,255,255,.16);
+        background:
+          linear-gradient(90deg, rgba(255,255,255,.14) 0 52%, transparent 52%),
+          repeating-linear-gradient(180deg, rgba(255,255,255,.13) 0 8px, transparent 8px 26px);
+        box-shadow: 28px -22px 0 rgba(255,204,0,.18), 0 24px 70px rgba(0,0,0,.28);
+      }
+      .visual-slide::after {
+        right: 10%;
+        bottom: 25%;
+        width: 22%;
+        height: 10px;
+        background: #FFCC00;
+        box-shadow: -96px -64px 0 rgba(255,255,255,.18), -56px -34px 0 rgba(15,98,254,.42);
+      }
+      .visual-report {
+        background:
+          linear-gradient(180deg, transparent 0 62%, rgba(15,98,254,.14) 62% 100%),
+          radial-gradient(circle at 72% 28%, rgba(15,98,254,.28), transparent 24%);
+      }
+      .visual-report::before {
+        left: 24%;
+        right: 4%;
+        bottom: 14%;
+        height: 38%;
+        background:
+          linear-gradient(90deg, transparent 0 10%, rgba(15,98,254,.42) 10% 22%, transparent 22% 30%, rgba(255,204,0,.34) 30% 42%, transparent 42% 51%, rgba(78,201,176,.34) 51% 64%, transparent 64% 73%, rgba(255,204,0,.46) 73% 86%, transparent 86%),
+          linear-gradient(180deg, transparent 0 49%, rgba(255,255,255,.24) 49% 50%, transparent 50%);
+      }
+      .visual-report::after {
+        left: 25%;
+        right: 6%;
+        bottom: 18%;
+        height: 26%;
+        border-bottom: 1px solid rgba(255,255,255,.16);
+        background:
+          linear-gradient(142deg, transparent 0 21%, rgba(78,201,176,.75) 21% 22%, transparent 22% 43%, rgba(255,204,0,.9) 43% 44%, transparent 44% 64%, rgba(15,98,254,.8) 64% 65%, transparent 65%);
+      }
+      .visual-news {
+        background:
+          radial-gradient(circle at 80% 22%, rgba(78,201,176,.24), transparent 20%),
+          linear-gradient(180deg, transparent 0 58%, rgba(255,255,255,.07) 58% 100%);
+      }
+      .visual-news::before {
+        left: 26%;
+        right: 8%;
+        bottom: 12%;
+        height: 40%;
+        background:
+          repeating-linear-gradient(180deg, rgba(255,255,255,.18) 0 7px, transparent 7px 22px),
+          linear-gradient(90deg, rgba(255,204,0,.38), rgba(15,98,254,.34));
+        mask-image: linear-gradient(180deg, #000 0 12px, transparent 12px 18px, #000 18px 36px, transparent 36px 44px, #000 44px 66px, transparent 66px 76px, #000 76px);
+      }
+      .visual-news::after {
+        right: 9%;
+        bottom: 13%;
+        width: 118px;
+        height: 72px;
+        border: 1px solid rgba(255,255,255,.12);
+        background:
+          radial-gradient(circle at 24px 24px, #FFCC00 0 4px, transparent 5px),
+          radial-gradient(circle at 76px 48px, #4EC9B0 0 4px, transparent 5px),
+          linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
       }
       .main-card::before {
         content: '';
@@ -964,12 +1164,12 @@
         inset: 0;
         z-index: 1;
         background:
-          linear-gradient(90deg, rgba(5,12,31,.96) 0%, rgba(5,12,31,.78) 42%, rgba(5,12,31,.25) 100%),
-          linear-gradient(180deg, rgba(5,12,31,.2) 0%, rgba(5,12,31,.88) 100%);
+          linear-gradient(90deg, rgba(5,12,31,.96) 0%, rgba(5,12,31,.76) 42%, rgba(5,12,31,.10) 100%),
+          linear-gradient(180deg, rgba(5,12,31,.16) 0%, rgba(5,12,31,.82) 100%);
       }
       .main-card-body {
         position: relative;
-        z-index: 2;
+        z-index: 3;
         display: flex;
         flex-direction: column;
         width: 100%;
@@ -1062,6 +1262,11 @@
         .featured-reports .section-head { margin-bottom: 20px; }
         .main-card,
         .main-card.is-primary { min-height: 320px; }
+        .card-visual { opacity: .58; }
+        .visual-slide { opacity: .38; }
+        .main-card:not(.is-primary) .card-visual { inset: 24% 0 0; }
+        .visual-slide::before { left: 48%; width: 44%; bottom: 12%; height: 32%; }
+        .visual-slide::after { right: 10%; bottom: 22%; }
         .main-card-body { padding: 20px; }
         .main-card-header,
         .main-card-footer { align-items: flex-start; flex-direction: column; }
@@ -1090,6 +1295,7 @@
           <!-- Card 1: スライド (ピックアップ記事) -->
           <a id="todaySlideCard" class="main-card is-primary" href="presentations/day_slides_index.html">
             <img class="card-thumb" src="assets/cards/slide.png" alt="今日の1枚スライドのプレビュー — AIニュースを1トピックでビジュアル化" loading="lazy" width="800" height="450" />
+            <span class="card-visual visual-slide" aria-hidden="true"></span>
             <div class="main-card-body">
               <div class="main-card-header">
                 <span class="main-card-label" data-step="01">Slide</span>
@@ -1099,7 +1305,7 @@
               <p class="main-card-desc">1トピックをビジュアルで深掘りしたピックアップ記事。背景・影響・使いどころまで5分で確認できます。</p>
               <div class="main-card-footer">
                 <span id="todaySlideDate" class="main-card-date">最新版</span>
-                <span class="main-card-cta">スライドを開く →</span>
+                <span class="main-card-cta">開く →</span>
               </div>
             </div>
           </a>
@@ -1107,6 +1313,7 @@
           <!-- Card 2: レポート (1日のサマリ) -->
           <a class="main-card" href="presentations/auto_daily_report.html">
             <img class="card-thumb" src="assets/cards/report.png" alt="AIデイリーレポートのチャート — 1日の動向を俯瞰" loading="lazy" width="800" height="450" />
+            <span class="card-visual visual-report" aria-hidden="true"></span>
             <div class="main-card-body">
               <div class="main-card-header">
                 <span class="main-card-label" data-step="02">Report</span>
@@ -1124,6 +1331,7 @@
           <!-- Card 3: Daily News (1日ニュースの詳細一覧 — synced from external Daily AI News source) -->
           <a class="main-card" href="daily-news/">
             <img class="card-thumb" src="assets/cards/daily-news.png" alt="Daily AI Newsの記事一覧プレビュー — X/RSS/公式を横断" loading="lazy" width="800" height="450" />
+            <span class="card-visual visual-news" aria-hidden="true"></span>
             <div class="main-card-body">
               <div class="main-card-header">
                 <span class="main-card-label" data-step="03">Daily News</span>
@@ -1197,6 +1405,7 @@
           <div>
             <div class="section-eyebrow">This Week</div>
             <h2 class="section-title">今週のスライド</h2>
+            <p class="section-note">直近の発表を日付別に整理。重要な動きだけをすばやく追えるスライド一覧です。</p>
           </div>
           <a class="section-link" href="presentations/day_slides_list.html">すべてのスライドを見る <span aria-hidden="true">→</span></a>
         </div>
@@ -1216,6 +1425,7 @@
           <div>
             <div class="section-eyebrow">Latest Highlights</div>
             <h2 class="section-title">カテゴリ別の最新ニュース</h2>
+            <p class="section-note">モデル、プロダクト、研究、ビジネスの注目トピックを最新データから抽出しています。</p>
           </div>
           <a class="section-link" href="presentations/news_archive.html">アーカイブで全件を見る <span aria-hidden="true">→</span></a>
         </div>
@@ -1258,6 +1468,7 @@
           <div>
             <div class="section-eyebrow">Resources</div>
             <h2 class="section-title">リソース・ガイド</h2>
+            <p class="section-note">ツール選定、調査、実装、月次把握に使う固定資料をまとめています。</p>
           </div>
         </div>
         <div class="res-grid">
