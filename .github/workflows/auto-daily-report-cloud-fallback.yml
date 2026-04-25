@@ -1,0 +1,87 @@
+name: Auto Daily Report — Cloud Fallback
+
+# Runs after the local Ollama pipeline should have completed for the day.
+# Skips if the day's report was already pushed by the local run; otherwise
+# regenerates it via NVIDIA NIM (free developer tier) so the public site
+# never displays a stale report.
+
+on:
+  schedule:
+    # JST 10:00 = UTC 01:00 daily
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force regenerate even if today already exists'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  fallback:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Decide whether to run
+        id: check
+        run: |
+          MMDD=$(date +%m%d)
+          TXT="input/day/${MMDD}.txt"
+          FORCE="${{ github.event.inputs.force }}"
+          if [ "$FORCE" = "true" ]; then
+            echo "Forced run requested" >&2
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -f "$TXT" ]; then
+            # Modified within the last 22 hours? consider local run already
+            # produced the report.
+            if [ -n "$(find "$TXT" -newermt '22 hours ago' 2>/dev/null)" ]; then
+              echo "$TXT was updated within the last 22h; skipping fallback" >&2
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        if: steps.check.outputs.should_run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run cloud fallback collection
+        if: steps.check.outputs.should_run == 'true'
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: |
+          python -m src.auto_collect.main --provider nvidia --force
+
+      - name: Commit & push
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes after cloud fallback; nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add input/day/*.txt presentations/auto_daily_report.html presentations/daily_reports/ public-pages/api/auto_daily_report/ 2>/dev/null || true
+          git add -A presentations/ input/ public-pages/ 2>/dev/null || true
+          git commit -m "chore(report): cloud fallback regenerated $(date +%F)"
+          git push

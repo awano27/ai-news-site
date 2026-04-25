@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI デイリーレポート アーカイブ</title>
+<meta name="description" content="auto_daily_report の過去全レポートを横断検索。タイトル・日付でフィルタ可能。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #08080c; --surface: #0e0e15; --surface2: #13131d;
+  --border: #1e1e2e; --border-h: #2d2d42;
+  --t1: #f2efe4; --t2: #b9b5c4; --t3: #6a6a82;
+  --amber: #e8a951; --amber-dim: rgba(232,169,81,.08);
+  --cream: #f1ecd9;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Noto Sans JP', sans-serif;
+  --serif: 'Fraunces', Georgia, serif;
+}
+body { font-family: var(--sans); background: var(--bg); color: var(--t1); line-height: 1.7; min-height: 100vh; }
+a { color: var(--amber); text-decoration: none; }
+a:hover { color: var(--cream); }
+
+.bar {
+  position: sticky; top: 0; z-index: 10; height: 52px;
+  display: flex; align-items: center; gap: 20px; padding: 0 32px;
+  background: rgba(8,8,12,.85);
+  backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.bar-logo { font-family: var(--serif); font-style: italic; font-size: 1.05rem; text-transform: none; color: var(--cream); }
+.bar-logo b { color: var(--amber); font-style: normal; }
+.bar-nav { margin-left: auto; display: flex; gap: 4px; }
+.bar-nav a { color: var(--t2); padding: 7px 14px; }
+.bar-nav a:hover { color: var(--amber); background: var(--surface2); }
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px 96px; }
+
+h1 { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(2rem, 4vw, 3rem); color: var(--cream); margin-bottom: 8px; letter-spacing: -.02em; }
+.lead { color: var(--t2); margin-bottom: 36px; max-width: 60ch; }
+
+.search-wrap { position: relative; margin-bottom: 18px; }
+.search-input {
+  width: 100%; padding: 14px 16px 14px 48px;
+  font-family: var(--sans); font-size: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--t1);
+  transition: border-color .25s, box-shadow .25s;
+}
+.search-input::placeholder { color: var(--t3); font-style: italic; }
+.search-input:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--t3); fill: none; stroke-width: 2; }
+.search-stats { font-family: var(--mono); font-size: .8rem; color: var(--t3); margin-bottom: 24px; letter-spacing: .5px; }
+mark { background: var(--amber-dim); color: var(--amber); padding: 1px 2px; }
+
+.report {
+  border-bottom: 1px solid var(--border);
+  padding: 22px 0;
+  display: grid; grid-template-columns: 110px 1fr auto; gap: 22px; align-items: start;
+}
+.report-date { font-family: var(--mono); font-size: .92rem; color: var(--amber); font-weight: 700; padding-top: 2px; letter-spacing: .5px; }
+.report-meta { font-family: var(--mono); font-size: .76rem; color: var(--t3); margin-top: 4px; letter-spacing: .5px; }
+.report-titles { color: var(--t2); font-size: .9rem; line-height: 1.7; }
+.report-titles li { list-style: none; padding: 2px 0; padding-left: 14px; position: relative; }
+.report-titles li::before { content: "·"; position: absolute; left: 2px; top: 2px; color: var(--amber); }
+.report-titles li.match { color: var(--t1); }
+.report-link {
+  font-family: var(--mono); font-size: .78rem; padding: 8px 16px;
+  border: 1px solid var(--border); border-radius: 2px;
+  white-space: nowrap; transition: all .15s;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.report-link:hover { border-color: var(--amber); background: var(--amber-dim); }
+
+.empty { text-align: center; color: var(--t3); padding: 60px 0; font-style: italic; }
+
+@media (max-width: 720px) {
+  .wrap { padding: 32px 18px 60px; }
+  .report { grid-template-columns: 1fr; gap: 8px; }
+  .report-link { justify-self: start; }
+  .bar { padding: 0 16px; gap: 12px; }
+  .bar-nav { gap: 2px; }
+  .bar-nav a { padding: 7px 10px; font-size: .7rem; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
+  <nav class="bar-nav">
+    <a href="../auto_daily_report.html">最新</a>
+    <a href="/ai-news-site/">ホーム</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <h1>アーカイブ全文検索</h1>
+  <p class="lead">過去の auto daily report をタイトル横断で検索できます。クリックでその日のレポートに移動します。</p>
+
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="q" type="search" class="search-input" placeholder="例: Claude / GPT / 資金調達 / Llama …" autofocus>
+  </div>
+  <div class="search-stats" id="stats">読み込み中…</div>
+
+  <div id="results"></div>
+</div>
+
+<script>
+(async function() {
+  var resultsEl = document.getElementById('results');
+  var statsEl = document.getElementById('stats');
+  var q = document.getElementById('q');
+
+  var data;
+  try {
+    var r = await fetch('searchable.json', { cache: 'no-cache' });
+    data = await r.json();
+  } catch (e) {
+    statsEl.textContent = '索引の読み込みに失敗しました';
+    return;
+  }
+
+  var reports = data.reports || [];
+
+  function highlight(text, query) {
+    if (!query) return text;
+    var safe = text.replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+    var pattern = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return safe.replace(new RegExp(pattern, 'gi'), function(m) { return '<mark>' + m + '</mark>'; });
+  }
+
+  function render(query) {
+    var ql = (query || '').toLowerCase().trim();
+    var rendered = [];
+    var matchCount = 0;
+    var matchedReports = 0;
+
+    reports.forEach(function(rep) {
+      var titles = rep.titles || [];
+      var matches = ql ? titles.filter(function(t) { return t.toLowerCase().indexOf(ql) !== -1; }) : titles.slice(0, 4);
+      if (ql && matches.length === 0) return;
+      matchedReports++;
+      if (ql) matchCount += matches.length;
+
+      var titlesHtml = matches.slice(0, 6).map(function(t) {
+        var marker = ql ? ' class="match"' : '';
+        return '<li' + marker + '>' + highlight(t, ql) + '</li>';
+      }).join('');
+      if (ql && matches.length > 6) {
+        titlesHtml += '<li style="color:var(--t3);font-style:italic">… 他 ' + (matches.length - 6) + ' 件</li>';
+      }
+
+      rendered.push(
+        '<article class="report">' +
+          '<div>' +
+            '<div class="report-date">' + rep.date + '</div>' +
+            '<div class="report-meta">' + (rep.total || 0) + ' items · ' + (rep.high || 0) + ' high</div>' +
+          '</div>' +
+          '<ul class="report-titles">' + titlesHtml + '</ul>' +
+          '<a class="report-link" href="' + rep.file + '">開く →</a>' +
+        '</article>'
+      );
+    });
+
+    if (rendered.length === 0) {
+      resultsEl.innerHTML = '<div class="empty">該当するレポートがありません</div>';
+    } else {
+      resultsEl.innerHTML = rendered.join('');
+    }
+
+    if (ql) {
+      statsEl.textContent = matchedReports + ' レポート / ' + matchCount + ' 記事ヒット';
+    } else {
+      statsEl.textContent = reports.length + ' レポート';
+    }
+  }
+
+  render('');
+  var t;
+  q.addEventListener('input', function() {
+    clearTimeout(t);
+    t = setTimeout(function() { render(q.value); }, 80);
+  });
+})();
+</script>
+</body>
+</html>
