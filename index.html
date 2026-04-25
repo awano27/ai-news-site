@@ -819,86 +819,322 @@
       </div>
     </section>
 
-    <!-- =============== Featured reports — 3-card hub (restored) =============== -->
+    <!-- =============== Featured reports — daily briefing hub =============== -->
     <style>
-      .featured-reports{padding:clamp(56px,7vw,88px) 0;background:linear-gradient(180deg,#070F26 0%,#0b1533 100%);border-bottom:1px solid rgba(255,255,255,.06)}
-      .featured-reports .section-head{margin-bottom:24px}
-      .featured-reports .section-kicker{color:#FFCC00;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin:0 0 8px}
-      .featured-reports .section-title{font-size:clamp(22px,3vw,30px);margin:0;color:#fff;font-weight:900;letter-spacing:-.005em}
-      .featured-reports .section-sub{color:#8A9ABF;font-size:14px;max-width:60ch;margin:10px 0 0}
-      .three-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
-      @media (max-width:960px){.three-cards{grid-template-columns:repeat(2,1fr)}}
-      @media (max-width:600px){.three-cards{grid-template-columns:1fr}}
-      .main-card{background:linear-gradient(180deg,#0D1733 0%,#121E42 100%);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.8rem;text-decoration:none;display:flex;flex-direction:column;transition:border-color .25s,box-shadow .25s,transform .25s;position:relative;overflow:hidden}
-      .main-card:hover{border-color:rgba(255,204,0,.4);box-shadow:0 8px 40px rgba(0,0,0,.3),0 0 20px rgba(255,204,0,.15);transform:translateY(-3px)}
-      .main-card-header{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
-      .main-card-icon{font-size:1.15rem}
-      .main-card-label{font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;letter-spacing:.14em;color:#FFCC00;text-transform:uppercase;font-weight:700}
-      .main-card-title{font-size:1.15rem;font-weight:800;color:#fff;margin:0 0 .4rem}
-      .main-card-desc{font-size:.92rem;color:#B5C3E1;line-height:1.7;flex:1;margin:0}
-      .main-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.08)}
-      .main-card-date{font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;color:#8A9ABF}
-      .main-card-cta{font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;color:#FFCC00;letter-spacing:.04em;font-weight:700;transition:transform .2s}
-      .main-card:hover .main-card-cta{transform:translateX(4px)}
-      /* card thumbnail image — fixed height avoids aspect-ratio flex quirks */
-      .card-thumb{display:block;width:100%;height:168px;object-fit:cover;object-position:left center;border-radius:10px;margin-bottom:1.2rem;background:#0b1533;border:1px solid rgba(255,255,255,.06)}
-      @media (max-width:960px){.card-thumb{height:200px}}
-      @media (max-width:600px){.card-thumb{height:220px;object-position:center}}
+      .featured-reports {
+        position: relative;
+        scroll-margin-top: 88px;
+        padding: clamp(64px, 8vw, 104px) 0;
+        background:
+          linear-gradient(180deg, #071026 0%, #0a1533 48%, #081126 100%),
+          radial-gradient(circle at 78% 12%, rgba(255,204,0,.12), transparent 32%);
+        border-block: 1px solid rgba(255,255,255,.07);
+        overflow: hidden;
+      }
+      .featured-reports::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+        pointer-events: none;
+      }
+      .featured-reports .container { position: relative; z-index: 1; }
+      .featured-reports .section-head {
+        align-items: flex-start;
+        margin-bottom: 28px;
+        gap: 24px;
+      }
+      .featured-reports .section-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #FFCC00;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        margin: 0 0 10px;
+      }
+      .featured-reports .section-kicker::before {
+        content: '';
+        width: 26px;
+        height: 2px;
+        background: #FFCC00;
+      }
+      .featured-reports .section-title {
+        max-width: 780px;
+        margin: 0;
+        color: #fff;
+        font-size: clamp(28px, 4vw, 46px);
+        font-weight: 900;
+        line-height: 1.16;
+        letter-spacing: 0;
+      }
+      .featured-reports .section-sub {
+        color: #AEBBDD;
+        font-size: clamp(14px, 1.6vw, 16px);
+        max-width: 64ch;
+        margin: 14px 0 0;
+        line-height: 1.9;
+      }
+      .briefing-status {
+        min-width: 220px;
+        margin-left: auto;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.045);
+        padding: 14px 16px;
+        color: #C8D3EE;
+        font-size: 12px;
+        letter-spacing: .08em;
+      }
+      .briefing-status strong {
+        display: block;
+        color: #FFCC00;
+        font-size: 20px;
+        line-height: 1.1;
+        letter-spacing: 0;
+        margin-top: 4px;
+      }
+      .three-cards {
+        display: grid;
+        grid-template-columns: minmax(0, 1.16fr) minmax(320px, .84fr);
+        grid-template-rows: repeat(2, minmax(220px, 1fr));
+        gap: 18px;
+        align-items: stretch;
+      }
+      .main-card {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        min-height: 220px;
+        overflow: hidden;
+        color: #fff;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(9, 19, 45, .9);
+        transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+      }
+      .main-card::after {
+        content: '';
+        position: absolute;
+        inset: auto 18px 18px auto;
+        width: 58px;
+        height: 1px;
+        background: #FFCC00;
+        opacity: .5;
+        transition: width .2s ease, opacity .2s ease;
+      }
+      .main-card:hover {
+        color: #fff;
+        border-color: rgba(255,204,0,.55);
+        box-shadow: 0 18px 60px rgba(0,0,0,.32);
+        transform: translateY(-2px);
+      }
+      .main-card:hover::after {
+        width: 86px;
+        opacity: 1;
+      }
+      .main-card.is-primary {
+        grid-row: 1 / span 2;
+        min-height: 458px;
+      }
+      .card-thumb {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        opacity: .62;
+        filter: saturate(.92) contrast(1.06);
+        transform: scale(1.01);
+        transition: transform .35s ease, opacity .25s ease;
+      }
+      .main-card:hover .card-thumb {
+        opacity: .72;
+        transform: scale(1.045);
+      }
+      .main-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          linear-gradient(90deg, rgba(5,12,31,.96) 0%, rgba(5,12,31,.78) 42%, rgba(5,12,31,.25) 100%),
+          linear-gradient(180deg, rgba(5,12,31,.2) 0%, rgba(5,12,31,.88) 100%);
+      }
+      .main-card-body {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: clamp(22px, 3vw, 34px);
+      }
+      .main-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: auto;
+      }
+      .main-card-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #FFCC00;
+        font-size: 11px;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        font-weight: 900;
+      }
+      .main-card-label::before {
+        content: attr(data-step);
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(255,204,0,.65);
+        color: #FFCC00;
+        font-size: 12px;
+        letter-spacing: 0;
+      }
+      .main-card-mode {
+        color: rgba(255,255,255,.62);
+        font-size: 11px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .main-card-title {
+        max-width: 13em;
+        color: #fff;
+        font-size: clamp(22px, 2.7vw, 34px);
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: 0;
+        margin: 46px 0 12px;
+      }
+      .main-card:not(.is-primary) .main-card-title {
+        max-width: 12em;
+        font-size: clamp(19px, 2vw, 25px);
+        margin-top: 34px;
+      }
+      .main-card-desc {
+        max-width: 34em;
+        color: #C2CBE6;
+        font-size: 14px;
+        line-height: 1.8;
+        margin: 0;
+      }
+      .main-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-top: 26px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255,255,255,.12);
+      }
+      .main-card-date {
+        color: #92A1C6;
+        font-size: 12px;
+        letter-spacing: .08em;
+      }
+      .main-card-cta {
+        color: #FFCC00;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        white-space: nowrap;
+      }
+      @media (max-width: 980px) {
+        .briefing-status { width: 100%; margin-left: 0; }
+        .three-cards { grid-template-columns: 1fr; grid-template-rows: none; }
+        .main-card.is-primary { grid-row: auto; min-height: 360px; }
+        .main-card { min-height: 280px; }
+      }
+      @media (max-width: 560px) {
+        .featured-reports { padding: 48px 0 58px; }
+        .featured-reports .section-head { margin-bottom: 20px; }
+        .main-card,
+        .main-card.is-primary { min-height: 320px; }
+        .main-card-body { padding: 20px; }
+        .main-card-header,
+        .main-card-footer { align-items: flex-start; flex-direction: column; }
+        .main-card-title,
+        .main-card:not(.is-primary) .main-card-title { font-size: 24px; margin-top: 38px; }
+      }
     </style>
     <section id="featured-reports" class="featured-reports">
       <div class="container">
         <div class="section-head">
-          <p class="section-kicker">Today's picks</p>
-          <h2 class="section-title">今日の 3 本 — スライド・レポート・Daily News</h2>
-          <p class="section-sub">
-            毎朝 07:00 JST に更新される 3 種類のコンテンツから、
-            <strong>1 本のピックアップ記事・1 日のサマリ・1 日のニュース詳細一覧</strong>を一度に辿れます。
-          </p>
+          <div>
+            <p class="section-kicker">Today's briefing</p>
+            <h2 class="section-title">今日の 3 本 — スライド・レポート・Daily News</h2>
+            <p class="section-sub">
+              まず深掘り、次に全体像、最後に一次情報へ。毎朝 07:00 JST に更新される3つの入口を、
+              読む順番がわかるブリーフィングとして整理しました。
+            </p>
+          </div>
+          <div class="briefing-status" aria-label="更新タイミング">
+            DAILY UPDATE
+            <strong>07:00 JST</strong>
+          </div>
         </div>
 
         <div class="three-cards">
           <!-- Card 1: スライド (ピックアップ記事) -->
-          <a id="todaySlideCard" class="main-card" href="presentations/day_slides_index.html">
-            <div class="main-card-header">
-              <span class="main-card-icon">📊</span>
-              <span class="main-card-label">スライド</span>
-            </div>
+          <a id="todaySlideCard" class="main-card is-primary" href="presentations/day_slides_index.html">
             <img class="card-thumb" src="assets/cards/slide.png" alt="今日の1枚スライドのプレビュー — AIニュースを1トピックでビジュアル化" loading="lazy" width="800" height="450" />
-            <h3 class="main-card-title">今日の 1 枚</h3>
-            <p class="main-card-desc">1 トピックをビジュアルで深掘りしたピックアップ記事。5 分で読める。</p>
-            <div class="main-card-footer">
-              <span id="todaySlideDate" class="main-card-date">最新版</span>
-              <span class="main-card-cta">開く →</span>
+            <div class="main-card-body">
+              <div class="main-card-header">
+                <span class="main-card-label" data-step="01">Slide</span>
+                <span class="main-card-mode">Deep dive</span>
+              </div>
+              <h3 class="main-card-title">今日の1枚で、重要トピックを掴む</h3>
+              <p class="main-card-desc">1トピックをビジュアルで深掘りしたピックアップ記事。背景・影響・使いどころまで5分で確認できます。</p>
+              <div class="main-card-footer">
+                <span id="todaySlideDate" class="main-card-date">最新版</span>
+                <span class="main-card-cta">スライドを開く →</span>
+              </div>
             </div>
           </a>
 
           <!-- Card 2: レポート (1日のサマリ) -->
           <a class="main-card" href="presentations/auto_daily_report.html">
-            <div class="main-card-header">
-              <span class="main-card-icon">📋</span>
-              <span class="main-card-label">レポート</span>
-            </div>
             <img class="card-thumb" src="assets/cards/report.png" alt="AIデイリーレポートのチャート — 1日の動向を俯瞰" loading="lazy" width="800" height="450" />
-            <h3 class="main-card-title">今日の全体像</h3>
-            <p class="main-card-desc">主要ニュース・発表・論文・ツールをカテゴリ別に整理した 1 日のサマリ。</p>
-            <div class="main-card-footer">
-              <span class="main-card-date">毎日更新</span>
-              <span class="main-card-cta">開く →</span>
+            <div class="main-card-body">
+              <div class="main-card-header">
+                <span class="main-card-label" data-step="02">Report</span>
+                <span class="main-card-mode">Overview</span>
+              </div>
+              <h3 class="main-card-title">今日の全体像を俯瞰する</h3>
+              <p class="main-card-desc">主要ニュース・発表・論文・ツールをカテゴリ別に整理した1日のサマリ。</p>
+              <div class="main-card-footer">
+                <span class="main-card-date">毎日更新</span>
+                <span class="main-card-cta">レポートを開く →</span>
+              </div>
             </div>
           </a>
 
           <!-- Card 3: Daily News (1日ニュースの詳細一覧 — synced from external Daily AI News source) -->
           <a class="main-card" href="daily-news/">
-            <div class="main-card-header">
-              <span class="main-card-icon">📰</span>
-              <span class="main-card-label">Daily News</span>
-            </div>
             <img class="card-thumb" src="assets/cards/daily-news.png" alt="Daily AI Newsの記事一覧プレビュー — X/RSS/公式を横断" loading="lazy" width="800" height="450" />
-            <h3 class="main-card-title">今日の全記事</h3>
-            <p class="main-card-desc">1 日のAIニュース詳細一覧。X / RSS / 公式ブログの生データをまとめて閲覧。</p>
-            <div class="main-card-footer">
-              <span class="main-card-date">毎日更新</span>
-              <span class="main-card-cta">開く →</span>
+            <div class="main-card-body">
+              <div class="main-card-header">
+                <span class="main-card-label" data-step="03">Daily News</span>
+                <span class="main-card-mode">Source list</span>
+              </div>
+              <h3 class="main-card-title">今日の全記事を確認する</h3>
+              <p class="main-card-desc">X / RSS / 公式ブログの生データをまとめて閲覧。気になる話題を一次情報まで追えます。</p>
+              <div class="main-card-footer">
+                <span class="main-card-date">毎日更新</span>
+                <span class="main-card-cta">一覧を開く →</span>
+              </div>
             </div>
           </a>
         </div>
