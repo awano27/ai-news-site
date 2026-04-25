@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import List, Dict
 
 from .config import PROJECT_ROOT, INPUT_DAY_DIR, LOG_DIR
-from .collectors import RSSAutoCollector, HNAutoCollector, JPCollector
+from .collectors import RSSAutoCollector, HNAutoCollector, JPCollector, XBookmarksCollector
 from .collectors.github_trending import GitHubTrendingCollector
 from .collectors.benchmark_collector import BenchmarkCollector
 from .collectors.funding_collector import FundingCollector
@@ -25,6 +25,7 @@ from .llm_provider import make_provider
 from .processor import LLMProcessor
 from .formatter import DayFileFormatter
 from .html_report import generate_html_report
+from .daily_news_page import generate_daily_news
 from . import dedup as dedup_mod
 
 
@@ -108,7 +109,14 @@ def main():
     except Exception as e:
         logger.error(f"[Main] arXiv failed: {e}")
 
-    logger.info(f"[Main] Collected {len(articles)} raw articles")
+    # X bookmarks (read from Obsidian vault — pre-curated by the user, no LLM)
+    x_articles = []
+    try:
+        x_articles = XBookmarksCollector().collect(today)
+    except Exception as e:
+        logger.error(f"[Main] X bookmarks failed: {e}")
+
+    logger.info(f"[Main] Collected {len(articles)} raw articles + {len(x_articles)} X bookmarks")
     articles = deduplicate(articles)
     logger.info(f"[Main] {len(articles)} after dedup")
 
@@ -177,7 +185,7 @@ def main():
         except Exception as e:
             logger.warning(f"[Main] Archive update failed: {e}")
 
-    # === Phase 5: Generate HTML report ===
+    # === Phase 5: Generate HTML report (auto_daily_report — Top15 curated) ===
     try:
         html_path = generate_html_report(output_path)
         if html_path:
@@ -185,7 +193,22 @@ def main():
     except Exception as e:
         logger.warning(f"[Main] HTML report generation failed: {e}")
 
-    total = len(processed) + len(github_processed) + len(benchmark_processed) + len(funding_processed)
+    # === Phase 6: Generate daily-news/ page (full timeline incl. X bookmarks) ===
+    try:
+        dn_path = generate_daily_news(
+            today,
+            articles=processed,
+            github_articles=github_processed,
+            benchmark_articles=benchmark_processed,
+            funding_articles=funding_processed,
+            x_articles=x_articles,
+        )
+        if dn_path:
+            logger.info(f"[Main] daily-news page: {dn_path}")
+    except Exception as e:
+        logger.warning(f"[Main] daily-news generation failed: {e}")
+
+    total = len(processed) + len(github_processed) + len(benchmark_processed) + len(funding_processed) + len(x_articles)
     logger.info(f"[Main] Done: {total} total items -> {output_path}")
 
 

@@ -4,6 +4,13 @@ name: Auto Daily Report — Cloud Fallback
 # Skips if the day's report was already pushed by the local run; otherwise
 # regenerates it via NVIDIA NIM (free developer tier) so the public site
 # never displays a stale report.
+#
+# Outputs (single pipeline, multiple files):
+#   - presentations/auto_daily_report.html   (Top 15 curated)
+#   - daily-news/index.html                  (full timeline incl. X bookmarks)
+# X bookmarks are read from the local Obsidian vault; on cloud runs the
+# vault isn't available, so the X tab will be empty for that day. That is
+# acceptable — when the user's PC is offline, they aren't bookmarking either.
 
 on:
   schedule:
@@ -81,7 +88,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add input/day/*.txt presentations/auto_daily_report.html presentations/daily_reports/ public-pages/api/auto_daily_report/ 2>/dev/null || true
-          git add -A presentations/ input/ public-pages/ 2>/dev/null || true
+          git add input/day/*.txt presentations/auto_daily_report.html presentations/daily_reports/ public-pages/api/auto_daily_report/ daily-news/ 2>/dev/null || true
+          git add -A presentations/ input/ public-pages/ daily-news/ 2>/dev/null || true
           git commit -m "chore(report): cloud fallback regenerated $(date +%F)"
           git push

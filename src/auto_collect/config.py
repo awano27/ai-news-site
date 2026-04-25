@@ -60,3 +60,12 @@ HN_AI_KEYWORDS = [
 # Collection settings
 MAX_ARTICLES_IN_REPORT = 15
 DATE_LOOKBACK_HOURS = 28
+
+# X (Twitter) bookmarks via Obsidian vault.
+# The vault is synced by C:/develop/obsidian/2026/scripts/x-sync (Playwright)
+# every hour from x.com/i/bookmarks → 00 Inbox/X-Bookmarks/*.md.
+# We read those .md files directly — no auth, no scraping in this repo.
+_default_vault = "C:/develop/obsidian/2026" if os.name == "nt" else os.path.expanduser("~/vault")
+OBSIDIAN_VAULT_PATH = Path(os.environ.get("OBSIDIAN_VAULT_PATH", _default_vault))
+X_BOOKMARKS_DIR = OBSIDIAN_VAULT_PATH / "00 Inbox" / "X-Bookmarks"
+X_LOOKBACK_HOURS = 72
