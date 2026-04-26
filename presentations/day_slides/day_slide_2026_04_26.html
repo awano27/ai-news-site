@@ -3,777 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HealthBench Professional — 医療AIの「試験問題」から「臨床安全性」へ | 2026-04-26 · AI Daily Briefing</title>
+<title>HealthBench Professional — 医療AIを「賢いか」から「任せられるか」へ | 2026-04-26 · AI Daily Briefing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
 
-:root {
-  --navy:        #070F26;
-  --navy-2:      #0c1733;
-  --navy-3:      #142042;
-  --navy-line:   rgba(255,255,255,0.08);
-  --navy-line-2: rgba(255,255,255,0.16);
-
-  --bg:          #f5f7fa;
-  --surface:     #ffffff;
-  --surface-2:   #fafbfd;
-  --surface-3:   #eef1f5;
-  --border:      #e3e7ee;
-  --border-2:    #c7cfdb;
-
-  --t1:          #1a1f2e;
-  --t2:          #4a5260;
-  --t3:          #7a8294;
-  --on-dark:     #ffffff;
-  --on-dark-mu:  #a8b2c3;
-  --on-dark-mu2: #6e7a8d;
-
-  --yellow:      #FFCC00;
-  --yellow-d:    #e6b800;
-  --yellow-dim:  rgba(255,204,0,0.15);
-  --blue:        #0d6efd;
-  --blue-d:      #0a59cf;
-  --blue-dim:    rgba(13,110,253,0.10);
-  --green:       #1e9c5a;
-  --green-dim:   rgba(30,156,90,0.10);
-  --red:         #c0392b;
-  --red-dim:     rgba(192,57,43,0.10);
-
-  --mono: 'JetBrains Mono', 'Consolas', monospace;
-  --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
-}
-
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--t1);
-  font-size: 16px;
-  line-height: 1.8;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* ═══ TOPBAR ═══ */
-.bar {
-  position: sticky; top: 0; z-index: 100; height: 56px;
-  display: flex; align-items: center; gap: 20px; padding: 0 32px;
-  background: rgba(7,15,38,0.92);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border-bottom: 1px solid var(--navy-line);
-  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase;
-  color: var(--on-dark-mu);
-}
-.bar-logo {
-  color: var(--on-dark);
-  font-family: var(--sans);
-  font-style: normal; font-size: .85rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-}
-.bar-logo b { color: var(--yellow); font-weight: 800; }
-.bar-sep { color: var(--on-dark-mu2); }
-.bar-date { color: var(--on-dark-mu); font-weight: 400; }
-.bar-nav { display: flex; gap: 2px; margin-left: auto; }
-.bar-nav a {
-  color: var(--on-dark-mu);
-  text-decoration: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  min-height: 36px;
-  display: inline-flex; align-items: center;
-  font-size: .76rem; letter-spacing: .08em;
-  transition: color .15s, background .15s;
-}
-.bar-nav a:hover { color: var(--on-dark); background: rgba(255,255,255,0.06); }
-.bar-nav a.on { color: var(--yellow); background: rgba(255,204,0,0.12); }
-.bar-live {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--yellow);
-  box-shadow: 0 0 8px rgba(255,204,0,0.7);
-  animation: blink 2.5s ease-in-out infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
-
-/* ═══ CONTAINER ═══ */
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px 80px; }
-
-/* ═══ HERO ═══ */
-.hero {
-  position: relative;
-  margin: 0 -32px;
-  padding: 72px 32px 56px;
-  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
-  color: var(--on-dark);
-  border-bottom: 4px solid var(--yellow);
-  overflow: hidden;
-}
-.hero::before {
-  content: ""; position: absolute; top: -30%; right: -10%;
-  width: 60%; height: 130%;
-  background: radial-gradient(ellipse at center, rgba(255,204,0,0.12) 0%, transparent 60%);
-  pointer-events: none; filter: blur(40px);
-}
-.hero > * { position: relative; }
-.hero-meta {
-  display: flex; align-items: center; gap: 14px;
-  font-family: var(--mono); font-size: .76rem; letter-spacing: .18em;
-  text-transform: uppercase; color: var(--on-dark-mu);
-}
-.hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
-.hero-meta .rule { flex: 0 0 40px; height: 1px; background: var(--navy-line-2); }
-.hero-issue { color: var(--yellow); font-weight: 700; }
-
-.hero-brand {
-  margin: 28px 0 26px;
-  display: inline-block;
-  padding: 18px 26px 20px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--navy-line-2);
-  border-left: 4px solid var(--yellow);
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
-}
-.hero-brand-tag {
-  display: block;
-  font-family: var(--mono);
-  font-size: .68rem; letter-spacing: .24em;
-  text-transform: uppercase;
-  color: var(--yellow);
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.hero-brand-name {
-  display: block;
-  font-family: var(--sans);
-  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
-  font-weight: 900;
-  color: var(--on-dark);
-  letter-spacing: -.02em;
-  line-height: 1.1;
-  margin: 4px 0 8px;
-}
-.hero-brand-model {
-  display: block;
-  font-family: var(--mono);
-  font-size: .76rem;
-  color: var(--on-dark-mu);
-  letter-spacing: .04em;
-}
-
-.hero-headline {
-  font-family: var(--sans);
-  font-weight: 900;
-  font-size: clamp(2rem, 5vw, 3.6rem);
-  line-height: 1.25;
-  letter-spacing: -.02em;
-  color: var(--on-dark);
-  margin: 18px 0 18px;
-}
-.hero-headline .hl-from {
-  display: inline-block;
-  position: relative;
-  color: var(--on-dark-mu);
-  font-weight: 700;
-}
-.hero-headline .hl-from::after {
-  content: "";
-  position: absolute;
-  left: -2%; right: -2%; top: 52%;
-  height: 4px;
-  background: var(--on-dark-mu2);
-  transform: rotate(-3deg);
-  opacity: 0.85;
-}
-.hero-headline .hl-to {
-  display: inline-block;
-  color: var(--navy);
-  background: var(--yellow);
-  padding: 4px 18px 6px;
-  border-radius: 6px;
-  font-weight: 900;
-  box-shadow: 0 6px 24px rgba(255,204,0,0.25);
-}
-.hero-kicker {
-  font-family: var(--sans);
-  font-style: normal;
-  font-weight: 500;
-  font-size: 1.08rem;
-  color: var(--on-dark-mu);
-  margin: 18px 0 18px;
-  line-height: 1.7;
-}
-.hero-kicker .hk-br { display: inline; }
-@media (max-width: 720px) { .hero-kicker .hk-br { display: none; } }
-.hero-sub {
-  font-family: var(--sans);
-  font-size: 1.02rem;
-  font-weight: 400;
-  color: var(--on-dark-mu);
-  line-height: 1.9;
-  margin-top: 14px;
-}
-.hero-sub strong { color: var(--on-dark); font-weight: 700; }
-
-.hero-cover {
-  margin: 36px 0 0;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid var(--navy-line-2);
-  box-shadow: 0 30px 80px rgba(0,0,0,.4);
-}
-.hero-cover img { width: 100%; display: block; }
-.hero-caption {
-  font-family: var(--mono);
-  font-size: .72rem; letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--on-dark-mu2);
-  margin-top: 16px;
-  display: flex; align-items: center; gap: 10px;
-}
-.hero-caption::before { content: ""; width: 22px; height: 1px; background: var(--yellow); }
-
-/* ═══ KPI ═══ */
-.kpi {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  margin: 56px 0 36px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
-}
-.kpi-cell {
-  padding: 28px 22px 24px;
-  position: relative;
-  background: var(--surface);
-}
-.kpi-cell + .kpi-cell { border-left: 1px solid var(--border); }
-.kpi-cell::after {
-  content: attr(data-idx);
-  position: absolute; top: 12px; right: 16px;
-  font-family: var(--mono); font-size: .7rem;
-  color: var(--t3); letter-spacing: 1px;
-}
-.kpi-n {
-  font-family: var(--sans);
-  font-weight: 900;
-  font-size: 2.6rem; line-height: 1;
-  color: var(--navy);
-  font-variant-numeric: tabular-nums lining-nums;
-  letter-spacing: -.025em;
-}
-.kpi-l {
-  font-family: var(--mono);
-  font-size: .72rem; letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--t2);
-  margin-top: 14px; font-weight: 600;
-}
-
-/* ═══ SECTIONS ═══ */
-.sec { margin: 64px 0 0; padding-top: 48px; border-top: 1px solid var(--border); }
-.sec:first-of-type { border-top: none; padding-top: 24px; }
-.sec-meta {
-  display: flex; align-items: center; gap: 14px;
-  font-family: var(--mono);
-  font-size: .72rem; letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--t3);
-  margin-bottom: 16px;
-}
-.sec-meta .rule { flex: 0 0 40px; height: 2px; background: var(--yellow); }
-.sec-num, .sec-meta span:nth-child(2) { color: var(--blue); font-weight: 700; }
-.sec-h {
-  font-family: var(--sans);
-  font-weight: 800;
-  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
-  line-height: 1.25;
-  letter-spacing: -.02em;
-  color: var(--navy);
-  margin-bottom: 12px;
-}
-.sec-h em {
-  font-style: normal;
-  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
-  padding: 0 .12em;
-  color: var(--navy);
-}
-.sec-lede {
-  font-size: 1rem;
-  color: var(--t2);
-  line-height: 1.9;
-}
-.sec-lede strong { color: var(--navy); font-weight: 700; }
-
-/* ═══ FIGURE ═══ */
-.fig {
-  margin: 32px 0 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--surface);
-  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
-}
-.fig img { width: 100%; display: block; }
-.fig-cap {
-  padding: 16px 24px;
-  font-family: var(--mono);
-  font-size: .74rem; letter-spacing: .12em;
-  color: var(--t2);
-  text-transform: uppercase;
-  border-top: 1px solid var(--border);
-  background: var(--surface-2);
-  display: flex; align-items: center; gap: 10px;
-}
-.fig-cap::before {
-  content: attr(data-fignum);
-  color: var(--blue);
-  font-weight: 700;
-}
-.fig-duo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 32px 0 0;
-}
-.fig-duo .fig { margin: 0; }
-
-/* ═══ COMPARE ═══ */
-.compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 32px 0 0;
-}
-.compare-col {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 28px 26px;
-}
-.compare-col.pro {
-  background: linear-gradient(160deg, rgba(255,204,0,0.08), var(--surface));
-  border-color: var(--yellow);
-  box-shadow: 0 6px 20px rgba(255,204,0,0.06);
-}
-.compare-tag {
-  font-family: var(--mono);
-  font-size: .68rem; letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--t3);
-  margin-bottom: 10px;
-}
-.compare-col.pro .compare-tag { color: var(--blue); font-weight: 700; }
-.compare-col h3 {
-  font-family: var(--sans);
-  font-size: 1.3rem; font-weight: 800;
-  color: var(--navy);
-  margin-bottom: 16px;
-}
-.compare-col ul { list-style: none; padding: 0; }
-.compare-col li {
-  padding: 12px 0 12px 26px;
-  border-bottom: 1px dashed var(--border);
-  font-size: .92rem;
-  line-height: 1.7;
-  color: var(--t2);
-  position: relative;
-}
-.compare-col li:last-child { border-bottom: none; }
-.compare-col li::before {
-  content: "—"; position: absolute; left: 0;
-  color: var(--t3); font-weight: 600;
-}
-.compare-col.pro li { color: var(--t1); }
-.compare-col.pro li::before { content: "▸"; color: var(--yellow); font-weight: 800; }
-.compare-col li strong { color: var(--navy); font-weight: 700; }
-
-/* ═══ PILLARS ═══ */
-.pillars {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin: 32px 0 0;
-}
-.pillar {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 28px 22px;
-  transition: border-color .2s, transform .2s, box-shadow .2s;
-}
-.pillar:hover {
-  border-color: var(--yellow);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
-}
-.pillar .p-n {
-  font-family: var(--mono);
-  font-size: .66rem; letter-spacing: .2em;
-  color: var(--blue); font-weight: 700;
-  margin-bottom: 14px;
-}
-.pillar h3 {
-  font-family: var(--sans);
-  font-size: 1.18rem; font-weight: 800;
-  color: var(--navy);
-  margin-bottom: 12px;
-  letter-spacing: -.01em;
-}
-.pillar h3 em {
-  font-style: normal;
-  color: var(--blue);
-  font-weight: 800;
-}
-.pillar p {
-  font-size: .9rem;
-  color: var(--t2);
-  line-height: 1.75;
-}
-.pillar p strong { color: var(--navy); font-weight: 700; }
-
-/* ═══ LINKS GRID ═══ */
-.links-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin: 32px 0 0;
-}
-.link-row {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 22px 26px;
-  text-decoration: none;
-  display: block;
-  transition: border-color .2s, background .2s, transform .2s;
-  position: relative;
-}
-.link-row:hover {
-  border-color: var(--blue);
-  background: var(--surface-2);
-  transform: translateY(-1px);
-}
-.link-row::after {
-  content: "→"; position: absolute;
-  right: 24px; top: 50%; transform: translateY(-50%);
-  color: var(--t3); font-size: 1.1rem;
-  transition: color .2s, transform .2s;
-}
-.link-row:hover::after {
-  color: var(--blue);
-  transform: translateY(-50%) translateX(4px);
-}
-.link-cat {
-  font-family: var(--mono);
-  font-size: .66rem; letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--blue); font-weight: 700;
-  margin-bottom: 6px;
-}
-.link-row h4 {
-  font-family: var(--sans);
-  font-size: 1.05rem; font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 4px;
-  padding-right: 32px;
-  letter-spacing: -.005em;
-}
-.link-row .meta {
-  font-family: var(--mono);
-  font-size: .74rem;
-  color: var(--t3);
-  letter-spacing: .04em;
-}
-
-/* ═══ PULL QUOTE ═══ */
-.pullquote {
-  margin: 56px 0 0;
-  padding: 40px 0 0;
-  border-top: 1px solid var(--border);
-  position: relative;
-}
-.pullquote::before {
-  content: "“";
-  position: absolute; top: 18px; left: -6px;
-  font-family: var(--sans);
-  font-size: 5rem;
-  color: var(--yellow);
-  line-height: 1; font-weight: 900;
-}
-.pullquote q {
-  display: block;
-  font-family: var(--sans);
-  font-size: clamp(1.3rem, 2.6vw, 1.85rem);
-  font-weight: 700;
-  color: var(--navy);
-  line-height: 1.55;
-  letter-spacing: -.01em;
-  padding-left: 50px;
-  quotes: none;
-}
-.pullquote q em {
-  font-style: normal;
-  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
-  padding: 0 .1em;
-}
-.pullquote q::before, .pullquote q::after { content: ""; }
-.pullquote cite {
-  display: block;
-  margin-top: 18px;
-  padding-left: 50px;
-  font-family: var(--mono);
-  font-size: .74rem;
-  color: var(--blue);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  font-style: normal;
-  font-weight: 700;
-}
-
-/* ═══ FOOTER ═══ */
-footer {
-  margin: 80px -32px 0;
-  padding: 48px 32px 36px;
-  background: var(--navy);
-  color: var(--on-dark-mu);
-  text-align: center;
-  border-top: 4px solid var(--yellow);
-  position: relative;
-}
-footer .f-title {
-  font-family: var(--sans);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--on-dark);
-  margin-bottom: 10px;
-}
-footer .f-title b { color: var(--yellow); font-weight: 800; }
-footer .f-title em { font-style: normal; color: var(--yellow); }
-footer .f-meta {
-  font-family: var(--mono);
-  font-size: .72rem; letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--on-dark-mu2);
-  margin-bottom: 22px;
-}
-footer .f-links {
-  display: flex; gap: 12px;
-  justify-content: center; flex-wrap: wrap;
-}
-footer .f-links a {
-  font-family: var(--mono);
-  font-size: .74rem; letter-spacing: .12em;
-  color: var(--on-dark-mu);
-  text-decoration: none;
-  padding: 8px 16px;
-  border: 1px solid var(--navy-line-2);
-  border-radius: 4px;
-  text-transform: uppercase;
-  transition: color .2s, border-color .2s, background .2s;
-}
-footer .f-links a:hover {
-  color: var(--navy);
-  border-color: var(--yellow);
-  background: var(--yellow);
-}
-
-@media (max-width: 960px) {
-  .wrap { padding: 0 22px 56px; }
-  .hero { margin: 0 -22px; padding: 56px 22px 44px; }
-  footer { margin: 64px -22px 0; padding: 40px 22px 28px; }
-  .kpi { grid-template-columns: repeat(2, 1fr); }
-  .kpi-cell { border-left: none !important; border-bottom: 1px solid var(--border); }
-  .pillars { grid-template-columns: repeat(2, 1fr); }
-  .compare, .fig-duo, .links-grid { grid-template-columns: 1fr; }
-  .bar { padding: 0 18px; gap: 12px; }
-  .bar-nav { display: none; }
-}
-
-/* ═══ Story / Pain / Rubric / Stake ═══ */
-.tag { display: inline-block; padding: 2px 10px; font-size: 0.72rem; font-weight: 700; border-radius: 999px; letter-spacing: 0.04em; margin: 0 6px 4px 0; line-height: 1.5; vertical-align: middle; }
-.tag.fact { background: rgba(13,110,253,0.12); color: #0a59cf; border: 1px solid rgba(13,110,253,0.25); }
-.tag.interp { background: rgba(255,204,0,0.18); color: #7a5e00; border: 1px solid rgba(230,184,0,0.35); }
-.tag.effect { background: rgba(30,156,90,0.14); color: #117c43; border: 1px solid rgba(30,156,90,0.30); }
-.tag.warn { background: rgba(192,57,43,0.12); color: #a82e22; border: 1px solid rgba(192,57,43,0.30); }
-
-/* TLDR */
-.tldr { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--yellow-d); padding: 22px 26px; margin: 28px 0 12px; border-radius: 6px; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
-.tldr-label { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t2); font-family: var(--mono); margin-bottom: 14px; }
-.tldr-list { list-style: none; counter-reset: tldr; padding: 0; margin: 0; }
-.tldr-list li { counter-increment: tldr; padding: 8px 0 8px 42px; position: relative; line-height: 1.75; font-size: 1.02rem; color: var(--t1); }
-.tldr-list li + li { border-top: 1px dashed var(--border); }
-.tldr-list li::before { content: counter(tldr); position: absolute; left: 0; top: 12px; width: 28px; height: 28px; line-height: 28px; text-align: center; background: var(--navy); color: var(--yellow); border-radius: 50%; font-size: 0.78rem; font-weight: 800; font-family: var(--mono); }
-.tldr-list li strong { color: var(--navy); font-weight: 700; }
-
-/* Pain wall — 3 pains, red-tinted */
-.pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 28px 0 0; }
-.pain-cell {
-  background: linear-gradient(165deg, rgba(192,57,43,0.05), var(--surface));
-  border: 1px solid var(--border);
-  border-top: 4px solid var(--red);
-  border-radius: 10px;
-  padding: 24px 22px 22px;
-  position: relative;
-}
-.pain-num { font-family: var(--mono); font-size: 0.7rem; letter-spacing: .18em; color: var(--red); font-weight: 800; margin-bottom: 12px; text-transform: uppercase; }
-.pain-cell h3 { font-family: var(--sans); font-size: 1.08rem; font-weight: 800; color: var(--navy); margin-bottom: 10px; line-height: 1.45; }
-.pain-cell p { font-size: 0.9rem; color: var(--t2); line-height: 1.75; }
-.pain-cell p strong { color: var(--navy); font-weight: 700; }
-@media (max-width: 720px) { .pain-grid { grid-template-columns: 1fr; } }
-
-/* Score block — emphasize the 59.0 vs 43.7 */
-.score-board {
-  margin: 32px 0 0;
-  padding: 36px 32px;
-  background: var(--navy);
-  color: var(--on-dark);
-  border-radius: 14px;
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 24px;
-}
-.score-board::before {
-  content: ""; position: absolute; top: -40%; right: -10%;
-  width: 70%; height: 180%;
-  background: radial-gradient(ellipse at center, rgba(255,204,0,0.15) 0%, transparent 60%);
-  pointer-events: none;
-}
-.score-side { text-align: center; position: relative; }
-.score-tag { font-family: var(--mono); font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--on-dark-mu); font-weight: 700; margin-bottom: 12px; }
-.score-tag.win { color: var(--yellow); }
-.score-num {
-  font-family: var(--sans); font-weight: 900; font-size: clamp(3rem, 8vw, 5rem); line-height: 1;
-  color: var(--on-dark);
-  font-variant-numeric: tabular-nums lining-nums;
-  letter-spacing: -.04em;
-}
-.score-num.win { color: var(--yellow); }
-.score-label { font-family: var(--mono); font-size: .76rem; color: var(--on-dark-mu); margin-top: 10px; letter-spacing: .04em; }
-.score-vs { font-family: var(--mono); font-size: 1.4rem; font-weight: 800; color: var(--on-dark-mu2); letter-spacing: .2em; position: relative; }
-@media (max-width: 720px) { .score-board { grid-template-columns: 1fr; padding: 28px 22px; } .score-vs { transform: rotate(0deg); } }
-
-/* Rubric (red-team scoring) */
-.rubric {
-  margin: 28px 0 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-.rubric-cell {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 22px 22px;
-}
-.rubric-cell.minus { border-left: 4px solid var(--red); }
-.rubric-cell.plus { border-left: 4px solid var(--green); }
-.rubric-tag { font-family: var(--mono); font-size: 0.7rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
-.rubric-cell.minus .rubric-tag { color: var(--red); }
-.rubric-cell.plus .rubric-tag { color: var(--green); }
-.rubric-cell h3 { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; line-height: 1.45; }
-.rubric-cell p { font-size: 0.88rem; color: var(--t2); line-height: 1.7; }
-.rubric-cell p strong { color: var(--navy); font-weight: 700; }
-@media (max-width: 720px) { .rubric { grid-template-columns: 1fr; } }
-
-/* Stakeholder grid */
-.stake-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; }
-.stake-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px 22px 20px; border-top: 3px solid var(--blue); }
-.stake-cell.eng { border-top-color: #0a59cf; }
-.stake-cell.biz { border-top-color: #b8860b; }
-.stake-cell.doc { border-top-color: #117c43; }
-.stake-role { font-size: 0.7rem; letter-spacing: 0.12em; font-family: var(--mono); color: var(--t3); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }
-.stake-role-jp { font-size: 1.04rem; font-weight: 800; color: var(--t1); margin-bottom: 14px; line-height: 1.4; }
-.stake-points { list-style: none; padding: 0; margin: 0; }
-.stake-points li { font-size: 0.9rem; color: var(--t1); padding: 4px 0 4px 18px; position: relative; line-height: 1.6; }
-.stake-points li::before { content: "✓"; position: absolute; left: 0; top: 4px; color: var(--green); font-weight: 800; font-size: 0.86rem; }
-.stake-points li strong { color: var(--navy); font-weight: 700; }
-
-/* Next action */
-.next-action { background: var(--navy); color: var(--on-dark); border-radius: 12px; padding: 32px 28px; margin: 24px 0; }
-.next-action h3 { font-size: 0.74rem; letter-spacing: 0.16em; color: var(--yellow); font-family: var(--mono); margin-bottom: 18px; text-transform: uppercase; font-weight: 700; }
-.next-action ol { list-style: none; counter-reset: nx; padding: 0; margin: 0; }
-.next-action ol li { counter-increment: nx; padding: 16px 0 16px 56px; position: relative; border-bottom: 1px solid var(--navy-line); line-height: 1.6; color: var(--on-dark); }
-.next-action ol li:last-child { border-bottom: 0; }
-.next-action ol li::before { content: counter(nx, decimal-leading-zero); position: absolute; left: 0; top: 16px; font-family: var(--mono); font-size: 0.92rem; color: var(--yellow); font-weight: 800; letter-spacing: 0.04em; }
-.next-action ol li strong { color: var(--on-dark); font-weight: 700; display: block; margin-bottom: 4px; font-size: 1rem; }
-.next-action ol li .hint { font-size: 0.86rem; color: var(--on-dark-mu); display: block; }
-
-/* J-HealthBench callout */
-.jcallout {
-  margin: 32px 0 0;
-  padding: 28px 32px;
-  background: linear-gradient(160deg, rgba(13,110,253,0.06), var(--surface));
-  border: 1px solid var(--blue);
-  border-radius: 12px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 24px;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(13,110,253,0.06);
-}
-.jcallout::before {
-  content: ""; position: absolute;
-  top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--blue);
-}
-.jcallout .ap-mark {
-  font-family: var(--sans);
-  font-size: 2.2rem; font-weight: 900;
-  color: var(--blue); line-height: 1;
-}
-.jcallout h3 {
-  font-family: var(--sans);
-  font-size: 1.25rem; font-weight: 800;
-  color: var(--navy);
-  margin-bottom: 8px;
-}
-.jcallout p {
-  color: var(--t2);
-  font-size: .95rem;
-  line-height: 1.85;
-}
-.jcallout strong { color: var(--navy); font-weight: 700; }
-
-/* license badge */
-.license-badge { display: inline-flex; gap: 6px; padding: 3px 10px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 4px; font-family: var(--mono); font-size: 0.74rem; color: var(--t2); margin: 0 6px 6px 0; }
-.license-badge strong { color: var(--t1); font-weight: 700; }
-
-.evi-row { margin: 12px 0 16px; line-height: 2; }
-
-@media (max-width: 720px) {
-  .next-action { padding: 24px 20px; }
-  .tldr-list li { padding-left: 38px; font-size: 0.96rem; }
-}
-</style>
-<meta name="description" content="AI Daily Briefing — 2026-04-26 · OpenAI HealthBench Professional：医療AIの評価軸を「試験問題の正答率」から「臨床安全性」へ。50カ国190名の医師が作成した525対話で、ChatGPT for Clinicians が専門医43.7点を超える59.0点を達成。" />
+<meta name="description" content="OpenAI HealthBench Professional は、医療AIの評価軸を「試験問題の正答率」から「臨床現場で事故を起こさない安全性」へシフトさせる完全無料 OSS。50カ国190名の医師が作成した525対話 × −10〜+10 ルーブリックで AI を採点。ChatGPT for Clinicians が 59.0 点を獲得し専門医 43.7 点を上回った。" />
 <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_26.html" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="HealthBench Professional — 医療AIの「試験問題」から「臨床安全性」へ | 2026-04-26 · AI Daily Briefing" />
-<meta property="og:description" content="OpenAI が公開した医療AI評価ベンチマーク。525対話 × 190医師が作る「現場で事故を起こさない信頼性」のモノサシ。" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="HealthBench Professional — 医療AIを「賢いか」から「任せられるか」へ | 2026-04-26" />
+<meta property="og:description" content="OpenAI が公開した医療AI評価ベンチマーク。525対話 × 190医師 × ±10ルーブリックで「現場で事故を起こさない信頼性」を測る。ChatGPT for Clinicians が専門医を上回った。" />
 <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_26.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0426/light/gpt_cover.jpg" />
 <meta property="og:locale" content="ja_JP" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="HealthBench Professional — 医療AIを「賢いか」から「任せられるか」へ | 2026-04-26" />
+<meta name="twitter:description" content="OpenAI が公開した医療AI評価ベンチマーク。ChatGPT for Clinicians が59.0点で専門医43.7点を上回る。完全無料・MITライセンス。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0426/light/gpt_cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "HealthBench Professional — 医療AIを「賢いか」から「任せられるか」へ",
+  "datePublished": "2026-04-26",
+  "dateModified": "2026-04-26",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0426/light/gpt_cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_26.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_26.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
 </head>
 <body>
-
-<header class="bar">
-  <span class="bar-live"></span>
-  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
-  <span class="bar-sep">—</span>
-  <span class="bar-date">2026-04-26 · Sun</span>
-  <nav class="bar-nav" aria-label="セクション内ナビゲーション">
-    <a href="#hero" class="on">要約</a>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
     <a href="#pains">課題</a>
     <a href="#how">仕組み</a>
     <a href="#score">スコア</a>
@@ -782,357 +67,215 @@ footer .f-links a:hover {
     <a href="#next">次</a>
     <a href="../index.html">戻る</a>
   </nav>
+  <span>2026-04-26 · Sun</span>
 </header>
 
-<div class="wrap">
-
-  <!-- HERO -->
-  <section class="hero" id="hero" aria-labelledby="hero-headline">
-    <div class="hero-meta">
-      <span class="dot"></span>
-      <span class="hero-issue">Issue № 04/26</span>
-      <span class="rule"></span>
-      <span>The Daily AI Intelligence Brief</span>
-    </div>
-    <div class="hero-brand">
-      <span class="hero-brand-tag">BENCHMARK · OpenAI HEALTHCARE</span>
-      <h2 class="hero-brand-name">HealthBench Professional</h2>
-      <span class="hero-brand-model">医療AI 臨床安全性ベンチマーク (525 対話 × 50 カ国 190 名医師審査) · 2026-04 公開</span>
-    </div>
-    <h1 class="hero-headline" id="hero-headline">
-      <span class="hl-from">試験問題の正答率</span>から、<br>
-      臨床現場の<br>
-      <span class="hl-to">「事故を起こさない」信頼性へ。</span>
-    </h1>
-    <p class="hero-kicker">OpenAI が完全無料の OSS として公開した<strong>医療AI 評価基盤</strong>。<br class="hk-br">「相談 / 文書作成 / 医学研究」という<strong>3 つの実務タスク</strong>で、医師が直面する臨床安全性を定量評価する。</p>
-    <p class="hero-sub">
-      従来の医療AIベンチマーク（MedQA など）は<strong>合成データや試験問題</strong>が中心で、現実の臨床対話で AI が<strong>「存在しない薬を提案する」</strong>ような幻覚（ハルシネーション）を測れなかった。HealthBench Professional は、世界 50 カ国 190 名の医師が作成・審査した<strong>525 の厳選対話ケース</strong>を用い、各ケースに設定されたルーブリックで AI を <strong>−10 点 〜 +10 点</strong>の加点・減点方式で採点する。<strong>約 1/3 にレッドチーミング（敵対的テスト）</strong>を含み、「危険な前提に乗っかっていないか」「情報不足の際に質問を返せているか」を厳しく測る。
-    </p>
-    <div class="hero-cover">
-      <img src="images/0426/cover.jpg" alt="HealthBench Professional — OpenAI が公開した医療AI 臨床安全性ベンチマークのカバー画像" loading="lazy">
-    </div>
-    <div class="hero-caption">FIG 01 · HealthBench Professional = 525 対話ケース × 医師ルーブリック × −10〜+10 加点減点</div>
-
-    <!-- TLDR -->
-    <div class="tldr" role="region" aria-label="まず結論：HealthBench Professional は何を変えるのか">
-      <div class="tldr-label">まず結論 — HealthBench Professional は何を変えるのか</div>
-      <ol class="tldr-list">
-        <li><strong>何が公開されたか：</strong>OpenAI が <strong>525 対話 × 190 医師審査</strong>のオープンソース医療AI ベンチマークを完全無料公開。</li>
-        <li><strong>何が変わるか：</strong>競争軸が<strong>「試験問題の正答率」</strong>から<strong>「現場で事故を起こさない臨床安全性」</strong>へシフト。</li>
-        <li><strong>誰のための道具か：</strong>AI エンジニア（CI/CD 自動評価）／QA・コンプライアンス（エビデンス）／医療現場（任せ方の設計）。</li>
-      </ol>
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">OpenAI Healthcare Benchmark · Issue № 04/26</p>
+        <h1 id="hero-title">医療AIは「賢いか」から、<br>「任せられるか」へ。</h1>
+        <p class="lead">医療AIは、試験問題で高得点を取るだけでは現場に入れない。必要なのは、患者との曖昧な会話、足りない情報、危険な前提に対して、安全に振る舞えるかを測る物差しだ。<strong>HealthBench Professional</strong> は、その物差しを医師の手で作り、完全無料の OSS として公開した評価基盤である。</p>
+        <p class="summary">50 カ国 190 名の医師 / 525 の対話ケース / −10〜+10 ルーブリック / MIT ライセンス。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf" target="_blank" rel="noopener">公式PDFを見る</a>
+          <a class="button-link secondary" href="https://github.com/openai/simple-evals" target="_blank" rel="noopener">評価コードを見る</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0426/light/gpt_cover.jpg" alt="HealthBench Professional の全体像" loading="eager">
+      </figure>
     </div>
   </section>
 
-  <!-- KPI -->
-  <section class="kpi" aria-label="HealthBench Professional の主要数値">
-    <div class="kpi-cell" data-idx="01"><div class="kpi-n">525</div><div class="kpi-l">厳選対話ケース</div></div>
-    <div class="kpi-cell" data-idx="02"><div class="kpi-n">190<span style="font-size:0.5em;">名</span></div><div class="kpi-l">50 カ国の医師が作成・審査</div></div>
-    <div class="kpi-cell" data-idx="03"><div class="kpi-n">3<span style="font-size:0.5em;">タスク</span></div><div class="kpi-l">相談 / 文書 / 医学研究</div></div>
-    <div class="kpi-cell" data-idx="04"><div class="kpi-n">±10</div><div class="kpi-l">ルーブリック加点減点</div></div>
-    <div class="kpi-cell" data-idx="05"><div class="kpi-n">MIT</div><div class="kpi-l">完全無料 OSS で公開</div></div>
+  <section class="section visual-section">
+    <h2>HealthBench は、医療AI の評価軸を広げる</h2>
+    <p class="section-lead">医療AI 導入でつまずく理由は、モデルが賢くないからだけではない。<strong>現場で安心して使えるか</strong>を、開発者・事業責任者・医師が同じ基準で確認できなかったことが大きい。HealthBench Professional は、そのための共通言語をオープンにする試みだ。</p>
+    <figure class="wide-visual">
+      <img src="images/0426/light/gpt_problem.jpg" alt="医療AI 評価が「正答率」から「臨床安全性」に広がっていく流れ" loading="lazy">
+      <figcaption>評価軸の拡張 — 試験問題の正答率（点）に対して、臨床安全性は対話の流れ（線）で測られる。</figcaption>
+    </figure>
   </section>
 
-  <div class="wrap" style="padding-top: 0;">
-    <p class="evi-row" style="font-size:0.92rem; color: var(--t2); border: 1px dashed var(--border-2); border-radius: 6px; padding: 12px 16px; margin: 18px 0 8px;">
-      <span class="tag fact">事実</span>
-      対話ケースの<strong>約 3 分の 1</strong>に<strong>レッドチーミング（敵対的テスト）</strong>が含まれ、危険な前提や情報不足にAI が引きずられないかを厳しく測る。<strong>知識量ではなく、安全な振る舞い</strong>を採点するベンチマーク。
-    </p>
-  </div>
-
-  <!-- § 01 PAINS -->
-  <section class="sec" id="pains" aria-labelledby="pains-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 01</span><span style="color:var(--t2);">課題 · なぜ「試験で勝つ AI」が現場で使われないのか</span></div>
-    <h2 class="sec-h" id="pains-h">医療AI が抱える<em>「3 つの痛み」</em></h2>
-    <p class="sec-lede">医療AI は MedQA などの試験問題で<strong>専門医を凌駕する正答率</strong>を出すようになった。しかし、現場や開発・コンプライアンスの現実は別だった。試験問題は「正解が 1 つに決まる」が、臨床対話は<strong>不確実で曖昧</strong>。その「安全性」を測る公式のモノサシが、これまで存在しなかった。</p>
-
-    <div class="evi-row">
-      <span class="tag fact">事実</span> 公式に確認できる情報のみ
-      <span class="tag interp">解釈</span> 技術的に妥当な推論
-      <span class="tag effect">期待効果</span> 業務文脈での想定価値
-    </div>
-
-    <div class="pain-grid" role="list">
-      <div class="pain-cell" role="listitem">
-        <div class="pain-num">PAIN 01 · ENGINEER</div>
-        <h3>AIエンジニア —<br>幻覚を「数字で」比較できない</h3>
-        <p>既存ベンチマークは合成データや試験問題が中心で、<strong>「存在しない薬を提案する」</strong>ような臨床対話特有の幻覚を、開発環境で<strong>客観的に測定・比較する手段がなかった</strong>。「うちの AI は安全」と説明しようがない。</p>
-      </div>
-      <div class="pain-cell" role="listitem">
-        <div class="pain-num">PAIN 02 · BUSINESS / QA</div>
-        <h3>ビジネス・コンプライアンス —<br>「安全エビデンス」を毎回手作業</h3>
-        <p>SaaS ベンダーが医療機関への提案や FDA など規制対応をする際、<strong>「このAI は安全」</strong>という客観エビデンスが弱く、コンプライアンス資料を毎回ゼロから組み立てる必要があった。<strong>導入審査は長期化</strong>し、商談スピードが落ちる。</p>
-      </div>
-      <div class="pain-cell" role="listitem">
-        <div class="pain-num">PAIN 03 · CLINICIAN</div>
-        <h3>医療機関・医師 —<br>結局「全件レビュー」が消えない</h3>
-        <p>「自信満々に誤った案内をして事故にならないか」という不安が拭えず、<strong>医師が AI 出力を全件レビュー</strong>するワークフローから抜け出せない。AI を入れても、業務負担が下がらないというジレンマに陥っていた。</p>
-      </div>
-    </div>
-
-    <p class="sec-lede" style="margin-top: 24px;"><span class="tag interp">解釈</span> 共通点は<strong>「臨床対話の安全性を、外部から測る公式のモノサシがない」</strong>こと。社内独自の評価では、対外的なエビデンスにもならず、再現性も確保しにくかった。</p>
-  </section>
-
-  <!-- § 02 HOW IT WORKS -->
-  <section class="sec" id="how" aria-labelledby="how-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 02</span><span style="color:var(--t2);">仕組み · 何を、どう採点するのか</span></div>
-    <h2 class="sec-h" id="how-h">「3 つの実務タスク × 525 対話 × <em>−10〜+10 ルーブリック</em>」</h2>
-    <p class="sec-lede">HealthBench Professional の革新は、<strong>知識量ではなく振る舞いを採点</strong>する点にある。対話ケースは医師が想定する 3 つの実務タスクに分類され、各ケースに用意された専用のルーブリック（評価基準）で AI を厳密に採点する。</p>
-
-    <div class="fig">
-      <img src="images/0426/page_1.jpg" alt="HealthBench Professional の評価フレームワーク概要" loading="lazy">
-      <div class="fig-cap" data-fignum="FIG 02">3 タスク（Care Consult / Writing &amp; Documentation / Medical Research）の構造</div>
-    </div>
-
-    <div class="pillars" role="list">
-      <div class="pillar" role="listitem">
-        <div class="p-n">TASK 01</div>
-        <h3><em>Care Consult</em><br>相談</h3>
-        <p>患者からの相談、<strong>不確実で曖昧な臨床対話</strong>に対し、危険な前提に乗らずに安全な応答ができるか。</p>
-      </div>
-      <div class="pillar" role="listitem">
-        <div class="p-n">TASK 02</div>
-        <h3><em>Writing &amp; Doc.</em><br>文書作成</h3>
-        <p>カルテ記載、紹介状、診療文書の作成。<strong>記載漏れ</strong>や不正確な要約を起こさないか。</p>
-      </div>
-      <div class="pillar" role="listitem">
-        <div class="p-n">TASK 03</div>
-        <h3><em>Medical Research</em><br>医学研究</h3>
-        <p>論文要約や調査タスク。<strong>不確実な情報を断定的に書かない</strong>か、出典を取り違えないか。</p>
-      </div>
-      <div class="pillar" role="listitem">
-        <div class="p-n">RED-TEAM</div>
-        <h3><em>Adversarial</em><br>敵対的テスト</h3>
-        <p>全体の<strong>約 1/3 が医師による敵対的シナリオ</strong>。「危険な前提を疑わず乗ったか」「情報不足で質問を返せたか」を厳しく測定。</p>
-      </div>
-    </div>
-
-    <div class="rubric">
-      <div class="rubric-cell minus">
-        <div class="rubric-tag">−10 点 · 減点項目（一例）</div>
-        <h3>危険な前提に乗ってしまう</h3>
-        <p><strong>誤った診断仮説</strong>に同意して進めてしまう／存在しない薬や用量を断定的に提案／<strong>情報不足のまま</strong>結論を出す／緊急性を見落とす。</p>
-      </div>
-      <div class="rubric-cell plus">
-        <div class="rubric-tag">+10 点 · 加点項目（一例）</div>
-        <h3>不確実性を扱える</h3>
-        <p><strong>情報不足を認め、追加質問を返す</strong>／不確実性のある主張を断定しない／緊急性のあるサインを<strong>適切にエスカレーション</strong>する／出典・限界を明示する。</p>
-      </div>
-    </div>
-
-    <p class="sec-lede" style="margin-top:24px;"><span class="tag effect">期待効果</span> 「正解を当てに行く採点」ではなく、<strong>「安全に振る舞えているか」の採点</strong>のため、現場での AI の任せ方の設計に直結する。<strong>具体的な業務改善幅は対象タスク・運用設計・評価基準に依存</strong>するため、自社業務での再評価が前提。</p>
-
-    <div class="fig">
-      <img src="images/0426/page_2.jpg" alt="HealthBench Professional のルーブリック例" loading="lazy">
-      <div class="fig-cap" data-fignum="FIG 03">ルーブリックの構造 — 各ケースに固有の加点・減点項目</div>
+  <section class="section" id="pains">
+    <h2>なぜ、これまで医療AI を任せきれなかったのか</h2>
+    <p class="section-lead">専門試験では強く見える医療AI も、現場では小さな判断ミスを見逃せない。HealthBench は、開発者・事業責任者・医師の <strong>3 者が共有できる基準</strong>を初めて提供する。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Engineer</span>
+        <h3>危ない回答を「数字で」追えない</h3>
+        <p>モデル更新で回答が良くなったのか、危険な幻覚が増えたのかを継続的に測りたい。従来の試験型ベンチマークだけでは、臨床会話特有の安全性まで見えにくかった。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Business</span>
+        <h3>「安全だ」と説明しきれない</h3>
+        <p>医療機関に AI を提案する側は、便利さだけでは導入審査を通せない。安全性をどう測り、どの水準なら運用に進めるのかを示す資料が、毎回ゼロから必要になる。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Clinician</span>
+        <h3>結局、医師が全件見る</h3>
+        <p>医師は、AI が自信満々に間違えることを恐れる。任せられる範囲が分からなければ、すべてを人が見直すしかなく、業務負担は減らない。</p>
+      </article>
     </div>
   </section>
 
-  <!-- § 03 SCORE -->
-  <section class="sec" id="score" aria-labelledby="score-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 03</span><span style="color:var(--t2);">スコア · 公開時に出た数字</span></div>
-    <h2 class="sec-h" id="score-h">ChatGPT for Clinicians が、<em>専門医のスコアを上回った</em></h2>
-    <p class="sec-lede">公開時に提示されたベンチマーク結果では、<strong>臨床ワークフローに最適化された ChatGPT for Clinicians（GPT-5.4 搭載）</strong>が、人間の専門医のスコアを大きく上回った。これは「正答率の比較」ではなく、<strong>HealthBench Professional のルーブリックでの採点結果</strong>である点が重要だ。</p>
+  <section class="section" id="how">
+    <h2>HealthBench Professional は、現場の会話で AI を試す</h2>
+    <p class="section-lead">採点は知識量ではなく<strong>振る舞い</strong>に対して行われる。対話ケースは医師が想定する <strong>3 つの実務タスク</strong>に分類され、各ケース固有のルーブリックで <strong>−10 点〜+10 点</strong>の加点・減点方式で AI を採点する。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Mechanism</span>
+        <h3>3 つの実務タスク × 525 対話 × 医師ルーブリック</h3>
+        <p>HealthBench Professional は、実際の医療相談に近い対話ケースを使う。AI の答えを、医師が作ったルーブリックで採点し、良い判断には加点、危険な判断には減点を与える。<strong>約 1/3 が医師による敵対的シナリオ</strong>を含み、AI を本気で揺さぶる。</p>
+        <ol>
+          <li><strong>Care Consult（相談）</strong> — 不確実な臨床対話で、危険な前提に乗らずに応答できるか</li>
+          <li><strong>Writing &amp; Documentation（文書作成）</strong> — カルテ・紹介状の記載漏れや不正確な要約が起きていないか</li>
+          <li><strong>Medical Research（医学研究）</strong> — 不確実な情報を断定的に書かず、出典を取り違えないか</li>
+          <li><strong>Red-team（敵対）</strong> — 危険な前提に乗らず、情報不足では質問を返せるか</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0426/light/gpt_architecture.jpg" alt="HealthBench Professional の評価フレームワーク" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0426/light/page_2.jpg" alt="HealthBench Professional のルーブリック例" loading="lazy">
+      <figcaption>FIG · 公式論文より — ルーブリック例（各ケースに固有の加点・減点項目）</figcaption>
+    </figure>
+  </section>
 
-    <div class="score-board" role="figure" aria-label="HealthBench Professional スコア比較">
-      <div class="score-side">
-        <div class="score-tag win">ChatGPT for Clinicians</div>
-        <div class="score-num win">59.0</div>
-        <div class="score-label">GPT-5.4 ベース · 臨床最適化</div>
+  <section class="section" id="score">
+    <h2>公開時、ChatGPT for Clinicians が専門医を上回った</h2>
+    <p class="section-lead">公開時に提示された結果では、<strong>臨床ワークフローに最適化された ChatGPT for Clinicians（GPT-5.4 搭載）</strong>が、人間の専門医のスコアを大きく上回った。これは正答率の比較ではなく、<strong>HealthBench Professional のルーブリックでの採点結果</strong>である点が重要だ。</p>
+    <div class="score-versus" role="figure" aria-label="HealthBench Professional スコア比較 ChatGPT for Clinicians 59.0 vs 専門医 43.7">
+      <div class="score-side win">
+        <span class="tag">ChatGPT for Clinicians</span>
+        <span class="num">59.0</span>
+        <span class="sub">GPT-5.4 ベース · 臨床最適化</span>
       </div>
       <div class="score-vs">VS</div>
       <div class="score-side">
-        <div class="score-tag">Human Specialists</div>
-        <div class="score-num">43.7</div>
-        <div class="score-label">人間の専門医</div>
+        <span class="tag">Human Specialists</span>
+        <span class="num">43.7</span>
+        <span class="sub">人間の専門医</span>
       </div>
     </div>
+    <p class="note">客観的な安全性スコアが出るため、医療機関は<strong>「ハイリスクのケースのみ医師レビュー」</strong>のように、レビュー対象を絞った運用設計を組みやすくなる。一方で、一つのベンチマーク値で「医師より安全」と断定するのは早計で、<strong>業務単位での再評価と運用設計が前提</strong>になる点は変わらない。</p>
+    <figure class="page-figure">
+      <img src="images/0426/light/page_3.jpg" alt="HealthBench Professional スコアの比較グラフ（公式論文より）" loading="lazy">
+      <figcaption>FIG · 公式論文より — 公開時のスコア比較グラフ</figcaption>
+    </figure>
+  </section>
 
-    <p class="sec-lede" style="margin-top:24px;"><span class="tag fact">事実</span> HealthBench Professional ルーブリックでの採点比較。<span class="tag interp">解釈</span> <strong>客観的な安全性スコア</strong>が出るため、医療機関は<strong>「ハイリスクのケースのみ医師レビュー」</strong>のように、レビュー対象を絞った運用設計を組みやすくなる。<span class="tag warn">注意</span> 一つのベンチマークの値で「医師より安全」と断定するのは早計で、<strong>業務単位での評価と運用設計が前提</strong>になる。</p>
-
-    <div class="fig">
-      <img src="images/0426/page_3.jpg" alt="HealthBench Professional スコアの比較グラフ" loading="lazy">
-      <div class="fig-cap" data-fignum="FIG 04">公開時のスコア比較 — 臨床最適化モデルが専門医ラインを超えた</div>
+  <section class="section" id="value">
+    <h2>評価できるようになると、導入の進め方が変わる</h2>
+    <p class="section-lead">「測れない」から「測って改善できる」に変わったとき、3 者の動き方は具体的に変わる。</p>
+    <div class="usecase">
+      <span class="label">開発チーム</span>
+      <p>モデルやプロンプトを変えるたびに、安全性スコアを CI/CD（LangChain など）で確認できる。感覚ではなく、<strong>継続的な評価ループ</strong>で改善できる。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">事業・QA</span>
+      <p>医療機関に対して、AI の品質を「<strong>HealthBench スコア ◯◯</strong>」として説明しやすくなる。導入審査やコンプライアンス確認に、再現可能な評価結果を使える。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">医療現場</span>
+      <p>AI に任せてよい範囲と、医師が必ず見るべき範囲を切り分けやすくなる。<strong>全件レビューから、リスクに応じたレビュー</strong>へ移れる。</p>
     </div>
   </section>
 
-  <!-- § 04 VALUE -->
-  <section class="sec" id="value" aria-labelledby="value-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 04</span><span style="color:var(--t2);">価値 · 立場ごとに何が解決するか</span></div>
-    <h2 class="sec-h" id="value-h">「3 つの痛み」が、<em>具体的な解決の手がかり</em>に変わる</h2>
-    <p class="sec-lede">HealthBench Professional が出たことで、§01 で並べた 3 つの痛みは<strong>「測れない」から「測って改善できる」</strong>に変わる。<span class="tag effect">期待効果</span> の表現に留め、実績や保証ではない。</p>
-
-    <div class="stake-grid" role="list">
-      <div class="stake-cell eng" role="listitem">
-        <div class="stake-role">For Engineers</div>
-        <div class="stake-role-jp">AI エンジニア — 開発ループ高速化</div>
-        <ul class="stake-points">
-          <li>データセットを<strong>CI/CD パイプライン</strong>（LangChain 等）に組み込み</li>
-          <li>カルテAI / 予約システムなどを<strong>コード更新ごとに自動評価</strong></li>
-          <li><strong>幻覚率の低減を数字で証明</strong>できる</li>
-        </ul>
-      </div>
-      <div class="stake-cell biz" role="listitem">
-        <div class="stake-role">For Business / QA</div>
-        <div class="stake-role-jp">ビジネス・QA — 商談と審査の武器</div>
-        <ul class="stake-points">
-          <li><strong>「HealthBench スコア ◯◯」</strong>として品質を可視化</li>
-          <li>コンプライアンス資料作成の<strong>所要時間を圧縮</strong>しやすい</li>
-          <li>病院への<strong>導入審査</strong>を通すためのエビデンスとして活用</li>
-        </ul>
-      </div>
-      <div class="stake-cell doc" role="listitem">
-        <div class="stake-role">For Clinicians</div>
-        <div class="stake-role-jp">医療現場 — 任せ方の設計</div>
-        <ul class="stake-points">
-          <li>AI の<strong>得意・不得意がスコアで見える</strong></li>
-          <li>ハイリスクケースを<strong>絞って医師レビュー</strong>する運用が組める</li>
-          <li>業務負担を下げる<strong>現実的な余地</strong>が生まれる</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="fig">
-      <img src="images/0426/page_5.jpg" alt="現場で課題が解決へ向かう実務例" loading="lazy">
-      <div class="fig-cap" data-fignum="FIG 05">実務最前線 — 開発ループ・営業エビデンス・医師レビュー設計の 3 連鎖</div>
+  <section class="section">
+    <h2>押さえるべき数字</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>525</strong><span>医療AI を評価する対話ケース</span></div>
+      <div class="metric"><strong>190名</strong><span>50 カ国の医師が作成・審査に関与</span></div>
+      <div class="metric"><strong>3 タスク</strong><span>相談 / 文書作成 / 医学研究</span></div>
+      <div class="metric"><strong>±10</strong><span>ルーブリック加点・減点幅</span></div>
+      <div class="metric"><strong>約 1/3</strong><span>医師による敵対的レッドチーミング</span></div>
+      <div class="metric"><strong>MIT</strong><span>データと評価コードを完全無料で公開</span></div>
     </div>
   </section>
 
-  <!-- § 05 JAPAN MARKET -->
-  <section class="sec" id="japan" aria-labelledby="japan-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 05</span><span style="color:var(--t2);">日本市場 · 「最後の壁」と新たな挑戦</span></div>
-    <h2 class="sec-h" id="japan-h">米国前提のルーブリックを、<em>そのまま日本に持ち込めない</em></h2>
-    <p class="sec-lede">便利だからといって<strong>そのまま日本の医療現場に持ち込むと、新たな問題に直面する</strong>。HealthBench Professional は、米国の<strong>「専門医紹介制」「民間保険」</strong>を前提としたケースが多く、日本の<strong>「国民皆保険・フリーアクセス」</strong>の制度下では正答が誤答扱いになるリスクがある。</p>
+  <section class="section" id="japan">
+    <h2>日本で使うなら、評価基準をそのまま輸入しない</h2>
+    <p class="section-lead">米国前提のルーブリックは、日本の医療制度ではそのまま正答にならないケースが含まれる。<strong>「専門医紹介制」「民間保険」</strong>を前提とした正答が、日本の<strong>「国民皆保険・フリーアクセス」</strong>の制度下では誤答扱いになるリスクがある。</p>
+    <figure class="wide-visual">
+      <img src="images/0426/light/gpt_japan.jpg" alt="日本の医療に合わせた評価基盤の考え方" loading="lazy">
+      <figcaption>「J-HealthBench」の発想 — 米国ルーブリックに、日本制度・日本語・実データを足す。</figcaption>
+    </figure>
+    <p class="note">日本のヘルステック企業が、HealthBench Professional をベースにしつつ、<strong>日本の学会ガイドライン・過剰医療抑制・高齢者配慮</strong>といった独自評価軸をルーブリックに加える。さらに <strong>MIMIC-IV</strong> など実在の電子カルテデータと組み合わせれば、「実データ対応力」と「臨床安全性」を兼ね備えた品質基盤になる——という方向性が現実的に描ける。重要なのは海外ベンチマークをそのまま信じることではなく、<strong>自社や国内医療に合う評価ループへ作り替える</strong>ことだ。</p>
+  </section>
 
-    <div class="compare">
-      <div class="compare-col">
-        <div class="compare-tag">米国前提のルーブリック</div>
-        <h3>そのまま使うと起きる問題</h3>
-        <ul>
-          <li>「専門医紹介を勧める」が<strong>正答</strong>になる前提</li>
-          <li>民間保険の<strong>カバー範囲・自己負担</strong>が文脈に組み込まれる</li>
-          <li>米国の<strong>診療ガイドライン・薬剤名・保険コード</strong>に基づく</li>
-          <li>米国の高齢者ケアや<strong>過剰医療抑制の文脈は前提が異なる</strong></li>
-        </ul>
-      </div>
-      <div class="compare-col pro">
-        <div class="compare-tag">日本版「J-HealthBench」の発想</div>
-        <h3>追加すべき独自評価軸</h3>
-        <ul>
-          <li><strong>国民皆保険・フリーアクセス</strong>を前提とした受診経路</li>
-          <li>日本の<strong>学会ガイドライン</strong>に沿った推奨</li>
-          <li><strong>過剰医療の抑制</strong>と<strong>高齢者配慮</strong></li>
-          <li>日本語の<strong>不確実性表現・敬語・配慮表現</strong>の評価</li>
-          <li>実在の電子カルテデータ <strong>MIMIC-IV</strong> 等との組み合わせで実データ対応力</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="jcallout">
-      <div class="ap-mark">⛩</div>
-      <div>
-        <h3>J-HealthBench という構想</h3>
-        <p>日本のヘルステック企業が、HealthBench Professional をベースにしつつ<strong>日本制度に合わせたルーブリック</strong>を加え、<strong>実データ対応力（MIMIC-IV など）</strong>と<strong>臨床安全性</strong>を兼ね備えた品質基盤を作る——という方向性が描ける。<span class="tag interp">解釈</span> 既存のオープン基盤に独自評価軸を足す形なので、<strong>ゼロから作るより検証コストが下がる</strong>選択肢になり得る。</p>
-      </div>
-    </div>
-
-    <div class="fig">
-      <img src="images/0426/page_8.jpg" alt="日本市場での独自評価軸イメージ" loading="lazy">
-      <div class="fig-cap" data-fignum="FIG 06">米国ルーブリックに、日本制度・日本語・実データを加えた評価設計</div>
+  <section class="section" id="next">
+    <h2>次にやること</h2>
+    <p class="section-lead">完全無料・MIT ライセンスで公開されているため、検証への着手障壁は低い。「面白い論文だね」で終わらせず、<strong>自社の AI 評価ループに HealthBench Professional を組み込む</strong>ところまで持っていきたい。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>公式 PDF を読む</h3>
+        <p>どのケースを、どの基準で、どう採点しているのかを確認する。3 タスクとレッドチーミングの設計意図を掴む。</p>
+      </article>
+      <article class="step">
+        <h3>評価データを取得する</h3>
+        <p>Hugging Face <code>openai/healthbench-professional</code> と GitHub <code>openai/simple-evals</code> を取得し、自社環境で再現できるかを見る。</p>
+      </article>
+      <article class="step">
+        <h3>対象業務を 1 つ選ぶ</h3>
+        <p>問診、カルテ要約、紹介状、医学文献調査など、最初の検証範囲を絞る。CI/CD への組み込み単位もここで決める。</p>
+      </article>
+      <article class="step">
+        <h3>日本向け基準を足す</h3>
+        <p>国内制度、ガイドライン、説明責任、患者への表現を評価項目に加える。SLI/SLO 化して運用ガバナンスへ落とす。</p>
+      </article>
     </div>
   </section>
 
-  <!-- § 06 NEXT -->
-  <section class="sec" id="next" aria-labelledby="next-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 06</span><span style="color:var(--t2);">次にやること · 検証の最初の 4 ステップ</span></div>
-    <h2 class="sec-h" id="next-h">「読んだ」で止めず、<em>自社の評価ループに落とす</em></h2>
-    <p class="sec-lede">完全無料・MIT ライセンスで公開されているため、検証への着手障壁は低い。「面白い論文だね」で終わらせず、<strong>自社の AI 評価ループに HealthBench Professional を組み込む</strong>ところまで持っていきたい。</p>
-
-    <div class="next-action" role="list" aria-label="導入検討の次のアクション 4 ステップ">
-      <h3>NEXT 4 STEPS · 検証アクションリスト</h3>
-      <ol>
-        <li role="listitem">
-          <strong>データセットと評価スクリプトを取得する</strong>
-          <span class="hint">Hugging Face <code>openai/healthbench-professional</code> から ZIP をダウンロード、GitHub <code>openai/simple-evals</code> の <code>healthbench_scripts</code> を確認。</span>
-        </li>
-        <li role="listitem">
-          <strong>自社モデル・自社プロンプトで採点する</strong>
-          <span class="hint">CI/CD（LangChain など）に組み込み、3 タスク × ルーブリックでベースラインスコアを取得。レッドチーミング項目で<strong>幻覚率</strong>を可視化する。</span>
-        </li>
-        <li role="listitem">
-          <strong>業務シナリオへ寄せた追加ルーブリックを設計する</strong>
-          <span class="hint">カルテ記載漏れ、予約システムのイレギュラー対応、社内 FAQ など、自社業務の<strong>失敗モード</strong>をルーブリック化。米国前提のケースは差し替え。</span>
-        </li>
-        <li role="listitem">
-          <strong>運用ガバナンスへ落とし込む</strong>
-          <span class="hint">スコアを<strong>SLI/SLO 化</strong>し、ハイリスクケースのみ医師レビューに回す運用フローを整備。コンプライアンス資料・営業資料へ反映。</span>
-        </li>
-      </ol>
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>競争軸が<em>「試験問題の正答率」</em>から<em>「現場で事故を起こさない信頼性」</em>へ、不可逆的にシフトする。</q>
+      <cite>— OpenAI HealthBench Professional 公開、2026-04 / MIT License</cite>
     </div>
   </section>
 
-  <!-- PULLQUOTE -->
-  <div class="pullquote" role="complementary" aria-label="本号のポイント">
-    <q>競争軸が<em>「試験問題の正答率」</em>から<em>「現場で事故を起こさない信頼性」</em>へ、不可逆的にシフトする。</q>
-    <cite>— OpenAI HealthBench Professional 公開、2026-04 / Open MIT</cite>
-  </div>
-
-  <!-- § 07 LINKS -->
-  <section class="sec" id="links" aria-labelledby="links-h">
-    <div class="sec-meta"><span class="rule"></span><span>§ 07</span><span style="color:var(--t2);">References · 出典 &amp; ライセンス</span></div>
-    <h2 class="sec-h" id="links-h">公式リソース &amp; <em>OSS ライセンス</em></h2>
-
-    <div style="margin: 8px 0 18px;">
-      <span class="license-badge"><strong>Dataset:</strong> MIT License (Hugging Face)</span>
-      <span class="license-badge"><strong>Eval Scripts:</strong> openai/simple-evals</span>
-      <span class="license-badge"><strong>Cost:</strong> 完全無料</span>
-    </div>
-
-    <div class="links-grid" role="list">
-      <a href="https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf" class="link-row" target="_blank" rel="noopener" role="listitem">
-        <div class="link-cat">公式論文 · OpenAI</div>
-        <h4>HealthBench-Professional.pdf</h4>
-        <div class="meta">ルーブリック設計・スコア結果の詳細を含む公式論文 PDF。</div>
+  <section class="section">
+    <h2>出典</h2>
+    <div class="source-list">
+      <a href="https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf" target="_blank" rel="noopener">
+        <strong>OpenAI HealthBench Professional PDF</strong>
+        <span>cdn.openai.com/.../HealthBench-Professional.pdf</span>
       </a>
-      <a href="https://openaipublic.blob.core.windows.net/simple-evals/healthbench_professional/assets.zip" class="link-row" target="_blank" rel="noopener" role="listitem">
-        <div class="link-cat">Dataset · Hugging Face</div>
-        <h4>openai/healthbench-professional (assets.zip)</h4>
-        <div class="meta">525 対話ケースのデータセット。MIT ライセンスで直接ダウンロード可。</div>
+      <a href="https://openaipublic.blob.core.windows.net/simple-evals/healthbench_professional/assets.zip" target="_blank" rel="noopener">
+        <strong>HealthBench Professional assets.zip (Hugging Face)</strong>
+        <span>openaipublic.blob.core.windows.net/.../assets.zip</span>
       </a>
-      <a href="https://github.com/openai/simple-evals" class="link-row" target="_blank" rel="noopener" role="listitem">
-        <div class="link-cat">GitHub · 評価スクリプト</div>
-        <h4>openai/simple-evals — healthbench_scripts</h4>
-        <div class="meta">評価を自動化するための実装例と CLI。CI/CD への組み込みに使える。</div>
+      <a href="https://github.com/openai/simple-evals" target="_blank" rel="noopener">
+        <strong>OpenAI simple-evals (GitHub)</strong>
+        <span>github.com/openai/simple-evals</span>
       </a>
-      <a href="https://opensource.org/license/mit" class="link-row" target="_blank" rel="noopener" role="listitem">
-        <div class="link-cat">License</div>
-        <h4>MIT License — Dataset 適用</h4>
-        <div class="meta">商用利用・改変・再配布を許容するライセンス。</div>
-      </a>
-      <a href="day_slide_2026_04_25.html" class="link-row" role="listitem">
-        <div class="link-cat">Prev</div>
-        <h4>04/25 · 源内 (GenAI)</h4>
-        <div class="meta">前日：デジタル庁の生成AI 利活用基盤 OSS</div>
-      </a>
-      <a href="day_slide_2026_04_24.html" class="link-row" role="listitem">
-        <div class="link-cat">Archive</div>
-        <h4>04/24 · OpenAI GPT-5.5</h4>
-        <div class="meta">「指示待ちAI」から「自立する同僚」へ</div>
+      <a href="https://opensource.org/license/mit" target="_blank" rel="noopener">
+        <strong>MIT License</strong>
+        <span>opensource.org/license/mit</span>
       </a>
     </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_04_25.html" class="prev">
+        <span class="dir">← Prev · 04/25</span>
+        <strong>源内 (GenAI) — デジタル庁の生成AI 利活用基盤 OSS</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">All Slides →</span>
+        <strong>日次スライド一覧へ</strong>
+      </a>
+    </nav>
   </section>
+</main>
 
-</div>
-
-<footer role="contentinfo">
-  <div class="f-title"><b>Daily AI</b> Briefing · 2026-04-26 — <em style="font-style:italic;">HealthBench Professional — 医療AI 臨床安全性ベンチマーク</em></div>
-  <div class="f-meta">出典: OpenAI HealthBench Professional 公式論文 ／ openai/healthbench-professional (Hugging Face) ／ openai/simple-evals (GitHub) ／ ライセンス: Dataset = MIT License</div>
-  <div class="f-links">
-    <a href="../index.html">Hub</a>
-    <a href="../day_slides_index.html">All Slides</a>
-    <a href="day_slide_2026_04_25.html">← 04/25 源内</a>
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-04-26 — <em>HealthBench Professional</em></div>
+    <div class="f-meta">出典: OpenAI HealthBench Professional 公式論文 ／ openai/healthbench-professional ／ openai/simple-evals ／ License: MIT</div>
   </div>
 </footer>
-
 </body>
 </html>
