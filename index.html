@@ -162,20 +162,78 @@
       font-weight: 500;
     }
     .nav a:hover { color: var(--yellow); }
-    .nav .cta {
-      margin-left: 12px;
+    .header-actions {
+      display: inline-flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .header-actions .cta {
       background: var(--yellow); color: var(--navy);
       padding: 12px 22px; border-radius: 999px;
       font-weight: 700;
+      font-size: 14px;
       transition: background 0.15s ease;
+      white-space: nowrap;
+      min-height: 44px;
+      display: inline-flex; align-items: center;
     }
-    .nav .cta:hover { background: var(--yellow-d); color: var(--navy); }
+    .header-actions .cta:hover { background: var(--yellow-d); color: var(--navy); }
+    .nav-toggle {
+      display: none;
+      align-items: center; justify-content: center;
+      width: 44px; height: 44px;
+      background: transparent;
+      border: 1px solid var(--navy-line-2);
+      border-radius: 10px;
+      color: var(--on-dark);
+      cursor: pointer;
+      padding: 0;
+    }
+    .nav-toggle:hover { border-color: var(--yellow); color: var(--yellow); }
+    .nav-toggle:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+    .nav-toggle svg { width: 22px; height: 22px; display: block; }
+    .nav-toggle .icon-close { display: none; }
+    .nav-toggle[aria-expanded="true"] .icon-open { display: none; }
+    .nav-toggle[aria-expanded="true"] .icon-close { display: block; }
     @media (max-width: 880px) {
-      .nav a:not(.cta) { display: none; }
+      /* Remove backdrop-filter so it doesn't create a containing block
+         that traps the fixed-position drawer inside the 72px header. */
+      .site-header { backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .nav-toggle { display: inline-flex; }
+      .header-actions .cta { padding: 10px 16px; font-size: 13px; }
+      .nav {
+        position: fixed;
+        inset: 72px 0 0 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 16px clamp(20px, 4vw, 56px) 32px;
+        background: var(--navy);
+        border-top: 1px solid var(--navy-line);
+        transform: translateX(100%);
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
+        overflow-y: auto;
+        z-index: 49;
+        visibility: hidden;
+      }
+      .nav.is-open {
+        transform: translateX(0);
+        visibility: visible;
+        transition: transform 0.25s ease;
+      }
+      .nav a {
+        display: block;
+        padding: 16px 8px;
+        border-bottom: 1px solid var(--navy-line);
+        font-size: 16px;
+        min-height: 44px;
+        line-height: 1.4;
+      }
     }
     @media (max-width: 480px) {
       .brand-text { display: none; }
+      .header-actions .cta { padding: 9px 14px; font-size: 12px; }
     }
+    body.nav-open { overflow: hidden; }
 
     /* ==================== Hero ==================== */
     .hero {
@@ -347,6 +405,48 @@
     .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: var(--on-dark); }
     .btn .arr { transition: transform 0.2s ease; font-size: 18px; line-height: 1; }
     .btn:hover .arr { transform: translateX(4px); }
+
+    /* ==================== Hero shortcuts (mobile-first quick access) ==================== */
+    .hero-shortcuts {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 720px;
+    }
+    .hero-shortcut {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--navy-line);
+      border-radius: 10px;
+      color: var(--on-dark);
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      min-height: 44px;
+    }
+    .hero-shortcut:hover {
+      border-color: var(--yellow);
+      background: rgba(255,204,0,0.08);
+      transform: translateY(-1px);
+    }
+    .hero-shortcut .hsc-num {
+      flex: 0 0 auto;
+      width: 28px; height: 28px;
+      border-radius: 999px;
+      background: var(--yellow);
+      color: var(--navy);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .hero-shortcut .hsc-body { display: flex; flex-direction: column; min-width: 0; }
+    .hero-shortcut .hsc-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+    .hero-shortcut .hsc-meta {
+      font-size: 11px; color: var(--on-dark-mu); margin-top: 2px; line-height: 1.3;
+    }
+    @media (max-width: 720px) {
+      .hero-shortcuts { grid-template-columns: 1fr; max-width: 480px; }
+    }
 
     /* ==================== Section base ==================== */
     .section {
@@ -865,7 +965,7 @@
           <small>DAILY AI INSIGHTS</small>
         </span>
       </a>
-      <nav class="nav" aria-label="グローバル">
+      <nav id="globalNav" class="nav" aria-label="グローバル">
         <a href="#this-week">最新スライド</a>
         <a href="#categories">ハイライト</a>
         <a href="#archive">アーカイブ</a>
@@ -873,8 +973,14 @@
         <a href="about.html">About</a>
         <a href="privacy-policy.html">Privacy</a>
         <a href="contact.html">Contact</a>
-        <a class="cta" href="#featured-reports">今日の3本 <span aria-hidden="true">→</span></a>
       </nav>
+      <div class="header-actions">
+        <a class="cta" href="#featured-reports">今日の3本 <span aria-hidden="true">→</span></a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="globalNav" aria-label="メニューを開く">
+          <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -923,6 +1029,29 @@
             </a>
             <a class="btn btn-ghost" href="#archive">
               アーカイブを探す
+            </a>
+          </div>
+          <div class="hero-shortcuts" aria-label="クイックアクセス">
+            <a class="hero-shortcut" href="presentations/day_slides_index.html">
+              <span class="hsc-num">01</span>
+              <span class="hsc-body">
+                <span class="hsc-title">最新スライド一覧</span>
+                <span class="hsc-meta">毎日更新 · 5分ビジュアル</span>
+              </span>
+            </a>
+            <a class="hero-shortcut" href="presentations/auto_daily_report.html">
+              <span class="hsc-num">02</span>
+              <span class="hsc-body">
+                <span class="hsc-title">最新デイリーレポート</span>
+                <span class="hsc-meta">主要発表 · 詳細分析</span>
+              </span>
+            </a>
+            <a class="hero-shortcut" href="daily-news/">
+              <span class="hsc-num">03</span>
+              <span class="hsc-body">
+                <span class="hsc-title">Daily News</span>
+                <span class="hsc-meta">時系列フィード</span>
+              </span>
             </a>
           </div>
         </div>
@@ -1474,7 +1603,7 @@
         <div class="res-grid">
           <a class="res-card" href="presentations/recommended_tools.html">
             <span class="res-num">01</span>
-            <span class="res-thumb"><img src="assets/res-01.jpg" alt="" loading="lazy" /></span>
+            <span class="res-thumb"><img src="assets/res-01.jpg" alt="おすすめAIツールリストのカバー画像" loading="lazy" /></span>
             <div class="res-body">
               <div class="res-title">おすすめツール</div>
               <div class="res-desc">編集部が日常的に使うAIツールの最新リスト。Product Huntから随時更新。</div>
@@ -1483,7 +1612,7 @@
           </a>
           <a class="res-card" href="presentations/ai_coding_agents_guide.html">
             <span class="res-num">02</span>
-            <span class="res-thumb"><img src="assets/res-02.jpg" alt="" loading="lazy" /></span>
+            <span class="res-thumb"><img src="assets/res-02.jpg" alt="AIコーディングエージェント比較ガイドのカバー画像" loading="lazy" /></span>
             <div class="res-body">
               <div class="res-title">AIコーディングエージェント</div>
               <div class="res-desc">Claude Code・Cursor・Codex 等の比較・ハンズオン。実プロジェクトでの使い分け。</div>
@@ -1492,7 +1621,7 @@
           </a>
           <a class="res-card" href="presentations/ai_external_resources.html">
             <span class="res-num">03</span>
-            <span class="res-thumb"><img src="assets/res-03.jpg" alt="" loading="lazy" /></span>
+            <span class="res-thumb"><img src="assets/res-03.jpg" alt="AI業界の外部リソース集カバー画像" loading="lazy" /></span>
             <div class="res-body">
               <div class="res-title">外部リソース集</div>
               <div class="res-desc">業界レポート・ベンチマーク・公式ブログへの厳選リンク集。</div>
@@ -1501,7 +1630,7 @@
           </a>
           <a class="res-card" href="presentations/research_resources.html">
             <span class="res-num">04</span>
-            <span class="res-thumb"><img src="assets/res-04.jpg" alt="" loading="lazy" /></span>
+            <span class="res-thumb"><img src="assets/res-04.jpg" alt="AI論文・テクニカルレポートのリサーチ資料カバー画像" loading="lazy" /></span>
             <div class="res-body">
               <div class="res-title">リサーチ資料</div>
               <div class="res-desc">論文・テクニカルレポート・ホワイトペーパーのキュレーション。</div>
@@ -1510,7 +1639,7 @@
           </a>
           <a class="res-card" href="presentations/hubs/claude-code-guide-2026.html">
             <span class="res-num">05</span>
-            <span class="res-thumb"><img src="assets/res-02.jpg" alt="" loading="lazy" /></span>
+            <span class="res-thumb"><img src="assets/res-02.jpg" alt="Claude Code・MCP特集ガイドのカバー画像" loading="lazy" /></span>
             <div class="res-body">
               <div class="res-title">特集ガイド</div>
               <div class="res-desc">Claude Code・MCP・AIモデル比較など、検索から読まれる固定ガイド。</div>
@@ -1519,7 +1648,7 @@
           </a>
           <a class="res-card" href="presentations/digests/2026-04.html">
             <span class="res-num">06</span>
-            <span class="res-thumb"><img src="assets/res-03.jpg" alt="" loading="lazy" /></span>
+            <span class="res-thumb"><img src="assets/res-03.jpg" alt="AIニュース月次まとめダイジェストのカバー画像" loading="lazy" /></span>
             <div class="res-body">
               <div class="res-title">月次まとめ</div>
               <div class="res-desc">月ごとのAIニュースを主要発表・論文・資金調達に整理したダイジェスト。</div>
@@ -1790,6 +1919,38 @@
         renderWeek(weekEntries, todayDate);
         renderStats(weekEntries);
       }
+    });
+  })();
+  </script>
+
+  <!-- Mobile nav toggle -->
+  <script>
+  (function () {
+    var btn = document.querySelector('.nav-toggle');
+    var nav = document.getElementById('globalNav');
+    if (!btn || !nav) return;
+    function setOpen(open) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
+      nav.classList.toggle('is-open', open);
+      document.body.classList.toggle('nav-open', open);
+    }
+    btn.addEventListener('click', function () {
+      setOpen(btn.getAttribute('aria-expanded') !== 'true');
+    });
+    nav.addEventListener('click', function (e) {
+      var t = e.target;
+      while (t && t !== nav) {
+        if (t.tagName === 'A') { setOpen(false); break; }
+        t = t.parentNode;
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') setOpen(false);
+    });
+    // Auto-close when resizing past mobile breakpoint
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 880 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);
     });
   })();
   </script>
