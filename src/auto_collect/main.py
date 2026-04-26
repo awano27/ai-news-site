@@ -164,6 +164,30 @@ def main():
     funding_processed = processor.process_funding(funding_raw)
     logger.info(f"[Main] Processed {len(funding_processed)} funding articles")
 
+    # === Phase 2.5: Cross-section dedup (post-LLM) ===
+    # Catches canonical-URL leakage across sections, HuggingFace base/quant
+    # variants (Qwen/X + unsloth/X-GGUF), and same-story-multi-outlet
+    # duplicates that survived the raw-stage dedup because the LLM rewrote
+    # them into divergent Japanese headlines.
+    before = (len(processed), len(funding_processed),
+              len(benchmark_processed), len(github_processed))
+    processed, funding_processed, benchmark_processed, github_processed = (
+        dedup_mod.dedup_across_sections(
+            headlines=processed,
+            funding=funding_processed,
+            models=benchmark_processed,
+            github=github_processed,
+        )
+    )
+    after = (len(processed), len(funding_processed),
+             len(benchmark_processed), len(github_processed))
+    if before != after:
+        logger.info(
+            f"[Main] Cross-section dedup: headlines {before[0]}->{after[0]}, "
+            f"funding {before[1]}->{after[1]}, models {before[2]}->{after[2]}, "
+            f"github {before[3]}->{after[3]}"
+        )
+
     # === Phase 3: Write multi-section report ===
     formatter = DayFileFormatter()
     formatter.write(

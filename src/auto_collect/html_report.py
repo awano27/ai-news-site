@@ -220,6 +220,15 @@ def generate_html(data: Dict) -> str:
     github = [g for g in data["github"] if "github.com" in g.get("url", "")]
     models = data["models"]
 
+    # Defensive cross-section dedup. The same pass runs in main.py before
+    # the txt is written, but applying it here too lets us heal an existing
+    # day file (with duplicates from a prior pipeline version) by simply
+    # re-running generate_html_report.
+    from . import dedup as _dedup
+    headlines, funding, models, github = _dedup.dedup_across_sections(
+        headlines=headlines, funding=funding, models=models, github=github,
+    )
+
     total = len(headlines) + len(funding) + len(github) + len(models)
     high_score = len([h for h in headlines if h.get("score", 0) >= 80])
     categories: Dict[str, int] = {}
