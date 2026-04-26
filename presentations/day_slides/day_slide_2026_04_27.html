@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUA / CuaBot — AIエージェントに「安全な身体」を授けるOSSインフラ | 2026-04-27 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="CUA / CuaBot は、AIエージェントに「コンピュータを操作する安全な身体」を与える OSS インフラ。npx cuabot で Docker サンドボックスを立ち上げ、Xpra による Co-op Computer-Use で人間と AI が同じ画面を共存運用できる。MCP 統一SDK で Claude / OpenAI / 自作エージェントを横断し、Trajectory 記録で Cua-Bench での再訓練まで一気通貫。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_27.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="CUA / CuaBot — AIエージェントに「安全な身体」を授けるOSSインフラ | 2026-04-27" />
+<meta property="og:description" content="サンドボックス・Co-op・統一SDK・Trajectory。AIに PC 操作の手足を授ける OSS インフラ CUA / CuaBot を、開発現場のストーリーで解説。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_27.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0427/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="CUA / CuaBot — AIエージェントに「安全な身体」を授けるOSSインフラ | 2026-04-27" />
+<meta name="twitter:description" content="AI に PC を貸すのではなく、AI 専用の作業机を隣に置く。Docker サンドボックス × Co-op Computer-Use × MCP 統一SDK × Trajectory 記録。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0427/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "CUA / CuaBot — AIエージェントに「安全な身体」を授けるOSSインフラ",
+  "datePublished": "2026-04-27",
+  "dateModified": "2026-04-27",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0427/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_27.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_27.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#story">課題</a>
+    <a href="#turn">転機</a>
+    <a href="#how">仕組み</a>
+    <a href="#trajectory">学習</a>
+    <a href="#value">価値</a>
+    <a href="#next">次</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-04-27 · Mon</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">CUA / CuaBot · OSS Agent Infrastructure · Issue № 04/27</p>
+        <h1 id="hero-title">AIに、PCを貸すな。<br>AI専用の机を、隣に置け。</h1>
+        <p class="lead">賢くなったAIエージェントを実務に投入するとき、最大の壁は「知能」ではなく<strong>身体</strong>だ。誰のPCを使う？ 暴走したら？ ベンダーが変わったら？ ——<strong>CUA / CuaBot</strong> は、その身体問題を OSS で一気に解く。Docker サンドボックスと Xpra による Co-op で、人間とAIが<strong>同じデスクトップを邪魔せず共存</strong>できる作業環境を提供する。</p>
+        <p class="summary">npx cuabot でサンドボックス起動 / Co-op Computer-Use / MCP 統一 SDK / Trajectory 記録 / Cua-Bench 評価 / Apache-2.0。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://cua.ai/" target="_blank" rel="noopener">公式サイトを見る</a>
+          <a class="button-link secondary" href="https://github.com/trycua/cua" target="_blank" rel="noopener">GitHub を見る</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0427/cover.jpg" alt="CUA / CuaBot — AIエージェント向け OSS インフラ全体像" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>AIに「手足」を貸し出す——というアーキテクチャ</h2>
+    <p class="section-lead">CUA / CuaBot は、ホストPCにAIを直接触らせない。代わりに、Docker コンテナ内に立ち上げた <strong>Ubuntu 仮想デスクトップ</strong>を「AI専用の身体」として差し出し、Xpra でそのウィンドウだけを手元の画面にストリーミングする。AIの操作はすべてサンドボックスの内側で起き、ホストとは隔離される。</p>
+    <figure class="wide-visual">
+      <img src="images/0427/page_1.jpg" alt="CUA / CuaBot のアーキテクチャ全体像" loading="lazy">
+      <figcaption>FIG · CUA は Docker サンドボックス × MCP/SDK × Trajectory 記録の三層で、AIに安全な身体を与える。</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="story">
+    <h2>Chapter 1 — 開発者「サトシ」が突き当たった、4 つの壁</h2>
+    <p class="section-lead">SaaS企業のサトシは、Claude Code に「APIのない社内システムへのデータ入力」と「ブラウザでのE2Eテスト」を任せたい。しかし AI に PC を触らせようとすると、 <strong>4 つの壁</strong> が同時に立ちはだかった。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Pain 01 · Security</span>
+        <h3>暴走の恐怖</h3>
+        <p>ログイン状態のブラウザで意図しない決済をしてしまったら？ 重要なファイルを誤って削除したら？ AI に自分の PC をそのまま渡すには、責任が重すぎる。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 02 · UX</span>
+        <h3>カーソルとフォーカスの奪い合い</h3>
+        <p>従来の RPA 系では、AI がマウスを動かす間、人間はただ画面を見守るしかない。AI が作業している間、自分は仕事ができない——これでは導入する意味が薄い。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 03 · Lock-in</span>
+        <h3>ベンダーごとの再実装地獄</h3>
+        <p>Claude 専用、OpenAI 専用、自作エージェント専用——PC操作の実装は毎回バラバラ。スクリーンショット取得もクリック制御も、エージェントごとに作り直す。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 04 · Blackbox</span>
+        <h3>失敗の理由が、残らない</h3>
+        <p>AI がエラーを起こしても「なぜそのボタンを押したのか」の軌跡が残らない。改善のためのデータも、強化学習の素材も集まらず、同じ失敗を繰り返す。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0427/page_2.jpg" alt="AI エージェント実用化の課題マップ" loading="lazy">
+      <figcaption>FIG · 公式資料より — AI に PC を渡すと現れる 4 つの障壁</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="turn">
+    <h2>Chapter 2 — 転機:「貸す」のではなく「隣に置く」</h2>
+    <p class="section-lead">CUA / CuaBot のアプローチは、これまでの RPA や Computer Use 系ツールと根本的に違う。AI に<strong>サトシのPCを貸さない</strong>。代わりに、<strong>AI 専用の作業机を隣に用意する</strong>。たった一行で、その机が立ち上がる。</p>
+    <div class="score-versus" role="figure" aria-label="従来の Computer Use と CUA のアプローチ比較">
+      <div class="score-side">
+        <span class="tag">Before · 従来型</span>
+        <span class="num">Host PC</span>
+        <span class="sub">AIが人間のPCを直接操作 / カーソル奪取 / 暴走リスク / ベンダーごとに実装</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · CUA / CuaBot</span>
+        <span class="num">Sandbox</span>
+        <span class="sub">AI専用デスクトップを Docker で隔離 / Co-op で共存 / MCP で統一 / Trajectory で学習</span>
+      </div>
+    </div>
+    <p class="note">サトシがターミナルに <code>npx cuabot</code> と打ち込むだけで、Ubuntu ベースの仮想デスクトップが立ち上がる。AI のクリックも入力もすべて<strong>コンテナの内側</strong>で完結し、ホスト PC のファイルにもネットワークにも到達しない。「壊れていい机」を AI に渡すことで、初めて自動化のテストが安心して回せるようになる。</p>
+  </section>
+
+  <section class="section" id="how">
+    <h2>Chapter 3 — 仕組み:「Co-op Computer-Use」という発明</h2>
+    <p class="section-lead">CUA / CuaBot の最大の革新は、<strong>マルチプレイヤー機能</strong>にある。Xpra でサンドボックス内のウィンドウだけを手元の画面にネイティブ表示し、AI には<strong>独立した専用カーソルとキーボードフォーカス</strong>を与える。これで人間と AI が、同じデスクトップ体験の上で<strong>互いを邪魔せずに作業</strong>できる。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Mechanism · Co-op</span>
+        <h3>独立カーソル × 独立フォーカス × ネイティブ表示</h3>
+        <p>サンドボックスのアプリは、まるで自分の PC で動くアプリのように、手元のディスプレイに溶け込む。AI が裏で黙々とブラウザを操作している間、サトシは別ウィンドウで普通にコードを書ける。<strong>AI の作業を覗き、必要なら手動で助け舟を出す</strong>こともできる、いわば「AI とのペアプロ」だ。</p>
+        <ol>
+          <li><strong>Xpra ベースのウィンドウ・ストリーミング</strong> — 仮想デスクトップ全体ではなく、必要なアプリ単位で手元に配信</li>
+          <li><strong>AI 専用のマウス・キーボードコンテキスト</strong> — 人間の入力イベントとは完全分離、奪い合いが起きない</li>
+          <li><strong>Hand-off 介入</strong> — 必要に応じてサトシが AI のウィンドウをクリックして手動操作に切り替えられる</li>
+          <li><strong>Apache-2.0 ライセンス</strong> — 商用・改変・組み込み可、ベンダーロックインなし</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0427/page_3.jpg" alt="Co-op Computer-Use のウィンドウ共存イメージ" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0427/page_4.jpg" alt="サンドボックス起動とウィンドウ・ストリーミングの仕組み" loading="lazy">
+      <figcaption>FIG · 公式資料より — npx cuabot 一行で立ち上がる、AI 専用の仮想デスクトップ</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0427/page_5.jpg" alt="Xpra による単一アプリのウィンドウ・ストリーミング" loading="lazy">
+      <figcaption>FIG · 公式資料より — 仮想 OS 全体ではなく、必要なアプリだけが手元のデスクトップに溶け込む</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>どんな AI でも「同じ手足」で動かせる</h2>
+    <p class="section-lead">サトシは、複雑な作業には Claude Code、オープンな実験には OpenClaw、独自業務には自作エージェントを使い分ける。CUA は、これらすべてに<strong>同じ操作インターフェース</strong>を提供する。鍵は <strong>MCP（Model Context Protocol）</strong>と統一 Python SDK だ。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Unified SDK · MCP</span>
+        <h3>「スクリーンショットを撮る」「クリックする」「打ち込む」を共通言語にする</h3>
+        <p>CUA は、画面取得・座標クリック・キーボード入力・スクロール・ウィンドウ操作などのプリミティブを、エージェント非依存の標準 API として公開する。<strong>同じスクリプトが、Claude でも OpenAI でも自作モデルでも動く</strong>。エージェントを差し替えても、PC操作のコードは作り直さなくていい。</p>
+        <ul>
+          <li><strong>MCP サーバ</strong> — Claude Code / Cursor などの MCP 対応クライアントから直接呼び出し</li>
+          <li><strong>Python SDK</strong> — 既存のエージェントフレームワーク（LangChain / 自作）に組み込み可能</li>
+          <li><strong>OS 横断</strong> — Ubuntu サンドボックス上で動くため、ホスト OS は問わない</li>
+        </ul>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0427/page_6.jpg" alt="MCP と統一 SDK によるエージェント横断の操作層" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0427/page_7.jpg" alt="Claude / OpenAI / 自作エージェントが同じ CUA を経由して PC を操作する図" loading="lazy">
+      <figcaption>FIG · 公式資料より — CUA は AI とソフトウェアの間に立つ「身体レイヤー」</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="trajectory">
+    <h2>Chapter 4 — 軌跡を残す:「失敗から学ぶ AI」を作る</h2>
+    <p class="section-lead">AI はタスクに必ず失敗する。問題は、その失敗が<strong>分析可能な形で残るか</strong>だ。CUA は、AI のすべての行動——スクリーンショット、API 呼び出し、クリック座標、入力テキスト——を <strong>Trajectory（軌跡）</strong>として自動記録する。これがデバッグと再訓練の燃料になる。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Trajectory × Cua-Bench</span>
+        <h3>失敗ログ → 評価ベンチ → 強化学習データ</h3>
+        <p>記録された Trajectory は、ただの動画ログではない。<strong>状態 / 行動 / 報酬</strong>がセットで残るため、強化学習や DPO でモデルを再訓練する素材になる。CUA はさらに <strong>Cua-Bench</strong> という評価基盤を提供し、「社内システムでの操作精度」を継続的に測れるようにしている。</p>
+        <ol>
+          <li><strong>スクリーンショットの時系列</strong> — どの画面で、何を見て判断したか</li>
+          <li><strong>API 呼び出しのログ</strong> — どのツールを、どんな引数で呼んだか</li>
+          <li><strong>クリック座標・入力テキスト</strong> — 物理的に何を触ったか</li>
+          <li><strong>Cua-Bench でのスコア化</strong> — モデル更新のたびに、操作精度の改善・退行を数値で確認</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0427/page_8.jpg" alt="Trajectory 記録のデータ構造" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0427/page_9.jpg" alt="Cua-Bench による評価ループ" loading="lazy">
+      <figcaption>FIG · 公式資料より — Trajectory → Bench → 再訓練の連続ループ</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0427/page_10.jpg" alt="Trajectory データの利用例" loading="lazy">
+      <figcaption>FIG · 公式資料より — 失敗の軌跡が、次のモデルの教材になる</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="value">
+    <h2>Chapter 5 — エピローグ:「身体」を手に入れた AI ができること</h2>
+    <p class="section-lead">CUA / CuaBot が変えるのは、AI モデルそのものではない。「賢い AI」を「実務で使える AI」へ橋渡しする<strong>インフラのレイヤー</strong>だ。3 者にとって、何が変わるのかを具体に落とすとこうなる。</p>
+    <div class="usecase">
+      <span class="label">開発チーム</span>
+      <p>新しいエージェントを試すたびに PC 操作層を書き直す必要がなくなる。<strong>同じ MCP / SDK のままモデルを差し替え</strong>、Trajectory で挙動の変化を測れる。E2E テストや QA の自動化が、実装地獄から解放される。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">企業 IT・セキュリティ</span>
+      <p>ホスト PC や社内ネットワークに直接 AI を触れさせない構成を、<strong>OSS でガバナンス可能</strong>な形で作れる。サンドボックス内のログがすべて残るため、監査や事故時の追跡にも耐える。クラウド型の Computer Use サービスへの依存も避けられる。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">AI モデル開発者</span>
+      <p>Trajectory が安定して取れる環境は、<strong>強化学習や Computer-Use 特化の SFT / DPO</strong> にとって貴重な訓練データそのものだ。Cua-Bench を共通スコアとして使えば、モデル間の比較も再現性を持って行える。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき構成要素</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>1 行</strong><span>npx cuabot だけでサンドボックス起動</span></div>
+      <div class="metric"><strong>Docker</strong><span>Ubuntu ベースの隔離仮想デスクトップ</span></div>
+      <div class="metric"><strong>Xpra</strong><span>必要なアプリ単位のウィンドウ・ストリーミング</span></div>
+      <div class="metric"><strong>独立カーソル</strong><span>人間と AI の入力フォーカスが衝突しない</span></div>
+      <div class="metric"><strong>MCP + SDK</strong><span>Claude / OpenAI / 自作エージェントを横断</span></div>
+      <div class="metric"><strong>Trajectory</strong><span>画面・API・クリックの完全な行動ログ</span></div>
+      <div class="metric"><strong>Cua-Bench</strong><span>操作精度を再現可能なスコアで継続評価</span></div>
+      <div class="metric"><strong>Apache-2.0</strong><span>商用利用・改変・再配布が可能な OSS</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="next">
+    <h2>次にやること</h2>
+    <p class="section-lead">CUA / CuaBot は OSS なので、検証コストはほぼゼロだ。クラウド型の Computer Use を待つよりも、<strong>自社の AI エージェントに「手足」を一度授けて</strong>、何ができないかを見にいく方が早い。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>1. サンドボックスを起動する</h3>
+        <p><code>npx cuabot</code> で立ち上げ、手元のデスクトップに AI 用ウィンドウが現れる挙動をまず体感する。Docker と Xpra の依存だけ確認しておく。</p>
+      </article>
+      <article class="step">
+        <h3>2. MCP / SDK で AI をつなぐ</h3>
+        <p>Claude Code から MCP サーバ経由で接続するか、自作エージェントに Python SDK を組み込む。「スクショを撮る → クリックする」という<strong>最小ループ</strong>を作る。</p>
+      </article>
+      <article class="step">
+        <h3>3. 1 業務を選んで Trajectory を貯める</h3>
+        <p>E2E テスト、社内システムへのデータ入力、定型的なリサーチ——どれか一つに絞って、AI の成功と失敗を Trajectory として残す。</p>
+      </article>
+      <article class="step">
+        <h3>4. Cua-Bench で改善を測る</h3>
+        <p>プロンプトやモデルを変えるたびに、Cua-Bench で<strong>操作精度の前後差分</strong>をスコア化する。感覚ではなく数字で改善ループを回す。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>AI 競争の次の舞台は <em>「賢さ」</em> ではなく <em>「身体と環境」</em>。OSS が、その身体を誰でも借りられるものにする。</q>
+      <cite>— CUA / CuaBot 公式資料 / Apache-2.0 License</cite>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>付録 · 公式資料から</h2>
+    <figure class="page-figure">
+      <img src="images/0427/page_11.jpg" alt="CUA / CuaBot 公式資料 ページ 11" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0427/page_12.jpg" alt="CUA / CuaBot 公式資料 ページ 12" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0427/page_13.jpg" alt="CUA / CuaBot 公式資料 ページ 13" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0427/page_14.jpg" alt="CUA / CuaBot 公式資料 ページ 14" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0427/page_15.jpg" alt="CUA / CuaBot 公式資料 ページ 15" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>出典</h2>
+    <div class="source-list">
+      <a href="https://cua.ai/" target="_blank" rel="noopener">
+        <strong>CUA 公式サイト</strong>
+        <span>cua.ai</span>
+      </a>
+      <a href="https://github.com/trycua/cua" target="_blank" rel="noopener">
+        <strong>trycua/cua (GitHub)</strong>
+        <span>github.com/trycua/cua</span>
+      </a>
+      <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">
+        <strong>Model Context Protocol</strong>
+        <span>modelcontextprotocol.io</span>
+      </a>
+      <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">
+        <strong>Apache License 2.0</strong>
+        <span>apache.org/licenses/LICENSE-2.0</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_04_26.html" class="prev">
+        <span class="dir">← Prev · 04/26</span>
+        <strong>HealthBench Professional — 医療AIを「賢いか」から「任せられるか」へ</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">All Slides →</span>
+        <strong>日次スライド一覧へ</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-04-27 — <em>CUA / CuaBot</em></div>
+    <div class="f-meta">出典: cua.ai 公式サイト ／ trycua/cua GitHub ／ Model Context Protocol ／ License: Apache-2.0</div>
+  </div>
+</footer>
+</body>
+</html>
