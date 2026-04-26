@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="2026年4月時点の開発者向けAIツール最適構成を解説。Cursor、Claude、GitHub Copilot、ChatGPT、Gemini、NVIDIA NIM、Ollama、LM Studio、Continue.dev、Aiderをどう組み合わせれば月額コストを抑えて開発速度を上げられるかを整理します。">
+  <title>AIツール選択最適化ガイド2026年4月版｜NVIDIA NIM・ローカルAI・有料AIの組み合わせ｜VisionHub</title>
+  <link rel="canonical" href="https://visionhub.jp/presentations/ai_tool_optimization_2026_04.html">
+  <link rel="stylesheet" href="../assets/ntt-theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="AIツール選択最適化ガイド2026年4月版">
+  <meta property="og:description" content="有料AI・NVIDIA NIM・ローカルAI・無料クラウドの役割分担で月額0〜4,000円台を目指す、開発者向けAIコスト最適化ガイド。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/ai_tool_optimization_2026_04.html">
+  <meta property="og:image" content="https://visionhub.jp/assets/res-07.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AIツール選択最適化ガイド2026年4月版">
+  <meta name="twitter:description" content="有料AI・NVIDIA NIM・ローカルAI・無料クラウドの役割分担で月額0〜4,000円台を目指す。">
+  <meta name="twitter:image" content="https://visionhub.jp/assets/res-07.jpg">
+
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-card: #1c2128;
+      --bg-soft: #161b22;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-orange: #f97316;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-purple: #bc8cff;
+      --accent-yellow: #f1c40f;
+      --border: rgba(255,255,255,0.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      padding: 80px 0 56px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(249,115,22,0.10), transparent),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(63,185,80,0.07), transparent),
+        radial-gradient(ellipse 50% 40% at 85% 60%, rgba(88,166,255,0.07), transparent);
+      pointer-events: none;
+    }
+    .hero-content { position: relative; max-width: 820px; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+      color: var(--accent-orange); text-transform: uppercase;
+      padding: 6px 12px; border-radius: 999px;
+      background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.20);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-size: 44px; font-weight: 700; line-height: 1.25;
+      color: var(--text-heading); letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .hero-subtitle {
+      font-size: 19px; color: var(--text-primary); font-weight: 400;
+      line-height: 1.65; margin-bottom: 24px; opacity: 0.92;
+    }
+    .hero-meta {
+      display: flex; gap: 18px; flex-wrap: wrap;
+      font-size: 13px; color: var(--text-muted);
+    }
+    .hero-meta strong { color: var(--text-primary); font-weight: 600; }
+
+    /* Sections */
+    .section { padding: 64px 0; border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.10em;
+      color: var(--accent-blue); text-transform: uppercase; margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 30px; font-weight: 700; line-height: 1.3;
+      color: var(--text-heading); margin-bottom: 12px; letter-spacing: -0.01em;
+    }
+    .section-subtitle {
+      font-size: 15px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.7;
+    }
+    .prose { font-size: 15.5px; line-height: 1.85; color: var(--text-primary); }
+    .prose p { margin-bottom: 18px; }
+    .prose strong { color: var(--text-heading); font-weight: 700; }
+    .prose ul { margin: 0 0 18px 24px; }
+    .prose ul li { margin-bottom: 6px; line-height: 1.75; }
+    .prose blockquote {
+      border-left: 3px solid var(--accent-orange);
+      padding: 4px 18px;
+      margin: 20px 0;
+      color: var(--text-primary);
+      background: rgba(249,115,22,0.04);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin: 28px 0; border-radius: 12px; border: 1px solid var(--border); }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+    .data-table thead th {
+      background: var(--bg-soft); color: var(--text-heading);
+      font-weight: 700; padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .data-table tbody td {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      color: var(--text-primary); vertical-align: top;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+    .data-table .center { text-align: center; }
+
+    /* Cards */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 22px;
+    }
+    .card-title {
+      font-size: 16px; font-weight: 700; color: var(--text-heading);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+    }
+    .card-title .dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .card-desc { font-size: 13.5px; color: var(--text-muted); line-height: 1.75; }
+    .card.accent-orange { border-color: rgba(249,115,22,0.25); }
+    .card.accent-blue { border-color: rgba(88,166,255,0.25); }
+    .card.accent-green { border-color: rgba(63,185,80,0.25); }
+    .card.accent-purple { border-color: rgba(188,140,255,0.25); }
+    .card.accent-red { border-color: rgba(248,81,73,0.25); }
+
+    /* Highlight box */
+    .callout {
+      border-radius: 14px; padding: 22px 24px; margin: 28px 0;
+      border-left: 3px solid var(--accent-orange);
+      background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(249,115,22,0.02));
+    }
+    .callout.warn {
+      border-left-color: var(--accent-red);
+      background: linear-gradient(135deg, rgba(248,81,73,0.08), rgba(248,81,73,0.02));
+    }
+    .callout.info {
+      border-left-color: var(--accent-blue);
+      background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(88,166,255,0.02));
+    }
+    .callout-title {
+      font-size: 14px; font-weight: 700; color: var(--text-heading);
+      margin-bottom: 8px; letter-spacing: 0.02em;
+    }
+    .callout p { font-size: 14px; color: var(--text-primary); line-height: 1.8; }
+
+    /* Step list */
+    .steps { display: flex; flex-direction: column; gap: 14px; margin: 24px 0; }
+    .step {
+      display: grid; grid-template-columns: 44px 1fr; gap: 16px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+      color: #fff; font-weight: 700; font-size: 15px;
+    }
+    .step-title { font-size: 15.5px; font-weight: 700; color: var(--text-heading); margin-bottom: 4px; }
+    .step-desc { font-size: 13.5px; color: var(--text-muted); line-height: 1.75; }
+
+    /* Related */
+    .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+    .related-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px 22px;
+      transition: border-color 0.2s, transform 0.2s;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .related-card:hover { border-color: rgba(88,166,255,0.4); transform: translateY(-2px); }
+    .related-eyebrow { font-size: 11px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.08em; }
+    .related-title { font-size: 16px; font-weight: 700; color: var(--text-heading); }
+    .related-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+    .related-go { font-size: 12px; color: var(--accent-blue); margin-top: 4px; font-weight: 600; }
+
+    /* TL;DR */
+    .tldr {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 26px; margin: 32px 0 0;
+    }
+    .tldr-title { font-size: 13px; font-weight: 700; color: var(--accent-yellow); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+    .tldr p { font-size: 15px; color: var(--text-primary); line-height: 1.85; }
+
+    /* Pricing pattern boxes */
+    .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 28px 0; }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 22px;
+    }
+    .price-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .price-amount { font-size: 28px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; letter-spacing: -0.01em; }
+    .price-target { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.7; min-height: 60px; }
+    .price-list { list-style: none; padding: 0; margin: 0; }
+    .price-list li {
+      font-size: 13px; padding: 8px 0; color: var(--text-primary);
+      border-top: 1px dashed rgba(255,255,255,0.06);
+      display: grid; grid-template-columns: 96px 1fr; gap: 12px;
+    }
+    .price-list li:first-child { border-top: none; }
+    .price-list li b { color: var(--text-muted); font-weight: 500; font-size: 12.5px; }
+    .price-card.a { border-color: rgba(63,185,80,0.25); }
+    .price-card.a .price-tag { color: var(--accent-green); }
+    .price-card.b { border-color: rgba(88,166,255,0.30); box-shadow: 0 0 0 1px rgba(88,166,255,0.10) inset; }
+    .price-card.b .price-tag { color: var(--accent-blue); }
+    .price-card.c { border-color: rgba(188,140,255,0.25); }
+    .price-card.c .price-tag { color: var(--accent-purple); }
+    .price-card.b::before {
+      content: 'RECOMMENDED'; display: inline-block;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.10em;
+      color: #fff; background: var(--accent-blue);
+      padding: 4px 10px; border-radius: 999px; margin-bottom: 12px;
+    }
+
+    /* References */
+    .refs { font-size: 13px; line-height: 1.85; color: var(--text-muted); }
+    .refs ol { padding-left: 22px; }
+    .refs li { margin-bottom: 8px; }
+    .refs a { color: var(--accent-blue); word-break: break-all; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .related-grid, .price-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      .hero { padding: 56px 0 40px; }
+      .hero-title { font-size: 30px; }
+      .hero-subtitle { font-size: 16px; }
+      .section { padding: 48px 0; }
+      .section-title { font-size: 22px; }
+      .data-table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body class="ntt-page">
+
+  <header class="ntt-header">
+    <div class="ntt-header-row">
+      <a class="ntt-brand" href="/">
+        <span class="ntt-brand-mark">AI</span>
+        <span class="ntt-brand-text">INTELLIGENCE HUB<small>DAILY AI INSIGHTS</small></span>
+      </a>
+      <nav class="ntt-nav">
+        <a href="/#this-week">最新スライド</a>
+        <a href="/#archive">アーカイブ</a>
+        <a href="/#resources" class="is-active">リソース</a>
+        <a class="ntt-cta" href="/presentations/day_slides_index.html">今日のスライド →</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <span class="hero-eyebrow">AI Tool Optimization · 2026.04</span>
+          <h1 class="hero-title">開発者必見！2026年4月版<br>AIツール選択最適化ガイド</h1>
+          <p class="hero-subtitle">
+            有料サブスク・NVIDIA NIM・ローカルAI・無料クラウドを組み合わせて、月額0〜4,000円台で開発速度を最大化する。
+          </p>
+          <div class="hero-meta">
+            <span><strong>公開:</strong> 2026-04-26</span>
+            <span><strong>対象:</strong> 個人開発者 / 小規模チーム</span>
+            <span><strong>所要:</strong> 約20分</span>
+          </div>
+          <div class="tldr">
+            <div class="tldr-title">TL;DR</div>
+            <p>
+              <strong>AIツールは全部契約するものではない。</strong>
+              有料AIは主戦力、NVIDIA NIMは無料推論API、ローカルAIは機密作業場、無料クラウドAIは退避先として使い分ける。
+              これが2026年4月時点の、開発者向けAIコスト最適化である。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-1 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label">01 — STRATEGY</p>
+        <h2 class="section-title">AIツールは全部契約するな：2026年4月の最適化方針</h2>
+        <p class="section-subtitle">作業ごとに役割分担する4階層モデル。最強ツールを選ぶことではなく、最適なAIへルーティングするのが最適化です。</p>
+        <div class="prose">
+          <p>2026年4月時点では、開発者向けAIツールの選択肢が急増しています。Cursor、Claude Code、GitHub Copilot、ChatGPT Codex、Gemini CLI、Ollama、LM Studio、NVIDIA NIM まで含めると、すべてを契約・導入するのは現実的ではありません。</p>
+          <p>重要なのは、AIツールを「強い順」に並べることではなく、<strong>作業ごとに役割分担</strong>することです。次の4階層に整理すると、月額コストを抑えつつ開発速度を上げられます。</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>階層</th>
+                <th>役割</th>
+                <th>代表例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>有料AI</strong></td>
+                <td>実装・設計レビュー・PR作成の主戦力</td>
+                <td>Cursor Pro / Claude Pro / GitHub Copilot Pro / ChatGPT Plus</td>
+              </tr>
+              <tr>
+                <td><strong>無料推論API</strong></td>
+                <td>API実験・モデル比較・大量試行</td>
+                <td>NVIDIA NIM API / Gemini API Free Tier</td>
+              </tr>
+              <tr>
+                <td><strong>ローカルAI</strong></td>
+                <td>機密情報・ログ・下書き・オフライン作業</td>
+                <td>Ollama / LM Studio / llama.cpp</td>
+              </tr>
+              <tr>
+                <td><strong>無料クラウドAI</strong></td>
+                <td>枠切れ時の退避・壁打ち・軽い補完</td>
+                <td>Gemini CLI / Gemini Code Assist / ChatGPT Free / Claude Free / Copilot Free</td>
+              </tr>
+              <tr>
+                <td><strong>非公式検証枠</strong></td>
+                <td>Claude Code風の実験・NIM連携</td>
+                <td>free-claude-code 系プロキシ</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">この記事の結論</div>
+          <p><strong>有料AIは1つから始める。</strong> 日常の主戦力には Cursor または Claude を使い、API実験は NVIDIA NIM、機密処理はローカルAI、枠切れ時は無料クラウドAIに逃がす。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-2 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-orange);">02 — PAID AI</p>
+        <h2 class="section-title">有料AIは1つだけ契約する：Cursor / Claude / Copilot / ChatGPT の選び方</h2>
+        <p class="section-subtitle">最初から複数を契約する必要はありません。月額コストを抑えるなら、まず1つだけ主戦力を決めます。</p>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>開発スタイル</th>
+                <th>最初に契約する候補</th>
+                <th>理由</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IDE中心で毎日コードを書く</td>
+                <td><strong>Cursor Pro</strong></td>
+                <td>IDE一体型で実装・修正・エージェント作業に強い</td>
+              </tr>
+              <tr>
+                <td>CLI中心、設計・レビュー・大規模修正重視</td>
+                <td><strong>Claude Pro</strong></td>
+                <td>Claude Code / Cowork / Research などを含む</td>
+              </tr>
+              <tr>
+                <td>GitHub Issue / PR 中心</td>
+                <td><strong>GitHub Copilot Pro</strong></td>
+                <td>GitHub・VS Code・PR運用との統合が強い</td>
+              </tr>
+              <tr>
+                <td>ChatGPTを普段使いしていてCodexも使いたい</td>
+                <td><strong>ChatGPT Plus / Pro</strong></td>
+                <td>CodexをChatGPT側の開発ワークフローに組み込める</td>
+              </tr>
+              <tr>
+                <td>Google Workspace・長文・Gemini連携重視</td>
+                <td><strong>Google AI Pro / Gemini Code Assist</strong></td>
+                <td>Google系ワークフローとの親和性が高い</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid-2" style="margin-top: 24px;">
+          <div class="card accent-orange">
+            <div class="card-title"><span class="dot" style="background: var(--accent-orange);"></span>Cursor Pro</div>
+            <div class="card-desc">公式価格で月額20ドル。Agentの上限拡張、frontier models へのアクセス、MCP・skills・hooks、cloud agents が含まれます。<sup>[2]</sup></div>
+          </div>
+          <div class="card accent-purple">
+            <div class="card-title"><span class="dot" style="background: var(--accent-purple);"></span>Claude Pro</div>
+            <div class="card-desc">月額20ドル、年払いで月17ドル相当。Claude Code、Claude Cowork、Research、より多くのClaudeモデル、Office系ベータ機能などが含まれます。<sup>[3]</sup></div>
+          </div>
+          <div class="card accent-blue">
+            <div class="card-title"><span class="dot" style="background: var(--accent-blue);"></span>GitHub Copilot</div>
+            <div class="card-desc">Free は月50回のagent/chat requests、月2,000回のcompletions、Haiku 4.5やGPT-5 mini等へのアクセス、Copilot CLIを含みます。<sup>[5]</sup></div>
+          </div>
+          <div class="card accent-green">
+            <div class="card-title"><span class="dot" style="background: var(--accent-green);"></span>ChatGPT / Codex</div>
+            <div class="card-desc">Plus / Pro / Business / Enterprise の料金体系。Codexを重く使う場合、平均コストは月100〜200ドル程度になることもあるため、利用量の多い開発者に限定するのが安全です。<sup>[6]</sup></div>
+          </div>
+        </div>
+
+        <div class="callout warn" style="margin-top: 24px;">
+          <div class="callout-title">⚠ 契約前の確認事項</div>
+          <p>Claude Code の提供範囲は直近で揺れた経緯があります。2026年4月には、Claude Code が一時的にProプランから外れたように見える変更があり、後に限定的なテストとして説明されたという報道・議論がありました。<strong>契約前に最新のプラン表示を必ず確認</strong>してください。<sup>[4]</sup></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-3 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-green);">03 — LOCAL AI</p>
+        <h2 class="section-title">ローカルAIは無料の作業場：Ollama・LM Studio・Continue.dev・Aider</h2>
+        <p class="section-subtitle">ローカルAIは ClaudeやGPTの完全代替ではなく、無料で何度でも使える作業場として位置づけます。</p>
+
+        <div class="prose">
+          <p>ローカルAIに向いている作業：</p>
+          <ul>
+            <li>エラーログの要約</li>
+            <li>仕様メモの整理</li>
+            <li>テスト観点の下書き</li>
+            <li>ボイラープレート生成</li>
+            <li>非機密コードの説明</li>
+            <li>社外に出したくないメモの初期処理</li>
+            <li>オフライン環境での壁打ち</li>
+          </ul>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th style="width: 180px;">ツール</th><th>位置づけ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Ollama</strong></td><td>CLI・ローカルモデル実行の標準候補</td></tr>
+              <tr><td><strong>LM Studio</strong></td><td>GUIでローカルLLMを動かす初心者向け入口。モデルファイルを取得すれば、チャット、ドキュメントとの会話、ローカルサーバー実行などをインターネットなしで動かせます。<sup>[7]</sup></td></tr>
+              <tr><td><strong>Continue.dev</strong></td><td>エディタ・PRチェック連携のAI開発基盤。Pull Requestごとに <code>.continue/checks/</code> に定義したチェックをGitHub status checksとして実行できます。<sup>[9]</sup></td></tr>
+              <tr><td><strong>Aider</strong></td><td>ターミナル上のAIペアプログラミング。新規プロジェクトや既存コードベースの修正に利用できます。<sup>[8]</sup></td></tr>
+              <tr><td><strong>llama.cpp</strong></td><td>軽量・組み込み・自前サーバー向け</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">ローカルモデルの選び方</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">「2026年4月時点の最強モデル」を固定で断定するより、次の系列を用途別に試す表現が安全です。</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width: 200px;">用途</th><th>候補系列</th></tr></thead>
+            <tbody>
+              <tr><td>コード生成</td><td>Qwen / DeepSeek / Kimi / Devstral 系</td></tr>
+              <tr><td>軽量チャット</td><td>Gemma / Llama / Qwen 小型モデル</td></tr>
+              <tr><td>推論・長文</td><td>GLM / Kimi / DeepSeek 系</td></tr>
+              <tr><td>日本語メモ整理</td><td>Qwen / Gemma / Llama 日本語対応モデル</td></tr>
+              <tr><td>ローカルAPI化</td><td>Ollama / llama.cpp / LM Studio server</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-4 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-green);">04 — NVIDIA NIM</p>
+        <h2 class="section-title">NVIDIA NIM API は無料推論APIの本命</h2>
+        <p class="section-subtitle">ChatGPT Free や Claude Free がチャットUI中心なのに対し、NVIDIA NIM は API として使えるため、CLIツール、検証スクリプト、モデル比較、エージェント実験に向いています。</p>
+
+        <div class="prose">
+          <p>NVIDIA の build.nvidia.com では、NIM について「Free serverless APIs for development」と説明されています。NVIDIA Developer Program メンバーは NIM API endpoints を無料でプロトタイピング利用でき、DGX Cloud 上で動く NVIDIA-hosted NIM APIs や containers を development / testing 用途で利用できると説明されています。<sup>[10][11]</sup></p>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">記事内での正しい書き方</div>
+          <p>NVIDIA NIM API は、NVIDIA Developer Program メンバー向けに提供される<strong>開発・検証用</strong>の無料推論APIです。対象モデル数、Free Endpoint、レート制限は変動するため、利用前に build.nvidia.com の最新カタログとアカウント画面で確認する必要があります。本番運用には NVIDIA AI Enterprise が必要と公式FAQに明記されています。<sup>[12]</sup></p>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">NIM 適性表（作業別）</h3>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>作業</th><th class="center" style="width: 90px;">適性</th><th>理由</th></tr></thead>
+            <tbody>
+              <tr><td>API実験</td><td class="center" style="color: var(--accent-green); font-weight: 700;">◎</td><td>OpenAI互換クライアント等と組み合わせやすい</td></tr>
+              <tr><td>モデル比較</td><td class="center" style="color: var(--accent-green); font-weight: 700;">◎</td><td>複数モデルを同じインターフェースで試しやすい</td></tr>
+              <tr><td>CLIエージェント実験</td><td class="center" style="color: var(--accent-blue); font-weight: 700;">○</td><td>無料枠で試行錯誤しやすい</td></tr>
+              <tr><td>ログ要約</td><td class="center" style="color: var(--accent-blue); font-weight: 700;">○</td><td>非機密ログならコストを抑えられる</td></tr>
+              <tr><td>本番コード編集</td><td class="center" style="color: var(--accent-yellow); font-weight: 700;">△</td><td>IDE統合・レビューUXは有料AIに劣る</td></tr>
+              <tr><td>機密情報処理</td><td class="center" style="color: var(--accent-yellow); font-weight: 700;">×〜△</td><td>機密性が高い場合はローカルAIを優先</td></tr>
+              <tr><td>商用本番API</td><td class="center" style="color: var(--accent-red); font-weight: 700;">×</td><td>本番利用は NVIDIA AI Enterprise 前提</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-5 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-red);">05 — ADVANCED / EXPERIMENTAL</p>
+        <h2 class="section-title">free-claude-code 系プロキシは上級者向け検証枠</h2>
+        <p class="section-subtitle">Claude Code の Anthropic API 呼び出しを NVIDIA NIM・OpenRouter・Ollama 等へルーティングするコミュニティプロキシ。公式連携ではない点に注意。</p>
+
+        <div class="prose">
+          <p>たとえば <code>free-claude-code</code> は、Claude Code の Anthropic API calls を NVIDIA NIM、OpenRouter、DeepSeek、LM Studio、llama.cpp、Ollama などへルーティングする軽量プロキシとして公開されています。READMEでは NVIDIA NIM の 40 req/min free にも言及されています。<sup>[13]</sup></p>
+          <p>ただし、これは<strong>公式連携ではありません</strong>。Claude Code の機能が完全に再現されると考えるのは危険です。</p>
+        </div>
+
+        <div class="callout warn">
+          <div class="callout-title">推奨表現</div>
+          <p>free-claude-code 系プロキシは、個人検証では非常に面白い選択肢です。ただし<strong>公式サポート外</strong>であり、業務リポジトリ、会社PC、本番コード、秘密情報を含む作業には推奨しません。使う場合は、個人検証用リポジトリ、限定権限のAPIキー、ローカル隔離環境で試すべきです。</p>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">注意すべき6つのリスク</h3>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width: 130px;">観点</th><th>リスク</th></tr></thead>
+            <tbody>
+              <tr><td><strong>公式性</strong></td><td>Anthropic / NVIDIA の公式連携ではない</td></tr>
+              <tr><td><strong>互換性</strong></td><td>tool calling、streaming、error形式が完全一致しない可能性</td></tr>
+              <tr><td><strong>安定性</strong></td><td>Claude Code側・NIM側・プロキシ側の変更で壊れる可能性</td></tr>
+              <tr><td><strong>セキュリティ</strong></td><td>APIキー、ローカルファイル、リポジトリ情報を通す</td></tr>
+              <tr><td><strong>業務利用</strong></td><td>Shadow AI / Shadow IT になりやすい</td></tr>
+              <tr><td><strong>サポート</strong></td><td>問題発生時に公式サポートが期待できない</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="prose" style="margin-top: 16px;">したがって、free-claude-code は「最強無料クラウド」として前面に出すのではなく、<strong>上級者向けの検証枠</strong>として紹介するのが妥当です。</p>
+      </div>
+    </section>
+
+    <!-- ===== H2-6 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-blue);">06 — PRICING PATTERNS</p>
+        <h2 class="section-title">月額0円・20ドル前後・40ドル以上のおすすめ構成</h2>
+        <p class="section-subtitle">利用量と予算に応じて、3つのパターンから選びます。為替・税込・プラン改定で変動するため目安です。</p>
+
+        <div class="price-grid">
+          <!-- A -->
+          <div class="price-card a">
+            <div class="price-tag">PATTERN A</div>
+            <div class="price-amount">月額 0円〜</div>
+            <div class="price-target">学習者・個人開発者・低コストでAI開発を始めたい人・まだ有料AIを契約するほど利用量がない人</div>
+            <ul class="price-list">
+              <li><b>IDE補完</b><span>GitHub Copilot Free / Gemini Code Assist</span></li>
+              <li><b>CLI</b><span>Gemini CLI</span></li>
+              <li><b>API実験</b><span>NVIDIA NIM API</span></li>
+              <li><b>ローカル</b><span>Ollama / LM Studio</span></li>
+              <li><b>エディタ連携</b><span>Continue.dev</span></li>
+              <li><b>ターミナル</b><span>Aider</span></li>
+              <li><b>上級者検証</b><span>free-claude-code 系</span></li>
+            </ul>
+          </div>
+
+          <!-- B -->
+          <div class="price-card b">
+            <div class="price-tag">PATTERN B</div>
+            <div class="price-amount">月額 約20ドル</div>
+            <div class="price-target">日常的にAIで開発速度を上げたい個人開発者・仕事で毎日コードを書くエンジニア・1契約だけに絞りたい人</div>
+            <ul class="price-list">
+              <li><b>主戦力</b><span>Cursor Pro <em>または</em> Claude Pro</span></li>
+              <li><b>API実験</b><span>NVIDIA NIM API</span></li>
+              <li><b>機密処理</b><span>LM Studio / Ollama</span></li>
+              <li><b>補助</b><span>Gemini Code Assist / ChatGPT Free</span></li>
+              <li><b>連携</b><span>Continue.dev / Aider</span></li>
+            </ul>
+          </div>
+
+          <!-- C -->
+          <div class="price-card c">
+            <div class="price-tag">PATTERN C</div>
+            <div class="price-amount">月額 40ドル+</div>
+            <div class="price-target">業務で毎日AIエージェントを回す人・複数リポジトリを横断する人・チーム標準として導入する組織</div>
+            <ul class="price-list">
+              <li><b>実装</b><span>Cursor Pro</span></li>
+              <li><b>設計/レビュー</b><span>Claude Pro / Max</span></li>
+              <li><b>PR/GitHub</b><span>Copilot Pro / Business</span></li>
+              <li><b>Codex</b><span>ChatGPT Plus / Pro</span></li>
+              <li><b>API実験</b><span>NVIDIA NIM API</span></li>
+              <li><b>統制</b><span>Business / Team / Enterprise系</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">推奨</div>
+          <p><strong>1契約だけ選ぶなら、IDE派は Cursor Pro、CLI/レビュー派は Claude Pro。</strong> 2契約目は、NVIDIA NIM・ローカルAI・無料クラウド枠を使い切ってから判断する。</p>
+        </div>
+
+        <p class="prose" style="margin-top: 16px;">無料枠の参考: Gemini Code Assist は個人向けに無料提供され、コード関連リクエスト1日6,000回、チャットリクエスト1日240回という上限が案内されています。<sup>[14]</sup> Gemini CLI 公式クォータ文書では、個人無料枠の agent mode と Gemini CLI 最大リクエスト数として 1,000 requests / user / day が示されています。<sup>[15]</sup></p>
+      </div>
+    </section>
+
+    <!-- ===== H2-7 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-purple);">07 — DAILY WORKFLOW</p>
+        <h2 class="section-title">1日の開発ワークフロー例</h2>
+        <p class="section-subtitle">時間帯ごとに使うAIをルーティングすれば、有料枠を高価値作業に集中させられます。</p>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 16px 0 12px;">個人開発者の1日</h3>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width: 110px;">時間帯</th><th>作業</th><th>使うAI</th></tr></thead>
+            <tbody>
+              <tr><td>朝</td><td>Issue整理、今日やることの分解</td><td>Gemini CLI / ChatGPT Free</td></tr>
+              <tr><td>実装前</td><td>仕様の壁打ち、設計レビュー</td><td>Claude Pro または Cursor Pro</td></tr>
+              <tr><td>実装中</td><td>コード生成・修正・テスト作成</td><td>Cursor Pro / Continue.dev / Aider</td></tr>
+              <tr><td>詰まった時</td><td>別モデルでセカンドオピニオン</td><td>NVIDIA NIM API</td></tr>
+              <tr><td>ログ確認</td><td>エラー要約、原因候補整理</td><td>Ollama / LM Studio</td></tr>
+              <tr><td>PR前</td><td>差分レビュー、テスト観点作成</td><td>Claude Pro / Copilot / Continue.dev</td></tr>
+              <tr><td>夜</td><td>作業ログ要約、翌日のTODO化</td><td>ローカルAI</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">小規模チームの1日</h3>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width: 130px;">場面</th><th>使うAI</th><th>目的</th></tr></thead>
+            <tbody>
+              <tr><td>朝会前</td><td>ローカルAI / Gemini</td><td>前日のログ・Issue要約</td></tr>
+              <tr><td>実装</td><td>Cursor / Copilot</td><td>実装速度向上</td></tr>
+              <tr><td>設計相談</td><td>Claude</td><td>仕様・責務分割・リスク確認</td></tr>
+              <tr><td>PRレビュー</td><td>Copilot / Continue.dev</td><td>レビュー観点の標準化</td></tr>
+              <tr><td>技術検証</td><td>NVIDIA NIM</td><td>複数モデル・APIの比較</td></tr>
+              <tr><td>機密メモ処理</td><td>ローカルAI</td><td>社外送信を避ける</td></tr>
+              <tr><td>週次棚卸し</td><td>ChatGPT / Claude</td><td>AI利用の効果測定</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-8 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-orange);">08 — SETUP</p>
+        <h2 class="section-title">今日から始めるセットアップ手順</h2>
+        <p class="section-subtitle">無料枠 → ローカル → 無料推論API → 有料1契約 → 検証枠 の順で導入します。</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-title">Gemini Code Assist / Gemini CLI を入れる</div>
+              <div class="step-desc">無料枠が大きく、最初の導入先として適しています。コード関連 6,000 req/日 等の目安が公開されています。</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-title">Ollama または LM Studio を入れる</div>
+              <div class="step-desc">ローカルでログ要約、仕様メモ、テスト観点生成を処理。Qwen / Gemma / Llama などから用途別に試します。</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-title">NVIDIA Developer Program に登録し、NIM API を試す</div>
+              <div class="step-desc">build.nvidia.com の API Catalog からモデルを選び、APIキーを取得して検証します。FAQでは APIキーは「Get API Key」から取得すると説明されています。<sup>[12]</sup></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div>
+              <div class="step-title">有料AIを1つだけ契約する</div>
+              <div class="step-desc">IDE派は Cursor Pro、CLI/レビュー派は Claude Pro から始めます。2契約目は無料枠を使い切ってから判断します。</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div>
+              <div class="step-title">上級者のみ free-claude-code 系プロキシを隔離環境で試す</div>
+              <div class="step-desc">業務利用ではなく、個人検証・非機密リポジトリ限定。公式サポート外である点を必ず認識した上で使います。</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">コストを下げる運用ルール</h3>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width: 240px;">ルール</th><th>内容</th></tr></thead>
+            <tbody>
+              <tr><td>有料AIは1つから始める</td><td>いきなり複数契約しない</td></tr>
+              <tr><td>実装・レビューだけ有料AIに寄せる</td><td>有料枠を高価値作業に集中する</td></tr>
+              <tr><td>ログ要約・下書きはローカルAI</td><td>繰り返し作業を無料化する</td></tr>
+              <tr><td>API実験はNVIDIA NIMへ逃がす</td><td>有料API消費を抑える</td></tr>
+              <tr><td>無料クラウドAIは退避先にする</td><td>枠切れ時・セカンドオピニオンに使う</td></tr>
+              <tr><td>free-claude-codeは検証限定</td><td>公式代替として扱わない</td></tr>
+              <tr><td>月末にAI利用を棚卸しする</td><td>使っていない契約を切る</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">やってはいけない契約パターン</h3>
+        <div class="grid-2">
+          <div class="card accent-red">
+            <div class="card-title"><span class="dot" style="background: var(--accent-red);"></span>Cursor・Claude・ChatGPT・Copilotを全員が全部契約</div>
+            <div class="card-desc">役割が重複し、月額費用だけ増えます。</div>
+          </div>
+          <div class="card accent-red">
+            <div class="card-title"><span class="dot" style="background: var(--accent-red);"></span>$100以上のプランを全員に配る</div>
+            <div class="card-desc">重い利用者だけでよい。利用ログから対象を絞ります。</div>
+          </div>
+          <div class="card accent-red">
+            <div class="card-title"><span class="dot" style="background: var(--accent-red);"></span>機密ログを無料クラウドAIに貼る</div>
+            <div class="card-desc">情報管理上のリスク。機密はローカルAIへ。</div>
+          </div>
+          <div class="card accent-red">
+            <div class="card-title"><span class="dot" style="background: var(--accent-red);"></span>free-claude-code を業務標準にする</div>
+            <div class="card-desc">公式サポート外・互換性・セキュリティ面で業務には不向きです。</div>
+          </div>
+          <div class="card accent-red">
+            <div class="card-title"><span class="dot" style="background: var(--accent-red);"></span>NIMを本番無料APIとして使う</div>
+            <div class="card-desc">開発・検証用途であり、本番は NVIDIA AI Enterprise 前提です。</div>
+          </div>
+          <div class="card accent-red">
+            <div class="card-title"><span class="dot" style="background: var(--accent-red);"></span>モデル名だけで選ぶ</div>
+            <div class="card-desc">IDE/CLI/PR/ログ処理など用途ごとのUXが重要です。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== H2-9 ===== -->
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="color: var(--accent-yellow);">09 — CONCLUSION</p>
+        <h2 class="section-title">まとめ：AIツールは“契約数”ではなく“役割分担”で選ぶ</h2>
+
+        <div class="callout" style="margin-top: 8px;">
+          <div class="callout-title">最終結論</div>
+          <p>
+            <strong>有料AIは1つでよい。</strong><br>
+            日常の主戦力には Cursor または Claude を使い、API実験は NVIDIA NIM、機密処理はローカルAI、枠切れ時は無料クラウドAIに逃がす。<br>
+            free-claude-code 系プロキシは、公式代替ではなく上級者向けの検証枠として扱う。<br>
+            2026年4月時点のAIツール最適化は、最強ツールを選ぶことではなく、作業ごとに最安・最適なAIへルーティングすることです。
+          </p>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px;">関連ガイド</h3>
+        <div class="related-grid">
+          <a class="related-card" href="ai_coding_agents_guide.html">
+            <span class="related-eyebrow">SETUP</span>
+            <span class="related-title">AIコーディングエージェント完全ガイド2026</span>
+            <span class="related-desc">Claude Code・Codex・GitHub Copilot・Antigravity の設定・構築・運用を網羅した導入ガイド。</span>
+            <span class="related-go">VIEW DETAIL →</span>
+          </a>
+          <a class="related-card" href="hubs/claude-code-guide-2026.html">
+            <span class="related-eyebrow">DEEP DIVE</span>
+            <span class="related-title">Claude Code・MCP 特集ガイド</span>
+            <span class="related-desc">Claude Code の運用、MCP・skills・hooks など検索から読まれる固定ガイド。</span>
+            <span class="related-go">VIEW DETAIL →</span>
+          </a>
+          <a class="related-card" href="recommended_tools.html">
+            <span class="related-eyebrow">TOOLS</span>
+            <span class="related-title">おすすめAIツールリスト</span>
+            <span class="related-desc">編集部が日常的に使うAIツールの最新リスト。Product Hunt から随時更新。</span>
+            <span class="related-go">VIEW DETAIL →</span>
+          </a>
+          <a class="related-card" href="ai_external_resources.html">
+            <span class="related-eyebrow">RESOURCES</span>
+            <span class="related-title">AI業界 外部リソース集</span>
+            <span class="related-desc">業界レポート・ベンチマーク・公式ブログへの厳選リンク集。</span>
+            <span class="related-go">VIEW DETAIL →</span>
+          </a>
+          <a class="related-card" href="digests/2026-04.html">
+            <span class="related-eyebrow">DIGEST</span>
+            <span class="related-title">月次まとめ 2026年4月</span>
+            <span class="related-desc">主要発表・論文・資金調達・規制動向を整理した月次ダイジェスト。</span>
+            <span class="related-go">VIEW DETAIL →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== REFERENCES ===== -->
+    <section class="section" id="references">
+      <div class="container">
+        <p class="section-label">REFERENCES</p>
+        <h2 class="section-title">参考ソース</h2>
+        <p class="section-subtitle">本記事内の数値・条件は公開時点の目安です。最新情報は各社公式ページでご確認ください。</p>
+
+        <div class="refs">
+          <ol>
+            <li>VisionHub「AIコーディングエージェント完全ガイド2026」 — <a href="ai_coding_agents_guide.html">/presentations/ai_coding_agents_guide.html</a></li>
+            <li>Cursor Pricing — <a href="https://cursor.com/pricing" target="_blank" rel="noopener">https://cursor.com/pricing</a></li>
+            <li>Claude Pro pricing — <a href="https://claude.com/pricing/pro" target="_blank" rel="noopener">https://claude.com/pricing/pro</a></li>
+            <li>Business Insider — Anthropic's Claude Code pricing pain is Sam Altman's pleasure</li>
+            <li>GitHub Copilot plans — <a href="https://github.com/features/copilot/plans" target="_blank" rel="noopener">https://github.com/features/copilot/plans</a></li>
+            <li>OpenAI Codex rate card / pricing — <a href="https://help.openai.com/en/articles/20001106-codex-rate-card" target="_blank" rel="noopener">help.openai.com/.../codex-rate-card</a> / <a href="https://developers.openai.com/codex/pricing" target="_blank" rel="noopener">developers.openai.com/codex/pricing</a></li>
+            <li>LM Studio Offline Operation — <a href="https://lmstudio.ai/docs/app/offline" target="_blank" rel="noopener">https://lmstudio.ai/docs/app/offline</a></li>
+            <li>Aider — <a href="https://aider.chat/" target="_blank" rel="noopener">https://aider.chat/</a></li>
+            <li>Continue.dev — <a href="https://www.continue.dev/" target="_blank" rel="noopener">https://www.continue.dev/</a> / <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener">github.com/continuedev/continue</a></li>
+            <li>NVIDIA build.nvidia.com — <a href="https://build.nvidia.com/explore/discover" target="_blank" rel="noopener">https://build.nvidia.com/explore/discover</a></li>
+            <li>NVIDIA NIM for Developers — <a href="https://developer.nvidia.com/nim" target="_blank" rel="noopener">https://developer.nvidia.com/nim</a></li>
+            <li>NVIDIA NIM FAQ — <a href="https://forums.developer.nvidia.com/t/nvidia-nim-faq/300317" target="_blank" rel="noopener">forums.developer.nvidia.com/t/nvidia-nim-faq/300317</a></li>
+            <li>free-claude-code — <a href="https://github.com/Alishahryar1/free-claude-code" target="_blank" rel="noopener">github.com/Alishahryar1/free-claude-code</a></li>
+            <li>Gemini Code Assist — <a href="https://codeassist.google/" target="_blank" rel="noopener">https://codeassist.google/</a></li>
+            <li>Gemini Code Assist quotas — <a href="https://developers.google.com/gemini-code-assist/resources/quotas" target="_blank" rel="noopener">developers.google.com/gemini-code-assist/resources/quotas</a></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="ntt-footer">
+    <div class="ntt-footer-row">
+      <a class="ntt-footer-brand" href="/">
+        <span class="ntt-brand-mark">AI</span>
+        <span>INTELLIGENCE HUB</span>
+      </a>
+      <div class="ntt-footer-meta">
+        <a href="/#resources">リソース</a>
+        &nbsp;·&nbsp;
+        <a href="/#archive">アーカイブ</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/awano27/ai-news-site" target="_blank" rel="noopener">GitHub</a>
+        &nbsp;·&nbsp;
+        © 2026 VisionHub
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
