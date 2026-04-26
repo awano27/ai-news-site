@@ -110,11 +110,21 @@ class XBookmarksCollector:
         self.lookback_hours = lookback_hours
 
     def collect(self, target_date: date) -> List[Dict]:
+        """Return bookmarks whose frontmatter `date` falls within the lookback
+        window. Falls back to file mtime when the frontmatter date is missing
+        or unparseable. mtime is used as a cheap pre-filter to avoid YAML-
+        parsing files that are obviously too old.
+        """
         if not self.bookmarks_dir.exists():
             logger.info(f"[X] vault not found at {self.bookmarks_dir} — skipping (cloud run?)")
             return []
 
-        cutoff = datetime.now() - timedelta(hours=self.lookback_hours)
+        cutoff_dt = datetime.now() - timedelta(hours=self.lookback_hours)
+        cutoff_date = cutoff_dt.date()
+        # Pre-filter slack: a file's mtime can be slightly newer than its
+        # bookmark_date if the playwright sync stored it later. Allow 7 days.
+        mtime_cutoff = cutoff_dt - timedelta(days=7)
+
         out: List[Dict] = []
         seen_ids = set()
         for path in sorted(self.bookmarks_dir.glob("*.md")):
@@ -122,11 +132,26 @@ class XBookmarksCollector:
                 mtime = datetime.fromtimestamp(path.stat().st_mtime)
             except OSError:
                 continue
-            if mtime < cutoff:
+            if mtime < mtime_cutoff:
                 continue
+
             article = _parse_bookmark(path)
             if not article:
                 continue
+
+            # Precise filter: bookmark_date from frontmatter (when the user
+            # actually pressed bookmark on X) — falls back to mtime date.
+            bm_date_str = article.get("bookmark_date") or ""
+            try:
+                item_date = date.fromisoformat(bm_date_str)
+            except ValueError:
+                item_date = mtime.date()
+            if item_date < cutoff_date:
+                continue
+            # Normalize the date back into the article so downstream sorting
+            # always has a valid ISO string.
+            article["bookmark_date"] = item_date.isoformat()
+
             tid = article.get("x_tweet_id")
             if tid and tid in seen_ids:
                 continue
@@ -134,5 +159,7 @@ class XBookmarksCollector:
                 seen_ids.add(tid)
             out.append(article)
 
-        logger.info(f"[X] collected {len(out)} bookmarks (lookback {self.lookback_hours}h)")
+        # Most recent first
+        out.sort(key=lambda a: a.get("bookmark_date", ""), reverse=True)
+        logger.info(f"[X] collected {len(out)} bookmarks (lookback {self.lookback_hours}h, frontmatter-date filter)")
         return out

@@ -118,6 +118,7 @@ def _flatten_x(x_articles: List[Dict]) -> List[Dict]:
             "images": a.get("x_images") or [],
             "note": a.get("x_note") or "",
             "tweet_id": a.get("x_tweet_id") or "",
+            "bookmark_date": a.get("bookmark_date") or "",
             "tag_group": "X",
             "score": int(a.get("score", 75) or 75),
         })
@@ -241,8 +242,11 @@ def generate_daily_news(
     timeline.extend(_flatten_news(funding_articles or [], tag="ビジネス"))
     timeline.extend(_flatten_x(x_articles or []))
 
-    # Sort: news first by score desc, X bookmarks interleaved by score
-    timeline.sort(key=lambda i: (-i.get("score", 0), i.get("title", "")))
+    # Sort by date desc first (stable), then by score desc — Python sort is
+    # stable, so within each score bucket items remain in date-desc order.
+    # That matters most for X bookmarks, which all share score=75.
+    timeline.sort(key=lambda i: i.get("bookmark_date", ""), reverse=True)
+    timeline.sort(key=lambda i: -int(i.get("score", 0) or 0))
 
     total = len(timeline)
     x_count = sum(1 for i in timeline if i["type"] == "x")
