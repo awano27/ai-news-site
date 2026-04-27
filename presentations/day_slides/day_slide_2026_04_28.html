@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open CoDesign — 設計プロセスを、ラップトップに取り戻す | 2026-04-28 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="Open CoDesign は『Your prompts. Your model. Your laptop.』を掲げる完全ローカル AI 設計ツール。Anthropic / OpenAI / Google / DeepSeek / Ollama に加え ChatGPT Plus・Codex の OAuth 流用で BYOB（Bring Your Own Budget）を実現。サンドボックス iframe + React 18 / Babel で UI を即時実行検証、HTML / PPTX / PDF / ZIP / Markdown へオンデバイスのマルチエクスポート。Comment Mode と AI Sliders で再プロンプト回数を激減、データはローカル SQLite に保管。Bolt.new / Lovable とは違う『最上流の設計＋ドキュメンテーション』に特化したオープンソース。v0.2 では DESIGN.md 共有メモリと Permissioned Agent Loop で『生成ツール』から『自律型設計エージェント』へ。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_28.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Open CoDesign — 設計プロセスを、ラップトップに取り戻す | 2026-04-28" />
+<meta property="og:description" content="Your prompts. Your model. Your laptop. — 完全ローカルAI設計ツール Open CoDesign を、PM・エンジニア・営業・情シス 4 ペルソナのストーリーで解剖。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_28.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0428/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Open CoDesign — 設計プロセスを、ラップトップに取り戻す | 2026-04-28" />
+<meta name="twitter:description" content="クラウド設計AIの「データ主権の喪失」を解く OSS。BYOK / BYOB × サンドボックス iframe × マルチエクスポート × Comment Mode × DESIGN.md 共有メモリ。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0428/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Open CoDesign — 設計プロセスを、ラップトップに取り戻す",
+  "datePublished": "2026-04-28",
+  "dateModified": "2026-04-28",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0428/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_28.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_04_28.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#story">分断</a>
+    <a href="#turn">転機</a>
+    <a href="#how">仕組み</a>
+    <a href="#strategy">戦略</a>
+    <a href="#future">未来</a>
+    <a href="#next">次</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-04-28 · Tue</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Open CoDesign · Local-first AI Design Engine · Issue № 04/28</p>
+        <h1 id="hero-title">設計プロセスを、<br>ラップトップに取り戻す。</h1>
+        <p class="lead">クラウド設計 AI は速い。だが、未公開のプロダクト情報が「ブラックボックス」に吸い込まれる構造は、本当に許容できるのか——。<strong>Open CoDesign</strong> は <em>「Your prompts. Your model. Your laptop.」</em> を掲げ、設計の主導権をローカル環境に奪還するオープンソース。AI を<strong>「実ファイルを出力する設計エンジン」</strong>として IDE 的に使う、新しい開発標準を提示する。</p>
+        <p class="summary">BYOK + ChatGPT Plus / Codex OAuth / Sandbox iframe / HTML・PPTX・PDF・ZIP・Markdown 出力 / Comment Mode + AI Sliders / Local SQLite / DESIGN.md 共有メモリ。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://github.com/opencoworkai/open-codesign" target="_blank" rel="noopener">公式リポジトリを見る</a>
+          <a class="button-link secondary" href="https://opencoworkai.com/" target="_blank" rel="noopener">公式サイトを見る</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0428/cover.jpg" alt="Open CoDesign — ローカルファースト設計ツールの全体像" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>「速度・品質・コスト・主権」を、同時に成立させる</h2>
+    <p class="section-lead">これまでの設計 AI は、必ずどこかで妥協を強いた。Bolt.new / Lovable がフルスタック生成を担う一方で、<strong>最上流の「設計とドキュメンテーション」</strong>はクラウド依存のまま放置されていた。Open CoDesign は、そのレイヤーをローカルファーストで埋める初の OSS である。</p>
+    <figure class="wide-visual">
+      <img src="images/0428/page_1.jpg" alt="Open CoDesign の哲学とアーキテクチャ概要" loading="lazy">
+      <figcaption>FIG · Your prompts. Your model. Your laptop. — 設計プロセスをローカルに取り戻す思想</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="story">
+    <h2>Chapter 1 — 4 つの「分断」が、現場を止めていた</h2>
+    <p class="section-lead">プロダクト開発は、4 つの異なる立場の人間が連携して初めて前進する。だが従来のクラウド設計 AI は、それぞれに別々の「痛み」を残してきた。Open CoDesign が解こうとしているのは、<strong>その全員の痛みを同時に</strong>癒やすという課題だ。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Pain 01 · PM / 起業家</span>
+        <h3>抽象的な要件は、認識齟齬を生む</h3>
+        <p>会議で出た要件は、議事録の段階で曖昧になる。プロトタイプが上がってくる頃には、関係者の解釈はバラバラ。<strong>動くもので合意する</strong>までに、数日〜1 週間が溶ける。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 02 · フロントエンドエンジニア</span>
+        <h3>デザインからコードへの「再実装税」</h3>
+        <p>Figma で美しく仕上がった画面が、コードに落とすと設計意図がほどけてしまう。コンポーネント分割もスタイル系も、ゼロから組み直し。<strong>叩き台が「絵」ではなく「コード」で来てほしい</strong>のが本音だ。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 03 · 営業 / 事業開発</span>
+        <h3>提案資料の「初稿地獄」</h3>
+        <p>顧客ごとに少しずつ違うスライド、LP、価格表を毎回ゼロから作り直す。本来やるべき顧客対応の時間が、<strong>資料の初稿づくり</strong>で削られていく。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 04 · 情シス / セキュリティ</span>
+        <h3>未公開情報がクラウドに「漏れる」設計</h3>
+        <p>設計 AI に未発表の製品名・仕様・スクリーンショットを投入する瞬間、それは外部送信になっている。<strong>社内ガバナンスを通せない</strong>ツールを、現場が黙認している状態は持続しない。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0428/page_2.jpg" alt="ターゲットペルソナ別の課題マップ" loading="lazy">
+      <figcaption>FIG · 公式資料より — PM / Engineer / Sales / SecOps の 4 ペルソナと課題</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="turn">
+    <h2>Chapter 2 — 転機:「クラウドに預ける」から「ラップトップで作る」へ</h2>
+    <p class="section-lead">Open CoDesign の発想は、クラウド設計 AI と一見似ているが、入出力のすべてを<strong>ローカルに閉じる</strong>点で根本的に違う。データもセッション履歴も、ローカル SQLite に保存される。AI への問い合わせだけが、ユーザー指定のプロバイダ（または Ollama）に向かう。</p>
+    <div class="score-versus" role="figure" aria-label="クラウド設計 AI と Open CoDesign の比較">
+      <div class="score-side">
+        <span class="tag">Before · クラウド設計 AI</span>
+        <span class="num">Cloud-Box</span>
+        <span class="sub">プロンプトと履歴がベンダー側 / 月額固定 / モデル選択不可 / データ主権の喪失</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · Open CoDesign</span>
+        <span class="num">Local Engine</span>
+        <span class="sub">プロンプトと履歴をローカル SQLite に保管 / BYOK + BYOB / モデル切替自由 / オープンソース</span>
+      </div>
+    </div>
+    <p class="note">特筆すべきは <strong>ChatGPT Plus / Codex の OAuth サポート（v0.1.4）</strong>だ。すでに支払っている Web サブスクリプション予算をそのまま流用でき、組織の API 課金管理から「Bring Your Own Budget」へ自然に移行できる。Anthropic / OpenAI / Google / DeepSeek / Ollama を切り替えるたびに新しい契約を結ぶ必要はない。</p>
+  </section>
+
+  <section class="section" id="how">
+    <h2>Chapter 3 — 仕組み:「実ファイルを出すIDE」になる 4 つの装置</h2>
+    <p class="section-lead">Open CoDesign は、AI を「会話相手」ではなく「設計エンジン」として扱うために、4 つのコンポーネントを組み合わせている。<strong>BYOK</strong> でモデルを選び、<strong>サンドボックス iframe</strong> で生成物を即時実行検証し、<strong>マルチエクスポート</strong>で納品形式を分け、<strong>Comment Mode + AI Sliders</strong> で局所修正のコストを潰す。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Mechanism · Local-first Engine</span>
+        <h3>BYOK × サンドボックス × マルチエクスポート × 局所編集</h3>
+        <p>生成された UI は、<strong>iframe 内で React 18 + Babel を使って即実行</strong>される。ホスト環境を汚さずに、ホバー・タブ・レスポンシブ動作までその場で検証可能だ。仕上がった成果物は、HTML（インライン CSS） / PPTX / PDF / ZIP / Markdown へ<strong>オンデバイス出力</strong>。エンジニア向け納品物と経営向けプレゼンが、同じプロセスから生まれる。</p>
+        <ol>
+          <li><strong>BYOK（Bring Your Own Key）</strong> — Anthropic / OpenAI / Google / DeepSeek / Ollama / ChatGPT Plus・Codex OAuth に対応</li>
+          <li><strong>サンドボックス iframe</strong> — React 18 + Babel で即時プレビュー、ホスト汚染なし</li>
+          <li><strong>マルチエクスポート</strong> — HTML / PPTX / PDF / ZIP / Markdown のオンデバイス出力</li>
+          <li><strong>Comment Mode</strong> — 要素クリック → ピン → 局所修正指示で再プロンプト激減</li>
+          <li><strong>AI Sliders</strong> — 配色・余白・フォントを<strong>ドラッグで調整</strong>、AI が候補値を提案</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0428/page_3.jpg" alt="Open CoDesign の機能スタック" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0428/page_4.jpg" alt="サンドボックス iframe による即時プレビュー" loading="lazy">
+      <figcaption>FIG · 公式資料より — React 18 + Babel iframe ランタイムでホスト環境を汚さずに UI を実行</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0428/page_5.jpg" alt="HTML / PPTX / PDF / ZIP / Markdown のマルチエクスポート" loading="lazy">
+      <figcaption>FIG · 公式資料より — エンジニア向け納品物と経営向けプレゼンが同一プロセスから生まれる</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0428/page_6.jpg" alt="Comment Mode と AI Sliders による局所編集" loading="lazy">
+      <figcaption>FIG · 公式資料より — クリックでピン、ドラッグでパラメータ調整。再プロンプトのコストを潰す</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="strategy">
+    <h2>Chapter 4 — 戦略:「最上流の設計」というポジション取り</h2>
+    <p class="section-lead">Open CoDesign は、Bolt.new や Lovable と<strong>競合しない</strong>。彼らがフルスタックの「動くアプリ生成」に強いのに対し、Open CoDesign は<strong>その手前の「設計＋ドキュメンテーション」</strong>に絞り込んだ。だからこそ、PM と営業と SecOps が同じツールを正当化できる。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Strategic Position</span>
+        <h3>データ主権 × コスト破壊 × オープン化</h3>
+        <p>すべてのデザイン履歴と設定は<strong>ローカル SQLite</strong> に保存される。データの外部送信は、ユーザーが指定したモデルプロバイダとの通信に限定される。これが「データ主権の確保」の意味するところだ。さらに高額な SaaS サブスクリプションを排除し、既存の API キーや ChatGPT Plus アカウントを再利用する <strong>Bring Your Own Budget</strong> モデルを確立した。</p>
+        <ul>
+          <li><strong>Bolt.new / Lovable</strong> — フルスタックのプロジェクト生成</li>
+          <li><strong>Open CoDesign</strong> — 最上流の設計（UI プロトタイプ）と<strong>ドキュメンテーション（PPTX / PDF）</strong>に特化</li>
+          <li><strong>v0.2 で「動くアプリ生成」へも拡張予定</strong>（Permissioned Agent Loop）</li>
+        </ul>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0428/page_7.jpg" alt="競合比較と戦略的優位性" loading="lazy">
+      </figure>
+    </div>
+    <p class="note"><strong>アーキテクトのセキュリティノート</strong>：v0.1.4 のインストーラーは未署名で、macOS では <code>xattr -cr "/Applications/Open CoDesign.app"</code> による属性削除が必要だ。鍵管理は <code>config.toml</code> に <code>mode 0600</code> で保存される実質プレーンテキスト。高セキュリティ環境では <strong>Ollama 利用、または利用上限を絞った専用 API キー</strong>運用を推奨する。OSS だからこそ、運用責任の所在が明確になる。</p>
+    <figure class="page-figure">
+      <img src="images/0428/page_8.jpg" alt="セキュリティとガバナンスの設計" loading="lazy">
+      <figcaption>FIG · 公式資料より — データ主権・鍵管理・未署名インストーラーの取り扱い</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>実務ワークフロー:「会議メモ」から「動く UI と提案資料」へ</h2>
+    <p class="section-lead">クイック・インストールは 3 分。Homebrew / winget で導入し、既存の Claude Code や Cursor の設定を<strong>ワンクリックでインポート</strong>できる。あとは <strong>12 の Design Skill Modules</strong> を引き出す構造化プロンプトを送るだけだ。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>1. インストール（3 分）</h3>
+        <p>macOS: <code>brew install --cask opencoworkai/tap/open-codesign</code><br>Windows: <code>winget install OpenCoworkAI.OpenCoDesign</code><br>既存 IDE 設定をワンクリック取り込み。</p>
+      </article>
+      <article class="step">
+        <h3>2. 構造化プロンプトを送る</h3>
+        <p>Case A：SaaS LP（"Pulse AI" hero / 3-column features / pricing）。<br>Case B：社内ダッシュボード（"Nova HR" sidebar nav / KPI cards / 折れ線）。<br>Skill モジュールが自動選択される。</p>
+      </article>
+      <article class="step">
+        <h3>3. Comment で局所修正</h3>
+        <p>"Make the pricing section more bold" のようなピンポイント指示で AI Sliders と組み合わせて微調整。再プロンプトを最小化する。</p>
+      </article>
+      <article class="step">
+        <h3>4. プロジェクトへ直接エクスポート</h3>
+        <p>GitHub リポジトリ・Obsidian Vault・Notion へ HTML / PPTX / PDF / ZIP / Markdown を直接書き出し。版管理にそのまま乗る。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0428/page_9.jpg" alt="プロンプト例とワークフローのスクリーンショット" loading="lazy">
+      <figcaption>FIG · 公式資料より — 営業提案 LP と社内ダッシュボード、同一ツールで両方を初稿化</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="future">
+    <h2>Chapter 5 — 未来: v0.2「Agentic Design」が、設計知を永続化する</h2>
+    <p class="section-lead">次期 v0.2 で Open CoDesign は、<strong>「生成ツール」から「自律型設計エージェント」</strong>へ昇華する。鍵は 3 つ——<strong>DESIGN.md</strong> による共有メモリ、<strong>Permissioned Agent Loop</strong> による安全な実行委任、<strong>Workspace-backed Sessions</strong> による Git / Obsidian 統合だ。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">v0.2 · Agentic Design</span>
+        <h3>共有メモリ × 承認付き実行 × ワークスペース版管理</h3>
+        <p>ブランドガイドラインやデザインシステムを <code>DESIGN.md</code> に書き出し、人間と AI が<strong>同じファイル</strong>を編集する。セッションを跨いでも一貫性が保たれる。pi-coding-agent ベースの Permissioned Agent Loop は、ユーザー承認を経て bash 実行とローカルファイル R/W を許可する。各デザインは独立した Workspace フォルダと JSONL 履歴を持ち、<strong>Git による版管理</strong>と Obsidian の <strong>PARA / Zettelkasten</strong> 構造に同期する。</p>
+        <ol>
+          <li><strong>DESIGN.md（共有メモリ）</strong> — ブランド・トーン・コンポーネント規約を永続化</li>
+          <li><strong>Permissioned Agent Loop</strong> — 承認ベースの bash / file 実行、勝手に動かない安全設計</li>
+          <li><strong>Workspace-backed Sessions</strong> — JSONL 履歴 + Git + Obsidian PARA / Zettelkasten 同期</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0428/page_10.jpg" alt="v0.2 Agentic Design のロードマップ" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0428/page_11.jpg" alt="DESIGN.md と Workspace-backed Sessions の連携イメージ" loading="lazy">
+      <figcaption>FIG · 公式資料より — Git / Obsidian と一貫した「設計知の永続化」</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき構成要素</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>3 分</strong><span>brew / winget で導入完了</span></div>
+      <div class="metric"><strong>5 系統</strong><span>Anthropic / OpenAI / Google / DeepSeek / Ollama 対応</span></div>
+      <div class="metric"><strong>OAuth</strong><span>ChatGPT Plus / Codex を BYOB で流用</span></div>
+      <div class="metric"><strong>iframe</strong><span>React 18 + Babel サンドボックス即時実行</span></div>
+      <div class="metric"><strong>5 形式</strong><span>HTML / PPTX / PDF / ZIP / Markdown 出力</span></div>
+      <div class="metric"><strong>Comment</strong><span>クリック→ピンの局所修正で再プロンプト激減</span></div>
+      <div class="metric"><strong>Local DB</strong><span>履歴・設定はすべて SQLite に保管</span></div>
+      <div class="metric"><strong>v0.2</strong><span>DESIGN.md / Permissioned Loop / Git・Obsidian 同期</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="next">
+    <h2>3 つの層が、それぞれにやるべきこと</h2>
+    <p class="section-lead">Open CoDesign は単なる「速い AI ツール」ではなく、<strong>組織の生産性レイヤーの組み替え</strong>だ。立場ごとに最初の一歩は変わる。</p>
+    <div class="usecase">
+      <span class="label">PM / 起業家</span>
+      <p>会議メモを Open CoDesign に流し込み、<strong>10 分で「動く UI」と「ピッチ用 PPTX」</strong>を初稿化する。関係者の認識齟齬を、要件定義の段階で潰せる。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">フロントエンドエンジニア</span>
+      <p>デザインの「絵」ではなく、<strong>React / HTML / Tailwind コードとして叩き台</strong>を受け取る。定型的な画面組みから解放され、本質的なロジック実装に時間を回せる。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">経営 / 情シス</span>
+      <p>BYOK + ローカル SQLite + Ollama 構成で、<strong>クラウド AI への情報流出をゼロ</strong>に抑える。AI 利活用の社内ガイドラインに「Open CoDesign 構成」を加えるところから始める。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>プロダクト開発の未来は、<em>あなたのラップトップの中</em>にある。AI を「借りる」から「持つ」へ。</q>
+      <cite>— Open CoDesign 公式資料 / OpenCoworkAI</cite>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>付録 · 公式資料から</h2>
+    <figure class="page-figure">
+      <img src="images/0428/page_12.jpg" alt="Open CoDesign 公式資料 ページ 12" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0428/page_13.jpg" alt="Open CoDesign 公式資料 ページ 13" loading="lazy">
+      <figcaption>FIG · 公式資料より</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>出典</h2>
+    <div class="source-list">
+      <a href="https://opencoworkai.com/" target="_blank" rel="noopener">
+        <strong>OpenCoworkAI 公式サイト</strong>
+        <span>opencoworkai.com</span>
+      </a>
+      <a href="https://github.com/opencoworkai/open-codesign" target="_blank" rel="noopener">
+        <strong>opencoworkai/open-codesign (GitHub)</strong>
+        <span>github.com/opencoworkai/open-codesign</span>
+      </a>
+      <a href="https://github.com/opencoworkai/homebrew-tap" target="_blank" rel="noopener">
+        <strong>Homebrew Tap (opencoworkai/tap)</strong>
+        <span>github.com/opencoworkai/homebrew-tap</span>
+      </a>
+      <a href="https://ollama.com/" target="_blank" rel="noopener">
+        <strong>Ollama — ローカル LLM ランタイム</strong>
+        <span>ollama.com</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_04_27.html" class="prev">
+        <span class="dir">← Prev · 04/27</span>
+        <strong>CUA / CuaBot — AIエージェントに「安全な身体」を授ける OSS インフラ</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">All Slides →</span>
+        <strong>日次スライド一覧へ</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-04-28 — <em>Open CoDesign</em></div>
+    <div class="f-meta">出典: opencoworkai.com 公式サイト ／ opencoworkai/open-codesign GitHub ／ Ollama ／ Homebrew Tap</div>
+  </div>
+</footer>
+</body>
+</html>
