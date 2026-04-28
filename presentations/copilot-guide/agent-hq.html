@@ -998,6 +998,55 @@
       <p>Handoffは「適材適所」の原則。調査はClaudeの推論力、高速プロトタイプはCodex、GitHub連携はCopilotと使い分けましょう。</p>
     </div>
 
+    <!-- ===== Section 6.5: 並列レビュー設計 ===== -->
+    <h2 id="parallel-review">パターン: 複数エージェント並列レビュー設計</h2>
+
+    <p>Xで2025年末から繰り返し共有されるようになった、Agent HQ の真価を発揮させる設計パターン。執筆役 1体 + レビュー役 N体を <strong>並列</strong> で走らせて、互いに干渉させずに品質を高速で収束させます。ブログ・設計書・README 改善で「並列で品質向上が体感できる」と評価が高い手法です。</p>
+
+    <h3 id="parallel-review-roles">役割分担 (4種のエージェント)</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>役割</th><th>権限</th><th>仕事</th></tr></thead>
+        <tbody>
+          <tr><td><strong>執筆役 (Writer)</strong></td><td>書き込み可</td><td>初稿生成 / レビュー指摘の最終マージ</td></tr>
+          <tr><td><strong>事実確認役 (Fact-Checker)</strong></td><td><strong>読み取り専用</strong></td><td>引用・数値・出典の整合性確認</td></tr>
+          <tr><td><strong>構成役 (Structure)</strong></td><td><strong>読み取り専用</strong></td><td>論理展開・見出し階層・冗長性</td></tr>
+          <tr><td><strong>表現役 (Style)</strong></td><td><strong>読み取り専用</strong></td><td>文体一貫性・トーン・専門用語の解説有無</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>キモ</strong>: レビュー役には書き込み権限を渡さない。最終マージは執筆役 (または人間) のみ。これで「全員が勝手に書き換える」事故を防ぎます。</p>
+
+    <h3 id="parallel-review-format">指摘の固定フォーマット</h3>
+
+    <p>レビュー役の出力フォーマットを揃えると、執筆役のマージが機械的になります。</p>
+
+    <pre><code>source     | severity | location          | before     | after      | rationale
+fact-check | high     | §3.2 第1段落      | 270いいね  | 270+いいね | 投稿時点と現在の値で揺れがある
+structure  | medium   | §5 全体           | (該当なし) | 章末に要約 | 章末まとめが抜けている
+style      | low      | §1 リード文       | 〜とのこと | 〜と確認  | 伝聞調を能動態へ</code></pre>
+
+    <h3 id="parallel-review-flow">実行フロー (4ステップ)</h3>
+
+    <ol class="steps-list">
+      <li><strong>スナップショット固定</strong>: 全エージェントに同一バージョンの入力を配布 (commit hash で固定)。後でレビュー結果が揃うまで原稿を変えない。</li>
+      <li><strong>並列レビュー実行</strong>: Agent Sessions パネルから 3レビュー役を <strong>同時起動</strong>。書き込み権限なしで起動するのが必須。</li>
+      <li><strong>統合 (執筆役)</strong>: 全レビュー結果が出揃ったら、執筆役に渡して優先順位付きでマージ。優先順位は <strong>事実 &gt; 構成 &gt; 表現</strong> を事前に明示。</li>
+      <li><strong>人間が最終判断</strong>: 統合後の差分を必ず人間が一読して commit。収束条件 (例: severity=high が0件) を満たすまでループ。</li>
+    </ol>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; Tip</div>
+      <p>Agent HQ の <a href="#monitoring">Agent Sessions パネル</a> で並列実行を可視化できます。Cloud Agent (Coding Agent) を執筆役、ローカルAgent Mode をレビュー役にすると、コスト/速度/可視性のバランスが良くなる構成です。</p>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">&#x26A0; 注意</div>
+      <p>レビュー役を3体以上に増やしても収束は速くならず、トークン消費だけが増えます。「事実 / 構成 / 表現」の3観点で十分な実証報告が多く、増やすなら<strong>観点を増やすのではなく、深さを増やす (CoT を入れる)</strong>方向にしてください。</p>
+    </div>
+
     <!-- ===== Section 7: 外部連携 ===== -->
     <h2 id="integrations">Agent HQの外部連携</h2>
 

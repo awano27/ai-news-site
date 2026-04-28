@@ -1253,7 +1253,55 @@ Reference: AGENTS.md (Copilot用の詳細ルール)</code></div>
 
     <p>「AIが生成したものを、人間が仕様と照らし合わせて収束させる」&mdash; これが2026年のAI駆動開発のパラダイムです。</p>
 
-    <!-- ===== Section 6: まとめ ===== -->
+    <!-- ===== Section 6: 実践事例 ===== -->
+    <h2 id="case-study-nttdata">実践事例: NTTデータ「6ヶ月本番稼働」レポート (X 1,432 いいね)</h2>
+
+    <p>2025年末に公開された NTTデータの実践レポートが、X で <strong>1,432 いいね・139 リポスト</strong> という上級者向け記事として異例の反響を集めました。「単に AI で楽になった」ではなく、<strong>設計・実装・テストの全工程を AI に委譲するための泥臭いエンジニアリング</strong> が詰まっていると評価された点が特徴です。本ページの「10倍テクニック」が個人最適なのに対し、これは<strong>チーム最適</strong>の到達点。</p>
+
+    <h3 id="case-nttdata-summary">事例の要点 (5項目)</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>論点</th><th>NTTデータの選択</th><th>なぜそれが効くのか</th></tr></thead>
+        <tbody>
+          <tr><td>プロンプト管理</td><td><strong><code>.github/</code> 配下に 73個のプロンプトファイル + 各種ルール + 構造定義 (合計約9,000行)</strong></td><td>個人の暗黙知をテキスト化して全員で再利用。属人化を撲滅</td></tr>
+          <tr><td>運用ルール</td><td><strong>「直接プロンプトを打つことを禁止」。コマンドと設定ファイル経由でのみ指示</strong></td><td>再現性・監査性・レビュー可能性が一気に上がる</td></tr>
+          <tr><td>実装フェーズ</td><td>設計・実装・テスト全工程を AI に委譲。人間は仕様確認と最終責任のみ</td><td>本ページの「発散=AI / 収束=人間」原則の実装例</td></tr>
+          <tr><td>本番稼働</td><td>実案件で6ヶ月稼働して継続改善</td><td>POC で終わらせず、現場の運用ノウハウとして蓄積</td></tr>
+          <tr><td>ナレッジ蓄積</td><td>個人ではなく <strong>チームのノウハウ</strong> として <code>.github/</code> で共有</td><td>新メンバー参加時の立ち上げが劇的に短縮</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="case-nttdata-takeaway">この事例から我々が学ぶべきこと</h3>
+
+    <ul>
+      <li><strong>プロンプトはコードと同じ</strong>: バージョン管理 / レビュー / リファクタの対象。Slack のメモではなくリポジトリに置く。</li>
+      <li><strong>「打たせない設計」</strong>: フリーテキスト入力を許す限り品質はバラつく。コマンドと設定ファイルに固定すれば、AI 利用がチームの資産になる。</li>
+      <li><strong>9,000行は怖くない</strong>: 73個に分割されているので、1ファイルあたり平均120行程度。<a href="custom-instructions.html">5章 カスタム指示</a> の <code>.instructions.md</code> 設計と同じ発想。</li>
+      <li><strong>本番運用が前提</strong>: POCではなく、6ヶ月の現場運用で揉まれている。<a href="professional-setup.html">9章 プロ環境構築</a>の延長線として読むと知識が直線的に繋がる。</li>
+    </ul>
+
+    <h3 id="case-nttdata-apply">自プロジェクトへの段階的適用</h3>
+
+    <ol class="steps-list">
+      <li><strong>Week 1</strong>: <code>.github/copilot-instructions.md</code> を1本だけ作る。チームの最頻出ルールから。</li>
+      <li><strong>Week 2-3</strong>: <code>.github/instructions/</code> にパス別 (例: <code>frontend/**</code>, <code>backend/**</code>) で分割。</li>
+      <li><strong>Month 2</strong>: <code>.github/prompts/</code> に頻出ワークフロー (リリース手順、PR テンプレ、レビュー観点) をコマンド化。</li>
+      <li><strong>Month 3+</strong>: <a href="community-power-ups.html#chatmodes">chatmodes / .agent.md</a> でチーム共有エージェントを定義。「直接打たせない」運用へ移行。</li>
+    </ol>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">&#x2705; 実践のコツ</div>
+      <p>いきなり 73個・9,000行 を目指さない。NTTデータも初日からこの規模ではないはずです。<strong>「PRを1本通すごとに1ルール追加」</strong> のリズムで蓄積すると、半年後には自然にこの規模に届きます。</p>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-title">&#x1F4DA; さらに深掘りしたい人へ</div>
+      <p>この事例は <a href="community-power-ups.html#patterns">第13章 コミュニティ厳選セット</a> の「ZOZO 8テクニック」「実戦プロンプトテンプレ」と組合せると効果が倍増します。本章の「Claude Code ハイブリッド」と合わせて読むのがおすすめ。</p>
+    </div>
+
+    <!-- ===== Section 7: まとめ ===== -->
     <h2 id="summary">まとめ &mdash; 上級者への道</h2>
 
     <p>GitHub Copilotの習熟には段階があります。以下の5つのステージを意識して、着実にスキルアップしていきましょう。</p>

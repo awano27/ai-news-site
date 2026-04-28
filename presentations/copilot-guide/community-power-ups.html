@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Xで実証された GitHub Copilot 周辺ツールの厳選セット。MCPサーバー・VS Code拡張・chatmode/promptファイル・Copilot Extensions・CLIワークフローまで、コピペで動く設定を網羅。">
+  <title>コミュニティ厳選セットアップ | GitHub Copilot ガイド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f1117;
+      --bg-sidebar: #161b22;
+      --bg-card: #1c2128;
+      --bg-code: #1c2128;
+      --text-primary: #e6edf3;
+      --text-heading: #ffffff;
+      --text-muted: #8b949e;
+      --accent-orange: #f97316;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-purple: #bc8cff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main); color: var(--text-primary); line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(15, 17, 23, 0.82);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+    }
+    .back-link { color: var(--text-muted); font-size: 14px; transition: color 0.15s; display: flex; align-items: center; gap: 6px; }
+    .back-link:hover { color: var(--accent-orange); }
+    .page-title { font-weight: 700; font-size: 15px; color: var(--text-heading); letter-spacing: -0.01em; }
+    .hamburger { display: none; background: none; border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); font-size: 20px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+
+    /* ===== LAYOUT ===== */
+    .layout { display: flex; min-height: calc(100vh - 56px); }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px; min-width: 240px; position: sticky; top: 56px;
+      height: calc(100vh - 56px); overflow-y: auto; padding: 24px 16px;
+      border-right: 1px solid rgba(255,255,255,0.06); background: var(--bg-sidebar);
+    }
+    .toc-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 12px; margin-bottom: 12px; }
+    .toc a { display: block; padding: 6px 12px; color: var(--text-muted); font-size: 14px; border-radius: 6px; transition: all 0.15s; line-height: 1.5; margin-bottom: 2px; }
+    .toc a:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+    .toc a.active { color: var(--accent-orange); background: rgba(249,115,22,0.1); }
+
+    .chapter-nav { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .chapter-nav-title { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px 12px; }
+    .chapter-link { display: block; padding: 5px 12px; color: var(--text-muted); font-size: 12px; border-radius: 4px; transition: all 0.15s; }
+    .chapter-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+    /* ===== MAIN ===== */
+    .main { flex: 1; padding: 48px 64px; max-width: 920px; }
+
+    .breadcrumb { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+    .breadcrumb a { color: var(--accent-blue); }
+
+    .page-eyebrow {
+      display: inline-flex; align-items: center; padding: 5px 14px;
+      border: 1px solid var(--accent-purple); border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent-purple); letter-spacing: 0.04em; margin-bottom: 18px;
+    }
+    h1.page-h1 { font-size: 40px; font-weight: 700; color: var(--text-heading); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 14px; }
+    .page-lead { font-size: 17px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.7; }
+
+    .meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
+    .meta-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-family: 'JetBrains Mono', monospace; background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); color: var(--accent-blue); }
+    .meta-badge--green { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.2); color: var(--accent-green); }
+    .meta-badge--purple { background: rgba(188,140,255,0.08); border-color: rgba(188,140,255,0.2); color: var(--accent-purple); }
+    .meta-badge--orange { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.2); color: var(--accent-orange); }
+
+    h2 {
+      font-size: 26px; font-weight: 700; color: var(--text-heading);
+      margin: 56px 0 14px; letter-spacing: -0.02em; padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    h2:first-of-type { border-top: none; padding-top: 0; }
+    h3 { font-size: 19px; font-weight: 700; color: var(--text-heading); margin: 32px 0 12px; }
+    h4 { font-size: 15px; font-weight: 700; color: var(--text-heading); margin: 20px 0 8px; }
+
+    p { margin: 12px 0; color: var(--text-primary); }
+    ul, ol { margin: 12px 0 12px 22px; }
+    ul li, ol li { margin: 6px 0; color: var(--text-primary); }
+    strong { color: var(--text-heading); font-weight: 700; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;
+    }
+    pre {
+      background: var(--bg-code); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 16px 18px; margin: 14px 0;
+      overflow-x: auto; font-size: 13px; line-height: 1.55;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    pre code { background: none; padding: 0; font-size: 13px; color: #e6edf3; }
+    .code-label {
+      display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    /* Callouts */
+    .callout {
+      border-left: 3px solid var(--accent-blue); background: rgba(88,166,255,0.06);
+      padding: 14px 18px; margin: 18px 0; border-radius: 6px; font-size: 14px;
+    }
+    .callout--green { border-color: var(--accent-green); background: rgba(63,185,80,0.06); }
+    .callout--orange { border-color: var(--accent-orange); background: rgba(249,115,22,0.06); }
+    .callout--red { border-color: var(--accent-red); background: rgba(248,81,73,0.06); }
+    .callout--purple { border-color: var(--accent-purple); background: rgba(188,140,255,0.06); }
+    .callout strong { display: block; margin-bottom: 4px; }
+    .callout--green strong { color: var(--accent-green); }
+    .callout--orange strong { color: var(--accent-orange); }
+    .callout--red strong { color: var(--accent-red); }
+    .callout--purple strong { color: var(--accent-purple); }
+    .callout strong { color: var(--accent-blue); }
+
+    /* Curation grid */
+    .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 18px 0; }
+    .tool-card {
+      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 18px 18px 16px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .tool-card:hover { transform: translateY(-2px); border-color: rgba(188,140,255,0.4); }
+    .tool-card-name { font-size: 15px; font-weight: 700; color: var(--text-heading); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .tool-card-name a { color: var(--accent-blue); font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+    .tool-card-value { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-bottom: 8px; min-height: 36px; }
+    .tool-card-quote { font-size: 12px; color: var(--text-muted); font-style: italic; padding: 6px 10px; background: rgba(255,255,255,0.03); border-left: 2px solid var(--accent-purple); border-radius: 3px; }
+
+    /* Comparison table */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th { text-align: left; padding: 10px 14px; font-weight: 700; color: var(--text-heading); background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-primary); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Steps */
+    .step-list { counter-reset: step; list-style: none; margin: 14px 0 14px 0; padding: 0; }
+    .step-list li { counter-increment: step; position: relative; padding: 12px 16px 12px 50px; margin-bottom: 8px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; }
+    .step-list li::before {
+      content: counter(step); position: absolute; left: 14px; top: 12px;
+      width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-purple), #8b5cf6); color: #fff;
+    }
+
+    /* Footer */
+    .page-footer-nav { margin-top: 64px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .page-footer-nav a { color: var(--accent-blue); font-size: 14px; }
+
+    .changelog { margin-top: 40px; padding: 16px 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; font-size: 13px; color: var(--text-muted); }
+    .changelog h4 { color: var(--text-heading); margin-top: 0; }
+
+    /* Mobile */
+    @media (max-width: 1024px) {
+      .tool-grid { grid-template-columns: 1fr; }
+      .main { padding: 40px 32px; }
+    }
+    @media (max-width: 767px) {
+      .topbar { backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .hamburger { display: block; }
+      .sidebar { display: none; position: fixed; top: 56px; left: 0; right: 0; width: 100%; min-width: 0; height: auto; max-height: calc(100vh - 56px); border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); z-index: 150; }
+      .sidebar.open { display: block; }
+      .layout { flex-direction: column; }
+      .main { padding: 28px 20px; max-width: 100%; }
+      h1.page-h1 { font-size: 28px; }
+      h2 { font-size: 22px; }
+    }
+  </style>
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="back-link">&larr; ガイドTOP</a>
+    <span class="page-title">コミュニティ厳選セットアップ</span>
+    <button class="hamburger" id="hamburger" aria-label="メニュー">&#9776;</button>
+  </header>
+
+  <div class="layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="toc-label">このページの目次</div>
+      <nav class="toc">
+        <a href="#why">なぜこのページか</a>
+        <a href="#criteria">3軸キュレーション基準</a>
+        <a href="#strategy">Cloud vs Local とモデル選択</a>
+        <a href="#quickstart">最初の30分セット</a>
+        <a href="#patterns">プロンプトパターン (ZOZO 8 + テンプレ)</a>
+        <a href="#mcp">MCPサーバー厳選カタログ</a>
+        <a href="#extensions">Copilot Extensions</a>
+        <a href="#chatmodes">chatmodes / prompts / instructions</a>
+        <a href="#vscode">VS Code 拡張: Copilotを底上げする5本</a>
+        <a href="#cli">CLI ワークフロー</a>
+        <a href="#docs">MD &rarr; PPT/Word ワークフロー</a>
+        <a href="#pitfalls">アンチパターン</a>
+        <a href="#policy">更新ポリシー</a>
+      </nav>
+
+      <div class="chapter-nav">
+        <div class="chapter-nav-title">全章</div>
+        <a class="chapter-link" href="getting-started.html">1. Getting Started</a>
+        <a class="chapter-link" href="agent-mode.html">2. Agent Mode</a>
+        <a class="chapter-link" href="coding-agent.html">3. Coding Agent</a>
+        <a class="chapter-link" href="cli.html">4. Copilot CLI</a>
+        <a class="chapter-link" href="custom-instructions.html">5. カスタム指示</a>
+        <a class="chapter-link" href="spaces-and-mcp.html">6. Spaces &amp; MCP</a>
+        <a class="chapter-link" href="workflows.html">7. 実践ワークフロー</a>
+        <a class="chapter-link" href="pitfalls.html">8. 落とし穴</a>
+        <a class="chapter-link" href="professional-setup.html">9. プロ環境構築</a>
+        <a class="chapter-link" href="advanced-techniques.html">10. 生産性10倍</a>
+        <a class="chapter-link" href="agent-hq.html">11. Agent HQ</a>
+        <a class="chapter-link" href="document-analysis.html">12. その他業務</a>
+        <a class="chapter-link active" href="community-power-ups.html">13. コミュニティ厳選 <span style="color:var(--accent-orange);font-size:10px;">NEW</span></a>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+      <div class="breadcrumb">
+        <a href="index.html">ガイドTOP</a> / <span style="color:var(--text-primary);">コミュニティ厳選セットアップ</span>
+      </div>
+
+      <span class="page-eyebrow">Chapter 13 &middot; Community Power-Ups</span>
+      <h1 class="page-h1">公式機能を超えて、Xで実証された&ldquo;効くやつ&rdquo;だけ</h1>
+      <p class="page-lead">
+        GitHub Copilot 本体の解説は他の章に任せ、この章は <strong>X (Twitter) のエンジニアコミュニティで実際に動かして「効いた」</strong> と証言が積み上がっている周辺ツールだけを扱います。
+        MCPサーバー、VS Code 拡張、<code>.github/chatmodes/</code>、Copilot Extensions、CLI ワークフローを <strong>コピペで動く設定</strong> 付きで網羅。
+      </p>
+      <div class="meta-row">
+        <span class="meta-badge meta-badge--purple">中級〜上級</span>
+        <span class="meta-badge">所要 25 分</span>
+        <span class="meta-badge meta-badge--orange">最終キュレーション: 2026-04-28</span>
+        <span class="meta-badge meta-badge--green">コピペで即動作</span>
+      </div>
+
+      <!-- ===== なぜこのページか ===== -->
+      <h2 id="why">なぜこのページが必要か</h2>
+      <p>
+        Copilot 本体の機能 (Agent Mode / Coding Agent / Spaces / MCP) はドキュメントが充実しています。
+        一方で <strong>「で、結局どのMCPを入れればいいのか」「awesome-copilot から何を採るべきか」</strong> を判断する際は、
+        X (旧Twitter) で日々共有される <strong>実戦投入された生の声</strong> が一次情報になります。
+      </p>
+      <p>
+        このページは、それらを毎月のように追って「再現性があり、Copilot から直接呼べ、現役で使われている」ものだけを残しました。
+        <strong>各ツールに「採用理由 (なぜXで評判か)」を1文添える</strong> ルールを自分に課しています。書けないものは載せていません。
+      </p>
+
+      <!-- ===== 3軸キュレーション基準 ===== -->
+      <h2 id="criteria">3軸キュレーション基準</h2>
+      <p>選定の透明性のため、本ページに掲載する条件を開示します。</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 22%">軸</th>
+              <th style="width: 38%">基準</th>
+              <th>確認手段</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:var(--accent-purple);">直近性</strong></td>
+              <td>過去90日以内にXで再言及されている</td>
+              <td>著名アカウント (vscode公式 / githubnext / Microsoft DevDiv / コミュニティMCPメンテナ) のタイムラインを定点観測</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--accent-blue);">再現性</strong></td>
+              <td>READMEどおりに5分以内に動く</td>
+              <td>公式リポにセットアップ手順あり / 設定ファイルが本ページにそのまま貼ってある</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--accent-green);">Copilot親和性</strong></td>
+              <td>VS Code Copilot から直接呼べる、または chatmode/prompt/instructions で呼出しを定型化できる</td>
+              <td><code>.vscode/mcp.json</code> または <code>.github/chatmodes/*.chatmode.md</code> の実例があるか</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== Cloud vs Local & モデル選択 ===== -->
+      <h2 id="strategy">Cloud Agent / Local / CLI の使い分け &amp; モデル選択戦略</h2>
+      <p>
+        どのMCPやSkillを入れる前に、<strong>「いま、どのエージェント形態を使うべきか」</strong> の判断軸を持っておくと無駄な切替コストが消えます。
+        Microsoft CSA や実務家がXで繰り返し共有している判断基準を表にまとめました。
+      </p>
+      <h3>形態の判断マトリクス</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:18%">形態</th><th>向くタスク</th><th>使う場面</th></tr></thead>
+          <tbody>
+            <tr><td><strong style="color:var(--accent-green);">Cloud Agent (Coding Agent)</strong></td><td>新規作成 / 大量作成 / 一発で高品質 / 非同期で進められる</td><td>移動中・会議中・離席間際に投げて、戻ってきてレビュー</td></tr>
+            <tr><td><strong style="color:var(--accent-blue);">Agent Mode (IDE)</strong></td><td>複数ファイルにまたがる中規模実装 / 即時対話したい</td><td>着席して30分〜2時間集中できる時間帯</td></tr>
+            <tr><td><strong style="color:var(--accent-orange);">CLI (gh copilot / gh copilot chat)</strong></td><td>細かい修正 / 計画→実行を分離 / 15分超のバックグラウンド</td><td>ターミナル中心 / シェル統合したい / Plan モードで承認制にしたい</td></tr>
+            <tr><td><strong style="color:var(--accent-purple);">Edit / Ask Mode</strong></td><td>1ファイルピンポイント / コードの説明だけ欲しい</td><td>「変えてほしい場所が明確」「読みたいだけ」</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>判断フロー (X 実務家の定着版)</strong>
+        <code>新規・大量・一発で高品質 → Cloud</code> / <code>15分超 → CLI &amp; バックグラウンド</code> / <code>5〜30分 → Agent Mode</code> / <code>1ファイル単発 → Edit Mode</code>
+      </div>
+
+      <h3>モデル選択: 「分析は Claude / 生成は GPT」の二刀流</h3>
+      <p>
+        Pro+ / Business では複数モデルが使えます。Xでもっとも議論されてきた使い分けはこれです:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:24%">用途</th><th>推奨</th><th>理由</th></tr></thead>
+          <tbody>
+            <tr><td>大量資料の横断分析・俯瞰</td><td>Claude Opus / Sonnet 系</td><td>長文読解と論理一貫性で安定</td></tr>
+            <tr><td>新規コード生成・既存コード改修</td><td>GPT-5 / Codex 系</td><td>コード生成のスループットと型推論</td></tr>
+            <tr><td>普段使い (デフォルト)</td><td>mini High クラス</td><td>コスト/品質比でX上の合意点</td></tr>
+            <tr><td>難所だけ昇格</td><td>High / xhigh クラス</td><td>「いつもは mini、詰まったら昇格」が定番運用</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout--purple">
+        <strong>ハイブリッド運用</strong>
+        Claude で深掘り調査 → 結果のMDを Copilot Agent Mode に渡して高速実装、というワークフローが上級者層の定番。<a href="advanced-techniques.html" style="color:var(--accent-blue);">10章 生産性10倍テクニック</a> に詳細あり。
+      </div>
+
+      <!-- ===== 最初の30分セット ===== -->
+      <h2 id="quickstart">最初の30分セット (5ツール最小構成)</h2>
+      <p>
+        まずこの5つだけ入れてください。<strong>体感で生産性が変わる順</strong> に並べています。すべて入れて30分以内です。
+      </p>
+      <ol class="step-list">
+        <li>
+          <strong>Context7 MCP</strong> &mdash; ライブラリの最新ドキュメントをCopilotに読ませる。「古い書き方を出される」問題を即解決。<br>
+          <span class="code-label">.vscode/mcp.json (1サーバー版)</span>
+<pre><code>{
+  "servers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}</code></pre>
+          <strong style="font-weight:400;">確認:</strong> Copilot Chat で <code>resolve-library-id "react query"</code> と打って候補が返ればOK。
+        </li>
+        <li>
+          <strong>Playwright MCP (Microsoft 公式)</strong> &mdash; Copilot にブラウザを操作させる。E2E テスト書き起こし、UI バグ再現が一気に楽になる。
+<pre><code>{
+  "servers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}</code></pre>
+        </li>
+        <li>
+          <strong>GitHub MCP Server (公式)</strong> &mdash; Issue/PR/Actions を Copilot から直接操作。リモート版を使うと OAuth で即起動。
+<pre><code>{
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    }
+  }
+}</code></pre>
+          <strong>確認:</strong> 初回アクセスで OAuth 認証ダイアログが出る → 承認すれば <code>list_issues</code> 等が呼べる。
+        </li>
+        <li>
+          <strong>awesome-copilot の <code>code-reviewer.chatmode.md</code></strong> &mdash; PR レビュー専用モード。Mode セレクタから1クリックで切替。
+          (<a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener">github/awesome-copilot</a> から該当ファイルを <code>.github/chatmodes/</code> に保存)
+        </li>
+        <li>
+          <strong>VS Code 拡張: Error Lens</strong> &mdash; エラーを行内に表示する単純な拡張だが、Copilot の修正提案がエラー文脈を理解する精度が上がる (Copilotはエディタ表示の文脈も読むため)。
+        </li>
+      </ol>
+
+      <div class="callout callout--green">
+        <strong>動作確認の鉄則</strong>
+        MCPサーバーを追加したら必ず VS Code Output パネル → "MCP" チャンネルでサーバー起動ログを確認。<code>tools/list</code> が返ってくれば成功。エラーなら <code>npx</code> のキャッシュを <code>npx clear-npx-cache</code> でクリア。
+      </div>
+
+      <h3>+α: <code>gh skill</code> でコミュニティSkillをワンライナー導入 (2026年4月新機能)</h3>
+      <p>
+        2026年4月の <code>gh</code> 拡張で <code>gh skill</code> サブコマンドが追加されました。<strong>Copilot / Claude Code / Cursor / Codex すべて対応</strong>のコマンドで、<a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener">awesome-copilot</a> から個別Skillをピン止めバージョンで配布できます。Xでも「Agent Skills を CLI から配布できる文化が一気に加速する」と評価されています。
+      </p>
+<pre><code># 個別Skillをバージョン固定でインストール
+gh skill install github/awesome-copilot/skills/pptx-toolkit --pin v1.2.3
+
+# インストール済み一覧
+gh skill list
+
+# 更新確認
+gh skill update</code></pre>
+      <div class="callout">
+        <strong>チームに広げるとき</strong>
+        <code>skills-lock.json</code> をリポジトリにコミットすれば、メンバー全員が <code>gh skill install</code> で同じバージョンを再現可能。<code>npm</code> の <code>package-lock.json</code> と同じ発想です。
+      </div>
+
+      <!-- ===== プロンプトパターン ===== -->
+      <h2 id="patterns">プロンプトパターン (ZOZO 8テクニック + 実戦テンプレ)</h2>
+      <p>
+        ツールを揃えても、プロンプトが下手だと精度は伸びません。ここではXで特にバズった2つの一次情報を統合しています:
+        <strong>(1)</strong> ZOZOが2024年12月に公開した「GitHub Copilot のテクニック集」(Speaker Deck で 751いいね)、
+        <strong>(2)</strong> Microsoft が 2026年1月に無料公開した「プロンプト設計ガイド」。
+        どちらも「コンテキストは詳細すぎるくらいでよい」「記号で構造化する」が共通の鉄則です。
+      </p>
+
+      <h3>ZOZO 8テクニック (Copilot 特化)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:5%">#</th><th style="width:24%">テクニック</th><th>概要</th><th style="width:30%">Copilotでの効かせ方</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>ショートカット活用</strong></td><td>Tab / Alt+] / Ctrl+I で提案を素早く操作</td><td>インライン編集は <code>Ctrl+I</code> が最速</td></tr>
+            <tr><td>2</td><td><strong>Neighboring Tabs</strong></td><td>関連ファイルを事前に開く / 不要は閉じる</td><td>編集中ファイルの「近くに開いている同種ファイル」を読む特性を利用</td></tr>
+            <tr><td>3</td><td><strong>記号で構造化</strong></td><td><code>###</code> / <code>---</code> / <code>**</code> / <code>```</code> で見出し化</td><td>Markdown 解釈の精度がXY軸で上がる</td></tr>
+            <tr><td>4</td><td><strong>コンテキスト過多OK</strong></td><td>詳細すぎても害は少ない</td><td>「使用箇所・パフォーマンス目標・エラー送信先」まで書く</td></tr>
+            <tr><td>5</td><td><strong>Few-shot (2〜3例)</strong></td><td>期待出力の例を2〜3個示す</td><td>4個以上はトークン無駄、2〜3でほぼ収束</td></tr>
+            <tr><td>6</td><td><strong>Chain-of-Thought</strong></td><td>「ステップ1: ... ステップ2: ...」と分解</td><td>複雑タスク専用。単純補完では逆効果</td></tr>
+            <tr><td>7</td><td><strong>知識生成プロンプト</strong></td><td>「最新ベストプラクティスに基づき3案」</td><td>具体年・分野を明示すると探索が安定</td></tr>
+            <tr><td>8</td><td><strong>少し書き始める</strong></td><td><code>function validateEmail(email: string) {</code> まで書いてから Tab</td><td>インライン補完の待ち時間が消える</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>5つの実戦テンプレ (コピペで動く)</h3>
+
+      <h4>1. 万能テンプレ (役割 / タスク / コンテキスト / 出力形式 / 制約)</h4>
+<pre><code>役割: あなたは [シニアTypeScriptエンジニア] です。
+タスク: [この関数をリファクタリング]
+コンテキスト: [ユーザー管理APIで使用 / p95 &lt; 150ms 目標 / 既存ErrorHandlerを使う]
+出力形式: 改善前/改善後コード比較 + 変更理由のMarkdownテーブル
+制約: 外部ライブラリ追加禁止 / 既存のコードベース内で完結</code></pre>
+
+      <h4>2. TDD (テスト先行) パターン</h4>
+<pre><code>まずこの機能の失敗テストを Vitest で書いて。
+- 異常系も必ず含める
+- Given-When-Then 形式
+- 失敗するテスト出力を見せてから、最小実装を提案</code></pre>
+
+      <h4>3. セキュリティレビュー</h4>
+<pre><code>OWASP Top 10 と SANS Top 25 を考慮したレビュー。
+入力バリデーション / SQLi / XSS 対策をコメントで明示。
+指摘は「修正前 → 修正後」+ 根拠リンクをセットで。</code></pre>
+
+      <h4>4. SOLID リファクタ</h4>
+<pre><code>このクラスを SOLID 原則でリファクタ。
+特に「単一責任」「依存性逆転」を強く意識。
+DI 可能なインターフェースを抽出して。</code></pre>
+
+      <h4>5. CLI / Agent Mode 用 長文指示</h4>
+<pre><code>以下のタスクを「計画 → 承認待ち → 実行」で進めて。
+1. /plan で全体計画を出す (実行前に止まる)
+2. 複数ファイル変更は一括で
+3. テストは必ず追加・実行
+4. 完了後は変更サマリーを Markdown で
+タスク: [具体的な機能追加内容]</code></pre>
+
+      <h3>Custom Instructions に入れるべき定番ルール</h3>
+      <p>
+        個別プロンプトで毎回書かなくて済むよう、<code>.github/copilot-instructions.md</code> に下記を入れておくのが実務での定番です。
+        詳細は <a href="custom-instructions.html" style="color:var(--accent-blue);">5章 カスタム指示</a>。
+      </p>
+<pre><code class="code-label">.github/copilot-instructions.md (チーム共通の定番)
+# プロジェクト全体ルール
+- すべてのコード生成で「エラーハンドリング / ログ / 型定義」を必須
+- テストは「正常系 + 異常系 + 境界値」を最低3パターン
+- コメントは Why (なぜそうしたか) を中心に。What は書かない
+- 変数名・関数名は業務ドメイン用語を優先 (userId ではなく customerId)
+- 出力は日本語の構造化Markdown (見出し階層厳守)</code></pre>
+      <div class="callout callout--green">
+        <strong>X で繰り返し共有されている鉄則</strong>
+        <strong>(1)</strong> コンテキストは多めが吉。<strong>(2)</strong> <code>###</code> や <code>```</code> で構造化。<strong>(3)</strong> Few-shot は 2〜3例で十分。<strong>(4)</strong> CoT は複雑タスクのみ。<strong>(5)</strong> 「少し書き始める」は最強の時短テク。
+      </div>
+
+      <!-- ===== MCPサーバー厳選カタログ ===== -->
+      <h2 id="mcp">MCPサーバー厳選カタログ</h2>
+      <p>
+        既存章 <a href="spaces-and-mcp.html" style="color:var(--accent-blue);">Spaces &amp; MCP</a> でMCPの基本概念は説明済み。ここではXで議論が活発なサーバーをカテゴリ別に厳選しています。
+      </p>
+
+      <h3>A. ドキュメント参照系</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Context7 <a href="https://github.com/upstash/context7" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">npm/PyPI/RubyGems の最新ドキュメントをトークンに圧縮して渡す。「古いAPI書き方を出される」を撲滅。</div>
+          <div class="tool-card-quote">"Just installed Context7 and my Copilot stopped hallucinating API signatures" 系のツイートが定期的にバズる定番。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">DeepWiki MCP <a href="https://github.com/regenrek/deepwiki-mcp" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">GitHub リポジトリを <code>deepwiki.com/&lt;org&gt;/&lt;repo&gt;</code> 形式で参照。OSS の内部仕様を Copilot に直接読ませられる。</div>
+          <div class="tool-card-quote">「初見のOSSに contribute するときのキャッチアップ時間が1/5になった」とOSSメンテナ層に支持。</div>
+        </div>
+      </div>
+
+      <h3>B. Web / ブラウザ系</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Firecrawl MCP <a href="https://github.com/mendableai/firecrawl-mcp-server" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">Webページをマークダウンで取得・サイト全体クロール・JSスキーマで構造化抽出。WebFetch代替の決定版。</div>
+          <div class="tool-card-quote">調査タスクで「ChatGPT Search の結果を Copilot Chat に流す手間がなくなった」声多数。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Playwright MCP (公式) <a href="https://github.com/microsoft/playwright-mcp" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">DOMアクセシビリティツリー経由でブラウザ操作。E2E テスト自動生成、UI バグ再現に強い。Microsoft 公式。</div>
+          <div class="tool-card-quote">公式が出した瞬間にX上のMCPランキングを塗り替えた本命。</div>
+        </div>
+      </div>
+
+      <h3>C. 記憶 / 状態系</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Memory MCP (公式) <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/memory" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">セッション横断で「ユーザー嗜好・プロジェクト規約」をナレッジグラフ保存。AGENTS.md と相補。</div>
+          <div class="tool-card-quote">「同じ説明を3回しなくて済むだけで投資回収」が共通体験。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">mem0 MCP <a href="https://github.com/mem0ai/mem0" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">ベクトル+グラフのハイブリッド長期記憶。複数プロジェクトを横断する個人開発者向き。</div>
+          <div class="tool-card-quote">「業務リポと個人リポでスタイルを使い分ける」用途で支持。</div>
+        </div>
+      </div>
+
+      <h3>D. 思考補助</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Sequential Thinking MCP <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">複雑タスクを「思考ステップ」に分解させる。設計フェーズで Copilot の答えが急に深くなる。</div>
+          <div class="tool-card-quote">「Agent Mode が暴走しがちなリファクタで効く」と上級層が推薦。</div>
+        </div>
+      </div>
+
+      <h3>E. 業務 SaaS 連携</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Notion MCP (公式) <a href="https://github.com/makenotion/notion-mcp-server" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">Notion DBの読み書き。仕様書から実装へ→実装からドキュメント更新へ、を Copilot 内で完結。</div>
+          <div class="tool-card-quote">"Notion が Copilot のメモ帳になった" 系の体験談が定番。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Linear MCP (公式) <a href="https://linear.app/changelog/2025-mcp" target="_blank" rel="noopener">docs &rarr;</a></div>
+          <div class="tool-card-value">Issue 一覧取得・チケット作成・コメント。PR と Linear を双方向で同期できる。</div>
+          <div class="tool-card-quote">「stand-up の準備時間が消えた」がチームリード層の定番。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Figma Dev Mode MCP <a href="https://help.figma.com/hc/en-us/articles/32132100833559" target="_blank" rel="noopener">docs &rarr;</a></div>
+          <div class="tool-card-value">選択中のフレームのデザイントークン・コンポーネント情報をCopilotへ。「Figma → コード」のロスを最小化。</div>
+          <div class="tool-card-quote">フロントエンド層の今期最注目MCP。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Slack MCP <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/slack" target="_blank" rel="noopener">repo &rarr;</a></div>
+          <div class="tool-card-value">チャンネル投稿・DM・履歴検索。Coding Agent と組合せで「PR完了通知 → Slack」を1ターンで。</div>
+          <div class="tool-card-quote">SRE / Platform 層が定番化。</div>
+        </div>
+      </div>
+
+      <h4>マルチMCP組合せの基本</h4>
+      <pre><code>{
+  "servers": {
+    "context7":   { "command": "npx", "args": ["-y", "@upstash/context7-mcp"] },
+    "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] },
+    "firecrawl":  { "command": "npx", "args": ["-y", "firecrawl-mcp"], "env": { "FIRECRAWL_API_KEY": "${input:firecrawl_key}" } },
+    "github":     { "type": "http", "url": "https://api.githubcopilot.com/mcp/" },
+    "memory":     { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"] },
+    "sequential": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"] }
+  },
+  "inputs": [
+    { "type": "promptString", "id": "firecrawl_key", "description": "Firecrawl API Key", "password": true }
+  ]
+}</code></pre>
+      <div class="callout callout--orange">
+        <strong>入れすぎ注意</strong>
+        MCPは1サーバーごとに <code>tools/list</code> を起動時に拾うため、20個以上入れるとコンテキスト枠を圧迫します。「常用5個 + 案件用3個」くらいが体感のスイートスポット。
+      </div>
+
+      <h3>Enterprise セキュリティ: MCP Allowlist の必須化</h3>
+      <p>
+        個人なら自由に MCP を追加できますが、<strong>Business / Enterprise では「野良 MCP の混入」が監査リスク</strong>になります。
+        GitHub Enterprise には MCP サーバーの許可リスト機能があり、認可済みサーバーだけを <code>.vscode/mcp.json</code> から起動可能にできます。
+        本番運用直前に必ず管理者ポリシーで設定してください。
+      </p>
+      <ul>
+        <li>管理画面で許可するMCPレジストリ / 個別サーバーを指定</li>
+        <li>未承認サーバーは VS Code 側で起動拒否される</li>
+        <li>監査ログで「誰が・いつ・どのMCPを呼んだか」を追跡</li>
+      </ul>
+      <div class="callout callout--red">
+        <strong>運用の鉄則</strong>
+        <strong>(1)</strong> 入れる MCP は必ず GitHub の公式 / 企業メンテナのものに限定。<strong>(2)</strong> Allowlist 設定後はチームの <code>.vscode/mcp.json</code> をリポジトリにコミットして「みんな同じ MCP」状態を強制。詳細は <a href="https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-mcp-usage/configure-mcp-server-access" target="_blank" rel="noopener">GitHub 公式ドキュメント &rarr;</a>
+      </div>
+
+      <!-- ===== Copilot Extensions ===== -->
+      <h2 id="extensions">Copilot Extensions (Marketplace ピックアップ)</h2>
+      <p>
+        Copilot Chat に <code>@xxx</code> で呼べる Marketplace 拡張。MCPと違い、サーバー設定不要でインストール即使用。
+        現時点で「実用報告」が継続的にXに上がっているものに絞っています。
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>拡張</th><th>主用途</th><th>使いどころ (1行)</th></tr></thead>
+          <tbody>
+            <tr><td><code>@gitkraken</code></td><td>Git 操作</td><td>「コンフリクトの中身」を自然言語で説明させる</td></tr>
+            <tr><td><code>@atlassian</code> (Rovo Dev)</td><td>Jira / Confluence</td><td>Jira チケットからそのまま実装に着手</td></tr>
+            <tr><td><code>@mongodb</code></td><td>DB 操作</td><td>クエリの説明・最適化提案・スキーマ設計</td></tr>
+            <tr><td><code>@sentry</code></td><td>エラー監視</td><td>「直近のエラー上位5件を直して」を1ターンで</td></tr>
+            <tr><td><code>@docker</code></td><td>コンテナ管理</td><td>Dockerfile の脆弱性チェック・最適化</td></tr>
+            <tr><td><code>@postman</code></td><td>API 検証</td><td>コレクションを Copilot に解説させて即テスト生成</td></tr>
+            <tr><td><code>@perplexity</code></td><td>Web 検索</td><td>最新ライブラリ情報を引用付きで取得</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>選定基準</strong>
+        Marketplace には数百の拡張がありますが、本ページでは <strong>(1) 公式または企業メンテナンス</strong>、<strong>(2) Copilot Chat以外の代替手段がない場合のみ拡張する</strong>、を満たすものだけ。「あれば便利」程度のものは載せていません。
+      </div>
+
+      <!-- ===== Chatmodes / Prompts / Instructions ===== -->
+      <h2 id="chatmodes"><code>.github/chatmodes/</code> &amp; <code>.github/prompts/</code> 厳選パック</h2>
+      <p>
+        VS Code 1.103以降、Copilot Chat は <code>.chatmode.md</code> / <code>.prompt.md</code> / <code>.instructions.md</code> を読み込みます。
+        <a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener">github/awesome-copilot</a> リポにコミュニティ製のテンプレートが集まっており、ここから <strong>実用4本</strong> を絞り込みました。
+      </p>
+
+      <h3>4本セット (役割別)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ファイル名</th><th>役割</th><th>使うとき</th></tr></thead>
+          <tbody>
+            <tr><td><code>code-reviewer.chatmode.md</code></td><td>PRレビュー専用モード</td><td>差分を選択 → Mode 切替 → "Review this"</td></tr>
+            <tr><td><code>test-author.chatmode.md</code></td><td>TDDアシスタント</td><td>失敗テスト → Mode 切替で実装支援</td></tr>
+            <tr><td><code>security-auditor.chatmode.md</code></td><td>セキュリティ静的レビュー</td><td>機密扱う関数を選択 → 脆弱性洗い出し</td></tr>
+            <tr><td><code>refactor-planner.chatmode.md</code></td><td>大規模リファクタの段取り</td><td>「触る前に計画を出させる」</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>導入手順 (4本まとめて、1分)</h3>
+      <ol class="step-list">
+        <li>リポジトリのルートで <code>mkdir -p .github/chatmodes .github/prompts .github/instructions</code></li>
+        <li><a href="https://github.com/github/awesome-copilot" target="_blank" rel="noopener">awesome-copilot</a> から該当ファイルを <code>.github/chatmodes/</code> に保存 (4ファイル)</li>
+        <li>VS Code を再読み込み (<code>Cmd/Ctrl + Shift + P</code> → "Reload Window")</li>
+        <li>Copilot Chat の Mode セレクタを開く → 4モードが追加されている</li>
+      </ol>
+
+      <h3>自作するときの最小骨格</h3>
+      <pre><code class="code-label">FILE: .github/chatmodes/test-author.chatmode.md</code>---
+description: Pragmatic test-first assistant for our codebase.
+tools: ['codebase', 'editFiles', 'runCommands', 'search', 'usages']
+model: GPT-5
+---
+
+You write the smallest failing test first, then minimal implementation.
+
+Rules:
+- Use Vitest for TS, pytest for Python (autodetect from package.json / pyproject.toml).
+- Always show the failing test output before suggesting impl code.
+- If a test name has "should not", verify the negative path explicitly.
+</code></pre>
+      <div class="callout callout--purple">
+        <strong>Tips</strong>
+        <code>tools:</code> で許可するツールを最小限にすると暴走しません。<code>codebase</code>、<code>editFiles</code>、<code>runCommands</code> の3つで多くの作業はこなせます。
+      </div>
+
+      <h3><code>.github/instructions/*.instructions.md</code> も併用する</h3>
+      <p>
+        chatmode は「明示的に切替えるモード」。 <code>.instructions.md</code> は「特定パスで自動適用される指示」です。両者を組み合わせると、デフォルト挙動と専門モードを両立できます。
+        詳細は <a href="custom-instructions.html" style="color:var(--accent-blue);">5章 カスタム指示</a> を参照。
+      </p>
+
+      <h3>チーム共有カスタムエージェント (<code>.github/agents/*.agent.md</code>)</h3>
+      <p>
+        Microsoft エバンジェリストのハンズオンで紹介されて以降、Xで「<strong>地味だが効く</strong>」と評価が定着したパターン。
+        <code>.agent.md</code> をリポジトリにコミットすれば、チーム全員が「同じ品質の定型作業」を再現できます。Claude Code の <code>.claude/agents/</code> と同じ思想で、Copilot CLI が公式サポート。
+      </p>
+<pre><code class="code-label">FILE: .github/agents/code-review-agent.agent.md
+---
+name: CodeReviewAgent
+description: セキュリティ・パフォーマンス・可読性を重視したPRレビュー専門
+---
+
+役割:
+- OWASP Top 10 該当の脆弱性を指摘
+- パフォーマンスボトルネック (BigO 含む) を具体的に
+- チームの .github/copilot-instructions.md に準拠
+
+出力フォーマット:
+| 指摘箇所 | 深刻度 | 修正案 | 理由 |
+|---------|-------|-------|------|
+</code></pre>
+      <div class="callout callout--purple">
+        <strong>chatmode との違い</strong>
+        chatmode は「個人がCopilot Chat内で切替える」UI 装置。<code>.agent.md</code> は「チームのリポジトリにコミットして再利用する」エージェント定義。前者は対話、後者は配布物、と覚えると整理しやすい。
+      </div>
+
+      <!-- ===== VS Code 拡張 ===== -->
+      <h2 id="vscode">VS Code 拡張: Copilotを底上げする5本</h2>
+      <p>
+        Copilot 単体ではなく <strong>「Copilot がエディタの状態をより正確に読める」状態を作る</strong> 拡張を選びました。単なる便利ツール一覧ではありません。
+      </p>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Error Lens <a href="https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens" target="_blank" rel="noopener">install &rarr;</a></div>
+          <div class="tool-card-value">エラー/警告を行内インライン表示。Copilot は表示中の文脈を読むため、診断情報が見えていることで提案精度が上がる。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">GitLens <a href="https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens" target="_blank" rel="noopener">install &rarr;</a></div>
+          <div class="tool-card-value">行blame・差分・履歴。<code>@workspace</code> や Spaces と組合せで「変更理由」を Copilot が拾える。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Pretty TypeScript Errors <a href="https://marketplace.visualstudio.com/items?itemName=YoavBls.pretty-ts-errors" target="_blank" rel="noopener">install &rarr;</a></div>
+          <div class="tool-card-value">TS の長文エラーを構造化表示。Copilot に貼り付ける時の整形手間がなくなる。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Path Intellisense <a href="https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense" target="_blank" rel="noopener">install &rarr;</a></div>
+          <div class="tool-card-value">パス補完。Copilot が import パスを誤生成した時の修正コストを下げる。地味だが効く。</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Continue <a href="https://marketplace.visualstudio.com/items?itemName=Continue.continue" target="_blank" rel="noopener">install &rarr;</a></div>
+          <div class="tool-card-value">OSS のサブエージェント。Copilot で実装 → Continue にローカル LLM でレビューさせる、の二刀流が一部界隈で定着。</div>
+        </div>
+      </div>
+
+      <!-- ===== CLI ワークフロー ===== -->
+      <h2 id="cli">CLI ワークフロー</h2>
+      <p>
+        既存章 <a href="cli.html" style="color:var(--accent-blue);">4. Copilot CLI</a> で <code>copilot</code> コマンドの基本は解説済み。ここでは <strong>Unix パイプとの組合せ実用例</strong> を中心に。
+      </p>
+
+      <h3>3つの定番コンボ</h3>
+      <pre><code class="code-label"># 1. 直近の変更を Copilot に説明させる
+git diff HEAD~1 | gh copilot explain
+
+# 2. エラー出力をそのまま分析
+npm test 2>&amp;1 | tail -50 | gh copilot explain
+
+# 3. 「やりたいこと」からコマンドを逆引き
+gh copilot suggest "delete merged branches except main and develop"
+</code></pre>
+
+      <h3>シェル alias 定番</h3>
+      <pre><code class="code-label">~/.zshrc または ~/.bashrc
+alias '?'='gh copilot suggest'
+alias '??'='gh copilot explain'
+
+# 使い方
+? "list large files in this repo"
+?? "tar -xzvf archive.tar.gz"
+</code></pre>
+      <div class="callout">
+        <strong>Tips</strong>
+        <code>?</code> alias は Z shell で <code>setopt NO_NOMATCH</code> をしないと globbing と衝突します。bash なら問題なし。
+      </div>
+
+      <!-- ===== MD → PPT/Word ワークフロー ===== -->
+      <h2 id="docs">Markdown を真のソース化: 要件定義MD &rarr; PPT / Word ワークフロー</h2>
+      <p>
+        @super_bonochin による <strong>270いいね超のXポスト</strong> を起点に、<strong>「資料受領 → 一括分析 → MDで要件定義 → PPT/Word自動生成」</strong> のワークフローが定番化しました。
+        要件定義をMDで Git 管理しておけば、変更時はMDだけ編集して PPT/Word を再生成すれば済みます。バージョン管理・差分レビューが効くため、「資料の真実は常にMD」状態にできます。
+      </p>
+
+      <h3>全体パイプライン</h3>
+<pre><code>./customer-docs/         &larr; 顧客資料を全部ここに置く (PDF/PPTX/DOCX/XLSX)
+       ↓ Copilot CLI で一括分析 (高性能モデル)
+./requirements/要件_v1.md  &larr; Markdown が真のソース
+       ↓ 人間レビュー + Copilot で追記
+       ↓ Git commit (差分レビュー可能)
+       ↓ 4オプションで生成
+./output/要件定義.pptx    要件定義.docx    slides.html (Marp)</code></pre>
+
+      <h3>Step 1: 顧客資料の一括分析プロンプト (CLI)</h3>
+<pre><code>@customer-docs/ 内の全資料を横断的に読み込み、以下の観点で構造化Markdownを出力。
+
+- ビジネス要件 / 機能要件 / 非機能要件 / 制約事項 / リスク
+- 各要件に「優先度 (高/中/低)」「出典 (ファイル名 p.XX)」「検証方法」を必ず記載
+- 欠落情報・曖昧点はリストアップ (追加質問リスト)
+
+出力先: ./requirements/要件定義_v1.md
+モデル: Claude Opus 系 (横断読解と論理一貫性が要るため)</code></pre>
+      <div class="callout">
+        <strong>Custom Instructions と組合せる</strong>
+        <code>.github/copilot-instructions.md</code> に「要件定義MD作成ルール」(<a href="#patterns">#patterns</a> セクションのテンプレ参照) を入れておくと、毎回プロンプトに書かなくても出力が安定します。
+      </div>
+
+      <h3>Step 2: MD → PPT/Word の4オプション</h3>
+
+      <h4>オプション A — python-pptx / python-docx (柔軟・高カスタム)</h4>
+      <p>
+        <strong>Copilot にスクリプト生成 → 実行</strong> の最短ルート。図表レイアウトを細かく制御したい時、デザインテンプレに合わせたい時に強い。
+      </p>
+<pre><code>./requirements/要件定義_v1.md を基に、以下の構成でPPTを生成するPythonスクリプトを作成・実行して。
+
+スライド構成:
+  1. 表紙
+  2. 概要
+  3. 要件一覧 (テーブル)
+  4. 優先度マトリクス
+  5. リスク・対策
+  6. 次ステップ
+
+デザイン: 青系プロフェッショナルテーマ / アイコン多用 / 各スライドに話者ノート
+ライブラリ: python-pptx
+出力先: ./output/要件定義_v1.pptx</code></pre>
+
+      <h4>オプション B — Marp (軽量・MD単一ソース)</h4>
+      <p>
+        Markdown のままスライド化できる。MD 編集 → 再エクスポートで更新が一行で済むので、<strong>頻繁に更新する仕様書</strong>に最適。
+      </p>
+<pre><code># Copilot に依頼
+このMDを Marp スライドMarkdownに変換して。
+Theme は default、各スライドにヘッダー/フッターを付ける。
+
+# 生成されたMDを Marp CLI で PPTX へ
+npx @marp-team/marp-cli@latest --pptx slides.md -o slides.pptx</code></pre>
+
+      <h4>オプション C — Microsoft 365 Copilot (Office MCP / Office Skills 経由)</h4>
+      <p>
+        Copilot Chat に MD を貼って <strong>「この内容で PowerPoint を作って」</strong>。生成された PPTX を「Edit with Copilot」でデザイン洗練。
+        Microsoft 365 Copilot ライセンスは別だが、デザイン品質は最強。詳細は既存章の <a href="spaces-and-mcp.html#mcp-office" style="color:var(--accent-blue);">Office MCP</a>。
+      </p>
+
+      <h4>オプション D — 双方向同期 (PPTX → MD → PPTX で永続管理)</h4>
+      <p>
+        既存 PPT/DOCX を <strong>OpenXML SDK</strong> + Copilot CLI で MD に逆変換 → Git で管理 → 変更を MD で反映 → 再生成。
+        Zenn の Microsoft 公式記事で紹介され「資料のバージョン管理が楽になった」と多数報告。
+      </p>
+<pre><code># 例: PPTX → MD (Mermaid 図を含む構造化MDで)
+@input/抜粋.pptx を OpenXML SDK で解析し、図形・表・画像・位置関係を理解した上で
+Mermaid 形式の図を含む Markdown に変換。
+- テーブルは正確に Markdown table へ
+- 図の意味を推測してキャプション化
+- 出力先: ./requirements/抜粋_v1.md</code></pre>
+
+      <h3>選び方の早見表</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>状況</th><th>推奨オプション</th></tr></thead>
+          <tbody>
+            <tr><td>1回限りで完璧なPPTを作りたい</td><td><strong>A (python-pptx)</strong></td></tr>
+            <tr><td>頻繁に更新して再生成したい</td><td><strong>B (Marp)</strong></td></tr>
+            <tr><td>Microsoft 365 ライセンスがあり、デザイン重視</td><td><strong>C (M365 Copilot)</strong></td></tr>
+            <tr><td>既存PPT資産をMD化して将来的にも使い回したい</td><td><strong>D (双方向同期)</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>所要時間の目安 (実務報告ベース)</h3>
+      <ul>
+        <li>初回MD作成 (顧客資料一括分析): <strong>30〜60分</strong></li>
+        <li>PPT/Word 生成 (オプションA/B 微調整含む): <strong>5〜15分</strong></li>
+        <li>更新サイクル (差分プロンプトで再生成): <strong>10分以内</strong></li>
+      </ul>
+      <div class="callout callout--green">
+        <strong>これが効く理由</strong>
+        要件定義は「変わる」のが前提。PPT を直接編集すると差分が見えず、誰が何を変えたか追跡不能。MD を真のソースにすれば <code>git diff</code> で全変更が見え、PR レビューもそのまま要件レビューになる。
+      </div>
+
+      <!-- ===== アンチパターン ===== -->
+      <h2 id="pitfalls">アンチパターン / 詰まりどころ</h2>
+      <p>本セットを使う上での失敗パターン。詳細は <a href="pitfalls.html" style="color:var(--accent-blue);">8章 落とし穴</a> も参照。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>症状</th><th>原因</th><th>対処</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Copilot Chatの応答が急に遅くなった/失敗するようになった</td>
+              <td>MCPサーバーの入れすぎ (15個以上目安)</td>
+              <td><code>.vscode/mcp.json</code> から日常使わないものを別ファイルに退避。プロジェクト別に分割する</td>
+            </tr>
+            <tr>
+              <td>chatmode を切替えても挙動が変わらない</td>
+              <td><code>.github/instructions/*</code> が <code>applyTo:</code> で全パス適用されていて優先度が衝突</td>
+              <td>instructions を狭いパスに絞る (<code>applyTo: "src/**"</code>) → chatmode の指示を勝たせる</td>
+            </tr>
+            <tr>
+              <td>Marketplace 拡張をインストールしたら社内データが流れた</td>
+              <td>権限スコープを未確認で承認</td>
+              <td>導入前に <code>Manage Extensions</code> でスコープを確認。Business/Enterprise は管理者ポリシーで許可リスト化</td>
+            </tr>
+            <tr>
+              <td>古いMCPが動かない</td>
+              <td>MCPプロトコルのバージョン不整合 (旧stdio版など)</td>
+              <td>過去90日メンテされていないMCPは原則使わない。本ページの基準に戻る</td>
+            </tr>
+            <tr>
+              <td>Copilot が「環境変数が読めない」と返す</td>
+              <td><code>.vscode/mcp.json</code> の <code>env</code> ブロック未設定</td>
+              <td><code>"env": {"FIRECRAWL_API_KEY": "${input:firecrawl_key}"}</code> + <code>inputs</code> で起動時プロンプト</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== 更新ポリシー ===== -->
+      <h2 id="policy">更新ポリシー</h2>
+      <p>
+        このページは <strong>3ヶ月ごとに再キュレーション</strong> します。MCPエコシステムの賞味期限はそれより短いことすらあるためです。
+        次回は <strong>2026年7月末</strong> 予定。提案は <a href="https://github.com/awano27/ai-news-site/issues" target="_blank" rel="noopener">Issue</a> へ。
+      </p>
+
+      <div class="changelog">
+        <h4>変更履歴</h4>
+        <ul style="margin-left:18px;">
+          <li><strong>2026-04-28 (v1.1)</strong> Xリサーチ統合: <em>Cloud/Local判断マトリクス</em> + <em>モデル使い分け戦略</em> / <em>ZOZO 8テクニック + プロンプトテンプレ5本</em> / <em>gh skill コマンド (2026年4月新機能)</em> / <em>Enterprise MCP Allowlist</em> / <em>チーム共有 .agent.md パターン</em> / <em>MD→PPT/Word ワークフロー (4オプション)</em> を追加。出典: ZOZO Speaker Deck (751いいね) / @super_bonochin Xポスト (270いいね) / Microsoft プロンプト設計ガイド 2026年1月版。</li>
+          <li><strong>2026-04-28 (v1.0)</strong> 初版公開。MCP 11個 / Marketplace 拡張 7個 / chatmode 4本 / VS Code 拡張 5本 / CLI コンボ 3個でスタート。</li>
+        </ul>
+      </div>
+
+      <!-- ===== ページ末ナビ ===== -->
+      <nav class="page-footer-nav">
+        <a href="agent-hq.html">&larr; 11. Agent HQ</a>
+        <a href="index.html">ガイドTOPへ &rarr;</a>
+      </nav>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>
