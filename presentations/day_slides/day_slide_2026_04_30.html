@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warp ADE Revolution — 「ターミナル」から「司令室」への進化 | 2026-04-30 AI Daily Briefing</title>
+<meta name="description" content="Warp が 2026年4月、自らを「ADE（Agentic Development Environment）」へと再定義しクライアントをOSS化。GitHubで10時間で32,000スター獲得。OpenAIが創設スポンサー、GPT-5.1/5.5駆動。Blocks・Agent Harness・@メニュー・Ozプラットフォームの4本柱を、戦略的コピーレフトと共に解説。">
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_30.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="AI Intelligence Hub">
+<meta property="og:title" content="Warp ADE Revolution — 「ターミナル」から「司令室」への進化 | 2026-04-30">
+<meta property="og:description" content="40年変わらなかったターミナルが、AIエージェントの司令室へ。Warp ADE と「戦略的コピーレフト」の幕開け。">
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_30.html">
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0430/cover.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0430/cover.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#06090d;--bg-mid:#0a0f17;--bg-soft:#121a24;
+  --card:#0e141c;--card-2:#111a26;
+  --border:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.22);
+  --text:#f0f4f8;--muted:#8da0b4;--dim:#5d6f87;
+  --cyan:#00d4f0;--cyan-2:#00b4d8;--violet:#a78bfa;--green:#34d399;--yellow:#ffcc00;--rose:#fb7185;--amber:#f59e0b;
+  --radius-lg:12px;--radius-md:8px;
+  --shadow-glow:0 24px 60px rgba(0,212,240,.18);
+  --shadow-card:0 14px 40px rgba(0,0,0,.5);
+  --maxw:1200px;
+  --ff-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+  --ff-sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --ff-serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","MS PMincho","Times New Roman",serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,var(--bg-soft) 0%,var(--bg-mid) 30%,var(--bg-deep) 100%);background-attachment:fixed;color:var(--text);font-family:var(--ff-sans);line-height:1.85;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+code{font-family:var(--ff-mono);font-size:.92em;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:4px;color:var(--cyan)}
+em{font-style:normal;color:var(--cyan)}
+em.violet{color:var(--violet)}
+em.green{color:var(--green)}
+em.amber{color:var(--amber)}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;min-height:60px;padding:0 28px;background:rgba(6,9,13,.72);border-bottom:1px solid var(--border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.topbar .brand{font-family:var(--ff-mono);font-weight:700;font-size:.8rem;letter-spacing:.18em;color:var(--text)}
+.topbar nav{display:flex;gap:2px;flex-wrap:wrap}
+.topbar nav a{padding:8px 12px;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-radius:6px;transition:color .2s,background .2s}
+.topbar nav a:hover{color:var(--cyan);background:rgba(0,212,240,.06)}
+.topbar .date{margin-left:auto;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.16em;color:var(--cyan)}
+
+/* shared */
+.eyebrow{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;font-family:var(--ff-mono);font-size:.72rem;font-weight:500;letter-spacing:.20em;text-transform:uppercase;color:var(--cyan)}
+.eyebrow::before{content:"";display:inline-block;width:40px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.eyebrow.violet{color:var(--violet)}
+.eyebrow.violet::before{background:linear-gradient(90deg,var(--violet),transparent)}
+.eyebrow.amber{color:var(--amber)}
+.eyebrow.amber::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 0 rgba(0,212,240,.55);margin-right:6px}
+.section h2{margin:0 0 16px;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.65rem,3.1vw,2.55rem);line-height:1.4;letter-spacing:.005em}
+.section-lead{max-width:820px;margin:0 0 32px;color:var(--muted);font-size:1.04rem;line-height:1.85}
+.section{max-width:var(--maxw);margin:0 auto;padding:88px 28px;border-top:1px solid var(--border);position:relative}
+.section:first-of-type{border-top:0}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:96px 0 84px;border-bottom:1px solid var(--border)}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(40px);opacity:.55;pointer-events:none;z-index:0}
+.orb-cyan{top:-180px;left:-120px;width:520px;height:520px;background:radial-gradient(circle,rgba(0,212,240,.55),transparent 60%)}
+.orb-violet{bottom:-220px;right:-160px;width:560px;height:560px;background:radial-gradient(circle,rgba(245,158,11,.40),transparent 60%);opacity:.5}
+.hero-inner{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 28px;text-align:left}
+.hero-copy h1{margin:0 0 14px;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.95rem,3.5vw,3rem);line-height:1.3;letter-spacing:.002em;word-break:keep-all;overflow-wrap:break-word}
+.hero-sub{margin:0 0 28px;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.25rem,2.1vw,1.8rem);line-height:1.5;color:var(--text);letter-spacing:.005em;word-break:keep-all;overflow-wrap:break-word}
+.hero-copy h1 em{font-style:normal;background:linear-gradient(120deg,var(--cyan),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{margin:0 0 14px;color:#cbd5e1;font-size:1.12rem;line-height:1.85}
+.summary{margin:0;color:var(--muted);font-size:.98rem;line-height:1.85}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.button-primary,.button-ghost{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:12px 22px;border-radius:var(--radius-md);font-family:var(--ff-mono);font-weight:600;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;transition:transform .2s,box-shadow .2s,border-color .2s,color .2s}
+.button-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan-2));color:#04161a;box-shadow:0 10px 30px rgba(0,212,240,.35);border:1px solid transparent}
+.button-primary:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,212,240,.55)}
+.button-ghost{background:transparent;color:var(--text);border:1px solid var(--border-strong)}
+.button-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.hero-media{margin:0;position:relative}
+.hero-media img{width:100%;height:auto;border-radius:var(--radius-lg);border:1px solid var(--border);background:#0a0f17;box-shadow:var(--shadow-card)}
+
+/* triple panel */
+.trio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.trio-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.85rem;transition:transform .25s,box-shadow .25s,border-color .25s}
+.trio-card:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.trio-card .label{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;font-family:var(--ff-mono);font-size:.7rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan)}
+.trio-card.violet .label{color:var(--violet)}
+.trio-card.green .label{color:var(--green)}
+.trio-card.rose .label{color:var(--rose)}
+.trio-card.amber .label{color:var(--amber)}
+.trio-card h3{margin:0 0 12px;font-family:var(--ff-serif);font-weight:500;font-size:1.18rem;line-height:1.5;color:var(--text)}
+.trio-card p{margin:0;color:var(--muted);font-size:.97rem;line-height:1.85}
+
+/* big stat callout */
+.big-stat{display:flex;align-items:center;gap:24px;margin-top:24px;padding:24px 32px;background:linear-gradient(120deg,rgba(0,212,240,.10),rgba(245,158,11,.08));border:1px solid rgba(0,212,240,.32);border-radius:var(--radius-lg)}
+.big-stat strong{display:block;font-family:var(--ff-mono);font-weight:700;font-size:clamp(2.4rem,5vw,3.8rem);line-height:1;background:linear-gradient(120deg,var(--cyan),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+.big-stat .stat-text{flex:1}
+.big-stat .stat-text b{display:block;font-family:var(--ff-serif);font-weight:500;font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.big-stat .stat-text span{color:var(--muted);font-size:.94rem;line-height:1.7}
+
+/* shift versus */
+.versus{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch;margin-top:8px}
+.versus-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.85rem;transition:transform .25s,border-color .25s,box-shadow .25s}
+.versus-card.win{border-color:rgba(0,212,240,.45);box-shadow:0 18px 50px rgba(0,212,240,.16);background:linear-gradient(180deg,rgba(0,212,240,.06),var(--card))}
+.versus-card .tag{display:inline-block;margin-bottom:14px;padding:0;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.20em;text-transform:uppercase;color:var(--muted)}
+.versus-card.win .tag{color:var(--cyan)}
+.versus-card strong{display:block;font-family:var(--ff-serif);font-weight:500;font-size:1.5rem;color:var(--text);margin:6px 0 14px}
+.versus-card p{margin:0 0 10px;color:var(--muted);font-size:.96rem;line-height:1.8}
+.versus-card ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.versus-card li{padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;font-size:.92rem;color:#cbd5e1}
+.versus-arrow{display:flex;align-items:center;justify-content:center;font-family:var(--ff-mono);font-size:2.4rem;color:var(--cyan);font-weight:300}
+
+/* 4 pillars (Warp's ADE features) */
+.pillars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:8px}
+.pillar{padding:1.85rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);transition:transform .25s,border-color .25s,box-shadow .25s;position:relative;overflow:hidden}
+.pillar:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.pillar::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.pillar.violet::before{background:linear-gradient(90deg,var(--violet),transparent)}
+.pillar.amber::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.pillar.green::before{background:linear-gradient(90deg,var(--green),transparent)}
+.pillar .pi-tag{display:inline-block;margin-bottom:12px;padding:3px 10px;background:rgba(0,212,240,.14);color:var(--cyan);font-family:var(--ff-mono);font-size:.7rem;font-weight:700;letter-spacing:.18em;border-radius:999px}
+.pillar.violet .pi-tag{background:rgba(167,139,250,.14);color:var(--violet)}
+.pillar.amber .pi-tag{background:rgba(245,158,11,.14);color:var(--amber)}
+.pillar.green .pi-tag{background:rgba(52,211,153,.14);color:var(--green)}
+.pillar h3{margin:0 0 6px;font-family:var(--ff-serif);font-weight:500;font-size:1.32rem;line-height:1.4;color:var(--text)}
+.pillar .pi-issue{display:block;margin:0 0 14px;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.10em;color:var(--rose)}
+.pillar p{margin:0;color:var(--muted);font-size:.96rem;line-height:1.8}
+
+/* triple callout */
+.tri-callout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
+.tri-callout div{padding:16px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--radius-md);border-left:3px solid var(--cyan)}
+.tri-callout b{display:block;margin-bottom:6px;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.16em;color:var(--cyan);text-transform:uppercase}
+.tri-callout span{display:block;color:var(--muted);font-size:.92rem;line-height:1.7}
+
+/* proof evidence (3 cards) */
+.evidence-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:8px}
+.evidence{padding:1.7rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);transition:transform .25s,border-color .25s,box-shadow .25s}
+.evidence:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.evidence .ev-num{display:inline-block;margin-bottom:14px;padding:3px 10px;background:rgba(0,212,240,.14);color:var(--cyan);font-family:var(--ff-mono);font-size:.72rem;font-weight:700;letter-spacing:.18em;border-radius:999px}
+.evidence .ev-num.violet{background:rgba(167,139,250,.14);color:var(--violet)}
+.evidence .ev-num.amber{background:rgba(245,158,11,.14);color:var(--amber)}
+.evidence h3{margin:0 0 8px;font-family:var(--ff-serif);font-weight:500;font-size:1.1rem;color:var(--text)}
+.evidence .sub{display:block;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.10em;color:var(--violet);margin-bottom:14px}
+.evidence p{margin:0;color:var(--muted);font-size:.94rem;line-height:1.8}
+
+/* persona grid (target users) */
+.persona-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:8px}
+.persona{padding:1.7rem;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--border);border-radius:var(--radius-lg);position:relative;overflow:hidden}
+.persona .role{display:block;margin-bottom:6px;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan)}
+.persona.violet .role{color:var(--violet)}
+.persona.amber .role{color:var(--amber)}
+.persona h3{margin:0 0 14px;font-family:var(--ff-serif);font-weight:500;font-size:1.18rem;color:var(--text)}
+.persona .pain{display:block;margin:0 0 10px;color:var(--rose);font-size:.86rem;font-family:var(--ff-mono);letter-spacing:.06em}
+.persona .pain b{display:block;margin-bottom:4px;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase}
+.persona .impact{display:block;margin:14px 0 0;padding:10px 12px;background:rgba(0,212,240,.07);border-left:2px solid var(--cyan);border-radius:4px;color:#cbd5e1;font-size:.9rem;line-height:1.7}
+.persona.violet .impact{background:rgba(167,139,250,.07);border-left-color:var(--violet)}
+.persona.amber .impact{background:rgba(245,158,11,.07);border-left-color:var(--amber)}
+
+/* license duo */
+.license{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.license-card{padding:1.7rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.license-card .lic-name{display:inline-block;margin-bottom:14px;padding:4px 12px;background:rgba(52,211,153,.14);color:var(--green);font-family:var(--ff-mono);font-size:.74rem;font-weight:700;letter-spacing:.16em;border-radius:999px}
+.license-card.copyleft .lic-name{background:rgba(245,158,11,.14);color:var(--amber)}
+.license-card h3{margin:0 0 6px;font-family:var(--ff-serif);font-weight:500;font-size:1.18rem;color:var(--text)}
+.license-card .lic-target{display:block;margin:0 0 14px;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.10em;color:var(--muted)}
+.license-card p{margin:0;color:var(--muted);font-size:.94rem;line-height:1.8}
+
+/* ecosystem 3-column comparison */
+.matrix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+.matrix-cell{padding:1.5rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);transition:transform .25s,border-color .25s}
+.matrix-cell:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35)}
+.matrix-cell.win{border-color:rgba(0,212,240,.45);background:linear-gradient(180deg,rgba(0,212,240,.06),var(--card))}
+.matrix-cell .brand-name{display:block;font-family:var(--ff-serif);font-weight:500;font-size:1.18rem;color:var(--text);margin-bottom:4px}
+.matrix-cell .role{display:block;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.12em;color:var(--cyan);text-transform:uppercase;margin-bottom:12px}
+.matrix-cell.violet .role{color:var(--violet)}
+.matrix-cell.amber .role{color:var(--amber)}
+.matrix-cell p{margin:0 0 10px;color:var(--muted);font-size:.9rem;line-height:1.7}
+.matrix-cell .verdict{display:block;margin-top:12px;padding:8px 10px;background:rgba(255,255,255,.03);border-left:2px solid var(--cyan);border-radius:4px;font-size:.86rem;color:#cbd5e1}
+.matrix-cell.violet .verdict{border-left-color:var(--violet)}
+.matrix-cell.amber .verdict{border-left-color:var(--amber)}
+
+/* pricing tiers */
+.tiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px}
+.tier{padding:1.45rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);text-align:center}
+.tier .price{display:block;font-family:var(--ff-mono);font-weight:700;font-size:1.65rem;color:var(--cyan);margin-bottom:6px}
+.tier.amber .price{color:var(--amber)}
+.tier.violet .price{color:var(--violet)}
+.tier.green .price{color:var(--green)}
+.tier strong{display:block;font-family:var(--ff-serif);font-weight:500;font-size:1.05rem;color:var(--text);margin-bottom:8px}
+.tier p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.65}
+
+/* warning box */
+.warn-box{margin-top:24px;padding:16px 22px;background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.32);border-left:4px solid var(--rose);border-radius:var(--radius-md)}
+.warn-box b{display:block;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.16em;color:var(--rose);text-transform:uppercase;margin-bottom:6px}
+.warn-box span{color:#fed7d7;font-size:.94rem;line-height:1.75}
+
+/* roadmap (3 phases) */
+.phase-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:8px}
+.phase{position:relative;padding:1.85rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);transition:transform .25s,border-color .25s,box-shadow .25s}
+.phase:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.phase .phase-num{display:inline-block;margin-bottom:14px;padding:4px 12px;background:rgba(0,212,240,.14);color:var(--cyan);font-family:var(--ff-mono);font-size:.74rem;font-weight:700;letter-spacing:.16em;border-radius:999px}
+.phase.p2 .phase-num{background:rgba(245,158,11,.14);color:var(--amber)}
+.phase.p3 .phase-num{background:rgba(52,211,153,.14);color:var(--green)}
+.phase h3{margin:0 0 8px;font-family:var(--ff-serif);font-weight:500;font-size:1.18rem;color:var(--text)}
+.phase .scope{display:block;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.10em;color:var(--muted);margin-bottom:12px;text-transform:uppercase}
+.phase p{margin:0;color:var(--muted);font-size:.94rem;line-height:1.8}
+
+/* closing redefinition */
+.closing-quote{margin:24px 0 0;padding:32px 36px;background:linear-gradient(120deg,rgba(0,212,240,.08),rgba(245,158,11,.06));border:1px solid rgba(0,212,240,.32);border-radius:var(--radius-lg)}
+.closing-quote q{display:block;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.3rem,2.4vw,1.85rem);line-height:1.65;color:var(--text);quotes:"「" "」"}
+.closing-quote q em{font-style:normal;background:linear-gradient(120deg,var(--cyan),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+.closing-quote cite{display:block;margin-top:18px;font-family:var(--ff-mono);font-style:normal;font-size:.72rem;letter-spacing:.20em;text-transform:uppercase;color:var(--muted)}
+
+/* sources + pager */
+.source-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:0 0 36px}
+.source-list a,.source-card{display:block;padding:18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);transition:transform .2s,border-color .2s}
+.source-list a:hover{transform:translateY(-2px);border-color:var(--cyan)}
+.source-list strong{display:block;color:var(--text);font-weight:500;font-size:.96rem;margin-bottom:6px}
+.source-list span{display:block;color:var(--dim);font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.06em;overflow-wrap:anywhere}
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pager a{padding:18px 22px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);transition:transform .2s,border-color .2s}
+.pager a:hover{transform:translateY(-2px);border-color:var(--cyan)}
+.pager .dir{display:block;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.pager strong{display:block;color:var(--text);font-weight:500;font-size:.96rem;line-height:1.5}
+.pager .next{text-align:right}
+
+/* overview hero board */
+.overview-board{margin:0;background:var(--card);border:1px solid rgba(0,212,240,.32);border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 34px 100px rgba(0,0,0,.55),0 0 0 1px rgba(0,212,240,.06)}
+.overview-board img{width:100%;height:auto;display:block}
+.overview-board figcaption{padding:14px 18px;color:var(--muted);font-family:var(--ff-mono);font-size:.76rem;letter-spacing:.06em;background:#071018;border-top:1px solid var(--border)}
+
+/* playbook page figure */
+.playbook-figure{margin:32px 0 0;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.playbook-figure img{width:100%;height:auto;display:block;background:#0a0f17}
+.playbook-figure figcaption{padding:11px 16px;color:var(--dim);font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.10em;background:rgba(8,16,31,.6);border-top:1px solid var(--border)}
+.playbook-figure figcaption b{color:var(--cyan);font-weight:700;letter-spacing:.14em}
+.playbook-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px}
+.playbook-row .playbook-figure{margin:0}
+@media (max-width:860px){.playbook-row{grid-template-columns:1fr}}
+
+/* footer */
+.site-foot{padding:44px 28px 56px;border-top:1px solid var(--border);background:var(--bg-deep);text-align:center}
+.site-foot .f-title{font-family:var(--ff-mono);font-size:.88rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.site-foot .f-title em{font-style:normal;color:var(--cyan)}
+.site-foot .f-meta{margin-top:8px;color:var(--dim);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.06em}
+
+/* motion */
+@media (prefers-reduced-motion: no-preference){
+  @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,212,240,.55)}70%{box-shadow:0 0 0 12px rgba(0,212,240,0)}100%{box-shadow:0 0 0 0 rgba(0,212,240,0)}}
+  .hero-copy>*{opacity:0;animation:fadeUp .8s ease forwards}
+  .hero-copy>*:nth-child(1){animation-delay:.05s}
+  .hero-copy>*:nth-child(2){animation-delay:.12s}
+  .hero-copy>*:nth-child(3){animation-delay:.19s}
+  .hero-copy>*:nth-child(4){animation-delay:.24s}
+  .hero-copy>*:nth-child(5){animation-delay:.28s}
+  .hero-media{opacity:0;animation:fadeUp .9s ease forwards;animation-delay:.18s}
+  .pulse-dot{animation:pulse 2s ease-in-out infinite}
+}
+
+/* responsive */
+@media (max-width:1080px){
+  .pillars{grid-template-columns:1fr}
+  .tiers{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .trio-grid,.evidence-grid,.persona-grid,.matrix,.tri-callout,.phase-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:860px){
+  .topbar{padding:0 18px}
+  .topbar nav{display:none}
+  .hero{padding:64px 0 60px}
+  .hero-inner{grid-template-columns:1fr;gap:32px}
+  .hero-media{order:2}.hero-copy{order:1}
+  .versus{grid-template-columns:1fr;gap:14px}.versus-arrow{display:none}
+  .license{grid-template-columns:1fr}
+  .matrix{grid-template-columns:1fr}
+  .pager{grid-template-columns:1fr}.pager .next{text-align:left}
+  .section{padding:64px 22px}
+  .orb-cyan{width:320px;height:320px;top:-120px;left:-100px}
+  .orb-violet{width:340px;height:340px;bottom:-140px;right:-120px}
+}
+@media (max-width:540px){
+  .section{padding:48px 18px}
+  .trio-grid,.evidence-grid,.persona-grid,.matrix,.tri-callout,.phase-grid,.tiers{grid-template-columns:1fr}
+  .hero-actions{flex-direction:column;align-items:stretch}
+  .hero-actions .button-primary,.hero-actions .button-ghost{justify-content:center}
+  .big-stat{flex-direction:column;text-align:center}
+  .eyebrow{letter-spacing:.16em}
+}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"NewsArticle","headline":"Warp ADE Revolution — 「ターミナル」から「司令室」への進化","datePublished":"2026-04-30","dateModified":"2026-04-30","author":{"@type":"Person","name":"awano27","url":"https://visionhub.jp/about.html"},"publisher":{"@type":"Organization","name":"AI Intelligence Hub","url":"https://visionhub.jp/"},"image":["https://visionhub.jp/presentations/day_slides/images/0430/cover.png"],"mainEntityOfPage":"https://visionhub.jp/presentations/day_slides/day_slide_2026_04_30.html","inLanguage":"ja","articleSection":"AI News"}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">AI Daily Briefing</span>
+  <nav aria-label="セクション">
+    <a href="#hero">表紙</a>
+    <a href="#overview">全体図</a>
+    <a href="#bottleneck">課題</a>
+    <a href="#shift">転換</a>
+    <a href="#pillars">機能</a>
+    <a href="#proof">証明</a>
+    <a href="#persona">対象</a>
+    <a href="#license">ライセンス</a>
+    <a href="#ecosystem">比較</a>
+    <a href="#economics">経済</a>
+    <a href="#closing">結論</a>
+    <a href="#sources">出典</a>
+  </nav>
+  <span class="date">2026-04-30 · 木</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="glow-orb orb-cyan" aria-hidden="true"></div>
+    <div class="glow-orb orb-violet" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>ADE Revolution 2026 · No. 04/30</p>
+        <h1 id="hero-title">「ターミナル」から<em>「司令室 (ADE)」</em>へ。</h1>
+        <p class="hero-sub">Warp が再定義する次世代 AI 駆動開発環境。</p>
+        <p class="lead">40 年間ほぼ変わらなかった<strong>「文字を打ち込む黒い箱」</strong>が、AI エージェントの<strong>「司令塔」</strong>へと進化。Warp は 2026 年 4 月、自らを <em>ADE (Agentic Development Environment)</em> と再定義し、クライアントコードを<strong>オープンソース化</strong>した。</p>
+        <p class="summary">GitHub で<strong>わずか 10 時間で 32,000 スター</strong>を獲得。<strong>OpenAI が「創設スポンサー」</strong>として参加し、<strong>GPT-5.1（デフォルト）/ GPT-5.5</strong> が駆動。70 万人以上のユーザーベースと共に、「人間がアーキテクチャを監督し、AI が実作業を完遂する」という新しい DevEx の標準が始まった。</p>
+        <div class="hero-actions">
+          <a class="button-primary" href="https://github.com/warpdotdev/warp" target="_blank" rel="noopener">公式リポジトリ →</a>
+          <a class="button-ghost" href="https://www.warp.dev/" target="_blank" rel="noopener">Warp.dev へ</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="overview" aria-label="全体サマリー">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>全体図 · 1 枚で読む Warp ADE</p>
+    <h2>Warp ADE を 1 枚で読む — ターミナルが「描画窓」から「指揮所」へ昇華する。</h2>
+    <p class="section-lead">これまでの GUI/CLI ツールが「コードを書く道具」だったのに対し、Warp は「複数 AI エージェントを束ねるハーネス」として再設計された。下のページ図はその全体構造を 1 枚で示している。</p>
+    <figure class="overview-board">
+      <img src="images/0430/playbook/p01.jpg" alt="Warp ADE Revolution の表紙 ── 「ターミナルから司令室へ」のメインビジュアル" loading="eager">
+      <figcaption>OVERVIEW / 「ターミナル」から「ADE」への移行構造を 1 枚に集約。</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="bottleneck">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>課題 · 40 年止まっていたインターフェース</p>
+    <h2>ターミナルは <em>40 年</em> ほぼ進化していない。AI 時代の「認知負荷」を捌けない。</h2>
+    <p class="section-lead">出力が際限なく流れる<em>スクロール地獄</em>、複数エージェントを並行運用するための<em>タブと脳の往復</em>、属人化した<em>秘伝のタレ (ランブック)</em> ── 既存ツールは AI 時代に向けて設計されていない。</p>
+    <div class="trio-grid">
+      <article class="trio-card">
+        <span class="label">Pain · スクロール地獄</span>
+        <h3>過去のコンテキストが流れ去る</h3>
+        <p>従来のターミナルでは出力が際限なく流れる。AI に「さっきのエラー」を正確に渡せず、<em>説明コスト</em>だけが膨らむ。</p>
+      </article>
+      <article class="trio-card violet">
+        <span class="label">Pain · エージェント分断</span>
+        <h3>Claude Code · Codex · Gemini を並列で詰む</h3>
+        <p>複数 CLI エージェントを並行運用すると、<em class="violet">ブラウザと複数タブの往復</em>で思考が分断。実験プロセスがカオス化する。</p>
+      </article>
+      <article class="trio-card amber">
+        <span class="label">Pain · 属人化</span>
+        <h3>「秘伝のタレ」が共有されない</h3>
+        <p>サーバー構築や障害対応のランブックは個人のシェル履歴に閉じ込められ、<em class="amber">オンボーディングが非効率</em>。組織知が蓄積しない。</p>
+      </article>
+    </div>
+    <figure class="playbook-figure">
+      <img src="images/0430/playbook/p02.jpg" alt="ターミナルの 40 年停滞と AI 時代の認知負荷ボトルネックを示すページ" loading="lazy">
+      <figcaption><b>SLIDE 02</b> · 戦略レポート原典より ── 「ターミナルの終焉と ADE 時代の幕開け」</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="shift">
+    <p class="eyebrow violet">転換 · 操作から監督へ</p>
+    <h2>仕事の単位が「コマンド」から「エージェント・タスク」へ。</h2>
+    <p class="section-lead">人間がコマンドを 1 つずつ打ち込む時代から、<em>「人間がアーキテクチャの方向性を監督し、AI エージェントが実作業を完遂する」</em>段階へ。これは単なる UI の改善ではなく、DevEx (デベロッパーエクスペリエンス) の<em class="violet">構造的再定義</em>。</p>
+    <div class="versus">
+      <article class="versus-card">
+        <span class="tag">旧 · ターミナル (操作者モデル)</span>
+        <strong>文字を打ち込む黒い箱</strong>
+        <p>毎回コマンドを入力し、出力を読み、次のコマンドを打つ。人間は AI/シェルの<strong>オペレーター</strong>。</p>
+        <ul>
+          <li>非構造化テキストの羅列</li>
+          <li>コピー＆ペーストでコンテキスト伝達</li>
+          <li>1 ターン = 1 コマンド</li>
+        </ul>
+      </article>
+      <div class="versus-arrow" aria-hidden="true">→</div>
+      <article class="versus-card win">
+        <span class="tag">新 · ADE (監督者モデル)</span>
+        <strong>エージェントが活動する司令塔</strong>
+        <p>Issue や仕様を Warp に渡せば、複数エージェントが並行して実装を進める。人間は<strong>アーキテクト / 監督者</strong>として承認と方向づけのみ行う。</p>
+        <ul>
+          <li>ブロック単位で構造化された出力</li>
+          <li>@ メニューで即座にコンテキスト注入</li>
+          <li>1 タブ = 1 エージェント・セッション</li>
+        </ul>
+      </article>
+    </div>
+    <figure class="playbook-figure">
+      <img src="images/0430/playbook/p03.jpg" alt="操作者モデルから監督者モデルへの転換構造を示すページ" loading="lazy">
+      <figcaption><b>SLIDE 03</b> · 戦略レポート原典より ── 「人間 = 操作者」から「人間 = アーキテクト」への DevEx 転換</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="pillars">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>機能 · ADE を支える 4 本柱</p>
+    <h2>ターミナルを <em>「AI が自律的に活動する構造化されたハーネス」</em> として再設計した 4 本柱。</h2>
+    <p class="section-lead">Warp は <code>Rust</code> + <code>GPU 加速描画</code> をベースに、Blocks / Agent Harness / Rich Context / Oz の 4 つで「ADE」を構成する。Kimi · Qwen 等の OSS モデル対応と、最適モデルの自動選択ルーティングモードも搭載。</p>
+    <div class="pillars">
+      <article class="pillar">
+        <span class="pi-tag">Pillar 01</span>
+        <h3>Blocks ── 出力をオブジェクト化</h3>
+        <span class="pi-issue">解決: 非構造化データによるコンテキスト消失</span>
+        <p>コマンドと出力を 1 つのブロックとして構造化。AI への正確なコンテキスト注入を自動化し、<em>コピー＆ペーストを過去の遺物</em>にする。失敗ログをそのままクリックして AI に渡せる。</p>
+      </article>
+      <article class="pillar violet">
+        <span class="pi-tag">Pillar 02</span>
+        <h3>Agent Harness ── 複数エージェントを 1 元管理</h3>
+        <span class="pi-issue">解決: 外部エージェント運用の分断</span>
+        <p><em class="violet">Vertical Tabs</em> と <em class="violet">Unified Notification Center</em> により、Claude Code / Codex / Gemini CLI 等の複数エージェントを<strong>司令塔として一元管理</strong>。100x 級の生産性が現実に。</p>
+      </article>
+      <article class="pillar amber">
+        <span class="pi-tag">Pillar 03</span>
+        <h3>Rich Context (@ メニュー) ── 文脈伝達の不正確さを撲滅</h3>
+        <span class="pi-issue">解決: AI への文脈伝達コスト</span>
+        <p><code>@</code> キーひとつで、ファイル · URL · 過去の出力ブロックを即座に AI へアタッチ。<em class="amber">指示を記述する説明コスト</em>を劇的に低減し、思考の流れを止めない。</p>
+      </article>
+      <article class="pillar green">
+        <span class="pi-tag">Pillar 04</span>
+        <h3>Oz プラットフォーム ── クラウド並列実行</h3>
+        <span class="pi-issue">解決: ローカルリソースの枯渇と監査性</span>
+        <p>クラウド上で<em class="green">数千エージェントを並列実行</em>。ローカル CPU/RAM を消費せず、Issue から PR 作成までを大規模に自動化。全操作の監査ログを保持し、エンタープライズ要件にも対応。</p>
+      </article>
+    </div>
+    <div class="tri-callout">
+      <div><b>Rust + GPU</b><span>高速描画と低レイテンシ。最新モデルの大量出力でも UI が詰まらない。</span></div>
+      <div><b>OSS モデル対応</b><span>Kimi / Qwen 等のオープンモデルもネイティブで利用可能。ベンダーロックインを回避。</span></div>
+      <div><b>自動ルーティング</b><span>タスク内容に応じて最適なモデルを自動選択。コストとレイテンシを最適化。</span></div>
+    </div>
+    <div class="playbook-row">
+      <figure class="playbook-figure">
+        <img src="images/0430/playbook/p05.jpg" alt="Warp の主要機能 Blocks · Agent Harness · @メニュー · Oz の図解" loading="lazy">
+        <figcaption><b>SLIDE 05</b> · 主要機能のアーキテクチャ的価値 ── 4 本柱が DevEx をどう変えるか</figcaption>
+      </figure>
+      <figure class="playbook-figure">
+        <img src="images/0430/playbook/p07.jpg" alt="Vertical Tabs と Unified Notification Center による複数エージェント管理" loading="lazy">
+        <figcaption><b>SLIDE 07</b> · Agent Harness ── Vertical Tabs と統合通知センターによる複数エージェントの一元化</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="proof">
+    <p class="eyebrow violet">証明 · OSS 化のソーシャルプルーフ</p>
+    <h2>OSS 化発表から <em>10 時間で 32,000 スター</em>。OpenAI が「創設スポンサー」に就任。</h2>
+    <p class="section-lead">クライアントコードのオープンソース化は、エンタープライズ導入の最大障壁だった<em>「セキュリティ監査可能性」</em>を解消する決定的転換点。発表直後の反響は、開発者コミュニティの強い支持を裏付けている。</p>
+    <div class="evidence-grid">
+      <article class="evidence">
+        <span class="ev-num">証拠 01</span>
+        <h3>32,000 ★ in 10 hours</h3>
+        <span class="sub">GitHub Stars · 2026-04-30 発表直後</span>
+        <p>OSS 化発表からわずか<em>10 時間で 32,000 スター</em>を獲得。開発者コミュニティの圧倒的支持と期待感を示すソーシャルプルーフ。</p>
+      </article>
+      <article class="evidence">
+        <span class="ev-num violet">証拠 02</span>
+        <h3>OpenAI が Founding Sponsor</h3>
+        <span class="sub">GPT-5.1 (default) / GPT-5.5 駆動</span>
+        <p>OpenAI が公式に<em class="violet">「創設スポンサー」</em>として参加。GPT-5.1 をデフォルト、GPT-5.5 を高負荷タスクで駆動するファーストパーティ統合。</p>
+      </article>
+      <article class="evidence">
+        <span class="ev-num amber">証拠 03</span>
+        <h3>700,000+ Active Users</h3>
+        <span class="sub">既存ユーザーベース · 累計</span>
+        <p>OSS 化以前から既に<em class="amber">70 万人超</em>の開発者が日常的に Warp を利用。コミュニティ密度の高さが、ADE の信頼性を支える土台になっている。</p>
+      </article>
+    </div>
+    <div class="big-stat">
+      <strong>32k★</strong>
+      <div class="stat-text">
+        <b>10 時間で達成した GitHub スター数</b>
+        <span>OpenAI のスポンサーシップと既存 70 万ユーザー基盤に支えられた、開発者コミュニティの<em>「ターミナル革命」への期待</em>の規模。</span>
+      </div>
+    </div>
+    <figure class="playbook-figure">
+      <img src="images/0430/playbook/p04.jpg" alt="32,000 スター達成と OpenAI Founding Sponsor の事実を示すページ" loading="lazy">
+      <figcaption><b>SLIDE 04</b> · 戦略レポート原典より ── OSS 化のソーシャルプルーフと OpenAI 連携の戦略的意味</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="persona">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>対象 · 誰の「痛み」を解決するか</p>
+    <h2>個人 CLI パワーユーザーから DevOps チームまで、<em>3 つのペルソナ</em>を同時に救う。</h2>
+    <p class="section-lead">既存ツールチェーンが生み出している「認知負荷の増大」と「コンテキストの断絶」を、Warp はレイヤーごとに異なるアプローチで解消する。</p>
+    <div class="persona-grid">
+      <article class="persona">
+        <span class="role">Persona 01 · 個人開発者 / CLI パワーユーザー</span>
+        <h3>「閉じたツール」への不信感を、OSS が解消する</h3>
+        <span class="pain"><b>痛み</b>スクロール地獄 + クローズドソースのセキュリティ不安</span>
+        <span class="impact">OSS による透明性と Blocks による構造化で、無駄な検索時間を削減。<em>創造的作業</em>に時間を再配分できる。</span>
+      </article>
+      <article class="persona violet">
+        <span class="role">Persona 02 · AI / ML エンジニア</span>
+        <h3>「並列エージェント運用」のカオスを、ハーネスが束ねる</h3>
+        <span class="pain"><b>痛み</b>ブラウザ + 複数ターミナルの往復で思考が分断</span>
+        <span class="impact">Vertical Tabs と統合通知で<em class="violet">複数エージェントを 1 画面で管理</em>。実験プロセスの断絶を解消し、100x 級の生産性向上を実現。</span>
+      </article>
+      <article class="persona amber">
+        <span class="role">Persona 03 · DevOps / SRE / チームリーダー</span>
+        <h3>「秘伝のタレ」を、組織のナレッジに変換する</h3>
+        <span class="pain"><b>痛み</b>ランブックの属人化と非効率なオンボーディング</span>
+        <span class="impact">Warp Drive によるナレッジ共有と環境完全再現で、<em class="amber">組織全体の技術的負債</em>を解消。ROI を極大化。</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="license">
+    <p class="eyebrow violet">ライセンス · 戦略的コピーレフト</p>
+    <h2>MIT と AGPL v3 の <em>「二重ライセンス」</em>でエコシステムと収益性を両立。</h2>
+    <p class="section-lead">Warp は<em class="violet">「戦略的コピーレフト」</em>を採用 ── UI 周辺は寛容な MIT で外部参入を促進し、メインコードは AGPL v3 で<em>競合フォークを構造的に防ぐ</em>。OSS とビジネス持続性のバランスを取る上級者の選択。</p>
+    <div class="license">
+      <article class="license-card">
+        <span class="lic-name">MIT</span>
+        <h3>UI 周辺フレームワーク</h3>
+        <span class="lic-target">対象: <code>warpui_core</code> 等のフロントエンド層</span>
+        <p>寛容なライセンスで<em>周辺エコシステムの拡大</em>を促進。コントリビューターやプラグイン開発者の参入障壁を下げ、Warp 中心のエコノミーを加速させる。</p>
+      </article>
+      <article class="license-card copyleft">
+        <span class="lic-name">AGPL v3</span>
+        <h3>メインコードベース (戦略的コピーレフト)</h3>
+        <span class="lic-target">対象: ADE エンジン本体</span>
+        <p>競合他社が Warp をフォークし<em class="amber">クローズドな商用サービスを構築すること</em>を構造的に防ぐ。ユーザーには監査可能性 (透明性) を保証しつつ、ビジネス持続性を担保する。</p>
+      </article>
+    </div>
+    <div class="warn-box">
+      <b>⚠ エンタープライズ採用の論点</b>
+      <span>AGPL v3 は<em>ネットワーク経由のサービス提供</em>でもソース開示義務を発生させる。社内ツールに Warp を組み込んで再配布する場合、法務との事前確認が必須。</span>
+    </div>
+    <figure class="playbook-figure">
+      <img src="images/0430/playbook/p09.jpg" alt="MIT + AGPL v3 の二重ライセンス構造と戦略的コピーレフトの図解" loading="lazy">
+      <figcaption><b>SLIDE 09</b> · 戦略レポート原典より ── 二重ライセンス戦略と「戦略的コピーレフト」の意図</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="ecosystem">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>比較 · 2026 年ターミナル / IDE エコシステム</p>
+    <h2>Warp は <em>「描画の速さ」</em>でも <em>「IDE 統合」</em>でもない。 <em>「総時間短縮 × エージェント協調」</em>で勝つ。</h2>
+    <p class="section-lead">Ghostty は描画速度で iTerm2 の 2.5〜3x を出すが、それは「出力窓」としての性能。Cursor は IDE 起点。Warp は<em>ターミナル起点の ADE</em>として、純粋スピードや GUI ではなく「人間 × エージェント協調作業の総時間」で価値を出す。</p>
+    <div class="matrix">
+      <article class="matrix-cell win">
+        <span class="brand-name">Warp</span>
+        <span class="role">Terminal-Native ADE</span>
+        <p>ターミナルから生まれた<em>エージェント司令塔</em>。シェル実行 / ログ監視 / インフラ操作 / 複数 CLI エージェントのオーケストレーションを一手に担う。</p>
+        <span class="verdict">→ 「総時間短縮」と「認知負荷の低減」で他を圧倒する</span>
+      </article>
+      <article class="matrix-cell violet">
+        <span class="brand-name">Ghostty / iTerm2</span>
+        <span class="role">High-Performance Terminal</span>
+        <p>純粋な<em class="violet">描画パフォーマンス</em>では Ghostty が iTerm2 の 2.5〜3x を出し、Warp をも凌駕する場面がある。だが「速い出力窓」以上ではない。</p>
+        <span class="verdict">→ エージェント協調や構造化機能は持たない</span>
+      </article>
+      <article class="matrix-cell amber">
+        <span class="brand-name">Cursor / VS Code</span>
+        <span class="role">IDE-Centric AI Integration</span>
+        <p>IDE (エディタ) 起点で AI を統合。<em class="amber">複雑な GUI 編集</em>では分があるが、シェル実行・ログ監視・複数 CLI 並行運用には不向き。</p>
+        <span class="verdict">→ Warp と棲み分け (ADE × IDE のスタック構成)</span>
+      </article>
+    </div>
+    <p class="section-lead" style="margin-top:32px"><strong>結論</strong> ── 開発者が業務時間の <em>90%</em> を AI エージェントとの対話に費やすようになりつつある中、ターミナルが単なる入出力ツールから<em>「エージェント・オーケストレーター」</em>へと昇華することは、技術スタック統合の必然である。</p>
+    <figure class="playbook-figure">
+      <img src="images/0430/playbook/p11.jpg" alt="Warp と Ghostty / iTerm2 / Cursor / VS Code の競合比較ページ" loading="lazy">
+      <figcaption><b>SLIDE 11</b> · 戦略レポート原典より ── 競合 4 ツールとのアーキテクチャ的差別化マップ</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="economics">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>経済 · TCO / ROI と料金プラン</p>
+    <h2>個人は <em>無料</em>。エンタープライズは <em>$15〜$225</em>。最大の投資先は「Oz クラウド実行」と「Warp Drive 共有」。</h2>
+    <p class="section-lead">クライアントの OSS 化に伴い、以前は有料だった高度な AI エージェント機能も含めて<em>個人 / コミュニティは基本無料</em>に開放された。エンタープライズプランは単なるツール利用料ではなく、<em>クラウド上のエージェント実行クレジット</em>とチーム共有機能への投資を意味する。</p>
+    <div class="tiers">
+      <article class="tier">
+        <span class="price">$0</span>
+        <strong>Community</strong>
+        <p>クライアント本体は OSS 化により無料。個人開発者と OSS コントリビューターはここで完結する。</p>
+      </article>
+      <article class="tier amber">
+        <span class="price">$15</span>
+        <strong>Pro</strong>
+        <p>個人有料プラン。Warp Drive 個人版と AI クレジットの上限拡張を提供。</p>
+      </article>
+      <article class="tier violet">
+        <span class="price">$50〜</span>
+        <strong>Team</strong>
+        <p>チーム単位の Warp Drive 共有。ナレッジとワークフロー設定を組織内で標準化できる。</p>
+      </article>
+      <article class="tier green">
+        <span class="price">$225</span>
+        <strong>Enterprise</strong>
+        <p>Oz クラウド実行クレジット + 高度なセキュリティ管理 + 監査ログ。組織導入の本命プラン。</p>
+      </article>
+    </div>
+    <div class="big-stat">
+      <strong>100x</strong>
+      <div class="stat-text">
+        <b>並列エージェント運用での生産性向上目標</b>
+        <span>複数 AI エージェントを Warp の<em>Agent Harness</em>で一元管理した場合の理論上限。<em>業務時間の 90% を AI 対話に費やす</em>未来を前提にした設計。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="closing">
+    <p class="eyebrow violet">結論 · 2026 年の DevEx 標準</p>
+    <h2>Warp の OSS 化は、<em>「未来の開発モデル」</em>そのものをコードで配ったということ。</h2>
+    <p class="section-lead">AI エージェントが実装の重労働を担い、人間が品質・セキュリティ・方向性を監督する ── このモデルを、誰でもフォークし、検証し、組織に組み込めるようになった。クローズドソースを理由に導入を躊躇していたエンタープライズにとって、今回の OSS 化は<em>「セキュリティ監査可能性」</em>を担保する決定的転換点である。</p>
+    <div class="phase-grid">
+      <article class="phase">
+        <span class="phase-num">Step 1</span>
+        <h3>Try · build.warp.dev</h3>
+        <span class="scope">数千エージェントが PR を作る現場を見る</span>
+        <p>まずは <code>build.warp.dev</code> にアクセスし、Oz エージェントがリアルタイムで Issue をトリアージし PR を作成する様子を観察する。</p>
+      </article>
+      <article class="phase p2">
+        <span class="phase-num">Step 2</span>
+        <h3>Adopt · 個人で導入</h3>
+        <span class="scope">Blocks + @ メニュー + Agent Harness を体感</span>
+        <p>OSS クライアントを個人マシンに導入し、Claude Code / Codex / Gemini CLI の並列運用を実体験する。</p>
+      </article>
+      <article class="phase p3">
+        <span class="phase-num">Step 3</span>
+        <h3>Scale · チーム展開</h3>
+        <span class="scope">Warp Drive · Oz · 監査ログで組織標準化</span>
+        <p>チームで Warp Drive を共有し、エンタープライズプランで Oz クラウド実行と監査ログを有効化。組織標準のエージェント実行基盤を整える。</p>
+      </article>
+    </div>
+    <div class="closing-quote">
+      <q>競争力は<em>「どのターミナルを使うか」</em>ではなく、<em>「AI エージェントが自律的に働ける場をいかに整えているか」</em>に集約される。文字を打ち込む時代は終わった。アーキテクチャを監督する <em>「ADE 時代」</em> へ移行せよ。</q>
+      <cite>編集後記 · 2026-04-30</cite>
+    </div>
+    <div class="playbook-row">
+      <figure class="playbook-figure">
+        <img src="images/0430/playbook/p13.jpg" alt="Warp 導入 3 ステップ Try → Adopt → Scale のロードマップ" loading="lazy">
+        <figcaption><b>SLIDE 13</b> · Try → Adopt → Scale ── 個人〜エンタープライズの導入ロードマップ</figcaption>
+      </figure>
+      <figure class="playbook-figure">
+        <img src="images/0430/playbook/p15.jpg" alt="Warp が再定義する DevEx の未来 ── アーキテクトとしてのエンジニア像" loading="lazy">
+        <figcaption><b>SLIDE 15</b> · エンジニアの再定義 ── 「AI と共生する」アーキテクトへ</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="sources">
+    <h2>出典</h2>
+    <div class="source-list">
+      <a href="https://github.com/warpdotdev/warp" target="_blank" rel="noopener">
+        <strong>warpdotdev/warp — OSS リポジトリ</strong>
+        <span>github.com/warpdotdev/warp · 32,000★ in 10h</span>
+      </a>
+      <a href="https://www.warp.dev/" target="_blank" rel="noopener">
+        <strong>Warp 公式サイト</strong>
+        <span>warp.dev · ADE 公式紹介と料金</span>
+      </a>
+      <a href="https://build.warp.dev/" target="_blank" rel="noopener">
+        <strong>Warp Build — リアルタイム Oz エージェント可視化</strong>
+        <span>build.warp.dev · 数千エージェントの活動ライブビュー</span>
+      </a>
+      <a href="https://openai.com/" target="_blank" rel="noopener">
+        <strong>OpenAI — Founding Sponsor of Warp OSS</strong>
+        <span>openai.com · GPT-5.1 default / GPT-5.5 driven</span>
+      </a>
+      <div class="source-card">
+        <strong>Warp ADE Revolution — 戦略分析レポート (15-page PDF)</strong>
+        <span>input/day/0430-Warp_ADE_Revolution.pdf</span>
+      </div>
+      <div class="source-card">
+        <strong>編集メモ · 0430slide.txt</strong>
+        <span>input/day/0430slide.txt · ADE 時代の包括分析</span>
+      </div>
+    </div>
+    <nav class="pager" aria-label="前後のスライド">
+      <a class="prev" href="day_slide_2026_04_29.html">
+        <span class="dir">← 前へ · 04/29</span>
+        <strong>OpenAI Symphony — 2026 年エンジニアリングリーダーの戦略プレイブック</strong>
+      </a>
+      <a class="next" href="../day_slides_index.html">
+        <span class="dir">一覧へ →</span>
+        <strong>日次スライド一覧へ</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="f-title">Daily AI Briefing · 2026-04-30 — <em>Warp ADE Revolution</em></div>
+  <div class="f-meta">出典: warpdotdev/warp · Warp.dev · OpenAI · 戦略分析レポート (NotebookLM)</div>
+</footer>
+</body>
+</html>
