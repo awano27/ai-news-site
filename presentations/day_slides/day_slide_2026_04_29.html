@@ -304,8 +304,8 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
       <div class="hero-copy">
         <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>OPEN-SOURCE SPEC · ISSUE-DRIVEN AGENTS · NO. 04/29</p>
         <h1 id="hero-title">AIコーディングの<br>次のボトルネックは、<br><em>人間の注意力。</em></h1>
-        <p class="lead">OpenAI <strong>Symphony</strong> は、Codex を Issue 単位で並列運用するためのオープンソース仕様。AIが速くなった分、ボトルネックは人間の注意力に移った。</p>
-        <p class="summary">同日には OpenAI × Microsoft の契約再改定、Claude Cowork Live Artifact、HuggingFace の中華モデル躍進など、AI を「運用」する段階の動きが集中している。</p>
+        <p class="lead">OpenAI <strong>Symphony</strong> は、Codex を Issue 単位で並列運用するためのオープンソース仕様 (SPEC.md)。AIが速くなった分、次のボトルネックは <em>人間の認知限界</em> ── これが <strong>「AI操作のパラドックス」</strong> だ。</p>
+        <p class="summary">同日に OpenAI × Microsoft の契約再改定、AWSでのOpenAI製品提供開始、Claude Cowork Live Artifact、HuggingFace のマルチモーダル中華モデル躍進。AIを「運用」する段階への大移動が一斉に始まっている。</p>
         <div class="hero-actions">
           <a class="button-primary" href="https://github.com/openai/symphony" target="_blank" rel="noopener">公式リポジトリ →</a>
           <a class="button-ghost" href="https://openai.com/index/open-source-codex-orchestration-symphony/" target="_blank" rel="noopener">OpenAI ブログ</a>
@@ -369,12 +369,12 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
   <section class="section" id="attention">
     <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>WHY NOW · ATTENTION TAX</p>
     <h2>3〜5並列で、人間の管理は壊れ始める。</h2>
-    <p class="section-lead">3〜5並列を超えると、コンテキストスイッチで人間側が詰まる。AIだけスケールしても生産性は伸びない、というのがOpenAI自身の説明だ。</p>
+    <p class="section-lead">3〜5並列が <em>戦略的上限 (Strategic Ceiling)</em>。コンテキストスイッチが人間の認知能力を上回る点で「AI操作のパラドックス」が発生する。</p>
     <div class="metric-grid">
-      <div class="metric"><strong>3-5</strong><span>1人の人間が現実的に並列管理できるCodexセッション数の目安</span></div>
-      <div class="metric"><strong>1×</strong><span>人間の注意力は依然として 1 並列。AIだけスケールしても詰まる</span></div>
-      <div class="metric"><strong>∞</strong><span>これまでの「プロンプト依頼」は単位が場限りで、組織に蓄積しない</span></div>
-      <div class="metric"><strong>04/29</strong><span>OpenAI Symphony の一般公開日 — Apache-2.0 オープンソース</span></div>
+      <div class="metric"><strong>3-5</strong><span>戦略的上限。1人が現実的に監視できる Codex セッション数</span></div>
+      <div class="metric"><strong>500%</strong><span>先行事例の PR 着地数増。真因は「変更1件あたりの知覚コスト低下」</span></div>
+      <div class="metric"><strong>$1.09<small>-$6.30</small></strong><span>1タスクあたりの LLM コスト目安 (API単価ベース、自律試行込み)</span></div>
+      <div class="metric"><strong>04/29</strong><span>Symphony 一般公開日 — Apache-2.0 OSS、SPEC.md 公開中</span></div>
     </div>
   </section>
 
@@ -391,7 +391,7 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
       <article class="card panel">
         <span class="label violet">Mechanism · 仕組み</span>
         <h3>Issue が制御盤になる</h3>
-        <p>タスクごとに専用ワークスペースを生成し、Codexエージェントを走らせ、状態・ログ・PR・レビュー資料を Issue 中心に集約する。</p>
+        <p>オーケストレーターが <em>State Reconciliation</em> を回し、トラッカーとリポジトリの状態を自律的に一致させる。Issue が組織資産化する。</p>
       </article>
       <article class="card panel">
         <span class="label green">Outcome · 効能</span>
@@ -407,22 +407,22 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
     <p class="section-lead">Linear のような Issue tracker を制御盤に、各 Issue に専用ワークスペースと Codex を割り当てる。仕様は GitHub の <code>SPEC.md</code> で公開中。</p>
     <div class="architecture-row">
       <ol class="flow-list" aria-label="Symphony の処理フロー">
-        <li><b>チケット起票</b><span>背景・目的・受け入れ条件・優先度を Issue に書く。ここがAIチームに渡す仕事の仕様書になる。</span></li>
-        <li><b>常時監視と Issue 検知</b><span>Symphony がトラッカーを見張り、着手できる Issue を検知する。人間は個別セッションを開き続けない。</span></li>
-        <li><b>ワークスペース複製</b><span>Issue ごとに隔離された作業環境を立ち上げる。Blast Radius Zero の土台はこの分離にある。</span></li>
-        <li><b>Codex 実行</b><span>専用エージェントが実装、テスト、修正を進める。作業ログは Issue と PR に戻る。</span></li>
-        <li><b>自己レビュー</b><span>失敗を見つけて直すループを挟み、CIや解析結果を揃える。人間に渡す前に、AI自身が成果の根拠を整える。</span></li>
-        <li><b>PR作成と着地</b><span>成果物はPR、テスト結果、レビュー資料として提出される。人間は証拠を見て採否を判断する。</span></li>
+        <li><b>チケット起票</b><span>背景・受け入れ条件・優先度を Issue に書く。仕事の単位は組織資産になる。</span></li>
+        <li><b>Always-on Polling</b><span>オーケストレーターが Linear 等を常時監視し、State Reconciliation で着手すべき Issue を検知。</span></li>
+        <li><b>隔離ワークスペース複製</b><span>1チケット = 1隔離 Git クローン。Blast Radius Zero の物理的土台。</span></li>
+        <li><b>Codex app-server 起動</b><span>JSON-RPC over stdio でエージェントをヘッドレス制御。専用エージェントが実装する。</span></li>
+        <li><b>Ralph Wiggum Loop</b><span>自己レビュー → CI エラー修正 → 成果提出を完結させる自律サイクル。人間に渡す前に AI が根拠を整える。</span></li>
+        <li><b>Proof of Work 提出</b><span>PR + CI 結果 + 複雑度分析 + ウォークスルー動画。人間は証拠を見て採否を判断する。</span></li>
       </ol>
       <figure class="with-cap">
         <img src="images/0429/visual_lifecycle.jpg" alt="Polling、Isolated Workspace、Autonomous Execution、Proof of Work のライフサイクル新規図解" loading="eager">
         <figcaption class="caption">FIG / Polling、隔離ワークスペース、自律実行、成果証明までを1つのライフサイクルとして回す。</figcaption>
       </figure>
     </div>
-    <div class="proof-strip" aria-label="成果証明パケットの構成">
-      <div><b>CI Status</b><span>テストが通ったか、どの条件を満たしたかを機械的に確認する。</span></div>
-      <div><b>Static Analysis</b><span>複雑度、型、Lint、潜在的なリスクをレビュー前に可視化する。</span></div>
-      <div><b>Walkthrough</b><span>変更意図と動作確認を短い説明や動画でまとめ、人間の読み解き負担を下げる。</span></div>
+    <div class="proof-strip" aria-label="Proof of Work の構成">
+      <div><b>CI Status</b><span>テスト通過と受け入れ条件の充足を機械的に確認。</span></div>
+      <div><b>Static Analysis</b><span>複雑度・型・Lint・潜在リスクをレビュー前に可視化。</span></div>
+      <div><b>Walkthrough Video</b><span>AI 自身が実装意図を解説する動画。人間の読み解き負担を劇的に下げる。</span></div>
     </div>
   </section>
 
@@ -452,32 +452,32 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
   <section class="section" id="governance">
     <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>CHAPTER 4 · SAFETY &amp; COST</p>
     <h2>自由を与えない。安全に動けるレールを敷く。</h2>
-    <p class="section-lead">AIに自由を与えず、安全に動けるレールを敷く。重いのは LLM 代ではなく、Issue・テスト・レビュー基準を整える業務設計コストだ。</p>
+    <p class="section-lead"><strong>Blast Radius Zero</strong> ── 自律 AI の暴走を構造的に防ぎ、機密を守りながら自律性を最大化する。</p>
     <div class="governance-row">
       <div>
-        <h3>サンドボックス × 隔離 × 権限</h3>
-        <p>Issue 単位でワークスペースを分離し、ネットワーク・権限・対象範囲を絞り、ログを残す。これが自律化の前提。</p>
-        <h3>失敗パターン</h3>
-        <ul class="chip-list">
-          <li>Issue が曖昧 → AI は曖昧な PR を量産する</li>
-          <li>テストが無い → AI の成果を検証できない</li>
-          <li>レビュー基準が無い → 人間の確認コストは下がらない</li>
-        </ul>
-        <div class="safety-rails" aria-label="安全不変条件">
-          <div class="rail"><b>Path Prefix</b><span>エージェントが触れるパスを限定し、別領域へ逸脱させない。</span></div>
-          <div class="rail"><b>Network None</b><span>外部通信は原則遮断し、必要なときだけ明示的に許可する。</span></div>
-          <div class="rail"><b>Policy Gate</b><span>危険な変更、権限昇格、機密領域へのアクセスをルールで止める。</span></div>
+        <h3>4つの Safety Invariants</h3>
+        <div class="safety-rails" aria-label="Safety Invariants">
+          <div class="rail"><b>CWD Match</b><span>エージェントの作業ディレクトリと隔離 Git クローンの厳格一致を検証。</span></div>
+          <div class="rail"><b>Path Prefix</b><span>絶対パス正規化で <code>.ssh</code>/<code>.env</code> 等への脱出を構造遮断。</span></div>
+          <div class="rail"><b>Sanitized Keys</b><span>ワークスペース名は <code>[A-Za-z0-9._-]</code> のみ。インジェクション排除。</span></div>
+          <div class="rail"><b>Network None</b><span>デフォルト遮断。必要時のみ明示許可。漏洩・不正取得を防ぐ。</span></div>
         </div>
+        <h3>失敗モード「AI Slop」</h3>
+        <ul class="chip-list">
+          <li>Harness 不備 → AI が大量の低品質 PR を量産 → レビュー渋滞で ROI 悪化</li>
+          <li>テスト無し → 成果検証不能 → 「できました」を盲信するしかない</li>
+          <li>レビュー基準無し → 人間の確認コストは下がらない</li>
+        </ul>
       </div>
       <figure class="with-cap">
         <img src="images/0429/visual_governance.jpg" alt="サンドボックス、ネットワーク制限、権限管理、監査ログの安全レールを示す新規図解" loading="eager">
         <figcaption class="caption">FIG / 安全不変条件、ネットワーク遮断、組織用と個人用の役割分担まで含めて設計する。</figcaption>
       </figure>
     </div>
-    <div class="cost-pyramid" aria-label="Symphony のコスト構造">
-      <div class="cost-tier"><strong>Tier 1</strong><span>LLM / Codex 利用料。1タスク単位では小さく見えやすい。</span></div>
-      <div class="cost-tier"><strong>Tier 2</strong><span>インフラ、CI実行、ログ、動画、ストレージ。並列実行で増える。</span></div>
-      <div class="cost-tier"><strong>Tier 3</strong><span>業務設計コスト。AIが読めるIssue、テスト、権限、レビュー基準を整える工数が最も重い。</span></div>
+    <div class="cost-pyramid" aria-label="Symphony の TCO 構造">
+      <div class="cost-tier"><strong>Tier 1</strong><span>LLM / Codex 利用料 — 1タスクあたり <em>$1.09〜$6.30</em> (自律試行込み)。</span></div>
+      <div class="cost-tier"><strong>Tier 2</strong><span>隔離 VM、CI 実行、ログ・動画ストレージ。並列実行で増える。</span></div>
+      <div class="cost-tier"><strong>Tier 3</strong><span><em>Harness Engineering</em> — <code>AGENTS.md</code> / <code>WORKFLOW.md</code> 整備の人的工数。最重量。</span></div>
     </div>
   </section>
 
@@ -502,11 +502,11 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
       <div class="axis">Individual</div>
       <div class="axis">Organization</div>
       <div class="axis">Human in loop</div>
-      <div class="matrix-cell"><strong>Cursor / Claude Code</strong><span>個人の手元を強くする。CLIやIDEで人間が都度監督する職人型。</span></div>
-      <div class="matrix-cell highlight"><strong>OpenAI Symphony</strong><span>組織のIssueを入口に、AIチームを並列運用する。チーム型のオーケストレーション。</span></div>
+      <div class="matrix-cell"><strong>Cursor / Claude Code</strong><span>IDE/CLI 上で対話する職人ツール。個人の生産性を追う。</span></div>
+      <div class="matrix-cell highlight"><strong>OpenAI Symphony</strong><span>Codex Model-Native。組織のフロー効率と非同期開発を追求するチーム型オーケストレーション。</span></div>
       <div class="axis">Autonomous loop</div>
-      <div class="matrix-cell"><strong>Hermes Agent</strong><span>Slack、Telegram、CLIなどから動く個人秘書型。記憶とスキルで個人業務を支援する。</span></div>
-      <div class="matrix-cell"><strong>Multica</strong><span>複数モデルやチームの協調を扱う汎用プラットフォーム型。Symphonyとは入口と抽象度が違う。</span></div>
+      <div class="matrix-cell"><strong>Hermes Agent</strong><span>永続記憶 + スキル。Slack/Discord/CLI から動く個人 AI 秘書。</span></div>
+      <div class="matrix-cell"><strong>Multica + LinearB / Sentry</strong><span>Multica は Model-Agnostic でロックイン回避。LinearB/Sentry は AI 成果を測定・ルーティングする品質層。</span></div>
     </div>
   </section>
 
@@ -638,6 +638,10 @@ figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
         <strong>HuggingFace Trending — Qwen3.6 / DeepSeek-V4-Pro / Kimi-K2.6</strong>
         <span>huggingface.co · weekly trending</span>
       </a>
+      <div class="source-card">
+        <strong>NotebookLM: OpenAI Symphony — AIエージェント運用の新潮流</strong>
+        <span>33 sources × 19 artifacts · Strategy Report 抜粋</span>
+      </div>
       <div class="source-card">
         <strong>Reference PDF: Orchestrating Autonomous AI Teams</strong>
         <span>input/day/参考 · 12-page local reference</span>
