@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Symphony — AI開発を、チケットで動かす | 2026-04-29 AI Daily Briefing</title>
+<meta name="description" content="OpenAIが公開したSymphonyは、CodexのようなコーディングエージェントをプロンプトではなくIssueトラッカーから運用するためのオープンソース仕様。AI活用の中心がプロンプトからワークフローへ移る転換点を解説する。">
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_29.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="AI Intelligence Hub">
+<meta property="og:title" content="OpenAI Symphony — AI開発を、チケットで動かす | 2026-04-29">
+<meta property="og:description" content="人が複数のCodexセッションを監督する時代から、Issueを制御盤にAIエージェントを並列運用する時代へ。">
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_04_29.html">
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0429/reference_board.jpg">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0429/reference_board.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#06090d;--bg-mid:#0a0f17;--bg-soft:#121a24;
+  --card:#0e141c;--card-2:#111a26;
+  --border:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.22);
+  --text:#f0f4f8;--muted:#8da0b4;--dim:#5d6f87;
+  --cyan:#00d4f0;--cyan-2:#00b4d8;--violet:#a78bfa;--green:#34d399;--yellow:#ffcc00;
+  --radius-lg:12px;--radius-md:8px;
+  --shadow-glow:0 24px 60px rgba(0,212,240,.18);
+  --shadow-card:0 14px 40px rgba(0,0,0,.5);
+  --maxw:1200px;
+  --ff-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+  --ff-sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --ff-serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","MS PMincho","Times New Roman",serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,var(--bg-soft) 0%,var(--bg-mid) 30%,var(--bg-deep) 100%);background-attachment:fixed;color:var(--text);font-family:var(--ff-sans);line-height:1.85;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;min-height:60px;padding:0 28px;background:rgba(6,9,13,.72);border-bottom:1px solid var(--border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.topbar .brand{font-family:var(--ff-mono);font-weight:700;font-size:.8rem;letter-spacing:.18em;color:var(--text)}
+.topbar nav{display:flex;gap:2px;flex-wrap:wrap}
+.topbar nav a{padding:8px 12px;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-radius:6px;transition:color .2s,background .2s}
+.topbar nav a:hover{color:var(--cyan);background:rgba(0,212,240,.06)}
+.topbar .date{margin-left:auto;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.16em;color:var(--cyan)}
+
+/* shared */
+.eyebrow{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;font-family:var(--ff-mono);font-size:.72rem;font-weight:500;letter-spacing:.20em;text-transform:uppercase;color:var(--cyan)}
+.eyebrow::before{content:"";display:inline-block;width:40px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.eyebrow.violet{color:var(--violet)}
+.eyebrow.violet::before{background:linear-gradient(90deg,var(--violet),transparent)}
+.pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 0 rgba(0,212,240,.55);margin-right:6px}
+.section h2{margin:0 0 16px;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.65rem,3.1vw,2.55rem);line-height:1.4;letter-spacing:.005em}
+.section-lead{max-width:780px;margin:0 0 32px;color:var(--muted);font-size:1.04rem;line-height:1.85}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.85rem;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.card:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.label{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:0;font-family:var(--ff-mono);font-size:.7rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan)}
+.label.violet{color:var(--violet)}
+.label.green{color:var(--green)}
+.section{max-width:var(--maxw);margin:0 auto;padding:88px 28px;border-top:1px solid var(--border);position:relative}
+.section:first-of-type{border-top:0}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:96px 0 84px;border-bottom:1px solid var(--border)}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(40px);opacity:.55;pointer-events:none;z-index:0}
+.orb-cyan{top:-180px;left:-120px;width:520px;height:520px;background:radial-gradient(circle,rgba(0,212,240,.55),transparent 60%)}
+.orb-violet{bottom:-220px;right:-160px;width:560px;height:560px;background:radial-gradient(circle,rgba(167,139,250,.45),transparent 60%);opacity:.5}
+.hero-inner{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 28px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);gap:48px;align-items:center}
+.hero-copy h1{margin:0 0 22px;font-family:var(--ff-serif);font-weight:500;font-size:clamp(2.4rem,5vw,4.4rem);line-height:1.18;letter-spacing:.005em}
+.hero-copy h1 em{font-style:normal;background:linear-gradient(120deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{margin:0 0 14px;color:#cbd5e1;font-size:1.12rem;line-height:1.85}
+.summary{margin:0;color:var(--muted);font-size:.98rem;line-height:1.85}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.button-primary,.button-ghost{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:12px 22px;border-radius:var(--radius-md);font-family:var(--ff-mono);font-weight:600;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;transition:transform .2s,box-shadow .2s,border-color .2s,color .2s}
+.button-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan-2));color:#04161a;box-shadow:0 10px 30px rgba(0,212,240,.35);border:1px solid transparent}
+.button-primary:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,212,240,.55)}
+.button-ghost{background:transparent;color:var(--text);border:1px solid var(--border-strong)}
+.button-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.hero-media{margin:0;position:relative}
+.hero-media img{width:100%;height:auto;border-radius:var(--radius-lg);border:1px solid var(--border);background:#0a0f17;box-shadow:var(--shadow-card)}
+
+/* reference visuals */
+.reference-stage{max-width:1320px;margin:0 auto;padding:36px 28px 84px}
+.reference-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 0 18px}
+.reference-head p{margin:0;color:var(--muted);font-size:.95rem}
+.reference-head .eyebrow{margin:0}
+.reference-board{margin:0;background:var(--card);border:1px solid rgba(0,212,240,.32);border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 34px 100px rgba(0,0,0,.55),0 0 0 1px rgba(0,212,240,.06)}
+.reference-board img{width:100%;height:auto}
+.reference-board figcaption,.detail-visual figcaption{padding:12px 16px;color:var(--muted);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.06em;background:#071018;border-top:1px solid var(--border)}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:20px}
+.detail-visual{margin:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
+.detail-visual img{width:100%;height:auto}
+
+/* attention metrics */
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.6rem 1.5rem;transition:transform .25s,box-shadow .25s,border-color .25s}
+.metric:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.metric strong{display:block;font-family:var(--ff-mono);font-weight:700;font-size:2.1rem;line-height:1;color:var(--cyan);margin-bottom:10px}
+.metric span{display:block;color:var(--muted);font-size:.95rem;line-height:1.6}
+
+/* story */
+.story-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:8px}
+.panel h3{margin:0 0 12px;font-family:var(--ff-serif);font-weight:500;font-size:1.2rem;line-height:1.5;color:var(--text)}
+.panel p{margin:0;color:var(--muted);font-size:.98rem;line-height:1.85}
+
+/* architecture */
+.architecture-row{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:36px;align-items:center;margin-top:8px}
+.flow-list{margin:0;padding:0;list-style:none;counter-reset:step}
+.flow-list li{counter-increment:step;display:grid;grid-template-columns:auto 1fr;gap:18px;padding:14px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+.flow-list li:last-child{border-bottom:0}
+.flow-list li::before{content:"0" counter(step);font-family:var(--ff-mono);font-weight:700;font-size:.85rem;letter-spacing:.1em;color:var(--cyan);align-self:start;padding-top:2px}
+.flow-list b{display:block;font-family:var(--ff-serif);font-weight:500;font-size:1.08rem;color:var(--text);margin-bottom:4px}
+.flow-list span{display:block;color:var(--muted);font-size:.95rem;line-height:1.7}
+.caption{padding:11px 16px;background:rgba(8,16,31,.6);border:1px solid var(--border);border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md);color:var(--dim);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.06em}
+figure.with-cap img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.wide-visual{margin:32px 0 0}
+.wide-visual img{width:100%;border-radius:var(--radius-lg) var(--radius-lg) 0 0;border:1px solid var(--border);background:#0a0f17}
+
+/* shift versus */
+.versus{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch;margin-top:8px}
+.versus .card strong{display:block;font-family:var(--ff-serif);font-weight:500;font-size:1.4rem;color:var(--text);margin:6px 0 10px}
+.versus .card p{margin:0;color:var(--muted);font-size:.96rem;line-height:1.8}
+.versus .win{border-color:rgba(0,212,240,.45);box-shadow:0 18px 50px rgba(0,212,240,.16);background:linear-gradient(180deg,rgba(0,212,240,.06),var(--card))}
+.versus-arrow{display:flex;align-items:center;justify-content:center;font-family:var(--ff-mono);font-size:2.4rem;color:var(--cyan);font-weight:300}
+
+/* governance */
+.governance-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:36px;align-items:start;margin-top:8px}
+.governance-row h3{margin:0 0 10px;font-family:var(--ff-serif);font-weight:500;font-size:1.18rem;color:var(--text)}
+.governance-row p{margin:0 0 22px;color:var(--muted);font-size:.97rem;line-height:1.85}
+.chip-list{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.chip-list li{padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:var(--radius-md);font-size:.92rem;color:#cbd5e1}
+
+/* contrast */
+.contrast-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:8px}
+.contrast{padding:1.85rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.contrast.violet{border-left:3px solid var(--violet)}
+.contrast.cyan{border-left:3px solid var(--cyan)}
+.contrast h3{margin:0 0 8px;font-family:var(--ff-serif);font-weight:500;font-size:1.3rem;color:var(--text)}
+.contrast .role{display:block;margin-bottom:14px;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.contrast.violet .role{color:var(--violet)}
+.contrast.cyan .role{color:var(--cyan)}
+.contrast p{margin:0;color:var(--muted);font-size:.97rem;line-height:1.85}
+
+/* pullquote */
+.pullquote-section{padding:84px 28px;border-top:1px solid var(--border);text-align:center}
+.pullquote{max-width:880px;margin:0 auto}
+.pullquote q{display:block;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.4rem,2.6vw,2rem);line-height:1.7;color:var(--text);quotes:"「" "」"}
+.pullquote q em{font-style:normal;background:linear-gradient(120deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pullquote cite{display:block;margin-top:24px;font-family:var(--ff-mono);font-style:normal;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+
+/* actions */
+.step-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px}
+.step{position:relative;padding:1.85rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);transition:transform .25s,border-color .25s,box-shadow .25s}
+.step:hover{transform:translateY(-3px);border-color:rgba(0,212,240,.35);box-shadow:var(--shadow-glow)}
+.step .num{display:inline-block;margin-bottom:14px;padding:4px 10px;background:rgba(0,212,240,.12);color:var(--cyan);font-family:var(--ff-mono);font-size:.74rem;font-weight:700;letter-spacing:.16em;border-radius:999px}
+.step h3{margin:0 0 10px;font-family:var(--ff-serif);font-weight:500;font-size:1.1rem;line-height:1.5;color:var(--text)}
+.step p{margin:0;color:var(--muted);font-size:.94rem;line-height:1.8}
+
+/* sources + pager */
+.source-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:0 0 36px}
+.source-list a{display:block;padding:18px 18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);transition:transform .2s,border-color .2s}
+.source-list a:hover{transform:translateY(-2px);border-color:var(--cyan)}
+.source-list strong{display:block;color:var(--text);font-weight:500;font-size:.98rem;margin-bottom:6px}
+.source-list span{display:block;color:var(--dim);font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.06em;overflow-wrap:anywhere}
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pager a{padding:18px 22px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);transition:transform .2s,border-color .2s}
+.pager a:hover{transform:translateY(-2px);border-color:var(--cyan)}
+.pager .dir{display:block;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.pager strong{display:block;color:var(--text);font-weight:500;font-size:.98rem;line-height:1.5}
+.pager .next{text-align:right}
+
+/* footer */
+.site-foot{padding:44px 28px 56px;border-top:1px solid var(--border);background:var(--bg-deep);text-align:center}
+.site-foot .f-title{font-family:var(--ff-mono);font-size:.88rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.site-foot .f-title em{font-style:normal;color:var(--cyan)}
+.site-foot .f-meta{margin-top:8px;color:var(--dim);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.06em}
+
+/* motion (gated) */
+@media (prefers-reduced-motion: no-preference){
+  @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,212,240,.55)}70%{box-shadow:0 0 0 12px rgba(0,212,240,0)}100%{box-shadow:0 0 0 0 rgba(0,212,240,0)}}
+  .hero-copy>*{opacity:0;animation:fadeUp .8s ease forwards}
+  .hero-copy>*:nth-child(1){animation-delay:.05s}
+  .hero-copy>*:nth-child(2){animation-delay:.12s}
+  .hero-copy>*:nth-child(3){animation-delay:.19s}
+  .hero-copy>*:nth-child(4){animation-delay:.24s}
+  .hero-copy>*:nth-child(5){animation-delay:.28s}
+  .hero-media{opacity:0;animation:fadeUp .9s ease forwards;animation-delay:.18s}
+  .pulse-dot{animation:pulse 2s ease-in-out infinite}
+}
+
+/* responsive */
+@media (max-width:1080px){
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .story-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .step-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .detail-grid{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  .topbar{padding:0 18px}
+  .topbar nav{display:none}
+  .hero{padding:64px 0 60px}
+  .hero-inner{grid-template-columns:1fr;gap:32px}
+  .hero-media{order:2}
+  .hero-copy{order:1}
+  .architecture-row,.governance-row,.contrast-grid{grid-template-columns:1fr;gap:28px}
+  .versus{grid-template-columns:1fr;gap:14px}
+  .versus-arrow{display:none}
+  .pager{grid-template-columns:1fr}
+  .pager .next{text-align:left}
+  .section{padding:64px 22px}
+  .reference-stage{padding:28px 18px 60px}
+  .reference-head{align-items:flex-start;flex-direction:column}
+  .pullquote-section{padding:64px 22px}
+  .orb-cyan{width:320px;height:320px;top:-120px;left:-100px}
+  .orb-violet{width:340px;height:340px;bottom:-140px;right:-120px}
+}
+@media (max-width:540px){
+  .section{padding:48px 18px}
+  .pullquote-section{padding:48px 18px}
+  .metric-grid,.story-grid,.step-grid{grid-template-columns:1fr}
+  .hero-actions{flex-direction:column;align-items:stretch}
+  .hero-actions .button-primary,.hero-actions .button-ghost{justify-content:center}
+  .eyebrow{letter-spacing:.16em}
+}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"NewsArticle","headline":"OpenAI Symphony — AI開発を、チケットで動かす","datePublished":"2026-04-29","dateModified":"2026-04-29","author":{"@type":"Person","name":"awano27","url":"https://visionhub.jp/about.html"},"publisher":{"@type":"Organization","name":"AI Intelligence Hub","url":"https://visionhub.jp/"},"image":["https://visionhub.jp/presentations/day_slides/images/0429/reference_board.jpg"],"mainEntityOfPage":"https://visionhub.jp/presentations/day_slides/day_slide_2026_04_29.html","inLanguage":"ja","articleSection":"AI News"}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">AI Daily Briefing</span>
+  <nav aria-label="セクション">
+    <a href="#hero">Hero</a>
+    <a href="#attention">Attention</a>
+    <a href="#story">Story</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#shift">Shift</a>
+    <a href="#governance">Safety</a>
+    <a href="#actions">Actions</a>
+    <a href="#sources">Sources</a>
+  </nav>
+  <span class="date">2026-04-29 · WED</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="glow-orb orb-cyan" aria-hidden="true"></div>
+    <div class="glow-orb orb-violet" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>OPEN-SOURCE SPEC · ISSUE-DRIVEN AGENTS · NO. 04/29</p>
+        <h1 id="hero-title">AIコーディングの<br>次のボトルネックは、<br><em>人間の注意力。</em></h1>
+        <p class="lead">OpenAIが公開した <strong>Symphony</strong> は、Codexのようなコーディングエージェントを個別セッションで操作する仕様ではない。Linearのような Issue tracker を制御盤にして、複数のAIエージェントを組織のワークフローへ接続するためのオープンソース仕様だ。</p>
+        <p class="summary">重要なのは、AIがコードを書けるようになったことではない。AIが速くなった結果、人間の注意力・優先度判断・レビューが、開発組織の新しいボトルネックになったということ。Symphonyはそこを設計し直す。</p>
+        <div class="hero-actions">
+          <a class="button-primary" href="https://github.com/openai/symphony" target="_blank" rel="noopener">公式リポジトリ →</a>
+          <a class="button-ghost" href="https://openai.com/index/open-source-codex-orchestration-symphony/" target="_blank" rel="noopener">OpenAI ブログ</a>
+        </div>
+      </div>
+      <figure class="hero-media">
+        <img src="images/0429/visual_hero_team.jpg" alt="AI Team Management と Issue 制御盤を示す新規ビジュアル" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="reference-stage" aria-label="OpenAI Symphony の参考ビジュアル">
+    <div class="reference-head">
+      <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>REFERENCE VISUAL · AGENT ERA MAP</p>
+      <p>参考フォルダの大判図解を主役にし、読む前に構造が掴める構成へ変更。</p>
+    </div>
+    <figure class="reference-board">
+      <img src="images/0429/reference_board.jpg" alt="AI開発の新時代とOpenAI Symphonyの全体像をまとめた大判インフォグラフィック" loading="eager">
+      <figcaption>OVERVIEW / プロンプト操作から、AIチーム・マネジメントへ。Symphonyのライフサイクル、ガバナンス、ROIを1枚で俯瞰する。</figcaption>
+    </figure>
+    <div class="detail-grid">
+      <figure class="detail-visual">
+        <img src="images/0429/visual_prompt_ticket.jpg" alt="プロンプトからチケットへ仕事の単位が変わることを示す新規図解" loading="eager">
+        <figcaption>DETAIL / 従来の限界。場限りのプロンプトを、受け入れ条件を持つチケットへ変える。</figcaption>
+      </figure>
+      <figure class="detail-visual">
+        <img src="images/0429/visual_review_packet.jpg" alt="差分、テスト、ログ、ウォークスルーを含む成果証明パケットの新規図解" loading="eager">
+        <figcaption>DETAIL / 導入価値。レビューに必要な証拠をまとめ、人間の確認コストを下げる。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="attention">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>WHY NOW · ATTENTION TAX</p>
+    <h2>3〜5並列で、人間の管理は壊れ始める。</h2>
+    <p class="section-lead">AIは確かに速い。けれど複数のAIセッションを同時に動かすと、人間はそれぞれの進捗を見て、失敗を直し、追加指示を出し、レビューし続けなければならない。OpenAIは、エンジニアが3〜5個程度のCodexセッションを並行で監督すると、コンテキストスイッチで生産性が落ちると説明している。</p>
+    <div class="metric-grid">
+      <div class="metric"><strong>3-5</strong><span>1人の人間が現実的に並列管理できるCodexセッション数の目安</span></div>
+      <div class="metric"><strong>1×</strong><span>人間の注意力は依然として 1 並列。AIだけスケールしても詰まる</span></div>
+      <div class="metric"><strong>∞</strong><span>これまでの「プロンプト依頼」は単位が場限りで、組織に蓄積しない</span></div>
+      <div class="metric"><strong>04/29</strong><span>OpenAI Symphony の一般公開日 — Apache-2.0 オープンソース</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="story">
+    <p class="eyebrow">CHAPTER 1 · NEW UNIT OF WORK</p>
+    <h2>プロンプトから、チケットへ。</h2>
+    <p class="section-lead">Symphony は単体のAIエージェントを強くする話ではなく、複数のエージェントを開発組織のワークフローに接続する話だ。AIに渡す仕事の単位そのものが、その場限りの「プロンプト」から、背景・受け入れ条件・優先度・レビュー履歴を持つ「チケット」へ移る。</p>
+    <div class="story-grid">
+      <article class="card panel">
+        <span class="label">Problem · 課題</span>
+        <h3>人間がAIを監視しすぎる</h3>
+        <p>速いエージェントを増やしても、進捗確認・失敗修正・追加指示・レビューを人間が捌き続ける限り、管理コストが先に限界へ達する。</p>
+      </article>
+      <article class="card panel">
+        <span class="label violet">Mechanism · 仕組み</span>
+        <h3>Issue が制御盤になる</h3>
+        <p>タスクごとに専用ワークスペースを生成し、Codexエージェントを走らせ、状態・ログ・PR・レビュー資料を Issue 中心に集約する。</p>
+      </article>
+      <article class="card panel">
+        <span class="label green">Outcome · 効能</span>
+        <h3>人間は判断に戻る</h3>
+        <p>実装の逐次監督から離れ、どの仕事を渡すか、結果を採用するか、どのガードレールを強化するかに集中できる。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="architecture">
+    <p class="eyebrow">CHAPTER 2 · CONTROL PLANE</p>
+    <h2>Issue が、AIエージェントの制御盤になる。</h2>
+    <p class="section-lead">OpenAIの記事では、Linear のようなプロジェクト管理ボードをコントロールプレーンにし、各 Issue に専用ワークスペースと Codex エージェントを割り当てる設計が示されている。GitHub リポジトリ側の仕様は、まず <code>SPEC.md</code> として公開されている。</p>
+    <div class="architecture-row">
+      <ol class="flow-list" aria-label="Symphony の処理フロー">
+        <li><b>Issue の起票</b><span>人間が背景・目的・受け入れ条件・優先度を持つ Issue を作る。仕事の単位はここ。</span></li>
+        <li><b>Workspace の隔離生成</b><span>Issue ごとにサンドボックス化されたワークスペースが立ち上がる。横断アクセスはしない。</span></li>
+        <li><b>Codex エージェントが実装</b><span>専用エージェントがコードを書き、テストを走らせ、PR を提出する。</span></li>
+        <li><b>成果証明を提出</b><span>CI 結果、PRレビュー、複雑度分析、ウォークスルー動画など、AI 自身が「できた根拠」を出す。</span></li>
+        <li><b>人間は最終判断</b><span>受け入れ条件と証拠を照らし、採否・差し戻し・ルール強化を判断する。</span></li>
+      </ol>
+      <figure class="with-cap">
+        <img src="images/0429/visual_lifecycle.jpg" alt="Polling、Isolated Workspace、Autonomous Execution、Proof of Work のライフサイクル新規図解" loading="eager">
+        <figcaption class="caption">FIG / Polling、隔離ワークスペース、自律実行、成果証明までを1つのライフサイクルとして回す。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="shift">
+    <p class="eyebrow violet">CHAPTER 3 · WORK SHIFT</p>
+    <h2>操作する働き方から、マネジメントする働き方へ。</h2>
+    <p class="section-lead">プロンプトはその場限りの依頼。チケットは組織の仕事の単位。Symphony の本当の価値は、AI に渡す仕事の単位を、個人の会話から組織の作業単位へ引き上げる点にある。</p>
+    <div class="versus">
+      <article class="card">
+        <span class="label">BEFORE · プロンプト時代</span>
+        <strong>Prompt</strong>
+        <p>「このコードを書いて」「このバグを直して」。基準も履歴もユーザーの頭の中にあり、組織には残らない。</p>
+      </article>
+      <div class="versus-arrow" aria-hidden="true">→</div>
+      <article class="card win">
+        <span class="label">AFTER · チケット時代</span>
+        <strong>Ticket</strong>
+        <p>背景・受け入れ条件・優先度・ステータス・レビュー履歴を持つ、組織の仕事の単位。AIはチームメンバーとして参加する。</p>
+      </article>
+    </div>
+    <figure class="wide-visual with-cap">
+      <img src="images/0429/visual_work_shift.jpg" alt="プロンプト操作からAIチーム・マネジメントへの転換を示す新規図解" loading="eager">
+      <figcaption class="caption">FIG / 仕事の単位が変わるから、必要な力も変わる。個人の会話から、組織の作業単位へ移行する。</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="governance">
+    <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>CHAPTER 4 · SAFETY &amp; COST</p>
+    <h2>自由を与えない。安全に動けるレールを敷く。</h2>
+    <p class="section-lead">AIエージェントを自律化する前提として、Symphony は Issue ごとのワークスペース分離を組み込んでいる。本番運用では、サンドボックス、ネットワーク制限、権限管理、対象 Issue の絞り込みも前提になる。</p>
+    <div class="governance-row">
+      <div>
+        <h3>サンドボックス × 隔離 × 権限</h3>
+        <p>Issue 単位でワークスペースを分け、エージェントがその外に出ないように設計する。サンドボックス、ネットワーク制限、権限管理、対象 Issue の絞り込み、テスト、レビュー基準、ログ保存が運用の前提となる。</p>
+        <h3>LLM代より、業務設計コスト</h3>
+        <p>Symphony 自体は Apache-2.0 のオープンソース。だが運用は無料ではない。Codex / API 費用、クラウド実行、CI、ログや動画ストレージ、そしてセキュリティ設計と Issue 設計の工数が常に乗る。重い順から並べると、特に重要なのは LLM 代ではなく業務設計コストだ。</p>
+        <ul class="chip-list">
+          <li>Issue が曖昧 → AI は曖昧な PR を量産する</li>
+          <li>テストが無い → AI の成果を検証できない</li>
+          <li>レビュー基準が無い → 人間の確認コストは下がらない</li>
+        </ul>
+      </div>
+      <figure class="with-cap">
+        <img src="images/0429/visual_governance.jpg" alt="サンドボックス、ネットワーク制限、権限管理、監査ログの安全レールを示す新規図解" loading="eager">
+        <figcaption class="caption">FIG / 安全不変条件、ネットワーク遮断、組織用と個人用の役割分担まで含めて設計する。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="contrast">
+    <p class="eyebrow violet">LANDSCAPE · PERSONAL vs ORG</p>
+    <h2>Hermes は秘書、Symphony はチーム。</h2>
+    <p class="section-lead">同じ「自律AIエージェント」でも、Nous Research の Hermes Agent と OpenAI Symphony は問いが違う。前者は個人の隣に座る秘書を、後者は開発組織の中で Issue を取りに行くチームを設計する。</p>
+    <div class="contrast-grid">
+      <article class="contrast violet">
+        <span class="role">Hermes Agent · Nous Research</span>
+        <h3>個人の AI 秘書</h3>
+        <p>Slack、Telegram、Discord、WhatsApp、CLI から呼び出せて、過去の会話を覚え、スキルを作り、定期タスクを実行する。隣にいて業務を助けるAI。</p>
+      </article>
+      <article class="contrast cyan">
+        <span class="role">OpenAI Symphony · Codex Orchestration</span>
+        <h3>組織の AI 開発チーム</h3>
+        <p>Issue tracker をコントロールプレーンに、複数の Codex エージェントを並列運用する。レビュー資料を含めた成果物で組織のワークフローに参加するAI。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="pullquote-section">
+    <div class="pullquote">
+      <q>Symphony を使いこなせる会社とは、AIツールを入れた会社ではない。<em>AIが働ける形に、仕事を整理できている会社</em>だ。</q>
+      <cite>EDITOR'S NOTE · 2026-04-29</cite>
+    </div>
+  </section>
+
+  <section class="section" id="actions">
+    <p class="eyebrow">CHAPTER 5 · YOUR MOVE</p>
+    <h2>これから磨くべき、4 つの力。</h2>
+    <p class="section-lead">AI 活用の中心がプロンプトからワークフローへ移ると、必要な力もシフトする。良いプロンプトを書く力だけでは足りない。</p>
+    <div class="step-grid">
+      <article class="step">
+        <span class="num">01</span>
+        <h3>チケット設計力</h3>
+        <p>背景、目的、受け入れ条件、テスト方針を Issue に書ききる力。AI に渡せる単位で仕事を切れるか。</p>
+      </article>
+      <article class="step">
+        <span class="num">02</span>
+        <h3>サンドボックス設計力</h3>
+        <p>権限、ネットワーク、対象 Issue の絞り込み、ロールバック導線。AI が安全に動けるレールを敷く力。</p>
+      </article>
+      <article class="step">
+        <span class="num">03</span>
+        <h3>レビュー基準力</h3>
+        <p>受け入れ条件、テスト要件、CI / 監査ログの読み方を言語化する力。AI の成果を判定できる物差し。</p>
+      </article>
+      <article class="step">
+        <span class="num">04</span>
+        <h3>AIチーム運用力</h3>
+        <p>並列稼働、優先度、失敗ルール、定例レビュー。組織として AI チームをマネジメントする力。</p>
+      </article>
+    </div>
+    <figure class="wide-visual with-cap">
+      <img src="images/0429/visual_adoption_path.jpg" alt="Pilot、Policies、CI、Review、Scale の導入ステップを示す新規図解" loading="eager">
+      <figcaption class="caption">FIG / いきなり全自動化しない。まず小さな Issue で試し、ポリシー、CI、レビュー基準を固めてから拡張する。</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="sources">
+    <h2>出典</h2>
+    <div class="source-list">
+      <a href="https://openai.com/index/open-source-codex-orchestration-symphony/" target="_blank" rel="noopener">
+        <strong>OpenAI: An open-source spec for Codex orchestration — Symphony</strong>
+        <span>openai.com · 2026-04-27</span>
+      </a>
+      <a href="https://github.com/openai/symphony" target="_blank" rel="noopener">
+        <strong>openai/symphony — SPEC &amp; reference</strong>
+        <span>github.com/openai/symphony</span>
+      </a>
+      <a href="https://developers.openai.com/codex/app-server/" target="_blank" rel="noopener">
+        <strong>Codex App Server reference</strong>
+        <span>developers.openai.com</span>
+      </a>
+      <a href="https://nousresearch.com/" target="_blank" rel="noopener">
+        <strong>Nous Research — Hermes Agent</strong>
+        <span>nousresearch.com</span>
+      </a>
+    </div>
+    <nav class="pager" aria-label="前後のスライド">
+      <a class="prev" href="day_slide_2026_04_28.html">
+        <span class="dir">← Prev · 04/28</span>
+        <strong>Open CoDesign — 設計プロセスを、ラップトップに取り戻す</strong>
+      </a>
+      <a class="next" href="../day_slides_index.html">
+        <span class="dir">All Slides →</span>
+        <strong>日次スライド一覧へ</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="f-title">Daily AI Briefing · 2026-04-29 — <em>OpenAI Symphony</em></div>
+  <div class="f-meta">出典: openai/symphony · OpenAI Blog · Codex App Server · Nous Research</div>
+</footer>
+</body>
+</html>
