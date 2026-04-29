@@ -366,7 +366,7 @@
       <p class="meta">最終更新: 2026年4月29日</p>
       <div class="hero-badges">
         <span class="hero-badge">97ツール</span>
-        <span class="hero-badge muted">+37 今月追加</span>
+        <span class="hero-badge muted">+28 今月追加（フィルター対応）</span>
         <span class="hero-badge muted">−4 整理</span>
         <span class="hero-badge warn">直近1ヶ月の注目を強化</span>
       </div>
@@ -375,6 +375,7 @@
         <input id="searchInput" class="search" type="text" placeholder="ツール名・用途で検索（例: 議事録, 自動化, 開発）" />
         <div class="filter-row" id="purposeRow" aria-label="目的で絞り込み">
           <button class="filter-btn active" data-filter="all" type="button">すべて</button>
+          <button class="filter-btn" data-filter="added-april" type="button">今月追加</button>
           <button class="filter-btn" data-filter="agent" type="button">エージェント</button>
           <button class="filter-btn" data-filter="cost-opt" type="button">コスト最適化</button>
           <button class="filter-btn" data-filter="emerging" type="button">新興AI</button>
@@ -1319,6 +1320,25 @@
       const cards = Array.from(document.querySelectorAll('.tool-card'));
       const resultMeta = document.getElementById('resultMeta');
       const emptyState = document.getElementById('emptyState');
+
+      const APRIL_ADDED = new Set([
+        'OpenAI Symphony', 'CUA / CuaBot', '源内（Gennai）',
+        'Grok', 'Qwen Code', 'gstack', 'Claude Advisor', 'DMax', 'Google Finance Deep Research',
+        'webclaw', 'Hermes Agent',
+        'AirLLM', 'LibreChat', 'Hyperframes', 'Fincept Terminal',
+        'Floom', 'visual-explainer', 'Context Mode', 'LangExtract',
+        'Buzz', 'HearoPilot',
+        'OpenKB', 'Obsidian Second Brain',
+        'Claude Ads', 'Agentic Inbox', 'Toprank', 'DokodemoLLM', 'Cai'
+      ]);
+      cards.forEach((card) => {
+        const h3 = card.querySelector('h3');
+        const name = h3 ? h3.textContent.trim() : '';
+        if (APRIL_ADDED.has(name)) {
+          const existing = card.dataset.tags || '';
+          card.dataset.tags = existing ? existing + ',added-april' : 'added-april';
+        }
+      });
 
       let activePurpose = 'all';
       let activeRole = 'all';
