@@ -85,6 +85,11 @@ function starsFor(article) {
   return 2;
 }
 
+// Articles older than this are considered stale and excluded from the homepage.
+// Reason: daily_latest.json can freeze if the upstream sync stops, and showing
+// month-old "Xポスト" entries is more embarrassing than an empty placeholder.
+const MAX_ARTICLE_AGE_DAYS = 7;
+
 function buildSections() {
   if (!fs.existsSync(DAILY_LATEST_JSON)) return { sections: {}, dailyDate: null };
 
@@ -98,12 +103,20 @@ function buildSections() {
   const sections = {};
   const sourceDate = data.metadata && data.metadata.source_date ? String(data.metadata.source_date).slice(0, 10) : null;
   const articles = Array.isArray(data.articles) ? data.articles : [];
-  const publishedDates = articles
+  const cutoffMs = Date.now() - MAX_ARTICLE_AGE_DAYS * 86400000;
+  const isFresh = (article) => {
+    const raw = article.published_at || article.published_ms;
+    if (!raw) return false;
+    const t = typeof raw === 'number' ? raw : Date.parse(raw);
+    return Number.isFinite(t) && t >= cutoffMs;
+  };
+  const freshArticles = articles.filter(isFresh);
+  const publishedDates = freshArticles
     .map(article => String(article.published_at || '').slice(0, 10))
     .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
     .sort((a, b) => b.localeCompare(a));
-  const effectiveDate = sourceDate || publishedDates[0] || null;
-  for (const article of articles) {
+  const effectiveDate = publishedDates[0] || (freshArticles.length ? sourceDate : null);
+  for (const article of freshArticles) {
     const category = article.category || 'posts';
     if (!sections[category]) sections[category] = [];
     if (sections[category].length >= 6) continue;
