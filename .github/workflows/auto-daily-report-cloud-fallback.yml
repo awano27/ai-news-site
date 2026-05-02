@@ -66,3 +66,16 @@ jobs:
           git add -A presentations/ input/ public-pages/ daily-news/ 2>/dev/null || true
           git commit -m "chore(report): cloud primary run $(date +%F)"
           git push
+
+      - name: Warn if local override missing for 2+ days
+        # Detects silent failure of the local 08:00 JST override (X bookmarks)
+        # by checking that at least one "local override" commit landed in the
+        # last 2 days. Surfaces a workflow warning in the Actions UI.
+        if: always()
+        run: |
+          recent=$(git log --since="2 days ago" --grep="local override" --oneline | wc -l)
+          if [ "$recent" -eq 0 ]; then
+            echo "::warning::No 'local override' commit in the last 2 days — X bookmarks may be missing on visionhub.jp/daily-news/. Check Windows Task Scheduler 'visionhub-daily-news-override' on the user's PC."
+          else
+            echo "Local override healthy: $recent commit(s) in last 2 days"
+          fi
