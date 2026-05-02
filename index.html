@@ -1013,6 +1013,7 @@
       <nav id="globalNav" class="nav" aria-label="グローバル">
         <a href="#this-week">最新スライド</a>
         <a href="#categories">ハイライト</a>
+        <a href="#ranking">ランキング</a>
         <a href="#archive">アーカイブ</a>
         <a href="#resources">リソース</a>
         <a href="about.html">About</a>
@@ -1571,6 +1572,262 @@
           if(d) d.textContent = date;
         })
         .catch(function(){});
+    })();
+    </script>
+
+    <!-- =============== AI Ranking — top 3 of today (light) =============== -->
+    <style>
+      .ranking-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 860px) { .ranking-grid { grid-template-columns: 1fr; } }
+      .ranking-card {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 18px;
+        padding: 22px 22px 20px;
+        background: #fff;
+        border: 1px solid #E2E6EE;
+        border-top: 3px solid #FFCC00;
+        border-radius: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+      }
+      .ranking-card:hover {
+        border-color: #FFCC00;
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px -16px rgba(10,21,51,0.18);
+      }
+      .rc-rank {
+        font-family: 'Inter', sans-serif;
+        font-size: 38px;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: #FFCC00;
+        align-self: flex-start;
+        margin-top: 2px;
+      }
+      .rc-body {
+        min-width: 0;
+        display: flex; flex-direction: column;
+        gap: 8px;
+      }
+      .rc-tag {
+        display: inline-block;
+        align-self: flex-start;
+        padding: 2px 8px;
+        font-size: 10px; font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #0a1533;
+        background: rgba(255,204,0,0.18);
+        border-radius: 3px;
+      }
+      .rc-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0a1533;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .rc-source {
+        font-size: 11px;
+        color: #6E7A95;
+        margin-top: -2px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .rc-foot {
+        display: flex; align-items: center; gap: 10px;
+        margin-top: auto;
+        padding-top: 4px;
+      }
+      .rc-bar {
+        flex: 1;
+        height: 5px;
+        background: #EEF1F6;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .rc-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #FFA500, #FFCC00);
+        border-radius: 3px;
+        transition: width .6s cubic-bezier(.2,.8,.2,1);
+      }
+      .rc-score {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 800;
+        color: #0a1533;
+        font-variant-numeric: tabular-nums;
+      }
+      .rc-skel {
+        background: linear-gradient(90deg, rgba(10,21,51,.04), rgba(10,21,51,.10), rgba(10,21,51,.04));
+        background-size: 200% 100%;
+        animation: rc-sh 1.6s linear infinite;
+        border-radius: 4px;
+        color: transparent;
+      }
+      @keyframes rc-sh { to { background-position: -200% 0; } }
+    </style>
+    <section id="ranking" class="section section-light">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">AI Ranking</div>
+            <h2 class="section-title">今日のスコア上位 3 本</h2>
+            <p class="section-note">毎日のAIニュースを重要度スコアで自動ランキング。今日特に重要な3本を抽出しています。</p>
+          </div>
+          <a class="section-link" href="presentations/ai_ranking_report_latest.html">TOP 10 をすべて見る <span aria-hidden="true">→</span></a>
+        </div>
+        <div id="rankingGrid" class="ranking-grid" aria-busy="true">
+          <article class="ranking-card" aria-hidden="true">
+            <div class="rc-rank">01</div>
+            <div class="rc-body">
+              <span class="rc-tag rc-skel">CATEGORY</span>
+              <h3 class="rc-title rc-skel">読み込み中…</h3>
+              <span class="rc-source rc-skel">source</span>
+              <div class="rc-foot">
+                <div class="rc-bar"><div class="rc-fill" style="width:0%"></div></div>
+                <span class="rc-score rc-skel">0.0</span>
+              </div>
+            </div>
+          </article>
+          <article class="ranking-card" aria-hidden="true">
+            <div class="rc-rank">02</div>
+            <div class="rc-body">
+              <span class="rc-tag rc-skel">CATEGORY</span>
+              <h3 class="rc-title rc-skel">読み込み中…</h3>
+              <span class="rc-source rc-skel">source</span>
+              <div class="rc-foot">
+                <div class="rc-bar"><div class="rc-fill" style="width:0%"></div></div>
+                <span class="rc-score rc-skel">0.0</span>
+              </div>
+            </div>
+          </article>
+          <article class="ranking-card" aria-hidden="true">
+            <div class="rc-rank">03</div>
+            <div class="rc-body">
+              <span class="rc-tag rc-skel">CATEGORY</span>
+              <h3 class="rc-title rc-skel">読み込み中…</h3>
+              <span class="rc-source rc-skel">source</span>
+              <div class="rc-foot">
+                <div class="rc-bar"><div class="rc-fill" style="width:0%"></div></div>
+                <span class="rc-score rc-skel">0.0</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+    <script>
+    /* Populate "今日のスコア上位 3 本" cards from /news/latest.json (same source as ranking page). */
+    (function () {
+      'use strict';
+      var LATEST = 'news/latest.json';
+      var ARCHIVE = 'public-pages/news/archive_index.json';
+      var RANKING_URL = 'presentations/ai_ranking_report_latest.html';
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+        });
+      }
+      function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+      function scoreOf(it) { return clamp(+it.stars || 0, 0, 5); }
+
+      function collectItems(data) {
+        var pool = [];
+        if (data.highlight && data.highlight.title) {
+          pool.push({
+            title: data.highlight.title,
+            stars: data.highlight.stars || 5,
+            source: (data.highlight.sources || [{}])[0],
+            category: data.highlight.category || 'HIGHLIGHT'
+          });
+        }
+        var seen = {};
+        pool.forEach(function (p) { seen[p.title] = 1; });
+        var sections = data.sections || {};
+        Object.keys(sections).forEach(function (cat) {
+          (sections[cat] || []).forEach(function (raw) {
+            if (!raw || !raw.title || seen[raw.title]) return;
+            seen[raw.title] = 1;
+            pool.push({
+              title: raw.title,
+              stars: raw.stars || 0,
+              source: raw.source || {},
+              category: cat
+            });
+          });
+        });
+        pool.sort(function (a, b) { return (b.stars || 0) - (a.stars || 0); });
+        return pool.slice(0, 3);
+      }
+
+      function cardHtml(it, rank) {
+        var s = scoreOf(it);
+        var pct = (s / 5 * 100).toFixed(0);
+        var src = it.source || {};
+        var srcText = src.name ? escapeHtml(src.name) : '';
+        return '<a class="ranking-card" href="' + RANKING_URL + '" aria-label="ランキング ' + rank + '位 を見る">' +
+          '<div class="rc-rank">' + String(rank).padStart(2, '0') + '</div>' +
+          '<div class="rc-body">' +
+            '<span class="rc-tag">' + escapeHtml(it.category || 'NEWS') + '</span>' +
+            '<h3 class="rc-title">' + escapeHtml(it.title) + '</h3>' +
+            (srcText ? '<span class="rc-source">' + srcText + '</span>' : '<span class="rc-source"></span>') +
+            '<div class="rc-foot">' +
+              '<div class="rc-bar"><div class="rc-fill" style="width:' + pct + '%"></div></div>' +
+              '<span class="rc-score">' + s.toFixed(1) + ' / 5</span>' +
+            '</div>' +
+          '</div>' +
+        '</a>';
+      }
+
+      function render(items) {
+        var grid = document.getElementById('rankingGrid');
+        if (!grid) return;
+        grid.removeAttribute('aria-busy');
+        if (!items.length) {
+          grid.innerHTML = '<a class="ranking-card" href="' + RANKING_URL + '" style="grid-column:1/-1;"><div class="rc-rank">—</div><div class="rc-body"><h3 class="rc-title">最新ランキングを開く</h3><span class="rc-source">スコア集計データを取得できませんでした。フルページからご覧ください。</span></div></a>';
+          return;
+        }
+        grid.innerHTML = items.map(function (it, i) { return cardHtml(it, i + 1); }).join('');
+      }
+
+      function fetchLatest() {
+        return fetch(LATEST + '?t=' + Date.now())
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+      function fetchArchiveLatest() {
+        return fetch(ARCHIVE + '?t=' + Date.now())
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (idx) {
+            if (!idx || !Array.isArray(idx) || !idx.length) return null;
+            var sorted = idx.slice().sort(function (a, b) { return (a.date < b.date) ? 1 : -1; });
+            var target = sorted[0];
+            if (!target || !target.date) return null;
+            return fetch('news/' + target.date + '.json?t=' + Date.now())
+              .then(function (r) { return r.ok ? r.json() : null; });
+          })
+          .catch(function () { return null; });
+      }
+
+      (fetchLatest().then(function (d) { return d || fetchArchiveLatest(); }))
+        .then(function (data) { render(data ? collectItems(data) : []); });
     })();
     </script>
 

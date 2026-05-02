@@ -54,18 +54,29 @@
     .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;
       letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
     .eyebrow .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
-    h1{font-size:clamp(28px,4vw,38px);line-height:1.25;margin:0 0 10px}
+    h1{font-size:clamp(28px,4vw,40px);line-height:1.2;margin:0 0 12px;letter-spacing:-0.01em;font-weight:900}
     h1 .accent{color:var(--accent)}
-    .lede{color:var(--mute2);font-size:16px;margin:0 0 18px;max-width:64ch}
-    .date-meta{color:var(--mute);font-size:13px;margin-bottom:28px}
-    .rank{display:grid;gap:14px;margin:20px 0 32px}
-    .rank-item{display:grid;grid-template-columns:56px 1fr auto;gap:16px;
-      background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-    .rank-item .num{font-size:26px;font-weight:900;color:var(--accent);text-align:center;line-height:1}
+    .lede{color:var(--mute2);font-size:16px;margin:0 0 18px;max-width:64ch;line-height:1.8}
+    .date-meta{color:var(--mute);font-size:13px;margin-bottom:28px;letter-spacing:.04em}
+    .rank{display:grid;gap:12px;margin:20px 0 32px}
+    .rank-item{display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:center;
+      background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+      transition:border-color .15s ease,transform .15s ease}
+    .rank-item:hover{border-color:rgba(255,204,0,.35);transform:translateX(2px)}
+    .rank-item .num{font-size:26px;font-weight:900;color:var(--accent);text-align:center;line-height:1;
+      font-variant-numeric:tabular-nums;letter-spacing:-.02em}
     .rank-item .title{font-size:17px;font-weight:700;line-height:1.45;color:var(--ink)}
-    .rank-item .meta{color:var(--mute);font-size:13px;margin-top:6px}
-    .rank-item .stars{color:var(--accent);font-weight:700;letter-spacing:.08em;font-size:14px;white-space:nowrap}
-    .rank-item .blurb{color:var(--mute2);font-size:14px;margin-top:8px;line-height:1.7}
+    .rank-item .meta{color:var(--mute);font-size:13px;margin-top:6px;letter-spacing:.02em}
+    .rank-item .stars{color:var(--accent);font-weight:700;letter-spacing:.12em;font-size:14px;white-space:nowrap}
+    .rank-item .blurb{color:var(--mute2);font-size:14px;margin-top:8px;line-height:1.75}
+    /* TOP1 emphasis */
+    .rank-item.is-top{background:linear-gradient(155deg,var(--panel) 0%,var(--panel2) 100%);
+      border-color:rgba(255,204,0,.35);border-top:3px solid var(--accent);padding:22px;gap:20px;
+      grid-template-columns:72px 1fr auto}
+    .rank-item.is-top:hover{border-color:var(--accent)}
+    .rank-item.is-top .num{font-size:42px}
+    .rank-item.is-top .title{font-size:20px;line-height:1.4}
+    .rank-item.is-top .stars{font-size:15px}
     .skel{background:linear-gradient(90deg,rgba(255,255,255,.03),rgba(255,255,255,.08),rgba(255,255,255,.03));
       background-size:200% 100%;animation:sh 1.6s linear infinite;border-radius:6px;color:transparent}
     @keyframes sh{to{background-position:-200% 0}}
@@ -203,7 +214,8 @@
         var srcHtml = src.url
           ? ' · <a href="' + escapeHtml(src.url) + '" rel="noopener">' + escapeHtml(src.name || 'source') + ' ↗</a>'
           : '';
-        return '<div class="rank-item">' +
+        var cls = 'rank-item' + (i === 0 ? ' is-top' : '');
+        return '<div class="' + cls + '">' +
           '<span class="num">' + (i + 1) + '</span>' +
           '<div>' +
             '<div class="title">' + escapeHtml(it.title) + '</div>' +
