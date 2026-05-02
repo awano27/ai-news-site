@@ -104,7 +104,7 @@
 
     const items = [
       { name: 'Home', href: new URL('index.html', root).href },
-      { name: 'Ranking', href: new URL('ai_ranking_interactive.html', root).href },
+      { name: 'Archive', href: new URL('news_archive.html', root).href },
       { name: 'Report', href: new URL('integrated_report.html', root).href },
       { name: 'Slides', href: new URL('day_slides_index.html', root).href },
       { name: 'Latest', href: new URL('ai_ranking_report_latest.html', root).href }

@@ -83,7 +83,7 @@ urls = [
   'https://visionhub.jp/presentations/day_slides_index.html',
   'https://visionhub.jp/presentations/day_slides_list.html',
   'https://visionhub.jp/presentations/ai_ranking_report_latest.html',
-  'https://visionhub.jp/presentations/ai_ranking_interactive.html',
+  'https://visionhub.jp/presentations/news_archive.html',
   'https://visionhub.jp/presentations/json_archive_viewer.html',
   'https://visionhub.jp/presentations/hubs/claude-code-guide-2026.html',
 ]

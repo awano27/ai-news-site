@@ -65,7 +65,7 @@ index.html / Hub / スライドに貼り付けできる、**404 リスクゼロ*
   <a class="btn" href="/presentations/day_slides_list.html">📋 一覧ビュー</a>
   <a class="btn" href="/presentations/json_archive_viewer.html">🗂 JSONアーカイブ</a>
   <a class="btn" href="/presentations/ai_ranking_report_latest.html">🏆 最新ランキング</a>
-  <a class="btn" href="/presentations/ai_ranking_interactive.html">🔎 インタラクティブ版</a>
+  <a class="btn" href="/presentations/news_archive.html">🔎 ニュースアーカイブ検索</a>
 </div>
 ```
 
