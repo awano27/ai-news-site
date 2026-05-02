@@ -7,7 +7,8 @@ const ROOT = path.join(__dirname, '..');
 const SLIDES_DIR = path.join(ROOT, 'presentations', 'day_slides');
 const NEWS_DIR = path.join(ROOT, 'news');
 const LATEST_JSON = path.join(NEWS_DIR, 'latest.json');
-const DAILY_LATEST_JSON = path.join(ROOT, 'public-pages', 'news', 'daily_latest.json');
+const AUTO_DAILY_JSON = path.join(ROOT, 'public-pages', 'api', 'auto_daily_report', 'latest.json');
+const DAILY_LATEST_JSON = path.join(ROOT, 'public-pages', 'news', 'daily_latest.json'); // legacy fallback only
 
 function decodeEntities(value) {
   return String(value || '')
@@ -71,67 +72,171 @@ function toJstIso(date) {
   return `${date}T09:00:00.000000+09:00`;
 }
 
-function normalizeSource(article) {
-  const sourceName = article.source || article.source_name || 'source';
+// Map auto_daily_report categories (and synthetic ones for funding/github/models)
+// to the 7 buckets the homepage HTML knows how to render.
+const CATEGORY_MAP = {
+  'AI Technology': 'tech',
+  'AI Model':      'tech',
+  'Research':      'research',
+  'Product':       'tools',
+  'Hardware':      'tech',
+};
+
+const SOURCE_NAME_MAP = {
+  hn: 'Hacker News',
+  arxiv: 'arXiv',
+  github: 'GitHub',
+  rss: 'RSS',
+  jp: '国内ニュース',
+};
+
+function prettySource(raw) {
+  if (!raw) return 'source';
+  const key = String(raw).toLowerCase();
+  return SOURCE_NAME_MAP[key] || raw;
+}
+
+function inferSourceFromUrl(url) {
+  if (!url) return null;
+  if (url.includes('huggingface.co')) return 'Hugging Face';
+  if (url.includes('github.com')) return 'GitHub';
+  if (url.includes('arxiv.org')) return 'arXiv';
+  if (url.includes('news.ycombinator.com')) return 'Hacker News';
+  return null;
+}
+
+function normalizeSource(item, fallbackName) {
+  const url = item.url || '';
+  const inferred = inferSourceFromUrl(url);
+  const name = item.source || inferred || fallbackName;
   return {
-    name: sourceName,
-    url: article.url || '#',
+    name: prettySource(name),
+    url: url || '#',
   };
 }
 
-function starsFor(article) {
-  if (article.importance === 'high') return 4;
-  if (article.importance === 'medium') return 3;
+function starsForScore(score, importance) {
+  // Numeric score from auto_daily_report (0-100). Falls back to importance string.
+  if (typeof score === 'number' && Number.isFinite(score)) {
+    if (score >= 80) return 5;
+    if (score >= 65) return 4;
+    if (score >= 45) return 3;
+    return 2;
+  }
+  if (importance === 'high') return 4;
+  if (importance === 'medium') return 3;
   return 2;
 }
 
-// Articles older than this are considered stale and excluded from the homepage.
-// Reason: daily_latest.json can freeze if the upstream sync stops, and showing
-// month-old "Xポスト" entries is more embarrassing than an empty placeholder.
-const MAX_ARTICLE_AGE_DAYS = 7;
+function blurbFor(item) {
+  const raw = item.tldr || item.summary || '';
+  return String(raw).replace(/\s+/g, ' ').trim().slice(0, 200);
+}
 
-function buildSections() {
-  if (!fs.existsSync(DAILY_LATEST_JSON)) return { sections: {}, dailyDate: null };
+function pushItem(sections, bucket, record, perBucketLimit = 6) {
+  if (!sections[bucket]) sections[bucket] = [];
+  if (sections[bucket].length >= perBucketLimit) return;
+  sections[bucket].push(record);
+}
 
-  let data;
-  try {
-    data = JSON.parse(fs.readFileSync(DAILY_LATEST_JSON, 'utf8'));
-  } catch {
+// data.date is "today's report date" — far more reliable than per-article timestamps.
+// soft warn at 3 days, fail-close at 14 days to avoid showing visibly stale homepage.
+const MAX_DATA_AGE_DAYS_SOFT = 3;
+const MAX_DATA_AGE_DAYS_HARD = 14;
+
+function dataAgeDays(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr || '')) return Infinity;
+  const t = Date.parse(`${dateStr}T00:00:00Z`);
+  if (!Number.isFinite(t)) return Infinity;
+  return Math.floor((Date.now() - t) / 86400000);
+}
+
+function buildSectionsFromAutoDaily() {
+  if (!fs.existsSync(AUTO_DAILY_JSON)) {
+    console.warn(`[build-homepage-latest] auto_daily_report/latest.json not found at ${AUTO_DAILY_JSON}`);
     return { sections: {}, dailyDate: null };
   }
 
-  const sections = {};
-  const sourceDate = data.metadata && data.metadata.source_date ? String(data.metadata.source_date).slice(0, 10) : null;
-  const articles = Array.isArray(data.articles) ? data.articles : [];
-  const cutoffMs = Date.now() - MAX_ARTICLE_AGE_DAYS * 86400000;
-  const isFresh = (article) => {
-    const raw = article.published_at || article.published_ms;
-    if (!raw) return false;
-    const t = typeof raw === 'number' ? raw : Date.parse(raw);
-    return Number.isFinite(t) && t >= cutoffMs;
-  };
-  const freshArticles = articles.filter(isFresh);
-  const publishedDates = freshArticles
-    .map(article => String(article.published_at || '').slice(0, 10))
-    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
-    .sort((a, b) => b.localeCompare(a));
-  const effectiveDate = publishedDates[0] || (freshArticles.length ? sourceDate : null);
-  for (const article of freshArticles) {
-    const category = article.category || 'posts';
-    if (!sections[category]) sections[category] = [];
-    if (sections[category].length >= 6) continue;
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(AUTO_DAILY_JSON, 'utf8'));
+  } catch (err) {
+    console.error(`[build-homepage-latest] failed to parse auto_daily_report/latest.json: ${err.message}`);
+    return { sections: {}, dailyDate: null };
+  }
 
-    sections[category].push({
-      title: article.title || 'Untitled',
-      blurb: article.summary || '',
-      category,
-      date: (article.published_at || '').slice(0, 10) || '',
-      stars: starsFor(article),
-      source: normalizeSource(article),
+  const reportDate = typeof data.date === 'string' ? data.date.slice(0, 10) : null;
+  const ageDays = dataAgeDays(reportDate);
+  if (ageDays > MAX_DATA_AGE_DAYS_HARD) {
+    console.error(`[build-homepage-latest] auto_daily_report is ${ageDays} days old (>${MAX_DATA_AGE_DAYS_HARD}). Failing closed with empty sections.`);
+    return { sections: {}, dailyDate: reportDate };
+  }
+  if (ageDays > MAX_DATA_AGE_DAYS_SOFT) {
+    console.warn(`[build-homepage-latest] auto_daily_report is ${ageDays} days old (>${MAX_DATA_AGE_DAYS_SOFT}). Using anyway, but upstream pipeline may be stalled.`);
+  }
+
+  const sections = {};
+
+  const headlines = Array.isArray(data.headlines) ? data.headlines.slice() : [];
+  headlines.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+  for (const h of headlines) {
+    const bucket = CATEGORY_MAP[h.category] || 'tech';
+    pushItem(sections, bucket, {
+      title: h.title || 'Untitled',
+      blurb: blurbFor(h),
+      category: bucket,
+      date: reportDate || '',
+      stars: starsForScore(h.score, h.importance),
+      source: normalizeSource(h, h.source),
     });
   }
 
-  return { sections, dailyDate: effectiveDate };
+  const funding = Array.isArray(data.funding) ? data.funding : [];
+  for (const f of funding) {
+    pushItem(sections, 'business', {
+      title: f.title || 'Untitled',
+      blurb: blurbFor(f),
+      category: 'business',
+      date: reportDate || '',
+      stars: starsForScore(f.score, f.importance),
+      source: normalizeSource(f, 'funding'),
+    });
+  }
+
+  const github = Array.isArray(data.github) ? data.github : [];
+  for (const g of github) {
+    pushItem(sections, 'tools', {
+      title: g.title || 'Untitled',
+      blurb: blurbFor(g) || (g.metrics && g.metrics[0]) || '',
+      category: 'tools',
+      date: reportDate || '',
+      stars: starsForScore(g.score, g.importance),
+      source: normalizeSource(g, 'GitHub'),
+    });
+  }
+
+  const models = Array.isArray(data.models) ? data.models : [];
+  for (const m of models) {
+    pushItem(sections, 'research', {
+      title: m.title || 'Untitled',
+      blurb: blurbFor(m) || (m.metrics && m.metrics[0]) || '',
+      category: 'research',
+      date: reportDate || '',
+      stars: starsForScore(m.score, m.importance),
+      source: normalizeSource(m, 'models'),
+    });
+  }
+
+  // Drop empty buckets to keep the JSON tidy and avoid confusing the renderer.
+  for (const k of Object.keys(sections)) {
+    if (!sections[k] || sections[k].length === 0) delete sections[k];
+  }
+
+  return { sections, dailyDate: reportDate };
+}
+
+function buildSections() {
+  return buildSectionsFromAutoDaily();
 }
 
 function main() {
