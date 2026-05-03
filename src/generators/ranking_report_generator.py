@@ -39,7 +39,10 @@ class RankingReportGenerator:
             ranking_items = []
             
             # 各ランキング項目を正規表現で抽出
-            pattern = r'(\d+)\.\s\*\*([^*]+)\*\*:\s([^.]+\.)\sEng Tool:\s(\d+),\sBiz Eff:\s(\d+),\s合計:\s(\d+)\.\s([^.]+(?:\.[^.]*)*)\.'
+            # 注意: [^.] は \n も含むため、ライン境界を跨いで貪欲にマッチし
+            # 全 30 件が 1 件に潰れる事故が起きていた。description / benefits を
+            # 改行でアンカーし、1 行 1 エントリで抽出する。
+            pattern = r'(\d+)\.\s\*\*([^*]+)\*\*:\s([^.\n]+\.)\sEng Tool:\s(\d+),\sBiz Eff:\s(\d+),\s合計:\s(\d+)\.\s([^\n]+)'
             matches = re.findall(pattern, content)
             
             for match in matches:
