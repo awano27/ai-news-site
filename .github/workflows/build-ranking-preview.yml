@@ -5,6 +5,9 @@ on:
   push:
     paths:
       - 'presentations/ai_ranking_input_latest.txt'
+  schedule:
+    # 23:30 UTC = 08:30 JST — runs after daily-news cloud (06:00 JST) + local override (08:00 JST)
+    - cron: '30 23 * * *'
 
 permissions:
   contents: write
@@ -21,17 +24,20 @@ jobs:
         run: |
           python -m pip install -U pip
           python -m pip install -r requirements.txt
+      - name: Regenerate ranking input from last 30 days of news archives
+        run: |
+          python scripts/generate_ranking_input.py
       - name: Build ranking report from preview input
         run: |
           python script/build_ranking_from_preview.py
       - name: Commit & push HTML
         run: |
-          if [ -n " M presentations/day_slides/day_slide_2025_08_30.html" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add presentations/ai_ranking_report_*.html presentations/ai_ranking_report_latest.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add presentations/ai_ranking_input_latest.txt presentations/ai_ranking_report_*.html presentations/ai_ranking_report_latest.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
             git commit -m "build(ranking): formal HTML from preview input"
             git push
-          else
-            echo "No changes"
           fi
