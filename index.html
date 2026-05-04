@@ -1757,7 +1757,12 @@
         var pct = (s / 5 * 100).toFixed(0);
         var src = it.source || {};
         var srcText = src.name ? escapeHtml(src.name) : '';
-        return '<a class="ranking-card" href="' + RANKING_URL + '" aria-label="ランキング ' + rank + '位 を見る">' +
+        var href = src.url ? src.url : RANKING_URL;
+        var isExternal = /^https?:\/\//i.test(href);
+        var attrs = 'href="' + escapeHtml(href) + '"' +
+          (isExternal ? ' target="_blank" rel="noopener noreferrer"' : '') +
+          ' aria-label="' + escapeHtml(rank + '位: ' + (it.title || '')) + '"';
+        return '<a class="ranking-card" ' + attrs + '>' +
           '<div class="rc-rank">' + String(rank).padStart(2, '0') + '</div>' +
           '<div class="rc-body">' +
             '<span class="rc-tag">' + escapeHtml(it.category || 'NEWS') + '</span>' +
