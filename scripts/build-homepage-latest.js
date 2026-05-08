@@ -10,13 +10,19 @@ const LATEST_JSON = path.join(NEWS_DIR, 'latest.json');
 const AUTO_DAILY_JSON = path.join(ROOT, 'public-pages', 'api', 'auto_daily_report', 'latest.json');
 const DAILY_LATEST_JSON = path.join(ROOT, 'public-pages', 'news', 'daily_latest.json'); // legacy fallback only
 
+const NAMED_ENTITIES = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
+  nbsp: ' ', mdash: '—', ndash: '–',
+  hellip: '…', lsquo: '‘', rsquo: '’',
+  ldquo: '“', rdquo: '”', middot: '·',
+  copy: '©', reg: '®', trade: '™',
+};
+
 function decodeEntities(value) {
   return String(value || '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&([a-zA-Z]+);/g, (m, name) => NAMED_ENTITIES[name] !== undefined ? NAMED_ENTITIES[name] : m);
 }
 
 function newestSlide() {
