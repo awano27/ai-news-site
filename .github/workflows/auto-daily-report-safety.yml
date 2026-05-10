@@ -1,0 +1,69 @@
+# Safety net for auto_daily_report cron skips.
+#
+# GitHub Actions scheduled workflows are occasionally silently skipped under
+# high runner load. On 2026-04-26 the primary workflow
+# (auto-daily-report-cloud-fallback.yml, cron 0 21 * * * UTC = JST 06:00)
+# never fired, leaving visionhub.jp with yesterday's stale report until a
+# manual `gh workflow run` was invoked. This safety net runs two hours later
+# (JST 11:30 and 13:00) and self-heals by dispatching the primary workflow
+# when today's report has not yet landed.
+
+name: Auto Daily Report — Safety Net
+
+on:
+  schedule:
+    # JST 11:30 = UTC 02:30  (first check, ~5.5 h after primary window)
+    - cron: '30 2 * * *'
+    # JST 13:00 = UTC 04:00  (second check, in case first run itself was skipped)
+    - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: auto-daily-report-safety
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  check-and-heal:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Fetch today's report JSON and check freshness
+        id: freshness
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          echo "today=$TODAY" >> "$GITHUB_OUTPUT"
+
+          if BODY=$(curl -fsSL --max-time 15 https://visionhub.jp/presentations/auto_daily_report.json 2>&1); then
+            REPORT_DATE=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('date',''))" 2>/dev/null || echo "")
+            echo "report_date=$REPORT_DATE" >> "$GITHUB_OUTPUT"
+            if [ "$REPORT_DATE" = "$TODAY" ]; then
+              echo "fresh=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "fresh=false" >> "$GITHUB_OUTPUT"
+              echo "::warning::Report date '$REPORT_DATE' does not match today '$TODAY' — triggering fallback."
+            fi
+          else
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Failed to fetch auto_daily_report.json — triggering fallback."
+          fi
+
+      - name: Report is fresh — nothing to do
+        if: steps.freshness.outputs.fresh == 'true'
+        run: |
+          echo "Report is fresh (date=${{ steps.freshness.outputs.report_date }}). Nothing to do."
+
+      - name: Trigger primary fallback workflow
+        if: steps.freshness.outputs.fresh != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Safety net triggered: today=${{ steps.freshness.outputs.today }}, report_date=${{ steps.freshness.outputs.report_date }}"
+          gh workflow run auto-daily-report-cloud-fallback.yml \
+            --repo ${{ github.repository }} \
+            -f force=true
+          echo "Dispatched auto-daily-report-cloud-fallback.yml successfully."
