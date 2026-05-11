@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -41,7 +42,13 @@ PRESENTATION_DIRS = [
     ("presentations/copilot-guide", "monthly", 0.6),
 ]
 
+DAILY_NEWS_DIRS = [
+    ("daily-news", "daily", 0.8),
+    ("daily-news/archive", "daily", 0.7),
+]
+
 DAY_SLIDE_DATE_RE = re.compile(r"day_slide_(\d{4})_(\d{2})_(\d{2})\.html$")
+DAILY_NEWS_DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})\.html$")
 DIGEST_DATE_RE = re.compile(r"(\d{4})-(\d{2})\.html$")
 
 # Files to exclude from sitemap (test/temp/backup/generator utilities).
@@ -49,6 +56,8 @@ EXCLUDE_PATTERNS = (
     re.compile(r"^test_"),
     re.compile(r"^tmp_"),
     re.compile(r"^_"),
+    re.compile(r"(^|[_-])test([_.-]|$)"),
+    re.compile(r"(^|[_-])bak([_.-]|$)"),
     re.compile(r"\.bak\."),
     re.compile(r"backup"),
     re.compile(r"og-image-generator"),
@@ -68,6 +77,29 @@ def iso_mtime(path: Path) -> str:
     return ts.strftime("%Y-%m-%d")
 
 
+def latest_homepage_date() -> str | None:
+    for rel in ("news/latest.json", "public-pages/news/archive_index.json"):
+        p = ROOT / rel
+        if not p.exists():
+            continue
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if isinstance(data, dict):
+            for key in ("generated_at", "news_date", "date"):
+                value = data.get(key)
+                if isinstance(value, str):
+                    m = re.match(r"(\d{4}-\d{2}-\d{2})", value)
+                    if m:
+                        return m.group(1)
+        if isinstance(data, list) and data:
+            value = data[0].get("date") if isinstance(data[0], dict) else None
+            if isinstance(value, str) and re.match(r"\d{4}-\d{2}-\d{2}$", value):
+                return value
+    return None
+
+
 def day_slide_lastmod(path: Path) -> str:
     m = DAY_SLIDE_DATE_RE.search(path.name)
     if m:
@@ -75,14 +107,24 @@ def day_slide_lastmod(path: Path) -> str:
     return iso_mtime(path)
 
 
+def daily_news_lastmod(path: Path) -> str:
+    m = DAILY_NEWS_DATE_RE.search(path.name)
+    if m:
+        return m.group(1)
+    return iso_mtime(path)
+
+
 def url_for(path: Path) -> str:
     rel = path.relative_to(ROOT).as_posix()
+    if rel.endswith("/index.html"):
+        return f"{BASE_URL}/{rel[:-10]}"
     return f"{BASE_URL}/{rel}"
 
 
 def collect_urls() -> list[dict]:
     today = dt.date.today().isoformat()
     urls: list[dict] = []
+    homepage_lastmod = latest_homepage_date()
 
     # Root pages
     for name, freq, prio in ROOT_PAGES:
@@ -90,7 +132,7 @@ def collect_urls() -> list[dict]:
         if p.exists():
             urls.append({
                 "loc": f"{BASE_URL}/" if name == "index.html" else f"{BASE_URL}/{name}",
-                "lastmod": iso_mtime(p),
+                "lastmod": homepage_lastmod if name == "index.html" and homepage_lastmod else iso_mtime(p),
                 "changefreq": freq,
                 "priority": prio,
             })
@@ -119,6 +161,20 @@ def collect_urls() -> list[dict]:
             urls.append({
                 "loc": url_for(p),
                 "lastmod": lm,
+                "changefreq": freq,
+                "priority": prio,
+            })
+
+    for rel_dir, freq, prio in DAILY_NEWS_DIRS:
+        d = ROOT / rel_dir
+        if not d.exists():
+            continue
+        for p in sorted(d.glob("*.html"), key=lambda x: x.name, reverse=True):
+            if should_skip(p.name):
+                continue
+            urls.append({
+                "loc": url_for(p),
+                "lastmod": latest_homepage_date() if p.name == "index.html" else daily_news_lastmod(p),
                 "changefreq": freq,
                 "priority": prio,
             })

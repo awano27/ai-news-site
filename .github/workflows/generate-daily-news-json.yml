@@ -35,11 +35,12 @@ jobs:
           node scripts/generate-daily-news-json.js
           node scripts/rebuild-news-indexes.js
           node scripts/build-homepage-latest.js
+          python scripts/build_sitemap.py
 
       - name: Check for changes
         id: check_changes
         run: |
-          if git diff --quiet presentations/api/ public-pages/news/ news/latest.json; then
+          if git diff --quiet presentations/api/ public-pages/news/ news/latest.json index.html sitemap.xml; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -52,7 +53,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add presentations/api/
           git add public-pages/news/archive_index.json public-pages/news/daily_index.json public-pages/news/daily_latest.json public-pages/news/version.json
-          git add news/latest.json
+          git add news/latest.json index.html sitemap.xml
           git commit -m "Update Daily News JSON (automated)
 
           Generated at: $(date +"%Y-%m-%d %H:%M:%S %Z")

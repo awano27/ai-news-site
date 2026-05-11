@@ -33,10 +33,14 @@ jobs:
           NEWS_MAX_AGE_HOURS: '48'
           NEWS_GLOBAL_TIMEOUT_SEC: '45'
         run: python script/build_news.py
+      - name: Refresh homepage and sitemap
+        run: |
+          node scripts/build-homepage-latest.js
+          python scripts/build_sitemap.py
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add news/latest.json news/*.json || true
+          git add news/latest.json news/*.json index.html sitemap.xml || true
           git commit -m "chore: daily AI news JSON" || echo "nothing to commit"
           git push
