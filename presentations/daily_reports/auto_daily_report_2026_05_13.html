@@ -920,7 +920,6 @@ body::after {
 
 <script>
 (function() {
-  // Hero masthead: format date + issue number from bar-date text
   var barDate = document.querySelector('.bar-date');
   var heroDate = document.getElementById('hero-date');
   var heroIssue = document.getElementById('hero-issue');
@@ -933,7 +932,6 @@ body::after {
       heroDate.innerHTML = '<span class="date-day">' + String(d).padStart(2,'0') + '</span>' +
                            '<span class="date-month">' + months[mo-1] + ' &middot; ' + y + '</span>';
       if (heroIssue) {
-        // Issue number = days since 2026-01-01 (arbitrary epoch for volume)
         var epoch = new Date('2026-01-01T00:00:00Z');
         var cur = new Date(y + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0') + 'T00:00:00Z');
         var days = Math.max(1, Math.round((cur - epoch) / 86400000) + 1);
@@ -944,12 +942,10 @@ body::after {
     }
   }
 
-  // Accordion toggle
   document.querySelectorAll('.row-head').forEach(function(h) {
     h.addEventListener('click', function() { h.parentElement.classList.toggle('open'); });
   });
 
-  // Mobile menu toggle
   var toggle = document.querySelector('.bar-toggle');
   var nav = document.querySelector('.bar-nav');
   if (toggle && nav) {
@@ -965,7 +961,6 @@ body::after {
     });
   }
 
-  // Expand/Collapse all
   document.querySelectorAll('.expand-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var sec = btn.closest('.sec');
@@ -979,7 +974,6 @@ body::after {
     });
   });
 
-  // Scroll spy
   var sections = document.querySelectorAll('.sec[id]');
   var navLinks = document.querySelectorAll('.bar-nav a[href^="#"]');
   if (sections.length && navLinks.length && 'IntersectionObserver' in window) {
@@ -995,7 +989,6 @@ body::after {
     sections.forEach(function(s) { observer.observe(s); });
   }
 
-  // Back to top
   var btt = document.querySelector('.btt');
   if (btt) {
     window.addEventListener('scroll', function() {
@@ -1007,7 +1000,6 @@ body::after {
     });
   }
 
-  // Search filter
   var searchInput = document.getElementById('search-input');
   if (searchInput) {
     searchInput.addEventListener('input', function() {
@@ -1021,7 +1013,6 @@ body::after {
     });
   }
 
-  // Category tag filter
   var activeCat = null;
   document.querySelectorAll('#cat-filters .tag').forEach(function(tag) {
     tag.addEventListener('click', function() {
@@ -1046,7 +1037,6 @@ body::after {
     });
   });
 
-  // Sort by score
   var sortBtn = document.getElementById('sort-score');
   var sortedAsc = false;
   if (sortBtn) {
@@ -1065,7 +1055,6 @@ body::after {
     });
   }
 
-  // Stale banner: if report date differs from "today" (JST) by 12+ hours, warn.
   (function staleCheck() {
     var meta = document.querySelector('meta[name="report:date"]');
     if (!meta) return;
@@ -1073,7 +1062,6 @@ body::after {
     var m = rd && rd.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return;
     var reportTs = new Date(m[1] + '-' + m[2] + '-' + m[3] + 'T00:00:00+09:00').getTime();
-    // Use JST today (UTC + 9h). Browsers in any timezone render the same JST.
     var nowUtcMs = Date.now();
     var jstNow = new Date(nowUtcMs + (9 * 3600 * 1000));
     var jstTodayMid = Date.UTC(jstNow.getUTCFullYear(), jstNow.getUTCMonth(), jstNow.getUTCDate()) - (9 * 3600 * 1000);
@@ -1094,7 +1082,6 @@ body::after {
     }
   })();
 
-  // Charts (Chart.js loaded async; defer rendering until ready)
   function renderCharts() {
     if (typeof Chart === 'undefined') { setTimeout(renderCharts, 200); return; }
     var dataEl = document.getElementById('report-data');
@@ -1182,7 +1169,6 @@ body::after {
   if (document.readyState === 'complete') renderCharts();
   else window.addEventListener('load', renderCharts);
 
-  // Day navigation — link to archived reports
   var titleMatch = document.title.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (titleMatch) {
     var current = new Date(titleMatch[1], titleMatch[2] - 1, titleMatch[3]);
@@ -1196,7 +1182,6 @@ body::after {
     }
 
     if (dayNav) {
-      // Find previous report (check up to 7 days back)
       var checks = [];
       for (var i = 1; i <= 7; i++) {
         var prev = new Date(current); prev.setDate(prev.getDate() - i);
@@ -1208,8 +1193,6 @@ body::after {
           .catch(function() { return null; });
       })).then(function(results) {
         var found = results.find(function(r) { return r !== null; });
-
-        // Previous link
         if (found) {
           var prevLink = document.createElement('a');
           prevLink.href = found.url;
@@ -1218,13 +1201,11 @@ body::after {
         }
       });
 
-      // Current date label
       var dateLabel = document.createElement('span');
       dateLabel.style.cssText = 'font-family:var(--mono);font-size:.78rem;color:var(--t2);padding:8px 0';
       dateLabel.textContent = fmtNav(current);
       dayNav.appendChild(dateLabel);
 
-      // Next / latest link
       var today = new Date(); today.setHours(0,0,0,0);
       if (current < today) {
         var latestLink = document.createElement('a');
