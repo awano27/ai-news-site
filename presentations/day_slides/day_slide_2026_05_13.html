@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Magic Pointer — 50 年変わらなかったマウスを「指して話す AI アシスタント」へ再定義｜AI News 2026/05/13</title>
+<meta name="description" content="2026/05/13 — Google DeepMind の AI Magic Pointer 完全ガイド。2026/05/12 公式発表、50 年変わらなかったマウスポインタを Gemini で再定義する実験的 UI。AI を世界へ溶け込ませる逆転思想、公式 4 原則 (Maintain the flow / Show and tell / This and That / Pixels to actionable entities)、Google AI Studio と Gemini in Chrome での即時試用、2026 年秋発売 Googlebook の本格版 Magic Pointer、精度・プライバシー・過度依存リスク評価、OS から Intelligence System へのパラダイムシフト。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#040814;--bg-mid:#070d1f;--bg-soft:#0a1428;
+  --ink:#eaf6ff;--text:#ebf2ff;--text-soft:#c8d4eb;--muted:#7e8ba8;
+  --border:rgba(8,145,178,.24);--border-strong:rgba(8,145,178,.48);
+  --card:#091625;--card-2:#0d1d31;
+  --primary:#0891b2;--primary-2:#0e7490;--primary-3:#155e75;
+  --accent:#d946ef;--accent-2:#c026d3;--accent-3:#a21caf;
+  --warm:#fbbf24;--warm-2:#f59e0b;
+  --rose:#fb7185;--coral:#fb7185;--emerald:#22d3ee;--sand:#facc15;
+  --danger:#ef4444;--safe:#22c55e;--safe-2:#16a34a;
+  --radius-lg:14px;--radius-md:9px;
+  --shadow-glow:0 24px 60px rgba(8,145,178,.30);
+  --shadow-card:0 14px 40px rgba(0,0,0,.55);
+  --maxw:1180px;
+  --ff-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+  --ff-sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --ff-serif:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho","YuMincho","Times New Roman",serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,var(--bg-soft) 0%,var(--bg-mid) 30%,var(--bg-deep) 100%);background-attachment:fixed;color:var(--text);font-family:var(--ff-sans);line-height:1.85;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+code{font-family:var(--ff-mono);font-size:.92em;background:rgba(167,139,250,.10);padding:1px 6px;border-radius:4px;color:var(--primary)}
+em{font-style:normal;color:var(--primary)}
+em.violet{color:var(--primary)}em.cyan{color:var(--accent)}em.coral{color:var(--coral)}em.emerald{color:var(--emerald)}em.warm{color:var(--warm)}em.safe{color:var(--safe)}
+
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;min-height:60px;padding:0 28px;background:rgba(6,4,13,.82);border-bottom:1px solid var(--border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.topbar .brand{font-family:var(--ff-mono);font-weight:700;font-size:.78rem;letter-spacing:.20em;color:var(--text)}
+.topbar .brand em{color:var(--primary)}
+.topbar nav{display:flex;gap:2px;flex-wrap:wrap}
+.topbar nav a{padding:8px 12px;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border-radius:6px;transition:color .2s,background .2s}
+.topbar nav a:hover{color:var(--primary);background:rgba(167,139,250,.10)}
+.topbar .date{margin-left:auto;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.18em;color:var(--primary)}
+
+.eyebrow{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;font-family:var(--ff-mono);font-size:.72rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--primary)}
+.eyebrow::before{content:"";display:inline-block;width:40px;height:1px;background:linear-gradient(90deg,var(--primary),transparent)}
+.eyebrow.violet{color:var(--primary)}.eyebrow.violet::before{background:linear-gradient(90deg,var(--primary),transparent)}
+.eyebrow.cyan{color:var(--accent)}.eyebrow.cyan::before{background:linear-gradient(90deg,var(--accent),transparent)}
+.eyebrow.coral{color:var(--coral)}.eyebrow.coral::before{background:linear-gradient(90deg,var(--coral),transparent)}
+.eyebrow.emerald{color:var(--emerald)}.eyebrow.emerald::before{background:linear-gradient(90deg,var(--emerald),transparent)}
+.eyebrow.warm{color:var(--warm)}.eyebrow.warm::before{background:linear-gradient(90deg,var(--warm),transparent)}
+.eyebrow.safe{color:var(--safe)}.eyebrow.safe::before{background:linear-gradient(90deg,var(--safe),transparent)}
+.pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 0 rgba(167,139,250,.55);margin-right:6px}
+
+.section h2{margin:0 0 18px;font-family:var(--ff-serif);font-weight:600;font-size:clamp(1.7rem,3.2vw,2.65rem);line-height:1.4;letter-spacing:.005em;color:var(--text)}
+.section-lead{margin:0 0 36px;color:var(--muted);font-size:1.04rem;line-height:1.92}
+.section{max-width:var(--maxw);margin:0 auto;padding:96px 28px;border-top:1px solid var(--border);position:relative}
+.section:first-of-type{border-top:0}
+
+.hero{position:relative;overflow:hidden;padding:108px 0 88px;border-bottom:1px solid var(--border)}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.50;pointer-events:none;z-index:0}
+.orb-violet{top:-220px;left:-160px;width:620px;height:620px;background:radial-gradient(circle,rgba(124,58,237,.55),transparent 60%)}
+.orb-cyan{bottom:-260px;right:-200px;width:660px;height:660px;background:radial-gradient(circle,rgba(34,211,238,.40),transparent 60%);opacity:.45}
+.orb-warm{top:50%;left:50%;transform:translate(-50%,-50%);width:340px;height:340px;background:radial-gradient(circle,rgba(251,191,36,.18),transparent 60%);opacity:.40}
+.hero-inner{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 28px;text-align:left}
+.hero-kicker{margin:0 0 26px;font-family:var(--ff-mono);font-size:.75rem;font-weight:500;letter-spacing:.30em;text-transform:uppercase;color:var(--primary);display:inline-flex;align-items:center;gap:14px}
+.hero-kicker::before{content:"";display:inline-block;width:54px;height:1px;background:linear-gradient(90deg,var(--primary),transparent)}
+.hero h1{margin:0 0 22px;font-family:var(--ff-serif);font-weight:600;font-size:clamp(2.1rem,4.2vw,3.55rem);line-height:1.28;letter-spacing:.002em;word-break:keep-all;overflow-wrap:break-word;color:var(--text)}
+.hero h1 em{font-style:normal;background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{margin:0 0 32px;font-family:var(--ff-serif);font-weight:500;font-size:clamp(1.2rem,2.0vw,1.65rem);line-height:1.65;color:var(--text-soft);letter-spacing:.005em;word-break:keep-all;overflow-wrap:break-word}
+.hero-lead{margin:0 0 14px;color:#dec5ff;font-size:1.08rem;line-height:1.92}
+.hero-summary{margin:0;color:var(--muted);font-size:.98rem;line-height:1.92}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.button-primary,.button-ghost{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:14px 26px;border-radius:var(--radius-md);font-family:var(--ff-mono);font-weight:600;font-size:.78rem;letter-spacing:.10em;text-transform:uppercase;transition:transform .2s,box-shadow .2s,border-color .2s,color .2s}
+.button-primary{background:linear-gradient(135deg,var(--primary),var(--primary-3));color:#0a0418;box-shadow:0 10px 30px rgba(124,58,237,.45);border:1px solid transparent}
+.button-primary:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(124,58,237,.65)}
+.button-ghost{background:transparent;color:var(--text);border:1px solid var(--border-strong)}
+.button-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+.hero-meta{display:flex;flex-wrap:wrap;gap:32px;margin-top:38px;padding-top:28px;border-top:1px solid var(--border)}
+.hero-meta div{display:flex;flex-direction:column;gap:6px}
+.hero-meta dt{font-family:var(--ff-mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0}
+.hero-meta dd{margin:0;font-family:var(--ff-serif);font-size:1.06rem;color:var(--text);font-weight:500}
+
+.cover-board{margin:48px 0 0;background:#040208;border:1px solid rgba(167,139,250,.30);border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 36px 100px rgba(0,0,0,.65),0 0 0 1px rgba(167,139,250,.06)}
+.cover-board img{width:100%;height:auto;display:block}
+.cover-board figcaption{padding:14px 20px;color:var(--muted);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.08em;background:#0a050e;border-top:1px solid var(--border)}
+.cover-board figcaption b{color:var(--primary);font-weight:700;letter-spacing:.14em}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px}
+.stat{padding:1.7rem 1.5rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);text-align:left}
+.stat strong{display:block;font-family:var(--ff-mono);font-weight:700;font-size:clamp(1.85rem,3vw,2.4rem);line-height:1;color:var(--primary);margin-bottom:10px}
+.stat.violet strong{color:var(--primary)}.stat.cyan strong{color:var(--accent)}.stat.coral strong{color:var(--coral)}.stat.emerald strong{color:var(--emerald)}.stat.warm strong{color:var(--warm)}
+.stat span{font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:block}
+@media (max-width:880px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.story-block{position:relative;padding:36px 38px 30px;margin:0 0 28px;background:linear-gradient(180deg,rgba(21,16,42,.55),rgba(13,10,24,.30));border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:var(--radius-lg)}
+.story-block.ch1{border-left-color:var(--coral)}
+.story-block.ch2{border-left-color:var(--primary)}
+.story-block.ch3{border-left-color:var(--accent)}
+.story-block.ch4{border-left-color:var(--warm)}
+.story-block.ch5{border-left-color:var(--safe)}
+.story-block.ch6{border-left-color:var(--primary)}
+.story-block::before{content:attr(data-chapter);position:absolute;top:14px;right:18px;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.20em;text-transform:uppercase;color:var(--muted);opacity:.7}
+.story-block h3{margin:0 0 14px;font-family:var(--ff-serif);font-size:clamp(1.32rem,2.1vw,1.65rem);font-weight:600;color:var(--text);letter-spacing:.005em;line-height:1.45}
+.story-block p{margin:0 0 12px;color:var(--text-soft);font-size:1.02rem;line-height:1.95}
+.story-block p:last-child{margin-bottom:0}
+.scene{font-family:var(--ff-serif);font-style:italic;color:var(--text);background:rgba(167,139,250,.06);border-left:2px solid var(--primary);padding:18px 22px;margin:12px 0 18px;border-radius:0 8px 8px 0;font-size:1.04rem;line-height:1.85}
+.story-block.ch1 .scene{background:rgba(251,113,133,.07);border-left-color:var(--coral)}
+.story-block.ch3 .scene{background:rgba(34,211,238,.06);border-left-color:var(--accent)}
+.story-block.ch4 .scene{background:rgba(251,191,36,.07);border-left-color:var(--warm)}
+.story-block.ch5 .scene{background:rgba(34,197,94,.06);border-left-color:var(--safe)}
+
+.wall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:8px 0 0}
+.wall-card{padding:1.4rem 1.4rem 1.5rem;background:linear-gradient(180deg,rgba(244,63,94,.10),rgba(244,63,94,.03));border:1px solid rgba(251,113,133,.30);border-radius:var(--radius-lg)}
+.wall-card .wall-tag{font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);margin-bottom:8px;display:block}
+.wall-card h4{margin:0 0 10px;font-family:var(--ff-serif);font-size:1.12rem;color:var(--text);font-weight:600;line-height:1.4}
+.wall-card p{margin:0;font-size:.95rem;color:var(--text-soft);line-height:1.85}
+@media (max-width:880px){.wall-grid{grid-template-columns:1fr}}
+
+.persona-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+.persona{padding:1.5rem 1.6rem 1.6rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);position:relative}
+.persona .role{font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--primary);margin-bottom:10px;display:block}
+.persona.violet .role{color:var(--primary)}
+.persona.cyan .role{color:var(--accent)}
+.persona.coral .role{color:var(--coral)}
+.persona.warm .role{color:var(--warm)}
+.persona h4{margin:0 0 10px;font-family:var(--ff-serif);font-size:1.12rem;font-weight:600;color:var(--text);line-height:1.45}
+.persona .pain,.persona .gain{display:block;font-family:var(--ff-mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;margin:8px 0 4px}
+.persona .pain{color:var(--coral)}
+.persona .gain{color:var(--emerald)}
+.persona p{margin:0 0 6px;color:var(--text-soft);font-size:.93rem;line-height:1.8}
+@media (max-width:780px){.persona-grid{grid-template-columns:1fr}}
+
+.loop-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px}
+.lstep{padding:1.4rem 1.4rem 1.5rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);position:relative}
+.lstep .stp{font-family:var(--ff-mono);font-weight:700;font-size:1.35rem;color:var(--primary);display:block;margin-bottom:6px;letter-spacing:.04em}
+.lstep.s2 .stp{color:var(--accent)}
+.lstep.s3 .stp{color:var(--warm)}
+.lstep.s4 .stp{color:var(--emerald)}
+.lstep h5{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.04rem;color:var(--text);font-weight:600;line-height:1.4}
+.lstep p{margin:0;color:var(--text-soft);font-size:.92rem;line-height:1.75}
+.lstep code{font-size:.82em}
+@media (max-width:880px){.loop-flow{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.loop-flow{grid-template-columns:1fr}}
+
+.tri-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+.tri{padding:1.5rem 1.6rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.tri .tag{font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--primary);margin-bottom:6px;display:block}
+.tri.g .tag{color:var(--warm)}
+.tri.c .tag{color:var(--accent)}
+.tri.s .tag{color:var(--safe)}
+.tri h5{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.06rem;color:var(--text);font-weight:600;line-height:1.4}
+.tri p{margin:0;color:var(--text-soft);font-size:.93rem;line-height:1.78}
+@media (max-width:880px){.tri-grid{grid-template-columns:1fr}}
+
+.transform-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:stretch;margin-top:8px}
+.tcard{padding:1.6rem 1.7rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.tcard.before{border-color:rgba(251,113,133,.30)}
+.tcard.before .ttag{color:var(--coral)}
+.tcard.after{border-color:rgba(167,139,250,.45);background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.02))}
+.tcard.after .ttag{color:var(--primary)}
+.tcard .ttag{font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;display:block;margin-bottom:8px}
+.tcard h4{margin:0 0 10px;font-family:var(--ff-serif);font-size:1.1rem;color:var(--text);font-weight:600;line-height:1.45}
+.tcard p{margin:0;color:var(--text-soft);font-size:.94rem;line-height:1.8}
+.tarrow{display:flex;align-items:center;justify-content:center;font-family:var(--ff-mono);font-size:1.6rem;color:var(--primary);font-weight:700}
+@media (max-width:780px){.transform-grid{grid-template-columns:1fr}.tarrow{transform:rotate(90deg);padding:8px 0}}
+
+.compare-wrap{margin-top:8px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--card)}
+.compare-table{width:100%;border-collapse:collapse;font-size:.93rem}
+.compare-table th,.compare-table td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+.compare-table thead th{background:rgba(167,139,250,.10);color:var(--primary);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.compare-table tbody th{font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);font-weight:500;width:22%}
+.compare-table td{color:var(--text-soft);font-size:.93rem;line-height:1.7}
+.compare-table .hi{color:var(--primary);font-weight:600}
+.compare-table .lo{color:var(--coral)}
+.compare-table tr:last-child td,.compare-table tr:last-child th{border-bottom:0}
+@media (max-width:780px){.compare-table th,.compare-table td{padding:10px 12px;font-size:.86rem}}
+
+.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+.sum-card{padding:1.5rem 1.5rem 1.6rem;background:linear-gradient(180deg,rgba(167,139,250,.12),rgba(167,139,250,.02));border:1px solid rgba(167,139,250,.30);border-radius:var(--radius-lg)}
+.sum-card .sn{font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.18em;color:var(--primary);display:block;margin-bottom:8px}
+.sum-card h4{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.1rem;color:var(--text);font-weight:600;line-height:1.45}
+.sum-card p{margin:0;color:var(--text-soft);font-size:.94rem;line-height:1.8}
+@media (max-width:880px){.summary-grid{grid-template-columns:1fr}}
+
+.phase-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px;align-items:stretch}
+.phase{padding:1.7rem 1.6rem;background:linear-gradient(180deg,rgba(167,139,250,.12),rgba(34,211,238,.04));border:1px solid rgba(167,139,250,.32);border-radius:var(--radius-lg);position:relative}
+.phase::after{content:"▶";position:absolute;right:-12px;top:50%;transform:translateY(-50%);font-family:var(--ff-mono);color:var(--primary);font-size:1.3rem;z-index:2}
+.phase:last-child::after{content:""}
+.phase .pn{font-family:var(--ff-mono);font-weight:700;font-size:.8rem;letter-spacing:.18em;color:var(--primary);display:block;margin-bottom:6px}
+.phase.p2 .pn{color:var(--accent)}
+.phase.p2{border-color:rgba(34,211,238,.32);background:linear-gradient(180deg,rgba(34,211,238,.10),rgba(34,211,238,.02))}
+.phase.p3 .pn{color:var(--safe)}
+.phase.p3{border-color:rgba(34,197,94,.32);background:linear-gradient(180deg,rgba(34,197,94,.10),rgba(34,197,94,.02))}
+.phase h4{margin:0 0 10px;font-family:var(--ff-serif);font-size:1.1rem;color:var(--text);font-weight:600;line-height:1.45}
+.phase p{margin:0;color:var(--text-soft);font-size:.94rem;line-height:1.8}
+@media (max-width:880px){.phase-grid{grid-template-columns:1fr}.phase::after{content:"▼";right:50%;top:auto;bottom:-24px;transform:translateX(50%)}}
+
+.engine-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:8px}
+.engine{padding:1.6rem 1.7rem;background:linear-gradient(180deg,rgba(34,211,238,.08),rgba(34,211,238,.02));border:1px solid rgba(34,211,238,.28);border-radius:var(--radius-lg)}
+.engine .en{font-family:var(--ff-mono);font-size:.68rem;letter-spacing:.18em;color:var(--accent);display:block;margin-bottom:6px}
+.engine.e2{background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.02));border-color:rgba(167,139,250,.30)}
+.engine.e2 .en{color:var(--primary)}
+.engine.e3{background:linear-gradient(180deg,rgba(251,191,36,.10),rgba(251,191,36,.02));border-color:rgba(251,191,36,.30)}
+.engine.e3 .en{color:var(--warm)}
+.engine.e4{background:linear-gradient(180deg,rgba(52,211,153,.10),rgba(52,211,153,.02));border-color:rgba(52,211,153,.30)}
+.engine.e4 .en{color:var(--emerald)}
+.engine h4{margin:0 0 10px;font-family:var(--ff-serif);font-size:1.18rem;color:var(--text);font-weight:600;line-height:1.4}
+.engine p{margin:0 0 8px;color:var(--text-soft);font-size:.95rem;line-height:1.85}
+.engine ul{margin:8px 0 0;padding-left:18px;color:var(--text-soft);font-size:.92rem;line-height:1.78}
+.engine ul li{margin-bottom:4px}
+@media (max-width:780px){.engine-grid{grid-template-columns:1fr}}
+
+.gov-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+.gov{padding:1.5rem 1.6rem;background:linear-gradient(180deg,rgba(34,197,94,.10),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.30);border-radius:var(--radius-lg)}
+.gov .gn{font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.18em;color:var(--safe);display:block;margin-bottom:6px}
+.gov h5{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.08rem;color:var(--text);font-weight:600;line-height:1.45}
+.gov p{margin:0;color:var(--text-soft);font-size:.93rem;line-height:1.8}
+@media (max-width:880px){.gov-grid{grid-template-columns:1fr}}
+
+.inline-slides{margin-top:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.inline-slides figure{margin:0;background:#040208;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.inline-slides .slide-img{width:100%;height:auto;display:block}
+.inline-slides figcaption{padding:8px 12px;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.10em;color:var(--muted);background:#0a050e;border-top:1px solid var(--border)}
+.inline-slides figcaption b{color:var(--primary);font-weight:600}
+.inline-slides.full{grid-template-columns:1fr}
+@media (max-width:780px){.inline-slides{grid-template-columns:1fr}}
+
+.highlight-box{margin:18px 0 0;padding:18px 22px;background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.03));border:1px solid rgba(167,139,250,.32);border-left:4px solid var(--primary);border-radius:0 var(--radius-md) var(--radius-md) 0}
+.highlight-box .tag{font-family:var(--ff-mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--primary);display:block;margin-bottom:6px}
+.highlight-box p{margin:0;color:var(--text-soft);font-size:.96rem;line-height:1.85}
+.highlight-box.cyan{background:linear-gradient(180deg,rgba(34,211,238,.10),rgba(34,211,238,.02));border-left-color:var(--accent);border-color:rgba(34,211,238,.30)}
+.highlight-box.cyan .tag{color:var(--accent)}
+.highlight-box.warm{background:linear-gradient(180deg,rgba(251,191,36,.10),rgba(251,191,36,.02));border-left-color:var(--warm);border-color:rgba(251,191,36,.30)}
+.highlight-box.warm .tag{color:var(--warm)}
+.highlight-box.safe{background:linear-gradient(180deg,rgba(34,197,94,.10),rgba(34,197,94,.02));border-left-color:var(--safe);border-color:rgba(34,197,94,.30)}
+.highlight-box.safe .tag{color:var(--safe)}
+
+.quote-box{margin:24px 0;padding:28px 32px;background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(34,211,238,.10));border:1px solid var(--border-strong);border-radius:var(--radius-lg);text-align:center}
+.quote-box p{margin:0;font-family:var(--ff-serif);font-size:clamp(1.15rem,2vw,1.5rem);color:var(--text);font-weight:500;line-height:1.6;font-style:italic}
+.quote-box p em{font-style:normal;background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+
+.links-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px}
+.link-card{padding:1.3rem 1.5rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);transition:border-color .2s,transform .2s}
+.link-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+.link-card .ltype{font-family:var(--ff-mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.link-card h5{margin:0 0 4px;font-family:var(--ff-serif);font-size:1.02rem;color:var(--text);font-weight:600}
+.link-card p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.65}
+@media (max-width:780px){.links-grid{grid-template-columns:1fr}}
+
+footer{margin-top:60px;padding:48px 28px 60px;border-top:1px solid var(--border);background:rgba(6,4,13,.55)}
+.foot-inner{max-width:var(--maxw);margin:0 auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:center}
+.foot-meta{font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.14em;color:var(--muted)}
+.foot-meta b{color:var(--primary);font-weight:600}
+.foot-back{font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text);padding:12px 22px;border:1px solid var(--border-strong);border-radius:var(--radius-md);transition:border-color .2s,color .2s}
+.foot-back:hover{border-color:var(--primary);color:var(--primary)}
+
+.muted{color:var(--muted)}
+strong.kw{color:var(--coral);font-weight:600}
+strong.kt{color:var(--primary);font-weight:600}
+strong.ks{color:var(--accent);font-weight:600}
+strong.kg{color:var(--warm);font-weight:600}
+strong.ke{color:var(--safe);font-weight:600}
+hr.sep{border:0;border-top:1px solid var(--border);margin:32px 0 24px}
+
+/* ===== 05/13 Magic Pointer (Cyan+Magenta+Gold) overrides ===== */
+.orb-violet{background:radial-gradient(circle,rgba(8,145,178,.55),transparent 60%)}
+.orb-cyan{background:radial-gradient(circle,rgba(217,70,239,.40),transparent 60%);opacity:.45}
+.orb-warm{background:radial-gradient(circle,rgba(251,191,36,.22),transparent 60%);opacity:.42}
+.hero h1 em{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.button-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#0a0a1f;box-shadow:0 10px 30px rgba(217,70,239,.40)}
+.button-primary:hover{box-shadow:0 16px 40px rgba(217,70,239,.65)}
+.eyebrow.violet{color:var(--primary)}.eyebrow.violet::before{background:linear-gradient(90deg,var(--primary),transparent)}
+.eyebrow.cyan{color:var(--accent)}.eyebrow.cyan::before{background:linear-gradient(90deg,var(--accent),transparent)}
+.story-block{border-left-color:var(--primary)}
+.story-block.ch1{border-left-color:var(--coral)}
+.story-block.ch2{border-left-color:var(--primary)}
+.story-block.ch3{border-left-color:var(--accent)}
+.story-block.ch4{border-left-color:var(--warm)}
+.story-block.ch5{border-left-color:var(--emerald)}
+.story-block.ch6{border-left-color:var(--coral)}
+.story-block.ch7{border-left-color:var(--safe)}
+.scene{background:rgba(8,145,178,.07);border-left-color:var(--primary)}
+.story-block.ch1 .scene{background:rgba(251,113,133,.07);border-left-color:var(--coral)}
+.story-block.ch3 .scene{background:rgba(217,70,239,.07);border-left-color:var(--accent)}
+.story-block.ch4 .scene{background:rgba(251,191,36,.07);border-left-color:var(--warm)}
+.story-block.ch5 .scene{background:rgba(34,211,238,.07);border-left-color:var(--emerald)}
+.story-block.ch7 .scene{background:rgba(34,197,94,.07);border-left-color:var(--safe)}
+
+/* --- Hero demo (SVG cursor + voice bubble) replacing cover-board --- */
+.demo-board{margin:32px 0 0;padding:28px;background:linear-gradient(140deg,rgba(8,145,178,.10),rgba(217,70,239,.06));border:1px solid rgba(8,145,178,.32);border-radius:18px;position:relative;overflow:hidden}
+.demo-board::before{content:"";position:absolute;inset:-40% -20% auto auto;width:50%;height:80%;background:radial-gradient(circle,rgba(217,70,239,.18),transparent 70%);pointer-events:none}
+.demo-stage{position:relative;background:#02060e;border:1px solid var(--border);border-radius:12px;padding:36px 36px 48px;min-height:280px;overflow:hidden}
+.demo-stage .corner{position:absolute;top:10px;left:14px;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.demo-stage .doc{position:absolute;top:52px;left:36px;right:36px;height:160px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px dashed rgba(8,145,178,.30);border-radius:8px;padding:12px 14px}
+.demo-stage .doc h6{margin:0 0 8px;font-size:.8rem;color:var(--text-soft);font-family:var(--ff-mono);letter-spacing:.06em}
+.demo-stage .doc .row{height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin:6px 0}
+.demo-stage .doc .row.short{width:60%}
+.demo-stage .doc .row.mid{width:80%}
+.demo-stage .cursor{position:absolute;top:120px;left:46%;width:36px;height:36px;pointer-events:none}
+.demo-stage .cursor::before{content:"";position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(217,70,239,.55),transparent 60%);filter:blur(8px)}
+.demo-stage .cursor::after{content:"";position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,rgba(8,145,178,.55),transparent 65%)}
+.demo-stage .cursor svg{position:relative;width:24px;height:24px;filter:drop-shadow(0 0 8px rgba(217,70,239,.7))}
+.demo-stage .voice{position:absolute;left:52%;top:155px;padding:10px 16px;background:linear-gradient(135deg,rgba(217,70,239,.18),rgba(8,145,178,.12));border:1px solid rgba(217,70,239,.40);border-radius:18px 18px 18px 4px;font-family:var(--ff-mono);font-size:.84rem;color:var(--text);letter-spacing:.02em}
+.demo-stage .voice em{color:var(--warm);font-style:normal;font-weight:600}
+.demo-stage .badge{position:absolute;bottom:14px;left:36px;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
+.demo-stage .badge::before{content:"●";color:var(--safe);margin-right:6px;animation:demo-pulse 1.6s ease-in-out infinite}
+@keyframes demo-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.demo-cap{margin:14px 0 0;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.10em;color:var(--muted);text-transform:uppercase;text-align:center}
+@media (max-width:680px){.demo-stage{padding:24px 16px 40px}.demo-stage .voice{top:auto;bottom:46px;left:16px;right:16px}.demo-stage .cursor{left:30%}}
+
+/* --- Compare / Friction wall (Ch1) --- */
+.wall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.wall{padding:1.5rem 1.6rem;background:linear-gradient(180deg,rgba(251,113,133,.10),rgba(251,113,133,.02));border:1px solid rgba(251,113,133,.30);border-radius:var(--radius-lg)}
+.wall .wtag{display:inline-block;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);margin-bottom:8px;padding:3px 8px;border:1px solid rgba(251,113,133,.30);border-radius:4px;font-weight:600}
+.wall h4{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.06rem;color:var(--text);font-weight:600;line-height:1.45}
+.wall p{margin:0;font-size:.92rem;color:var(--text-soft);line-height:1.85}
+@media (max-width:880px){.wall-grid{grid-template-columns:1fr}}
+
+/* --- 4 principles --- */
+.principle-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:14px}
+.principle{padding:1.6rem 1.7rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);position:relative;overflow:hidden}
+.principle::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary)}
+.principle.p2::before{background:var(--accent)}
+.principle.p3::before{background:var(--warm)}
+.principle.p4::before{background:var(--emerald)}
+.principle .pnum{font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.20em;color:var(--primary);text-transform:uppercase;font-weight:700;display:block;margin-bottom:6px}
+.principle.p2 .pnum{color:var(--accent)}
+.principle.p3 .pnum{color:var(--warm)}
+.principle.p4 .pnum{color:var(--emerald)}
+.principle h4{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.10rem;color:var(--text);font-weight:600;line-height:1.45}
+.principle .ja{display:block;font-family:var(--ff-sans);font-size:.84rem;color:var(--text-soft);margin-bottom:10px;letter-spacing:.02em}
+.principle p{margin:0;font-size:.94rem;color:var(--text-soft);line-height:1.85}
+.principle em{color:var(--warm);font-style:normal;font-weight:600}
+@media (max-width:780px){.principle-grid{grid-template-columns:1fr}}
+
+/* --- Where to try (Ch4) --- */
+.try-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.try-card{padding:1.6rem 1.7rem;background:linear-gradient(180deg,rgba(251,191,36,.07),rgba(251,191,36,.02));border:1px solid rgba(251,191,36,.30);border-radius:var(--radius-lg)}
+.try-card.t2{background:linear-gradient(180deg,rgba(8,145,178,.10),rgba(8,145,178,.02));border-color:rgba(8,145,178,.32)}
+.try-card .ttag{display:block;font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.18em;color:var(--warm);text-transform:uppercase;margin-bottom:8px;font-weight:700}
+.try-card.t2 .ttag{color:var(--primary)}
+.try-card h4{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.08rem;color:var(--text);font-weight:600;line-height:1.45}
+.try-card p{margin:0 0 10px;font-size:.92rem;color:var(--text-soft);line-height:1.85}
+.try-card .url-row{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.try-card .url-row li{padding:8px 12px;background:rgba(0,0,0,.30);border-left:2px solid var(--warm);font-family:var(--ff-mono);font-size:.78rem;color:var(--text-soft);border-radius:4px;word-break:break-all}
+.try-card.t2 .url-row li{border-left-color:var(--primary)}
+@media (max-width:780px){.try-grid{grid-template-columns:1fr}}
+
+/* --- Use case grid (Ch3 examples) --- */
+.usecase-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.usecase{padding:1.4rem 1.5rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.usecase .ucat{display:inline-block;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;padding:2px 8px;background:rgba(217,70,239,.10);border-radius:4px;font-weight:600}
+.usecase h5{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.0rem;color:var(--text);font-weight:600;line-height:1.45}
+.usecase p{margin:0;font-size:.88rem;color:var(--text-soft);line-height:1.85}
+.usecase .voice-cmd{display:block;margin-top:8px;padding:6px 10px;background:rgba(8,145,178,.10);border-left:2px solid var(--primary);font-family:var(--ff-mono);font-size:.78rem;color:var(--emerald);font-style:italic;border-radius:3px}
+@media (max-width:980px){.usecase-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:540px){.usecase-grid{grid-template-columns:1fr}}
+
+/* --- Googlebook feature grid --- */
+.book-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.book-feat{padding:1.4rem 1.5rem;background:linear-gradient(180deg,rgba(34,211,238,.08),rgba(34,211,238,.02));border:1px solid rgba(34,211,238,.30);border-radius:var(--radius-lg)}
+.book-feat .blabel{display:block;font-family:var(--ff-mono);font-size:.68rem;letter-spacing:.18em;color:var(--emerald);text-transform:uppercase;margin-bottom:8px;font-weight:700}
+.book-feat h5{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.04rem;color:var(--text);font-weight:600;line-height:1.45}
+.book-feat p{margin:0;font-size:.9rem;color:var(--text-soft);line-height:1.85}
+@media (max-width:680px){.book-grid{grid-template-columns:1fr}}
+
+/* --- Warning cards --- */
+.warning-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.warn-card{padding:1.4rem 1.5rem;background:linear-gradient(180deg,rgba(251,113,133,.06),rgba(251,113,133,.02));border:1px solid rgba(251,113,133,.28);border-radius:var(--radius-lg)}
+.warn-card .wtag{font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);margin-bottom:8px;display:block;font-weight:600}
+.warn-card h5{margin:0 0 6px;font-family:var(--ff-serif);font-size:1.0rem;color:var(--text);font-weight:600;line-height:1.45}
+.warn-card p{margin:0;font-size:.9rem;color:var(--text-soft);line-height:1.85}
+@media (max-width:880px){.warning-grid{grid-template-columns:1fr}}
+
+/* --- compare table --- */
+.compare-table{width:100%;border-collapse:collapse;margin:14px 0 0;font-size:.95rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.compare-table th,.compare-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.7}
+.compare-table thead th{background:rgba(8,145,178,.12);color:var(--primary);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+.compare-table tbody tr:last-child td{border-bottom:0}
+.compare-table tbody td:first-child{color:var(--accent);font-family:var(--ff-mono);font-size:.86rem;letter-spacing:.04em;font-weight:600;white-space:nowrap}
+
+/* --- closing quote --- */
+.closing-quote{margin-top:18px;padding:1.8rem 2rem;background:linear-gradient(135deg,rgba(8,145,178,.10),rgba(217,70,239,.08));border:1px solid rgba(217,70,239,.30);border-radius:var(--radius-lg);text-align:center}
+.closing-quote .qmark{font-family:var(--ff-serif);font-size:2.2rem;color:var(--accent);line-height:1;display:block;margin-bottom:8px}
+.closing-quote p{margin:0;font-family:var(--ff-serif);font-size:1.12rem;color:var(--text);font-weight:600;line-height:1.7}
+.closing-quote .src{display:block;font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.14em;color:var(--muted);margin-top:10px;text-transform:uppercase}
+
+/* --- evidence card --- */
+.evidence-card{margin-top:18px;padding:1.6rem 1.7rem;background:linear-gradient(135deg,rgba(8,145,178,.10),rgba(217,70,239,.06));border:1px solid rgba(8,145,178,.32);border-radius:var(--radius-lg);display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.evidence-card .big{font-family:var(--ff-mono);font-weight:700;font-size:clamp(2.4rem,5vw,3.4rem);line-height:1;color:var(--accent);letter-spacing:-.01em}
+.evidence-card .lab{display:block;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.evidence-card h4{margin:0 0 8px;font-family:var(--ff-serif);font-size:1.08rem;color:var(--text);font-weight:600}
+.evidence-card p{margin:0;font-size:.94rem;color:var(--text-soft);line-height:1.85}
+@media (max-width:680px){.evidence-card{grid-template-columns:1fr;text-align:center}}
+
+.hero-meta dt{color:var(--primary)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">AI <em>NEWS</em> &middot; DAILY SLIDES</div>
+  <nav>
+    <a href="#hero">Hero</a>
+    <a href="#stagnant">Stagnant Pointer</a>
+    <a href="#reversal">Reversal</a>
+    <a href="#principles">4 Principles</a>
+    <a href="#try-now">Try Now</a>
+    <a href="#googlebook">Googlebook</a>
+    <a href="#reality">Reality</a>
+    <a href="#closing">Intelligence System</a>
+  </nav>
+  <div class="date">2026 / 05 / 13</div>
+</header>
+
+<section class="hero" id="hero">
+  <span class="glow-orb orb-violet"></span>
+  <span class="glow-orb orb-cyan"></span>
+  <span class="glow-orb orb-warm"></span>
+  <div class="hero-inner">
+    <p class="hero-kicker"><span class="pulse-dot"></span>GOOGLE DEEPMIND &middot; AI MAGIC POINTER &middot; 2026 / 05 / 13</p>
+    <h1>AI Magic Pointer&mdash;50 年変わらなかったマウスを <em>「指して話す AI アシスタント」</em>へ再定義</h1>
+    <p class="hero-sub">Gemini が画面の対象を理解し、声＋ポインタで即時に指示 &mdash; <em>「AI を世界へ溶け込ませる」</em>逆転思想</p>
+    <p class="hero-lead">2026 年 5 月 12 日、Google DeepMind が公式発表。<em class="accent">「AI ウィンドウに自分の世界をドラッグする」</em> 不便を終わらせ、<em class="cyan">「This/That の力」</em>で人間同士の会話のように作業を進める実験的 UI。Chrome ＋ Google AI Studio で <em>今すぐ試せる</em>。</p>
+    <p class="hero-summary">公式 4 原則：<em>Maintain the flow</em>（流れを維持）／<em class="warm">Show and tell</em>（見せて伝える）／<em class="emerald">"This" &amp; "That"</em> の力／<em class="accent">Pixels to actionable entities</em>（ピクセルを行動可能な実体に）。2026 年秋発売予定の <em>Googlebook</em> ではカーソルを軽く振る(wiggle)だけで活性化、Intelligence System へのパラダイムシフトを始動する。</p>
+    <div class="hero-actions">
+      <a href="#stagnant" class="button-primary">&rarr; なぜ今再定義か</a>
+      <a href="#principles" class="button-ghost">4 原則を見る</a>
+    </div>
+    <dl class="hero-meta">
+      <div><dt>Source</dt><dd>Google DeepMind &middot; 2026/05/12</dd></div>
+      <div><dt>Status</dt><dd>Experimental Demo</dd></div>
+      <div><dt>Try It</dt><dd>aistudio.google.com / Chrome + Gemini</dd></div>
+      <div><dt>Full Version</dt><dd>Googlebook &middot; 2026 Fall</dd></div>
+    </dl>
+
+    <div class="demo-board">
+      <div class="demo-stage">
+        <span class="corner">CHROME &middot; gemini.google.com</span>
+        <div class="doc">
+          <h6>quarterly_report.pdf &middot; page 12</h6>
+          <div class="row"></div>
+          <div class="row mid"></div>
+          <div class="row short"></div>
+          <div class="row"></div>
+          <div class="row mid"></div>
+          <div class="row short"></div>
+          <div class="row"></div>
+        </div>
+        <div class="cursor"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M3 2 L20 12 L12 13 L9 21 Z" fill="url(#g1)" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
+  <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d946ef"/><stop offset="1" stop-color="#0891b2"/></linearGradient></defs>
+</svg></div>
+        <div class="voice">&ldquo;<em>この表を</em> 円グラフに変換&rdquo;</div>
+        <span class="badge">Magic Pointer Active &middot; Listening</span>
+      </div>
+      <p class="demo-cap">CONCEPT IMAGE &middot; Hover &amp; speak — "This" turns the table into a chart</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="stats">
+  <p class="eyebrow violet"><span class="pulse-dot"></span>KEY METRICS</p>
+  <h2>4 つの数字で読む Magic Pointer のインパクト</h2>
+  <p class="section-lead">マウスポインタは <em>1968 年 Engelbart のデモ</em> 以来、本質的に「位置を指す」役割しか持たなかった。50 年以上の沈黙を破り、DeepMind は <em class="primary">指す＋話す＋理解する</em> の三位一体ポインタを提示する。Chrome / AI Studio で実験できる「今すぐの未来」が始まった。</p>
+  <div class="stats-grid">
+    <div class="stat violet"><strong>50+</strong><span>年ぶりの UI 再定義</span></div>
+    <div class="stat cyan"><strong>4</strong><span>公式設計原則</span></div>
+    <div class="stat emerald"><strong>2</strong><span>Demo URL (今すぐ試せる)</span></div>
+    <div class="stat warm"><strong>2026秋</strong><span>Googlebook 本格版</span></div>
+  </div>
+</section>
+
+<section class="section" id="stagnant">
+  <p class="eyebrow coral"><span class="pulse-dot"></span>CHAPTER 1 &middot; THE STAGNANT POINTER</p>
+  <h2>「位置を指すだけ」のマウス &mdash; AI 時代の不便はここから始まる</h2>
+  <p class="section-lead">AI チャットを使うたびに、画面上の対象をコピーし、別ウィンドウに貼り付け、状況を文章で説明し、ようやくプロンプトを書く &mdash; 私たちは無意識に <em class="coral">「自分の世界を AI ウィンドウへドラッグ」</em> していた。50 年前から変わらないマウスポインタは、AI 時代の主役にはなれなかった。</p>
+  <div class="story-block ch1" data-chapter="Chapter 1">
+    <h3>「指す」だけでは届かない &mdash; AI 時代に露呈する 3 つのフラストレーション</h3>
+    <div class="scene">PDF の表を AI に分析させたい。やることは：①スクショ撮影、②AI チャット起動、③スクショ貼付、④「この表を円グラフに」とタイピング、⑤結果をコピーして元の文書へ戻る。<em class="coral">合計 5 ステップ</em>。本当に必要だったのは「指して『これ』」のひと言だけだったのに。</div>
+    <div class="wall-grid">
+      <div class="wall">
+        <span class="wtag">Friction 1</span>
+        <h4>AI ウィンドウへのドラッグ疲れ</h4>
+        <p>対象 → クリップボード → AI ウィンドウ → プロンプト記述。ユーザーが <em>自分の世界を AI に運ぶ</em> 構図が常態化。</p>
+      </div>
+      <div class="wall">
+        <span class="wtag">Friction 2</span>
+        <h4>プロンプト書き起こしの認知コスト</h4>
+        <p>「ここの…これを…ああして」と頭の中で言えていることを、<em>長文プロンプト</em> に翻訳しなおす作業。意図が劣化する。</p>
+      </div>
+      <div class="wall">
+        <span class="wtag">Friction 3</span>
+        <h4>AI Detours (寄り道) で集中が切れる</h4>
+        <p>作業 → AI 起動 → 結果待ち → 作業復帰 のスイッチが日に何十回も発生し、<em>フロー状態</em> が破壊される。</p>
+      </div>
+    </div>
+    <p style="margin-top:18px;color:var(--text-soft);font-size:.96rem;line-height:1.85">DeepMind の問題設定は明確だ：<em class="warm">「ユーザーが世界を AI に運ぶ」のではなく、「AI がユーザーの世界に溶け込む」</em> 構図に逆転させる。マウスの再定義は、UI の問題ではなく「人間と AI の関係」の再設計である。</p>
+  </div>
+</section>
+
+<section class="section" id="reversal">
+  <p class="eyebrow violet"><span class="pulse-dot"></span>CHAPTER 2 &middot; DEEPMIND'S REVERSAL</p>
+  <h2>逆転の宣言 &mdash; 「AI を世界へ溶け込ませる」ポインタへ</h2>
+  <p class="section-lead">Magic Pointer は新しい入力デバイスではない。<em class="primary">「人間が AI とどう関わるか」</em>の設計思想を逆向きに据え直す試みである。AI を別ウィンドウに閉じ込めるのではなく、ユーザーの作業空間そのものに AI を <em>常時併走</em> させる。</p>
+  <div class="story-block ch2" data-chapter="Chapter 2">
+    <h3>「ドラッグする AI」から「併走する AI」へ &mdash; 指す＋話す＋理解する の三位一体</h3>
+    <div class="scene">人間同士の会話を思い出してほしい。地図を見せながら <em>「ここに行きたい」</em> と言うとき、私たちは <em>長文の住所</em> を読み上げたりしない。指差しと「ここ」だけで通じる。<em class="primary">Magic Pointer はそれをコンピューターと人間の間で復活させる</em>。</div>
+    <div class="evidence-card">
+      <div class="big">"This"</div>
+      <div>
+        <span class="lab">PARADIGM SHIFT &middot; FROM PROMPT TO POINT</span>
+        <h4>「これ」「あれ」が動作する世界 &mdash; ジェスチャーと短い言葉の復権</h4>
+        <p>Gemini はカーソル位置の対象を <em>視覚・意味・位置</em> で同時に理解する。ユーザーは <em class="accent">「これ要約して」「あれと合わせて」</em>と短く言うだけ。詳細プロンプトを書く必要は消える。</p>
+      </div>
+    </div>
+    <p style="margin-top:18px;color:var(--text-soft);font-size:.96rem;line-height:1.85">この逆転には背景がある。Gemini 3.x が <em>多モーダル理解</em> で実用域に到達したことが前提だ。画像・テキスト・表・コードブロックを <em class="warm">同時に文脈解釈</em> できるからこそ、「位置 + 短い指示」で複雑な操作を成立させられる。技術的な飛躍が UI 哲学の転換を物理的に可能にした瞬間である。</p>
+  </div>
+</section>
+
+<section class="section" id="principles">
+  <p class="eyebrow cyan"><span class="pulse-dot"></span>CHAPTER 3 &middot; FOUR PRINCIPLES</p>
+  <h2>公式 4 原則 &mdash; 「指して話す」を成立させる設計哲学</h2>
+  <p class="section-lead">DeepMind 公式ブログが提示する 4 原則は、新しい UI 言語の <em class="accent">「文法」</em> として機能する。それぞれが独立した哲学を持ち、4 つが組み合わさったときに初めて「魔法」と呼べる体験になる。</p>
+  <div class="principle-grid">
+    <div class="principle p1">
+      <span class="pnum">Principle 01</span>
+      <h4>Maintain the flow</h4>
+      <span class="ja">流れを維持する</span>
+      <p>AI を別ウィンドウに <em>閉じ込めない</em>。どんなアプリ・ウェブページ上でも、その場で即時呼び出せる。<em>作業 → AI → 復帰</em>の文脈スイッチを物理的に消去する。</p>
+    </div>
+    <div class="principle p2">
+      <span class="pnum">Principle 02</span>
+      <h4>Show and tell</h4>
+      <span class="ja">見せて伝える</span>
+      <p>詳細プロンプトは不要。カーソル位置の <em>「何」（word / image / table / code block）</em>を Gemini が即座に把握。<em class="warm">「これ」を見せた瞬間に AI も理解する</em>。</p>
+    </div>
+    <div class="principle p3">
+      <span class="pnum">Principle 03</span>
+      <h4>Embrace "This" and "That"</h4>
+      <span class="ja">「これ」と「あれ」の力</span>
+      <p>人間同士の会話のように、ジェスチャー＋短い言葉でやり取り。<em class="warm">「これ直して」「あれとこれを合わせて」</em>で十分通じる。詳細記述から代名詞操作への解放。</p>
+    </div>
+    <div class="principle p4">
+      <span class="pnum">Principle 04</span>
+      <h4>Turn pixels into actionable entities</h4>
+      <span class="ja">ピクセルを行動可能な実体に</span>
+      <p>画面上の画像・テキストを <em>場所・日付・オブジェクト</em>として認識し、即アクションへ。地図を指して「ルート表示」、日付を指して「予定追加」&mdash; ピクセルが <em class="emerald">セマンティック実体</em>に変わる。</p>
+    </div>
+  </div>
+
+  <div class="story-block ch3" data-chapter="Chapter 3 &middot; Use Cases">
+    <h3>「指して声で言う」だけで完結する 6 つの実用シナリオ</h3>
+    <div class="usecase-grid">
+      <div class="usecase">
+        <span class="ucat">Doc Review</span>
+        <h5>PDF 表 → 円グラフ変換</h5>
+        <p>表をポイントし、Gemini に<em>視覚化</em>を依頼。資料レビューが数分→数十秒。</p>
+        <span class="voice-cmd">"この表を円グラフに"</span>
+      </div>
+      <div class="usecase">
+        <span class="ucat">Navigation</span>
+        <h5>地図上で場所 → ルート最適化</h5>
+        <p>地図の地点を指し、交通手段別の<em>比較ルート</em>を即取得。</p>
+        <span class="voice-cmd">"周辺のレストランを表示"</span>
+      </div>
+      <div class="usecase">
+        <span class="ucat">Compare</span>
+        <h5>複数商品 → 価格・スペック比較表</h5>
+        <p>商品画像を選択し、<em>比較表</em>を自動生成。買い物決定の高速化。</p>
+        <span class="voice-cmd">"これらを比較して"</span>
+      </div>
+      <div class="usecase">
+        <span class="ucat">Creative</span>
+        <h5>レシピ → 倍量変換</h5>
+        <p>レシピ画像を指して、材料を<em>2 倍に調整</em>した新しい分量リストを出力。</p>
+        <span class="voice-cmd">"材料を 2 倍に"</span>
+      </div>
+      <div class="usecase">
+        <span class="ucat">Visualize</span>
+        <h5>部屋写真 + 家具画像 → 配置合成</h5>
+        <p>部屋写真の任意の位置を指して、<em>家具を合成配置</em>。インテリアの可視化が瞬時に。</p>
+        <span class="voice-cmd">"ここにソファを配置"</span>
+      </div>
+      <div class="usecase">
+        <span class="ucat">Action</span>
+        <h5>動画フレーム → 予約リンク検索</h5>
+        <p>動画の特定フレーム（レストラン店構え等）を指して、<em>予約リンク</em>を自動抽出。</p>
+        <span class="voice-cmd">"このお店の予約は?"</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="try-now">
+  <p class="eyebrow warm"><span class="pulse-dot"></span>CHAPTER 4 &middot; TRY IT NOW</p>
+  <h2>2026/05/13 時点で「今すぐ試せる」&mdash; Google AI Studio + Gemini in Chrome</h2>
+  <p class="section-lead">本格版を待つ必要はない。<em class="warm">実験的デモが既に公開中</em>。Google アカウントさえあれば、5 分以内に「指して声で命令する」体験ができる。声入力 ON にして、まず 5 分試してほしい。</p>
+  <div class="try-grid">
+    <div class="try-card t1">
+      <span class="ttag">Try 1 &middot; Google AI Studio</span>
+      <h4>専用デモアプレットで体感</h4>
+      <p>画像編集デモと地図/場所検索デモが公開中。地図上で場所をポイントしながら声で操作したり、画像を指して「背景を変更」と命令する <em class="warm">純粋な Magic Pointer 体験</em> が可能。</p>
+      <ul class="url-row">
+        <li>aistudio.google.com/apps/bundled/ai-pointer-create</li>
+        <li>aistudio.google.com/apps/bundled/ai-pointer-find</li>
+      </ul>
+    </div>
+    <div class="try-card t2">
+      <span class="ttag">Try 2 &middot; Gemini in Chrome</span>
+      <h4>ウェブページ上で Gemini に質問</h4>
+      <p>Chrome の Gemini 拡張を有効化し、任意のページでカーソルを使った質問が可能。<em class="primary">商品群を選択して「比較して」、部屋写真を指して「ここにソファを配置」</em>など、実世界のワークフローに直接組み込める。</p>
+      <ul class="url-row">
+        <li>chrome 拡張機能から Gemini を有効化</li>
+        <li>声入力 ON で「指して声で指示」スタイル</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="googlebook">
+  <p class="eyebrow cyan"><span class="pulse-dot"></span>CHAPTER 5 &middot; GOOGLEBOOK FULL VERSION</p>
+  <h2>2026 年秋発売予定 Googlebook &mdash; OS から「Intelligence System」へ</h2>
+  <p class="section-lead">DeepMind の本命は Chrome 拡張ではない。<em class="emerald">2026 年秋発売予定の Googlebook</em>（Android ベースの新ラップトップ・プラットフォーム）に搭載される本格版 Magic Pointer こそが、UI 革命の主役だ。Chromebook 後継として位置付けられ、<em>Android アプリ完全対応＋Gemini ネイティブ統合</em> が大きなアーキテクチャ転換を意味する。</p>
+  <div class="book-grid">
+    <div class="book-feat">
+      <span class="blabel">Activation</span>
+      <h5>Wiggle で活性化 &mdash; カーソルを軽く振るだけ</h5>
+      <p>明示的なショートカットキー不要。<em>カーソルを軽く振る(wiggle)</em>仕草を AI が検知し、文脈提案ポップアップが即時表示。ジェスチャーが UI 言語の新しい単語になる。</p>
+    </div>
+    <div class="book-feat">
+      <span class="blabel">Context</span>
+      <h5>画面全体を Gemini が「見る」</h5>
+      <p>カーソル周辺だけでなく <em>画面全体のセマンティック理解</em>。メールの日付を指す → 自動で<em class="warm">「予定を追加？」</em>提案。先回り的な文脈提案がポップアップする。</p>
+    </div>
+    <div class="book-feat">
+      <span class="blabel">Workflows</span>
+      <h5>PDF 要約 → メール貼り付けの一気通貫</h5>
+      <p>文書要約・表のグラフ化・レシピ倍量変換・走り書きメモの ToDo 化など、<em>多岐にわたるワークフロー</em>がポインタ操作だけで完結。</p>
+    </div>
+    <div class="book-feat">
+      <span class="blabel">Vision</span>
+      <h5>OS から Intelligence System へ</h5>
+      <p>Google 公式発言：「OS ではなく <em class="emerald">Intelligence System</em> としての新世代プラットフォーム」。アプリと OS の境界が解け、Gemini が常時併走する設計へ。</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="reality">
+  <p class="eyebrow coral"><span class="pulse-dot"></span>CHAPTER 6 &middot; REALITY CHECK</p>
+  <h2>魔法の裏側 &mdash; 精度・プライバシー・依存リスクの誠実な評価</h2>
+  <p class="section-lead">「カーソルが AI エージェントになった」と話題沸騰の一方、<em class="coral">5 つの現実的制約</em> がある。誇張せず、実務導入前に向き合うべき論点を整理する。</p>
+  <div class="warning-grid">
+    <div class="warn-card">
+      <span class="wtag">Risk 1</span>
+      <h5>精度 &middot; 誤認識</h5>
+      <p>カーソル位置の<em>微妙なずれ</em>や、複雑・密集レイアウトでの誤認識可能性。表が重なった画面、小さな UI 部品では信頼性低下。</p>
+    </div>
+    <div class="warn-card">
+      <span class="wtag">Risk 2</span>
+      <h5>プライバシー &middot; 画面解析</h5>
+      <p>画面内容を <em class="coral">AI がリアルタイム解析</em>。企業利用ではポリシー確認必須。on-device 処理の言及はあるが、<em>クラウド依存部分</em>も存在。</p>
+    </div>
+    <div class="warn-card">
+      <span class="wtag">Risk 3</span>
+      <h5>環境依存 &middot; 騒音 + デバイス</h5>
+      <p>声認識は <em>騒音下で精度低下</em>。Gemini 対応デバイス（Chrome 拡張など）が必須で、レガシー環境では機能しない。</p>
+    </div>
+    <div class="warn-card">
+      <span class="wtag">Risk 4</span>
+      <h5>過度依存 &middot; 学習曲線</h5>
+      <p>最初は「魔法のよう」だが、<em>AI が勝手に提案しすぎて集中阻害</em> の逆効果も。提案頻度のチューニングが運用の鍵。</p>
+    </div>
+    <div class="warn-card">
+      <span class="wtag">Risk 5</span>
+      <h5>習慣化コスト</h5>
+      <p>50 年慣れ親しんだマウス操作を変えるイラ立ちも想定される。<em>生産性爆上げの前に、習慣化コスト</em>を計算する必要あり。</p>
+    </div>
+    <div class="warn-card">
+      <span class="wtag">Counter View</span>
+      <h5>本当に「革命」か？</h5>
+      <p>UI の変化に <em class="coral">イラつくユーザー</em>も発生する可能性。Voice + Pointer が普及するか、Chat UI 補完で終わるかは未確定。</p>
+    </div>
+  </div>
+
+  <div class="story-block ch6" data-chapter="Chapter 6 &middot; Counter Lens">
+    <h3>導入評価フレーム &mdash; 「魔法」を実務 PoC に落とすには</h3>
+    <table class="compare-table">
+      <thead>
+        <tr><th>評価軸</th><th>従来のマウス + AI チャット</th><th>Magic Pointer</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>操作ステップ</td><td>スクショ → 貼付 → プロンプト → 結果コピー</td><td>指して声で命令 (1 ステップ)</td></tr>
+        <tr><td>プロンプト負荷</td><td>長文記述が必要</td><td>「これ」「あれ」+ 動詞 1 つ</td></tr>
+        <tr><td>文脈スイッチ</td><td>作業 ⇔ AI ウィンドウ往復</td><td>同一画面で完結 (Maintain the flow)</td></tr>
+        <tr><td>プライバシー</td><td>明示的に AI へコピー</td><td>画面解析が常時 (要ポリシー)</td></tr>
+        <tr><td>精度依存</td><td>プロンプト記述精度</td><td>カーソル位置 + 多モーダル理解</td></tr>
+        <tr><td>導入コスト</td><td>既存マウス + 任意の AI チャット</td><td>Gemini 対応環境 + 習慣化期間</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="closing">
+  <p class="eyebrow safe"><span class="pulse-dot"></span>CHAPTER 7 &middot; FROM OS TO INTELLIGENCE SYSTEM</p>
+  <h2>結末&mdash;マウスの再定義は「人間と AI の関係」の再設計である</h2>
+  <p class="section-lead">Magic Pointer は単なる新機能ではない。<em class="safe">「OS」から「Intelligence System」への移行</em>の最初の可視的シグナルだ。ポインタは入力デバイスから <em>「意図と AI を結ぶ対話接点」</em>へ昇格する。</p>
+  <div class="story-block ch7" data-chapter="Closing">
+    <h3>「指して話す」が標準になった日、UI 言語は永遠に変わる</h3>
+    <div class="scene">2026 年 5 月 12 日は、計算機科学の歴史に小さくしかし永続的な刻印を残した日になるかもしれない。50 年以上、「位置を指す」役割しか持たなかったマウスポインタが、Gemini と結合した瞬間、ようやく <em class="safe">「意図を運ぶ器官」</em>へと進化を始めた。</div>
+    <p>業務効率化のインパクトは明確だ。資料レビューは <em>数分 → 数十秒</em>、ナビゲーションは <em class="primary">直感的</em>に。「AI チャットにコピー＆ペースト → プロンプト作成」の手間がほぼゼロになる。これは個別タスクの高速化を超え、<em class="warm">「人間が AI に説明する時間」</em>そのものを消す変革である。</p>
+
+    <div class="closing-quote">
+      <span class="qmark">&ldquo;</span>
+      <p>マウスは「位置」を指していた。<br>Magic Pointer は「意図」を指す。</p>
+      <span class="src">— Google DeepMind &middot; AI Magic Pointer &middot; 2026 / 05 / 12</span>
+    </div>
+
+    <p style="margin-top:18px">高エンゲージメントの理由は明確 &mdash; X やニュースで「<em class="accent">カーソルが AI エージェントになった！</em>」と話題沸騰中。直感的操作が「未来を感じさせる」からだ。実験段階であっても、業務自動化や UI 革新の MVP として <em class="safe">即検証する価値が大きい</em>。Chromebook 後継の Googlebook がそれを本格化する 2026 年秋まで、半年弱の助走期間が今、始まっている。</p>
+  </div>
+</section>
+
+<footer style="max-width:var(--maxw);margin:60px auto 40px;padding:36px 28px 0;border-top:1px solid var(--border);font-family:var(--ff-mono);font-size:.74rem;letter-spacing:.12em;color:var(--muted);display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between">
+  <span>SOURCE &middot; Google DeepMind Blog &middot; AI Magic Pointer (2026/05/12)</span>
+  <span>2026 / 05 / 13 &middot; AI NEWS HUB DAILY SLIDES</span>
+</footer>
+
+</body>
+</html>
