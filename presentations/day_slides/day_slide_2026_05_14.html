@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+    <html lang="ja">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Claude for Small Business — チャットAIから「業務実行エージェント」への進化｜AI News 2026/05/14</title>
+    <meta name="description" content="Anthropic の Claude for Small Business を、Business OS、Connectors、Skills &amp; Workflows、Human-in-the-loop、15 ワークフロー、日本市場への適応まで整理。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+    :root{
+      --bg:#07111f;--bg2:#0a1628;--panel:#0f2235;--panel2:#102941;
+      --ink:#f4f8fb;--soft:#c7d8e6;--muted:#86a0b5;--line:rgba(126,190,210,.26);
+      --teal:#00a7b5;--blue:#3b82f6;--green:#47b85a;--amber:#f4b740;--orange:#e86f44;--paper:#eef8fb;
+      --max:1180px;--sans:"Noto Sans JP",system-ui,sans-serif;--serif:"Noto Serif JP",serif;--mono:"JetBrains Mono",ui-monospace,monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#09182a 44%,#06101d 100%);color:var(--ink);font-family:var(--sans);line-height:1.82}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:22px;min-height:58px;padding:0 24px;background:rgba(7,17,31,.9);border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}
+    .brand,.date,.kicker,.eyebrow,.metric span,.info-card span,.cmd,.tag{font-family:var(--mono);letter-spacing:.13em;text-transform:uppercase}
+    .brand{font-weight:700;font-size:.78rem;color:var(--ink)}.brand b{color:var(--teal)}.date{margin-left:auto;color:var(--teal);font-size:.74rem}
+    nav{display:flex;gap:2px;flex-wrap:wrap}nav a{padding:7px 9px;border-radius:6px;color:var(--muted);font-family:var(--mono);font-size:.68rem;letter-spacing:.10em}nav a:hover{background:rgba(0,167,181,.12);color:var(--ink)}
+    .hero{padding:86px 24px 72px;background:linear-gradient(180deg,rgba(15,34,53,.75),rgba(7,17,31,.15));border-bottom:1px solid var(--line)}
+    .hero-inner{max-width:var(--max);margin:0 auto}
+    .kicker{display:inline-block;margin:0 0 16px;color:var(--teal);font-size:.76rem;font-weight:700}
+    h1{margin:0;max-width:1120px;font-family:var(--serif);font-size:clamp(2.1rem,4.8vw,4.0rem);line-height:1.18;letter-spacing:0;word-break:keep-all;overflow-wrap:normal}
+    .headline-main,.headline-sub{display:block}
+    .headline-sub{margin-top:.18em;font-size:clamp(1.45rem,3.1vw,2.65rem);line-height:1.35}
+    h1 em,.section-title em{font-style:normal;color:var(--amber)}
+    .lead{max-width:940px;margin:22px 0 0;color:var(--soft);font-size:clamp(1.05rem,1.6vw,1.34rem);line-height:1.75}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0 0}
+    .btn{display:inline-flex;align-items:center;min-height:46px;padding:11px 18px;border-radius:8px;border:1px solid var(--line);font-family:var(--mono);font-size:.75rem;font-weight:700;letter-spacing:.08em}
+    .btn.primary{background:var(--teal);border-color:var(--teal);color:#031116}.btn:hover{transform:translateY(-1px)}
+    .cover{margin:40px 0 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#dff2f5;box-shadow:0 28px 70px rgba(0,0,0,.35)}
+    .cover figcaption{padding:11px 16px;background:rgba(7,17,31,.94);color:var(--muted);font-family:var(--mono);font-size:.72rem;letter-spacing:.08em}
+    .meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:28px 0 0}
+    .metric{padding:18px;background:rgba(15,34,53,.72);border:1px solid var(--line);border-radius:8px}
+    .metric strong{display:block;font-family:var(--mono);font-size:clamp(1.5rem,3vw,2.25rem);line-height:1;color:var(--teal);margin-bottom:8px}
+    .metric:nth-child(2) strong{color:var(--green)}.metric:nth-child(3) strong{color:var(--amber)}.metric:nth-child(4) strong{color:var(--orange)}
+    .metric span{display:block;color:var(--muted);font-size:.68rem}
+    .section{max-width:var(--max);margin:0 auto;padding:82px 24px;border-top:1px solid var(--line)}
+    .eyebrow{display:block;color:var(--teal);font-size:.72rem;font-weight:700;margin-bottom:12px}
+    .section-title{margin:0 0 18px;font-family:var(--serif);font-size:clamp(1.55rem,3vw,2.6rem);line-height:1.35}
+    .section-lede{max-width:900px;margin:0 0 28px;color:var(--soft);font-size:1.02rem}
+    .card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .card-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.card-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .info-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:21px}
+    .info-card span{display:block;color:var(--teal);font-size:.66rem;font-weight:700;margin-bottom:8px}
+    .info-card h3{margin:0 0 9px;font-family:var(--serif);font-size:1.12rem;line-height:1.42}
+    .info-card p{margin:0;color:var(--soft);font-size:.94rem;line-height:1.78}
+    .timeline{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch}
+    .arrow{display:grid;place-items:center;color:var(--amber);font-family:var(--mono);font-weight:700;font-size:1.9rem}
+    .command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .command{padding:22px;background:linear-gradient(180deg,rgba(0,167,181,.14),rgba(15,34,53,.76));border:1px solid rgba(0,167,181,.34);border-radius:8px}
+    .cmd{display:inline-block;color:#031116;background:var(--amber);border-radius:6px;padding:3px 8px;font-size:.72rem;font-weight:700;margin-bottom:12px}
+    .command h3{margin:0 0 9px;font-family:var(--serif);font-size:1.18rem}.command p{margin:0;color:var(--soft);font-size:.95rem}
+    .warning{padding:26px;border:1px solid rgba(232,111,68,.45);border-radius:8px;background:linear-gradient(180deg,rgba(232,111,68,.16),rgba(15,34,53,.72))}
+    .warning h3{margin:0 0 10px;color:#ffd0c1;font-family:var(--serif);font-size:1.35rem}.warning p{margin:0;color:var(--soft)}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+    table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:13px 15px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;color:var(--teal);text-transform:uppercase}td{color:var(--soft);font-size:.93rem}tr:last-child td{border-bottom:0}
+    .pdf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+    .pdf-grid figure{margin:0;background:#edf8fa;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+    .pdf-grid figcaption{padding:9px 11px;background:var(--panel);color:var(--muted);font-family:var(--mono);font-size:.68rem;letter-spacing:.10em}
+    footer{padding:42px 24px;color:var(--muted);text-align:center;border-top:1px solid var(--line);font-family:var(--mono);font-size:.72rem;letter-spacing:.08em}
+    @media(max-width:900px){.meta,.card-grid,.card-grid.two,.card-grid.four,.command-grid,.pdf-grid{grid-template-columns:1fr 1fr}.timeline{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+    @media(max-width:620px){.topbar{align-items:flex-start;flex-direction:column;padding:12px 18px}.date{margin-left:0}nav{display:none}.hero,.section{padding-left:18px;padding-right:18px}h1{font-size:2.25rem}.headline-sub{font-size:1.42rem}.meta,.card-grid,.card-grid.two,.card-grid.four,.command-grid,.pdf-grid{grid-template-columns:1fr}}
+    </style>
+    </head>
+    <body>
+      <header class="topbar">
+        <div class="brand">AI <b>NEWS</b> DAILY</div>
+        <nav>
+          <a href="#shift">Shift</a><a href="#target">Target</a><a href="#friction">Friction</a>
+          <a href="#architecture">Architecture</a><a href="#workflows">Workflows</a><a href="#governance">Governance</a><a href="#japan">Japan</a><a href="#guide">Guide</a>
+        </nav>
+        <div class="date">2026 / 05 / 14</div>
+      </header>
+
+      <main>
+        <section class="hero" id="hero">
+          <div class="hero-inner">
+            <p class="kicker">ANTHROPIC · CLAUDE FOR SMALL BUSINESS · 2026/05/14</p>
+            <h1><span class="headline-main">Claude for Small Business</span><span class="headline-sub">チャットAIから <em>「業務実行エージェント」</em>へ</span></h1>
+            <p class="lead">AI がユーザーをチャット画面に呼び込む段階は終わりつつある。次の焦点は、QuickBooks、PayPal、HubSpot、DocuSign、Canva、Slack などの実務ツールへ AI が出向き、経営者のバックオフィスを横断して動かす <em>Business OS</em> である。</p>
+            <div class="hero-actions">
+              <a class="btn primary" href="#shift">構造変化を見る</a>
+              <a class="btn" href="#guide">補足資料を見る</a>
+            </div>
+            <figure class="cover">
+              <img src="images/0514/cover.jpg" alt="Claude for Small Business の業務実行エージェント化を示す図解">
+              <figcaption>FROM chat Q&amp;A TO execution agent · Claude を中小企業の Business OS として捉える全体像</figcaption>
+            </figure>
+            <div class="meta">
+              <div class="metric"><strong>36M</strong><span>Small businesses target</span></div>
+              <div class="metric"><strong>15</strong><span>Workflow candidates</span></div>
+              <div class="metric"><strong>6+</strong><span>Core SaaS connectors</span></div>
+              <div class="metric"><strong>3</strong><span>Governance pillars</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="shift">
+          <span class="eyebrow">01 · PARADIGM SHIFT</span>
+          <h2 class="section-title">「相談相手」から、仕事の裏側で動く <em>見えない執行者</em>へ</h2>
+          <p class="section-lede">今回の本質は、AI が人間の言葉に合わせるだけでなく、人間の実務を肩代わりする段階へ進んだことにある。ユーザーが AI の画面へ歩み寄るのではなく、AI が仕事のある場所へ入っていく。</p>
+          <div class="timeline">
+            <article class="info-card">
+              <span>Before</span>
+              <h3>チャット AI</h3>
+              <p>質問と回答、検索、要約が中心。業務データは人間がコピーし、プロンプト化し、結果を別ツールへ戻す必要があった。</p>
+            </article>
+            <div class="arrow">→</div>
+            <article class="info-card">
+              <span>After</span>
+              <h3>業務実行エージェント</h3>
+              <p>AI が既存 SaaS に接続し、照合、分析、下書き、実行準備まで進める。人間は判断と承認に集中する。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="target">
+          <span class="eyebrow">02 · TARGET</span>
+          <h2 class="section-title">主役は、AI ブームから取り残されてきた <em>3,600 万社の中小企業</em></h2>
+          <p class="section-lede">シリコンバレーの開発組織ではなく、15 人規模の空調設備会社、造園業者、地域の小売店のような実業の現場が中心になる。</p>
+          <div class="card-grid four">
+            <article class="info-card">
+              <span>Owner</span>
+              <h3>中小企業オーナー</h3>
+              <p>経営、営業、実務を兼任し、IT スキル習得に割く時間がない。Claude は週次概況、資金繰り、優先事項をまとめる。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Finance</span>
+              <h3>経理・バックオフィス</h3>
+              <p>銀行、決済、会計ソフト間の照合を手作業で行っていた領域。残高照合や月次レポート下書きを担う。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Sales</span>
+              <h3>営業・マーケティング</h3>
+              <p>CRM、販促、分析が分断される領域。リード優先順位、施策立案、Canva 素材生成までつなぐ。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Ops</span>
+              <h3>業務改善担当</h3>
+              <p>独自フローを AI 化したいが開発コストが重い。SKILL.md で業務ロジックをカプセル化する。</p>
+            </article>
+            </div>
+        </section>
+
+        <section class="section" id="friction">
+          <span class="eyebrow">03 · FRICTION</span>
+          <h2 class="section-title">中小企業を重くしていたのは、ツール不足ではなく <em>ツール間の断絶</em></h2>
+          <p class="section-lede">経理、決済、契約、顧客情報がサイロ化し、経営者がその隙間を夜間や週末に手で埋めていた。Claude の価値は、この「手作業の連鎖」を断ち切る点にある。</p>
+          <div class="card-grid">
+            <article class="info-card">
+              <span>Friction 1</span>
+              <h3>データ転記とタブ往復</h3>
+              <p>CSV エクスポート、インポート、ブラウザ往復を減らし、AI が接続先で直接作業する。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Friction 2</span>
+              <h3>数字の不一致</h3>
+              <p>会計、決済、CRM、契約データのズレを検知し、修正案や確認ポイントを提示する。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Friction 3</span>
+              <h3>夜なべ事務</h3>
+              <p>請求書督促や入金確認のような精神的負荷の高いルーチンを準備段階まで代替する。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Friction 4</span>
+              <h3>空論の終焉</h3>
+              <p>実データに繋がらない助言ではなく、SoR の数値を根拠にした行動案を作る。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Friction 5</span>
+              <h3>責任と信頼</h3>
+              <p>金銭や顧客連絡は承認を挟む。自律実行とガバナンスを両立させる。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Outcome</span>
+              <h3>人間らしい時間</h3>
+              <p>単なる効率化ではなく、経営者が戦略や家族との時間を取り戻すことが最終価値になる。</p>
+            </article>
+            </div>
+        </section>
+
+        <section class="section" id="architecture">
+          <span class="eyebrow">04 · ARCHITECTURE</span>
+          <h2 class="section-title">Claude Cowork を基盤にした <em>3 つの構成要素</em></h2>
+          <p class="section-lede">AI が業務 OS として成立するには、接続、業務ロジック、承認 UX の 3 層が必要になる。</p>
+          <div class="card-grid">
+            <article class="info-card">
+              <span>01</span>
+              <h3>Connectors</h3>
+              <p>QuickBooks、PayPal、HubSpot、DocuSign、Canva、Slack など、実務データが存在する場所へ接続する。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>02</span>
+              <h3>Skills &amp; Workflows</h3>
+              <p>SKILL.md が業務手順、文脈、ベストプラクティスを保持し、複雑な多段階業務を再現する。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>03</span>
+              <h3>Human-in-the-loop</h3>
+              <p>支払いや顧客連絡の前に人間の判断を挟む。AI は完璧な下書きを作り、人間は承認する。</p>
+            </article>
+            </div>
+          <div class="table-wrap" style="margin-top:20px">
+            <table>
+              <thead><tr><th>領域</th><th>連携ツール</th><th>Claude に任せられる範囲</th></tr></thead>
+              <tbody>
+                <tr><td>財務・経理</td><td>QuickBooks / PayPal / Stripe</td><td>残高照合、資金繰り予測、請求書督促、税務準備</td></tr>
+                <tr><td>営業・CRM</td><td>HubSpot</td><td>リード優先順位、活動分析、フォローアップ提案</td></tr>
+                <tr><td>制作・広報</td><td>Canva</td><td>ブランドガイドラインに沿った販促素材の生成</td></tr>
+                <tr><td>契約・事務</td><td>DocuSign / Google / Microsoft</td><td>契約要約、署名管理、会議資料、月曜ブリーフィング</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="workflows">
+          <span class="eyebrow">05 · WORKFLOWS</span>
+          <h2 class="section-title">明日から丸投げできる <em>15 の即戦力</em> は「マクロ」ではない</h2>
+          <p class="section-lede">価値は定型処理ではなく、データの背後にあるリスクや機会を推論して、次のアクション候補まで準備するところにある。</p>
+          <div class="command-grid">
+            <article class="command">
+              <span class="cmd">/plan-payroll</span>
+              <h3>給与・資金繰り計画</h3>
+              <p>QuickBooks の残高と PayPal の入金予定を照合し、資金不足リスクと回収見込みの高い顧客を提示する。</p>
+            </article>
+            <article class="command">
+              <span class="cmd">/close-month</span>
+              <h3>月次決算</h3>
+              <p>帳簿と決済データの不一致にフラグを立て、会計士に出せる背景説明付きの財務レポートを生成する。</p>
+            </article>
+            <article class="command">
+              <span class="cmd">/monday-brief</span>
+              <h3>週次ブリーフィング</h3>
+              <p>現金残高、売上、パイプライン、今日の最優先事項を 1 ページに集約し、経営判断の入口を作る。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="governance">
+          <span class="eyebrow">06 · GOVERNANCE</span>
+          <h2 class="section-title">安全な運用の中心は、機能ではなく <em>責任境界</em></h2>
+          <div class="warning">
+            <h3>プライバシー設定と承認プロセスは、最初に確認する</h3>
+            <p>入力データの学習利用設定、プランごとの差分、閲覧権限の継承、支払いや顧客連絡前の承認を明示する。AI は Prepare はできるが Certify はできない。法的責任と最終承認は常に人間側に残る。</p>
+          </div>
+          <div class="card-grid">
+            <article class="info-card">
+              <span>Guardrail 1</span>
+              <h3>Human approval</h3>
+              <p>送金、契約、顧客連絡など不可逆な行為は承認 UX を必須にする。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Guardrail 2</span>
+              <h3>Permission inheritance</h3>
+              <p>Claude 経由でも本人が閲覧できない給与や機密情報にはアクセスさせない。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Guardrail 3</span>
+              <h3>Learning policy</h3>
+              <p>機密情報を扱う前に Privacy &amp; Personalization とプランの学習利用条件を確認する。</p>
+            </article>
+            </div>
+        </section>
+
+        <section class="section" id="japan">
+          <span class="eyebrow">07 · JAPAN MARKET</span>
+          <h2 class="section-title">日本市場では、ローカライズの壁が <em>競争優位の分岐点</em>になる</h2>
+          <p class="section-lede">米国中心の SaaS 連携をそのまま持ち込むだけでは、日本の会計ソフト、税制、商習慣に届かない。待つだけでなく、自社システムや国内 SaaS を Claude に接続する MCP / Skills の整備が鍵になる。</p>
+          <div class="card-grid">
+            <article class="info-card">
+              <span>Wall 1</span>
+              <h3>国内 SaaS 連携</h3>
+              <p>freee、マネーフォワードなど国内主要会計ソフトとのネイティブ連携が導入速度を左右する。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Wall 2</span>
+              <h3>税制・商習慣</h3>
+              <p>インボイス制度、支払調書、源泉徴収など、日本固有の実務ルールへの調整が必要になる。</p>
+            </article>
+
+
+            <article class="info-card">
+              <span>Wall 3</span>
+              <h3>AI 格差</h3>
+              <p>税理士・士業・中小企業の DX 格差が広がる。早期に業務フローを定義できる組織が先行する。</p>
+            </article>
+            </div>
+        </section>
+
+        <section class="section" id="guide">
+          <span class="eyebrow">08 · VISUAL GUIDE</span>
+          <h2 class="section-title">Claude for Small Business を <em>社内で説明するための視覚ガイド</em></h2>
+          <p class="section-lede">業務実行エージェントの全体像、連携する SaaS、経理・営業・契約業務での使い方、安全な運用ルール、導入ロードマップを一覧できる補足資料です。中小企業の経営者や業務責任者が「何から試すべきか」を判断できるように整理しています。</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="../../input/day/0514.pdf" target="_blank" rel="noopener">詳細PDFを開く</a>
+          </div>
+          <div class="pdf-grid">
+
+        <figure>
+          <img src="images/0514/page_01.jpg" alt="0514 PDF preview page 1" loading="lazy">
+          <figcaption>PDF PAGE 01</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_02.jpg" alt="0514 PDF preview page 2" loading="lazy">
+          <figcaption>PDF PAGE 02</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_03.jpg" alt="0514 PDF preview page 3" loading="lazy">
+          <figcaption>PDF PAGE 03</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_04.jpg" alt="0514 PDF preview page 4" loading="lazy">
+          <figcaption>PDF PAGE 04</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_05.jpg" alt="0514 PDF preview page 5" loading="lazy">
+          <figcaption>PDF PAGE 05</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_06.jpg" alt="0514 PDF preview page 6" loading="lazy">
+          <figcaption>PDF PAGE 06</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_07.jpg" alt="0514 PDF preview page 7" loading="lazy">
+          <figcaption>PDF PAGE 07</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_08.jpg" alt="0514 PDF preview page 8" loading="lazy">
+          <figcaption>PDF PAGE 08</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_09.jpg" alt="0514 PDF preview page 9" loading="lazy">
+          <figcaption>PDF PAGE 09</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_10.jpg" alt="0514 PDF preview page 10" loading="lazy">
+          <figcaption>PDF PAGE 10</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_11.jpg" alt="0514 PDF preview page 11" loading="lazy">
+          <figcaption>PDF PAGE 11</figcaption>
+        </figure>
+
+
+        <figure>
+          <img src="images/0514/page_12.jpg" alt="0514 PDF preview page 12" loading="lazy">
+          <figcaption>PDF PAGE 12</figcaption>
+        </figure>
+
+          </div>
+        </section>
+      </main>
+      <footer>VISIONHUB · DAILY AI NEWS SLIDES · 2026/05/14</footer>
+    </body>
+    </html>
