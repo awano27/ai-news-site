@@ -36,6 +36,10 @@ jobs:
         run: |
           node scripts/build-homepage-latest.js
           python scripts/build_sitemap.py
+          if [ -f input/day/0514.pdf ]; then
+            mkdir -p .deploy-keep/input/day
+            cp input/day/0514.pdf .deploy-keep/input/day/0514.pdf
+          fi
           rm -rf \
             __pycache__ \
             backup_untracked \
@@ -75,6 +79,11 @@ jobs:
           # Remove large PNG screenshots at repo root (dev captures)
           rm -f index-*.png live-*.png verify-*.png nttdata-*.png \
                 antigravity_*.png *.bak *.bak.* || true
+          if [ -f .deploy-keep/input/day/0514.pdf ]; then
+            mkdir -p input/day
+            cp .deploy-keep/input/day/0514.pdf input/day/0514.pdf
+            rm -rf .deploy-keep
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
