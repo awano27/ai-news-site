@@ -1,0 +1,2 @@
+- Public-facing slide pages should avoid production-process wording such as "PDFをページ画像化". Use reader-oriented labels like "参考スライド" and explain what the reader can learn or verify from the section.
+- When a public slide page explains abstract AI workflow concepts, place the relevant source visual next to the explanation instead of leaving all images in a bottom gallery. The gallery should be a reference appendix, not the only visual aid.
