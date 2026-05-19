@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmallCode — 小型ローカル LLM で「実用的」AI コーディングを再定義する新基盤 | 2026-05-19 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --navy:        #070F26;
+  --navy-2:      #0c1733;
+  --navy-3:      #142042;
+  --navy-line:   rgba(255,255,255,0.08);
+  --navy-line-2: rgba(255,255,255,0.16);
+
+  --bg:          #f5f7fa;
+  --surface:     #ffffff;
+  --surface-2:   #fafbfd;
+  --surface-3:   #eef1f5;
+  --border:      #e3e7ee;
+  --border-2:    #c7cfdb;
+
+  --t1:          #1a1f2e;
+  --t2:          #4a5260;
+  --t3:          #7a8294;
+  --on-dark:     #ffffff;
+  --on-dark-mu:  #a8b2c3;
+  --on-dark-mu2: #6e7a8d;
+
+  --yellow:      #FFCC00;
+  --yellow-d:    #e6b800;
+  --yellow-dim:  rgba(255,204,0,0.15);
+  --blue:        #0d6efd;
+  --blue-d:      #0a59cf;
+  --blue-dim:    rgba(13,110,253,0.10);
+  --green:       #1e9c5a;
+  --red:         #c0392b;
+
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.bar {
+  position: sticky; top: 0; z-index: 100; height: 56px;
+  display: flex; align-items: center; gap: 20px; padding: 0 32px;
+  background: rgba(7,15,38,0.92);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--navy-line);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--on-dark-mu);
+}
+.bar-logo {
+  color: var(--on-dark);
+  font-family: var(--sans);
+  font-style: normal; font-size: .85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.bar-logo b { color: var(--yellow); font-weight: 800; }
+.bar-sep { color: var(--on-dark-mu2); }
+.bar-date { color: var(--on-dark-mu); font-weight: 400; }
+.bar-nav { display: flex; gap: 2px; margin-left: auto; }
+.bar-nav a {
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  min-height: 36px;
+  display: inline-flex; align-items: center;
+  font-size: .76rem; letter-spacing: .08em;
+  transition: color .15s, background .15s;
+}
+.bar-nav a:hover { color: var(--on-dark); background: rgba(255,255,255,0.06); }
+.bar-nav a.on { color: var(--yellow); background: rgba(255,204,0,0.12); }
+.bar-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 8px rgba(255,204,0,0.7);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px 80px; }
+
+.hero {
+  position: relative;
+  margin: 0 -32px;
+  padding: 72px 32px 56px;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: var(--on-dark);
+  border-bottom: 4px solid var(--yellow);
+  overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: -30%; right: -10%;
+  width: 60%; height: 130%;
+  background: radial-gradient(ellipse at center, rgba(255,204,0,0.12) 0%, transparent 60%);
+  pointer-events: none; filter: blur(40px);
+}
+.hero > * { position: relative; }
+.hero-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono); font-size: .76rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--on-dark-mu);
+}
+.hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.hero-meta .rule { flex: 0 0 40px; height: 1px; background: var(--navy-line-2); }
+.hero-issue { color: var(--yellow); font-weight: 700; }
+
+.hero-brand {
+  margin: 28px 0 26px;
+  display: inline-block;
+  padding: 18px 26px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--navy-line-2);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+.hero-brand-tag {
+  display: block;
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.hero-brand-name {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  font-weight: 900;
+  color: var(--on-dark);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin: 4px 0 8px;
+}
+.hero-brand-model {
+  display: block;
+  font-family: var(--mono);
+  font-size: .76rem;
+  color: var(--on-dark-mu);
+  letter-spacing: .04em;
+}
+.hero-brand-model code {
+  font-family: var(--mono);
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+.hero-headline {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--on-dark);
+  margin: 18px 0 18px;
+}
+.hero-headline .hl-from {
+  display: inline-block;
+  position: relative;
+  color: var(--on-dark-mu);
+  font-weight: 700;
+}
+.hero-headline .hl-from::after {
+  content: "";
+  position: absolute;
+  left: -2%; right: -2%; top: 52%;
+  height: 4px;
+  background: var(--on-dark-mu2);
+  transform: rotate(-3deg);
+  opacity: 0.85;
+}
+.hero-headline .hl-to {
+  display: inline-block;
+  color: var(--navy);
+  background: var(--yellow);
+  padding: 4px 18px 6px;
+  border-radius: 6px;
+  font-weight: 900;
+  box-shadow: 0 6px 24px rgba(255,204,0,0.25);
+}
+.hero-kicker {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.08rem;
+  color: var(--on-dark-mu);
+  margin: 18px 0 18px;
+  line-height: 1.7;
+  max-width: 60ch;
+}
+.hero-kicker .hk-br { display: inline; }
+@media (max-width: 720px) { .hero-kicker .hk-br { display: none; } }
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.02rem;
+  font-weight: 400;
+  color: var(--on-dark-mu);
+  max-width: 76ch;
+  line-height: 1.9;
+  margin-top: 14px;
+}
+.hero-sub strong { color: var(--on-dark); font-weight: 700; }
+
+.hero-cover {
+  margin: 36px 0 0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--navy-line-2);
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+.hero-cover img { width: 100%; display: block; }
+.hero-caption {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-top: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-caption::before { content: ""; width: 22px; height: 1px; background: var(--yellow); }
+
+.kpi {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 56px 0 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.kpi-cell {
+  padding: 28px 22px 24px;
+  position: relative;
+  background: var(--surface);
+}
+.kpi-cell + .kpi-cell { border-left: 1px solid var(--border); }
+.kpi-cell::after {
+  content: attr(data-idx);
+  position: absolute; top: 12px; right: 16px;
+  font-family: var(--mono); font-size: .7rem;
+  color: var(--t3); letter-spacing: 1px;
+}
+.kpi-n {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: 2.6rem; line-height: 1;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -.025em;
+}
+.kpi-l {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-top: 14px; font-weight: 600;
+}
+
+.sec { margin: 64px 0 0; padding-top: 48px; border-top: 1px solid var(--border); }
+.sec:first-of-type { border-top: none; padding-top: 24px; }
+.sec-meta {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 16px;
+}
+.sec-meta .rule { flex: 0 0 40px; height: 2px; background: var(--yellow); }
+.sec-num, .sec-meta span:nth-child(2) { color: var(--blue); font-weight: 700; }
+.sec-h {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.sec-h em {
+  font-style: normal;
+  background: linear-gradient(transparent 65%, var(--yellow-dim) 65%);
+  padding: 0 .12em;
+  color: var(--navy);
+}
+.sec-lede {
+  font-size: 1rem;
+  color: var(--t2);
+  max-width: 76ch;
+  line-height: 1.9;
+}
+.sec-lede strong { color: var(--navy); font-weight: 700; }
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.compare-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 26px;
+}
+.compare-col.pro {
+  background: linear-gradient(160deg, rgba(255,204,0,0.08), var(--surface));
+  border-color: var(--yellow);
+  border-width: 1px;
+  box-shadow: 0 6px 20px rgba(255,204,0,0.06);
+}
+.compare-tag {
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 10px;
+}
+.compare-col.pro .compare-tag { color: var(--blue); font-weight: 700; }
+.compare-col h3 {
+  font-family: var(--sans);
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+.compare-col.pro h3 { color: var(--navy); }
+.compare-col ul { list-style: none; padding: 0; }
+.compare-col li {
+  padding: 12px 0 12px 26px;
+  border-bottom: 1px dashed var(--border);
+  font-size: .92rem;
+  line-height: 1.7;
+  color: var(--t2);
+  position: relative;
+}
+.compare-col li:last-child { border-bottom: none; }
+.compare-col li::before {
+  content: "—"; position: absolute; left: 0;
+  color: var(--t3); font-weight: 600;
+}
+.compare-col.pro li { color: var(--t1); }
+.compare-col.pro li::before { content: "▸"; color: var(--yellow); font-weight: 800; }
+.compare-col li strong { color: var(--navy); font-weight: 700; }
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 32px 0 0;
+}
+.pillar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 22px;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.pillar:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7,15,38,0.06);
+}
+.pillar .p-n {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 14px;
+}
+.pillar h3 {
+  font-family: var(--sans);
+  font-size: 1.18rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 12px;
+  letter-spacing: -.01em;
+}
+.pillar h3 em {
+  font-style: normal;
+  color: var(--blue);
+  font-weight: 800;
+}
+.pillar p {
+  font-size: .9rem;
+  color: var(--t2);
+  line-height: 1.75;
+}
+.pillar p strong { color: var(--navy); font-weight: 700; }
+
+.fig {
+  margin: 32px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(7,15,38,0.04);
+}
+.fig img { width: 100%; display: block; }
+.fig-cap {
+  padding: 16px 24px;
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--t2);
+  text-transform: uppercase;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: center; gap: 10px;
+}
+.fig-cap::before {
+  content: attr(data-fignum);
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.fig-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 0;
+}
+.fig-duo .fig { margin: 0; }
+
+.approval {
+  margin: 32px 0 0;
+  padding: 28px 32px;
+  background: linear-gradient(160deg, rgba(13,110,253,0.06), var(--surface));
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(13,110,253,0.06);
+}
+.approval::before {
+  content: ""; position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--blue);
+}
+.approval .ap-mark {
+  font-family: var(--sans);
+  font-size: 2.6rem; font-weight: 900;
+  color: var(--blue); line-height: 1;
+}
+.approval h3 {
+  font-family: var(--sans);
+  font-size: 1.25rem; font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.approval p {
+  color: var(--t2);
+  font-size: .95rem;
+  line-height: 1.85;
+}
+.approval strong { color: var(--navy); font-weight: 700; }
+
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 32px 0 0;
+  font-size: .9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tbl th, .tbl td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.tbl tr:last-child th, .tbl tr:last-child td { border-bottom: none; }
+.tbl th {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--t2); font-weight: 700;
+  border-bottom: 2px solid var(--border-2);
+  background: var(--surface-2);
+}
+.tbl th.highlight {
+  color: var(--blue);
+  border-bottom-color: var(--yellow);
+  background: rgba(255,204,0,0.08);
+}
+.tbl td { color: var(--t2); }
+.tbl td:first-child {
+  font-family: var(--mono);
+  font-size: .8rem; letter-spacing: .04em;
+  color: var(--navy);
+  font-weight: 600;
+  width: 180px;
+  background: var(--surface-2);
+}
+.tbl td.highlight {
+  color: var(--navy);
+  background: rgba(255,204,0,0.06);
+  font-weight: 500;
+}
+.tbl td strong { color: var(--navy); font-weight: 700; }
+
+.code {
+  margin: 28px 0 0;
+  font-family: var(--mono);
+  font-size: .88rem;
+  line-height: 1.8;
+  color: #e8eef5;
+  background: var(--navy);
+  border: 1px solid var(--navy-2);
+  border-radius: 12px;
+  padding: 24px 26px 24px 26px;
+  overflow-x: auto;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(7,15,38,0.12);
+}
+.code::before {
+  content: attr(data-lang);
+  position: absolute; top: 12px; right: 18px;
+  font-size: .68rem;
+  color: var(--yellow);
+  letter-spacing: .2em; font-weight: 700;
+}
+.code .cm { color: #6e7a8d; font-style: italic; }
+.code .kw { color: var(--yellow); font-weight: 600; }
+.code .str { color: #7dd49f; }
+.code .fn { color: #5fc8d6; }
+.code .var { color: #f3c17a; }
+
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 32px 0 0;
+}
+.link-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 26px;
+  text-decoration: none;
+  display: block;
+  transition: border-color .2s, background .2s, transform .2s;
+  position: relative;
+}
+.link-row:hover {
+  border-color: var(--blue);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+.link-row::after {
+  content: "→"; position: absolute;
+  right: 24px; top: 50%; transform: translateY(-50%);
+  color: var(--t3); font-size: 1.1rem;
+  transition: color .2s, transform .2s;
+}
+.link-row:hover::after {
+  color: var(--blue);
+  transform: translateY(-50%) translateX(4px);
+}
+.link-cat {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--blue); font-weight: 700;
+  margin-bottom: 6px;
+}
+.link-row h4 {
+  font-family: var(--sans);
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+  padding-right: 32px;
+  letter-spacing: -.005em;
+}
+.link-row .meta {
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--t3);
+  letter-spacing: .04em;
+}
+
+.pullquote {
+  margin: 56px 0 0;
+  padding: 40px 0 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+.pullquote::before {
+  content: "\201C";
+  position: absolute; top: 18px; left: -6px;
+  font-family: var(--sans);
+  font-size: 5rem;
+  color: var(--yellow);
+  line-height: 1; font-weight: 900;
+}
+.pullquote q {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(1.3rem, 2.6vw, 1.85rem);
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.55;
+  letter-spacing: -.01em;
+  padding-left: 50px;
+  quotes: none;
+}
+.pullquote q::before, .pullquote q::after { content: ""; }
+.pullquote cite {
+  display: block;
+  margin-top: 18px;
+  padding-left: 50px;
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--blue);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: 700;
+}
+
+footer {
+  margin: 80px -32px 0;
+  padding: 48px 32px 36px;
+  background: var(--navy);
+  color: var(--on-dark-mu);
+  text-align: center;
+  border-top: 4px solid var(--yellow);
+  position: relative;
+}
+footer .f-title {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--on-dark);
+  margin-bottom: 10px;
+}
+footer .f-title b { color: var(--yellow); font-weight: 800; }
+footer .f-title em { font-style: normal; color: var(--yellow); }
+footer .f-meta {
+  font-family: var(--mono);
+  font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--on-dark-mu2);
+  margin-bottom: 22px;
+}
+footer .f-links {
+  display: flex; gap: 12px;
+  justify-content: center; flex-wrap: wrap;
+}
+footer .f-links a {
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .12em;
+  color: var(--on-dark-mu);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--navy-line-2);
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: color .2s, border-color .2s, background .2s;
+}
+footer .f-links a:hover {
+  color: var(--navy);
+  border-color: var(--yellow);
+  background: var(--yellow);
+}
+
+@media (max-width: 960px) {
+  .wrap { padding: 0 22px 56px; }
+  .hero { margin: 0 -22px; padding: 56px 22px 44px; }
+  footer { margin: 64px -22px 0; padding: 40px 22px 28px; }
+  .kpi { grid-template-columns: repeat(2, 1fr); }
+  .kpi-cell { border-left: none !important; border-bottom: 1px solid var(--border); }
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+  .compare, .fig-duo, .links-grid { grid-template-columns: 1fr; }
+  .bar { padding: 0 18px; gap: 12px; }
+  .bar-nav { display: none; }
+  .tbl td:first-child { width: 110px; font-size: .74rem; }
+}
+</style>
+<meta name="description" content="AI Daily Briefing — 2026-05-19 · Tue SmallCode は 7B〜20B クラスの小型ローカル LLM を「失敗を前提とした足場（エージェント・スキャフォールディング）」で支え、Claude/GPT 依存から脱却して技術的主権を取り戻す現実主義的アーキテクチャ。Patch-First Editing / Forgiving Parser / 2-Stage Routing / TODO-Driven / BoneScript DSL を完全解剖。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_19.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="SmallCode — 小型ローカル LLM で「実用的」AI コーディングを再定義する新基盤 | 2026-05-19 · AI Daily Briefing" />
+<meta property="og:description" content="フロンティア・バイアスの終焉。Patch-First Editing / Forgiving Parser / 2-Stage Routing / TODO-Driven / BoneScript DSL で 4B モデルでも単一ファイル 87% を達成する「知能の環境への移行」を完全解剖。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_19.html" />
+<meta property="og:image" content="https://visionhub.jp/assets/og/day_slide_2026_05_19.png" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="SmallCode — 小型ローカル LLM で「実用的」AI コーディングを再定義する新基盤 | 2026-05-19 · AI Daily Briefing" />
+<meta name="twitter:description" content="Patch-First / Forgiving Parser / 2-Stage Routing / TODO-Driven / BoneScript DSL で「失敗を前提に設計」する自律ループ。RTX 3060 で 24 時間ジュニアエンジニアを確保する技術的主権。" />
+<meta name="twitter:image" content="https://visionhub.jp/assets/og/day_slide_2026_05_19.png" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "SmallCode — 小型ローカル LLM で「実用的」AI コーディングを再定義する新基盤 | 2026-05-19 · AI Daily Briefing",
+  "datePublished": "2026-05-19",
+  "dateModified": "2026-05-19",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "alternateName": "Claudian",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": [
+    "https://visionhub.jp/assets/og/day_slide_2026_05_19.png"
+  ],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_19.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_19.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+<aside class="related-nav" aria-label="関連ガイド" style="background:#0D1733;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 18px;font:13px/1.4 'Noto Sans JP',system-ui,sans-serif;color:#8A9ABF;display:flex;gap:14px;flex-wrap:wrap;align-items:center;position:relative;z-index:100"><span style="color:#FFCC00;font-weight:700;letter-spacing:.04em">関連ガイド</span><a href="/presentations/hubs/claude-code-guide-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude Code 完全ガイド</a> <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude vs ChatGPT vs Gemini 比較</a> <a href="/presentations/hubs/mcp-complete-guide.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">MCP 完全ガイド</a> <a href="/presentations/hubs/claude-models-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude モデル料金比較</a> <a href="/presentations/hubs/ai-funding-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">AI資金調達まとめ</a> <a href="/presentations/digests/2026-05.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">2026年5月のまとめ</a></aside>
+
+
+<header class="bar">
+  <span class="bar-live"></span>
+  <span class="bar-logo"><b>AI</b> Daily Briefing</span>
+  <span class="bar-sep">—</span>
+  <span class="bar-date">2026-05-19 · Tue</span>
+  <nav class="bar-nav">
+    <a href="#hero" class="on">序章</a>
+    <a href="#ch1">第1章</a>
+    <a href="#ch2">第2章</a>
+    <a href="#ch3">第3章</a>
+    <a href="#ch4">第4章</a>
+    <a href="#engine">中核</a>
+    <a href="#epilogue">終章</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-meta">
+      <span class="dot"></span>
+      <span class="hero-issue">Issue № 05/19</span>
+      <span class="rule"></span>
+      <span>The Daily AI Intelligence Brief</span>
+    </div>
+    <div class="hero-brand">
+      <span class="hero-brand-tag">FRAMEWORK · LOCAL LLM</span>
+      <h2 class="hero-brand-name">SmallCode</h2>
+      <span class="hero-brand-model">Agent Scaffolding for Small Local LLMs · 7B〜20B class · RTX 3060 / M-series Mac</span>
+    </div>
+    <h1 class="hero-headline">
+      <span class="hl-from">フロンティア・バイアス</span>から、<br>
+      <span class="hl-to">知能の環境への移行</span>へ。
+    </h1>
+    <p class="hero-kicker">モデルの推論能力ではなく、<strong>失敗を前提とした「足場（スキャフォールディング）」</strong>で実用域へ。<br class="hk-br">クラウド依存・APIコスト・機密流出から組織を解放する。</p>
+    <p class="hero-sub">
+      Claude 3.5 Sonnet や GPT-5 系のフロンティアモデル中心の AI コーディングは、<strong>API コストの膨張・機密コード流出リスク・プロバイダー側仕様変更によるブラックボックス化</strong>という「<strong>技術的主権（Technology Sovereignty）</strong>の毀損」を内包してきた。<strong>SmallCode</strong> が提唱するのは、知能をモデルパラメータだけに求めず、モデルが失敗し得ない実行基盤（OS 層）に重心を移す「<strong>Intelligence-to-Environment Migration（知能の環境への移行）</strong>」だ。7B〜20B クラスの小型ローカル LLM が「<strong>必然的に間違える</strong>」ことを前提に、それを<strong>制御系</strong>で吸収する「<strong>制御型</strong>」の設計を採用——コンテキスト崩壊・ツール混乱・ReAct ループ暴走・diff 破損・長期計画不能という<strong>5 つの構造的課題</strong>を、<strong>Patch-First Editing</strong>・<strong>Forgiving Tool Parser</strong>・<strong>2-Stage Tool Routing</strong>・<strong>TODO-Driven Planning</strong>・<strong>Context Budget Engine</strong> の 5 機構で物理的に封じ込める。Node.js/TypeScript では宣言的 DSL「<strong>BoneScript</strong>」連携により<strong>15 回のツール呼び出しを 1〜2 回</strong>に圧縮。RTX 3060 や M シリーズ Mac で完結する<strong>分散型知能</strong>として、プライバシー最優先の組織・ローカル環境のパワーユーザー・ドメイン特化型プロトタイパーに「<strong>真の技術的自由</strong>」をもたらす現実主義的アーキテクチャだ。
+    </p>
+    <div class="hero-cover">
+      <img src="images/0519/cover.jpg" alt="SmallCode — 小型ローカル LLM で『実用的』AI 開発を実現する新基盤" loading="lazy">
+    </div>
+    <div class="hero-caption">FIG 01 · 「モデルの知能」から「周辺環境の完成度」へ——5 つの壁と 5 つの解決機構を一枚で俯瞰</div>
+  </section>
+
+  <!-- KPI -->
+  <section class="kpi">
+    <div class="kpi-cell" data-idx="01"><div class="kpi-n">87<span style="font-size:0.5em;">%</span></div><div class="kpi-l">単一ファイル達成率(4B)</div></div>
+    <div class="kpi-cell" data-idx="02"><div class="kpi-n">5壁→5機構</div><div class="kpi-l">構造的課題の解決</div></div>
+    <div class="kpi-cell" data-idx="03"><div class="kpi-n">15→1〜2<span style="font-size:0.5em;">回</span></div><div class="kpi-l">BoneScript で呼出圧縮</div></div>
+    <div class="kpi-cell" data-idx="04"><div class="kpi-n">50<span style="font-size:0.5em;">%</span></div><div class="kpi-l">2-Stage Routing 文脈削減</div></div>
+    <div class="kpi-cell" data-idx="05"><div class="kpi-n">RTX 3060</div><div class="kpi-l">消費者 GPU で完結</div></div>
+  </section>
+
+  <!-- § 01 PROLOGUE -->
+  <section class="sec" id="prologue">
+    <div class="sec-meta"><span class="rule"></span><span>§ 01</span><span style="color:var(--t2);">Prologue · フロンティア・バイアスの終焉</span></div>
+    <h2 class="sec-h">なぜ小型ローカル LLM は<em>「必然的に間違える」</em>のか</h2>
+    <p class="sec-lede">現代のエンタープライズ AI 戦略は<strong>フロンティアモデル</strong>に依存する中央集権的クラウド型が主流だ。しかし「7B〜20B クラスに 405B 級の挙動をプロンプトで強いる」<strong>フロンティア・バイアス</strong>は、無益な計算リソース浪費とサンクコストの積み上げを生むだけ。小型モデルが直面する 5 つの構造的課題は、モデル単体の性能向上を待っても解決しない——必要なのは<strong>「失敗を前提にした周辺設計」</strong>だ。</p>
+
+    <div class="fig">
+      <img src="images/0519/page_01.jpg" alt="フロンティア・バイアスの終焉とエージェント・スキャフォールディングの幕開け" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 02">巨大モデル依存から脱却し、小型ローカル LLM で実用的な AI コーディングを実現するアーキテクチャ——<strong>Intelligence-to-Environment Migration</strong></div>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>5 つの壁</th>
+          <th>発生現象</th>
+          <th class="highlight">技術的原因</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>コンテキスト崩壊</td><td>指示の忘却、会話の迷子</td><td class="highlight">物理的 VRAM 制約と注意機構の解像度不足</td></tr>
+        <tr><td>ツール混乱</td><td>JSON 形式の破損、誤呼び出し</td><td class="highlight">複雑なスキーマを正確に解釈する推論能力の欠如</td></tr>
+        <tr><td>ReAct ループ暴走</td><td>同一の誤りを繰り返す無限ループ</td><td class="highlight">自己修正に必要な客観的視点の構造的不足</td></tr>
+        <tr><td>diff 破損</td><td>既存ロジックの破壊、出力切り詰め</td><td class="highlight">全文生成時のハルシネーションと生成長制限</td></tr>
+        <tr><td>長期計画不能</td><td>アーキテクチャ整合性の喪失</td><td class="highlight">階層的タスク分解能力の限界（Shallow Reasoning）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Before · 巨大モデル前提（柔軟型）</div>
+        <h3>「万能な神」を待つアンチパターン</h3>
+        <ul>
+          <li>情報入力：リポジトリ全体を読ませて<strong>文脈崩壊</strong></li>
+          <li>ツール実行：<strong>完璧な JSON 出力</strong>を期待してエラーで停止</li>
+          <li>コード編集：ファイル全文出力を強い<strong>ハルシネーション</strong></li>
+          <li>タスク進行：<strong>自由な ReAct ループ</strong>に任せて暴走</li>
+          <li>結果：API コスト膨張・機密流出・主権喪失</li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">After · 制御型（SmallCode）</div>
+        <h3>「制御されたジュニア」として扱う</h3>
+        <ul>
+          <li>情報入力：<strong>予算管理し構造（シグネチャ）に要約</strong></li>
+          <li>ツール実行：<strong>寛容なパーサー</strong>で壊れた出力を自動修復</li>
+          <li>コード編集：レーザーメスのように<strong>1 行だけパッチ編集</strong></li>
+          <li>タスク進行：<strong>TODO 駆動</strong>で外部メモリ化、検証ループ強制</li>
+          <li>結果：オフライン完結・<strong>真の技術的自由</strong>を回復</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- § 02 CHAPTER 1 · Privacy Org -->
+  <section class="sec" id="ch1">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 1</span><span style="color:var(--t2);">プライバシー最優先の組織 — 機密コードを外部 API に送らない</span></div>
+    <h2 class="sec-h">金融・医療・官公庁の<em>規制とセキュリティ制約</em>を、完全オフラインで解く</h2>
+    <p class="sec-lede"><strong>状況：</strong> ISMS（情報セキュリティマネジメントシステム）準拠を求められる金融・医療・官公庁では、機密コードを外部 API へ送信できない規制が AI 活用の最大の障壁となってきた。SmallCode は<strong>完全なオフライン・閉域網動作</strong>を前提に設計されており、ISMS 適合性を維持したまま AI による生産性向上を実現する。</p>
+
+    <div class="fig">
+      <img src="images/0519/page_04.jpg" alt="誰のための、どのような課題解決か — 3 つの戦略的ペルソナ" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 03">3 つの戦略的ペルソナ：<strong>プライバシー最優先の企業</strong>／ローカル環境のパワーユーザ／ドメイン特化型プロトタイパー</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>テレメトリと自動 Web ブラウジングを原則遮断</em>、ガバナンス担保</h3>
+        <p>SmallCode は <code>SMALLCODE_WEB_BROWSE=false</code> をデフォルト維持し、テレメトリ送信や<strong>クラウドエスカレーションを原則遮断</strong>する。実行環境は <strong>DevContainer（隔離された開発コンテナ）</strong>で <strong>Ollama 等のローカル推論サーバー</strong>と通信し、<strong>AI による自動コミットを禁止</strong>。必ず「<strong>Human-in-the-Loop（人間の目視による git diff 確認）</strong>」の検収ゲートを通過させる。これにより、機密コードの流出・ガバナンスブリーチを構造的に防ぎ、<strong>完全オフラインのエアギャップ環境下で AI 支援を完結</strong>できる。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0519/page_15.jpg" alt="閉域網内でのセキュリティ戦略とガバナンス" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 04">閉域網内ガバナンス：DevContainer + ローカル推論サーバー（Ollama 等）で<strong>知能を環境に委譲</strong>し、人間の目視 git diff を必須ゲートに</div>
+    </div>
+  </section>
+
+  <!-- § 03 CHAPTER 2 · Local Power User -->
+  <section class="sec" id="ch2">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 2</span><span style="color:var(--t2);">消費者ハードウェアのパワーユーザー — RTX 3060 で「24 時間ジュニア」を確保</span></div>
+    <h2 class="sec-h">高額クラウド API コストを、<em>消費者 GPU</em> で経済的に解消する</h2>
+    <p class="sec-lede"><strong>状況：</strong> 個人開発・SME（中小企業）にとって、Claude や GPT 級モデルの API 利用料は<strong>1 ヶ月単位で数万〜数十万円規模</strong>に膨らみ、本格的なエージェント運用の経済的合理性を破壊してきた。SmallCode は RTX 3060 等の<strong>消費者向け GPU</strong> や M シリーズ Mac でローカル実行することで、この構造を逆転する。</p>
+
+    <div class="fig">
+      <img src="images/0519/page_06.jpg" alt="万能な神ではなく、制御されたジュニアエンジニアとして扱う" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 05">「<strong>万能な神</strong>」ではなく「<strong>制御されたジュニアエンジニア</strong>」として扱う——情報入力／ツール実行／コード編集／タスク進行の全フェーズでアンチパターンを反転</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>4B 活性モデルで単一ファイル 87% 達成</em>、24 時間稼働ジュニアを経済合理性内で確保</h3>
+        <p>SmallCode は実行ハーネスの最適化により、<strong>4B 活性の小型モデルでも単一ファイルタスクで 87% の達成率</strong>を記録（独自 100 タスク・ストレステスト）。マルチファイルタスクでは 46%、<strong>BoneScript 併用で 60%+ へ向上</strong>。これにより、外部 API へのロックインを完全に回避し、自社リソースで完結する<strong>分散型知能</strong>として「24 時間稼働するジュニアエンジニア」を経済的合理性の中で確保できる。<strong>注釈</strong>：この数値は SWE-bench 等の標準指標ではなく作製独自のストレステストに基づく自己報告値であり、PoC 指標として解釈する。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0519/page_13.jpg" alt="環境の力による「実用域」への到達" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 06">「環境の力」による実用域：単一ファイル <strong>87%</strong>／マルチファイル 46%／<strong>BoneScript 併用で 60%+</strong>——小型 LLM のポテンシャルを PoC 指標で可視化</div>
+    </div>
+  </section>
+
+  <!-- § 04 CHAPTER 3 · Domain Prototyper -->
+  <section class="sec" id="ch3">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 3</span><span style="color:var(--t2);">ドメイン特化型プロトタイパー — BoneScript で CRUD 自動化</span></div>
+    <h2 class="sec-h">DSL で<em>15 回のツール呼び出しを 1〜2 回</em>に圧縮する</h2>
+    <p class="sec-lede"><strong>状況：</strong> ドメイン特化型のプロトタイパー（社内ツール量産・PoC 開発）にとって、定型的なボイラープレート（DB 定義・ルーティング・認証・Docker 作成）は時間を奪う退屈なコーディングの代表格だった。SmallCode の戦略的差別化要因は、宣言的 DSL <strong>「BoneScript」</strong>連携にある——複数ステップの推論を 1 つの宣言的 DSL に集約し、<strong>不確実性を排除して決定論的結果</strong>を得る。</p>
+
+    <div class="fig">
+      <img src="images/0519/page_11.jpg" alt="BoneScript Integration — DSL による推論ステップの劇的な圧縮" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 07"><strong>The Chaos（不安定な 15 回のツール呼び出しが途中で経路絡まり破綻）</strong> → <strong>BoneScript コンパイラ（1 回の <code>.bone</code> ファイル生成で決定論的に完全なバックエンドプロジェクトが一瞬で組み上がる）</strong></div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>Node.js/TypeScript 環境で 15 回 → 1〜2 回</em>のツール呼出に圧縮、人間は設計に集中</h3>
+        <p>通常のエージェントがファイル作成や DB 定義で「<strong>15 回前後のツールコール</strong>」を要するのに対し、SmallCode + BoneScript は「<strong>1〜2 回のコール</strong>」で完結。複数ファイルの整合性を保つという小型モデルが苦手とする「<strong>Shallow Reasoning（浅い推論）</strong>」を、コンパイラという決定論的システムへ委譲することで、モデルの「確率的な揺らぎ」を「<strong>確定的な成果</strong>」へ変換する。人間は「設計」という高付加価値業務に集中し、実装の「手」を完全に AI へ委譲する分業体制が確立される。<strong>注意</strong>：本機能は現時点で <strong>Node.js/TypeScript 特化</strong>であり、Python/Rust 等は標準的な手動生成へフォールバックする。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- § 04B CHAPTER 4 · Patch-First -->
+  <section class="sec" id="ch4">
+    <div class="sec-meta"><span class="rule"></span><span>Chapter 4</span><span style="color:var(--t2);">レーザーメス編集 — Patch-First でハルシネーションを物理的に封じる</span></div>
+    <h2 class="sec-h">ファイル全文の再生成を禁じ、<em>「検索と置換」</em>に絞り込む</h2>
+    <p class="sec-lede"><strong>状況：</strong> 小型モデルがファイル全文を生成すると、必ず<strong>Truncation（切り詰め）</strong>と<strong>既存ロジックの破壊</strong>が発生する。これは推論能力の限界というより<strong>生成長制限と確率的揺らぎ</strong>から来る物理的な制約だ。SmallCode はファイル全体の再生成を禁じ、<strong>厳密一致による局所的な検索と置換（Search-and-Replace）</strong>のみを許可することで、この問題を根本から排除する。</p>
+
+    <div class="fig">
+      <img src="images/0519/page_09.jpg" alt="Patch-First Editing — ハルシネーションを物理的に封じ込める" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 08">アンチパターン「<strong>全文生成（爆撃）</strong>」で Truncation と既存ロジック破壊が発生 → SmallCode の<strong>パッチ優先編集（レーザーメス）</strong>は特定の 1 行だけを精密に置換し、周辺ロジックを一切傷つけない</div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>結末 — <em>diff 破損・出力切り詰めの構造的リスクを物理的に排除</em></h3>
+        <p>全文生成時に発生しがちなコードの書き落としやハルシネーション（Drift）を物理的に封じ込めることで、<strong>diff 破損や既存ロジック破壊</strong>という小型モデル運用の最大リスクを排除。さらに、不完全な JSON/YAML/プレーンテキストからツール命令を抽出し引数名の微細な間違いや型不一致を自動修復する <strong>Forgiving Tool Parser</strong>、tree-sitter ベースの構造解析で大きなファイルを<strong>シグネチャ要約</strong>に圧縮する <strong>Context Budget Engine</strong> と組み合わせることで、小型 LLM の「失敗モード」を実行ハーネス側で完全に吸収する。</p>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>フェーズ</th>
+          <th>アンチパターン（巨大モデル前提）</th>
+          <th class="highlight">SmallCode アプローチ（制御型）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>情報入力</td><td>リポジトリ全体を読ませる（文脈崩壊）</td><td class="highlight">予算管理し、構造（シグネチャ）に要約する</td></tr>
+        <tr><td>ツール実行</td><td>完璧な JSON 出力を期待する</td><td class="highlight">壊れた出力を寛容なパーサーで自動修復する</td></tr>
+        <tr><td>コード編集</td><td>ファイル全文を出力させる（ハルシネーション）</td><td class="highlight">レーザーメスのように 1 行だけをパッチ編集する</td></tr>
+        <tr><td>タスク進行</td><td>自由な ReAct ループに任せる</td><td class="highlight">TODO 駆動で外部メモリ化、検証ループを強制する</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- § 05 ENGINE · How It Works -->
+  <section class="sec" id="engine">
+    <div class="sec-meta"><span class="rule"></span><span>§ 05</span><span style="color:var(--t2);">The Scaffolding Engine</span></div>
+    <h2 class="sec-h">なぜ SmallCode は<em>「揺らぎ」を「継続性」</em>に変換できるのか</h2>
+    <p class="sec-lede">SmallCode の本質は、モデルの推論を<strong>無条件に信頼せず</strong>、周辺システムで補完する<strong>「デターミニスティック・フォールバック（決定論的予備手段）」</strong>にある。推論の「揺らぎ」を実行の「継続性」へ変換し、実務における工数削減効果を最大化する——その心臓部は <strong>4 本の柱</strong>だ。</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-n">PILLAR 01</div>
+        <h3><em>Patch-First</em> Editing</h3>
+        <p>ファイル全体の再生成を禁じ、<strong>検索と置換</strong>による局所的パッチ適用を主軸に。全文生成時のハルシネーション（Drift）を物理的に封じ込める。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 02</div>
+        <h3><em>Forgiving</em> Tool Parser</h3>
+        <p>不完全な JSON / YAML / プレーンテキストからツール命令を抽出し、引数名の微細な間違いや<strong>型不一致を自動修復</strong>。フォーマットエラー停止を最小化。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 03</div>
+        <h3><em>2-Stage</em> Tool Routing</h3>
+        <p>まずカテゴリ（<strong>read / write / search / run / plan</strong>）を選択させ、その後に詳細定義を提示。<strong>認知負荷と文脈消費を約 50% 削減</strong>。</p>
+      </div>
+      <div class="pillar">
+        <div class="p-n">PILLAR 04</div>
+        <h3><em>TODO-Driven</em> Planning</h3>
+        <p>複雑タスクを<strong>原子的ステップ（TODO）</strong>に分解し外部ファイルで状態管理。一歩進むごとに<strong>テスト・リントで自動検証</strong>し、脆弱な長期推論を物理補完。</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <img src="images/0519/page_06.jpg" alt="制御されたジュニアエンジニア — フェーズ別アンチパターン vs SmallCode" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 09">「<strong>万能な神</strong>」ではなく「<strong>制御されたジュニア</strong>」として扱う設計——情報入力／ツール実行／コード編集／タスク進行の全フェーズで安全装置を実装</div>
+    </div>
+
+    <div class="code" data-lang="SHELL">
+<span class="cm"># 環境要件：Node.js 18+ と Ollama 等のローカル推論サーバー</span>
+<span class="kw">ollama</span> serve &amp;
+<span class="kw">ollama</span> pull <span class="str">"gemma2:4b"</span>
+
+<span class="cm"># SmallCode を DevContainer 内で起動（テレメトリ・Web ブラウジングは原則遮断）</span>
+<span class="kw">export</span> <span class="var">SMALLCODE_WEB_BROWSE</span>=<span class="str">false</span>
+<span class="kw">smallcode</span> init --provider ollama --model gemma2:4b
+
+<span class="cm"># BoneScript（Node.js/TypeScript 特化の宣言的 DSL）でバックエンドを 1 回で生成</span>
+<span class="kw">smallcode</span> bone build api.bone --output ./services/api
+
+<span class="cm"># Human-in-the-Loop：AI による自動コミットは禁止、必ず git diff で目視確認</span>
+<span class="kw">git</span> diff --stat &amp;&amp; <span class="kw">git</span> add -p
+    </div>
+  </section>
+
+  <!-- § 06 EPILOGUE / Roadmap + Caveats -->
+  <section class="sec" id="epilogue">
+    <div class="sec-meta"><span class="rule"></span><span>Epilogue</span><span style="color:var(--t2);">3 ステップ導入と「ラストワンマイル」のハードル</span></div>
+    <h2 class="sec-h">Read-only 検証 → Small Patch → Multi-file、<em>段階的に信頼を積み上げる</em></h2>
+    <p class="sec-lede">SmallCode はシェル実行権限を含む強力なツール群を持つため、導入には<strong>プロフェッショナルな視点からのガードレール</strong>が不可欠だ。本番投入の前に <strong>3 ステップ</strong>で信頼を積み上げ、PoC 結果を「唯一の真実」とせよ。</p>
+
+    <div class="fig">
+      <img src="images/0519/page_17.jpg" alt="Conclusion — AIエージェントの価値はモデルの規模ではなく OS の完成度で決まる" loading="lazy">
+      <div class="fig-cap" data-fignum="FIG 10">Conclusion：「<strong>2026 年、AI コーディングの主戦場は『Intelligence-to-Environment Migration（知能の環境への移行）』へ</strong>」——LOCAL LLM を制御された足場に配置することが真の DevEx 向上の現実解</div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-tag">Roadmap · 3 ステップ導入</div>
+        <h3>段階的に PoC を積む</h3>
+        <ul>
+          <li><strong>Step 1 Read-only</strong>：コードグラフ検索で構造把握（KPI = シンボル抽出の正確性・不要情報の混入率）</li>
+          <li><strong>Step 2 Small Patch</strong>：単一ファイル内のバグ修正（KPI = パッチの妥当性・ハルシネーション発生率）</li>
+          <li><strong>Step 3 Multi-file</strong>：TODO 駆動による複数ファイル実装（KPI = 自動テスト通過率・再試行回数）</li>
+          <li>非機密領域での PoC から開始し、ガバナンス設定を社内基準に合わせて調整</li>
+          <li>ベンチマーク数値は過信せず、<strong>自社環境での PoC 結果</strong>を唯一の真実とする</li>
+        </ul>
+      </div>
+      <div class="compare-col pro">
+        <div class="compare-tag">Caveats · ラストワンマイルのハードル</div>
+        <h3>導入前に必ず押さえる制約</h3>
+        <ul>
+          <li>環境要件：<strong>Node.js 18+ が必須</strong></li>
+          <li><strong>Windows ビルド失敗リスク</strong>：<code>better-sqlite3</code> / <code>node-gyp</code> のネイティブビルド失敗報告あり → <strong>WSL2 / macOS / Linux 推奨</strong></li>
+          <li>BoneScript は <strong>Node.js/TypeScript 特化</strong>（Python/Rust 等は手動生成へフォールバック）</li>
+          <li>ガバナンス：<code>SMALLCODE_WEB_BROWSE=false</code> をデフォルト維持、Docker 隔離</li>
+          <li>公式「87%」は SWE-bench 等の<strong>標準指標ではない</strong>（独自 100 タスクストレステストの自己報告値）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="approval">
+      <div class="ap-mark">✓</div>
+      <div>
+        <h3>2026 年以降のエンジニアに求められる役割の変容</h3>
+        <p>SmallCode が示した結論は明白だ——「<strong>AI エージェントの価値はモデルのパラメータ数ではなく、周辺 OS（実行基盤）の完成度で決まる</strong>」。2026 年以降、エンジニアに求められる役割は「コードを書くこと」から、<strong>「AI が失敗しないための足場（スキャフォールディング）を設計すること」</strong>へと変容していく。これはエンジニアリングの本質が、<strong>確率的な知能を決定論的なパイプラインに接続する「知能のオーケストレーション」</strong>へ移行することを意味する。「<strong>知能の環境への移行</strong>」を完遂した組織は、クラウド AI のコストとリスクの螺旋から解放され、<strong>真の技術的自由</strong>を手にする。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULLQUOTE -->
+  <div class="pullquote">
+    <q>AI エージェントの価値はモデルの規模ではなく「OS の完成度」で決まる——2026 年、AI コーディングの主戦場は『知能の環境への移行』へ。</q>
+    <cite>— SmallCode が告げた、フロンティア・バイアスの終焉 · 2026-05-19</cite>
+  </div>
+
+  <!-- § 07 LINKS -->
+  <section class="sec" id="links">
+    <div class="sec-meta"><span class="rule"></span><span>§ 07</span><span style="color:var(--t2);">References</span></div>
+    <h2 class="sec-h">公式リソース &amp; <em>参考リンク</em></h2>
+    <div class="links-grid">
+      <a href="https://github.com/smallcode/smallcode" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">GitHub</div>
+        <h4>SmallCode 公式リポジトリ</h4>
+        <div class="meta">7B〜20B 級小型 LLM 向けのエージェント・スキャフォールディング基盤</div>
+      </a>
+      <a href="https://ollama.com/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Local Inference</div>
+        <h4>Ollama — ローカル推論サーバー</h4>
+        <div class="meta">RTX 3060 / M シリーズ Mac で小型 LLM を駆動する基盤</div>
+      </a>
+      <a href="https://tree-sitter.github.io/tree-sitter/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Parser</div>
+        <h4>tree-sitter — 構造解析ライブラリ</h4>
+        <div class="meta">Context Budget Engine のシグネチャ要約を支える</div>
+      </a>
+      <a href="https://www.swebench.com/" class="link-row" target="_blank" rel="noopener">
+        <div class="link-cat">Benchmark</div>
+        <h4>SWE-bench — 標準ベンチマーク</h4>
+        <div class="meta">「87%」自己報告値の評価コンテキストを理解するための比較指標</div>
+      </a>
+      <a href="day_slide_2026_05_18.html" class="link-row">
+        <div class="link-cat">Prev</div>
+        <h4>05/18 · GitHub Copilot Desktop App</h4>
+        <div class="meta">クラウド型の自律エージェント設計と対比して読む</div>
+      </a>
+      <a href="/presentations/hubs/claude-code-guide-2026.html" class="link-row">
+        <div class="link-cat">Hub</div>
+        <h4>Claude Code 完全ガイド</h4>
+        <div class="meta">フロンティア型エージェントとの設計思想の違いを比較</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="f-title"><b>Daily AI</b> Briefing · 2026-05-19 — <em style="font-style:italic;">SmallCode — Intelligence-to-Environment Migration Edition</em></div>
+  <div class="f-meta">Source: SmallCode 公式 · Ollama · tree-sitter · ローカル LLM コミュニティ実装報告 · 5/18–19 アーキテクト視点レポート</div>
+  <div class="f-links">
+    <a href="../index.html">Hub</a>
+    <a href="../day_slides_index.html">All Slides</a>
+    <a href="day_slide_2026_05_18.html">← 05/18 Copilot Desktop App</a>
+  </div>
+</footer>
+
+</body>
+</html>
