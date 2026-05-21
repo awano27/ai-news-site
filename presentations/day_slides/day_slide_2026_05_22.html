@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医療AI開発のパラダイムシフト — 評価基盤 Medmarks が切り拓く実装への道 | 2026-05-22 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="医療AI開発の最大のボトルネックは、もはやモデル性能ではなく「評価・検証」の摩擦そのものだ。開発コストの80%を占める『周辺作業』を、オープンソース評価基盤 Medmarks v1.x が解体する。Medmarks-V（Verifiable）× Medmarks-OE（Open-Ended / LLM-as-a-Judge F1=0.71）× Medmarks-T（Trainable / RLHF）の3エンジン、世界最大級の臨床ベンチマーク HealthBench（262名の専門医・48,562ルーブリック・5,000多ターン会話）、MedAgentBench による EHR シミュレーション、uv 製の再現可能パイプライン、Medmarks Certified による診療報酬・ガバナンス・現場導入の同時クリア、そして 2026 年に向けた Immediate / Short-term / Strategic の 3 アクションプランまで完全解剖。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_22.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="医療AI開発のパラダイムシフト — 評価基盤 Medmarks が切り拓く実装への道 | 2026-05-22" />
+<meta property="og:description" content="開発コストの80%を占める「評価」を Medmarks が 1/100 に圧縮。HealthBench × LLM-as-a-Judge × Medmarks-T で、医療AIは『性能』から『摩擦ゼロ』の時代へ。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_22.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0522/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="医療AI開発のパラダイムシフト — 評価基盤 Medmarks が切り拓く実装への道 | 2026-05-22" />
+<meta name="twitter:description" content="262名の専門医・48,562ルーブリック・5,000多ターン会話。Medmarks v1.x が医療AIの評価コストを 1/100 に圧縮、研究→検証→実装のサイクルを「週単位」へ。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0522/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "医療AI開発のパラダイムシフト — 評価基盤 Medmarks が切り拓く実装への道",
+  "datePublished": "2026-05-22",
+  "dateModified": "2026-05-22",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0522/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_22.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_22.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#story">分断</a>
+    <a href="#turn">転機</a>
+    <a href="#how">3 エンジン</a>
+    <a href="#strategy">戦略</a>
+    <a href="#future">未来</a>
+    <a href="#next">次</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-05-22 · Fri</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Frictionless Clinical AI · Medmarks v1.x · Issue № 05/22</p>
+        <h1 id="hero-title">医療 AI は「性能」から、<br>「摩擦ゼロ」の時代へ。</h1>
+        <p class="lead">医療 AI 開発の最大のボトルネックは、もはやモデルの<strong>「単体性能」</strong>ではない。開発コストの<strong>80%</strong>を占める<em>評価・検証の周辺作業</em>こそが、研究を PoC で止め、臨床現場との乖離を生み、ROI 判断を遅らせる真の元凶だ。オープンソース評価基盤 <strong>Medmarks v1.x</strong> は、その摩擦を構造的にゼロへ近づける。</p>
+        <p class="summary">Medmarks-V（Verifiable）× Medmarks-OE（LLM-as-a-Judge / F1=0.71）× Medmarks-T（Trainable）× HealthBench（262 名の専門医・48,562 ルーブリック・5,000 多ターン会話）× MedAgentBench × uv 製の再現可能パイプライン。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://medmarks.ai/" target="_blank" rel="noopener">medmarks.ai 公式</a>
+          <a class="button-link secondary" href="https://github.com/MedARC-AI/Medmarks" target="_blank" rel="noopener">GitHub: MedARC-AI/Medmarks</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0522/cover.jpg" alt="医療AI開発のパラダイムシフト — 評価基盤 Medmarks が切り拓く実装への道" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>パラダイムシフト：「モデル性能至上主義」から「実験速度・評価基盤重視」へ</h2>
+    <p class="section-lead">医療ドメインにおける勝者は、AI の<strong>「単体性能」</strong>ではなく、<strong>「検証・実装の摩擦をゼロにできる組織」</strong>である。競争軸は<em>モデルサイズ</em>から<em>実験の反復速度</em>へ、決定的に移動した。</p>
+    <figure class="wide-visual">
+      <img src="images/0522/page_02.jpg" alt="競争軸の転換：モデルサイズから実験の反復速度へ" loading="lazy">
+      <figcaption>FIG · 数年単位の Time-to-Market から「月・週単位の実装」へ。小規模チームでの高速検証が、巨大リソース依存型の研究機関を凌駕する時代へ</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="story">
+    <h2>Chapter 1 — 医療 AI を阻む「3 つの異なる摩擦」</h2>
+    <p class="section-lead">「論文の AI」と「現場で安全に動く AI」の間には、深い溝がある。<strong>研究者・臨床現場・ヘルスケア企業</strong>——立場によって痛みは違うが、本質はすべて<em>「共有可能な評価指標の欠如」</em>に収斂する。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Pain 01 · 医療 AI 研究者 / LLM 開発者</span>
+        <h3>比較不能・構築の重圧</h3>
+        <p>開発コストの<strong>80%</strong> が <em>RAG 整合性検証・幻覚抑制・モデル間比較</em>といった「周辺作業」に飲み込まれる。評価スタックを自前で組むため、論文の再現性と他モデルとの公正比較が原理的に困難だ。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 02 · 病院 / 臨床現場 / DX 推進担当</span>
+        <h3>「論文の AI」と「現場の AI」の乖離</h3>
+        <p>既存 AI の多くは<strong>医師レビューによる検証コストが重すぎる</strong>。記録負担の削減と安全性こそ現場の本音だが、ベンチマーク上の精度は実装後の失敗モードを何も保証しない。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 03 · 製薬 / ビジネス / ヘルスケア企業</span>
+        <h3>ROI 判断の迷い・ガバナンス欠如</h3>
+        <p>ベンダー説明は宣伝文句に偏り、PoC 前に<strong>「コストに見合わないモデル」「危ないモデル」</strong>を切り落とす客観的なフィルターがない。3 省 2 ガイドライン準拠の裏付けも、現状は各社バラバラに作っている。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 04 · データの信頼性そのもの</span>
+        <h3>論文の再現性 ↔ 開発の安全性</h3>
+        <p>データの<strong>偶発性・許容範囲</strong>・誤りの再現性は、いずれも「医師のレビュー」という重コストに依存。ミスの許容範囲を数値化できず、開発と安全性が相互に縛り合っている。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0522/page_10.jpg" alt="3 つの異なる摩擦を、単一の共有可能な評価指標で解き放つ" loading="lazy">
+      <figcaption>FIG · 3 つの異なる立場の摩擦を、<strong>単一の「共有可能な評価指標」</strong>で同時に解き放つ——これが Medmarks 構想の中核命題</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="turn">
+    <h2>Chapter 2 — 転機:「モデル性能の優劣」から「評価コスト 1/100」へ</h2>
+    <p class="section-lead">勝負を分けるのは、もはや<strong>パラメータ数や論文上の SOTA</strong> ではない。<strong>評価・検証パイプラインの自動化と再現性</strong>こそが、研究 → 検証 → 実装の高速化を支える唯一のレバーだ。</p>
+    <div class="score-versus" role="figure" aria-label="モデル性能至上主義と Medmarks 評価基盤重視の比較">
+      <div class="score-side">
+        <span class="tag">Before · モデル性能至上主義</span>
+        <span class="num">数年 / PoC 止まり</span>
+        <span class="sub">ベンチマーク最大化 / 論文上の成果と実務との乖離 / 数年単位の Time-to-Market / 長期化による低い資本効率</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · Medmarks 評価基盤重視</span>
+        <span class="num">月・週単位 / 1/100 コスト</span>
+        <span class="sub">研究 → 検証 → 実装の高速化 / 臨床推論・安全性の実務レベル証明 / 即時フィードバック / 早期社会実装による高回収率</span>
+      </div>
+    </div>
+    <p class="note">特筆すべきは <strong>uv（Astral 製）による再現可能なパイプライン</strong>だ。<code>uv run medarc-eval</code> 一発で、評価環境・依存・乱数シードが固定された再現環境がクラウド・オンプレを問わず再構築される。Medmarks-T を社内 RLHF パイプラインに接続するための DevPrep 工程として、組織を超えた「評価の共通言語」を成立させる。</p>
+  </section>
+
+  <section class="section" id="how">
+    <h2>Chapter 3 — 仕組み: 摩擦をゼロにする「3 つのエンジン」と Bench</h2>
+    <p class="section-lead">Medmarks v1.x の中核は、<strong>Medmarks-V（Verifiable）/ Medmarks-OE（Open-Ended）/ Medmarks-T（Trainable）</strong>という 3 エンジンと、<strong>HealthBench / MedAgentBench</strong>という 2 つのベンチマーク。性能評価・対話評価・再学習のループを<em>同一規格で接続</em>する。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Mechanism · 3 Engines + 2 Benches</span>
+        <h3>Verifiable × Open-Ended × Trainable のフル接続</h3>
+        <p>3 エンジンは独立した評価器ではなく、<strong>研究 → 検証 → 再学習</strong>を一つの DAG として接続する。Medmarks-V でプログラム採点（多肢選択 QA・医療計算）の正確性を瞬時に測り、Medmarks-OE で多ターン対話と臨床推論の質を LLM-as-a-Judge で採点。スコア低位のサンプルは Medmarks-T へ流し、RLHF 訓練データへ自動還流する。<strong>評価から再学習までを直結し、ループを最短化</strong>することが、評価コスト 1/100 を成立させる構造だ。</p>
+        <ol>
+          <li><strong>Medmarks-V（Verifiable）</strong> — プログラムによる自動採点スタック。多肢選択 QA・医療計算などの正確性を瞬時に測定</li>
+          <li><strong>Medmarks-OE（Open-Ended）</strong> — 開放型タスクの自動評価。LLM-as-a-Judge を活用し、多ターン対話や臨床推論の質を採点</li>
+          <li><strong>Medmarks-T（Trainable）</strong> — RLHF・事後学習向けの訓練可能環境。評価から再学習へのループを直接接続し最短化</li>
+          <li><strong>HealthBench</strong> — 世界最大級の臨床ベンチマーク（262 名の専門医設計・48,562 ルーブリック・5,000 多ターン会話）</li>
+          <li><strong>MedAgentBench / EHR シミュレーション</strong> — FHIR API 準拠の環境で、データ抽出・カルテ操作の正確性を本番投入前にテスト</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0522/page_07.jpg" alt="Medmarks-V / Medmarks-OE / Medmarks-T の 3 エンジン" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0522/page_08.jpg" alt="HealthBench × LLM-as-a-Judge — コスト 1/100 を実現する自動化された医師の目" loading="lazy">
+      <figcaption>FIG · The Benchmark <strong>HealthBench</strong>（262 名の専門医による設計 / 48,562 ルーブリック / 5,000 多ターン会話）と、The Engine <strong>LLM-as-a-Judge</strong>（Multi-Judge 構成 / 人間と同等の F1 スコア 0.71）が、評価コストを 1/100 へ圧縮</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0522/page_13.jpg" alt="病院・臨床現場 — 論文の AI から安全に実装できる AI へ" loading="lazy">
+      <figcaption>FIG · HealthBench の多ターン対話評価 + MedAgentBench の EHR 操作シミュレーションが、医師の「勘」に頼っていた安全性を数値化し、導入意思決定を迅速化</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0522/page_14.jpg" alt="EHR 連携と診療記録作成における安全な自動化" loading="lazy">
+      <figcaption>FIG · ACI-Bench 連携による SOAP 生成・要約の精度検証と、FHIR API シミュレーションでの操作正確性テスト。「電卓が使える ≠ 投薬量計算が安全」ではない——能力追加に伴う<strong>新たな失敗モード</strong>を事前に検知する</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="strategy">
+    <h2>Chapter 4 — 戦略: 投資対効果（ROI）を可視化する客観ダッシュボード</h2>
+    <p class="section-lead">Medmarks は<strong>最適化済 Open-weight モデル</strong>と<strong>フロンティア API モデル</strong>を、<em>推論コスト × 医療推論性能（WMWR: Weighted Mean Win Rate）</em>の同一座標系で並べる。ベンダーの宣伝文句を排除し、自社プロダクトの基盤モデル選定と品質保証のエビデンスとする。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Strategic Position</span>
+        <h3>WMWR × 推論コスト × Medmarks Certified</h3>
+        <p>ROI 軸の評価は単なる相対比較ではない。<strong>PoC の前に「コストに見合わないモデル」「危ないモデル」を足切りする初期フィルター</strong>として機能し、選定理由を経営会議に提示できる定量根拠を残す。さらに <strong>Medmarks Certified</strong> 構想は、Accuracy・HealthBench スコア・幻覚抑制率という客観基準をクリアした AI に対して、<strong>診療報酬（電子的診療情報連携体制整備加算）/ ガバナンス（3 省 2 ガイドライン）/ 現場導入（医師による初期品質確認の代替）</strong>を同時に解錠する。</p>
+        <ul>
+          <li><strong>Application 1 · 診療報酬</strong> — 「電子的診療情報連携体制整備加算」取得に向けた強力なバックアップ</li>
+          <li><strong>Application 2 · ガバナンス</strong> — 「3 省 2 ガイドライン」準拠の医療情報システム安全管理を裏付けるフィルター</li>
+          <li><strong>Application 3 · 現場導入</strong> — 医師による初期品質確認を自動評価で代替し、導入摩擦を激減</li>
+        </ul>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0522/page_16.jpg" alt="投資対効果（ROI）を可視化する客観的ダッシュボード" loading="lazy">
+      </figure>
+    </div>
+    <p class="note"><strong>アーキテクトの評価ノート</strong>：Open-weight モデルを軽視するのは過去のロジックだ。Medmarks の WMWR 座標系では、<strong>最適化済 Open-weight モデル</strong>が「低コスト・高セキュア」象限を占め、フロンティア API モデルの「圧倒的性能・高コスト」象限と<em>同じ尺度</em>で評価できる。これにより、院内データを外部 API に流さない設計でも、客観的に十分な性能を担保できるかが PoC 前に判定可能になる。</p>
+  </section>
+
+  <section class="section">
+    <h2>実務ワークフロー: 明日から踏み出すべき「3 つのアクション」</h2>
+    <p class="section-lead">医療 AI の社会実装は、もはや<strong>「評価インフラの整備」</strong>から始まる。立場ごとに最初の一歩は変わるが、すべてのステークホルダーに共通する 3 段ロケットがある。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>1. Immediate（即時評価）</h3>
+        <p><code>uv run medarc-eval</code> を実行し、進行中の AI PoC を再監査。<strong>客観的な性能現在地</strong>を、共有可能なスコアとして把握する。</p>
+      </article>
+      <article class="step">
+        <h3>2. Short-term（ループ統合）</h3>
+        <p>Medmarks-T を自社 RLHF パイプラインに組み込み、<strong>臨床推論の精度向上サイクルを「週単位」</strong>まで高速化する。</p>
+      </article>
+      <article class="step">
+        <h3>3. Strategic（ルールメイク）</h3>
+        <p>2026 年を見据え、<strong>日本独自の診療ガイドライン</strong>を反映した評価基準に関与し、業界標準を主導する側へ回る。</p>
+      </article>
+      <article class="step">
+        <h3>4. Foundation（基盤標準化）</h3>
+        <p>院内・社内の評価基盤を<strong>Medmarks v1.x で統一</strong>し、各プロダクト・各チームのスコアを横断比較できる「共通言語」を組織に植え付ける。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0522/page_20.jpg" alt="明日から踏み出すべき 3 つのアクション — Immediate / Short-term / Strategic" loading="lazy">
+      <figcaption>FIG · 3 段ロケット：<strong>Step 1 Immediate（即時評価）→ Step 2 Short-term（ループ統合）→ Step 3 Strategic（ルールメイク）</strong>。今日の「評価実行」が、来年の「業界標準」を決める</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="future">
+    <h2>Chapter 5 — 未来: 医療 → 金融 → 法務へ波及する「業界特化型評価スタック」</h2>
+    <p class="section-lead">汎用 LLM 単体では、専門業界の課題は解けない。Medmarks が示す<strong>「業界特化型 AI 評価スタック」</strong>は、医療に留まらず<em>金融・法務</em>といった他のレギュレーテッド領域の未来を先取りする。「無摩擦のエコシステム」が、ここから始まる。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Future · Domain Expansion</span>
+        <h3>医療で確立 → 金融・法務へ展開する 4 つの波</h3>
+        <p>もはや「AI の性能」を語る時代ではない。<strong>いかに速く、正確に検証し、社会の摩擦をなくして実装するか</strong>——その勝負がドメインを超えて始まる。Medmarks 構想は、医療領域での実証を通じて<em>専門領域に必要な評価スタックの型</em>を標準化し、規制業界の AI 導入そのものを再定義する。</p>
+        <ol>
+          <li><strong>2026 上期</strong> — 医療領域での Medmarks v1.x 実装、診療報酬・ガバナンス・現場導入の三位一体実証</li>
+          <li><strong>2026 下期</strong> — Medmarks Certified の運用開始、Open-weight + Frontier API のフェアな ROI 比較が業界標準化</li>
+          <li><strong>2027</strong> — 金融ドメインへの横展開（規制対応・モデルリスク管理を同一スタックで）</li>
+          <li><strong>2027 以降</strong> — 法務・公共領域へ波及、専門業界の AI 評価が「共通の品質パスポート」を持つ時代へ</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0522/page_21.jpg" alt="医療 AI の新時代：理論から実装速度へ、そして金融・法務へ" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0522/page_18.jpg" alt="信頼の共通規格：Medmarks Certified 構想" loading="lazy">
+      <figcaption>FIG · <strong>Medmarks Certified</strong> 構想 — 客観的基準（Accuracy / HealthBench スコア / 幻覚抑制率）をクリアした AI のエビデンスが、診療報酬・ガバナンス・現場導入を同時に解錠する</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき構成要素</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>80%</strong><span>医療 AI 開発コストに占める「周辺作業」</span></div>
+      <div class="metric"><strong>1/100</strong><span>Medmarks による評価コスト圧縮</span></div>
+      <div class="metric"><strong>262 名</strong><span>HealthBench を設計した専門医</span></div>
+      <div class="metric"><strong>48,562</strong><span>HealthBench の厳格なルーブリック数</span></div>
+      <div class="metric"><strong>5,000 件</strong><span>HealthBench の多ターン会話再現</span></div>
+      <div class="metric"><strong>F1=0.71</strong><span>LLM-as-a-Judge の人間同等スコア</span></div>
+      <div class="metric"><strong>3 エンジン</strong><span>Verifiable / Open-Ended / Trainable</span></div>
+      <div class="metric"><strong>週単位</strong><span>研究 → 検証 → 実装のサイクル</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="next">
+    <h2>4 つのペルソナが、それぞれにやるべきこと</h2>
+    <p class="section-lead">Medmarks が告げるのは、医療 AI を社会実装するための具体的な作業マップだ。立場ごとに最初の一歩は変わる。</p>
+    <div class="usecase">
+      <span class="label">医療 AI 研究者 / LLM 開発者</span>
+      <p>論文の SOTA 競争から離脱し、<code>uv run medarc-eval</code> による<strong>再現可能な公正比較</strong>を採用。Medmarks-V の自動採点と Medmarks-OE の LLM-as-a-Judge で、評価ループを「日単位」に短縮する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">病院 / 臨床現場 / DX 推進担当</span>
+      <p>導入候補 AI に<strong>HealthBench スコアと幻覚抑制率の提出を必須化</strong>。MedAgentBench の EHR シミュレーションで、ACI-Bench 連携による SOAP 生成と FHIR 操作の安全性を「本番投入前」に検証する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">製薬 / ヘルスケア企業 / 経営層</span>
+      <p>ベンダーの宣伝文句ではなく、<strong>WMWR × 推論コストの ROI ダッシュボード</strong>を意思決定の中心へ。Medmarks Certified を取得した AI のみを社内導入候補とし、3 省 2 ガイドライン準拠を制度化する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">規制当局 / 業界団体 / 標準化担当</span>
+      <p>日本独自の診療ガイドラインを反映した評価基準作りに関与し、<strong>「Medmarks Certified 日本版」</strong>として診療報酬加算・電子的診療情報連携体制整備加算の取得条件に組み込む。業界標準を主導する側へ回る。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>医療ドメインにおける勝者は、AI の「単体性能」ではなく <em>「検証・実装の摩擦をゼロにできる組織」</em> である。</q>
+      <cite>— Frictionless Clinical AI · Medmarks v1.x Blueprint · 2026-05-22</cite>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>出典 &amp; 参考リンク</h2>
+    <div class="source-list">
+      <a href="https://medmarks.ai/" target="_blank" rel="noopener">
+        <strong>medmarks.ai — オープンソース医療 AI 評価基盤</strong>
+        <span>Medmarks-V / Medmarks-OE / Medmarks-T の公式ハブ</span>
+      </a>
+      <a href="https://github.com/MedARC-AI/Medmarks" target="_blank" rel="noopener">
+        <strong>GitHub — MedARC-AI/Medmarks</strong>
+        <span>uv run medarc-eval / 再現可能な評価パイプライン</span>
+      </a>
+      <a href="https://openai.com/index/healthbench/" target="_blank" rel="noopener">
+        <strong>HealthBench — 262 名の専門医による臨床ベンチマーク</strong>
+        <span>48,562 ルーブリック / 5,000 多ターン会話再現</span>
+      </a>
+      <a href="https://itmedia.co.jp/aiplus/article/2605/21/2000000013" target="_blank" rel="noopener">
+        <strong>関連: OpenAI の AI が 80 年未解決の数学問題を証明（ITmedia AI+）</strong>
+        <span>AI の数学的推論能力の進化は、医療 AI の臨床推論評価にも影響</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_21.html" class="prev">
+        <span class="dir">← Prev · 05/21</span>
+        <strong>Google I/O 2026 Day 2 — エージェント実行環境の社会実装とプラットフォームの再定義</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-05-22 — <em>Frictionless Clinical AI · Medmarks v1.x Blueprint</em></div>
+    <div class="f-meta">出典: medmarks.ai ／ GitHub MedARC-AI/Medmarks ／ HealthBench ／ MedAgentBench ／ ITmedia AI+</div>
+  </div>
+</footer>
+</body>
+</html>
