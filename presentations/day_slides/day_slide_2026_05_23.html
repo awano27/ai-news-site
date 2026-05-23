@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Glasswing — AI 時代のサイバー防衛革命と「パッチ猶予期間の終焉」 | 2026-05-23 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="Patch Window is Dead.（パッチの猶予期間は死んだ）— 攻撃 AI がエクスプロイトを指数関数的にばら撒く時代、Anthropic Project Glasswing が「防御の非対称的優位」を取り戻す壮大な時間稼ぎプロジェクトだ。中核は Claude Mythos Preview：100 万トークンの大規模コンテキスト、Adaptive Thinking で動的に推論深度を決定、OpenBSD の 27 年前のバグや wolfSSL の 17 年前の脆弱性まで特定する人類トップレベル超えの発見能力。1 ヶ月で証明された圧倒的インパクト——10,000 件超の高・重大脆弱性発見、1,000+ OSS プロジェクトで 23,019 件の所見、90.6% の真陽性率、Firefox 150 で前モデル比 10 倍の 271 件修正、ある金融機関では 150 万ドル相当の不正送金エクスプロイトを内部スキャンで未然防止。3 Layers of Defense（基幹インフラ・OS・ブラウザ提供者 / OSS メンテナ / エンタープライズ SOC）× 修正の工業化（AI パッチ合成 → 到達可能性分析 → 自動検証）× 約 18 ヶ月の Safe Zone × AI ネイティブ SOC ロードマップまで完全解剖。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_23.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Project Glasswing — AI 時代のサイバー防衛革命と「パッチ猶予期間の終焉」 | 2026-05-23" />
+<meta property="og:description" content="Patch Window is Dead. 攻撃 AI が脆弱性を瞬時にばら撒く前に、Claude Mythos Preview と修正の工業化で防御を硬化させる「18 ヶ月の Safe Zone」を確保する。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_23.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0523/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Project Glasswing — AI 時代のサイバー防衛革命と「パッチ猶予期間の終焉」 | 2026-05-23" />
+<meta name="twitter:description" content="10,000 件超の重大脆弱性発見・真陽性率 90.6%・Firefox 150 で 271 件修正・150 万ドル不正送金防止。Anthropic の Glasswing が AI ネイティブ防衛時代の幕を開く。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0523/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Project Glasswing — AI 時代のサイバー防衛革命と「パッチ猶予期間の終焉」",
+  "datePublished": "2026-05-23",
+  "dateModified": "2026-05-23",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0523/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_23.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_23.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#story">3 層</a>
+    <a href="#turn">転機</a>
+    <a href="#how">仕組み</a>
+    <a href="#strategy">戦略</a>
+    <a href="#future">未来</a>
+    <a href="#next">次</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-05-23 · Sat</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Project Glasswing · AI 時代のサイバー防衛革命 · Issue № 05/23</p>
+        <h1 id="hero-title">パッチの猶予期間は、<br>もう死んでいる。</h1>
+        <p class="lead">脆弱性を「見つける」コストを攻撃側 AI が<strong>ゼロ</strong>にした瞬間、防御側に残されていた<em>「発見から攻撃コード生成までの数分」</em>という獲得猶予期間（Grace Period）は消滅した。Anthropic <strong>Project Glasswing</strong> は、攻撃 AI が一般化する前に世界の重要ソフトウェアを<em>「防御側が先に硬化させる」</em>ための、壮大な時間稼ぎプロジェクトである。</p>
+        <p class="summary">Claude Mythos Preview（100 万トークン大規模コンテキスト + Adaptive Thinking）× 1,000+ OSS プロジェクトでの 23,019 件所見 × 真陽性率 90.6% × Firefox 150 で前モデル比 10 倍の 271 件修正 × 150 万ドル不正送金エクスプロイトの未然防止 × 約 18 ヶ月の Safe Zone × 修正の工業化（AI パッチ合成 → 到達可能性分析 → 自動検証）。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://www.anthropic.com/" target="_blank" rel="noopener">Anthropic 公式</a>
+          <a class="button-link secondary" href="https://www.anthropic.com/news" target="_blank" rel="noopener">Project Glasswing News</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0523/cover.jpg" alt="AI 時代のサイバー防衛革命 — Project Glasswing" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>パラダイムシフト:「人間 vs 人間」から「防御 AI vs 攻撃 AI」へ</h2>
+    <p class="section-lead">これまでは「脆弱性を見つけるのが困難」だった。しかし、<strong>AI がそのコストをゼロにした今</strong>、パッチを当てる前に攻撃者が指数関数的にエクスプロイトをばら撒く世界が到来する。Glasswing は、攻撃 AI が世界に到達する前に「<em>世界中のコードを先にパッチする</em>」非対称的優位を取りに行く。</p>
+    <figure class="wide-visual">
+      <img src="images/0523/page_02.jpg" alt="Patch Window is Dead — パッチの猶予期間は死んだ" loading="lazy">
+      <figcaption>FIG · 「発見から攻撃コード生成までの数分」というゼロ円稼ぎ猶予期間が消滅。AI が攻撃側に渡る前に防御側が先に硬化するための時間稼ぎ——それが Project Glasswing の全戦略</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="story">
+    <h2>Chapter 1 — 防衛の絶望的なボトルネックを抱える「3 層」のターゲット</h2>
+    <p class="section-lead">Glasswing は単なるセキュリティ製品ではない。デジタルの地盤沈下を防ぐため、<strong>基幹インフラ提供者 / OSS メンテナ / エンタープライズ SOC</strong> という 3 つの層が抱える「絶望的なボトルネック」を同時に解消する<em>エコシステム防衛</em>である。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Layer 01 · 基幹インフラ / OS / ブラウザ提供者</span>
+        <h3>巨大すぎて人間では監査不能なコードベース</h3>
+        <p>Google / Microsoft / Mozilla / Apple / Cisco など、世界の根幹を支えるベンダーの<strong>数千万行規模</strong>のコードは、人間レビュアーの限界を超えている。Glasswing は<em>網羅的解析</em>で抜け漏れを物理的にゼロへ近づける。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Layer 02 · OSS メンテナ</span>
+        <h3>低品質な AI バグ報告の津波に溺れる</h3>
+        <p>世界を支える数十万の OSS メンテナは、<strong>低品質な AI 生成バグ報告のフラッディング</strong>でレビュー帯域が枯渇しつつある。Glasswing は<em>高精度トリアージ</em>で「読むに値する報告」だけを残し、信頼を取り戻す。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Layer 03 · エンタープライズ SOC / 防衛チーム</span>
+        <h3>ゼロデイが希少資源でなくなる恐怖</h3>
+        <p>銀行 / 医療 / 通信への脆弱性探索コストがゼロになると、「<strong>見つける</strong>」だけでは不十分。事業影響を判断し<em>安全にパッチを展開する</em>プロセスが追いつかなくなる——その間に防御の先行優位を獲得する。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Layer 04 · データの信頼性そのもの</span>
+        <h3>「報告の真贋」が崩壊する世界</h3>
+        <p>大量の AI 生成報告は、誤検知（False Positive）と本物のゼロデイを区別する人類の能力を上回りつつある。Glasswing は<strong>真陽性率 90.6%</strong>という人類アナリスト級の指標で、生のシグナルを取り戻す。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0523/page_05.jpg" alt="3 Layers of Defense — Glasswing が守る 3 つの層" loading="lazy">
+      <figcaption>FIG · 単なるセキュリティ製品ではない。デジタルの地盤沈下を防ぐため、3 層が抱える絶望的なボトルネックを<strong>同時に解消するエコシステム防衛</strong>である</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="turn">
+    <h2>Chapter 2 — 転機:「発見競争」から「修正の工業化」へ</h2>
+    <p class="section-lead">勝負を分けるのは、もはや<strong>「誰が先に脆弱性を見つけるか」</strong>ではない。<strong>AI が見つけたものを、安全に・大量に・人間より速く修正できるか</strong>こそが、AI 時代の防御における唯一のレバーだ。</p>
+    <div class="score-versus" role="figure" aria-label="従来の発見競争と Glasswing 修正の工業化の比較">
+      <div class="score-side">
+        <span class="tag">Before · 人間 vs 人間</span>
+        <span class="num">分単位の猶予</span>
+        <span class="sub">脆弱性発見が高コスト / パッチ展開まで数日〜数週間の Grace Period / 個別 SOC のヒロイズム頼み / ゼロデイは希少資源</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · 防御 AI vs 攻撃 AI</span>
+        <span class="num">18 ヶ月の Safe Zone</span>
+        <span class="sub">Mythos が網羅的に発見 / AI パッチ合成 → 到達可能性分析 → 自動検証 / エコシステム全体を先回りで硬化 / 攻撃側 AI 一般化までの 18 ヶ月で世界を再武装</span>
+      </div>
+    </div>
+    <p class="note">特筆すべきは <strong>修正の工業化（Industrialization of Remediation）</strong>だ。Mythos が見つけた脆弱性をそのままパッチ合成パイプラインに流し、<em>到達可能性分析</em>で「実際に攻撃経路として成立するか」をフィルタし、サンドボックスで<em>自動検証</em>。人間レビュアーが介在する点を「事業判断」だけに絞り、防御プロセス全体を流れ作業化する。</p>
+  </section>
+
+  <section class="section" id="how">
+    <h2>Chapter 3 — 仕組み: 防衛側に「非対称的優位」を返す Claude Mythos</h2>
+    <p class="section-lead">Glasswing の中核は <strong>Claude Mythos Preview</strong>。<strong>100 万トークンの大規模コンテキスト</strong>でコードベース全体を一度に読み込み、<strong>Adaptive Thinking</strong> でタスクの難易度に応じて推論深度を動的に決定。OpenBSD の<em>27 年前のバグ</em>や wolfSSL の<em>17 年前の脆弱性</em>まで特定する、人類トップレベルを超えた発見能力を持つ。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Mechanism · Mythos + Remediation Industrialization</span>
+        <h3>大規模コンテキスト × 適応的推論 × パッチ合成パイプライン</h3>
+        <p>Mythos は単なる脆弱性スキャナではない。<strong>100 万トークンの一度読み</strong>で獲得可能性チェーンを丸ごと分析し、Adaptive Thinking が必要な箇所だけに「深く考える」予算を集中投下。発見した脆弱性は、AI パッチ合成 → 到達可能性分析 → サンドボックス自動検証の<em>3 工程パイプライン</em>に直行する。人間は「事業影響の判断」だけに専念できる構造だ。</p>
+        <ol>
+          <li><strong>100 万トークンの大規模コンテキスト</strong> — コードベース全体を一度に読み込み、獲得可能性チェーンを丸ごと分析</li>
+          <li><strong>Adaptive Thinking（適応思考）</strong> — タスクの難易度を動的に判定し、目的的な推論ループを構成</li>
+          <li><strong>人類トップレベル超えの発見能力</strong> — 27 年前の OpenBSD バグ・17 年前の wolfSSL 脆弱性まで僅か数十秒で特定</li>
+          <li><strong>修正の工業化</strong> — AI パッチ合成 → 到達可能性分析 → 自動検証の 3 工程で、修正プロセスそのものを流れ作業化</li>
+          <li><strong>高精度トリアージ</strong> — OSS メンテナを低品質 AI 報告の津波から救う、真陽性率 90.6% の選別レイヤー</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0523/page_08.jpg" alt="Target 3: エンタープライズ SOC — 約 18 ヶ月の Safe Zone" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0523/page_06.jpg" alt="Target 1: 基幹インフラ / OS / ブラウザ提供者" loading="lazy">
+      <figcaption>FIG · Google / Microsoft / Mozilla / Apple / Cisco のような<strong>基幹インフラ・OS・ブラウザ提供者</strong>を対象に、人間レビュアーでは到達不能な大規模コードベースを Mythos が網羅的に解析する</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0523/page_07.jpg" alt="Target 2: OSS メンテナ — 高精度トリアージ" loading="lazy">
+      <figcaption>FIG · 低品質 AI バグ報告の津波に溺れる OSS メンテナへ、<strong>真陽性率 90.6%</strong> の高精度トリアージを提供。Firefox 150 では前モデル比 10 倍となる<strong>271 件の脆弱性修正</strong>を実証</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0523/page_10.jpg" alt="修正の工業化 — Industrialization of Remediation" loading="lazy">
+      <figcaption>FIG · AI パッチ合成 → 到達可能性分析 → 自動検証の 3 工程パイプライン。<strong>修正プロセスそのもの</strong>を AI 化し、防御サイクルを工業化する</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="strategy">
+    <h2>Chapter 4 — 戦略: 1 ヶ月で証明された「圧倒的インパクト」</h2>
+    <p class="section-lead">Glasswing は概念実証で終わらなかった。<strong>1 ヶ月</strong>のパイロット期間で、10,000 件超の高・重大脆弱性、23,019 件の所見、90.6% の真陽性率、Firefox 150 での前モデル比 10 倍の 271 件修正、150 万ドル相当の不正送金エクスプロイト未然防止——<em>定量的に証明された</em>防御側の非対称的優位がここにある。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Strategic Position</span>
+        <h3>10,000 件超 × 23,019 件 × 90.6% × 150 万ドル防止</h3>
+        <p>パートナー全体の<strong>高・重大脆弱性 10,000 件超</strong>、1,000 以上の OSS プロジェクトでの<strong>23,019 件所見</strong>、<strong>真陽性率 90.6%</strong> という人類アナリスト級の精度、Firefox 150 で<strong>前モデル比 10 倍の 271 件修正</strong>、そしてあるパートナー銀行では Mythos の内部スキャンが<strong>150 万ドル相当の不正送金エクスプロイト</strong>を未然防止。これらは「AI を導入したら何かが速くなる」という抽象論ではなく、<em>事業に直接届く KPI</em>として記録された数字だ。</p>
+        <ul>
+          <li><strong>10,000 件超</strong> — パートナー全体の高・重大脆弱性を 1 ヶ月で発見</li>
+          <li><strong>23,019 件</strong> — 1,000 以上の OSS プロジェクトでの所見数</li>
+          <li><strong>90.6%</strong> — Glasswing 報告の真陽性率（人類アナリスト級）</li>
+          <li><strong>271 件 / 10 倍</strong> — Firefox 150 における前モデル比の脆弱性修正数</li>
+          <li><strong>150 万ドル相当</strong> — 金融機関での不正送金エクスプロイト未然防止</li>
+        </ul>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0523/page_11.jpg" alt="1 ヶ月で証明された圧倒的インパクト — Glasswing KPI" loading="lazy">
+      </figure>
+    </div>
+    <p class="note"><strong>セキュリティアーキテクトのノート</strong>：Glasswing の本質は「ゼロデイの大量発見」ではなく、<strong>「修正の工業化」と組み合わせた防御サイクル全体の高速化</strong>である。Mythos が網羅的に見つけても、修正プロセスが従来通り「人間レビュー → 個別パッチ作成 → 段階的展開」のままなら、Patch Window 死亡という前提に応えられない。Glasswing は<em>発見・トリアージ・パッチ合成・到達可能性分析・自動検証</em>を一つの DAG に圧縮することで、世界に対する防御の Time-to-Patch を物理的に短縮する。</p>
+  </section>
+
+  <section class="section">
+    <h2>実務ワークフロー: AI ネイティブな防衛態勢への「4 ステップ」</h2>
+    <p class="section-lead">攻撃 AI が一般化するまでの<strong>約 18 ヶ月の Safe Zone</strong>を、現場でどう使い切るか。3 つの層すべてに共通する基本動作は<em>「先に硬化し、修正を工業化し、検証を自動化する」</em>。立場ごとに最初の一歩は変わるが、骨格は揃っている。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>1. Inventory（資産棚卸し）</h3>
+        <p>自社コード・依存 OSS・SBOM を統合し、<strong>Mythos が一度に読める形</strong>へ正規化。100 万トークンの大規模コンテキストを最大限活かせる入力構造を整える。</p>
+      </article>
+      <article class="step">
+        <h3>2. Sweep（網羅スキャン）</h3>
+        <p>Mythos で<strong>網羅的スキャン</strong>を実行し、所見を真陽性率ベースで自動トリアージ。低品質 AI 報告と本物のゼロデイを物理的に分離する。</p>
+      </article>
+      <article class="step">
+        <h3>3. Synthesize（パッチ合成）</h3>
+        <p>AI パッチ合成 → 到達可能性分析 → サンドボックス自動検証の<strong>3 工程パイプライン</strong>へ流し込む。人間レビューを「事業影響の判断」だけに局所化する。</p>
+      </article>
+      <article class="step">
+        <h3>4. Deploy（先回り硬化）</h3>
+        <p>段階的ロールアウトと AI ネイティブ SOC を組み合わせ、<strong>攻撃 AI が一般化する前に世界中のコードを先回りでパッチ</strong>。Safe Zone を最大化する。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0523/page_13.jpg" alt="AI ネイティブな防衛態勢 — Safe Zone を使い切る 4 ステップ" loading="lazy">
+      <figcaption>FIG · 攻撃 AI 一般化までの 18 ヶ月の Safe Zone を、Inventory → Sweep → Synthesize → Deploy の 4 ステップで使い切る</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="future">
+    <h2>Chapter 5 — 未来: 「文明レベルのパッチ」と AI ネイティブ SOC へ</h2>
+    <p class="section-lead">Glasswing が目指すのは個別企業のセキュリティ強化ではない。<strong>デジタル社会という土地の地盤沈下を防ぐ</strong>取り組み——<em>文明レベルのパッチ</em>である。攻撃 AI が一般化する 18 ヶ月後を見据え、SOC は人間中心の警報処理から、<strong>AI ネイティブな自律防御</strong>へと体質を切り替える。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Future · 18-Month Roadmap</span>
+        <h3>Safe Zone 〜 AI ネイティブ SOC まで 4 段階</h3>
+        <p>攻撃 AI 一般化までの 18 ヶ月を、エコシステム全体で<em>「先に硬化させる時間」</em>として使い切る。SOC は警報を読む組織から、<strong>AI が一次対応・人間が事業判断</strong>に専念する組織へ移行する。「Patch Window is Dead.」を前提とした防御設計が、業界標準として固まっていく。</p>
+        <ol>
+          <li><strong>0–6 ヶ月</strong> — Mythos による網羅スキャンと真陽性率トリアージを既存 SAST/DAST パイプラインに併設</li>
+          <li><strong>6–12 ヶ月</strong> — 修正の工業化（AI パッチ合成 + 到達可能性分析 + 自動検証）を本番ブランチへ統合</li>
+          <li><strong>12–18 ヶ月</strong> — AI ネイティブ SOC への移行。一次対応を AI、二次は人間の事業判断という分業を確立</li>
+          <li><strong>18 ヶ月以降</strong> — 「文明レベルのパッチ」が業界標準化。攻撃 AI 一般化下でも防御の先行優位が維持される世界へ</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0523/page_14.jpg" alt="文明レベルのパッチ — AI ネイティブ SOC へのロードマップ" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0523/page_09.jpg" alt="Claude Mythos Preview — 防衛側の最強の予言者" loading="lazy">
+      <figcaption>FIG · Claude Mythos Preview が解錠する 4 つの能力——100 万トークン大規模コンテキスト / Adaptive Thinking / 人類トップレベル超えの発見能力 / 修正の工業化</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき構成要素</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>10,000+</strong><span>パートナー全体の高・重大脆弱性発見数（1 ヶ月）</span></div>
+      <div class="metric"><strong>23,019</strong><span>1,000+ OSS プロジェクトでの所見数</span></div>
+      <div class="metric"><strong>90.6%</strong><span>Glasswing 報告の真陽性率</span></div>
+      <div class="metric"><strong>×10 / 271 件</strong><span>Firefox 150 における脆弱性修正数（前モデル比）</span></div>
+      <div class="metric"><strong>$1.5M</strong><span>金融機関での不正送金エクスプロイト未然防止額</span></div>
+      <div class="metric"><strong>100 万</strong><span>Claude Mythos の大規模コンテキスト（トークン）</span></div>
+      <div class="metric"><strong>27 / 17 年</strong><span>OpenBSD / wolfSSL の発見済み長期脆弱性</span></div>
+      <div class="metric"><strong>~18 ヶ月</strong><span>攻撃 AI 一般化までの Safe Zone</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="next">
+    <h2>4 つのペルソナが、それぞれにやるべきこと</h2>
+    <p class="section-lead">Glasswing が告げるのは、AI 時代のサイバー防衛を成立させるための具体的な作業マップだ。立場ごとに最初の一歩は変わる。</p>
+    <div class="usecase">
+      <span class="label">基幹インフラ / OS / ブラウザベンダー</span>
+      <p>自社の<strong>巨大コードベースを Mythos が一度に読める単位</strong>へ正規化し、網羅スキャンを既存 SAST/DAST パイプラインに併設。Firefox 150 のように<strong>前モデル比 10 倍の修正密度</strong>を 1 リリース内で達成する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">OSS メンテナ / コミュニティ</span>
+      <p>低品質 AI バグ報告を機械的に弾き、<strong>真陽性率 90.6%</strong> のトリアージレイヤーをコントリビューションフローに導入。レビュー帯域を「読むに値する報告」へ集中させ、エコシステム全体の信頼を取り戻す。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">エンタープライズ SOC / CISO</span>
+      <p>「見つける」段階から<strong>「修正を工業化する」段階</strong>へ昇格。AI パッチ合成 + 到達可能性分析 + 自動検証の 3 工程パイプラインを構築し、人間レビューを<em>事業影響の判断</em>だけに局所化する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">セキュリティアーキテクト / 規制当局</span>
+      <p>Patch Window 死亡を前提とした<strong>新しいガバナンス</strong>を策定。「AI ネイティブ SOC のあるべき分業」「文明レベルのパッチ」を業界標準・規制要件として固め、Safe Zone 18 ヶ月のうちに防御側の先行優位を制度化する。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>パッチの猶予期間が死んだ世界では、勝者は「速く見つける側」ではなく <em>「速く修正を工業化できる側」</em> である。</q>
+      <cite>— Project Glasswing · AI 時代のサイバー防衛革命 · 2026-05-23</cite>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>出典 &amp; 参考リンク</h2>
+    <div class="source-list">
+      <a href="https://www.anthropic.com/" target="_blank" rel="noopener">
+        <strong>Anthropic — Project Glasswing 公式</strong>
+        <span>Claude Mythos Preview / 修正の工業化 / AI ネイティブ SOC</span>
+      </a>
+      <a href="https://www.anthropic.com/news" target="_blank" rel="noopener">
+        <strong>Anthropic News — セキュリティ研究</strong>
+        <span>Patch Window is Dead / OpenBSD・wolfSSL の長期脆弱性検出</span>
+      </a>
+      <a href="https://www.mozilla.org/en-US/security/advisories/" target="_blank" rel="noopener">
+        <strong>Mozilla Foundation Security Advisories</strong>
+        <span>Firefox 150 で前モデル比 10 倍の 271 件脆弱性修正</span>
+      </a>
+      <a href="https://gigazine.net/news/20260522-google-api-key-remain-live" target="_blank" rel="noopener">
+        <strong>関連: Google API キー削除後も認証成功（GIGAZINE）</strong>
+        <span>APIキー管理の脆弱性——AI 時代のクレデンシャル管理が新たな攻撃面に</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_22.html" class="prev">
+        <span class="dir">← Prev · 05/22</span>
+        <strong>医療AI開発のパラダイムシフト — 評価基盤 Medmarks v1.x が切り拓く実装への道</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-05-23 — <em>Project Glasswing · AI Defense Revolution Blueprint</em></div>
+    <div class="f-meta">出典: Anthropic ／ Claude Mythos Preview ／ Mozilla Firefox 150 Security Advisories ／ GIGAZINE</div>
+  </div>
+</footer>
+</body>
+</html>
