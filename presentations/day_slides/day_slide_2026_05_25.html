@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grok Build — AIエージェント民主化の最前線「自律型エンジニア」の誕生 | 2026-05-25 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="xAI が 2026 年 5 月に正式リリースした『Grok Build（Grok CLI + Agent CLI）』は、AI エージェント構築の常識を覆す決定的な戦略転換点。元 Cursor / Notion のコアエンジニア Jason Ginsberg 氏らを擁する xAI が、1 行の curl コマンドで自律型エージェントをローカル環境に『召喚』可能にした。DevOps 税 / 認知的負荷 / ブラックボックス不信 / 速度ボトルネックという 4 大ペインポイントを解消し、Plan Mode（監査可能ガバナンス）× 最大 8 並列サブエージェント（独立 Worktree）× Arena Mode（複数案の自動採点）× Skills / skillify（暗黙知の資産化）× Cached Input $0.20/1M で爆速構築と自律実行を両立。Claude Code（MCP / CLAUDE.md / plugins）資産の互換読み込みで乗り換え障壁を最小化。SuperGrok $30/月 から段階展開。エンジニアは『コードの記述者』から AI チームに意図を与え品質を監督する『品質責任者』へ再定義される。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_25.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Grok Build — AIエージェント民主化の最前線「自律型エンジニア」の誕生 | 2026-05-25" />
+<meta property="og:description" content="1 行の curl で AI エージェントを召喚。Plan Mode × 8 並列サブエージェント × Arena Mode × Skills で『DevOps 税』からの解放と爆速構築を両立、Claude Code 資産も互換読み込み。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_25.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0525/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Grok Build — 自律型エンジニアの誕生 | 2026-05-25" />
+<meta name="twitter:description" content="1 行インストールで AI エージェント召喚。最大 8 並列 Worktree × Plan Mode × Arena Mode × /skillify で『AIを構築する』から『AIを即座に指揮する』へ。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0525/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Grok Build — AIエージェント民主化の最前線「自律型エンジニア」の誕生",
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0525/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_25.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_25.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#pain">課題</a>
+    <a href="#target">対象</a>
+    <a href="#core">機能</a>
+    <a href="#compare">比較</a>
+    <a href="#cost">経済性</a>
+    <a href="#future">未来</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-05-25 · Mon</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Grok Build · xAI 正式リリース · Issue № 05/25</p>
+        <h1 id="hero-title">1 行で「最強の自律型チーム」を、<br>ターミナルに召喚する。</h1>
+        <p class="lead">xAI が 2026 年 5 月にリリースした <strong>Grok Build（Grok CLI + Agent CLI）</strong>は、単なるツール追加ではない。LangGraph や CrewAI 等の選定、API 管理、環境構築という<em>「DevOps 税」</em>を、たった一打の <code>curl</code> で<strong>瞬時に崩壊</strong>させる、決定的な戦略転換点である。</p>
+        <p class="summary">元 Cursor / Notion のコアエンジニア Jason Ginsberg 氏らを擁する xAI が放った Grok Build は、<strong>Plan Mode（監査可能なガバナンス）× 最大 8 並列サブエージェント（独立 Worktree）× Arena Mode（複数案の自動採点）× Skills / skillify（暗黙知の資産化）</strong> で、爆速構築と自律実行を両立。<em>Claude Code の MCP / CLAUDE.md / plugins 資産をそのまま読み込める高互換性</em> で乗り換え障壁を最小化し、Cached Input $0.20/1M でランニングコストを大幅圧縮。エンジニアは「実装者」から「<strong>オーケストレーター（指揮者）</strong>」へ。アイデアからプロダクト実装までの物理的制約が、事実上消滅する。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://x.ai/grok-build" target="_blank" rel="noopener">Grok Build 公式</a>
+          <a class="button-link secondary" href="https://docs.x.ai/" target="_blank" rel="noopener">xAI Docs</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0525/cover.jpg" alt="Grok Build — AIエージェント構築の障壁を打ち破る『自律型エンジニア』の誕生" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>パラダイムシフト：「AI を構築する」から「AI を即座に指揮する」へ</h2>
+    <p class="section-lead">数週間を要していたエージェント構築の障壁が、<strong>1 行の curl コマンド</strong>で瞬時に崩壊した。開発者のクリエイティビティは実装の細部から解放され、<em>より高次のアーキテクチャ設計と意思決定</em> へとシフトする。これは、アイデアからプロダクト実装までの物理的制約が事実上消滅したことを意味する。</p>
+    <figure class="wide-visual">
+      <img src="images/0525/page_01.jpg" alt="Grok Build — AIエージェント構築の障壁を打ち破る『自律型エンジニア』の誕生 — Before / After 全景" loading="lazy">
+      <figcaption>FIG · 崩れ去った「4 つの高い壁」（Before）と、障壁を打ち破る革新的機能（Solution）— 1 行で完了する『エージェント召喚』、暴走を抑制する『Plan Mode』、8 倍速の『並列サブエージェント』、暗黙知を資産化する『Skills / skillify』。<strong>「AI を構築する」という作業が、「AI を即座に指揮する」という体験に変容</strong>した</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="pain">
+    <h2>Chapter 1 — Grok Build が解決する 4 つの本質的ペインポイント</h2>
+    <p class="section-lead">技術革新は、常に現場の切実な課題への回答でなければならない。Grok Build は、開発現場を長年苦しめてきた <strong>4 つの本質的ペインポイント</strong> に対し、戦略的な解決策を提示する。プロジェクトのリードタイム短縮のみならず、エンジニアの<em>「心理的安全」</em>を飛躍的に向上させる。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Pain 01 · 認知的負荷とコンテキストスイッチ</span>
+        <h3>Web UI ↔ ローカルエディタの往復</h3>
+        <p>従来の AI 活用は Web UI とローカルエディタの往復を強いてきた。Grok Build は<strong>ターミナルネイティブ</strong>であり、ファイル編集からテスト実行までを<em>その場で完結</em>させ、開発者のディープワークを維持する。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 02 · 「DevOps 税」</span>
+        <h3>API キー / 環境構築 / 挙動定義の重荷</h3>
+        <p>API キーの埋め込みやエージェントの挙動定義をコードで書く必要はない。<strong>1 行のインストール直後</strong>から、高度な推論能力が即座に<em>「エージェント」</em>として機能する。LangGraph や CrewAI の選定すら不要。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 03 · ブラックボックス不信</span>
+        <h3>セキュリティ懸念とローカルファースト</h3>
+        <p>AI による予期せぬ破壊を防ぐ <strong>Plan Mode</strong> に加え、xAI は <em>「Code never leaves your machine（コードはローカルから出さない）」</em> を掲げる。解析と編集はローカル、推論のみクラウド——エンタープライズ層への決定的回答。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 04 · 速度のボトルネック</span>
+        <h3>逐次処理の「待ち時間」を 8 並列で突破</h3>
+        <p>シングルエージェントの逐次処理による「待ち時間」を、<strong>最大 8 つのサブエージェント</strong>による並列実行で打破。リサーチ・実装・テストを同時進行させ、<em>大規模タスクのリードタイムを劇的に短縮</em>する。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0525/page_02.jpg" alt="4 つの本質的ペインポイント — Before / After の対比図" loading="lazy">
+      <figcaption>FIG · 安全なサンドボックス内での検証と事前の計画承認により、<strong>大胆なリファクタリングへの挑戦が「リスク」から「日常」へ</strong>と変わる。これらの解決策は、エンジニアの<em>心理的安全</em>を飛躍的に向上させる</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="target">
+    <h2>Chapter 2 — ターゲット分析：誰の、どのような未来を変えるのか</h2>
+    <p class="section-lead">Grok Build は、ユーザー層ごとに異なる戦略的価値を提供し、開発者を <strong>「実装者」から「オーケストレーター（指揮者）」</strong> へと進化させる。プロフェッショナル・エンジニアから個人開発者、そして組織まで、3 つのレイヤーすべてで意味合いが変わる。</p>
+    <div class="score-versus" role="figure" aria-label="ユーザー層ごとの戦略的価値">
+      <div class="score-side">
+        <span class="tag">Before · 実装者</span>
+        <span class="num">構文の記述</span>
+        <span class="sub">レガシーコード刷新は数日仕事。MVP 構築には複数人のチームが必須。個人の AI 活用ノウハウはチャットログに埋没し、組織として再現できない暗黙知のまま停滞する。</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · オーケストレーター</span>
+        <span class="num">システム整合性</span>
+        <span class="sub">大規模リファクタリングを数時間に圧縮。1 人で数人分のチームを率いる開発速度。<em>/skillify</em> による標準化で個人の暗黙知が組織資産（デジタルアセット）へと変換され、企業の資本蓄積形態そのものが変わる。</span>
+      </div>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0525/page_03.jpg" alt="ターゲット別の戦略的価値 — エンジニア / インディーハッカー / 組織" loading="lazy">
+      <figcaption>FIG · <strong>プロフェッショナル・エンジニア</strong>＝大規模リファクタ・P99 レイテンシ調査を数時間に圧縮 / <strong>インディーハッカー</strong>＝1 人でフルスタック、市場投入時間を最小化 / <strong>組織・DevOps チーム</strong>＝<em>/skillify</em> でスキルを資産化、離職による知識流出を防止</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="core">
+    <h2>Chapter 3 — 核心的ソリューション：自律型エンジニアリングを支える 4 大機能</h2>
+    <p class="section-lead">Grok Build の圧倒的優位性は、そのユニークなアーキテクチャに集約される。<strong>完全自律ではなく「監督付き自律」</strong>を実現する Plan Mode を起点に、並列実行・自動評価・知能の資産化が連鎖し、自律型エンジニアリングの基盤を形成する。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">4 Capabilities · ガバナンス × 並列 × 評価 × 資産化</span>
+        <h3>Plan Mode × Parallel Subagents × Arena Mode × Skills</h3>
+        <p>4 つの機能は単独ではなく、<strong>相互に組み合わさる</strong>ことで真価を発揮する。計画承認で安全性を担保し、並列実行で速度を稼ぎ、Arena で品質を評価し、Skills で再現性を確保——<em>「自律型エンジニアリング」</em> という新たな開発パラダイムを完成させる。</p>
+        <ol>
+          <li><strong>Plan Mode（監査可能なガバナンス）</strong> — タスクに対しまず詳細な計画書（<code>plan.md</code>）を提示。人間が <em>Approve</em> を出すまで AI はファイル書き込みをブロック。完全自律ではなく「監督付き自律」を実現。</li>
+          <li><strong>Parallel Subagents（並列実行の衝撃）</strong> — 1 つの巨大なタスクを <em>最大 8 つの専門サブエージェント</em> に委譲。各エージェントは<strong>独立した Worktree</strong> 上で動作し、環境隔離で衝突を回避しつつリサーチと実装を並走。</li>
+          <li><strong>Arena Mode（品質の自動評価）</strong> — 複数のエージェントが生成した異なる実装案を、AI が<em>自動採点・比較</em>。最適なアルゴリズムや設計思想を定量的評価で選定、人間のレビュー負荷を大幅軽減。</li>
+          <li><strong>Skills & /skillify（知能の資産化）</strong> — 成功したワークフローを <code>/skillify</code> で即座にスキル化。次回から 1 コマンドで再現可能に。Tesla のエンジニアが<strong>「開発の反応速度を 20% 向上」</strong>と報告した中核機能。</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0525/page_04.jpg" alt="Plan Mode — 詳細な計画書を提示し、人間の Approve まで書き込みをブロックする監査可能なガバナンス" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0525/page_05.jpg" alt="Parallel Subagents — 最大 8 つの独立 Worktree で並列実行する衝撃" loading="lazy">
+      <figcaption>FIG · <strong>Parallel Subagents</strong>：各エージェントが<em>独立したワークツリー（Worktree）</em>上で動作することで、ファイル衝突を回避しつつリサーチ・実装・テストを同時並行。<strong>大規模タスクのリードタイムが 8 倍速</strong>で短縮される</figcaption>
+    </figure>
+    <figure class="page-figure">
+      <img src="images/0525/page_06.jpg" alt="Arena Mode — 複数案の自動採点と Skills / skillify による知能の資産化" loading="lazy">
+      <figcaption>FIG · <strong>Arena Mode</strong>：複数エージェントの実装案を AI が自動採点 → 最適案を定量的に選定。<strong>Skills × /skillify</strong>：成功ワークフローを 1 コマンドでスキル化し、組織知として蓄積（Tesla 報告：開発反応速度 20% 向上）</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="compare">
+    <h2>Chapter 4 — 競争優位性分析：Claude Code / Cursor / Devin との戦略的位置づけ</h2>
+    <p class="section-lead">市場の主要ツールと比較した場合、Grok Build は <strong>「爆速構築と並列処理」</strong> において独自のポジションを築く。さらに先行ツールである <em>Claude Code のエコシステム（MCP / CLAUDE.md / plugins 等）をそのまま読み込める高い互換性</em> を備え、乗り換え障壁（Switching Cost）が極めて低いのが戦略的メリットだ。</p>
+    <figure class="page-figure">
+      <img src="images/0525/page_07.jpg" alt="主要 AI コーディングツールとの『自律性』と『並列処理』比較" loading="lazy">
+      <figcaption>FIG · 主要 AI コーディングツールとの「自律性」と「並列処理」の比較 — <strong>Grok Build</strong> は最大 8 並列 Worktree と Arena 評価、Claude Code は深い推論、Cursor は GUI 統合、Devin は完全自動 Fleet 運用。Grok Build は <em>Claude Code 資産を再利用可能</em> な点で乗り換え障壁が最低</figcaption>
+    </figure>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Strategic Operation · ハイブリッド運用が ROI を最大化</span>
+        <h3>「深い思考の Claude Code」× 「爆速並列の Grok Build」</h3>
+        <p>各ツールには得意領域がある。<strong>1 つに統合せず、用途別に使い分ける</strong>のが現時点での最適解だ。日常の細かな修正は Cursor、深い設計検討は Claude Code、大規模な自動化や並列探索は Grok Build——<em>ハイブリッド運用こそが ROI を最大化する</em>。</p>
+        <ul>
+          <li><strong>Grok Build（xAI）</strong> — ターミナル TUI（マウス対応）。<em>最大 8 並列 Worktree</em>。Arena による評価。Claude Code 資産を再利用可。爆速構築の代名詞。</li>
+          <li><strong>Claude Code（Anthropic）</strong> — ターミナル CLI。並列は限定的だが<em>推論の深さで圧倒</em>。慎重な設計とコード品質を優先する場面の本命。</li>
+          <li><strong>Cursor（IDE）</strong> — GUI エディタ。<em>抜群の UI と既存資産活用</em>。日常の細かな修正・補完用途。並列処理機能は持たない。</li>
+          <li><strong>Devin</strong> — クラウド UI。<em>仮想社員型の完全自動 Fleet 運用</em>。並列性は高いが独自環境ロックイン。チケットを丸投げできる場面で輝く。</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="cost">
+    <h2>Chapter 5 — 経済性とリスク管理：ROI を最大化するための運用指針</h2>
+    <p class="section-lead">優れたツールも、<strong>経済性と安全性の管理</strong>なしには実戦投入できない。プランの選択、トークンコストの最適化、サンドボックス設定、文脈整理——4 つの観点で運用設計すれば、月額 $30〜$300 の投資は<em>エンジニア数週間分の人件費を数時間に圧縮</em>する極めて高い ROI を叩き出す。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>1. プラン段階展開</h3>
+        <p>当初は <strong>SuperGrok Heavy（$300/月）</strong>限定だったが、現在は通常の <strong>SuperGrok（$30/月）</strong>ユーザーへも段階展開。まずは月額 $30 で導入体験することを推奨。</p>
+      </article>
+      <article class="step">
+        <h3>2. Cached Input 活用</h3>
+        <p>Input <strong>$1.00/1M</strong>、Output $2.00/1M。特筆すべきは <em>Cached Input $0.20/1M</em>。長時間セッションでキャッシュを効かせ、<strong>ランニングコストを大幅圧縮</strong>。</p>
+      </article>
+      <article class="step">
+        <h3>3. サンドボックス強化</h3>
+        <p>Linux の <strong>Landlock</strong>、macOS の <strong>Seatbelt</strong> を採用。<em>~/.ssh</em> 等の機密ディレクトリをデフォルトで保護する <strong>strict プロファイル</strong>を有効化。</p>
+      </article>
+      <article class="step">
+        <h3>4. /compact で文脈整理</h3>
+        <p>並列処理はトークン消費を激しく増大させる。定期的に <code>/compact</code> で<strong>文脈整理</strong>を実行し、コストと精度のバランスを保ち続けることが運用の必須リテラシー。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0525/page_08.jpg" alt="プラン × トークン × サンドボックス × 文脈整理 — 4 観点の運用指針" loading="lazy">
+      <figcaption>FIG · <strong>SuperGrok Heavy $300/月</strong>（エンジニア数週間分の人件費を数時間に圧縮できる ROI）。<em>Cached Input $0.20/1M</em> でランニングコストを大幅抑制。サンドボックスは Landlock / Seatbelt で機密ディレクトリを保護、並列実行時は <code>/compact</code> でトークン消費を制御</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>導入クイックスタート — 1 行で「最強の自律型チーム」を召喚する</h2>
+    <p class="section-lead">Grok Build のインストールと初回プロンプトはこれだけ。<strong>あなたのエンジニアリングは、今この瞬間から「自律の時代」へ突入する</strong>。</p>
+    <div class="usecase">
+      <span class="label">Step 1 · インストール</span>
+      <p>ターミナルで以下を実行するだけで、Grok CLI + Agent CLI が即座にローカルに展開される。<br><code>curl -fsSL https://x.ai/cli/install.sh | bash</code></p>
+    </div>
+    <div class="usecase">
+      <span class="label">Step 2 · 爆速プロトタイピング</span>
+      <p>「<strong>Next.js + Tailwind で SaaS のランディングページを作成。Stripe 決済ボタン込み、レスポンシブ対応、Plan Mode で計画書を提示してから実装して</strong>」と一度叩くだけで、計画書→承認→8 並列 Worktree での実装→Arena で最良案選定までを完走。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">Step 3 · 高度なデバッグと改善</span>
+      <p>「<strong>このリポジトリで P99 レイテンシが 3 秒を超えるエンドポイントを特定。8 並列で原因仮説を立て、Arena Mode で最良の修正案を選び、/skillify で再現可能なスキルに登録</strong>」——個人の勝ちパターンが組織資産へと自動変換される。</p>
+    </div>
+  </section>
+
+  <section class="section" id="future">
+    <h2>Chapter 6 — 未来：AI 共創時代のエンジニアリング・ロードマップ</h2>
+    <p class="section-lead">Grok Build は、AI が<strong>「助言者」から「実行責任を負う共同作業者」</strong>へと進化したことを象徴する。開発者の役割は「コードの記述者」から、AI チームに <em>意図（Intent）</em> を与え、Arena Mode 等で品質と安全性を監督する <strong>「品質責任者」</strong> へと再定義された。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Future · From Builder to Conductor</span>
+        <h3>「アイデアからプロダクト実装までの物理的制約」は消滅する</h3>
+        <p>この変革を静観することは、将来的な開発スピードにおいて<strong>致命的な損失</strong>を招くリスクとなる。今すぐ、あなたのターミナルに「最強の自律型チーム」を召喚せよ。導入 → 並列実行 → スキル資産化のサイクルを<em>6 ヶ月単位</em>で回せば、組織の AI 開発成熟度は他社が追随できない水準に到達する。</p>
+        <ol>
+          <li><strong>0–1 ヶ月</strong> — 1 行 curl でインストール。SuperGrok $30/月で個人ユース開始。Plan Mode と /compact の操作感に慣れる。</li>
+          <li><strong>1–3 ヶ月</strong> — 並列サブエージェントで大規模リファクタを試行。Cached Input $0.20/1M を活用しトークンコストを定点測定。</li>
+          <li><strong>3–6 ヶ月</strong> — Arena Mode で複数案を競わせ最良案を選定。<em>/skillify</em> でチームの再利用可能スキルライブラリを構築。</li>
+          <li><strong>6 ヶ月以降</strong> — Claude Code との<strong>ハイブリッド運用</strong>を標準化。深い設計は Claude Code、爆速並列は Grok Build——役割分担で ROI を最大化。</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0525/page_09.jpg" alt="AI 共創時代のエンジニアリング・ロードマップ — Builder から Conductor へ" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき数値とキーワード</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>1 行</strong><span>curl -fsSL でエージェントを即時召喚</span></div>
+      <div class="metric"><strong>最大 8 並列</strong><span>独立 Worktree によるサブエージェント実行</span></div>
+      <div class="metric"><strong>Plan Mode</strong><span>計画書承認まで書き込みブロック</span></div>
+      <div class="metric"><strong>Arena Mode</strong><span>複数実装案の自動採点・比較</span></div>
+      <div class="metric"><strong>/skillify</strong><span>成功ワークフローを 1 コマンドで資産化</span></div>
+      <div class="metric"><strong>$0.20 / 1M</strong><span>Cached Input トークン単価（大幅圧縮）</span></div>
+      <div class="metric"><strong>$30 / 月〜</strong><span>SuperGrok から段階展開（Heavy $300）</span></div>
+      <div class="metric"><strong>Claude Code 互換</strong><span>MCP / CLAUDE.md / plugins 資産を再利用</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>3 つのペルソナが、それぞれにやるべきこと</h2>
+    <p class="section-lead">Grok Build の活用方針は立場ごとに異なる。<strong>最初の一歩を間違えなければ、3 ヶ月後の開発体験は別物になる</strong>。</p>
+    <div class="usecase">
+      <span class="label">プロフェッショナル・エンジニア</span>
+      <p>大規模リファクタリングやレガシー刷新、P99 レイテンシの根本原因調査に <strong>Parallel Subagents</strong> を活用。数日分の作業を数時間に圧縮し、自分自身は<em>システム全体の整合性</em>に責任を持つ「品質責任者」へと役割をシフトする。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">インディーハッカー / ソロ開発者</span>
+      <p>アイデアから MVP までを<strong>1 人で完走</strong>。Plan Mode で安全性を担保しつつ、Arena Mode で複数案を競わせ最良案を選定。<em>市場投入までの時間を最小化</em>し、限られた資本効率を最大化する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">組織 / DevOps チーム</span>
+      <p>個人の「勝ちパターン」を <strong>/skillify</strong> で標準化された組織資産（デジタルアセット）へ変換。CI/CD 統合で自動品質管理を実現し、<em>エンジニアの離職による知識流出</em>を構造的に防ぐ。Claude Code 既存資産も互換性で活用。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>Grok Build は、AI が「助言者」から<em>「実行責任を負う共同作業者」</em>へと進化したことを象徴している。</q>
+      <cite>— AIエージェント民主化の最前線 · Grok Build による開発パラダイムの転換 · 2026-05-25</cite>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0525/page_12.jpg" alt="今すぐターミナルに「最強の自律型チーム」を召喚せよ" loading="lazy">
+      <figcaption>FIG · 「アイデアからプロダクト実装までの物理的制約」は消滅しつつある。この変革を静観することは、将来的な開発スピードにおいて致命的な損失を招く——<strong>今すぐ、あなたのターミナルに「最強の自律型チーム」を召喚せよ</strong></figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>本日の主要ヘッドライン（05/25）</h2>
+    <p class="section-lead">Grok Build 以外の 2026-05-25 主要トピックを併せてピックアップ。</p>
+    <div class="source-list">
+      <a href="https://bloomberg.com/news/articles/2026-05-23/deepseek-to-make-permanent-75-discount-on-flagship-ai-model" target="_blank" rel="noopener">
+        <strong>DeepSeek、フラッグシップ AI モデルを永久 75% 割引</strong>
+        <span>OpenAI / Google AI / Anthropic への対抗。開発者の試用・採用を民主化（HN Score 194）</span>
+      </a>
+      <a href="https://openai.com/index/model-disproves-discrete-geometry-conjecture" target="_blank" rel="noopener">
+        <strong>OpenAI モデルが離散幾何学の中核仮説を否定</strong>
+        <span>AI が数学的定理の証明に貢献する可能性を示唆（HN Score 1420）</span>
+      </a>
+      <a href="https://valhovey.github.io/gaia-mary" target="_blank" rel="noopener">
+        <strong>プロジェクト・ヘイル・メリー — 恒星ナビゲーションチャート公開</strong>
+        <span>未知の恒星探査を効率化。AI 搭載型ナビゲーションの新潮流（HN Score 1179）</span>
+      </a>
+      <a href="https://modelrift.com/blog/openscad-llm-benchmark" target="_blank" rel="noopener">
+        <strong>Antigravity 2.0 が OpenSCAD アーキテクチャ 3D LLM ベンチマークでトップ</strong>
+        <span>3D モデリング AI 開発の新たな方向性を示唆（HN Score 418）</span>
+      </a>
+      <a href="https://arxiv.org/abs/2605.06445" target="_blank" rel="noopener">
+        <strong>LLM エージェントの Constraint Decay — バックエンドコード生成の脆弱性</strong>
+        <span>長期タスクで制約を忘れる現象を観測。人間のレビュー組み込みが必須に（HN Score 151）</span>
+      </a>
+      <a href="https://scienceaim.com/australia-just-proved-the-four-day-work-week-works-here-is-what-the-data-actually-says" target="_blank" rel="noopener">
+        <strong>オーストラリア 4 日制労働試験 — 生産性 13% 向上</strong>
+        <span>働き方改革とエンジニアの心理的安全に関わる重要データ（HN Score 168）</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>出典 &amp; 参考リンク</h2>
+    <div class="source-list">
+      <a href="https://x.ai/grok-build" target="_blank" rel="noopener">
+        <strong>xAI — Grok Build 公式</strong>
+        <span>Grok CLI + Agent CLI の正式リリース情報、インストール手順、機能ドキュメント</span>
+      </a>
+      <a href="https://docs.x.ai/" target="_blank" rel="noopener">
+        <strong>xAI Developer Docs</strong>
+        <span>SuperGrok / SuperGrok Heavy プラン、Cached Input 含むトークン課金体系</span>
+      </a>
+      <a href="https://www.anthropic.com/claude-code" target="_blank" rel="noopener">
+        <strong>Anthropic — Claude Code</strong>
+        <span>Grok Build がそのまま読み込める MCP / CLAUDE.md / plugins エコシステム</span>
+      </a>
+      <a href="https://docs.cursor.com/" target="_blank" rel="noopener">
+        <strong>Cursor — AI-First Code Editor</strong>
+        <span>ハイブリッド運用の左翼。GUI 主体で日常修正に最適</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_24.html" class="prev">
+        <span class="dir">← Prev · 05/24</span>
+        <strong>AI Engineer Coach — AI時代のエンジニアの「健康診断」と「見えない負債」の解剖</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-05-25 — <em>Grok Build · AIエージェント民主化の最前線「自律型エンジニア」の誕生</em></div>
+    <div class="f-meta">出典: xAI Grok Build ／ Anthropic Claude Code ／ Cursor ／ GitHub Copilot ／ NotebookLM</div>
+  </div>
+</footer>
+</body>
+</html>
