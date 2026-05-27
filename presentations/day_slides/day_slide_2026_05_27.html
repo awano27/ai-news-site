@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rowboat — ローカル AI 同僚「業務文脈を資産化する個人業務メモリ層（OS）」 | 2026-05-27 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="LLM の進化で『知能』はコモディティ化したが、AI ツールの大半は対話のたびに記憶がリセットされる『使い捨ての道具』に留まる。オープンソース『Rowboat』は、Gmail / カレンダー / 会議録 / ボイスメモといった日々の断片的ログを AI が理解・活用可能な『生きたナレッジグラフ』へ変換するローカルファースト AI 同僚（Coworker）。中心思想は『Knowledge compounds over time（知識は複利で増える）』——モデルは交換可能な借り物だが Rowboat に蓄積される業務文脈は組織の『防御壁（IP Moat）』となる。3 つの技術的柱（脳：Ollama / LM Studio のローカル LLM × 記憶：Markdown Vault プライマリ + Qdrant ベクトル DB + MongoDB 運用層 × 手足：MCP / Composio で Slack / Jira / GitHub 連携）と 4 層運用アーキテクチャ（Ingest → Extraction → Persistence → Execution）。Live Notes @rowboat v0.4.8 以降は『1 ノート = 1 Single Objective』。PM / EM / 営業・CS / Obsidian ユーザーの 4 ペルソナを解放し、ベクトル DB ブラックボックスを Markdown 可監査性で克服。Google OAuth (localhost:8080/oauth/callback)、Issue #508 内蔵ブラウザのクレデンシャル露出、Issue #507 権限自動承認などのセキュリティガバナンス指針も詳述。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_27.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Rowboat — ローカル AI 同僚「業務文脈を資産化する個人業務メモリ層（OS）」 | 2026-05-27" />
+<meta property="og:description" content="Knowledge compounds over time. ローカル LLM × Markdown / Qdrant / MongoDB 3 層ストレージ × MCP 実行で、業務文脈を組織の IP Moat へ転換する OSS AI 同僚。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_27.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0527/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Rowboat — 業務文脈を一生忘れない資産に変える ローカル AI 同僚 | 2026-05-27" />
+<meta name="twitter:description" content="モデルは借り物、文脈は資産。Ollama × Obsidian 互換 Markdown × Qdrant × MongoDB × MCP の 3 層 4 ステップで知識を複利成長させる OSS。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0527/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Rowboat — ローカル AI 同僚「業務文脈を資産化する個人業務メモリ層（OS）」",
+  "datePublished": "2026-05-27",
+  "dateModified": "2026-05-27",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0527/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_27.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_27.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#pain">課題</a>
+    <a href="#target">対象</a>
+    <a href="#arch">技術</a>
+    <a href="#flow">運用</a>
+    <a href="#compare">比較</a>
+    <a href="#risk">運用ガバ</a>
+    <a href="#future">未来</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-05-27 · Wed</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Rowboat · ローカル AI 同僚 / 業務メモリ OS · Issue № 05/27</p>
+        <h1 id="hero-title">モデルは借り物、<br>文脈は<span class="num">あなたの資産</span>。</h1>
+        <p class="lead">LLM の進化で <strong>「知能」はコモディティ化</strong>した。だが多くの AI ツールは、対話のたびに記憶がリセットされる<em>「使い捨ての道具」</em>に留まっている。オープンソース <strong>Rowboat</strong> は、単なる AI チャットの枠を超えた真の<em>「AI 同僚（Coworker）」</em>として、業務文脈を一生忘れない資産へ変える。</p>
+        <p class="summary">Rowboat の本質は<strong>「業務文脈を資産化するための個人業務メモリ層（OS）」</strong>だ。Gmail / カレンダー / 会議録 / ボイスメモといった断片的ログを、AI が理解・活用可能な<em>「生きたナレッジグラフ」</em>へ変換するローカルファースト OSS。中心思想は <em>「Knowledge compounds over time（知識は複利で増える）」</em> ——モデル（知能）は交換可能な借り物に過ぎないが、Rowboat に蓄積される<strong>コンテキスト（業務背景）こそが、他者に代替できない「組織の防御壁（IP Moat）」</strong>となる。3 つの技術的柱（ローカル LLM × Markdown / Qdrant / MongoDB の 3 層ストレージ × MCP / Composio 連携）と 4 層運用アーキテクチャ（Ingest → Extraction → Persistence → Execution）で、AI を「単なる回答者」から「実務の実行者」へ進化させる。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://github.com/rowboatlabs/rowboat" target="_blank" rel="noopener">Rowboat GitHub</a>
+          <a class="button-link secondary" href="https://ollama.com/" target="_blank" rel="noopener">Ollama 公式</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0527/cover.jpg" alt="Rowboat — 仕事の文脈を「一生忘れない資産」に変えるローカル AI 同僚" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>パラダイムシフト：「対話のたびに初対面」から「阿吽の呼吸の同僚」へ</h2>
+    <p class="section-lead">これまでの AI は<strong>セッションごとに記憶がリセット</strong>される「初対面の他人」だった。Rowboat は業務文脈を継続的に蓄積し、ユーザーの<em>「阿吽の呼吸」を理解する同僚</em>へと進化する。AI の真の生産性は「知能の高さ」ではなく、<strong>「文脈の所有」</strong>で決まる時代へ。</p>
+    <figure class="wide-visual">
+      <img src="images/0527/page_01.jpg" alt="Rowboat 全景 — 業務文脈の揮発と断絶を解決するローカル AI 同僚" loading="lazy">
+      <figcaption>FIG · 解決すべき課題：<strong>業務文脈の「揮発」と「断絶」</strong>（AI への毎回ゼロからの説明コスト / 散在する情報による文脈の断片化 / クラウド AI の機密データ預け入れへの抵抗）と、Rowboat による解決策（高コンテキストな知識労働者を解放 / 情報を<em>生きた Markdown 知識グラフ</em>へ変換 / 蓄積された記憶に基づく実務の自動化）</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="pain">
+    <h2>Chapter 1 — 「業務文脈の揮発」という核心的課題の解体</h2>
+    <p class="section-lead">知識労働者が直面する最大の障壁は、<strong>情報の断片化による「業務文脈の揮発」</strong>。情報は存在していても、必要な瞬間に統合されていない。この非効率を Rowboat は<em>4 つの「痛み」</em>から構造的に解放する。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Pain 01 · 説明コストの増大</span>
+        <h3>AI とのコールドスタート問題</h3>
+        <p>セッションごとに記憶がリセットされるため、毎回<strong>「初対面」のように前提条件や背景を説明し直す</strong>必要がある。この説明コストが、AI 活用の <em>ROI を著しく低下</em>させる最大要因。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 02 · 情報のサイロ化</span>
+        <h3>意思決定の質の低下</h3>
+        <p>メール、会議、カレンダー、タスク管理——情報は至る所に分散。<strong>背景が見えない状態での判断</strong>は、致命的なミスの原因となる。サイロ間の橋渡しを誰かが手で行う非効率が固定化。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 03 · データ主権の喪失</span>
+        <h3>競争優位の流出リスク</h3>
+        <p>機密性の高い意思決定プロセスをクラウド SaaS に預けることは、セキュリティリスクのみならず<strong>自社のコンテキストという「資産」の所有権を外部に委ねる</strong>こと。事実上の <em>IP 流出</em>。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Pain 04 · 記憶のブラックボックス化</span>
+        <h3>監査と修正の不可能性</h3>
+        <p>一般的な AI の記憶（ベクトル DB のみ）は<strong>人間には読めない</strong>。AI が何を誤解しているかを人間が確認・修正できず、<em>ハルシネーションのリスク</em>を制御不能。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0527/page_03.jpg" alt="業務文脈の「揮発」という核心課題 — 4 つの痛みの構造図" loading="lazy">
+      <figcaption>FIG · 「情報は存在するが、必要な瞬間に統合されていない」——<strong>説明コスト × 情報サイロ × データ主権 × ブラックボックス化</strong>の 4 痛点が AI 活用の ROI を著しく下げる。Rowboat はこれらを構造的に解消する</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="target">
+    <h2>Chapter 2 — ターゲット：「文脈過多」なプロフェッショナルに最大の ROI</h2>
+    <p class="section-lead">Rowboat は、<strong>膨大な文脈を扱い、高度な判断を迫られるプロフェッショナル</strong>に最大の ROI を提供する。PM / EM / 営業・CS / Obsidian ユーザーの 4 ペルソナそれぞれに対して、<em>「記憶のボトルネック」を構造的に解消</em>するアプローチを提示する。</p>
+    <div class="score-versus" role="figure" aria-label="導入前後の比較">
+      <div class="score-side">
+        <span class="tag">Before · 揮発する記憶</span>
+        <span class="num">毎回ゼロから</span>
+        <span class="sub">会議録は散逸し、決定の背景は失われる。顧客の過去の約束・懸念・予算感を忘れて信頼を失う。設計判断の「なぜ」が失われ技術的負債が累積する。Obsidian は手動運用で形骸化。</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · 複利成長する資産</span>
+        <span class="num">阿吽の呼吸</span>
+        <span class="sub">会議前ブリーフィング自動化、決定の背景を<em>即座に復元</em>。顧客の状況に同期した返信案。設計議論の時系列保持で<strong>新メンバーのオンボーディング高速化</strong>。Obsidian が<em>自動更新される動的業務基盤</em>へ進化。</span>
+      </div>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0527/page_04.jpg" alt="4 ペルソナの解放 — PM / EM / 営業・CS / Obsidian ユーザー" loading="lazy">
+      <figcaption>FIG · <strong>PM / 事業責任者</strong>＝会議の意思決定履歴をナレッジグラフ化、案件単位で構造化 / <strong>EM / テックリード</strong>＝設計判断・仕様変更・レビュー方針を時系列で保持 / <strong>営業・CS・コンサル</strong>＝Gmail / Slack 連携で人物・組織・案件の記憶を継続的に整理 / <strong>Obsidian ユーザー</strong>＝業務ログからのエンティティ抽出とバックリンク作成を AI が自動代行</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="arch">
+    <h2>Chapter 3 — 3 つの技術的柱：脳・記憶・手足のアーキテクチャ</h2>
+    <p class="section-lead">Rowboat のアーキテクチャは、<strong>プライバシー保護と実務実行力を両立</strong>させるための 3 層構造。脳（ローカル LLM）× 記憶（3 層ハイブリッド・ストレージ）× 手足（MCP / 外部 API）で、機密を一滴も外に漏らさず実務まで自動化する。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">3 Pillars · ローカル LLM × ハイブリッド記憶 × MCP 実行</span>
+        <h3>機密保持と実務実行力の両立アーキテクチャ</h3>
+        <p>各層はそれぞれが独立した責務を持ち、<strong>「ローカル完結」と「外部実行」の境界線</strong>を明示的に分離する。これにより、機密情報の流出リスクを最小化しつつ、外部 SaaS との接続でワークフロー実行能力を確保。<em>セキュリティとパワーの二者択一を超える</em>設計だ。</p>
+        <ol>
+          <li><strong>第 1 の柱 · ローカル LLM（脳）</strong> — Ollama や LM Studio を活用し、推論プロセスを<em>ユーザーのローカルマシン内で完結</em>。機密性の高いビジネスメールを<strong>一滴も外に漏らさず</strong>AI に分析させる。</li>
+          <li><strong>第 2 の柱 · 3 層ハイブリッド・ストレージ（記憶）</strong> — <em>Markdown Vault（一次情報・人間可読）× Qdrant（ベクトル DB の高速検索）× MongoDB（エージェント状態とジョブメタデータ）</em>。高速検索と<strong>人間が手動修正できる可監査性</strong>を両立。</li>
+          <li><strong>第 3 の柱 · MCP と外部 API（手足）</strong> — <em>Model Context Protocol</em> や Composio を通じて Slack / Jira / GitHub などと連携。AI は「単なる回答者」から、実際にワークフローを実行する<strong>「実務の実行者」</strong>へ進化。</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0527/page_06.jpg" alt="3 つの技術的柱 — 脳（ローカル LLM）/ 記憶（3 層ストレージ）/ 手足（MCP・外部 API）" loading="lazy">
+      </figure>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0527/page_07.jpg" alt="3 層ハイブリッド・ストレージ詳細 — Markdown Vault × Qdrant × MongoDB" loading="lazy">
+      <figcaption>FIG · <strong>3 層ストレージ戦略</strong>：①<em>Markdown Vault</em>（プライマリ層・Obsidian 互換のプレーンテキストで人間が直接読み書き・監査・編集可能）→ ②<em>Qdrant</em>（検索層・ベクトル DB で高速セマンティック検索を補助）→ ③<em>MongoDB</em>（運用層・エージェント状態とジョブ実行メタデータ）。これにより<strong>高速性 × 可監査性 × 拡張性</strong>を同時達成</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="flow">
+    <h2>Chapter 4 — 「生きた記憶」を構築する 4 層の運用アーキテクチャ</h2>
+    <p class="section-lead">Rowboat によるデータ処理は<strong>4 ステップを経て価値へ変換</strong>される。<em>Ingest → Extraction → Persistence → Execution</em> の連鎖が、断片的ログを<strong>「組織の代替不可能な資産」</strong>へと昇華させる。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>1. Ingest（入力）</h3>
+        <p>Gmail、Google カレンダー、会議ノート（<strong>Fireflies / Granola</strong> 等）、<em>ボイスメモの自動取り込み</em>。情報源を一元化することで、文脈収集の摩擦をゼロに近づける。</p>
+      </article>
+      <article class="step">
+        <h3>2. Extraction（抽出）</h3>
+        <p>情報を<strong>「人物」「組織」「プロジェクト」「意思決定」「コミットメント（約束）」</strong>の単位に分解・構造化。<em>ナレッジグラフのノードと辺</em>が自動生成される。</p>
+      </article>
+      <article class="step">
+        <h3>3. Persistence（永続化）</h3>
+        <p>抽出された情報を<strong>バックリンク付きの Markdown ファイル</strong>として書き出し。Obsidian 互換のためそのまま閲覧・編集可能。<em>「動く百科事典」</em>として育つ。</p>
+      </article>
+      <article class="step">
+        <h3>4. Execution（実行）</h3>
+        <p>蓄積されたグラフに基づき、<strong>会議ブリーフ・メール下書き・PDF スライド生成</strong>を実行。Live Notes <code>@rowboat</code> v0.4.8 以降は <em>1 ノート = 1 Single Objective</em> で精度を担保。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0527/page_08.jpg" alt="4 層運用アーキテクチャ — Ingest → Extraction → Persistence → Execution" loading="lazy">
+      <figcaption>FIG · 特に重要な <strong>Live Notes (@rowboat)</strong>：v0.4.8 以降は<em>「1 ノートにつき 1 つの明確な目的（Single Objective）」</em>を追跡する仕様に変更。複数トピックを混在させず、特定プロジェクトや競合動向に焦点を絞ることで、ノートの更新精度と一貫性を担保</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="compare">
+    <h2>Chapter 5 — 既存ツールとの詳細比較：Rowboat の独自性</h2>
+    <p class="section-lead">Rowboat は、単発の検索（RAG）ではなく、<strong>「業務状態（State）の継続管理」</strong>に軸足を置いている。<em>RAG 型 AI チャット / local-deep-research / Obsidian 単体</em>との明確な差異を、5 軸で論理化する。</p>
+    <figure class="page-figure">
+      <img src="images/0527/page_10.jpg" alt="既存ツールとの詳細比較表 — Rowboat の独自性と優位性" loading="lazy">
+      <figcaption>FIG · 比較軸：<strong>主用途 × 記憶の構造 × 透明性 × 実行力 × 時間軸</strong>。Rowboat は「業務状態の管理・実行」「人物・案件の関係グラフ」「Markdown 可監査」「MCP/API 連携の実行力」「日々蓄積される継続記憶」で<em>唯一無二のポジション</em>を確立</figcaption>
+    </figure>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Strategic Operation · 既存ツールと使い分けるハイブリッド運用</span>
+        <h3>RAG / local-deep-research / Obsidian の死角を埋める</h3>
+        <p>1 つのツールに統合せず、<strong>用途別に組み合わせる</strong>のが ROI 最大化の定石。日常の質問は RAG、深掘り調査は local-deep-research、思考整理は Obsidian、そして<em>業務状態の継続管理は Rowboat</em>——役割分担で各ツールの最大効率を引き出す。</p>
+        <ul>
+          <li><strong>Rowboat</strong> — <em>業務状態の管理・実行</em>。人物・案件の関係グラフ × Markdown 可監査 × MCP/API 連携 × 継続記憶。他のどのツールも持たない<strong>「時間軸」</strong>を持つ。</li>
+          <li><strong>RAG 型 AI チャット</strong> — 質問への単発回答。<em>文書の断片（ベクトル）</em>のみで、ブラックボックス。継続性なし。</li>
+          <li><strong>local-deep-research</strong> — 外部情報の調査特化。<em>文書分析中心</em>で、業務文脈の保持には不向き。</li>
+          <li><strong>Obsidian 単体</strong> — 手動の知識管理。透明性は最高だが<em>自動性・実行力ゼロ</em>。Rowboat と統合すれば最強。</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="risk">
+    <h2>Chapter 6 — 導入における技術的障壁とセキュリティガバナンス</h2>
+    <p class="section-lead">CTO 視点から、組織導入で<strong>管理すべき 5 つのリスクと対策</strong>を提示する。Rowboat はローカルファースト設計ゆえに OS レベルの権限管理と OAuth 設定の厳密性が成否を分ける。<em>運用前にチェックリスト化</em>することが必須。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">5 Risks · OAuth / 内蔵ブラウザ / 権限 / API / インフラ</span>
+        <h3>運用前に必ず潰すべき技術リスクと回避策</h3>
+        <p>各リスクは <strong>OS / アプリ / 運用ルール</strong>の 3 層で管理する。1 層でも抜けると機密情報の漏洩や権限の不正取得につながりかねない。<em>Day 1 から監査ログを残す運用</em>を強く推奨。</p>
+        <ul>
+          <li><strong>Google OAuth 設定</strong> — Gmail / Calendar 連携時の最大の難所。<em><code>http://localhost:8080/oauth/callback</code> の正確な設定</em>が必須。<strong>google-setup.md の厳守</strong>を推奨。</li>
+          <li><strong>クレデンシャル露出（Issue #508）</strong> — 内蔵ブラウザ（Browser2）でのパスワード等の露出リスク。重要サイトのログインは<em>外部の隔離されたブラウザ</em>で行う運用ルールを徹底。</li>
+          <li><strong>不正権限取得（Issue #507）</strong> — 画面共有等の権限が自動承認される懸念。<strong>OS レベル（Mac / Windows のプライバシー設定）</strong>で Rowboat のメディアキャプチャ権限を明示管理。</li>
+          <li><strong>データ主権の境界</strong> — 外部 API（Hosted LLM, ElevenLabs 等）利用時のデータ送信。機密業務では<em>ローカル LLM（Ollama 等）を優先</em>し、API キーごとの送信範囲を把握。</li>
+          <li><strong>インフラ要件</strong> — ローカル LLM 運用時の計算資源不足。エンティティ抽出の精度を安定させるため<strong>GPU 搭載マシンの利用を強く推奨</strong>。</li>
+        </ul>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0527/page_12.jpg" alt="5 つのセキュリティリスクと回避策 — OAuth / Browser2 / 権限 / API / GPU" loading="lazy">
+      <figcaption>FIG · <strong>セキュリティガバナンス</strong>：OS レベルでの権限管理と運用ルールの明文化が成否を分ける。特に <em>Issue #508 / #507</em> は導入前に必ず潰すべき既知リスク。Day 1 から監査ログ運用を推奨</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="future">
+    <h2>Chapter 7 — 戦略的活用ロードマップ：「個人知識 OS」を育てる最初の一歩</h2>
+    <p class="section-lead">Rowboat の導入は、単なるツール追加ではなく<strong>個人の知的生産性を「複利」で成長させるためのインフラ構築</strong>。AI に毎回背景を説明する時代を終わらせ、<em>データ主権を自らの手に取り戻す</em>3 ステップの旅。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Future · モデルが入れ替わっても、文脈は残る</span>
+        <h3>「あなただけの AI 同僚」を育てる戦略ロードマップ</h3>
+        <p>たとえ将来的に AI モデルが入れ替わっても、<strong>手元に残る「あなたの業務文脈」は代替不可能な資産</strong>として残り続ける。今こそ、自分だけの AI 同僚を育て始めよ。<em>知識は複利で増え、3 ヶ月後には別次元の生産性</em>に到達する。</p>
+        <ol>
+          <li><strong>Step 1 · 進行中の「1 プロジェクト限定」で導入</strong> — Gmail とカレンダーを接続し、情報のつながりを体験。<em>最初は小さく</em>始めるのが定着の鍵。</li>
+          <li><strong>Step 2 · 特定の競合や技術テーマを「Live Notes」で定点観測</strong> — 1 ノートにつき<em>1 つの目的（Single Objective）</em>に絞る運用を徹底。複数トピック混在は精度低下の原因。</li>
+          <li><strong>Step 3 · 蓄積された文脈に基づき「阿吽の呼吸」を実務に組み込む</strong> — 会議準備やメール作成の自動化。<strong>AI に毎回背景を説明する時代を終わらせる</strong>。</li>
+          <li><strong>Step 4 · チーム展開で組織の IP Moat へ昇格</strong> — 個人の業務文脈を組織標準のメモリ OS へ拡張。<em>離職時の知識流出を構造的に防止</em>。</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0527/page_13.jpg" alt="戦略的活用ロードマップ — Rowboat による「個人知識 OS」の育て方" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき数値とキーワード</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>Knowledge compounds</strong><span>知識は複利で増える（中心思想）</span></div>
+      <div class="metric"><strong>3 Pillars</strong><span>脳 × 記憶 × 手足のアーキテクチャ</span></div>
+      <div class="metric"><strong>3 層ストレージ</strong><span>Markdown / Qdrant / MongoDB</span></div>
+      <div class="metric"><strong>4 ステップ</strong><span>Ingest → Extraction → Persistence → Execution</span></div>
+      <div class="metric"><strong>Single Objective</strong><span>Live Notes v0.4.8〜 の運用原則</span></div>
+      <div class="metric"><strong>localhost:8080</strong><span>Google OAuth callback の必須設定</span></div>
+      <div class="metric"><strong>Issue #508 / #507</strong><span>クレデンシャル露出 × 権限自動承認</span></div>
+      <div class="metric"><strong>Ollama / LM Studio</strong><span>ローカル LLM の主力ランタイム</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>4 つのペルソナが、それぞれにやるべきこと</h2>
+    <p class="section-lead">立場ごとに最初の一歩は変わる。<strong>3 ヶ月続ければ、「阿吽の呼吸の AI 同僚」が手に入る</strong>。</p>
+    <div class="usecase">
+      <span class="label">PM / 事業責任者</span>
+      <p>会議（Fireflies / Granola）の議事録を Rowboat に Ingest し、<strong>意思決定履歴を案件単位でナレッジグラフ化</strong>。会議前ブリーフィング資料を自動生成し、<em>「決定の背景を即座に復元」</em>できる体制を構築する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">EM / テックリード</span>
+      <p>GitHub / Linear と連携し、<strong>「なぜその設計になったか」の議論を時系列保持</strong>。コードの外側にある設計判断・仕様変更・レビュー方針を継続記憶化し、<em>新メンバーのオンボーディングを劇的に高速化</em>する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">営業 / CS / コンサル</span>
+      <p>Gmail と Slack を連携し、<strong>人物・組織・案件の記憶を継続的に整理</strong>。顧客ごとの過去の約束・懸念・予算感を忘れず、<em>「商談前に阿吽の呼吸で準備完了」</em>の状態をルーチン化する。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">Obsidian ユーザー</span>
+      <p>業務ログからの<strong>エンティティ抽出とバックリンク作成を Rowboat が自動代行</strong>。既存の PKM が<em>「自動更新される動的な業務基盤」</em>へと進化し、手動運用の限界を超える。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>モデル（知能）は交換可能な「借り物」に過ぎないが、Rowboat に蓄積される<em>コンテキスト（業務背景）こそが、他者に代替できない「組織の防御壁（IP Moat）」</em>となる。</q>
+      <cite>— ローカル AI 同僚 Rowboat · 業務文脈を資産化する個人業務メモリ層 · 2026-05-27</cite>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0527/page_02.jpg" alt="Rowboat の本質 — 「知能」を借り「文脈」を所有する個人業務メモリ層" loading="lazy">
+      <figcaption>FIG · Rowboat の本質：<strong>「業務文脈を資産化するための個人業務メモリ層（OS）」</strong>。LLM の進化が知能をコモディティ化させる時代だからこそ、<em>「文脈の所有」</em>が個人と組織の競争優位を決定づける</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>本日の主要トピック（05/27）</h2>
+    <p class="section-lead">Rowboat 以外の 2026-05-27 関連トピックを併せてピックアップ。</p>
+    <div class="source-list">
+      <a href="https://reuters.com/business/spain-blocks-prediction-markets-polymarket-kalshi-over-lack-of-gambling-licence" target="_blank" rel="noopener">
+        <strong>スペイン、Polymarket と Kalshi をギャンブル免許不在で遮断</strong>
+        <span>予測市場プラットフォームへの規制圧力が強まる中、欧州での運用に大きな影響</span>
+      </a>
+      <a href="https://github.com/rowboatlabs/rowboat" target="_blank" rel="noopener">
+        <strong>Rowboat OSS — v0.4.8 リリース</strong>
+        <span>Live Notes が「1 ノート = 1 Single Objective」に変更され、更新精度と一貫性が向上</span>
+      </a>
+      <a href="https://ollama.com/" target="_blank" rel="noopener">
+        <strong>Ollama — ローカル LLM ランタイムの定番</strong>
+        <span>Rowboat の脳として最も推奨。GPU 搭載マシンでエンティティ抽出精度を担保</span>
+      </a>
+      <a href="https://qdrant.tech/" target="_blank" rel="noopener">
+        <strong>Qdrant — オープンソース・ベクトル DB</strong>
+        <span>Rowboat の検索層を担い、高速セマンティック検索を実現する OSS</span>
+      </a>
+      <a href="https://obsidian.md/" target="_blank" rel="noopener">
+        <strong>Obsidian — Markdown ネイティブ PKM</strong>
+        <span>Rowboat の Markdown Vault と完全互換。動的業務基盤への進化を支える</span>
+      </a>
+      <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">
+        <strong>Model Context Protocol（MCP）</strong>
+        <span>Rowboat の手足を担う統合プロトコル。Slack / Jira / GitHub 等の外部ワークフロー実行</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>出典 &amp; 参考リンク</h2>
+    <div class="source-list">
+      <a href="https://github.com/rowboatlabs/rowboat" target="_blank" rel="noopener">
+        <strong>Rowboat 公式リポジトリ（GitHub）</strong>
+        <span>OSS 実装、Issue トラッカー、google-setup.md などのドキュメント</span>
+      </a>
+      <a href="https://github.com/rowboatlabs/rowboat/issues/508" target="_blank" rel="noopener">
+        <strong>Issue #508 — 内蔵ブラウザのクレデンシャル露出</strong>
+        <span>Browser2 利用時のパスワード露出リスクと回避策</span>
+      </a>
+      <a href="https://github.com/rowboatlabs/rowboat/issues/507" target="_blank" rel="noopener">
+        <strong>Issue #507 — メディアキャプチャ権限の自動承認懸念</strong>
+        <span>OS レベルでのプライバシー設定による明示的管理が必須</span>
+      </a>
+      <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">
+        <strong>Model Context Protocol — 公式仕様</strong>
+        <span>Rowboat 第 3 の柱「手足」を担う統合プロトコル</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_26.html" class="prev">
+        <span class="dir">← Prev · 05/26</span>
+        <strong>Website Critique — AIスロップ時代の Web品質改善「人間らしさ」という希少価値を最大化する</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-05-27 — <em>Rowboat · ローカル AI 同僚「業務文脈を資産化する個人業務メモリ層（OS）」</em></div>
+    <div class="f-meta">出典: Rowboat OSS ／ Ollama ／ Qdrant ／ Obsidian ／ Model Context Protocol ／ NotebookLM</div>
+  </div>
+</footer>
+</body>
+</html>
