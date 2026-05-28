@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAlice — 「一人ウォール街」を実現する次世代 AI トレーディング OS | 2026-05-28 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/day-slides/day-slide-light.css">
+
+<meta name="description" content="2026 年 5 月、X を中心に世界のクオンツ・トレーダーコミュニティ（特にフランス語圏）で『Dinguerie（ヤバい／とんでもないもの）』と熱狂を呼んだ OSS が『OpenAlice』。GitHub で瞬く間に 4.3k stars を超え、『一人ウォール街（Your one-person Wall Street）』というビジョンで、単なる自動売買ツールの枠を超えた『自律型実行基盤（Trading OS）』として登場。リサーチ → 戦略立案 → 注文起案 → リスク管理 → 執行後のポートフォリオ監視まで、トレーディングのフルライフサイクルを自律完結。三層分離アーキテクチャ（Alice 脳 = AI ランタイム × UTA 実行層 = ブローカー接続と注文構築 × Guardian スーパーバイザー）で『最小特権の原則』を物理保証。革新的『Trading-as-Git（TaG）』で Stage → Commit（Rationale 8 文字ハッシュ）→ Push（人間承認 + ガードレール）→ Log の規律。Asynchronous Execution と tradingSync で約定と帳簿の乖離を最小化。Guard Pipeline（ポジション上限 / クールダウン / ホワイトリスト）× Human-in-the-loop × Evolution Mode の諸刃の剣。Workspace と Prompt Caching（KV キャッシュ）で入力トークンコスト最大 90% 削減（Claude Pro $20 / Claude Max 5x $100 推奨）。compaction.json での長期コンテキスト管理。AGPL-3.0 移行に伴うコンプライアンス検討も含めた次世代金融 AI インフラのリファレンス実装。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_28.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="OpenAlice — 「一人ウォール街」を実現する次世代 AI トレーディング OS | 2026-05-28" />
+<meta property="og:description" content="GitHub 4.3k stars OSS。Alice / UTA / Guardian の三層分離 × Trading-as-Git × Prompt Caching で『一人ウォール街』を実現する次世代 AI トレーディング基盤。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_28.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0528/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="OpenAlice — Your one-person Wall Street | 2026-05-28" />
+<meta name="twitter:description" content="Trading-as-Git で Stage → Commit → Push、三層分離で最小特権、Workspace で入力コスト 90% 削減。次世代 AI トレーディング OS の全貌。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0528/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "OpenAlice — 「一人ウォール街」を実現する次世代 AI トレーディング OS",
+  "datePublished": "2026-05-28",
+  "dateModified": "2026-05-28",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "url": "https://visionhub.jp/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og/default.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0528/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_28.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_28.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav aria-label="セクション内ナビゲーション">
+    <a href="#hero">要約</a>
+    <a href="#target">対象</a>
+    <a href="#arch">三層</a>
+    <a href="#tag">TaG</a>
+    <a href="#guard">ガード</a>
+    <a href="#cost">経済性</a>
+    <a href="#risk">法務</a>
+    <a href="#future">未来</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026-05-28 · Thu</span>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">OpenAlice · Your one-person Wall Street · Issue № 05/28</p>
+        <h1 id="hero-title">AI が、<br>「一人ウォール街」を実装した。</h1>
+        <p class="lead">2026 年 5 月、X を中心に世界のクオンツ・トレーダーコミュニティ（特にフランス語圏）で <strong>「Dinguerie（ヤバい／とんでもないもの）」</strong>と熱狂を呼んだ OSS、それが <em>OpenAlice</em>。GitHub で瞬く間に <strong>4.3k stars</strong> を超え、単なる自動売買ツールの枠を超えた<em>「自律型実行基盤（Trading OS）」</em>として、業界の常識を覆しつつある。</p>
+        <p class="summary">OpenAlice が従来の「シグナル生成 AI」と決定的に異なる点は、<strong>リサーチ → 戦略立案 → 注文起案 → リスク管理 → ポートフォリオ監視までフルライフサイクルを自律完結</strong>すること。三層分離アーキテクチャ（<em>Alice 脳 × UTA 実行層 × Guardian スーパーバイザー</em>）で「最小特権の原則」を物理保証し、革新的 <strong>Trading-as-Git（TaG）</strong>で Stage → Commit（Rationale 付き 8 文字ハッシュ）→ Push（人間承認 + ガードレール）→ Log の規律を導入。Workspace と Prompt Caching で入力トークンコスト<strong>最大 90% 削減</strong>。AGPL-3.0 への移行リスクまで含めた次世代金融 AI インフラのリファレンス実装だ。</p>
+        <div class="hero-actions">
+          <a class="button-link" href="https://github.com/openalice-ai/openalice" target="_blank" rel="noopener">OpenAlice GitHub</a>
+          <a class="button-link secondary" href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching" target="_blank" rel="noopener">Prompt Caching</a>
+        </div>
+      </div>
+      <figure class="hero-media large">
+        <img src="images/0528/cover.jpg" alt="OpenAlice — 一人ウォール街を実現する次世代 AI トレーディング・エージェント" loading="eager">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section visual-section">
+    <h2>パラダイムシフト：「アドバイザー AI」から「自律型実行基盤（Trading OS）」へ</h2>
+    <p class="section-lead">従来の AI は価格予測やシグナルを提示する<strong>「アドバイザー」</strong>に過ぎなかった。OpenAlice は <em>判断の賢さと実運用に耐える規律</em> を統合し、フルライフサイクルを完結させる<strong>真の「OS」</strong>として登場——プロフェッショナルたちが熱狂する理由はここにある。</p>
+    <figure class="wide-visual">
+      <img src="images/0528/page_01.jpg" alt="OpenAlice — 一人ウォール街を実現する次世代 AI トレーディング・エージェント全景" loading="lazy">
+      <figcaption>FIG · OpenAlice の <strong>4 つのコア・コンセプト</strong>（フルサイクル自動トレーディング × OSS コミュニティで 4.3k stars × 一人で運営する「バーチャル・ウォール街」× Self-hosted 設計でプライバシー担保）+ <em>Trading-as-Git (TaG)</em> の革新的ワークフロー + 分散アーキテクチャによる安全性 + Workspace + Prompt Caching による運用コスト最適化。<strong>「一人ウォール街」というビジョンを、技術で実装した</strong></figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="target">
+    <h2>Chapter 1 — 課題解決の構図：誰の、どんな悩みを、どう変えるのか</h2>
+    <p class="section-lead">OpenAlice は、個人が機関投資家レベルのトレーディングデスクを構築する際の、<strong>コスト × 技術的障壁 × セキュリティリスク</strong>という根本的な課題に解を与える。<em>「投資の民主化」と「高度な安全性」の両立</em> がこのプロジェクトの戦略的意義だ。</p>
+    <div class="story-grid">
+      <article class="panel">
+        <span class="label">Target 01 · 個人トレーダー</span>
+        <h3>24 時間監視と感情の規律</h3>
+        <p>従来の障壁：<strong>24 時間監視の限界、リサーチ不足、感情による規律の乱れ</strong>。OpenAlice は AI による <em>24/7 のフルサイクル自動運用</em> と Git 的な規律に基づいた取引実行で、機関投資家級の運用環境を個人に提供する。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Target 02 · 開発者</span>
+        <h3>API 統合とセキュア実行環境</h3>
+        <p>複雑なブローカー API の統合と、セキュアな実行環境構築は大きな摩擦。<strong>複数ブローカーを統合する UTA</strong> と、AI 判断層を分離した<em>セキュア SDK</em> で実装コストを劇的に削減する。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Target 03 · クオンツ研究者</span>
+        <h3>再現性 × 監査性 × Live/Backtest 乖離</h3>
+        <p>戦略の再現性、判断根拠の監査性、バックテストと実運用の乖離。<strong>Trading-as-Git による完全な取引履歴</strong>と<em>自然言語による戦略のコード化</em>で、研究と実運用のブリッジを構築する。</p>
+      </article>
+      <article class="panel">
+        <span class="label">Target 04 · So What?</span>
+        <h3>投資の民主化 × バックテストの真実</h3>
+        <p>すべての実取引に<strong>「Rationale（判断根拠）」</strong>がコミットメッセージとして紐付くため、事後的にバックテスト時の仮説と照らし合わせ、<em>なぜ乖離が生じたかをプログラムレベルで監査・修正</em>できる革新。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0528/page_03.jpg" alt="3 つのターゲット属性とそれぞれの解決策" loading="lazy">
+      <figcaption>FIG · 個人トレーダー × 開発者 × クオンツ研究者の 3 属性。<strong>共通する真の戦略的意義は「投資の民主化」と「高度な安全性」の両立</strong>であり、Trading-as-Git が研究（Backtest）と実運用（Live）の乖離を埋める唯一無二のブリッジとして機能する</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="arch">
+    <h2>Chapter 2 — 革新的設計：Alice / UTA / Guardian の三層防衛アーキテクチャ</h2>
+    <p class="section-lead">OpenAlice は、AI の脆弱性と金融取引の厳格性を両立させるため、<strong>三層の物理的分離アーキテクチャ</strong>を採用。「最小特権の原則」に基づき、AI（Alice）がプロンプトインジェクションで暴走しても、<em>資産全体への致命的被害を防ぐ</em>リファレンス実装となっている。</p>
+    <div class="score-versus" role="figure" aria-label="従来 AI と OpenAlice の比較">
+      <div class="score-side">
+        <span class="tag">Before · モノリシック AI</span>
+        <span class="num">単一プロセス</span>
+        <span class="sub">推論・実行・認証が同じレイヤーに同居。プロンプトインジェクション一発で API キーを抜かれ、無制限の取引で破産する致命的アタックサーフェスを抱える。</span>
+      </div>
+      <div class="score-vs">→</div>
+      <div class="score-side win">
+        <span class="tag">After · 三層物理分離</span>
+        <span class="num">Alice × UTA × Guardian</span>
+        <span class="sub">脳（AI）× 実行層 × スーパーバイザーを<em>物理的に分離</em>。Alice はブローカー認証情報を一切保持せず、UTA が定義されたルールでのみ実行。Guardian が両プロセスを監視し越権を阻む。</span>
+      </div>
+    </div>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">3 Layers · 最小特権の原則を物理保証</span>
+        <h3>Alice（脳）× UTA（実行層）× Guardian（監督）</h3>
+        <p>各層が独立した責務を持ち、<strong>「攻撃可能な層」と「致命的な被害」を物理的に切り離す</strong>。これは単なるソフトウェア工学のベストプラクティスではなく、金融という<em>「失敗が許されない領域」</em>で AI を運用するための<strong>業界初のリファレンス実装</strong>と言える。</p>
+        <ol>
+          <li><strong>Alice（脳）</strong> — AI ランタイム。市場分析、戦略立案、ユーザー対話を担当。最も攻撃を受けやすい層だが、<em>ブローカーの認証情報（API キー等）を一切保持しない</em>。</li>
+          <li><strong>UTA（Unified Trading Account / 実行層）</strong> — 実際のブローカー接続、注文構築、リスク管理を担当。AI からのリクエストを受け取り、<strong>定義されたルールに従ってのみ実行する隔離環境</strong>。</li>
+          <li><strong>Guardian（スーパーバイザー）</strong> — Alice と UTA の両プロセスを監視し、全体のオーケストレーションを担う管理レイヤー。<em>越権を阻む最後の砦</em>。</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0528/page_05.jpg" alt="三層分離アーキテクチャ — Alice / UTA / Guardian" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="tag">
+    <h2>Chapter 3 — Trading-as-Git（TaG）：金融に「監査性」と「規律」をもたらす新概念</h2>
+    <p class="section-lead">OpenAlice の白眉は、<strong>ソフトウェア開発の Git 概念を金融実務に持ち込んだ「Trading-as-Git（TaG）」</strong>。すべての取引に「いつ・なぜ・誰が・どの銘柄を」が<em>改ざん困難な形で記録</em>される革命的な規律設計だ。</p>
+    <figure class="page-figure">
+      <img src="images/0528/page_06.jpg" alt="Trading-as-Git ワークフロー — Stage / Commit / Push / Log の 4 段階" loading="lazy">
+      <figcaption>FIG · <strong>Trading-as-Git (TaG)</strong> の革新的ワークフロー：①<em>Stage</em>（注文起案 / git add）→ ②<em>Commit</em>（理由付き 8 文字ハッシュで確定 / git commit -m）→ ③<em>Push</em>（人間承認とガードレール経由でブローカー送信 / git push）→ ④<em>Log</em>（改ざん困難な取引履歴）。<strong>圧倒的な監査性と透明性</strong>を金融現場にもたらす</figcaption>
+    </figure>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">TaG · Asynchronous Execution と tradingSync</span>
+        <h3>約定と帳簿の乖離を最小化する実務設計</h3>
+        <p>プロの現場では、<strong>ブローカーとの通信は常に非同期（Asynchronous）</strong>であり、約定価格や数量は瞬時に確定しない。OpenAlice は <code>tradingSync</code> ツールで市場の約定結果を Git の状態（Head Commit）に動的同期し、<em>帳簿と現実の取引所の乖離を最小限に抑える</em>。Git の「ロールバック」とは異なり、<strong>一度約定したものは取り消せない</strong>ため、失敗時は迅速な<em>「revert 取引（反対売買）」</em>を起案する実務的な規律が求められる。</p>
+        <ul>
+          <li><strong>Stage</strong> — AI が注文案を作成。<em>まだ執行されない</em>。Git の <code>git add</code> に相当。</li>
+          <li><strong>Commit</strong> — 取引理由（Rationale）を記述し、<strong>8 文字のハッシュと共に確定</strong>。後の監査で必須の根拠データ。</li>
+          <li><strong>Push</strong> — 人間の承認とガードレールを経て、<em>初めてブローカーへ送信</em>。Push 前は何度でも撤回可能。</li>
+          <li><strong>Log</strong> — 「いつ、なぜ、誰が、どの銘柄を」取引したかを<strong>改ざん困難な形で記録</strong>。完全な監査トレイル。</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="guard">
+    <h2>Chapter 4 — ガードレール・パイプラインと Evolution Mode のリスク管理</h2>
+    <p class="section-lead">執行直前に強制される <strong>「Guard Pipeline」</strong> は、AI の暴走を食い止める<em>「第二の防衛線」</em>。ポジション上限・クールダウン・ホワイトリストの 3 主要ガードで、致命的損失を物理的に防ぐ。一方で <strong>Evolution Mode</strong> は<em>諸刃の剣</em>として運用判断が問われる。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Guards · ポジション × クールダウン × ホワイトリスト</span>
+        <h3>3 つの主要ガードと Human-in-the-loop 原則</h3>
+        <p>3 つの主要ガードは、<strong>致命的損失を引き起こす典型的アンチパターン</strong>（ポジションの過剰集中 / 連打による暴走 / 想定外銘柄への発注）を物理的に遮断する設計。これに <em>Human-in-the-loop</em> を組み合わせることで、AI の判断を信頼しつつも、最終決裁は人間が握る<strong>「監督付き自律」</strong>を実現する。</p>
+        <ul>
+          <li><strong>ポジション上限</strong> — 1 銘柄・1 セクター・全体に対する<em>最大エクスポージャー</em>を強制制限。ブラックスワン発生時の連鎖損失を遮断。</li>
+          <li><strong>クールダウン（連打防止）</strong> — 同一銘柄の連続発注を<em>時間軸で抑制</em>。AI のループバグや市場異常による「Flash Crash の自作」を防止。</li>
+          <li><strong>ホワイトリスト（許可銘柄のみ）</strong> — 事前承認された銘柄リスト外への発注を完全ブロック。<em>レバレッジ ETF や仕組み債</em>などの誤発注事故を構造的に防ぐ。</li>
+          <li><strong>Human-in-the-loop</strong> — 原則として Push 前に人間が<strong>「理由付きの注文案」をレビュー</strong>。Rationale との整合性を確認することで、AI の論理的破綻を見抜ける。</li>
+        </ul>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0528/page_08.jpg" alt="Guard Pipeline と Evolution Mode の関係性" loading="lazy">
+      </figure>
+    </div>
+    <p class="note"><strong>Evolution Mode：自己進化という諸刃の剣</strong> — OpenAlice には、AI が自身のコードやツールを Bash 経由で修正・拡張できる <em>Evolution Mode</em> が存在する。これは戦略を市場環境に合わせて自動進化させる強力な機能だが、同時にプロンプトインジェクションに対する<strong>アタックサーフェスを劇的に広げるリスク</strong>を孕む。プロフェッショナルな運用では「利便性」と「セキュリティ」のトレードオフを厳格に評価し、<em>権限設定を慎重に行う</em>必要がある。</p>
+  </section>
+
+  <section class="section" id="cost">
+    <h2>Chapter 5 — コスト最適化：Workspace と Prompt Caching の魔力</h2>
+    <p class="section-lead">運用コストの鍵を握るのは <strong>Claude API の効率的な活用</strong>。OpenAlice は Anthropic の <em>Prompt Caching（KV キャッシュ）</em>を最大限に引き出す <strong>Workspace</strong> を推奨する。システムプロンプトや過去の文脈をサーバー側にキャッシュすることで、<strong>入力トークンコストを最大 90%（1/10）削減</strong>可能。</p>
+    <div class="step-grid">
+      <article class="step">
+        <h3>実験・学習</h3>
+        <p><strong>Claude Pro（$20/月）</strong>。手動リサーチ中心。コスト重視のスターター層に最適。<em>最初の 2〜4 週間</em>の学習期間にちょうど良い。</p>
+      </article>
+      <article class="step">
+        <h3>自律運用（高頻度）</h3>
+        <p><strong>Claude Max 5x（$100/月）</strong>。レート制限の緩和。<em>自動ループに最適</em>。実運用フェーズの主力プラン。</p>
+      </article>
+      <article class="step">
+        <h3>Workspace + Prompt Caching</h3>
+        <p>システムプロンプトと文脈をキャッシュ化。<strong>入力トークンコストを最大 90% 削減</strong>。長時間セッションでも経済性が破綻しない。</p>
+      </article>
+      <article class="step">
+        <h3>API 直打ち（非推奨）</h3>
+        <p>キャッシュ効率が悪く、AI の長文リサーチでコストが<em>制御不能になるリスク</em>。<strong>高額請求事故の温床</strong>として避けるべきパターン。</p>
+      </article>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0528/page_10.jpg" alt="Workspace × Prompt Caching のコスト最適化メカニズム" loading="lazy">
+      <figcaption>FIG · <strong>運用コストと効率化の完全解説</strong>：Workspace 利用で Claude Code CLI のコストを最大 90% 圧縮。プロンプトキャッシュの有無で月額コストが桁違いに変動。<em>API 直打ちは非推奨</em>——高額請求事故を防ぐにはキャッシュアーキテクチャの理解が必須</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>運用の実務：compaction.json による長期コンテキスト管理</h2>
+    <p class="section-lead">長期運用では、AI の記憶（コンテキスト）の<strong>肥大化が精度低下とコスト増を招く</strong>。これを制御するのが <code>compaction.json</code>。<em>要約とトランケートの戦略的トレードオフ</em>を運用者が握る。</p>
+    <div class="usecase">
+      <span class="label">主要パラメータ</span>
+      <p><code>maxContextTokens</code>（保持する最大トークン数）／ <code>autoCompactionThreshold</code>（圧縮を開始する閾値、例: 0.75）／ <code>summarizationModel</code>（<strong>"auto" 設定を推奨</strong>）。3 パラメータの相互作用でメモリ・コスト・精度のバランスを取る。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">戦略的トレードオフ</span>
+      <p><strong>「要約（Summarize）」は情報の連続性を保つが、「削除（Truncate）」はコストを下げる</strong>。情報を削りすぎると AI が過去の判断ミスを「忘れる」ため、<em>最初は緩めの設定（120k / 0.8）から開始し、徐々に締めていく</em>ステップが推奨される。</p>
+    </div>
+  </section>
+
+  <section class="section" id="risk">
+    <h2>Chapter 6 — 法的・コンプライアンスリスク：AGPL-3.0 の壁</h2>
+    <p class="section-lead">プロフェッショナルな法人ユーザーが最も留意すべきは<strong>ライセンスの変更</strong>だ。OpenAlice は当初の MIT から <em>AGPL-3.0</em> へ移行した。独自の取引ロジックをコードに組み込んでネットワーク経由で利用する場合、<strong>ソースコードの開示義務が生じる可能性</strong>がある。</p>
+    <figure class="page-figure">
+      <img src="images/0528/page_12.jpg" alt="AGPL-3.0 移行に伴う法務リスクと運用ガバナンス" loading="lazy">
+      <figcaption>FIG · <strong>独自のアルゴリズムを「秘伝のソース」とするプロップ・ファームにとっては、極めて慎重な法的検討が必要</strong>。MIT → AGPL-3.0 のライセンス変更は OSS 利用企業の前提を覆す。v0.20.0 という実験的段階だが、その設計思想は<em>次世代 AI 金融インフラのリファレンス実装</em>となる</figcaption>
+    </figure>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Action · 次にとるべき 3 つの具体的アクション</span>
+        <h3>MockBroker 検証 × 最小権限 × AGPL-3.0 評価</h3>
+        <p>実資金を投じる前に、<strong>必ず以下の 3 ステップを踏む</strong>こと。1 つでも省略すると、致命的損失や法的トラブルへ直結するリスクがある。<em>「速く動く」より「正しく動く」</em>を優先せよ。</p>
+        <ol>
+          <li><strong>MockBroker での検証</strong> — 実資金を入れず、<em>TaG のワークフローと tradingSync の挙動を確認</em>。最低 1 週間は paper trading で慣熟。</li>
+          <li><strong>最小権限の徹底</strong> — <strong>出金権限をオフ</strong>にした専用口座を作成し、ホワイトリストを厳格に設定。<em>レバレッジ枠も最小化</em>。</li>
+          <li><strong>AGPL-3.0 の評価</strong> — 自社の知的財産保護の観点から、<em>ソースコードの改変・公開リスクを法務部門と精査</em>。プロップ・ファームは特に慎重に。</li>
+          <li><strong>Evolution Mode の権限管理</strong> — 自己進化機能を有効化する場合、<strong>Bash 実行範囲を厳格に制限</strong>。サンドボックス内のみで動作させる運用ポリシーを Day 1 から確立。</li>
+        </ol>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="future">
+    <h2>Chapter 7 — 総括：OpenAlice が示唆する「金融 × AI」の未来</h2>
+    <p class="section-lead">OpenAlice は単なる<strong>「利益を出す魔法の箱」</strong>ではなく、<em>AI が不確実なリスク資産を扱うための、安全な「OS」であり「監査インフラ」</em>。v0.20.0 という実験的段階ではあるが、<strong>その設計思想は次世代の AI 金融インフラのリファレンス実装</strong>となるだろう。</p>
+    <div class="chapter-grid">
+      <article class="chapter">
+        <span class="label">Future · 「監査可能な自律 AI」が新標準へ</span>
+        <h3>Trading-as-Git は金融以外にも波及する設計原理</h3>
+        <p>三層分離アーキテクチャと TaG の<strong>「監査可能な自律 AI」設計</strong>は、金融以外の<em>不可逆な実行を伴うあらゆる領域（医療・法務・インフラ運用）</em>に波及するだろう。OpenAlice はその<strong>「先駆けとなるリファレンス実装」</strong>であり、AI が単なる助言者から「実行責任を負うエージェント」へ進化する境界線を技術で定義した。</p>
+        <ol>
+          <li><strong>0–1 ヶ月</strong> — MockBroker で TaG ワークフローに習熟。Stage / Commit / Push の Rationale 記述を習慣化。<em>120k / 0.8</em> の compaction 設定で開始。</li>
+          <li><strong>1–3 ヶ月</strong> — 最小権限専用口座で実取引へ移行。<strong>Claude Max 5x ($100/月) で自動ループを稼働</strong>。Workspace で入力コストを 90% 削減。</li>
+          <li><strong>3–6 ヶ月</strong> — Guard Pipeline をチューニング。<em>Evolution Mode を限定的に試験運用</em>。AGPL-3.0 評価を法務部門と完了し本格運用判断。</li>
+          <li><strong>6 ヶ月以降</strong> — TaG の Rationale と <em>Live/Backtest 乖離分析</em>から戦略を継続改善。AI 金融インフラの<strong>業界標準実装</strong>として組織展開。</li>
+        </ol>
+      </article>
+      <figure class="hero-media large">
+        <img src="images/0528/page_11.jpg" alt="OpenAlice 総括 — 監査可能な自律 AI が金融インフラの新標準へ" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>押さえるべき数値とキーワード</h2>
+    <div class="metric-grid">
+      <div class="metric"><strong>4.3k stars</strong><span>GitHub での爆発的支持（5 月時点）</span></div>
+      <div class="metric"><strong>3 Layers</strong><span>Alice × UTA × Guardian の物理分離</span></div>
+      <div class="metric"><strong>Trading-as-Git</strong><span>Stage → Commit → Push → Log の 4 段階</span></div>
+      <div class="metric"><strong>8 文字 hash</strong><span>Rationale 付き Commit のハッシュ</span></div>
+      <div class="metric"><strong>90% 削減</strong><span>Workspace + Prompt Caching のコスト効果</span></div>
+      <div class="metric"><strong>$20 / $100</strong><span>Claude Pro / Claude Max 5x の月額</span></div>
+      <div class="metric"><strong>compaction.json</strong><span>120k / 0.8 から開始する長期コンテキスト管理</span></div>
+      <div class="metric"><strong>AGPL-3.0</strong><span>MIT → AGPL 移行に伴うライセンス検討</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>3 つのペルソナが、それぞれにやるべきこと</h2>
+    <p class="section-lead">立場ごとに最初の一歩は変わる。<strong>「速く動く」より「正しく動く」を最優先</strong>するのが OpenAlice 運用の鉄則だ。</p>
+    <div class="usecase">
+      <span class="label">個人トレーダー / インディーズクオンツ</span>
+      <p>MockBroker で TaG ワークフローを 1 週間以上慣熟させた後、<strong>出金権限オフの専用口座 × 最小レバレッジ × ホワイトリスト厳格化</strong>で実取引へ。<em>Claude Pro ($20) からスタート</em>し、戦略安定後に Max 5x へ移行。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">開発者 / SDK ユーザー</span>
+      <p>UTA を活用した<strong>複数ブローカー統合</strong>でセキュアな実装を最短化。AI 判断層と実行層の物理分離設計を踏襲し、<em>Evolution Mode は Bash 実行範囲をサンドボックス内に制限</em>する権限ポリシーを Day 1 で確立。</p>
+    </div>
+    <div class="usecase">
+      <span class="label">プロップファーム / 機関投資家・法務部門</span>
+      <p>AGPL-3.0 への移行に伴う<strong>ソースコード開示義務リスク</strong>を法務と精査。秘伝のアルゴリズムを内製する場合は<em>Self-hosted の閉域 LAN 運用</em>を前提に。Live/Backtest 乖離分析を Rationale ベースで実施。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="pullquote" role="complementary" aria-label="本号のポイント">
+      <q>OpenAlice は単なる「利益を出す魔法の箱」ではなく、<em>AI が不確実なリスク資産を扱うための、安全な「OS」であり「監査インフラ」</em>である。</q>
+      <cite>— Your one-person Wall Street · OpenAlice が示唆する「金融 × AI」の未来 · 2026-05-28</cite>
+    </div>
+    <figure class="page-figure">
+      <img src="images/0528/page_02.jpg" alt="OpenAlice の本質 — Your one-person Wall Street ビジョンの実装" loading="lazy">
+      <figcaption>FIG · OpenAlice の本質：<strong>「監査可能な自律 AI」</strong>の設計原理は金融以外の<em>不可逆な実行を伴うあらゆる領域</em>に波及する。v0.20.0 という実験的段階だが、AI が「助言者」から<strong>「実行責任を負うエージェント」</strong>へ進化する境界線を技術で定義した</figcaption>
+    </figure>
+  </section>
+
+  <section class="section">
+    <h2>本日の主要ヘッドライン（05/28）</h2>
+    <p class="section-lead">OpenAlice 以外の 2026-05-28 主要トピックを併せてピックアップ。</p>
+    <div class="source-list">
+      <a href="https://techcrunch.com/podcast/your-seo-strategy-is-optimized-for-a-search-engine-that-no-longer-exists" target="_blank" rel="noopener">
+        <strong>SEO 戦略は、存在しない検索エンジン向けに最適化されている</strong>
+        <span>Google AI 生成回答が前面化。10 の青いリンクを前提とした従来 SEO が陳腐化</span>
+      </a>
+      <a href="https://openai.com/index/cisco" target="_blank" rel="noopener">
+        <strong>Cisco × OpenAI — Codex でエンタープライズエンジニアリング再定義</strong>
+        <span>AI 防衛・欠陥修復の自動化、AI ネイティブ開発のスケール加速</span>
+      </a>
+      <a href="https://techcrunch.com/2026/05/27/in-more-good-news-for-amazon-snowflake-signs-6b-deal-with-aws-for-ai-cpu-chips" target="_blank" rel="noopener">
+        <strong>Snowflake × AWS — 60 億ドル規模 5 年契約で AI 用 CPU 調達</strong>
+        <span>NVIDIA 一強市場への新たな圧力。AWS の AI 計算リソース戦略が前進</span>
+      </a>
+      <a href="https://huggingface.co/blog/local-reachy-mini-conversation" target="_blank" rel="noopener">
+        <strong>Hugging Face Reachy Mini — ローカル処理に最適化</strong>
+        <span>クラウド依存から脱却、オフライン動作・プライバシー強化・応答速度向上</span>
+      </a>
+      <a href="https://techcrunch.com/2026/05/27/payroll-startup-remote-says-it-grew-revenue-50-per-employee-without-adding-headcount" target="_blank" rel="noopener">
+        <strong>Remote 社 — AI 導入で従業員あたり売上 50% 増、ARR 3 億ドル超</strong>
+        <span>人的コストを増やさず売上成長、AI 活用の新しい SaaS 経済モデル</span>
+      </a>
+      <a href="https://techcrunch.com/2026/05/27/meta-officially-launches-instagram-facebook-and-whatsapp-subscriptions-with-more-to-come-including-ai-plans" target="_blank" rel="noopener">
+        <strong>Meta — Instagram / Facebook / WhatsApp 有料サブスク開始</strong>
+        <span>Meta One ブランドで AI / クリエイター / ビジネス向けプラン展開予定</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>出典 &amp; 参考リンク</h2>
+    <div class="source-list">
+      <a href="https://github.com/openalice-ai/openalice" target="_blank" rel="noopener">
+        <strong>OpenAlice 公式リポジトリ（GitHub）</strong>
+        <span>OSS 実装、Trading-as-Git ドキュメント、AGPL-3.0 ライセンス情報</span>
+      </a>
+      <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching" target="_blank" rel="noopener">
+        <strong>Anthropic — Prompt Caching ドキュメント</strong>
+        <span>入力トークンコスト最大 90% 削減を実現する KV キャッシュ仕様</span>
+      </a>
+      <a href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">
+        <strong>Anthropic — Claude Pro / Max 価格表</strong>
+        <span>Claude Pro $20、Claude Max 5x $100。OpenAlice 推奨運用プラン</span>
+      </a>
+      <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">
+        <strong>AGPL-3.0 ライセンス全文（GNU）</strong>
+        <span>ネットワーク経由利用時のソースコード開示義務の根拠条文</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_27.html" class="prev">
+        <span class="dir">← Prev · 05/27</span>
+        <strong>Rowboat — ローカル AI 同僚「業務文脈を資産化する個人業務メモリ層（OS）」</strong>
+      </a>
+      <a href="../day_slides_index.html" class="next">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026-05-28 — <em>OpenAlice · Your one-person Wall Street を実現する次世代 AI トレーディング OS</em></div>
+    <div class="f-meta">出典: OpenAlice OSS ／ Anthropic Claude / Prompt Caching ／ AGPL-3.0 ／ NotebookLM</div>
+  </div>
+</footer>
+</body>
+</html>
