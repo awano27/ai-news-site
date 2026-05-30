@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integuru — 「APIなき世界」を終わらせる、リバースエンジニアリング基盤 | 2026-05-30 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Inter+Tight:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<meta name="description" content="2026 年 5 月、AIエージェント時代の最大のボトルネック『実行の壁』を打ち破る OSS が登場した。Integuru（インテグル）。LLM が高度な Reasoning を担う一方で、それを実業務に接続する Action レイヤー — 特に公式 API のないレガシーシステム — が決定的に不足していた。日本企業ではこの『API 不在』が、AI 投資を巨大なサンクコストへ変える構造的呪縛となってきた。Integuru は『画面を模倣する（UI / DOM 依存）』従来 RPA / Browser-use のパラダイムを覆し、『通信を再現する（HTTP レイヤー直接制御）』新たな自動化基盤を提示する。4 ステップパイプライン：① HAR 記録（1 回の手動操作で通信ログを録音）→ ② ノイズ除去（LLM が画像・広告等の不要トラフィックを除去）→ ③ 依存グラフ（DAG）構築（CSRF トークンなど動的パラメータを再帰的に解決）→ ④ requests ベース Python SDK 生成。商用版 Cloud は Auto-healing で内部 API 仕様変更を自動再マッピングし、メンテナンスを 1/10 以下に。技術指標は 99.9% 以上の成功率、約 3 秒/コール、$0.01/リクエスト〜、月額 $30〜。3 時間/日の手作業を 30 秒の API コールに変換し、年間 360 万円/人を削減。開発者・経理担当者・AIPM の 3 ペルソナを解放し、Jira / 経理 / Excel ポータル横断の AI-PMO 基盤を完成させる。COBOL / 古い Java のブラックボックスを破壊せず『生きた資産』へ変える非侵襲性が、2025 年の崖を背景にした日本企業にとっての『最終ピース』だ。AGPL-3.0 OSS のライセンス検討、2FA 初回手動介入、HashiCorp Vault による秘密情報管理、ToS 適合性精査まで網羅。15 分の PoC から始まる Agentic Age の第一歩。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_30.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Integuru — 「APIなき世界」を終わらせる、リバースエンジニアリング基盤 | 2026-05-30" />
+<meta property="og:description" content="HAR → ノイズ除去 → DAG 構築 → SDK 生成。HTTP 層直接制御で 99.9% 成功率・約 3 秒/コール・$0.01/req。日本企業のレガシー資産を AI が操作可能な『生きた資産』へ変える非侵襲性。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_30.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0530/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Integuru — API なき世界を終わらせる | 2026-05-30" />
+<meta name="twitter:description" content="HTTP 層を直接制御し、レガシーシステムを『API ネイティブ』に変える OSS。15 分の PoC で年間 360 万円/人を削減する Agentic Age の最終ピース。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0530/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Integuru — 「APIなき世界」を終わらせる、リバースエンジニアリング基盤",
+  "datePublished": "2026-05-30",
+  "dateModified": "2026-05-30",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0530/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_30.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_30.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     INTEGURU · BLUEPRINT EDITORIAL · 2026-05-30
+     ============================================================
+     Direction: Engineering Manifesto on cream paper.
+     A technical white-paper that reads like a manifesto —
+     ink-blue accent, Fraunces serif italics, IBM Plex Mono
+     callouts, and faint blueprint grid running beneath.
+     ============================================================ */
+  :root {
+    --paper: #f4ede0;
+    --paper-2: #ede5d4;
+    --ink: #14110d;
+    --ink-soft: #3a352c;
+    --ink-faded: #6c6354;
+    --rule: #c8bda7;
+    --rule-soft: #ddd2bb;
+    --signal: #0b3fc4;
+    --signal-deep: #062a8a;
+    --signal-tint: #d8e0fb;
+    --warn: #b8430f;
+    --warn-tint: #f6dac9;
+    --ok: #1f6b3a;
+    --ok-tint: #d5e9da;
+    --shadow-ink: 0 1px 0 rgba(20,17,13,.08), 0 18px 36px -28px rgba(20,17,13,.4);
+    --serif: 'Fraunces','Noto Serif JP', Georgia, serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Inter Tight','Noto Serif JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(20,17,13,.05) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+  ::selection { background: var(--ink); color: var(--paper); }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    padding: 14px 32px;
+    background: rgba(244,237,224,.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .topbar b {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+  }
+  .topbar nav { display: flex; gap: 18px; flex-wrap: wrap; }
+  .topbar nav a { color: var(--ink-faded); text-decoration: none; transition: color .15s; }
+  .topbar nav a:hover { color: var(--signal); }
+  .topbar > span { color: var(--ink-faded); }
+
+  /* ── main shell ─────────────────────────────────── */
+  main { max-width: 1240px; margin: 0 auto; padding: 0 32px 96px; }
+  section { padding: 88px 0; border-bottom: 1px solid var(--rule-soft); }
+  section:last-of-type { border-bottom: 0; }
+
+  /* eyebrow + section heading framework */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 18px;
+  }
+  .eyebrow::before {
+    content: ""; display: inline-block; width: 36px; height: 1px; background: var(--signal);
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 4.4vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -.015em;
+    margin-bottom: 24px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+  }
+  h2 em { font-style: italic; color: var(--signal); }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    margin-bottom: 14px;
+    font-variation-settings: "opsz" 144;
+  }
+  .section-lead {
+    max-width: 740px;
+    font-size: clamp(17px, 1.4vw, 19px);
+    line-height: 1.75;
+    color: var(--ink-soft);
+    margin-bottom: 56px;
+  }
+  .section-lead strong { color: var(--ink); font-weight: 600; }
+  .section-lead em { font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--signal-deep); }
+
+  p { font-size: 16px; line-height: 1.78; color: var(--ink-soft); }
+  p strong { color: var(--ink); font-weight: 600; }
+  p em { font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--signal-deep); }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 96px 0 88px; border-bottom: 1px solid var(--rule); position: relative; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(to right, rgba(11,63,196,.05) 1px, transparent 1px) 0 0/96px 100%,
+      linear-gradient(to bottom, rgba(11,63,196,.04) 1px, transparent 1px) 0 0/100% 64px;
+    pointer-events: none; opacity: .6;
+  }
+  .hero-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .hero-eyebrow .stamp {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid var(--signal);
+    border-radius: 0;
+    color: var(--signal);
+  }
+  .hero-eyebrow .sep { color: var(--rule); }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(46px, 6.5vw, 88px);
+    line-height: 1.02;
+    letter-spacing: -.025em;
+    margin-bottom: 36px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 0;
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--signal);
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  h1 .strike { text-decoration: line-through; text-decoration-color: var(--warn); text-decoration-thickness: 4px; color: var(--ink-faded); }
+  .hero-lead {
+    font-size: 18px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    max-width: 56ch;
+  }
+  .hero-lead strong { color: var(--ink); }
+  .hero-summary {
+    font-size: 15px;
+    line-height: 1.78;
+    color: var(--ink-faded);
+    border-left: 2px solid var(--signal);
+    padding: 8px 0 8px 20px;
+    margin-bottom: 32px;
+    max-width: 60ch;
+  }
+  .hero-summary strong { color: var(--ink); font-weight: 600; }
+  .hero-summary em { font-family: var(--serif); font-style: italic; color: var(--signal-deep); font-weight: 500; }
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .button-link {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 13px 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0;
+    transition: transform .15s, background .15s, color .15s;
+  }
+  .button-link {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+  }
+  .button-link:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--signal); }
+  .button-link.secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .button-link.secondary:hover { box-shadow: 4px 4px 0 var(--ink); background: var(--paper-2); }
+  .button-link::after { content: "↗"; font-family: var(--serif); font-style: italic; }
+
+  .hero-figure {
+    position: relative;
+    border: 1px solid var(--ink);
+    padding: 8px;
+    background: var(--paper-2);
+    transform: rotate(-.4deg);
+    box-shadow: var(--shadow-ink);
+  }
+  .hero-figure::before {
+    content: "FIG.A · INTEGURU OVERVIEW";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--paper); padding: 0 8px;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .18em; color: var(--ink-faded);
+  }
+  .hero-figure img { display: block; width: 100%; height: auto; filter: contrast(1.02); }
+
+  /* ── stat band ──────────────────────────────────── */
+  .stat-band {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    margin-top: 64px;
+  }
+  .stat-band > div {
+    padding: 28px 24px;
+    border-right: 1px solid var(--rule);
+  }
+  .stat-band > div:last-child { border-right: 0; }
+  .stat-num {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(40px, 4.4vw, 56px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144;
+    margin-bottom: 8px;
+  }
+  .stat-num em { font-style: italic; color: var(--signal); font-weight: 400; }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+
+  /* ── pipeline (HAR → DAG → SDK) ─────────────────── */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    margin-top: 40px;
+    position: relative;
+  }
+  .pipe-step {
+    padding: 32px 24px 28px;
+    border-right: 1px dashed var(--rule);
+    position: relative;
+  }
+  .pipe-step:last-child { border-right: 0; }
+  .pipe-step::before {
+    content: "→";
+    position: absolute;
+    right: -10px; top: 50%;
+    transform: translateY(-50%);
+    background: var(--paper);
+    width: 20px; height: 20px;
+    display: grid; place-items: center;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--signal);
+    font-size: 18px;
+    z-index: 2;
+  }
+  .pipe-step:last-child::before { content: ""; }
+  .pipe-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    color: var(--signal);
+    margin-bottom: 12px;
+  }
+  .pipe-name {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .pipe-name em { font-style: italic; color: var(--signal); }
+  .pipe-desc { font-size: 13.5px; line-height: 1.65; color: var(--ink-soft); }
+  .pipe-code {
+    display: block;
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+    word-break: break-all;
+  }
+
+  /* ── comparison table ───────────────────────────── */
+  .compare {
+    width: 100%;
+    margin-top: 32px;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    font-family: var(--sans);
+  }
+  .compare thead th {
+    text-align: left;
+    padding: 16px 18px;
+    border-bottom: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    vertical-align: bottom;
+  }
+  .compare thead th.win {
+    background: var(--ink); color: var(--paper);
+    border-bottom-color: var(--signal);
+    font-family: var(--serif); font-style: italic; font-size: 15px;
+    text-transform: none; letter-spacing: 0;
+    font-weight: 500;
+  }
+  .compare tbody td {
+    padding: 16px 18px;
+    border-bottom: 1px dashed var(--rule);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  .compare tbody td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--ink);
+    text-transform: uppercase;
+    width: 22%;
+  }
+  .compare tbody td.win {
+    background: rgba(11,63,196,.06);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .compare tbody td.win strong { color: var(--signal); font-weight: 700; }
+  .compare tbody tr:last-child td { border-bottom: 1px solid var(--ink); }
+
+  /* ── persona / story grid ───────────────────────── */
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .persona {
+    padding: 28px 24px;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    position: relative;
+  }
+  .persona::before {
+    content: "PERSONA";
+    position: absolute; top: -1px; left: 24px;
+    background: var(--paper);
+    padding: 4px 10px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: .2em;
+    color: var(--ink-faded);
+    border: 1px solid var(--rule);
+    border-top: 0;
+  }
+  .persona h3 { margin-top: 16px; }
+  .before-after {
+    margin-top: 18px;
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .before-after .row { display: flex; gap: 14px; padding: 8px 0; align-items: flex-start; }
+  .before-after .row + .row { border-top: 1px dashed var(--rule); }
+  .before-after .tag {
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    padding: 2px 8px;
+    border: 1px solid var(--rule);
+    margin-top: 2px;
+  }
+  .before-after .row.after .tag { border-color: var(--signal); color: var(--signal); }
+  .before-after .row.after { color: var(--ink); font-weight: 500; }
+
+  /* ── manifesto / pullquote ──────────────────────── */
+  .manifesto {
+    margin-top: 48px;
+    padding: 64px 48px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    position: relative;
+  }
+  .manifesto::before {
+    content: "MANIFESTO · 2026·05·30";
+    position: absolute; top: -10px; left: 24px;
+    background: var(--paper); color: var(--ink);
+    padding: 0 12px;
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .2em;
+  }
+  .manifesto q {
+    quotes: none;
+    display: block;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(28px, 3.4vw, 44px);
+    line-height: 1.25;
+    letter-spacing: -.015em;
+    color: var(--paper);
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  .manifesto q em { font-style: normal; color: #ffe7a8; }
+  .manifesto cite {
+    display: block;
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-style: normal;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(244,237,224,.6);
+  }
+
+  /* ── figure / image with caption ────────────────── */
+  figure.plate {
+    margin: 32px 0 8px;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    padding: 8px 8px 0;
+  }
+  figure.plate img { display: block; width: 100%; height: auto; }
+  figure.plate figcaption {
+    padding: 14px 12px 16px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    letter-spacing: .02em;
+  }
+  figure.plate figcaption strong {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    letter-spacing: 0;
+    margin-right: 8px;
+    font-style: italic;
+  }
+
+  /* ── two-col grid for body text + figure ────────── */
+  .split {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 56px;
+    align-items: start;
+  }
+  .split .body p + p { margin-top: 16px; }
+  .split.flip { grid-template-columns: .95fr 1.05fr; }
+
+  /* ── ROI block ──────────────────────────────────── */
+  .roi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .roi {
+    padding: 32px 24px;
+    border-right: 1px solid var(--rule-soft);
+  }
+  .roi:last-child { border-right: 0; }
+  .roi .label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 12px;
+  }
+  .roi .num {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(48px, 5.5vw, 72px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--signal);
+    margin-bottom: 14px;
+    font-variation-settings: "opsz" 144;
+  }
+  .roi .copy { font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+  .roi .copy strong { color: var(--ink); font-weight: 600; }
+
+  /* ── step-list / numbered ───────────────────────── */
+  .ol-roman {
+    list-style: none;
+    counter-reset: roman;
+    margin-top: 24px;
+  }
+  .ol-roman li {
+    counter-increment: roman;
+    padding: 18px 0 18px 64px;
+    position: relative;
+    border-bottom: 1px dashed var(--rule);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .ol-roman li:last-child { border-bottom: 0; }
+  .ol-roman li::before {
+    content: counter(roman, upper-roman) ".";
+    position: absolute; left: 0; top: 18px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 28px;
+    color: var(--signal);
+    width: 48px;
+  }
+  .ol-roman li strong { color: var(--ink); font-weight: 600; }
+
+  /* ── risk callouts ──────────────────────────────── */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 32px;
+    border: 1px solid var(--warn);
+    background: var(--paper-2);
+  }
+  .risk {
+    padding: 28px 24px;
+    border-right: 1px dashed var(--warn);
+  }
+  .risk:last-child { border-right: 0; }
+  .risk .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--warn);
+    background: var(--warn-tint);
+    padding: 3px 9px;
+    margin-bottom: 14px;
+  }
+  .risk h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .risk p { font-size: 13.5px; line-height: 1.65; }
+
+  /* ── headlines grid ─────────────────────────────── */
+  .source-list { display: grid; gap: 0; border-top: 1px solid var(--ink); margin-top: 32px; }
+  .source-list a {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 18px;
+    align-items: baseline;
+    padding: 22px 0;
+    border-bottom: 1px dashed var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+    transition: padding .15s, background .15s;
+  }
+  .source-list a:hover { padding-left: 12px; background: var(--paper-2); }
+  .source-list a .idx {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--ink-faded);
+  }
+  .source-list a strong {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 1.3;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .source-list a span {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .source-list a .arr {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--signal);
+    font-size: 18px;
+    transition: transform .15s;
+  }
+  .source-list a:hover .arr { transform: translateX(6px); }
+
+  /* ── pager ──────────────────────────────────────── */
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 64px;
+    border-top: 2px solid var(--ink);
+  }
+  .pager a {
+    padding: 28px 24px;
+    text-decoration: none;
+    color: var(--ink);
+    border-right: 1px solid var(--rule);
+  }
+  .pager a:last-child { border-right: 0; text-align: right; }
+  .pager .dir {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .pager strong {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.3;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  /* ── footer ─────────────────────────────────────── */
+  .site-foot {
+    border-top: 1px solid var(--ink);
+    padding: 36px 0 64px;
+    margin-top: 64px;
+  }
+  .site-foot .inner { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+  .site-foot .f-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .site-foot .f-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--ink-faded);
+  }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 960px) {
+    .hero-grid, .split, .split.flip { grid-template-columns: 1fr; gap: 36px; }
+    .stat-band, .pipeline, .persona-grid, .risk-grid, .roi-grid { grid-template-columns: 1fr 1fr; }
+    .stat-band > div, .pipe-step, .risk, .roi { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .stat-band > div:nth-child(2n), .pipe-step:nth-child(2n), .risk:nth-child(2n), .roi:nth-child(2n) { border-right: 0; }
+    .pipe-step::before { display: none; }
+    .topbar { padding: 12px 18px; }
+    .topbar nav { display: none; }
+    main { padding: 0 18px 64px; }
+    section { padding: 56px 0; }
+    .manifesto { padding: 40px 24px; }
+    .compare { font-size: 13px; }
+    .compare thead th, .compare tbody td { padding: 12px 10px; }
+  }
+  @media (max-width: 560px) {
+    .stat-band, .pipeline, .persona-grid, .risk-grid, .roi-grid, .pager { grid-template-columns: 1fr; }
+    .stat-band > div, .pipe-step, .persona, .risk, .roi, .pager a { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .source-list a { grid-template-columns: 1fr; gap: 4px; padding: 18px 0; }
+    .source-list a .arr { display: none; }
+    h1 { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav>
+    <a href="#hero">要約</a>
+    <a href="#wall">壁</a>
+    <a href="#pipeline">構造</a>
+    <a href="#compare">比較</a>
+    <a href="#japan">日本</a>
+    <a href="#roi">ROI</a>
+    <a href="#risk">規律</a>
+    <a href="#future">決断</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026·05·30 · SAT</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">
+          <span class="stamp">Issue № 05·30</span>
+          <span class="sep">/</span>
+          <span>Integuru · API-Native Infrastructure</span>
+          <span class="sep">/</span>
+          <span>Reverse-engineering Edition</span>
+        </div>
+        <h1>
+          <span class="strike">API がない</span><br>
+          だから、<br>
+          <em>API を</em> 作った。
+        </h1>
+        <p class="hero-lead">
+          AIエージェントは「考える」ことを覚えた。だが、考えたことを <strong>「実行する」</strong> ための窓口 — API — が、企業の現場にはほとんどない。日本のレガシー環境ではなおさら。<em>これが、AI 投資をサンクコストに変える「実行の壁」だ。</em>
+        </p>
+        <p class="hero-summary">
+          <strong>Integuru（インテグル）</strong> は、UI を模倣する RPA / Browser-use のパラダイムを覆し、<em>HTTP レイヤーを直接制御する</em>新たな自動化基盤。1 回の手動操作の HAR を録音し、LLM がノイズを除き、リクエストの依存関係を <strong>DAG</strong> として推論し、<em>requests ベースの Python SDK を発明</em>する。成功率 99.9%、約 3 秒/コール、$0.01/req。商用版の Auto-healing が仕様変更を自動再マッピングし、メンテを 1/10 へ。<strong>「API がないから自動化できない」</strong>という言い訳は、もはや通用しない。
+        </p>
+        <div class="hero-cta">
+          <a class="button-link" href="https://github.com/Integuru-AI/Integuru" target="_blank" rel="noopener">Integuru GitHub</a>
+          <a class="button-link secondary" href="https://integuru.ai/" target="_blank" rel="noopener">Cloud (Recording-free)</a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="images/0530/cover.jpg" alt="Integuru — API なき世界を終わらせるリバースエンジニアリング基盤">
+      </figure>
+    </div>
+
+    <div class="stat-band" aria-label="主要数値">
+      <div>
+        <div class="stat-num"><em>99.9%</em></div>
+        <div class="stat-label">Success Rate</div>
+      </div>
+      <div>
+        <div class="stat-num">≈3<span style="font-size:.55em">s</span></div>
+        <div class="stat-label">Per API Call</div>
+      </div>
+      <div>
+        <div class="stat-num">$<em>0.01</em></div>
+        <div class="stat-label">Per Request</div>
+      </div>
+      <div>
+        <div class="stat-num">¥<em>3.6M</em></div>
+        <div class="stat-label">Saved / Person · Year</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── THE WALL ───────────────── -->
+  <section id="wall">
+    <div class="eyebrow">§ 01 — The Wall</div>
+    <h2>AI は<em>「考える」</em>を覚えた。<br>だが「実行」を、まだ知らない。</h2>
+    <p class="section-lead">
+      LLM の進化で <strong>Reasoning（推論・計画）</strong>を担う思考エンジンは手に入った。しかし、それを実業務に接続する <em>Action（実行・ツール利用）</em>レイヤーが決定的に不足している。これが <strong>AIエージェント時代の「実行の壁」</strong>。壁の正体は、既存システムにおける <em>「API の不在」</em>そのものだ。
+    </p>
+    <div class="split">
+      <div class="body">
+        <p>日本のレガシー環境では、基幹業務の多くが外部接続用の窓口を持たない。結果、AI がどれほど緻密な業務計画を策定しても、最終段階で <strong>「不安定な UI 操作」</strong>や <strong>「人間による手作業」</strong>というアナログな介在を余儀なくされる。</p>
+        <p>UI レイヤーへの依存は、本質的に <em>脆い</em>。1 ピクセルのレイアウト変更でプロセスが破綻し、CSRF トークンや動的な認証フローを <em>「見ることができない」</em>。AI を本気で運用する組織にとって、これは技術的負債そのものだ。</p>
+        <p>Integuru の発想は単純であり、革命的だ。 <strong>「画面を模倣する」のではなく、通信を再現する」。</strong>HTTP 層を直接制御することで、UI の脆さから完全に独立した <em>エンジニアリング資産</em>を構築する。</p>
+      </div>
+      <figure class="plate">
+        <img src="images/0530/page_03.jpg" alt="従来 RPA の UI 依存と Integuru の HTTP 直接制御">
+        <figcaption><strong>FIG · 1</strong>従来 RPA は DOM / 視覚に依存し UI 変更で停止。Integuru は HTTP 層を直接掴むため、画面が変わってもバックエンド契約が変わらない限り <em>動き続ける</em>。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── PIPELINE ───────────────── -->
+  <section id="pipeline">
+    <div class="eyebrow">§ 02 — Architecture · 4 Steps</div>
+    <h2>HAR → ノイズ除去 → <em>DAG</em> → SDK。<br>API を、自ら<em>発明</em>するパイプライン。</h2>
+    <p class="section-lead">
+      Integuru が「API を自ら発明」する過程は、極めて論理的な <strong>4 ステップ</strong>に圧縮される。1 回の手動操作だけで、本物の Python SDK が生まれる — <em>これが、構造的破壊の核だ</em>。
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">STEP · I</div>
+        <div class="pipe-name"><em>HAR</em> 記録</div>
+        <p class="pipe-desc">対象操作を <strong>1 回だけ手動実行</strong>し、ブラウザの DevTools / Playwright で全通信ログ（HAR）を <em>「録音」</em>する。これが学習材料のすべて。</p>
+        <code class="pipe-code">$ python create_har.py \<br>&nbsp;&nbsp;--url https://target.app/login</code>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">STEP · II</div>
+        <div class="pipe-name">ノイズ<em>除去</em></div>
+        <p class="pipe-desc"><strong>LLM がトラフィックを分類</strong>し、画像・広告・テレメトリ等の不要リクエストを除去。本質的な業務リクエストのみを抽出する。</p>
+        <code class="pipe-code">filter: { static, ads, beacons }<br>keep:&nbsp;&nbsp;&nbsp;{ business · auth }</code>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">STEP · III</div>
+        <div class="pipe-name">依存<em>グラフ</em></div>
+        <p class="pipe-desc">リクエスト間の <strong>因果関係</strong>を推論し、<em>有向非巡回グラフ（DAG）</em>として表現。ユーザー ID・CSRF トークン等の動的パラメータを<strong>再帰的に解決</strong>する。</p>
+        <code class="pipe-code">DAG: login → token<br>&nbsp;&nbsp;&nbsp;&nbsp; → query → result</code>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">STEP · IV</div>
+        <div class="pipe-name">SDK <em>生成</em></div>
+        <p class="pipe-desc"><strong>requests ベースの Python コード</strong>を出力。商用 Cloud 版は <em>Auto-healing</em> で内部 API 仕様変更を自動再マッピングし、メンテを 1/10 以下に。</p>
+        <code class="pipe-code">import requests<br>def fetch_orders(token): …</code>
+      </div>
+    </div>
+
+    <figure class="plate" style="margin-top: 40px;">
+      <img src="images/0530/page_04.jpg" alt="Integuru の 4 ステップパイプラインと依存 DAG 構築">
+      <figcaption><strong>FIG · 2</strong>RPA が <em>「見ることができない」</em>内部トークンの依存構造を、Integuru は <strong>数学的に</strong>解決する。これが「画面の自動化」と「契約の自動化」の決定的な分岐点だ。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── COMPARE ───────────────── -->
+  <section id="compare">
+    <div class="eyebrow">§ 03 — Comparative Specification</div>
+    <h2>UI を見ない。だから<em>止まらない</em>。</h2>
+    <p class="section-lead">
+      従来 RPA は DOM、Browser-use は視覚 — どちらも「画面」というレイヤーの脆さから逃れられない。Integuru は <em>HTTP 層という不可視で安定した契約</em>を相手にする。<strong>結果は、桁違いだ。</strong>
+    </p>
+
+    <div style="overflow-x: auto;">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th>Vector</th>
+            <th>従来 RPA<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--serif);font-style:italic;color:var(--ink-faded);font-size:11px;">UIPath et al.</span></th>
+            <th>Browser-use<br><span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--serif);font-style:italic;color:var(--ink-faded);font-size:11px;">Vision-based</span></th>
+            <th class="win">Integuru — HTTP-native</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>技術的対象</td>
+            <td>DOM 要素・配置</td>
+            <td>視覚判断・OS 操作</td>
+            <td class="win">内部 <strong>HTTP 通信</strong></td>
+          </tr>
+          <tr>
+            <td>安定性</td>
+            <td>低（UI 変更で即停止）</td>
+            <td>中（動的 UI に弱い）</td>
+            <td class="win"><strong>極めて高</strong>（バックエンド依存）</td>
+          </tr>
+          <tr>
+            <td>処理速度</td>
+            <td>遅（数十秒〜分）</td>
+            <td>低（LLM レイテンシ）</td>
+            <td class="win">高速 <strong>≈3 秒/コール</strong></td>
+          </tr>
+          <tr>
+            <td>成功率</td>
+            <td>80% 前後</td>
+            <td>89% 前後</td>
+            <td class="win"><strong>99.9% 以上</strong></td>
+          </tr>
+          <tr>
+            <td>並列化</td>
+            <td>困難（リソース占有）</td>
+            <td>困難</td>
+            <td class="win">高（<strong>サーバレス可</strong>）</td>
+          </tr>
+          <tr>
+            <td>コスト</td>
+            <td>高（ライセンス + 保守）</td>
+            <td>中〜高（トークン消費）</td>
+            <td class="win">低 <strong>$0.01/req〜</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="plate" style="margin-top: 40px;">
+      <img src="images/0530/page_05.jpg" alt="RPA / Browser-use / Integuru の技術スタック比較">
+      <figcaption><strong>FIG · 3</strong>「UI を見る」自動化は、AI 時代において<em>負債</em>だ。HTTP 層を契約とする Integuru は、UI 変更を <strong>「ノイズ」</strong>として無視する設計を獲得した。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── PERSONAS ───────────────── -->
+  <section>
+    <div class="eyebrow">§ 04 — Who is freed?</div>
+    <h2>「<em>システムの奴隷</em>」を、<br>3 人、解放する。</h2>
+    <p class="section-lead">
+      Integuru の真の価値は、技術スコアではなく <strong>「組織の機動力」</strong>の再定義にある。3 つのペルソナそれぞれに、Before / After の質的転換が起こる。
+    </p>
+
+    <div class="persona-grid">
+      <article class="persona">
+        <h3>開発者・<em style="font-family:var(--serif);font-style:italic;color:var(--signal);">エンジニア</em></h3>
+        <div class="before-after">
+          <div class="row before">
+            <span class="tag">Before</span>
+            <span>公式 API のないシステム統合に <strong>数週間のリバースエンジニアリング</strong>を要し、UI 変更のたびに発生する「メンテナンス地獄」に疲弊。</span>
+          </div>
+          <div class="row after">
+            <span class="tag">After</span>
+            <span>数分間の操作記録から AI が通信仕様を自動解析。工数はほぼゼロ、本来の <em style="color:var(--signal);">ビジネスロジック開発</em>へとシフト。</span>
+          </div>
+        </div>
+      </article>
+      <article class="persona">
+        <h3>ビジネス・<em style="font-family:var(--serif);font-style:italic;color:var(--signal);">経理</em>担当</h3>
+        <div class="before-after">
+          <div class="row before">
+            <span class="tag">Before</span>
+            <span>毎日 <strong>3 時間</strong>、複数システム間でデータを転記・登録する「デジタル小作人」状態。人的エラーの温床。</span>
+          </div>
+          <div class="row after">
+            <span class="tag">After</span>
+            <span>手作業を <strong>30 秒の API コール</strong>に変換。<em style="color:var(--signal);">年間 360 万円/人</em>規模のコスト削減と、戦略的創造業務への集中を実現。</span>
+          </div>
+        </div>
+      </article>
+      <article class="persona">
+        <h3>AI PM<em style="font-family:var(--serif);font-style:italic;color:var(--signal);">（AIPM）</em></h3>
+        <div class="before-after">
+          <div class="row before">
+            <span class="tag">Before</span>
+            <span>Jira・経理・独自 Excel ポータル間にデータが散在し、AI による高度な <strong>進捗管理が不可能</strong>。</span>
+          </div>
+          <div class="row after">
+            <span class="tag">After</span>
+            <span>Integuru が各ツールのデータを自動集約。自律的に RYG レポートを生成する <em style="color:var(--signal);">「AI-PMO」</em>基盤を完成させる。</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <figure class="plate">
+      <img src="images/0530/page_06.jpg" alt="3 つのペルソナの Before / After">
+      <figcaption><strong>FIG · 4</strong>個別の解決は単なる業務効率化ではない。<em>「組織全体の意思決定スピード」</em>を桁違いに加速させる、構造的な解放だ。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── JAPAN CONTEXT ───────────────── -->
+  <section id="japan">
+    <div class="eyebrow">§ 05 — Japan Context · 2025-Cliff</div>
+    <h2>レガシー資産は、<br><em>「重荷」</em>から <em>「最強の強み」</em>へ。</h2>
+    <p class="section-lead">
+      日本企業の IT 環境は、<strong>独自 Web アプリと Excel 連携が密結合</strong>しており、公式 API の整備が絶望的なケースが多い。この特異な環境こそが Integuru にとっての <em>「ブルーオーシャン」</em>だ。
+    </p>
+
+    <div class="split flip">
+      <figure class="plate" style="margin-top:0;">
+        <img src="images/0530/page_08.jpg" alt="日本企業のレガシー環境と Integuru の非侵襲性">
+        <figcaption><strong>FIG · 5</strong>COBOL や古い Java で構築された<em>「ブラックボックス」</em>を破壊することなく、<strong>外付け API</strong> によって AI が操作可能な「生きた資産」へ即座に転換できる。</figcaption>
+      </figure>
+      <div class="body">
+        <p><strong>「2025 年の崖」</strong>を背景に、多くの企業が莫大なシステム刷新コストに直面しているが、Integuru は既存システムに <em>一切の改修を加えない</em> <strong>「非侵襲性」</strong>を誇る。</p>
+        <p>つまり、刷新コストを <em>回避しながら</em> DX を加速させる<strong>「最終ピース」</strong>として位置付けられる。これは経営層にとって、技術選定の問題ではなく <em>戦略選定の問題</em>だ。</p>
+        <p>パッケージ ERP の改修不能領域、グループ会社固有の Excel ポータル、買収先の古いシステム — これまで <strong>「触れない」</strong>とされてきたすべての資産が、Integuru によって <em>AI エージェントの手足</em>に変わる。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── ROI ───────────────── -->
+  <section id="roi">
+    <div class="eyebrow">§ 06 — ROI · 15-Minute PoC</div>
+    <h2>導入は<em>15 分</em>から始まる。<br>数ヶ月のプロジェクトではない。</h2>
+    <p class="section-lead">
+      OSS 版（v0）は <code style="font-family:var(--mono);background:var(--paper-2);padding:2px 6px;font-size:.92em;border:1px solid var(--rule);">create_har.py</code> による手動記録で <em>プロトタイピング</em>に最適。商用 Cloud 版は自然言語と URL 入力のみの <em>Recording-free</em> 環境を提供する。月額 $30 から、Auto-healing と 24/7 サポート付き。
+    </p>
+
+    <div class="roi-grid">
+      <div class="roi">
+        <div class="label">Direct Effect</div>
+        <div class="num">30<span style="font-size:.4em;font-style:normal;color:var(--ink-faded);">s</span></div>
+        <p class="copy">3 時間/日の手作業 → <strong>30 秒の API コール</strong>。1 タスクの実行時間が、約 <em style="font-family:var(--serif);font-style:italic;color:var(--signal);">360 分の 1</em>になる。</p>
+      </div>
+      <div class="roi">
+        <div class="label">Economic Value</div>
+        <div class="num">¥3.6<span style="font-size:.4em;font-style:normal;color:var(--ink-faded);">M / yr</span></div>
+        <p class="copy">時給 5,000 円 × 60 時間/月 = <strong>年間 360 万円/人</strong>の削減効果。10 人換算で <em>3,600 万円</em>。投資回収は数週間。</p>
+      </div>
+      <div class="roi">
+        <div class="label">Maintenance</div>
+        <div class="num">−90<span style="font-size:.4em;font-style:normal;color:var(--ink-faded);">%</span></div>
+        <p class="copy">HTTP 層の安定性により、メンテナンス工数を <strong>RPA 比で 90% 削減</strong>。商用 Auto-healing で更に <em>1/10</em>。</p>
+      </div>
+    </div>
+
+    <ol class="ol-roman" aria-label="実装ステップ">
+      <li><strong>ターゲット選定</strong> — 在庫照会や工数抽出など、低リスクな <em>「読み取り系」</em>から開始。書き込み系は信頼が確立してから。</li>
+      <li><strong>PoC 実行（15 分）</strong> — OSS 版を用い、HAR 記録から API 生成までの技術検証を即座に実施。投資判断のための最小単位。</li>
+      <li><strong>商用版移行</strong> — Auto-healing 機能を活用した<em>安定運用</em>へ。月額 $30 〜、本番ロード対応。</li>
+      <li><strong>AI エージェント統合</strong> — 生成 API を LangChain 等の <em>「Tool」</em>として組み込み、自律的なワークフロー実行を実現。</li>
+    </ol>
+  </section>
+
+  <!-- ───────────────── MANIFESTO ───────────────── -->
+  <section style="border-bottom: 0; padding-bottom: 0;">
+    <div class="manifesto">
+      <q><em>「API がないから自動化できない」</em>という言い訳は、もはや通用しない。AI 時代における勝者は、<em>「API を待つ側」</em>ではなく <em>「API を発明する側」</em>である。</q>
+      <cite>— Integuru · The End of API-less World · 2026·05·30</cite>
+    </div>
+  </section>
+
+  <!-- ───────────────── RISKS ───────────────── -->
+  <section id="risk">
+    <div class="eyebrow">§ 07 — Governance · The Brake That Accelerates</div>
+    <h2>規律は<em>ブレーキ</em>ではなく、<br>導入を加速させる<em>アクセル</em>だ。</h2>
+    <p class="section-lead">
+      高度な自動化の推進には、厳格な規律が必要である。<strong>適切なリスク管理</strong>は、ブレーキではなく、組織の信頼を担保して導入を <em>加速</em>させるためのアクセルだ。
+    </p>
+
+    <div class="risk-grid">
+      <article class="risk">
+        <span class="badge">Risk · Legal</span>
+        <h3>利用規約への適合</h3>
+        <p>外部 SaaS 利用時は <strong>利用規約（ToS）</strong>への適合性を精査。原則として <em>自社権限内のシステム</em>での利用を推奨。グレーゾーンに踏み込む前に法務へ。</p>
+      </article>
+      <article class="risk">
+        <span class="badge">Risk · Security</span>
+        <h3>認証情報の管理</h3>
+        <p>セッション Cookie 等は <strong>コードにハードコードせず</strong>、<em>HashiCorp Vault</em> 等の秘密情報管理システムで厳格に管理。2FA が必要な場合は初回手動介入を運用設計に組み込む。</p>
+      </article>
+      <article class="risk">
+        <span class="badge">Risk · License</span>
+        <h3>AGPL-3.0 の壁</h3>
+        <p>OSS 版（AGPL-3.0）を <strong>SaaS バックエンドに組み込む</strong>場合、ソースコード開示義務が生じうる。商用利用時は <em>エンタープライズ版への切替</em>を適切に判断せよ。</p>
+      </article>
+    </div>
+
+    <figure class="plate" style="margin-top: 40px;">
+      <img src="images/0530/page_12.jpg" alt="リスクとセキュリティガバナンスの構造">
+      <figcaption><strong>FIG · 6</strong>3 つのリスク領域は、すべて <em>「事前設計」</em>で 9 割の問題が消える。Day 1 の規律設計が、Day 100 のスケールを決める。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── FUTURE / CONCLUSION ───────────────── -->
+  <section id="future">
+    <div class="eyebrow">§ 08 — Decision · Agentic Age</div>
+    <h2>非 API 世界という<em>鎖</em>から、<br>ビジネスを<em>解き放つ</em>。</h2>
+    <p class="section-lead">
+      経営層やリーダーに求められるのは、この破壊的技術を <em>いち早く取り入れる決断</em>だ。低リスクな領域から、わずか <strong>15 分間の PoC</strong> を開始することが、<em>Agentic Age</em> への最初の一歩となる。
+    </p>
+
+    <div class="split">
+      <div class="body">
+        <p>Integuru は、レガシーという「重荷」を、AI 時代における <em>最強の強み</em>へと変貌させる。</p>
+        <p>パッケージ ERP の改修不能領域、グループ会社固有の Excel ポータル、買収先の古いシステム — これまで「触れない」とされてきたすべての資産が、AI エージェントの <strong>手足</strong>に変わる。</p>
+        <p>API のない世界を終わらせる決断は、技術選定ではなく <em>経営判断</em>だ。そしてその決断を、競合より <strong>1 日早く</strong>下す組織が、次の 10 年の勝者となる。</p>
+      </div>
+      <figure class="plate" style="margin-top:0;">
+        <img src="images/0530/page_11.jpg" alt="Agentic Age への第一歩としての Integuru 導入ロードマップ">
+        <figcaption><strong>FIG · 7</strong>Integuru の真の競争優位は <em>「実装の速さ」</em>。15 分の PoC で、組織全体の AI 戦略が <strong>現実の業務</strong>と接続される。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── HEADLINES ───────────────── -->
+  <section>
+    <div class="eyebrow">§ 09 — Today's other headlines</div>
+    <h2>本日の<em>主要ヘッドライン</em>（05/30）</h2>
+    <p class="section-lead">
+      Integuru 以外の <strong>2026-05-30 主要トピック</strong>を併せてピックアップ。
+    </p>
+    <div class="source-list">
+      <a href="https://github.com/Integuru-AI/Integuru" target="_blank" rel="noopener">
+        <span class="idx">№ 01</span>
+        <div>
+          <strong>Integuru — HAR から自動 API 生成する OSS</strong>
+          <span>HTTP 層を直接制御し、UI 変更耐性を獲得。AGPL-3.0、商用 Cloud は月額 $30 から</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://www.anthropic.com/news/claude-opus-4-8" target="_blank" rel="noopener">
+        <span class="idx">№ 02</span>
+        <div>
+          <strong>Claude Opus 4.8 ＆ Dynamic Workflows 一般展開</strong>
+          <span>SWE-Bench Pro 69.2% / 最大 1,000 サブエージェント並列。Bun が 75 万行を 11 日で Rust 移植</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://vercel.com/blog/persistent-sandboxes" target="_blank" rel="noopener">
+        <span class="idx">№ 03</span>
+        <div>
+          <strong>Vercel Persistent Sandboxes 一般提供</strong>
+          <span>永続実行環境がエージェント開発を容易化。Dynamic Workflows との相性が抜群</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://langchain.com/blog/tool-calling-2026" target="_blank" rel="noopener">
+        <span class="idx">№ 04</span>
+        <div>
+          <strong>LangChain — Tool calling のベストプラクティス 2026</strong>
+          <span>Integuru のような外部 API ツールをエージェントに組み込む際の設計指針</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ───────────────── SOURCES + PAGER ───────────────── -->
+  <section style="padding-bottom: 0;">
+    <div class="eyebrow">§ 10 — Sources &amp; further reading</div>
+    <h2>出典 &amp; <em>参考リンク</em></h2>
+    <div class="source-list">
+      <a href="https://github.com/Integuru-AI/Integuru" target="_blank" rel="noopener">
+        <span class="idx">SRC · 01</span>
+        <div>
+          <strong>Integuru 公式リポジトリ（GitHub）</strong>
+          <span>OSS 実装、create_har.py、DAG 構築ロジック、AGPL-3.0 ライセンス情報</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://integuru.ai/" target="_blank" rel="noopener">
+        <span class="idx">SRC · 02</span>
+        <div>
+          <strong>Integuru Cloud · Recording-free 環境</strong>
+          <span>Auto-healing、自然言語 + URL のみで API 生成、月額 $30〜、24/7 サポート</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://www.meti.go.jp/policy/it_policy/dx/dx.html" target="_blank" rel="noopener">
+        <span class="idx">SRC · 03</span>
+        <div>
+          <strong>経済産業省 — DX レポート（2025 年の崖）</strong>
+          <span>レガシー刷新コストの構造的課題と、外付け API による回避戦略の根拠</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">
+        <span class="idx">SRC · 04</span>
+        <div>
+          <strong>AGPL-3.0 ライセンス全文（GNU）</strong>
+          <span>SaaS バックエンド組み込み時のソースコード開示義務の根拠条文</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_29.html">
+        <span class="dir">← Prev · 05/29</span>
+        <strong>Claude Opus 4.8 ＆ Dynamic Workflows — 自律型「AI 組織」の指揮官時代へ</strong>
+      </a>
+      <a href="../day_slides_index.html">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026·05·30 — <em>Integuru · API なき世界を終わらせる、リバースエンジニアリング基盤</em></div>
+    <div class="f-meta">SOURCES · Integuru OSS / Integuru Cloud / METI DX Report / NotebookLM · DESIGN · Blueprint Editorial</div>
+  </div>
+</footer>
+
+</body>
+</html>
