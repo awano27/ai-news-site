@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>agmsg — AIエージェントを「チーム」に変える、デーモンレスな通信レイヤー | 2026-05-31 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Inter+Tight:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<meta name="description" content="2026 年 5 月、Claude Code・Codex・Gemini CLI といった高性能 CLI AIエージェントが当たり前に併用される時代、最大のボトルネックは『人間が伝書鳩になること』だった。実装を Claude に、レビューを Codex に頼むたび、人間が AI 間のコンテキストを手動でコピペ同期する——この最も付加価値の低い作業が、開発の最大遅延要因となっていた。agmsg（エージェント・メッセージ）は、この摩擦を消すローカル・メッセージバス。設計思想は『No daemon, No network, No complexity』。当初テキストファイル通信で競合・破損に直面した教訓から、SQLite（WAL モード）を『共有の郵便受け』として採用。bash と sqlite3 のみで動き、Python ランタイムすら不要。3 軸ドライバ（Storage / Agent / Delivery）で異種ランタイムの差分を吸収する。actas 機能による役割の排他ロックで『1 セッション = 1 役割』を徹底し、Architect / Implementer / Reviewer の自律走行する『1 人 AI 開発チーム』を構築。配信は monitor（約 5 秒）/ turn / both / off の 4 モード。PID リサイクル問題やシングルマシン限定という実験的ツールゆえの限界はあるが、それは極限のシンプルさを追求したトレードオフ。まずは『Main 実装者 + Reviewer』の 2 台構成から、人間を伝書鳩からオーケストレーターへ昇華させる。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_31.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="agmsg — AIエージェントを「チーム」に変える、デーモンレスな通信レイヤー | 2026-05-31" />
+<meta property="og:description" content="人間を『伝書鳩』から『オーケストレーター』へ。SQLite WAL を共有郵便受けに、bash + sqlite3 だけで AI 同士を直接つなぐ。No daemon / No network / No complexity。actas 役割ロックで自律走行する『1 人 AI 開発チーム』。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_05_31.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0531/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="agmsg — AI 同士を直接つなぐデーモンレス通信レイヤー | 2026-05-31" />
+<meta name="twitter:description" content="コピペ地獄を終わらせる『共有の郵便受け』。SQLite WAL + bash だけ、Python 不要。monitor / turn / both / off の 4 配信モードで自律走行する AI チームを組む。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0531/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "agmsg — AIエージェントを「チーム」に変える、デーモンレスな通信レイヤー",
+  "datePublished": "2026-05-31",
+  "dateModified": "2026-05-31",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0531/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_31.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_05_31.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     agmsg · FIELD DISPATCH EDITORIAL · 2026-05-31
+     ============================================================
+     Direction: A telegraph office for AI agents.
+     Cream dispatch paper, switchboard-teal signal, Fraunces
+     serif italics, IBM Plex Mono console transcripts, faint
+     ruled grid like a message log running beneath.
+     ============================================================ */
+  :root {
+    --paper: #f3efe6;
+    --paper-2: #ebe5d7;
+    --ink: #121512;
+    --ink-soft: #34382f;
+    --ink-faded: #62675a;
+    --rule: #c4bda8;
+    --rule-soft: #dcd5c1;
+    --signal: #0d7166;
+    --signal-deep: #075048;
+    --signal-tint: #cfe7e2;
+    --warn: #b5470d;
+    --warn-tint: #f5dcc8;
+    --ok: #1f6b3a;
+    --ok-tint: #d5e9da;
+    --shadow-ink: 0 1px 0 rgba(18,21,18,.08), 0 18px 36px -28px rgba(18,21,18,.42);
+    --serif: 'Fraunces','Noto Serif JP', Georgia, serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Inter Tight','Noto Serif JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(18,21,18,.05) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+  ::selection { background: var(--ink); color: var(--paper); }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    padding: 14px 32px;
+    background: rgba(243,239,230,.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .topbar b {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+  }
+  .topbar nav { display: flex; gap: 18px; flex-wrap: wrap; }
+  .topbar nav a { color: var(--ink-faded); text-decoration: none; transition: color .15s; }
+  .topbar nav a:hover { color: var(--signal); }
+  .topbar > span { color: var(--ink-faded); }
+
+  /* ── main shell ─────────────────────────────────── */
+  main { max-width: 1240px; margin: 0 auto; padding: 0 32px 96px; }
+  section { padding: 88px 0; border-bottom: 1px solid var(--rule-soft); }
+  section:last-of-type { border-bottom: 0; }
+
+  /* eyebrow + section heading framework */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 18px;
+  }
+  .eyebrow::before {
+    content: ""; display: inline-block; width: 36px; height: 1px; background: var(--signal);
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 4.4vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -.015em;
+    margin-bottom: 24px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+  }
+  h2 em { font-style: italic; color: var(--signal); }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    margin-bottom: 14px;
+    font-variation-settings: "opsz" 144;
+  }
+  .section-lead {
+    max-width: 740px;
+    font-size: clamp(17px, 1.4vw, 19px);
+    line-height: 1.75;
+    color: var(--ink-soft);
+    margin-bottom: 56px;
+  }
+  .section-lead strong { color: var(--ink); font-weight: 600; }
+  .section-lead em { font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--signal-deep); }
+
+  p { font-size: 16px; line-height: 1.78; color: var(--ink-soft); }
+  p strong { color: var(--ink); font-weight: 600; }
+  p em { font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--signal-deep); }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 96px 0 88px; border-bottom: 1px solid var(--rule); position: relative; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(to right, rgba(13,113,102,.05) 1px, transparent 1px) 0 0/96px 100%,
+      linear-gradient(to bottom, rgba(13,113,102,.04) 1px, transparent 1px) 0 0/100% 64px;
+    pointer-events: none; opacity: .6;
+  }
+  .hero-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .hero-eyebrow .stamp {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid var(--signal);
+    border-radius: 0;
+    color: var(--signal);
+  }
+  .hero-eyebrow .sep { color: var(--rule); }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(46px, 6.5vw, 88px);
+    line-height: 1.02;
+    letter-spacing: -.025em;
+    margin-bottom: 36px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 0;
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--signal);
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  h1 .strike { text-decoration: line-through; text-decoration-color: var(--warn); text-decoration-thickness: 4px; color: var(--ink-faded); }
+  .hero-lead {
+    font-size: 18px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+  }
+  .hero-lead strong { color: var(--ink); }
+  .hero-summary {
+    font-size: 15px;
+    line-height: 1.78;
+    color: var(--ink-faded);
+    border-left: 2px solid var(--signal);
+    padding: 8px 0 8px 20px;
+    margin-bottom: 32px;
+  }
+  .hero-summary strong { color: var(--ink); font-weight: 600; }
+  .hero-summary em { font-family: var(--serif); font-style: italic; color: var(--signal-deep); font-weight: 500; }
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .button-link {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 13px 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0;
+    transition: transform .15s, background .15s, color .15s;
+  }
+  .button-link {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+  }
+  .button-link:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--signal); }
+  .button-link.secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .button-link.secondary:hover { box-shadow: 4px 4px 0 var(--ink); background: var(--paper-2); }
+  .button-link::after { content: "↗"; font-family: var(--serif); font-style: italic; }
+
+  .hero-figure {
+    position: relative;
+    border: 1px solid var(--ink);
+    padding: 8px;
+    background: var(--paper-2);
+    transform: rotate(-.4deg);
+    box-shadow: var(--shadow-ink);
+  }
+  .hero-figure::before {
+    content: "FIG.A · agmsg TOPOLOGY";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--paper); padding: 0 8px;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .18em; color: var(--ink-faded);
+  }
+  .hero-figure img { display: block; width: 100%; height: auto; filter: contrast(1.02); }
+
+  /* ── stat band ──────────────────────────────────── */
+  .stat-band {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    margin-top: 64px;
+  }
+  .stat-band > div {
+    padding: 28px 24px;
+    border-right: 1px solid var(--rule);
+  }
+  .stat-band > div:last-child { border-right: 0; }
+  .stat-num {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(40px, 4.4vw, 56px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144;
+    margin-bottom: 8px;
+  }
+  .stat-num em { font-style: italic; color: var(--signal); font-weight: 400; }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+
+  /* ── triad (3つのNo) ─────────────────────────────── */
+  .triad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .triad > div {
+    padding: 32px 24px;
+    border-right: 1px solid var(--rule-soft);
+  }
+  .triad > div:last-child { border-right: 0; }
+  .triad .no {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(40px, 4.6vw, 60px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--signal);
+    margin-bottom: 14px;
+    font-variation-settings: "opsz" 144;
+  }
+  .triad .no small { font-size: .42em; font-style: normal; color: var(--ink-faded); letter-spacing: .14em; text-transform: uppercase; font-family: var(--mono); display: block; margin-top: 8px; }
+  .triad p { font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+  .triad p strong { color: var(--ink); font-weight: 600; }
+
+  /* ── console transcript ─────────────────────────── */
+  .console {
+    margin-top: 40px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.85;
+    position: relative;
+    overflow-x: auto;
+  }
+  .console::before {
+    content: "TRANSCRIPT · agmsg.sqlite (WAL)";
+    position: absolute; top: -10px; left: 20px;
+    background: var(--paper); color: var(--ink);
+    padding: 0 12px;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .18em;
+  }
+  .console pre { padding: 30px 26px 26px; white-space: pre; }
+  .console .c-dim { color: rgba(243,239,230,.45); }
+  .console .c-sig { color: #6fe3d4; }
+  .console .c-warn { color: #ffb27a; }
+  .console .c-ok { color: #97e2ab; }
+
+  /* ── lesson callout ─────────────────────────────── */
+  .lesson {
+    margin-top: 36px;
+    border: 1px solid var(--signal);
+    background: var(--signal-tint);
+    padding: 28px 30px;
+    position: relative;
+  }
+  .lesson::before {
+    content: "FIELD NOTE";
+    position: absolute; top: -10px; left: 22px;
+    background: var(--paper); color: var(--signal-deep);
+    padding: 0 10px;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .18em;
+  }
+  .lesson p { color: var(--signal-deep); font-size: 15px; line-height: 1.75; }
+  .lesson p strong { color: var(--ink); }
+  .lesson p em { font-family: var(--serif); font-style: italic; }
+
+  /* ── comparison / spec table ────────────────────── */
+  .compare {
+    width: 100%;
+    margin-top: 32px;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    font-family: var(--sans);
+  }
+  .compare thead th {
+    text-align: left;
+    padding: 16px 18px;
+    border-bottom: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    vertical-align: bottom;
+  }
+  .compare thead th.win {
+    background: var(--ink); color: var(--paper);
+    border-bottom-color: var(--signal);
+    font-family: var(--serif); font-style: italic; font-size: 15px;
+    text-transform: none; letter-spacing: 0;
+    font-weight: 500;
+  }
+  .compare tbody td {
+    padding: 16px 18px;
+    border-bottom: 1px dashed var(--rule);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  .compare tbody td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--ink);
+    text-transform: uppercase;
+    width: 20%;
+  }
+  .compare tbody td.win {
+    background: rgba(13,113,102,.08);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .compare tbody td.win strong { color: var(--signal); font-weight: 700; }
+  .compare tbody tr.win-row td { background: rgba(13,113,102,.08); }
+  .compare tbody tr:last-child td { border-bottom: 1px solid var(--ink); }
+  .compare .tag-rec {
+    display: inline-block; margin-left: 8px;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--signal);
+    border: 1px solid var(--signal); padding: 1px 6px; vertical-align: middle;
+  }
+
+  /* ── persona / story grid ───────────────────────── */
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .persona {
+    padding: 28px 24px;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    position: relative;
+  }
+  .persona::before {
+    content: "PERSONA";
+    position: absolute; top: -1px; left: 24px;
+    background: var(--paper);
+    padding: 4px 10px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: .2em;
+    color: var(--ink-faded);
+    border: 1px solid var(--rule);
+    border-top: 0;
+  }
+  .persona h3 { margin-top: 16px; }
+  .before-after {
+    margin-top: 18px;
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .before-after .row { display: flex; gap: 14px; padding: 8px 0; align-items: flex-start; }
+  .before-after .row + .row { border-top: 1px dashed var(--rule); }
+  .before-after .tag {
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    padding: 2px 8px;
+    border: 1px solid var(--rule);
+    margin-top: 2px;
+  }
+  .before-after .row.after .tag { border-color: var(--signal); color: var(--signal); }
+  .before-after .row.after { color: var(--ink); font-weight: 500; }
+
+  /* ── manifesto / pullquote ──────────────────────── */
+  .manifesto {
+    margin-top: 48px;
+    padding: 64px 48px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    position: relative;
+  }
+  .manifesto::before {
+    content: "DISPATCH · 2026·05·31";
+    position: absolute; top: -10px; left: 24px;
+    background: var(--paper); color: var(--ink);
+    padding: 0 12px;
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .2em;
+  }
+  .manifesto q {
+    quotes: none;
+    display: block;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(28px, 3.4vw, 44px);
+    line-height: 1.25;
+    letter-spacing: -.015em;
+    color: var(--paper);
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  .manifesto q em { font-style: normal; color: #8fe6da; }
+  .manifesto cite {
+    display: block;
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-style: normal;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(243,239,230,.6);
+  }
+
+  /* ── figure / image with caption ────────────────── */
+  figure.plate {
+    margin: 32px 0 8px;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    padding: 8px 8px 0;
+  }
+  figure.plate img { display: block; width: 100%; height: auto; }
+  figure.plate figcaption {
+    padding: 14px 12px 16px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    letter-spacing: .02em;
+  }
+  figure.plate figcaption strong {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    letter-spacing: 0;
+    margin-right: 8px;
+    font-style: italic;
+  }
+
+  /* ── two-col grid for body text + figure ────────── */
+  .split {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 56px;
+    align-items: start;
+  }
+  .split .body p + p { margin-top: 16px; }
+  .split.flip { grid-template-columns: .95fr 1.05fr; }
+
+  /* ── ROI / impact block ─────────────────────────── */
+  .roi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .roi {
+    padding: 32px 24px;
+    border-right: 1px solid var(--rule-soft);
+  }
+  .roi:last-child { border-right: 0; }
+  .roi .label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 12px;
+  }
+  .roi .num {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(40px, 4.8vw, 60px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--signal);
+    margin-bottom: 14px;
+    font-variation-settings: "opsz" 144;
+  }
+  .roi .copy { font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+  .roi .copy strong { color: var(--ink); font-weight: 600; }
+
+  /* ── step-list / numbered ───────────────────────── */
+  .ol-roman {
+    list-style: none;
+    counter-reset: roman;
+    margin-top: 24px;
+  }
+  .ol-roman li {
+    counter-increment: roman;
+    padding: 18px 0 18px 64px;
+    position: relative;
+    border-bottom: 1px dashed var(--rule);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .ol-roman li:last-child { border-bottom: 0; }
+  .ol-roman li::before {
+    content: counter(roman, upper-roman) ".";
+    position: absolute; left: 0; top: 18px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 28px;
+    color: var(--signal);
+    width: 48px;
+  }
+  .ol-roman li strong { color: var(--ink); font-weight: 600; }
+
+  /* ── risk callouts ──────────────────────────────── */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 32px;
+    border: 1px solid var(--warn);
+    background: var(--paper-2);
+  }
+  .risk {
+    padding: 28px 24px;
+    border-right: 1px dashed var(--warn);
+  }
+  .risk:last-child { border-right: 0; }
+  .risk .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--warn);
+    background: var(--warn-tint);
+    padding: 3px 9px;
+    margin-bottom: 14px;
+  }
+  .risk h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .risk p { font-size: 13.5px; line-height: 1.65; }
+
+  /* ── headlines grid ─────────────────────────────── */
+  .source-list { display: grid; gap: 0; border-top: 1px solid var(--ink); margin-top: 32px; }
+  .source-list a {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 18px;
+    align-items: baseline;
+    padding: 22px 0;
+    border-bottom: 1px dashed var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+    transition: padding .15s, background .15s;
+  }
+  .source-list a:hover { padding-left: 12px; background: var(--paper-2); }
+  .source-list a .idx {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--ink-faded);
+  }
+  .source-list a strong {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 1.3;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .source-list a span {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .source-list a .arr {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--signal);
+    font-size: 18px;
+    transition: transform .15s;
+  }
+  .source-list a:hover .arr { transform: translateX(6px); }
+
+  /* ── pager ──────────────────────────────────────── */
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 64px;
+    border-top: 2px solid var(--ink);
+  }
+  .pager a {
+    padding: 28px 24px;
+    text-decoration: none;
+    color: var(--ink);
+    border-right: 1px solid var(--rule);
+  }
+  .pager a:last-child { border-right: 0; text-align: right; }
+  .pager .dir {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .pager strong {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.3;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  /* ── footer ─────────────────────────────────────── */
+  .site-foot {
+    border-top: 1px solid var(--ink);
+    padding: 36px 0 64px;
+    margin-top: 64px;
+  }
+  .site-foot .inner { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+  .site-foot .f-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .site-foot .f-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--ink-faded);
+  }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 960px) {
+    .hero-grid, .split, .split.flip { grid-template-columns: 1fr; gap: 36px; }
+    .stat-band, .triad, .persona-grid, .risk-grid, .roi-grid { grid-template-columns: 1fr 1fr; }
+    .stat-band > div, .triad > div, .risk, .roi { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .stat-band > div:nth-child(2n), .triad > div:nth-child(2n), .risk:nth-child(2n), .roi:nth-child(2n) { border-right: 0; }
+    .topbar { padding: 12px 18px; }
+    .topbar nav { display: none; }
+    main { padding: 0 18px 64px; }
+    section { padding: 56px 0; }
+    .manifesto { padding: 40px 24px; }
+    .compare { font-size: 13px; }
+    .compare thead th, .compare tbody td { padding: 12px 10px; }
+    .console pre { font-size: 12px; }
+  }
+  @media (max-width: 560px) {
+    .stat-band, .triad, .persona-grid, .risk-grid, .roi-grid, .pager { grid-template-columns: 1fr; }
+    .stat-band > div, .triad > div, .persona, .risk, .roi, .pager a { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .source-list a { grid-template-columns: 1fr; gap: 4px; padding: 18px 0; }
+    .source-list a .arr { display: none; }
+    h1 { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav>
+    <a href="#hero">要約</a>
+    <a href="#bottleneck">ボトルネック</a>
+    <a href="#arch">設計</a>
+    <a href="#persona">3人</a>
+    <a href="#actas">actas</a>
+    <a href="#delivery">配信</a>
+    <a href="#limit">限界</a>
+    <a href="#future">提言</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026·05·31 · SUN</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">
+          <span class="stamp">Issue № 05·31</span>
+          <span class="sep">/</span>
+          <span>agmsg · Autonomous AI Communication</span>
+          <span class="sep">/</span>
+          <span>Local Message-Bus Edition</span>
+        </div>
+        <h1>
+          <span class="strike">人間が、伝書鳩。</span><br>
+          その時代を、<br>
+          <em>終わらせる。</em>
+        </h1>
+        <p class="hero-lead">
+          Claude Code・Codex・Gemini CLI を併用するほど、皮肉にも人間が <strong>「AI 間のコンテキスト同期」</strong>という最も付加価値の低い作業を背負う。実装を渡し、レビューを頼み、指摘を戻す——その手動コピペこそ、開発の <em>最大の遅延要因</em>だ。
+        </p>
+        <p class="hero-summary">
+          <strong>agmsg（エージェント・メッセージ）</strong> は、AI 同士を直接つなぐローカル・メッセージバス。設計思想は <em>「No daemon, No network, No complexity」</em>。テキストファイル通信での競合・破損という教訓から、<strong>SQLite（WAL モード）</strong>を「共有の郵便受け」に採用。<em>bash と sqlite3 だけで動き、Python ランタイムすら要らない</em>。<strong>actas</strong> 役割ロックで「1 セッション = 1 役割」を徹底し、Architect / Implementer / Reviewer が自律走行する「1 人 AI 開発チーム」を組む。
+        </p>
+        <div class="hero-cta">
+          <a class="button-link" href="https://github.com/search?q=agmsg+agent+message+bus&type=repositories" target="_blank" rel="noopener">agmsg を探す</a>
+          <a class="button-link secondary" href="https://claude.com/blog/introducing-dynamic-workflows-in-claude-code" target="_blank" rel="noopener">Dynamic Workflows</a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="images/0531/cover.jpg" alt="agmsg — CLI AIエージェントを『チーム』に変える究極に軽量な通信レイヤー">
+      </figure>
+    </div>
+
+    <div class="stat-band" aria-label="主要数値">
+      <div>
+        <div class="stat-num"><em>3</em></div>
+        <div class="stat-label">No · Daemon / Network / Complexity</div>
+      </div>
+      <div>
+        <div class="stat-num">≈5<span style="font-size:.55em">s</span></div>
+        <div class="stat-label">Monitor Latency</div>
+      </div>
+      <div>
+        <div class="stat-num"><em>WAL</em></div>
+        <div class="stat-label">SQLite Shared Mailbox</div>
+      </div>
+      <div>
+        <div class="stat-num">0</div>
+        <div class="stat-label">Runtime Dep · bash + sqlite3</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── THE BOTTLENECK ───────────────── -->
+  <section id="bottleneck">
+    <div class="eyebrow">§ 01 — The Human Bottleneck</div>
+    <h2>AI は速くなった。<br>だが、<em>人間が</em>伝書鳩のままだ。</h2>
+    <p class="section-lead">
+      複数の CLI エージェントを併用すると、実装は Claude Code に、レビューは Codex に——そのたびに発生する手動のコピペが、開発プロセス最大の遅延要因 <em>「ヒューマン・ボトルネック」</em>と化す。AI の高性能化と、運用の煩雑さ。この <strong>矛盾</strong>こそが、真の AI オーケストレーションを阻んでいた。
+    </p>
+    <div class="split">
+      <div class="body">
+        <p>1 日に数十回繰り返されるコピペは、累計すれば膨大な戦略的時間を奪う。さらに頻繁なツール間の往復は、開発者が最も保護すべき <em>「フロー状態」</em>を断片化し、認知負荷を跳ね上げる。</p>
+        <p>そして致命的なのは <strong>スケーラビリティの限界</strong>だ。人間がハブである限り、1 人が制御できる AI の数は物理的に頭打ちになり、<em>AI チームの拡大は原理的に不可能</em>になる。</p>
+        <p>agmsg の役割は明快だ。人間を <strong>「伝書鳩」</strong>から解放し、高付加価値な意思決定を担う <em>「オーケストレーター」</em>へと昇華させる——そのためのインフラとして機能する。</p>
+      </div>
+      <figure class="plate">
+        <img src="images/0531/page_01.jpg" alt="人間が伝書鳩になる時代の終焉">
+        <figcaption><strong>FIG · 1</strong>実装 → レビュー → 修正のたびに、人間が AI 間のコンテキストを手で運ぶ。最も付加価値の低い作業が、開発速度の <em>天井</em>になっていた。</figcaption>
+      </figure>
+    </div>
+
+    <div class="triad" aria-label="3つのボトルネック">
+      <div>
+        <div class="no">01<small>Physical</small></div>
+        <p><strong>物理的ボトルネック</strong><br>手動同期による時間喪失。数十回/日のコピペが累積し、戦略的時間を浪費する。</p>
+      </div>
+      <div>
+        <div class="no">02<small>Cognitive</small></div>
+        <p><strong>認知的ボトルネック</strong><br>コンテキストスイッチの増大。ツール間往復が「フロー状態」を断片化する。</p>
+      </div>
+      <div>
+        <div class="no">03<small>Organizational</small></div>
+        <p><strong>組織的ボトルネック</strong><br>人間がハブである限り、制御できる AI 数は限られ、チーム拡大が不可能になる。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── ARCHITECTURE ───────────────── -->
+  <section id="arch">
+    <div class="eyebrow">§ 02 — Architecture · The Three "No"s</div>
+    <h2>常駐させない。つながない。<br><em>複雑にしない。</em></h2>
+    <p class="section-lead">
+      agmsg は <strong>「No daemon, No network, No complexity」</strong>を貫く。AutoGen や LangGraph のような重厚なフレームワークとは対照的な、<em>ローカルファーストかつミニマリスト</em>なアプローチ。Python ランタイムすら不要——<strong>bash と sqlite3 だけ</strong>で、高い信頼性と低遅延を両立する。
+    </p>
+
+    <div class="triad" aria-label="3つのNo">
+      <div>
+        <div class="no">No <small>Daemon</small></div>
+        <p><strong>常駐プロセス不要</strong>。バックグラウンドで何かを動かし続ける必要がない。落ちる物がなければ、落ちない。</p>
+      </div>
+      <div>
+        <div class="no">No <small>Network</small></div>
+        <p><strong>ネットワーク不要</strong>。ポートも、サーバも、ソケットも開かない。すべてはローカルのファイルアクセスで完結する。</p>
+      </div>
+      <div>
+        <div class="no">No <small>Complexity</small></div>
+        <p><strong>余計な依存なし</strong>。覚えるべき概念は最小。導入の摩擦がゼロに近いほど、実験は速く回る。</p>
+      </div>
+    </div>
+
+    <div class="lesson">
+      <p><em>当初はテキストファイルでの通信を試みた。</em>だが並行アクセスでデータが競合し、破損した。その教訓から、<strong>SQLite（WAL モード）を「共有の郵便受け」</strong>として採用。複数の読み取りと 1 つの書き込みを安全に並行処理し、<strong>デーモンレスでの永続化</strong>を実現する——堅牢性は、机上ではなく試行錯誤から導かれた。</p>
+    </div>
+
+    <h3 style="margin-top:56px;">3 軸ドライバモデル — 将来の拡張性を担保する抽象化レイヤー</h3>
+    <ol class="ol-roman" aria-label="3軸ドライバ">
+      <li><strong>Storage（ストレージ）</strong> — 共有 SQLite ファイル（WAL モード）。複数読み取り + 1 書き込みを安全に並行処理し、<em>デーモンレスでの永続化</em>を担う。</li>
+      <li><strong>Agent（エージェント）</strong> — Claude Code・Codex・Gemini CLI など、<em>異なるランタイムの差分を吸収</em>する抽象層。新しい CLI も同じ作法で迎えられる。</li>
+      <li><strong>Delivery（配信）</strong> — monitor / turn といった <em>通知方式の最適化</em>レイヤー。エージェントの特性に応じて受信スタイルを選べる。</li>
+    </ol>
+
+    <figure class="plate" style="margin-top: 40px;">
+      <img src="images/0531/page_02.jpg" alt="agmsg の3軸ドライバモデル（Storage / Agent / Delivery）">
+      <figcaption><strong>FIG · 2</strong>3 つの抽象化レイヤー <em>Storage / Agent / Delivery</em>。bash + sqlite3 という最小の足場の上で、異種ランタイムを 1 つの「郵便網」に束ねる。</figcaption>
+    </figure>
+
+    <figure class="plate">
+      <img src="images/0531/page_08.jpg" alt="ローカル共有の郵便受けモデル">
+      <figcaption><strong>FIG · 3</strong>「共有の郵便受け」モデル。Claude Code が投函した手紙を Codex が受け取る——すべては <strong>1 つの SQLite ファイル</strong>を介したファイルアクセスのみで完結する。</figcaption>
+    </figure>
+
+    <div class="console" aria-label="agmsg 利用イメージ">
+<pre><span class="c-dim"># Implementer から Reviewer へ、レビュー依頼を投函</span>
+$ agmsg send <span class="c-sig">--to</span> dev/reviewer <span class="c-sig">--from</span> dev/impl \
+    <span class="c-warn">"feat: auth 実装完了。diff をレビューして"</span>
+<span class="c-ok">→ queued</span> · agmsg.sqlite (WAL) · id=0xА7F2
+
+<span class="c-dim"># Reviewer 側は monitor が ~5s ごとにポーリングして自動受信</span>
+$ agmsg actas <span class="c-sig">--team</span> dev <span class="c-sig">--name</span> reviewer <span class="c-sig">--mode</span> monitor
+<span class="c-ok">✓ lock acquired</span> (dev, reviewer) · subscribing…
+<span class="c-warn">inbox</span> ← dev/impl: "feat: auth 実装完了。diff をレビューして"</pre>
+    </div>
+  </section>
+
+  <!-- ───────────────── PERSONAS ───────────────── -->
+  <section id="persona">
+    <div class="eyebrow">§ 03 — Who is freed?</div>
+    <h2>3 つの開発スタイルに、<br><em>劇的な ROI</em>を返す。</h2>
+    <p class="section-lead">
+      agmsg の価値は、使い方によって投資対効果が跳ね上がる。3 つのペルソナそれぞれに、<strong>Before / After</strong> の質的転換が起こる——共通するのは、<em>「人間の手作業が消える」</em>という一点だ。
+    </p>
+
+    <div class="persona-grid">
+      <article class="persona">
+        <h3>Claude Code <em style="font-family:var(--serif);font-style:italic;color:var(--signal);">＋ Codex</em> 併用者</h3>
+        <div class="before-after">
+          <div class="row before">
+            <span class="tag">Before</span>
+            <span>実装速度には満足。だが、厳格なレビューを求めるたびの <strong>コピペ作業が苦痛</strong>。</span>
+          </div>
+          <div class="row after">
+            <span class="tag">After</span>
+            <span>手動同期が消失。<em style="color:var(--signal);">実装完了 → 自動で Codex へレビュー依頼 → 指摘を Claude へ戻す</em>高速フィードバックループが完成。</span>
+          </div>
+        </div>
+      </article>
+      <article class="persona">
+        <h3>役割分担 <em style="font-family:var(--serif);font-style:italic;color:var(--signal);">マルチ運用</em>者</h3>
+        <div class="before-after">
+          <div class="row before">
+            <span class="tag">Before</span>
+            <span>同一プロジェクトで複数 AI を起動すると <strong>メッセージの宛先が混線</strong>し、管理不能に。</span>
+          </div>
+          <div class="row after">
+            <span class="tag">After</span>
+            <span><strong>actas の排他ロック</strong>を活用。セッションごとに役割を固定し、<em style="color:var(--signal);">誤配やコンテキスト汚染を完全排除</em>。</span>
+          </div>
+        </div>
+      </article>
+      <article class="persona">
+        <h3>異種協調者 <em style="font-family:var(--serif);font-style:italic;color:var(--signal);">Claude + Gemini</em></h3>
+        <div class="before-after">
+          <div class="row before">
+            <span class="tag">Before</span>
+            <span>創造性は Claude、検索は Gemini と使い分けたいが、<strong>ツール間が分断</strong>されている。</span>
+          </div>
+          <div class="row after">
+            <span class="tag">After</span>
+            <span>モデルの壁を越えた連携。検索タスクのみ Gemini へ委譲し、結果を Claude で統合する <em style="color:var(--signal);">「AI 混成チーム」</em>を構築。</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <figure class="plate">
+      <img src="images/0531/page_05.jpg" alt="役割混線の課題とペルソナごとのBefore/After">
+      <figcaption><strong>FIG · 4</strong>個別の解決は単なる効率化ではない。それぞれのペルソナで <em>「人間がハブである必然」</em>そのものが取り除かれ、AI チームが横に伸びはじめる。</figcaption>
+    </figure>
+
+    <div class="lesson" style="border-color:var(--warn);background:var(--warn-tint);">
+      <p style="color:var(--warn);"><strong style="color:var(--ink);">※ Codex に関する制約：</strong> Codex には安定したセッション ID が存在しないため、<em>actas による役割切り替えは「送信側（From 行）」のオーバーライドのみ</em>に限定される。受信側の排他ロックは完全ではない点に、戦略的運用では留意が必要だ。</p>
+    </div>
+  </section>
+
+  <!-- ───────────────── ACTAS ───────────────── -->
+  <section id="actas">
+    <div class="eyebrow">§ 04 — actas / drop · The OS for AI Teams</div>
+    <h2>1 つのセッション ＝ <br><em>1 つの役割。</em></h2>
+    <p class="section-lead">
+      agmsg を単なるメッセージングから <strong>「AI チームの基盤」</strong>へ押し上げるのが <em>actas（役割固定）</em>だ。特定セッションが <code style="font-family:var(--mono);background:var(--paper-2);padding:2px 6px;font-size:.92em;border:1px solid var(--rule);">(team, name)</code> の排他ロックを取得し、その役割宛てのメッセージを占有的に購読する。複数のターミナルが、<em>「設計者」「実装者」「レビュアー」の座席</em>になる。
+    </p>
+
+    <div style="overflow-x: auto;">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>主な責務 — Responsibility</th>
+            <th class="win">戦略的ベネフィット</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Architect</td>
+            <td>全体設計・技術判断</td>
+            <td class="win">高レイヤーの<strong>設計整合性</strong>を維持</td>
+          </tr>
+          <tr>
+            <td>Implementer</td>
+            <td>コードの実装・ユニットテスト</td>
+            <td class="win">設計書を基にした<strong>高速な出力</strong></td>
+          </tr>
+          <tr>
+            <td>Reviewer</td>
+            <td>品質チェック・セキュリティ検証</td>
+            <td class="win">客観的視点による<strong>品質の担保</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="split" style="margin-top:48px;">
+      <figure class="plate" style="margin-top:0;">
+        <img src="images/0531/page_06.jpg" alt="actas機能による排他ロックと役割固定">
+        <figcaption><strong>FIG · 5</strong>actas が <em>(team, name)</em> の排他ロックを取得。役割宛ての手紙を取りこぼさず、かつ他セッションに横取りされない——これが「混線」を構造的に消す。</figcaption>
+      </figure>
+      <div class="body">
+        <p>このモデルの徹底により、開発者は <strong>「1 つのセッション = 1 つのアクティブな役割」</strong>として複数のターミナルを定義できる。設計者・実装者・レビュアーが、それぞれ自分宛ての郵便だけを読む。</p>
+        <p>作者によるチェスや将棋の <em>自律対局デモ</em>が示す通り、役割管理が適切なら、人間が介入せずとも <strong>AI 同士でタスクを完遂する「自律ループ」</strong>を構築できる。伝書鳩がいなくても、手紙は届き、返事が返る。</p>
+      </div>
+    </div>
+
+    <figure class="plate">
+      <img src="images/0531/page_07.jpg" alt="人間が全体設計をするだけで自律走行するAIループ">
+      <figcaption><strong>FIG · 6</strong>人間が担うのは <em>「全体の設計」</em>だけ。あとは Architect → Implementer → Reviewer のループが自律走行する。これが「1 人 AI 開発チーム」の原型だ。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── DELIVERY MODES ───────────────── -->
+  <section id="delivery">
+    <div class="eyebrow">§ 05 — Delivery · 4 Modes</div>
+    <h2>受信スタイルは、<br>エージェントに<em>合わせて選ぶ</em>。</h2>
+    <p class="section-lead">
+      agmsg は、緊急度とエージェントの特性に応じた <strong>4 つの配信モード</strong>を提供する。monitor の約 5 秒というレイテンシは、LLM の推論時間（通常 10〜30 秒）と比べれば <em>十分に許容範囲</em>。この僅かなポーリングを受け入れることで、常駐デーモンという複雑な依存を排した <strong>「疎結合な信頼性」</strong>を獲得する。
+    </p>
+
+    <div style="overflow-x: auto;">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>メカニズム</th>
+            <th>レイテンシ</th>
+            <th class="win">推奨ターゲット</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>monitor</td>
+            <td>Monitor ツール経由のポーリング</td>
+            <td>約 5 秒</td>
+            <td class="win">Claude Code <strong>（リアルタイム重視）</strong></td>
+          </tr>
+          <tr>
+            <td>turn</td>
+            <td>応答終了時の自動チェック</td>
+            <td>ターン間隔</td>
+            <td class="win">Codex <strong>（Monitor 非搭載環境）</strong></td>
+          </tr>
+          <tr class="win-row">
+            <td>both</td>
+            <td>monitor + turn（安全網）</td>
+            <td>約 5 秒</td>
+            <td class="win"><strong>信頼性が最優先</strong>される環境<span class="tag-rec">Safe</span></td>
+          </tr>
+          <tr>
+            <td>off</td>
+            <td>手動コマンド実行</td>
+            <td>随時</td>
+            <td class="win">完全に<strong>制御下に置きたい</strong>ミニマリスト</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="split" style="margin-top:48px;">
+      <div class="body">
+        <p><strong>monitor</strong> はリアルタイム・ストリーム監視。Claude Code のように常時稼働するセッションへ、約 5 秒の遅延で手紙を届ける。<strong>turn</strong> は応答が終わったタイミングで受信箱を覗く方式で、Monitor を持たない Codex に最適だ。</p>
+        <p><strong>both</strong> は両者を重ねた安全網。取りこぼしを許さない本番運用向け。そして <strong>off</strong> は、すべてを手動コマンドで握る——完全な制御を望むミニマリストのための選択肢だ。</p>
+      </div>
+      <figure class="plate" style="margin-top:0;">
+        <img src="images/0531/page_10.jpg" alt="エージェントの特性に合わせた4つの受信スタイル">
+        <figcaption><strong>FIG · 7</strong>約 5 秒のポーリングは、LLM 推論（10〜30 秒）の前では誤差だ。<em>「常駐デーモンを増やさない」</em>ためにこの僅かな間隔を受け入れる——それが疎結合の信頼性を生む。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── MANIFESTO ───────────────── -->
+  <section style="border-bottom: 0; padding-bottom: 0;">
+    <div class="manifesto">
+      <q>agmsg は単なるツールではない。<em>「AI を個別の道具ではなく、チームとして扱う」</em>という、新しいマインドセットの体現だ。</q>
+      <cite>— agmsg · No daemon, No network, No complexity · 2026·05·31</cite>
+    </div>
+  </section>
+
+  <!-- ───────────────── LIMITS / GOVERNANCE ───────────────── -->
+  <section id="limit">
+    <div class="eyebrow">§ 06 — Honest Limits · The Price of Simplicity</div>
+    <h2>シンプルさの代償を、<br><em>正直に</em>書いておく。</h2>
+    <p class="section-lead">
+      実験的ツールゆえの限界は確かに存在する。だが、それらは <strong>「デーモンもネットワークも増やさない」</strong>という極限のシンプルさを追求した結果の <em>トレードオフ</em>だ。隠さず把握した上で運用すれば、十分に制御できる。
+    </p>
+
+    <div class="risk-grid">
+      <article class="risk">
+        <span class="badge">Limit · Lock</span>
+        <h3>PID リサイクル問題 (#67)</h3>
+        <p>OS が PID を再利用することで、<strong>古いロックが残存</strong>する可能性がある。役割の排他ロックが意図せず保持されうる点は、運用設計で見張る必要がある。</p>
+      </article>
+      <article class="risk">
+        <span class="badge">Limit · Scope</span>
+        <h3>シングルマシン限定</h3>
+        <p>共有 SQLite ファイルを前提とするため、<strong>1 台のマシン内</strong>での協調に限られる。複数ホストにまたがる分散運用は、現状スコープ外だ。</p>
+      </article>
+      <article class="risk">
+        <span class="badge">Limit · Codex</span>
+        <h3>受信ロックの不完全性</h3>
+        <p>Codex は安定セッション ID を持たないため、<strong>actas は送信側オーバーライドのみ</strong>。受信側の排他は完全ではなく、戦略的運用での留意点となる。</p>
+      </article>
+    </div>
+
+    <figure class="plate" style="margin-top: 40px;">
+      <img src="images/0531/page_13.jpg" alt="agmsgの3つのNoと運用上の限界">
+      <figcaption><strong>FIG · 8</strong>Local Only・Single Worker・実験的ツール——限界は <em>設計思想の裏返し</em>だ。複雑さを足せば消える問題と引き換えに、agmsg は <strong>「落ちる物がない」</strong>シンプルさを取った。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── FUTURE / CONCLUSION ───────────────── -->
+  <section id="future">
+    <div class="eyebrow">§ 07 — Recommendation · Start with Two</div>
+    <h2>まずは<em>2 台</em>から。<br>伝書鳩を、置いていけ。</h2>
+    <p class="section-lead">
+      開発者への提言はシンプルだ。いきなり大艦隊を組む必要はない。<strong>「Main 実装者 ＋ Reviewer」の 2 台構成</strong>から始めよ。コピペという低付加価値作業を AI に委ね、自らは <em>「オーケストレーション・フロー」</em>に身を置く——この実験主義こそ、複雑化する AI 時代における唯一の生産性向上の道だ。
+    </p>
+
+    <div class="split">
+      <div class="body">
+        <p>agmsg は、AI を <em>「個別の道具」</em>から <strong>「チーム」</strong>へと扱いを変える最小の足場だ。あなたの現在の開発スタイルが「複数 CLI の併用」に少しでも触れているなら、適合度は高い。</p>
+        <p>人間が手紙を運ぶのをやめた瞬間、AI チームは横に伸びはじめる。設計者であるあなたが見るべきは <em>個々のコピペ</em>ではなく、<strong>フロー全体</strong>だ。</p>
+        <p>低付加価値作業を手放し、意思決定に集中する。その移行を、<strong>たった 2 台のターミナル</strong>から今日始められる。</p>
+      </div>
+      <figure class="plate" style="margin-top:0;">
+        <img src="images/0531/page_14.jpg" alt="現在の開発スタイルとagmsgの適合度">
+        <figcaption><strong>FIG · 9</strong>「複数 CLI を併用しているか？」——その一点で適合度はほぼ決まる。Yes なら、<em>2 台構成の PoC</em> が Agentic Age への最初の一歩になる。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── HEADLINES ───────────────── -->
+  <section>
+    <div class="eyebrow">§ 08 — Today's other headlines</div>
+    <h2>本日の<em>主要ヘッドライン</em>（05/31）</h2>
+    <p class="section-lead">
+      agmsg 以外の <strong>2026-05-31 主要トピック</strong>を併せてピックアップ。
+    </p>
+    <div class="source-list">
+      <a href="https://claude.com/blog/introducing-dynamic-workflows-in-claude-code" target="_blank" rel="noopener">
+        <span class="idx">№ 01</span>
+        <div>
+          <strong>Claude Code で動的ワークフローを実現</strong>
+          <span>入力や条件に応じてタスクを自動分岐。複雑処理を小ステップに分け、管理性とエラー耐性を向上（HN 185）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://openrouter.ai/announcements/series-b" target="_blank" rel="noopener">
+        <span class="idx">№ 02</span>
+        <div>
+          <strong>OpenRouter、シリーズ B で 1.13 億ドル調達</strong>
+          <span>AI モデル構築プラットフォームが基盤強化・チーム拡大へ。AI 開発の民主化を加速（HN 327）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://techcrunch.com/2026/05/30/softbank-says-it-will-invest-up-to-e75-billion-to-build-french-data-centers" target="_blank" rel="noopener">
+        <span class="idx">№ 03</span>
+        <div>
+          <strong>ソフトバンク、フランスに最大 750 億ユーロ投資</strong>
+          <span>最大 5 ギガワットのデータセンター容量を狙う、巨大なデジタルインフラ投資</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://qazinform.com/news/anthropic-surpasses-openai-to-become-worlds-most-valuable-ai-startup" target="_blank" rel="noopener">
+        <span class="idx">№ 04</span>
+        <div>
+          <strong>Anthropic、OpenAI を抜き最も価値ある AI スタートアップに</strong>
+          <span>安全性重視のアプローチが市場評価を獲得。AI スタートアップ勢力図が動く（HN 385）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/jmaczan/tiny-vllm" target="_blank" rel="noopener">
+        <span class="idx">№ 05</span>
+        <div>
+          <strong>Tiny-vLLM — C++/CUDA 製の高性能 LLM 推論エンジン</strong>
+          <span>低レイテンシで大規模モデルの推論を実現。インフラのボトルネックを解消（HN 182）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ───────────────── SOURCES + PAGER ───────────────── -->
+  <section style="padding-bottom: 0;">
+    <div class="eyebrow">§ 09 — Sources &amp; further reading</div>
+    <h2>出典 &amp; <em>参考リンク</em></h2>
+    <div class="source-list">
+      <a href="https://github.com/search?q=agmsg+agent+message+bus&type=repositories" target="_blank" rel="noopener">
+        <span class="idx">SRC · 01</span>
+        <div>
+          <strong>agmsg — Agent Message Bus（GitHub 検索）</strong>
+          <span>SQLite WAL を共有郵便受けにした、デーモンレス・ローカル通信。actas 役割ロックと 4 配信モード</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://claude.com/blog/introducing-dynamic-workflows-in-claude-code" target="_blank" rel="noopener">
+        <span class="idx">SRC · 02</span>
+        <div>
+          <strong>Claude Code · Dynamic Workflows</strong>
+          <span>マルチエージェント・オーケストレーションの公式アプローチ。agmsg の世界観と隣接する</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://www.sqlite.org/wal.html" target="_blank" rel="noopener">
+        <span class="idx">SRC · 03</span>
+        <div>
+          <strong>SQLite — Write-Ahead Logging (WAL)</strong>
+          <span>複数読み取り + 1 書き込みを安全に並行処理する仕組み。「共有の郵便受け」を支える根拠</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/microsoft/autogen" target="_blank" rel="noopener">
+        <span class="idx">SRC · 04</span>
+        <div>
+          <strong>AutoGen / LangGraph — 重厚フレームワークとの対比</strong>
+          <span>agmsg があえて避けた「常駐・ネットワーク・複雑さ」を持つ既存マルチエージェント基盤</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_30.html">
+        <span class="dir">← Prev · 05/30</span>
+        <strong>Integuru — 「API なき世界」を終わらせる、リバースエンジニアリング基盤</strong>
+      </a>
+      <a href="../day_slides_index.html">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026·05·31 — <em>agmsg · AIエージェントを「チーム」に変える、デーモンレスな通信レイヤー</em></div>
+    <div class="f-meta">SOURCES · agmsg (Agent Message Bus) / Claude Code Dynamic Workflows / SQLite WAL / NotebookLM · DESIGN · Field Dispatch Editorial</div>
+  </div>
+</footer>
+
+</body>
+</html>
