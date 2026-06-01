@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex AIエージェント革命 — 「作業員」から「マネージャー」へ | 2026-06-01 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<meta name="description" content="2026 年 6 月、AIエージェント開発のパラダイムは『プロンプト・エンジニアリング』から『組織エンジニアリング（Organization Engineering）』へ移行した。Codex を単なる『作業員（Worker）』から自律的な『マネージャー（Manager）』へ進化させる鍵は、3 つの主要 GitHub プロジェクトの統合にある。新しいソフトウェア部品『Skill』は、Agent = Model + Tools + Memory + SKILLS という方程式で能力を拡張する。3 層アーキテクチャ：① openai/skills（公式カタログ＝AIエージェントの標準ライブラリ／OS。skill-installer で Write once, use everywhere）→ ② ComposioHQ/awesome-codex-skills（1.2k stars の実戦スキル集＝アプリ層。Slack / Jira / Notion 連携で『考える』から『行動する』相棒へ）→ ③ codex-dynamic-workflows（大規模タスクを分割・統制するオーケストレーション層＝司令塔／マネージャー）。導入判断マトリクスで公式カタログとコミュニティ拡張を比較。動的ワークフローは指揮と計画 → Work Packet 分割 → 並列レビュー → 統合 → 成果物の 5 ステップで実行。『監督付き自律（Supervised Autonomy）』では AI が 95%・人間が 5%（承認ゲート）を担い、Database Write 前に承認を挟むことで確実なリスク管理を実現。成果物が次の資産になる『Compound Engineering（技術的複利）』で CLAUDE.md などの知識を蓄積。実務導入は ①公式基盤 → ②実戦投入 → ③動的統制 → ④チーム編成の 4 ステップ・ロードマップ。2026 年以降の競争優位は『どの AI を使うか』ではなく『どんなスキル群（チーム）を育てているか』——AI モデルは借り物、スキルは資産だ。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_01.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Codex AIエージェント革命 — 「作業員」から「マネージャー」へ | 2026-06-01" />
+<meta property="og:description" content="プロンプトから『組織エンジニアリング』へ。openai/skills（OS）→ awesome-codex-skills（アプリ）→ codex-dynamic-workflows（司令塔）の 3 層で Codex を自律マネージャーへ。AI 95% / 人間 5% の監督付き自律と、スキルを資産化する Compound Engineering。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_01.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0601/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Codex AIエージェント革命 — 作業員からマネージャーへ | 2026-06-01" />
+<meta name="twitter:description" content="Agent = Model + Tools + Memory + SKILLS。3 層アーキテクチャ（OS → アプリ → 司令塔）で Codex を自律マネージャー化。スキルは借り物の AI を超える『資産』になる。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0601/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Codex AIエージェント革命 — 「作業員」から「マネージャー」へ",
+  "datePublished": "2026-06-01",
+  "dateModified": "2026-06-01",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0601/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_01.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_01.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     CODEX AGENT REVOLUTION · SWISS MODERNISM 2.0 · 2026-06-01
+     ============================================================
+     Direction: International Typographic Style.
+     Near-white paper, hairline 12-col grid, geometric gothic
+     headlines (Zen Kaku), Libre Bodoni display numerals, Public
+     Sans + Plex Mono labels. One bold magenta accent encodes the
+     "worker -> manager" ascent. Mathematical spacing, ragged-right.
+     ============================================================ */
+  :root {
+    --paper: #FAFAFA;
+    --surface: #FFFFFF;
+    --ink: #09090B;
+    --ink-2: #3F3F46;
+    --ink-3: #71717A;
+    --rule: #E4E4E7;
+    --rule-2: #D4D4D8;
+    --rule-strong: #18181B;
+    --accent: #EC4899;
+    --accent-deep: #BE185D;
+    --accent-tint: #FCE7F3;
+    --muted: #F4F4F5;
+    --ok: #15803D;
+    --bodoni: 'Libre Bodoni', 'Noto Serif JP', Georgia, serif;
+    --jp: 'Zen Kaku Gothic New', 'Public Sans', 'Noto Sans JP', sans-serif;
+    --sans: 'Public Sans', 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--accent); color: #fff; }
+  a { color: inherit; }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    padding: 14px 40px;
+    background: rgba(250,250,250,.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .topbar b {
+    font-family: var(--bodoni);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: .01em;
+    text-transform: none;
+  }
+  .topbar nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  .topbar nav a { color: var(--ink-3); text-decoration: none; transition: color .15s; }
+  .topbar nav a:hover { color: var(--accent); }
+  .topbar > span { color: var(--ink-3); }
+
+  /* ── shell ──────────────────────────────────────── */
+  main { max-width: 1280px; margin: 0 auto; padding: 0 40px 120px; }
+  section { padding: 96px 0; border-bottom: 1px solid var(--rule); position: relative; }
+  section:last-of-type { border-bottom: 0; }
+
+  /* eyebrow: §NN / LABEL */
+  .eyebrow {
+    display: flex; align-items: baseline; gap: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 26px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .eyebrow .num {
+    font-family: var(--bodoni);
+    font-size: 20px;
+    letter-spacing: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .eyebrow .grow { flex: 1; }
+  .eyebrow .meta { color: var(--ink-3); }
+
+  h2 {
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(32px, 4.6vw, 60px);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin-bottom: 28px;
+    color: var(--ink);
+  }
+  h2 .pink { color: var(--accent); }
+  h2 .out { -webkit-text-stroke: 1.5px var(--ink); color: transparent; }
+  h3 {
+    font-family: var(--jp);
+    font-weight: 700;
+    font-size: clamp(19px, 2vw, 24px);
+    line-height: 1.3;
+    letter-spacing: -.01em;
+    margin-bottom: 12px;
+  }
+  .lede {
+    max-width: 70ch;
+    font-size: clamp(16px, 1.35vw, 19px);
+    line-height: 1.72;
+    color: var(--ink-2);
+    margin-bottom: 56px;
+  }
+  .lede strong { color: var(--ink); font-weight: 700; }
+  .lede em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); font-weight: 500; }
+
+  p { font-size: 15.5px; line-height: 1.74; color: var(--ink-2); }
+  p strong { color: var(--ink); font-weight: 700; }
+  p em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); }
+  .mono-tag { font-family: var(--mono); font-size: .9em; background: var(--muted); border: 1px solid var(--rule); padding: 1px 7px; }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 80px 0 0; border-bottom: 1px solid var(--rule-strong); }
+  .hero-top {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 56px;
+    align-items: end;
+    padding-bottom: 48px;
+  }
+  .hero-kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .hero-kicker .box { border: 1px solid var(--accent); padding: 4px 10px; color: var(--accent); }
+  .hero-kicker .arrow { color: var(--ink); font-family: var(--bodoni); font-size: 16px; }
+  h1 {
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(44px, 7vw, 92px);
+    line-height: 1.04;
+    letter-spacing: -.035em;
+    color: var(--ink);
+  }
+  h1 .arrow {
+    color: var(--accent);
+    font-family: var(--bodoni);
+    font-weight: 500;
+    font-style: italic;
+    padding: 0 .06em;
+  }
+  h1 .pink { color: var(--accent); }
+  .hero-right { padding-bottom: 6px; }
+  .hero-lead {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    border-top: 3px solid var(--ink);
+    padding-top: 18px;
+  }
+  .hero-lead strong { color: var(--ink); font-weight: 700; }
+  .hero-lead em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform .14s, background .14s, color .14s;
+  }
+  .btn.primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
+  .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn.ghost:hover { background: var(--accent-tint); border-color: var(--accent); color: var(--accent-deep); }
+  .btn::after { content: "→"; font-family: var(--bodoni); }
+
+  .hero-figure {
+    border: 1px solid var(--rule-strong);
+    background: var(--surface);
+    margin-bottom: 0;
+  }
+  .hero-figure img { display: block; width: 100%; height: auto; }
+  .hero-figure .cap {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule-strong);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ── stat band ──────────────────────────────────── */
+  .stat-band {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .stat-band > div { padding: 28px 24px; border-right: 1px solid var(--rule); }
+  .stat-band > div:last-child { border-right: 0; }
+  .stat-num {
+    font-family: var(--bodoni);
+    font-weight: 600;
+    font-size: clamp(38px, 4.6vw, 58px);
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .stat-num .pink { color: var(--accent); }
+  .stat-num .u { font-size: .4em; color: var(--ink-3); font-family: var(--sans); font-weight: 600; }
+  .stat-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ── split (text + figure) ──────────────────────── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+  .split.wide-l { grid-template-columns: 1.1fr .9fr; }
+  .split.wide-r { grid-template-columns: .9fr 1.1fr; }
+  .split .body p + p { margin-top: 16px; }
+
+  figure.plate { border: 1px solid var(--rule-strong); background: var(--surface); margin: 0; }
+  figure.plate img { display: block; width: 100%; height: auto; }
+  figure.plate figcaption {
+    padding: 14px 16px;
+    border-top: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    letter-spacing: .01em;
+  }
+  figure.plate figcaption b {
+    font-family: var(--bodoni); font-weight: 600; color: var(--accent-deep);
+    margin-right: 8px; letter-spacing: 0;
+  }
+  .plate-wide { margin-top: 40px; }
+
+  /* ── formula ────────────────────────────────────── */
+  .formula {
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 48px 0;
+    margin: 8px 0 0;
+    text-align: center;
+    font-family: var(--bodoni);
+    font-weight: 500;
+    font-size: clamp(26px, 4.5vw, 52px);
+    letter-spacing: -.01em;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .formula .op { color: var(--ink-3); padding: 0 .12em; }
+  .formula .skills {
+    color: var(--accent);
+    position: relative;
+    font-weight: 600;
+  }
+  .formula .skills::after {
+    content: "NEW"; position: absolute; top: -1.1em; right: -.2em;
+    font-family: var(--mono); font-size: .22em; letter-spacing: .2em;
+    color: var(--accent); border: 1px solid var(--accent); padding: 2px 5px;
+  }
+
+  /* ── layer stack (3-layer architecture) ─────────── */
+  .layers { border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .layer {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--surface);
+  }
+  .layer:last-child { border-bottom: 0; }
+  .layer .tag {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 0;
+    border-right: 1px solid var(--rule-strong);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: #fff; text-align: center;
+  }
+  .layer .tag .n { font-family: var(--bodoni); font-size: 30px; line-height: 1; margin-bottom: 6px; }
+  .layer.l1 .tag { background: var(--ink-3); }
+  .layer.l2 .tag { background: var(--ink); }
+  .layer.l3 .tag { background: var(--accent); }
+  .layer .body { padding: 24px 28px; }
+  .layer .repo { font-family: var(--mono); font-size: 12px; color: var(--accent-deep); margin-bottom: 6px; letter-spacing: .01em; }
+  .layer h3 { margin-bottom: 8px; }
+  .layer p { font-size: 14px; }
+  .layer .role {
+    display: inline-block; margin-bottom: 10px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    background: var(--muted); border: 1px solid var(--rule-2); padding: 2px 8px; color: var(--ink-2);
+  }
+
+  /* ── decision matrix table ──────────────────────── */
+  .matrix { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14.5px; }
+  .matrix thead th {
+    text-align: left; padding: 16px 18px;
+    border-bottom: 2px solid var(--ink);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); vertical-align: bottom;
+  }
+  .matrix thead th.a { color: var(--ink); }
+  .matrix thead th.b { color: var(--accent-deep); }
+  .matrix thead th small { display: block; font-family: var(--bodoni); font-size: 13px; font-style: italic; text-transform: none; letter-spacing: 0; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
+  .matrix tbody td { padding: 16px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+  .matrix tbody td:first-child { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); width: 18%; }
+  .matrix tbody td.b { background: var(--accent-tint); color: var(--ink); }
+  .matrix tbody td.b strong { color: var(--accent-deep); }
+  .matrix tbody tr:last-child td { border-bottom: 1px solid var(--ink); }
+
+  /* ── flow steps (numbered) ──────────────────────── */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .flow .step { padding: 24px 18px; border-right: 1px solid var(--rule); position: relative; background: var(--surface); }
+  .flow .step:last-child { border-right: 0; background: var(--accent-tint); }
+  .flow .step .n { font-family: var(--bodoni); font-size: 34px; line-height: 1; color: var(--accent); margin-bottom: 14px; }
+  .flow .step h4 { font-family: var(--jp); font-weight: 700; font-size: 15px; margin-bottom: 8px; line-height: 1.3; }
+  .flow .step p { font-size: 12.5px; line-height: 1.55; }
+
+  /* ── autonomy split bar (95/5) ──────────────────── */
+  .auto-wrap { margin-top: 8px; border: 1px solid var(--rule-strong); }
+  .auto-bar { display: flex; height: 88px; }
+  .auto-bar .ai { flex: 0 0 95%; background: var(--ink); color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 28px; }
+  .auto-bar .human { flex: 0 0 5%; background: var(--accent); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 92px; text-align: center; }
+  .auto-bar .ai .pct { font-family: var(--bodoni); font-size: 30px; line-height: 1; }
+  .auto-bar .ai .lab, .auto-bar .human .lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+  .auto-bar .human .pct { font-family: var(--bodoni); font-size: 24px; line-height: 1; }
+  .auto-foot { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule-strong); }
+  .auto-foot > div { padding: 22px 24px; border-right: 1px solid var(--rule); }
+  .auto-foot > div:last-child { border-right: 0; }
+  .auto-foot .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 8px; }
+  .auto-foot p { font-size: 13.5px; line-height: 1.6; }
+
+  /* ── roadmap (4 steps) ──────────────────────────── */
+  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin-top: 8px; }
+  .roadmap .r { padding: 28px 22px; border-right: 1px solid var(--rule); }
+  .roadmap .r:last-child { border-right: 0; }
+  .roadmap .r .n { font-family: var(--bodoni); font-size: 44px; line-height: 1; color: var(--ink); margin-bottom: 14px; }
+  .roadmap .r:last-child .n { color: var(--accent); }
+  .roadmap .r .repo { font-family: var(--mono); font-size: 10.5px; color: var(--accent-deep); margin-bottom: 6px; }
+  .roadmap .r h4 { font-family: var(--jp); font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+  .roadmap .r p { font-size: 13px; line-height: 1.6; }
+
+  /* ── pull statement ─────────────────────────────── */
+  .pull { border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); padding: 72px 0; }
+  .pull q {
+    quotes: none; display: block;
+    font-family: var(--jp); font-weight: 900;
+    font-size: clamp(28px, 4.4vw, 56px); line-height: 1.18; letter-spacing: -.025em;
+    color: var(--ink); max-width: 22ch;
+  }
+  .pull q .pink { color: var(--accent); }
+  .pull cite {
+    display: block; margin-top: 28px;
+    font-family: var(--mono); font-size: 11.5px; font-style: normal;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ── headlines / source list ────────────────────── */
+  .source-list { border-top: 1px solid var(--ink); margin-top: 8px; }
+  .source-list a {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: baseline;
+    padding: 22px 0; border-bottom: 1px solid var(--rule);
+    text-decoration: none; color: var(--ink); transition: padding .15s, background .15s;
+  }
+  .source-list a:hover { padding-left: 14px; background: var(--surface); }
+  .source-list a .idx { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--accent); }
+  .source-list a strong { font-family: var(--jp); font-weight: 700; font-size: 16.5px; line-height: 1.35; color: var(--ink); display: block; margin-bottom: 4px; }
+  .source-list a span { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .source-list a .arr { font-family: var(--bodoni); color: var(--accent); font-size: 18px; transition: transform .15s; }
+  .source-list a:hover .arr { transform: translateX(6px); }
+
+  /* ── pager ──────────────────────────────────────── */
+  .pager { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid var(--ink); margin-top: 64px; }
+  .pager a { padding: 28px 24px; text-decoration: none; color: var(--ink); border-right: 1px solid var(--rule); }
+  .pager a:last-child { border-right: 0; text-align: right; }
+  .pager .dir { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
+  .pager strong { font-family: var(--jp); font-weight: 700; font-size: 16px; line-height: 1.35; color: var(--ink); }
+
+  /* ── footer ─────────────────────────────────────── */
+  .site-foot { border-top: 1px solid var(--ink); padding: 36px 0 72px; margin-top: 64px; }
+  .site-foot .inner { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  .site-foot .f-title { font-family: var(--bodoni); font-style: italic; font-weight: 500; font-size: 18px; color: var(--ink); margin-bottom: 10px; }
+  .site-foot .f-meta { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--ink-3); }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 960px) {
+    .topbar { padding: 12px 20px; }
+    .topbar nav { display: none; }
+    main { padding: 0 20px 72px; }
+    section { padding: 64px 0; }
+    .hero-top { grid-template-columns: 1fr; gap: 32px; align-items: start; }
+    .split, .split.wide-l, .split.wide-r { grid-template-columns: 1fr; gap: 32px; }
+    .stat-band { grid-template-columns: 1fr 1fr; }
+    .stat-band > div:nth-child(2n) { border-right: 0; }
+    .stat-band > div:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .flow .step:nth-child(2n) { border-right: 0; }
+    .flow .step { border-bottom: 1px solid var(--rule); }
+    .roadmap { grid-template-columns: 1fr 1fr; }
+    .roadmap .r:nth-child(2n) { border-right: 0; }
+    .auto-foot { grid-template-columns: 1fr; }
+    .auto-foot > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+  @media (max-width: 560px) {
+    .stat-band { grid-template-columns: 1fr; }
+    .stat-band > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .flow { grid-template-columns: 1fr; }
+    .roadmap { grid-template-columns: 1fr; }
+    .roadmap .r { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .source-list a { grid-template-columns: 1fr; gap: 4px; }
+    .source-list a .arr { display: none; }
+    .auto-bar { height: auto; flex-direction: column; }
+    .auto-bar .ai, .auto-bar .human { flex: 1 1 auto; padding: 18px 24px; }
+    h1 { font-size: 46px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav>
+    <a href="#hero">要約</a>
+    <a href="#shift">転換</a>
+    <a href="#skill">Skill</a>
+    <a href="#arch">3層</a>
+    <a href="#matrix">判断</a>
+    <a href="#flow">実行</a>
+    <a href="#autonomy">自律</a>
+    <a href="#moat">資産</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026·06·01 · MON</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-kicker">
+          <span class="box">Issue № 06·01</span>
+          <span>Codex Agent Revolution</span>
+          <span class="arrow">→</span>
+          <span>Organization Engineering</span>
+        </div>
+        <h1>「作業員」<span class="arrow">→</span><br><span class="pink">「マネージャー」</span>へ。</h1>
+      </div>
+      <div class="hero-right">
+        <p class="hero-lead">
+          時代は <strong>「プロンプト・エンジニアリング」</strong>から <em>「組織エンジニアリング」</em>へ。Codex を単体の「作業員」ではなく、複数の AI を束ねる <strong>自律的なマネージャー</strong>へ進化させる鍵は、<strong>3 つの GitHub プロジェクト</strong>の統合にある。
+        </p>
+        <div class="hero-cta">
+          <a class="btn primary" href="https://github.com/openai/codex" target="_blank" rel="noopener">openai/codex</a>
+          <a class="btn ghost" href="https://github.com/ComposioHQ/awesome-codex-skills" target="_blank" rel="noopener">awesome-codex-skills</a>
+        </div>
+      </div>
+    </div>
+
+    <figure class="hero-figure">
+      <img src="images/0601/cover.jpg" alt="Codex AIエージェント革命 — 最新3大GitHubプロジェクト活用ガイド">
+      <div class="cap"><span>FIG.A — Codex 3-Project Integration Map</span><span>openai/skills · awesome-codex-skills · dynamic-workflows</span></div>
+    </figure>
+
+    <div class="stat-band" aria-label="主要数値">
+      <div>
+        <div class="stat-num">3</div>
+        <div class="stat-label">Layer Architecture</div>
+      </div>
+      <div>
+        <div class="stat-num">1.2<span class="u">k★</span></div>
+        <div class="stat-label">awesome-codex-skills</div>
+      </div>
+      <div>
+        <div class="stat-num"><span class="pink">95</span><span class="u">/5%</span></div>
+        <div class="stat-label">AI 自律 / 人間承認</div>
+      </div>
+      <div>
+        <div class="stat-num">4</div>
+        <div class="stat-label">導入ステップ</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── §01 THE SHIFT ───────────────── -->
+  <section id="shift">
+    <div class="eyebrow"><span class="num">§ 01</span><span>The Shift</span><span class="grow"></span><span class="meta">Prompt → Organization</span></div>
+    <h2>もう、命令はしない。<br><span class="pink">「組織」</span>を設計する。</h2>
+    <p class="lede">
+      これまでの開発は、1 つの AI に上手な指示を出す <strong>「プロンプト・エンジニアリング」</strong>だった。だが Codex の真価は、<em>AI Worker・AI Reviewer・AI Tester</em> といった役割を組み合わせ、<strong>「AI チーム」として運用する</strong>段階で解き放たれる。人間の仕事は、命令から <em>組織設計</em>へと移る。
+    </p>
+    <div class="split wide-r">
+      <div class="body">
+        <p>単一の AI がどれほど賢くても、1 人で完遂できるタスクには限界がある。<strong>実装・レビュー・テスト</strong>を別々のエージェントに分担させ、互いに成果を渡し合う——この <em>分業</em>こそが、開発速度を非連続に引き上げる。</p>
+        <p>Codex は、その分業を成立させる「ランタイム」になる。あなたが書くのは細かな手順ではなく、<strong>「誰が・何を・どの順で」</strong>という組織の設計図だ。プロンプトの巧拙ではなく、<em>役割設計の巧拙</em>が成果を決める。</p>
+        <p>この転換を支えるのが、本日紹介する <strong>3 つの GitHub プロジェクト</strong>。それぞれが OS・アプリ・司令塔という明確なレイヤーを担う。</p>
+      </div>
+      <figure class="plate">
+        <img src="images/0601/page_02.jpg" alt="プロンプトから組織化へ — AI Worker / Reviewer / Tester の分業">
+        <figcaption><b>FIG 1</b>Prompt Engineering から Organization Engineering へ。AI を「作業員」ではなく <em>役割を持つチーム</em>として組み合わせる。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── §02 SKILL ───────────────── -->
+  <section id="skill">
+    <div class="eyebrow"><span class="num">§ 02</span><span>The New Software Part</span><span class="grow"></span><span class="meta">Skill = Capability</span></div>
+    <h2>AI の能力を拡張する、<br>新しい<span class="pink">「部品」</span>。</h2>
+    <p class="lede">
+      <strong>Skill</strong> は、AI エージェントの能力を後から差し込む <em>新しいソフトウェア部品</em>だ。モデルそのものを訓練し直さずとも、ツール・手順・知識を「スキル」として与えれば、エージェントは新しい仕事をこなせるようになる。能力は、こう定義し直される——
+    </p>
+
+    <div class="formula" aria-label="Agent = Model + Tools + Memory + SKILLS">
+      Agent <span class="op">=</span> Model <span class="op">+</span> Tools <span class="op">+</span> Memory <span class="op">+</span> <span class="skills">SKILLS</span>
+    </div>
+
+    <div class="split wide-l" style="margin-top:56px;">
+      <figure class="plate">
+        <img src="images/0601/page_03.jpg" alt="Skill = 新しいソフトウェア部品。Agent = Model + Tools + Memory + SKILLS">
+        <figcaption><b>FIG 2</b>Skill は再利用・配布・バージョン管理できる「能力のパッケージ」。Progressive Disclosure で必要なときに読み込まれる。</figcaption>
+      </figure>
+      <div class="body">
+        <p>Skill の本質は <strong>「再利用可能な能力」</strong>だ。一度書けば、別のプロジェクトでも、別のエージェントでも同じ手順を呼び出せる。<span class="mono-tag">Write once, use everywhere</span>。</p>
+        <p>そして Skill は <em>資産</em>になる。使い込むほどに洗練され、チーム共有され、組織固有のノウハウが「コード」として蓄積されていく。モデルは借り物でも、<strong>スキル群はあなたのもの</strong>だ。</p>
+        <p>この「部品」を、誰が・どこで供給するのか。答えが、次の <strong>3 層アーキテクチャ</strong>である。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── §03 ARCHITECTURE ───────────────── -->
+  <section id="arch">
+    <div class="eyebrow"><span class="num">§ 03</span><span>3-Layer Architecture</span><span class="grow"></span><span class="meta">OS → App → Conductor</span></div>
+    <h2>自律を支える、<br><span class="pink">3 層</span>のアーキテクチャ。</h2>
+    <p class="lede">
+      3 つの主要プロジェクトは、競合ではなく <strong>レイヤー構造</strong>として噛み合う。下から <em>標準ライブラリ（OS）</em>、<em>実戦スキル集（アプリ）</em>、<em>オーケストレーション（司令塔）</em>。下層が上層を支え、上に行くほど「作業員」から「マネージャー」へと役割が上がる。
+    </p>
+
+    <div class="layers">
+      <div class="layer l3">
+        <div class="tag"><span class="n">3</span>Conductor</div>
+        <div class="body">
+          <span class="role">司令塔 · Manager</span>
+          <div class="repo">codex-dynamic-workflows</div>
+          <h3>大規模タスクを分割・統制する</h3>
+          <p>複雑なタスクを Work Packet に分割し、承認ゲートを挟みつつ複数のサブエージェントを指揮する <strong>オーケストレーション層</strong>。Codex を「マネージャー」に変える最上位レイヤー。</p>
+        </div>
+      </div>
+      <div class="layer l2">
+        <div class="tag"><span class="n">2</span>App</div>
+        <div class="body">
+          <span class="role">実戦カタログ · Action</span>
+          <div class="repo">ComposioHQ/awesome-codex-skills <span style="color:var(--ink-3)">· 1.2k★</span></div>
+          <h3>「考える」から「行動する」相棒へ</h3>
+          <p>Slack・Jira・Notion など外部サービスと連携する <strong>行動特化のスキル集</strong>。業務自動化のハブとなり、セキュリティと権限制御も担う。コミュニティ主導で拡張。</p>
+        </div>
+      </div>
+      <div class="layer l1">
+        <div class="tag"><span class="n">1</span>OS</div>
+        <div class="body">
+          <span class="role">標準基盤 · Foundation</span>
+          <div class="repo">openai/skills <span style="color:var(--ink-3)">· 公式</span></div>
+          <h3>AI エージェントの「標準ライブラリ」</h3>
+          <p>OpenAI が公式に管理する <strong>スキルの「公式カタログ」</strong>。<span class="mono-tag">$ skill-installer</span> でインストールし、書き方やインストール基準を定める <em>OS の役割</em>を果たす。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="split plate-wide" style="margin-top:48px;">
+      <figure class="plate">
+        <img src="images/0601/page_05.jpg" alt="Layer 1: openai/skills — AIエージェントの標準ライブラリ">
+        <figcaption><b>FIG 3</b><strong>Layer 1 · openai/skills</strong> — Write once, use everywhere。SKILL.md / scripts / assets を公式仕様で配布する OS 層。</figcaption>
+      </figure>
+      <figure class="plate">
+        <img src="images/0601/page_06.jpg" alt="Layer 2: ComposioHQ/awesome-codex-skills — 行動する相棒へ">
+        <figcaption><b>FIG 4</b><strong>Layer 2 · awesome-codex-skills</strong> — 1.2k★。Slack / Jira へ接続し、Codex を「行動するエージェント」に変えるアプリ層。</figcaption>
+      </figure>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0601/page_08.jpg" alt="Layer 3: codex-dynamic-workflows — オーケストレーション">
+      <figcaption><b>FIG 5</b><strong>Layer 3 · codex-dynamic-workflows</strong> — 大規模タスクを動的に分割・統制し、複数エージェントを並列・協調動作させる司令塔層。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── §04 DECISION MATRIX ───────────────── -->
+  <section id="matrix">
+    <div class="eyebrow"><span class="num">§ 04</span><span>Decision Matrix</span><span class="grow"></span><span class="meta">Official vs Community</span></div>
+    <h2>公式カタログか、<br><span class="pink">コミュニティ拡張</span>か。</h2>
+    <p class="lede">
+      Layer 1（公式）と Layer 2（コミュニティ）は <em>どちらかを選ぶ</em>ものではなく、<strong>役割で使い分ける</strong>。信頼性を最優先する基盤は公式から、最新の行動スキルはコミュニティから——両者を組み合わせて初めて、実戦的な AI チームが組める。
+    </p>
+
+    <div style="overflow-x:auto;">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>評価軸</th>
+            <th class="a">openai/skills<small>公式基盤 · OS</small></th>
+            <th class="b">awesome-codex-skills<small>実戦カタログ · App</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>位置づけ</td>
+            <td>Codex Skills の<strong>標準基盤</strong>（OS 的存在）</td>
+            <td class="b">実戦投入される<strong>行動スキル</strong>のアプリ層</td>
+          </tr>
+          <tr>
+            <td>信頼性</td>
+            <td>公式管理で<strong>高い安定性</strong>と後方互換</td>
+            <td class="b">コミュニティ主導で<strong>最新・多様</strong>、品質は要選別</td>
+          </tr>
+          <tr>
+            <td>拡張性</td>
+            <td>標準仕様に準拠、堅実な拡張</td>
+            <td class="b"><strong>1,200+ スキル</strong>と外部 SaaS 連携で広範</td>
+          </tr>
+          <tr>
+            <td>セキュリティ</td>
+            <td>公式基準による<strong>厳格な検証</strong></td>
+            <td class="b">権限制御を内蔵、導入前の<strong>レビュー必須</strong></td>
+          </tr>
+          <tr>
+            <td>導入の容易性</td>
+            <td>標準インストーラで<strong>低摩擦</strong></td>
+            <td class="b">用途特化で<strong>即戦力</strong>、選定の目利きが鍵</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="plate plate-wide">
+      <img src="images/0601/page_07.jpg" alt="導入判断マトリクス: 公式カタログ vs コミュニティ拡張">
+      <figcaption><b>FIG 6</b>「公式の堅牢さ」を土台に、「コミュニティの俊敏さ」を重ねる——これが 2026 年の標準的なスキル調達戦略だ。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── §05 EXECUTION FLOW ───────────────── -->
+  <section id="flow">
+    <div class="eyebrow"><span class="num">§ 05</span><span>Execution Mechanism</span><span class="grow"></span><span class="meta">Dynamic Workflows · 5 Steps</span></div>
+    <h2>司令塔は、こう<span class="pink">動く</span>。</h2>
+    <p class="lede">
+      Layer 3 の <strong>dynamic-workflows</strong> は、大規模タスクを 5 つのステップで処理する。鍵は <em>中間成果をコンテキストではなく外部で管理する</em>こと——だから数日にわたる長時間実行や、並列レビューが破綻しない。
+    </p>
+
+    <div class="flow">
+      <div class="step">
+        <div class="n">1</div>
+        <h4>指揮と計画</h4>
+        <p>ゴールを受け取り、達成までのタスクツリーと実行戦略を構築する。</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h4>Work Packet 分割</h4>
+        <p>大タスクを独立した小単位に分解。各パケットを担当エージェントへ配分。</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h4>並列レビュー</h4>
+        <p>実装と検証を別エージェントで並走。相互チェックで品質を担保する。</p>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <h4>統合</h4>
+        <p>各パケットの成果を束ね、整合性を解決して 1 つの結果へまとめる。</p>
+      </div>
+      <div class="step">
+        <div class="n">5</div>
+        <h4>成果物</h4>
+        <p>承認を経た最終成果を出力。実行ログは次の改善資産として残る。</p>
+      </div>
+    </div>
+
+    <figure class="plate plate-wide">
+      <img src="images/0601/page_09.jpg" alt="動的ワークフローの実行メカニズム — 5ステップ">
+      <figcaption><b>FIG 7</b>指揮 → 分割 → 並列レビュー → 統合 → 成果物。中間結果を外部管理することで、長時間・大規模タスクの完遂が可能になる。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── §06 SUPERVISED AUTONOMY ───────────────── -->
+  <section id="autonomy">
+    <div class="eyebrow"><span class="num">§ 06</span><span>Supervised Autonomy</span><span class="grow"></span><span class="meta">95% AI / 5% Human</span></div>
+    <h2>95% は AI に。<br>残り <span class="pink">5%</span> が、すべてを守る。</h2>
+    <p class="lede">
+      完全自律は危険を伴う。だから <strong>「監督付き自律（Supervised Autonomy）」</strong>では、AI が 95% を自走しつつ、<em>データベース書き込み</em>など不可逆な操作の直前に <strong>承認ゲート</strong>を置く。人間が担うのは 5%——だが、その 5% がリスクを封じる。
+    </p>
+
+    <div class="auto-wrap" aria-label="AI 95% / 人間 5%">
+      <div class="auto-bar">
+        <div class="ai">
+          <div class="pct">95%</div>
+          <div class="lab">AI · Autonomous Execution</div>
+        </div>
+        <div class="human">
+          <div class="pct">5%</div>
+          <div class="lab">Human</div>
+        </div>
+      </div>
+      <div class="auto-foot">
+        <div>
+          <div class="k">Approval Gates</div>
+          <p>DB 書き込み・外部送信など<strong>不可逆操作</strong>の直前に承認を要求。暴走を構造的に止める。</p>
+        </div>
+        <div>
+          <div class="k">95% / 5% Split</div>
+          <p>AI が探索・実装・検証を自走し、人間は<strong>意思決定の要所</strong>のみに集中する。</p>
+        </div>
+        <div>
+          <div class="k">Risk Management</div>
+          <p>承認ログが監査証跡になり、<strong>確実なリスク管理</strong>とエンタープライズ適合を実現。</p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="plate plate-wide">
+      <img src="images/0601/page_10.jpg" alt="監督付き自律と承認ゲート — AI 95% / 人間 5%">
+      <figcaption><b>FIG 8</b>Database Write の手前に Approval Gate を置く。自律のスピードと、企業環境に求められる安全性を両立させる設計だ。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── §07 COMPOUND ───────────────── -->
+  <section>
+    <div class="eyebrow"><span class="num">§ 07</span><span>Compound Engineering</span><span class="grow"></span><span class="meta">技術的複利</span></div>
+    <h2>成果物が、次の<span class="pink">資産</span>になる。</h2>
+    <p class="lede">
+      1 回の作業を使い捨てにしない。生成された設計・手順・検証結果を <span class="mono-tag">CLAUDE.md</span> などに蓄積し、次の作業の土台にする——これが <strong>Compound Engineering（技術的複利）</strong>。Plan → Work → Review → <em>Compound</em> のループが、組織の知識を雪だるま式に増やす。
+    </p>
+    <div class="split wide-r">
+      <div class="body">
+        <p>従来の開発は、知識が個人の頭の中に留まり、プロジェクトが終われば霧散した。Compound Engineering は、その知識を <strong>「コード化された資産」</strong>として残す。</p>
+        <p>スキル・ルール・文脈が積み上がるほど、AI チームは賢く・速くなる。<em>「技術的負債」</em>の逆——使うほど価値が増える <strong>「技術的複利」</strong>が働きはじめる。</p>
+        <p>そして、この複利こそが、次節で語る <strong>競争優位の源泉</strong>になる。</p>
+      </div>
+      <figure class="plate">
+        <img src="images/0601/page_11.jpg" alt="技術的複利 Compound Engineering — 成果物が次の資産に">
+        <figcaption><b>FIG 9</b>Plan → Work → Review → Compound。CLAUDE.md に蓄積された知識が、次のループの初速を上げる。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── §08 ROADMAP ───────────────── -->
+  <section>
+    <div class="eyebrow"><span class="num">§ 08</span><span>Implementation Roadmap</span><span class="grow"></span><span class="meta">4 Steps</span></div>
+    <h2>実務導入の、<span class="pink">4 ステップ</span>。</h2>
+    <p class="lede">
+      いきなり司令塔を組む必要はない。<strong>下層から順に</strong>積み上げる。公式基盤で土台を固め、実戦スキルで行動範囲を広げ、動的統制で大規模化し、最後にチームとして編成する。
+    </p>
+
+    <div class="roadmap">
+      <div class="r">
+        <div class="n">1</div>
+        <div class="repo">openai/skills</div>
+        <h4>公式基盤を導入</h4>
+        <p>標準カタログから低リスクなスキルを入れ、土台と作法を固める。</p>
+      </div>
+      <div class="r">
+        <div class="n">2</div>
+        <div class="repo">awesome-codex-skills</div>
+        <h4>実戦投入</h4>
+        <p>業務に直結する行動スキルを選定。Slack / Jira 連携で即戦力化。</p>
+      </div>
+      <div class="r">
+        <div class="n">3</div>
+        <div class="repo">dynamic-workflows</div>
+        <h4>動的統制</h4>
+        <p>承認ゲート付きで大規模タスクを分割・並列化し、規模を上げる。</p>
+      </div>
+      <div class="r">
+        <div class="n">4</div>
+        <div class="repo">team</div>
+        <h4>チーム編成</h4>
+        <p>役割を固定した AI チームを常設し、Compound で資産を育てる。</p>
+      </div>
+    </div>
+
+    <figure class="plate plate-wide">
+      <img src="images/0601/page_12.jpg" alt="実務導入への4ステップ・ロードマップ">
+      <figcaption><b>FIG 10</b>公式基盤 → 実戦投入 → 動的統制 → チーム編成。レイヤーを下から積むことで、リスクを抑えつつ自律度を上げられる。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── PULL ───────────────── -->
+  <section style="border-bottom:0;padding-bottom:0;">
+    <div class="pull">
+      <q>「<span class="pink">どの AI を使うか</span>」より、<br>「どんな<span class="pink">スキル群</span>を育てているか」。</q>
+      <cite>— Codex Agent Revolution · Skills are the Asset · 2026·06·01</cite>
+    </div>
+  </section>
+
+  <!-- ───────────────── §09 MOAT / CONCLUSION ───────────────── -->
+  <section id="moat">
+    <div class="eyebrow"><span class="num">§ 09</span><span>The New Moat</span><span class="grow"></span><span class="meta">Skills as Asset</span></div>
+    <h2>モデルは借り物。<br><span class="pink">スキルは、資産。</span></h2>
+    <p class="lede">
+      2026 年以降、競争優位の源泉は <strong>「どの AI を使うか」</strong>から <em>「どんなスキル群（チーム）を育てているか」</em>へ移る。誰もが同じフロンティアモデルを使える時代、差を生むのは <strong>蓄積された独自スキル資産</strong>だ。
+    </p>
+    <div class="split wide-l">
+      <figure class="plate">
+        <img src="images/0601/page_13.jpg" alt="新たな競争優位の源泉 — 独自スキル資産の蓄積">
+        <figcaption><b>FIG 11</b>モデルはコモディティ化する。だが、組織固有のスキル群＝「AI チーム」は、容易に模倣できない堀（Moat）になる。</figcaption>
+      </figure>
+      <div class="body">
+        <p>フロンティアモデルは数週間で塗り替わる。今日の最強は来月には標準になる。<strong>モデルに賭けるのは、砂上の楼閣</strong>だ。</p>
+        <p>一方、<em>openai/skills</em> で土台を固め、<em>awesome-codex-skills</em> で行動範囲を広げ、<em>dynamic-workflows</em> で統制し、Compound で蓄積したスキル群は——使うほど深まり、組織に固着する。</p>
+        <p>始め方はシンプルだ。<strong>公式基盤の小さな 1 スキル</strong>から。作業員に命令する側から、AI チームを <em>設計し、率いる側</em>へ。その移行を、今日から始められる。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── §10 HEADLINES ───────────────── -->
+  <section>
+    <div class="eyebrow"><span class="num">§ 10</span><span>Today's Other Headlines</span><span class="grow"></span><span class="meta">2026 · 06 · 01</span></div>
+    <h2>本日の<span class="pink">主要ヘッドライン</span>。</h2>
+    <div class="source-list">
+      <a href="https://gigazine.net/news/20260531-softbank-france-ai-datacenter" target="_blank" rel="noopener">
+        <span class="idx">№ 01</span>
+        <div>
+          <strong>ソフトバンク、最大 14 兆円でフランスに 5GW の AI データセンター構築</strong>
+          <span>最大 750 億ユーロを投じ、AI 学習・推論の計算資源を確保する巨大インフラ投資（スコア 90）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://anthropic.com/news/claude-opus-4-8" target="_blank" rel="noopener">
+        <span class="idx">№ 02</span>
+        <div>
+          <strong>Claude Opus 4.8 リリース — 推論と指示追従が大幅向上</strong>
+          <span>複雑なタスク・長期会話での応答精度が向上。Anthropic 公式 API / Python SDK で利用可（HN 1758）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://itmedia.co.jp/enterprise/articles/2605/30/news010.html" target="_blank" rel="noopener">
+        <span class="idx">№ 03</span>
+        <div>
+          <strong>日立と Anthropic が戦略提携 — 従業員 29 万人へ Claude 導入</strong>
+          <span>ミッションクリティカル領域での AI 活用を加速。顧客サポート・都市インフラ・産業ソリューションへ</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://itmedia.co.jp/business/articles/2606/01/news040.html" target="_blank" rel="noopener">
+        <span class="idx">№ 04</span>
+        <div>
+          <strong>富士通、人月モデルの限界を認める — AI 時代への転換を訴え</strong>
+          <span>「中長期経営ビジョン 2035」で労働集約型モデルの持続不可能性を公式に表明（スコア 75）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://atmarkit.itmedia.co.jp/ait/articles/2606/01/news016.html" target="_blank" rel="noopener">
+        <span class="idx">№ 05</span>
+        <div>
+          <strong>「ハーネス」とは？ Hugging Face が AI エージェント用語を整理</strong>
+          <span>「ハーネス」「スキャフォールド」など曖昧だった用語を初学者向けに体系化（スコア 75）</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ───────────────── §11 SOURCES + PAGER ───────────────── -->
+  <section style="padding-bottom:0;">
+    <div class="eyebrow"><span class="num">§ 11</span><span>Sources &amp; Further Reading</span><span class="grow"></span><span class="meta">References</span></div>
+    <h2>出典 &amp; <span class="pink">参考リンク</span>。</h2>
+    <div class="source-list">
+      <a href="https://github.com/openai/codex" target="_blank" rel="noopener">
+        <span class="idx">SRC · 01</span>
+        <div>
+          <strong>openai/codex &amp; openai/skills — 公式基盤（OS 層）</strong>
+          <span>スキルの公式カタログと skill-installer。Write once, use everywhere の標準ライブラリ</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/ComposioHQ/awesome-codex-skills" target="_blank" rel="noopener">
+        <span class="idx">SRC · 02</span>
+        <div>
+          <strong>ComposioHQ/awesome-codex-skills — 実戦スキル集（App 層）</strong>
+          <span>1.2k★。Slack / Jira / Notion 連携で「行動する」エージェントへ。権限制御を内蔵</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/search?q=codex+dynamic+workflows&type=repositories" target="_blank" rel="noopener">
+        <span class="idx">SRC · 03</span>
+        <div>
+          <strong>codex-dynamic-workflows — オーケストレーション（司令塔層）</strong>
+          <span>大規模タスクを Work Packet に分割・並列統制。承認ゲート付きの監督付き自律</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://huggingface.co/blog" target="_blank" rel="noopener">
+        <span class="idx">SRC · 04</span>
+        <div>
+          <strong>Hugging Face — AI エージェント用語ガイド（Harness / Scaffold）</strong>
+          <span>「ハーネス」「スキャフォールド」など、エージェント設計の共通語彙を整理</span>
+        </div>
+        <span class="arr">→</span>
+      </a>
+    </div>
+
+    <nav class="pager" aria-label="前後のスライド">
+      <a href="day_slide_2026_05_31.html">
+        <span class="dir">← Prev · 05/31</span>
+        <strong>agmsg — AIエージェントを「チーム」に変える、デーモンレスな通信レイヤー</strong>
+      </a>
+      <a href="../day_slides_index.html">
+        <span class="dir">Next · All Slides →</span>
+        <strong>日次スライド一覧へ戻る</strong>
+      </a>
+    </nav>
+  </section>
+
+</main>
+
+<footer class="site-foot" role="contentinfo">
+  <div class="inner">
+    <div class="f-title">Daily AI Briefing · 2026·06·01 — <em>Codex AIエージェント革命 — 「作業員」から「マネージャー」へ</em></div>
+    <div class="f-meta">SOURCES · openai/skills / ComposioHQ awesome-codex-skills / codex-dynamic-workflows / NotebookLM · DESIGN · Swiss Modernism 2.0 (ui-ux-pro-max)</div>
+  </div>
+</footer>
+
+</body>
+</html>
