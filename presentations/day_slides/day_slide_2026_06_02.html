@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microsoft Build 2026 — Windowsが「エージェントOS」になる日 | 2026-06-02 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<meta name="description" content="2026年6月2日、サンフランシスコで開幕した Microsoft Build 2026 は『Windowsはアプリを動かすOSから、エージェントが働くプラットフォームへ』というメッセージを打ち出した。AIの役割は同期型アシスタントから非同期型コワーカーへ。3層のフルスタック・エージェント基盤——① Windows Agent Framework（MITでOSS化／常駐デーモンAgent Registration Service）→ ② Azure Agent Mesh（オンプレ・Cloud PC・Arcエッジを横断フェデレーション、GA 2026 Q4）→ ③ Agent 365（5/1 GA、企業の管制塔）＋ Azure AI Foundry（監査ダッシュボード）。自社製コーディングモデル Project Polaris は MoE構成で8月に GitHub Copilot の GPT-4 Turbo を置換、Maiaチップ上で稼働し『OpenAIの臍帯切断』を象徴する。Copilot Workspace はGAでリポジトリ全体を自律編集。導入は WAF→Workspace→Mesh→Agent 365 の4ステップ。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_02.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Microsoft Build 2026 — Windowsが「エージェントOS」になる日 | 2026-06-02" />
+<meta property="og:description" content="同期型アシスタント→非同期型コワーカー。Windows Agent Framework（OS）→ Azure Agent Mesh（分散）→ Agent 365（統制）の3層基盤と、自社モデル Project Polaris による脱OpenAI。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_02.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0602/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Microsoft Build 2026 — WindowsがエージェントOSになる日 | 2026-06-02" />
+<meta name="twitter:description" content="Windows(WAF)→Azure(Agent Mesh)→M365(Agent 365)の3層フルスタック。Project Polaris が8月にGPT-4 Turboを置換し、垂直統合で脱OpenAIへ。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0602/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Microsoft Build 2026 — Windowsが「エージェントOS」になる日",
+  "datePublished": "2026-06-02",
+  "dateModified": "2026-06-02",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0602/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_02.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_02.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     MICROSOFT BUILD 2026 · SWISS MODERNISM 2.0 · 2026-06-02
+     ============================================================
+     Direction: International Typographic Style.
+     Near-white paper, hairline grid, geometric gothic headlines
+     (Zen Kaku), Libre Bodoni display numerals, Public Sans + Plex
+     Mono labels. One Azure-blue accent encodes the platform shift
+     "assistant -> coworker". Mathematical spacing, ragged-right.
+     ============================================================ */
+  :root {
+    --paper: #FAFAFA;
+    --surface: #FFFFFF;
+    --ink: #09090B;
+    --ink-2: #3F3F46;
+    --ink-3: #71717A;
+    --rule: #E4E4E7;
+    --rule-2: #D4D4D8;
+    --rule-strong: #18181B;
+    --accent: #2563EB;
+    --accent-deep: #1D4ED8;
+    --accent-tint: #DBEAFE;
+    --muted: #F4F4F5;
+    --ok: #15803D;
+    --bodoni: 'Libre Bodoni', 'Noto Serif JP', Georgia, serif;
+    --jp: 'Zen Kaku Gothic New', 'Public Sans', 'Noto Sans JP', sans-serif;
+    --sans: 'Public Sans', 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--accent); color: #fff; }
+  a { color: inherit; }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    padding: 14px 40px;
+    background: rgba(250,250,250,.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .topbar b {
+    font-family: var(--bodoni);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: .01em;
+    text-transform: none;
+  }
+  .topbar nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  .topbar nav a { color: var(--ink-3); text-decoration: none; transition: color .15s; }
+  .topbar nav a:hover { color: var(--accent); }
+  .topbar > span { color: var(--ink-3); }
+
+  /* ── shell ──────────────────────────────────────── */
+  main { max-width: 1280px; margin: 0 auto; padding: 0 40px 120px; }
+  section { padding: 96px 0; border-bottom: 1px solid var(--rule); position: relative; }
+  section:last-of-type { border-bottom: 0; }
+
+  /* eyebrow: §NN / LABEL */
+  .eyebrow {
+    display: flex; align-items: baseline; gap: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 26px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .eyebrow .num {
+    font-family: var(--bodoni);
+    font-size: 20px;
+    letter-spacing: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .eyebrow .grow { flex: 1; }
+  .eyebrow .meta { color: var(--ink-3); }
+
+  h2 {
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(32px, 4.6vw, 60px);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin-bottom: 28px;
+    color: var(--ink);
+  }
+  h2 .pink { color: var(--accent); }
+  h2 .out { -webkit-text-stroke: 1.5px var(--ink); color: transparent; }
+  h3 {
+    font-family: var(--jp);
+    font-weight: 700;
+    font-size: clamp(19px, 2vw, 24px);
+    line-height: 1.3;
+    letter-spacing: -.01em;
+    margin-bottom: 12px;
+  }
+  .lede {
+    max-width: 70ch;
+    font-size: clamp(16px, 1.35vw, 19px);
+    line-height: 1.72;
+    color: var(--ink-2);
+    margin-bottom: 56px;
+  }
+  .lede strong { color: var(--ink); font-weight: 700; }
+  .lede em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); font-weight: 500; }
+
+  p { font-size: 15.5px; line-height: 1.74; color: var(--ink-2); }
+  p strong { color: var(--ink); font-weight: 700; }
+  p em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); }
+  .mono-tag { font-family: var(--mono); font-size: .9em; background: var(--muted); border: 1px solid var(--rule); padding: 1px 7px; }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 80px 0 0; border-bottom: 1px solid var(--rule-strong); }
+  .hero-top {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 56px;
+    align-items: end;
+    padding-bottom: 48px;
+  }
+  .hero-kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .hero-kicker .box { border: 1px solid var(--accent); padding: 4px 10px; color: var(--accent); }
+  .hero-kicker .arrow { color: var(--ink); font-family: var(--bodoni); font-size: 16px; }
+  h1 {
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(44px, 7vw, 92px);
+    line-height: 1.04;
+    letter-spacing: -.035em;
+    color: var(--ink);
+  }
+  h1 .arrow {
+    color: var(--accent);
+    font-family: var(--bodoni);
+    font-weight: 500;
+    font-style: italic;
+    padding: 0 .06em;
+  }
+  h1 .pink { color: var(--accent); }
+  .hero-right { padding-bottom: 6px; }
+  .hero-lead {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    border-top: 3px solid var(--ink);
+    padding-top: 18px;
+  }
+  .hero-lead strong { color: var(--ink); font-weight: 700; }
+  .hero-lead em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform .14s, background .14s, color .14s;
+  }
+  .btn.primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
+  .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn.ghost:hover { background: var(--accent-tint); border-color: var(--accent); color: var(--accent-deep); }
+  .btn::after { content: "→"; font-family: var(--bodoni); }
+
+  /* ── stat band ──────────────────────────────────── */
+  .stat-band {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .stat-band > div { padding: 28px 24px; border-right: 1px solid var(--rule); }
+  .stat-band > div:last-child { border-right: 0; }
+  .stat-num {
+    font-family: var(--bodoni);
+    font-weight: 600;
+    font-size: clamp(38px, 4.6vw, 58px);
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .stat-num .pink { color: var(--accent); }
+  .stat-num .u { font-size: .4em; color: var(--ink-3); font-family: var(--sans); font-weight: 600; }
+  .stat-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ── split (text + figure) ──────────────────────── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+  .split.wide-l { grid-template-columns: 1.1fr .9fr; }
+  .split.wide-r { grid-template-columns: .9fr 1.1fr; }
+  .split .body p + p { margin-top: 16px; }
+
+  figure.plate { border: 1px solid var(--rule-strong); background: var(--surface); margin: 0; }
+  figure.plate img { display: block; width: 100%; height: auto; }
+  figure.plate figcaption {
+    padding: 14px 16px;
+    border-top: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    letter-spacing: .01em;
+  }
+  figure.plate figcaption b {
+    font-family: var(--bodoni); font-weight: 600; color: var(--accent-deep);
+    margin-right: 8px; letter-spacing: 0;
+  }
+  .plate-wide { margin-top: 40px; }
+
+  /* ── card (text plate alt for figure slot) ──────── */
+  .cardplate { border: 1px solid var(--rule-strong); background: var(--surface); }
+  .cardplate .hd {
+    padding: 18px 22px; border-bottom: 1px solid var(--rule-strong);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+    display: flex; justify-content: space-between; gap: 12px;
+  }
+  .cardplate .hd b { font-family: var(--bodoni); font-size: 15px; color: var(--accent-deep); letter-spacing: 0; }
+  .cardplate ul { list-style: none; }
+  .cardplate li { padding: 16px 22px; border-bottom: 1px solid var(--rule); font-size: 14px; color: var(--ink-2); display: grid; grid-template-columns: 26px 1fr; gap: 12px; }
+  .cardplate li:last-child { border-bottom: 0; }
+  .cardplate li .k { font-family: var(--bodoni); font-size: 18px; color: var(--accent); line-height: 1.2; }
+  .cardplate li strong { color: var(--ink); }
+
+  /* ── formula ────────────────────────────────────── */
+  .formula {
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 48px 0;
+    margin: 8px 0 0;
+    text-align: center;
+    font-family: var(--bodoni);
+    font-weight: 500;
+    font-size: clamp(26px, 4.5vw, 52px);
+    letter-spacing: -.01em;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .formula .op { color: var(--ink-3); padding: 0 .12em; }
+  .formula .skills {
+    color: var(--accent);
+    position: relative;
+    font-weight: 600;
+  }
+  .formula .skills::after {
+    content: "NEW"; position: absolute; top: -1.1em; right: -.2em;
+    font-family: var(--mono); font-size: .22em; letter-spacing: .2em;
+    color: var(--accent); border: 1px solid var(--accent); padding: 2px 5px;
+  }
+
+  /* ── layer stack (3-layer architecture) ─────────── */
+  .layers { border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .layer {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--surface);
+  }
+  .layer:last-child { border-bottom: 0; }
+  .layer .tag {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 0;
+    border-right: 1px solid var(--rule-strong);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: #fff; text-align: center;
+  }
+  .layer .tag .n { font-family: var(--bodoni); font-size: 30px; line-height: 1; margin-bottom: 6px; }
+  .layer.l1 .tag { background: var(--ink-3); }
+  .layer.l2 .tag { background: var(--ink); }
+  .layer.l3 .tag { background: var(--accent); }
+  .layer .body { padding: 24px 28px; }
+  .layer .repo { font-family: var(--mono); font-size: 12px; color: var(--accent-deep); margin-bottom: 6px; letter-spacing: .01em; }
+  .layer h3 { margin-bottom: 8px; }
+  .layer p { font-size: 14px; }
+  .layer .role {
+    display: inline-block; margin-bottom: 10px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    background: var(--muted); border: 1px solid var(--rule-2); padding: 2px 8px; color: var(--ink-2);
+  }
+
+  /* ── decision matrix table ──────────────────────── */
+  .matrix { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14.5px; }
+  .matrix thead th {
+    text-align: left; padding: 16px 18px;
+    border-bottom: 2px solid var(--ink);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); vertical-align: bottom;
+  }
+  .matrix thead th.a { color: var(--ink); }
+  .matrix thead th.b { color: var(--accent-deep); }
+  .matrix thead th small { display: block; font-family: var(--bodoni); font-size: 13px; font-style: italic; text-transform: none; letter-spacing: 0; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
+  .matrix tbody td { padding: 16px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+  .matrix tbody td:first-child { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); width: 18%; }
+  .matrix tbody td.b { background: var(--accent-tint); color: var(--ink); }
+  .matrix tbody td.b strong { color: var(--accent-deep); }
+  .matrix tbody tr:last-child td { border-bottom: 1px solid var(--ink); }
+
+  /* ── flow steps (numbered) ──────────────────────── */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .flow .step { padding: 24px 18px; border-right: 1px solid var(--rule); position: relative; background: var(--surface); }
+  .flow .step:last-child { border-right: 0; background: var(--accent-tint); }
+  .flow .step .n { font-family: var(--bodoni); font-size: 34px; line-height: 1; color: var(--accent); margin-bottom: 14px; }
+  .flow .step h4 { font-family: var(--jp); font-weight: 700; font-size: 15px; margin-bottom: 8px; line-height: 1.3; }
+  .flow .step p { font-size: 12.5px; line-height: 1.55; }
+
+  /* ── autonomy split bar (operating model) ───────── */
+  .auto-wrap { margin-top: 8px; border: 1px solid var(--rule-strong); }
+  .auto-bar { display: flex; height: 88px; }
+  .auto-bar .ai { flex: 0 0 80%; background: var(--ink); color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 28px; }
+  .auto-bar .human { flex: 0 0 20%; background: var(--accent); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 120px; text-align: center; }
+  .auto-bar .ai .pct { font-family: var(--bodoni); font-size: 26px; line-height: 1; margin-bottom: 4px; }
+  .auto-bar .ai .lab, .auto-bar .human .lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+  .auto-bar .human .pct { font-family: var(--bodoni); font-size: 22px; line-height: 1; }
+  .auto-foot { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule-strong); }
+  .auto-foot > div { padding: 22px 24px; border-right: 1px solid var(--rule); }
+  .auto-foot > div:last-child { border-right: 0; }
+  .auto-foot .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 8px; }
+  .auto-foot p { font-size: 13.5px; line-height: 1.6; }
+
+  /* ── roadmap (4 steps) ──────────────────────────── */
+  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin-top: 8px; }
+  .roadmap .r { padding: 28px 22px; border-right: 1px solid var(--rule); }
+  .roadmap .r:last-child { border-right: 0; }
+  .roadmap .r .n { font-family: var(--bodoni); font-size: 44px; line-height: 1; color: var(--ink); margin-bottom: 14px; }
+  .roadmap .r:last-child .n { color: var(--accent); }
+  .roadmap .r .repo { font-family: var(--mono); font-size: 10.5px; color: var(--accent-deep); margin-bottom: 6px; }
+  .roadmap .r h4 { font-family: var(--jp); font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+  .roadmap .r p { font-size: 13px; line-height: 1.6; }
+
+  /* ── pull statement ─────────────────────────────── */
+  .pull { border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); padding: 72px 0; }
+  .pull q {
+    quotes: none; display: block;
+    font-family: var(--jp); font-weight: 900;
+    font-size: clamp(28px, 4.4vw, 56px); line-height: 1.18; letter-spacing: -.025em;
+    color: var(--ink); max-width: 22ch;
+  }
+  .pull q .pink { color: var(--accent); }
+  .pull cite {
+    display: block; margin-top: 28px;
+    font-family: var(--mono); font-size: 11.5px; font-style: normal;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ── headlines / source list ────────────────────── */
+  .source-list { border-top: 1px solid var(--ink); margin-top: 8px; }
+  .source-list a {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: baseline;
+    padding: 22px 0; border-bottom: 1px solid var(--rule);
+    text-decoration: none; color: var(--ink); transition: padding .15s, background .15s;
+  }
+  .source-list a:hover { padding-left: 14px; background: var(--surface); }
+  .source-list a .idx { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--accent); }
+  .source-list a strong { font-family: var(--jp); font-weight: 700; font-size: 16.5px; line-height: 1.35; color: var(--ink); display: block; margin-bottom: 4px; }
+  .source-list a span { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .source-list a .arr { font-family: var(--bodoni); color: var(--accent); font-size: 18px; transition: transform .15s; }
+  .source-list a:hover .arr { transform: translateX(6px); }
+
+  /* ── pager ──────────────────────────────────────── */
+  .pager { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid var(--ink); margin-top: 64px; }
+  .pager a { padding: 28px 24px; text-decoration: none; color: var(--ink); border-right: 1px solid var(--rule); }
+  .pager a:last-child { border-right: 0; text-align: right; }
+  .pager .dir { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
+  .pager strong { font-family: var(--jp); font-weight: 700; font-size: 16px; line-height: 1.35; color: var(--ink); }
+
+  /* ── footer ─────────────────────────────────────── */
+  .site-foot { border-top: 1px solid var(--ink); padding: 36px 0 72px; margin-top: 64px; }
+  .site-foot .inner { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  .site-foot .f-title { font-family: var(--bodoni); font-style: italic; font-weight: 500; font-size: 18px; color: var(--ink); margin-bottom: 10px; }
+  .site-foot .f-meta { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--ink-3); }
+
+  .note { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-3); margin-top: 18px; }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 960px) {
+    .topbar { padding: 12px 20px; }
+    .topbar nav { display: none; }
+    main { padding: 0 20px 72px; }
+    section { padding: 64px 0; }
+    .hero-top { grid-template-columns: 1fr; gap: 32px; align-items: start; }
+    .split, .split.wide-l, .split.wide-r { grid-template-columns: 1fr; gap: 32px; }
+    .stat-band { grid-template-columns: 1fr 1fr; }
+    .stat-band > div:nth-child(2n) { border-right: 0; }
+    .stat-band > div:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .flow .step:nth-child(2n) { border-right: 0; }
+    .flow .step { border-bottom: 1px solid var(--rule); }
+    .roadmap { grid-template-columns: 1fr 1fr; }
+    .roadmap .r:nth-child(2n) { border-right: 0; }
+    .auto-foot { grid-template-columns: 1fr; }
+    .auto-foot > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+  @media (max-width: 560px) {
+    .stat-band { grid-template-columns: 1fr; }
+    .stat-band > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .flow { grid-template-columns: 1fr; }
+    .roadmap { grid-template-columns: 1fr; }
+    .roadmap .r { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .source-list a { grid-template-columns: 1fr; gap: 4px; }
+    .source-list a .arr { display: none; }
+    .auto-bar { height: auto; flex-direction: column; }
+    .auto-bar .ai, .auto-bar .human { flex: 1 1 auto; padding: 18px 24px; }
+    h1 { font-size: 46px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav>
+    <a href="#hero">要約</a>
+    <a href="#shift">転換</a>
+    <a href="#arch">3層</a>
+    <a href="#polaris">Polaris</a>
+    <a href="#matrix">判断</a>
+    <a href="#flow">実行</a>
+    <a href="#roadmap">導入</a>
+    <a href="#sources">出典</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026·06·02 · TUE</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-kicker">
+          <span class="box">Issue № 06·02</span>
+          <span>Microsoft Build 2026</span>
+          <span class="arrow">→</span>
+          <span>Windows Agent OS</span>
+        </div>
+        <h1>「同期アシスタント」<span class="arrow">→</span><br><span class="pink">「非同期コワーカー」</span>へ。</h1>
+      </div>
+      <div class="hero-right">
+        <p class="hero-lead">2026年6月2日、サンフランシスコで開幕した <strong>Microsoft Build 2026</strong>（6/2–3・Fort Mason Center）。サティア・ナデラの基調講演が打ち出したのは <em>「Windowsはアプリを動かすOSから、エージェントが働くプラットフォームへ」</em> という実行モデルの再定義だ。前日の軽量バス <strong>agmsg</strong> が貫いたミニマリズムの対極——重厚な<strong>フルスタック・エージェント基盤</strong>が姿を現した。</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#arch">3層アーキテクチャ</a>
+          <a class="btn ghost" href="#polaris">Project Polaris</a>
+        </div>
+      </div>
+    </div>
+    <div class="stat-band">
+      <div>
+        <div class="stat-num">6<span class="u">/2–3</span></div>
+        <div class="stat-label">Build 2026 · San Francisco</div>
+      </div>
+      <div>
+        <div class="stat-num"><span class="pink">8</span><span class="u">月</span></div>
+        <div class="stat-label">Polaris が GPT-4 Turbo を置換</div>
+      </div>
+      <div>
+        <div class="stat-num">Q4<span class="u"> '26</span></div>
+        <div class="stat-label">Azure Agent Mesh GA</div>
+      </div>
+      <div>
+        <div class="stat-num"><span class="pink">MIT</span></div>
+        <div class="stat-label">Windows Agent Framework OSS化</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── SHIFT ───────────────── -->
+  <section id="shift">
+    <div class="eyebrow"><span class="num">01</span><span>The Shift</span><span class="grow"></span><span class="meta">同期 → 非同期</span></div>
+    <h2>役割の再定義：<span class="pink">待つAI</span>から、<br>働くAIへ。</h2>
+    <p class="lede">これまでのCopilotは、問いに即答する<strong>「同期型アシスタント」</strong>だった。Build 2026が掲げたのは、長時間タスクを自律遂行する<strong>「非同期型コワーカー（async coworker）」</strong>。これは概念ではなく、すでに製品実装として地続きになっている。</p>
+    <div class="split wide-l">
+      <div class="body">
+        <p><strong>Agent Mode のデフォルト化。</strong> Word・Excel・PowerPointでは、2026年4月22日にGA済みの Agent Mode が「既定モード」へ昇格。ユーザーが複数ステップのタスクを委譲すれば、AIが自律的に実行を完遂する。</p>
+        <p><strong>Copilot Workspace の正式提供。</strong> GitHubのエージェント型開発環境がベータを脱しGAに。リポジトリ全体を文脈として読み、複数ファイルの編集提案・テスト実行・結果解釈・自律的な反復までをスコープ内で完結させる。</p>
+        <p>「指示するたびに待つ」運用から、「タスクを預けて結果を受け取る」運用へ。開発者もナレッジワーカーも、役割は<em>実行者からオーケストレーターへ</em>移行する。</p>
+      </div>
+      <div class="cardplate">
+        <div class="hd"><span>Synchronous → Async</span><b>Coworker</b></div>
+        <ul>
+          <li><span class="k">⌁</span><span><strong>Agent Mode</strong> — Word/Excel/PPTで既定化（4/22 GA）。長時間タスクを委譲。</span></li>
+          <li><span class="k">⌁</span><span><strong>Copilot Workspace</strong> — GAでリポジトリ横断の自律編集・テスト・反復。</span></li>
+          <li><span class="k">⌁</span><span><strong>Agent 365</strong> — 企業の管制塔（5/1 GA）。台帳・権限・活動を一元統制。</span></li>
+          <li><span class="k">⌁</span><span><strong>Windows 12 は議題外</strong> — 重心は新OSではなく既存資産のエージェント化。</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── ARCHITECTURE (3 LAYER) ───────────────── -->
+  <section id="arch">
+    <div class="eyebrow"><span class="num">02</span><span>Full-Stack Agent Platform</span><span class="grow"></span><span class="meta">Windows · Azure · M365</span></div>
+    <h2>三層を貫く、<span class="pink">フルスタック</span>。</h2>
+    <p class="lede">Build 2026の発表群はバラバラの新機能ではない。<strong>ローカル実行（Windows）→ 分散制御（Azure）→ 業務統制（M365）</strong>という3レイヤーで構成された、一貫したエージェント・アーキテクチャとして読み解くべきだ。</p>
+    <div class="layers">
+      <div class="layer l1">
+        <div class="tag"><span class="n">1</span>Local</div>
+        <div class="body">
+          <span class="role">ローカル実行層 · Windows</span>
+          <div class="repo">microsoft/agent-framework · MIT</div>
+          <h3>Windows Agent Framework（WAF）</h3>
+          <p>エージェントのライフサイクル管理を抽象化するライブラリ群を<strong>MITライセンスでOSS化</strong>。中核の常駐デーモン「Agent Registration Service」が、エージェントの生存・ヘルス監視・バージョン管理を担う。<em>agmsgが避けたデーモンを、あえて信頼性のために据えた。</em></p>
+        </div>
+      </div>
+      <div class="layer l2">
+        <div class="tag"><span class="n">2</span>Mesh</div>
+        <div class="body">
+          <span class="role">分散制御層 · Azure</span>
+          <div class="repo">Azure Agent Mesh · GA 2026 Q4</div>
+          <h3>Azure Agent Mesh</h3>
+          <p>オンプレWindowsサーバ／Windows 365 Cloud PC／Azure Arcエッジ機器を横断してエージェント実行を<strong>フェデレーション</strong>。レイテンシとGPU空き状況に応じ最寄りノードへ自動ルーティング。同一APIでローカルからクラウドまで記述でき、従量課金・エージェント専用SKUを用意。</p>
+        </div>
+      </div>
+      <div class="layer l3">
+        <div class="tag"><span class="n">3</span>Govern</div>
+        <div class="body">
+          <span class="role">業務統制層 · Microsoft 365</span>
+          <div class="repo">Agent 365 · GA 5/1 ＋ Azure AI Foundry</div>
+          <h3>Agent 365 ＋ Azure AI Foundry</h3>
+          <p>企業の<strong>管制塔</strong>として、エージェントの台帳・権限・挙動・活動を一元可視化。Foundryはビジュアル・エージェント・デザイナー、数百のデータソースへの事前接続、そして<strong>全意思決定を監査できるコンプライアンス・ダッシュボード</strong>を提供する。</p>
+        </div>
+      </div>
+    </div>
+    <div class="formula">
+      AI Powerhouse <span class="op">=</span> <span class="skills">Polaris</span> <span class="op">+</span> Maia <span class="op">+</span> Azure <span class="op">+</span> Copilot
+    </div>
+  </section>
+
+  <!-- ───────────────── POLARIS ───────────────── -->
+  <section id="polaris">
+    <div class="eyebrow"><span class="num">03</span><span>Project Polaris</span><span class="grow"></span><span class="meta">脱OpenAI依存</span></div>
+    <h2>自社モデル内製＝<br><span class="pink">「OpenAIの臍帯切断」</span>。</h2>
+    <p class="lede">今回最大の戦略ニュースは、Microsoft自社製AIコーディングモデル <strong>Project Polaris</strong>。単なる新モデルではなく、対OpenAI依存戦略の転換点を象徴する。</p>
+    <div class="split">
+      <div class="body">
+        <p><strong>置き換えの射程。</strong> PolarisはGitHub Copilotの既定モデルとして、<strong>2026年8月よりGPT-4 Turboを置換</strong>。自動移行に加え、GPT-4に留まりたいチーム向けに3か月のフォールバック期間を用意する。</p>
+        <p><strong>アーキテクチャ。</strong> Mixture-of-Experts（MoE）構成で、言語・フレームワークごとに特化したサブモジュールを搭載。HumanEval／MBPPベンチで GPT-4 Turbo を上回り、特に <em>Rust や Haskell</em> など低リソース言語で大きく改善。</p>
+        <p><strong>インフラと含意。</strong> Azure内の自社AIアクセラレータ <strong>Maia</strong> 上で稼働し、推論レイテンシとコストを低減。モデル・チップ・クラウド・開発ツールを垂直統合し、「エンドツーエンドのAIパワーハウス」へと自社を位置づける布石だ。</p>
+      </div>
+      <div class="cardplate">
+        <div class="hd"><span>Polaris at a glance</span><b>MoE</b></div>
+        <ul>
+          <li><span class="k">▸</span><span><strong>置換</strong> — 8月にGPT-4 Turboを既定から退役（3か月フォールバック）</span></li>
+          <li><span class="k">▸</span><span><strong>構成</strong> — 言語別に特化したMixture-of-Experts</span></li>
+          <li><span class="k">▸</span><span><strong>性能</strong> — HumanEval/MBPPでGPT-4 Turbo超、低リソース言語に強い</span></li>
+          <li><span class="k">▸</span><span><strong>基盤</strong> — Azure内の自社チップ Maia で低レイテンシ・低コスト</span></li>
+          <li><span class="k">▸</span><span><strong>戦略</strong> — 第三者AIパートナー依存を引き下げる垂直統合</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── MATRIX ───────────────── -->
+  <section id="matrix">
+    <div class="eyebrow"><span class="num">04</span><span>Decision Matrix</span><span class="grow"></span><span class="meta">Polaris一択 vs マルチモデル</span></div>
+    <h2>導入判断：<span class="pink">資産</span>と<span class="pink">自由度</span>。</h2>
+    <p class="lede">Polarisの自社最適化は強力だが、Copilot Studio／GitHubではAnthropic等のモデル選択も拡充されている。ベンダーロックインと<strong>マルチモデル戦略</strong>のバランスが、これからのチーム設計の勘所になる。</p>
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>観点</th>
+          <th class="a">自社Polaris統合<small>Microsoft Stack</small></th>
+          <th class="b">マルチモデル運用<small>Polaris + Anthropic 等</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>最適化</td><td>Maia上で低レイテンシ・低コスト、Azureと密結合</td><td class="b"><strong>用途別に最良モデルを選択</strong>、得意領域を使い分け</td></tr>
+        <tr><td>移行コスト</td><td>8月に自動移行・実質ゼロ運用</td><td class="b">モデル切替の検証・統制が必要</td></tr>
+        <tr><td>ロックイン</td><td>Microsoftスタック依存が深化</td><td class="b"><strong>退避経路を確保</strong>、交渉力を維持</td></tr>
+        <tr><td>推奨</td><td>MS中心・統制重視の組織</td><td class="b"><strong>防衛線としての標準解</strong></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ───────────────── FLOW ───────────────── -->
+  <section id="flow">
+    <div class="eyebrow"><span class="num">05</span><span>Async Execution Loop</span><span class="grow"></span><span class="meta">Copilot Workspace</span></div>
+    <h2>非同期コワーカーの<span class="pink">実行ループ</span>。</h2>
+    <p class="lede">Copilot WorkspaceのGAが具体化するのは、人間が手放せる5ステップ。スコープを切ったタスクを委譲し、実装からPRまでをエージェントが自律で回す。</p>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><h4>タスク委譲</h4><p>スコープを定義してWorkspaceへ。Issue／要件を渡す。</p></div>
+      <div class="step"><div class="n">2</div><h4>文脈把握</h4><p>リポジトリ全体を読み、影響範囲と方針を推論。</p></div>
+      <div class="step"><div class="n">3</div><h4>複数ファイル編集</h4><p>横断的な変更を提案・適用。差分を構成。</p></div>
+      <div class="step"><div class="n">4</div><h4>テスト＆解釈</h4><p>テストを実行し、結果を解釈して修正へ反映。</p></div>
+      <div class="step"><div class="n">5</div><h4>自律反復 → PR</h4><p>合格まで反復し、レビュー可能な成果物に。</p></div>
+    </div>
+  </section>
+
+  <!-- ───────────────── AUTONOMY (operating model) ───────────────── -->
+  <section id="autonomy">
+    <div class="eyebrow"><span class="num">06</span><span>Operating Model</span><span class="grow"></span><span class="meta">監督付き自律 · 概念図</span></div>
+    <h2>自律実行 ＋ <span class="pink">統制ゲート</span>。</h2>
+    <p class="lede">エージェントが大半を自律実行し、人間は要所の<strong>承認ゲート</strong>に集中する——Agent 365 と Foundry の監査基盤が支える運用モデル。<span class="note" style="margin:0">※比率は運用思想を示す概念図</span></p>
+    <div class="auto-wrap">
+      <div class="auto-bar">
+        <div class="ai"><div class="pct">自律実行</div><div class="lab">Agents — 実装・調査・反復・配備</div></div>
+        <div class="human"><div class="pct">承認</div><div class="lab">Human Gate</div></div>
+      </div>
+      <div class="auto-foot">
+        <div><div class="k">可視化</div><p>Agent 365が台帳・権限・活動を一元化。「シャドーAI」を抑止。</p></div>
+        <div><div class="k">監査</div><p>Foundryのコンプライアンス・ダッシュボードで全意思決定を追跡。</p></div>
+        <div><div class="k">承認ゲート</div><p>不可逆な操作（書込・公開・課金）の手前に人間の確認を挟む。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── ROADMAP ───────────────── -->
+  <section id="roadmap">
+    <div class="eyebrow"><span class="num">07</span><span>Adoption Roadmap</span><span class="grow"></span><span class="meta">小さく始める4ステップ</span></div>
+    <h2>段階導入で、<span class="pink">過渡期</span>を越える。</h2>
+    <p class="lede">Agent MeshとAgent 365のGAには時間差がある。まずOSSのWAFとWorkspaceで「型」を作り、統制レイヤーのGAに合わせて本番へ広げる<strong>二段構え</strong>が現実的だ。</p>
+    <div class="roadmap">
+      <div class="r"><div class="n">1</div><div class="repo">OSS · 今すぐ</div><h4>ローカル基盤</h4><p>Windows Agent Framework（MIT）でエージェント運用の土台を構築。</p></div>
+      <div class="r"><div class="n">2</div><div class="repo">GA</div><h4>実装の自律化</h4><p>Copilot Workspaceで「非同期コワーカー」を小さく実運用。</p></div>
+      <div class="r"><div class="n">3</div><div class="repo">GA 2026 Q4</div><h4>分散実行</h4><p>Azure Agent Meshでオンプレ〜エッジへ負荷分散・最適配置。</p></div>
+      <div class="r"><div class="n">4</div><div class="repo">GA 5/1</div><h4>統制・本番</h4><p>Agent 365で台帳・監査・承認ゲートを整え、本番展開。</p></div>
+    </div>
+  </section>
+
+  <!-- ───────────────── PULL ───────────────── -->
+  <section class="pull">
+    <q>Windowsは、アプリを動かすOSから、<span class="pink">エージェントが働く場所</span>になった。</q>
+    <cite>— Microsoft Build 2026 / Platform Shift · 2026·06·02</cite>
+  </section>
+
+  <!-- ───────────────── SOURCES ───────────────── -->
+  <section id="sources">
+    <div class="eyebrow"><span class="num">08</span><span>Sources / Headlines</span><span class="grow"></span><span class="meta">一次報道</span></div>
+    <h2>出典と<span class="pink">関連ヘッドライン</span>。</h2>
+    <p class="lede" style="margin-bottom:32px">本スライドはWeb報道に基づく。確定情報はMicrosoft公式発表での裏取りを推奨。</p>
+    <div class="source-list">
+      <a href="https://www.notebookcheck.net/Microsoft-Build-2026-What-to-expect-from-the-June-2-keynote.1311546.0.html" target="_blank" rel="noopener">
+        <span class="idx">01</span>
+        <span><strong>Microsoft Build 2026: What to expect from the June 2 keynote</strong><span>会期6/2–3・Fort Mason、ナデラ基調9:30 PT。Agents/Copilot/Foundry/Windows local AI。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://chatforest.com/builders-log/microsoft-build-2026-recap-windows-agent-platform-project-polaris-copilot-workspace/" target="_blank" rel="noopener">
+        <span class="idx">02</span>
+        <span><strong>Build 2026 Recap — Windows Agent Platform & Project Polaris Cuts the OpenAI Cord</strong><span>WAFのOSS化、Agent Mesh、Copilot Workspace GA、Polarisで脱OpenAI。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://windowsnews.ai/article/microsoft-build-2026-homegrown-ai-models-to-power-github-copilot.420887" target="_blank" rel="noopener">
+        <span class="idx">03</span>
+        <span><strong>Homegrown AI Models to Power GitHub Copilot</strong><span>Polaris＝MoE、8月にGPT-4 Turbo置換、Maia稼働、HumanEval/MBPPで上回る。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://aitoolsrecap.com/Blog/microsoft-build-2026-windows-agent-framework-wsl3-azure-mesh" target="_blank" rel="noopener">
+        <span class="idx">04</span>
+        <span><strong>Windows Agent Framework, WSL 3, Azure Agent Mesh & Windows Agent Store</strong><span>WAFの構造、Agent Registration Service、Meshの横断ルーティング。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://windowsforum.com/threads/build-2026-microsoft-makes-ai-agents-the-new-work-model-agent-mode-agent-365-local-ai.421349/" target="_blank" rel="noopener">
+        <span class="idx">05</span>
+        <span><strong>Microsoft Makes AI Agents the New Work Model — Agent Mode, Agent 365, Local AI</strong><span>同期→非同期コワーカー、Agent Modeの既定化、Agent 365の管制。</span></span>
+        <span class="arr">→</span>
+      </a>
+    </div>
+
+    <div class="pager">
+      <a href="day_slide_2026_06_01.html">
+        <span class="dir">← 前日 · 06·01</span>
+        <strong>Codex AIエージェント革命 — 「作業員」から「マネージャー」へ</strong>
+      </a>
+      <a href="../index.html">
+        <span class="dir">一覧へ →</span>
+        <strong>AI Daily Briefing インデックス</strong>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="inner">
+    <div class="f-title">AI Daily Briefing</div>
+    <div class="f-meta">2026·06·02 · TUE — Microsoft Build 2026 / Windows Agent OS · Generated by awano27</div>
+  </div>
+</footer>
+
+</body>
+</html>
