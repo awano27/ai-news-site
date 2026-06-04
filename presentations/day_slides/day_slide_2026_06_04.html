@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microsoft Build 2026 — チャット補助から「自律オーケストレーション」へ | 2026-06-04 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<meta name="description" content="2026年6月、Microsoft Build 2026 は『チャットUIへの指示』という受動的なAI活用の終焉を宣言した。開発パラダイムは Code-First から Intent-First へ移行し、エンジニアの役割は『実装者』から複数の自律エージェントを束ねる『指揮者（Conductor）』へとシフトする。新カテゴリ Autopilot の第一号『Scout』は独自の Entra ID・Heartbeat 監視・常時稼働の3要件を満たす自律主体。共通知識層『Microsoft IQ』（Work / Web / Foundry / Fabric IQ）と、自ら検索計画を立てて反復する『Agentic Retrieval』がトークン消費を最大80%削減。GitHub Copilot App は Git worktree で複数エージェントを並列実行し、Agent Merge と Canvases で人間を『検証・統合する側』へ。Microsoft Execution Containers（MXC）は JSON 宣言的ポリシーでファイル・ネットワーク・プロセスをOSレベル隔離し、Agent 365 / Purview と直結して感度ラベル・DLP のバイパスを物理的に防止。自社モデル MAI ファミリー（MAI-Thinking-1：1T Sparse MoE / アクティブ35B / 256K）とローカル特化 Aion 1.0 Plan（14B / 32K / Tool-calling）に、128GB ユニファイドメモリ・1 PFLOPS の Surface RTX Spark Dev Box が 120B 級モデルのローカル実行を実現する。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_04.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="Microsoft Build 2026 — チャット補助から「自律オーケストレーション」へ | 2026-06-04" />
+<meta property="og:description" content="「答える道具」から「自律する同僚」へ。Intent-First の開発パラダイム、共通知識層 Microsoft IQ ＋ Agentic Retrieval（−80%トークン）、Git worktree で並列するエージェント、JSON ポリシーで隔離する MXC、自社 MAI / Aion とローカル 1 PFLOPS の Spark Dev Box——AIエンジニアのための自律型AI完全ブループリント。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_04.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0604/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Microsoft Build 2026 — チャット補助から「自律オーケストレーション」へ | 2026-06-04" />
+<meta name="twitter:description" content="Intent-First への移行、Microsoft IQ ＋ Agentic Retrieval（−80%トークン）、Git worktree で並列するエージェント、JSON ポリシーで隔離する MXC、自社 MAI / Aion ＋ 1 PFLOPS ローカル基盤。エンジニアは実装者から指揮者へ。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0604/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Microsoft Build 2026 — チャット補助から「自律オーケストレーション」へ",
+  "datePublished": "2026-06-04",
+  "dateModified": "2026-06-04",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0604/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_04.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_04.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     MICROSOFT BUILD 2026 · THE AGENTIC BLUEPRINT · SWISS MODERNISM 2.0 · 2026-06-04
+     ============================================================
+     Direction: International Typographic Style.
+     Near-white paper, hairline grid, geometric gothic headlines
+     (Zen Kaku), Libre Bodoni display numerals, Public Sans + Plex
+     Mono labels. One violet accent encodes the shift from "chat
+     assistant" to "autonomous orchestration". Mathematical spacing.
+     ============================================================ */
+  :root {
+    --paper: #FAFAFA;
+    --surface: #FFFFFF;
+    --ink: #09090B;
+    --ink-2: #3F3F46;
+    --ink-3: #71717A;
+    --rule: #E4E4E7;
+    --rule-2: #D4D4D8;
+    --rule-strong: #18181B;
+    --accent: #7C3AED;
+    --accent-deep: #6D28D9;
+    --accent-tint: #EDE9FE;
+    --muted: #F4F4F5;
+    --ok: #15803D;
+    --bodoni: 'Libre Bodoni', 'Noto Serif JP', Georgia, serif;
+    --jp: 'Zen Kaku Gothic New', 'Public Sans', 'Noto Sans JP', sans-serif;
+    --sans: 'Public Sans', 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--accent); color: #fff; }
+  a { color: inherit; }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    padding: 14px 40px;
+    background: rgba(250,250,250,.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .topbar b {
+    font-family: var(--bodoni);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: .01em;
+    text-transform: none;
+  }
+  .topbar nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  .topbar nav a { color: var(--ink-3); text-decoration: none; transition: color .15s; }
+  .topbar nav a:hover { color: var(--accent); }
+  .topbar > span { color: var(--ink-3); }
+
+  /* ── shell ──────────────────────────────────────── */
+  main { max-width: 1280px; margin: 0 auto; padding: 0 40px 120px; }
+  section { padding: 96px 0; border-bottom: 1px solid var(--rule); position: relative; }
+  section:last-of-type { border-bottom: 0; }
+
+  /* eyebrow: §NN / LABEL */
+  .eyebrow {
+    display: flex; align-items: baseline; gap: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 26px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .eyebrow .num {
+    font-family: var(--bodoni);
+    font-size: 20px;
+    letter-spacing: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .eyebrow .grow { flex: 1; }
+  .eyebrow .meta { color: var(--ink-3); }
+
+  h2 {
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(32px, 4.6vw, 60px);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin-bottom: 28px;
+    color: var(--ink);
+  }
+  h2 .pink { color: var(--accent); }
+  h2 .out { -webkit-text-stroke: 1.5px var(--ink); color: transparent; }
+  h3 {
+    font-family: var(--jp);
+    font-weight: 700;
+    font-size: clamp(19px, 2vw, 24px);
+    line-height: 1.3;
+    letter-spacing: -.01em;
+    margin-bottom: 12px;
+  }
+  .lede {
+    max-width: 70ch;
+    font-size: clamp(16px, 1.35vw, 19px);
+    line-height: 1.72;
+    color: var(--ink-2);
+    margin-bottom: 56px;
+  }
+  .lede strong { color: var(--ink); font-weight: 700; }
+  .lede em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); font-weight: 500; }
+
+  p { font-size: 15.5px; line-height: 1.74; color: var(--ink-2); }
+  p strong { color: var(--ink); font-weight: 700; }
+  p em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); }
+  .mono-tag { font-family: var(--mono); font-size: .9em; background: var(--muted); border: 1px solid var(--rule); padding: 1px 7px; }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 80px 0 0; border-bottom: 1px solid var(--rule-strong); }
+  .hero-top {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 56px;
+    align-items: end;
+    padding-bottom: 48px;
+  }
+  .hero-kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .hero-kicker .box { border: 1px solid var(--accent); padding: 4px 10px; color: var(--accent); }
+  .hero-kicker .arrow { color: var(--ink); font-family: var(--bodoni); font-size: 16px; }
+  h1 {
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(44px, 7vw, 92px);
+    line-height: 1.04;
+    letter-spacing: -.035em;
+    color: var(--ink);
+  }
+  h1 .arrow {
+    color: var(--accent);
+    font-family: var(--bodoni);
+    font-weight: 500;
+    font-style: italic;
+    padding: 0 .06em;
+  }
+  h1 .pink { color: var(--accent); }
+  .hero-right { padding-bottom: 6px; }
+  .hero-lead {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    border-top: 3px solid var(--ink);
+    padding-top: 18px;
+  }
+  .hero-lead strong { color: var(--ink); font-weight: 700; }
+  .hero-lead em { font-family: var(--bodoni); font-style: italic; color: var(--accent-deep); }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform .14s, background .14s, color .14s;
+  }
+  .btn.primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
+  .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn.ghost:hover { background: var(--accent-tint); border-color: var(--accent); color: var(--accent-deep); }
+  .btn::after { content: "→"; font-family: var(--bodoni); }
+
+  /* ── stat band ──────────────────────────────────── */
+  .stat-band {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .stat-band > div { padding: 28px 24px; border-right: 1px solid var(--rule); }
+  .stat-band > div:last-child { border-right: 0; }
+  .stat-num {
+    font-family: var(--bodoni);
+    font-weight: 600;
+    font-size: clamp(38px, 4.6vw, 58px);
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .stat-num .pink { color: var(--accent); }
+  .stat-num .u { font-size: .4em; color: var(--ink-3); font-family: var(--sans); font-weight: 600; }
+  .stat-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ── split (text + figure) ──────────────────────── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+  .split.wide-l { grid-template-columns: 1.1fr .9fr; }
+  .split.wide-r { grid-template-columns: .9fr 1.1fr; }
+  .split .body p + p { margin-top: 16px; }
+
+  figure.plate { border: 1px solid var(--rule-strong); background: var(--surface); margin: 0; }
+  figure.plate img { display: block; width: 100%; height: auto; }
+  figure.plate figcaption {
+    padding: 14px 16px;
+    border-top: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    letter-spacing: .01em;
+  }
+  figure.plate figcaption b {
+    font-family: var(--bodoni); font-weight: 600; color: var(--accent-deep);
+    margin-right: 8px; letter-spacing: 0;
+  }
+  .plate-wide { margin-top: 40px; }
+
+  /* ── card (text plate alt for figure slot) ──────── */
+  .cardplate { border: 1px solid var(--rule-strong); background: var(--surface); }
+  .cardplate .hd {
+    padding: 18px 22px; border-bottom: 1px solid var(--rule-strong);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+    display: flex; justify-content: space-between; gap: 12px;
+  }
+  .cardplate .hd b { font-family: var(--bodoni); font-size: 15px; color: var(--accent-deep); letter-spacing: 0; }
+  .cardplate ul { list-style: none; }
+  .cardplate li { padding: 16px 22px; border-bottom: 1px solid var(--rule); font-size: 14px; color: var(--ink-2); display: grid; grid-template-columns: 26px 1fr; gap: 12px; }
+  .cardplate li:last-child { border-bottom: 0; }
+  .cardplate li .k { font-family: var(--bodoni); font-size: 18px; color: var(--accent); line-height: 1.2; }
+  .cardplate li strong { color: var(--ink); }
+
+  /* ── formula ────────────────────────────────────── */
+  .formula {
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 48px 0;
+    margin: 8px 0 0;
+    text-align: center;
+    font-family: var(--bodoni);
+    font-weight: 500;
+    font-size: clamp(22px, 4vw, 46px);
+    letter-spacing: -.01em;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .formula .op { color: var(--ink-3); padding: 0 .12em; }
+  .formula .skills {
+    color: var(--accent);
+    position: relative;
+    font-weight: 600;
+  }
+  .formula .skills::after {
+    content: "GROUNDED"; position: absolute; top: -1.1em; right: -.2em;
+    font-family: var(--mono); font-size: .22em; letter-spacing: .2em;
+    color: var(--accent); border: 1px solid var(--accent); padding: 2px 5px;
+  }
+
+  /* ── layer stack (architecture) ─────────────────── */
+  .layers { border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .layer {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--surface);
+  }
+  .layer:last-child { border-bottom: 0; }
+  .layer .tag {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 0;
+    border-right: 1px solid var(--rule-strong);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: #fff; text-align: center;
+  }
+  .layer .tag .n { font-family: var(--bodoni); font-size: 30px; line-height: 1; margin-bottom: 6px; }
+  .layer.l1 .tag { background: var(--ink-3); }
+  .layer.l2 .tag { background: var(--ink); }
+  .layer.l3 .tag { background: var(--accent); }
+  .layer .body { padding: 24px 28px; }
+  .layer .repo { font-family: var(--mono); font-size: 12px; color: var(--accent-deep); margin-bottom: 6px; letter-spacing: .01em; }
+  .layer h3 { margin-bottom: 8px; }
+  .layer p { font-size: 14px; }
+  .layer .role {
+    display: inline-block; margin-bottom: 10px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    background: var(--muted); border: 1px solid var(--rule-2); padding: 2px 8px; color: var(--ink-2);
+  }
+
+  /* ── decision matrix table ──────────────────────── */
+  .matrix { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14.5px; }
+  .matrix thead th {
+    text-align: left; padding: 16px 18px;
+    border-bottom: 2px solid var(--ink);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); vertical-align: bottom;
+  }
+  .matrix thead th.a { color: var(--ink); }
+  .matrix thead th.b { color: var(--accent-deep); }
+  .matrix thead th small { display: block; font-family: var(--bodoni); font-size: 13px; font-style: italic; text-transform: none; letter-spacing: 0; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
+  .matrix tbody td { padding: 16px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+  .matrix tbody td:first-child { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); width: 18%; }
+  .matrix tbody td.b { background: var(--accent-tint); color: var(--ink); }
+  .matrix tbody td.b strong { color: var(--accent-deep); }
+  .matrix tbody tr:last-child td { border-bottom: 1px solid var(--ink); }
+
+  /* ── roles table (IQ components) ─────────────────── */
+  .roles { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14.5px; border-top: 1px solid var(--ink); }
+  .roles td { padding: 18px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+  .roles tr:last-child td { border-bottom: 1px solid var(--ink); }
+  .roles td.role { width: 20%; }
+  .roles td.role strong { font-family: var(--jp); font-weight: 700; font-size: 16px; color: var(--ink); display: block; }
+  .roles td.role .en { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-deep); margin-top: 4px; display: block; }
+  .roles td.pain { width: 36%; }
+  .roles td.tools { font-family: var(--sans); font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+  .roles td.tools b { color: var(--accent-deep); font-family: var(--bodoni); font-weight: 600; letter-spacing: 0; }
+
+  /* ── flow steps (numbered) ──────────────────────── */
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .flow .step { padding: 24px 18px; border-right: 1px solid var(--rule); position: relative; background: var(--surface); }
+  .flow .step:last-child { border-right: 0; background: var(--accent-tint); }
+  .flow .step .n { font-family: var(--bodoni); font-size: 34px; line-height: 1; color: var(--accent); margin-bottom: 14px; }
+  .flow .step h4 { font-family: var(--jp); font-weight: 700; font-size: 15px; margin-bottom: 8px; line-height: 1.3; }
+  .flow .step p { font-size: 12.5px; line-height: 1.55; }
+
+  /* ── model cards (3-up) ─────────────────────────── */
+  .models { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .models .m { padding: 26px 22px; border-right: 1px solid var(--rule); background: var(--surface); }
+  .models .m:last-child { border-right: 0; }
+  .models .m .badge { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 12px; }
+  .models .m h4 { font-family: var(--bodoni); font-weight: 600; font-size: 22px; color: var(--ink); margin-bottom: 6px; letter-spacing: -.01em; }
+  .models .m .spec { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-bottom: 14px; }
+  .models .m p { font-size: 13px; line-height: 1.6; }
+
+  /* ── roadmap / role-cards (3-up) ────────────────── */
+  .roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin-top: 8px; }
+  .roadmap .r { padding: 28px 22px; border-right: 1px solid var(--rule); }
+  .roadmap .r:last-child { border-right: 0; }
+  .roadmap .r .n { font-family: var(--bodoni); font-size: 44px; line-height: 1; color: var(--ink); margin-bottom: 14px; }
+  .roadmap .r:last-child .n { color: var(--accent); }
+  .roadmap .r .repo { font-family: var(--mono); font-size: 10.5px; color: var(--accent-deep); margin-bottom: 6px; }
+  .roadmap .r h4 { font-family: var(--jp); font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+  .roadmap .r p { font-size: 13px; line-height: 1.6; }
+
+  /* ── governance foot (3-up k/p) ─────────────────── */
+  .gov-foot { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule-strong); margin-top: 8px; }
+  .gov-foot > div { padding: 24px 24px; border-right: 1px solid var(--rule); }
+  .gov-foot > div:last-child { border-right: 0; }
+  .gov-foot .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 8px; }
+  .gov-foot p { font-size: 13.5px; line-height: 1.6; }
+
+  /* ── pull statement ─────────────────────────────── */
+  .pull { border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); padding: 72px 0; }
+  .pull q {
+    quotes: none; display: block;
+    font-family: var(--jp); font-weight: 900;
+    font-size: clamp(28px, 4.4vw, 56px); line-height: 1.18; letter-spacing: -.025em;
+    color: var(--ink); max-width: 22ch;
+  }
+  .pull q .pink { color: var(--accent); }
+  .pull cite {
+    display: block; margin-top: 28px;
+    font-family: var(--mono); font-size: 11.5px; font-style: normal;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ── headlines / source list ────────────────────── */
+  .source-list { border-top: 1px solid var(--ink); margin-top: 8px; }
+  .source-list a {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: baseline;
+    padding: 22px 0; border-bottom: 1px solid var(--rule);
+    text-decoration: none; color: var(--ink); transition: padding .15s, background .15s;
+  }
+  .source-list a:hover { padding-left: 14px; background: var(--surface); }
+  .source-list a .idx { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--accent); }
+  .source-list a strong { font-family: var(--jp); font-weight: 700; font-size: 16.5px; line-height: 1.35; color: var(--ink); display: block; margin-bottom: 4px; }
+  .source-list a span { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .source-list a .arr { font-family: var(--bodoni); color: var(--accent); font-size: 18px; transition: transform .15s; }
+  .source-list a:hover .arr { transform: translateX(6px); }
+
+  /* ── pager ──────────────────────────────────────── */
+  .pager { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid var(--ink); margin-top: 64px; }
+  .pager a { padding: 28px 24px; text-decoration: none; color: var(--ink); border-right: 1px solid var(--rule); }
+  .pager a:last-child { border-right: 0; text-align: right; }
+  .pager .dir { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
+  .pager strong { font-family: var(--jp); font-weight: 700; font-size: 16px; line-height: 1.35; color: var(--ink); }
+
+  /* ── footer ─────────────────────────────────────── */
+  .site-foot { border-top: 1px solid var(--ink); padding: 36px 0 72px; margin-top: 64px; }
+  .site-foot .inner { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  .site-foot .f-title { font-family: var(--bodoni); font-style: italic; font-weight: 500; font-size: 18px; color: var(--ink); margin-bottom: 10px; }
+  .site-foot .f-meta { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--ink-3); }
+
+  .note { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-3); margin-top: 18px; }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 960px) {
+    .topbar { padding: 12px 20px; }
+    .topbar nav { display: none; }
+    main { padding: 0 20px 72px; }
+    section { padding: 64px 0; }
+    .hero-top { grid-template-columns: 1fr; gap: 32px; align-items: start; }
+    .split, .split.wide-l, .split.wide-r { grid-template-columns: 1fr; gap: 32px; }
+    .stat-band { grid-template-columns: 1fr 1fr; }
+    .stat-band > div:nth-child(2n) { border-right: 0; }
+    .stat-band > div:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .flow .step:nth-child(2n) { border-right: 0; }
+    .flow .step { border-bottom: 1px solid var(--rule); }
+    .models { grid-template-columns: 1fr; }
+    .models .m { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .models .m:last-child { border-bottom: 0; }
+    .roadmap { grid-template-columns: 1fr; }
+    .roadmap .r { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .gov-foot { grid-template-columns: 1fr; }
+    .gov-foot > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .gov-foot > div:last-child { border-bottom: 0; }
+    .roles td.role, .roles td.pain { width: auto; }
+    .matrix { font-size: 13px; }
+    .matrix thead th, .matrix tbody td { padding: 12px 10px; }
+  }
+  @media (max-width: 560px) {
+    .stat-band { grid-template-columns: 1fr; }
+    .stat-band > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .flow { grid-template-columns: 1fr; }
+    .source-list a { grid-template-columns: 1fr; gap: 4px; }
+    .source-list a .arr { display: none; }
+    .roles tr { display: grid; grid-template-columns: 1fr; }
+    .roles td { border-bottom: 0; padding: 8px 12px; }
+    .roles td.tools { padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+    h1 { font-size: 46px; }
+  }
+</style>
+</head>
+<body>
+<!-- INTERNAL_LINKS_INJECTED v1 -->
+<aside class="related-nav" aria-label="関連ガイド" style="background:#0D1733;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 18px;font:13px/1.4 'Noto Sans JP',system-ui,sans-serif;color:#8A9ABF;display:flex;gap:14px;flex-wrap:wrap;align-items:center;position:relative;z-index:100"><span style="color:#FFCC00;font-weight:700;letter-spacing:.04em">関連ガイド</span><a href="/presentations/hubs/claude-code-guide-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude Code 完全ガイド</a> <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude vs ChatGPT vs Gemini 比較</a> <a href="/presentations/hubs/mcp-complete-guide.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">MCP 完全ガイド</a> <a href="/presentations/hubs/claude-models-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">Claude モデル料金比較</a> <a href="/presentations/hubs/ai-funding-2026.html" style="color:#5EE7DF;text-decoration:none;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);transition:color .15s">AI資金調達まとめ</a></aside>
+
+
+<header class="topbar">
+  <b>AI Daily Briefing</b>
+  <nav>
+    <a href="#hero">要約</a>
+    <a href="#shift">転換</a>
+    <a href="#arch">構造</a>
+    <a href="#iq">IQ</a>
+    <a href="#copilot">開発</a>
+    <a href="#mxc">隔離</a>
+    <a href="#models">モデル</a>
+    <a href="#action">実装</a>
+    <a href="#sources">出典</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span>2026·06·04 · THU</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-kicker">
+          <span class="box">Issue № 06·04</span>
+          <span>Microsoft Build 2026 · June 2026</span>
+          <span class="arrow">→</span>
+          <span>From Chat to Agentic</span>
+        </div>
+        <h1>「答える道具」<span class="arrow">→</span><br><span class="pink">「自律する同僚」</span>へ。</h1>
+      </div>
+      <div class="hero-right">
+        <p class="hero-lead"><strong>Microsoft Build 2026</strong> は、「チャットUIへの指示」という受動的なAI活用の終焉を宣言した。開発の起点は <em>Code-First から Intent-First</em> へ移り、エンジニアの役割は「実装者」から、複数の自律エージェントを束ねる <strong>「指揮者（Conductor）」</strong> へとシフトする。本稿は、シニア・アーキテクトの視点で読み解く<strong>自律型AIの設計図</strong>だ。</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#iq">共通知識層 IQ</a>
+          <a class="btn ghost" href="#mxc">実行境界 MXC</a>
+        </div>
+      </div>
+    </div>
+    <div class="stat-band">
+      <div>
+        <div class="stat-num"><span class="pink">80</span><span class="u">%</span></div>
+        <div class="stat-label">トークン削減 · Agentic Retrieval</div>
+      </div>
+      <div>
+        <div class="stat-num">2.5<span class="u">×</span></div>
+        <div class="stat-label">Web IQ 高速グラウンディング · サブ165ms</div>
+      </div>
+      <div>
+        <div class="stat-num"><span class="pink">1</span><span class="u">T</span></div>
+        <div class="stat-label">MAI-Thinking · Sparse MoE / 35Bアクティブ</div>
+      </div>
+      <div>
+        <div class="stat-num">1<span class="u">PFLOPS</span></div>
+        <div class="stat-label">Spark Dev Box · 120Bをローカル実行</div>
+      </div>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/cover.jpg" alt="Microsoft Build 2026 — AIエンジニアのための自律型AI完全ブループリント（全体像）" loading="lazy">
+      <figcaption><b>OVERVIEW</b> Microsoft Build 2026 ——「チャット補助」から「自律オーケストレーション」へ。Intent-First の開発パラダイム、Microsoft IQ、GitHub Copilot App、MXC、自社 MAI / Aion、ローカル Spark Dev Box を1枚に集約した設計図。 · 0604.png</figcaption>
+    </figure>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p01.jpg" alt="Developer Blueprint — From Chat to Agentic Orchestration" loading="lazy">
+      <figcaption><b>FIG.01</b> エージェントエンジンの設計図——AIエンジニアのための「自律型AI」完全サバイバルガイド。チャットから自律オーケストレーションへ。 · The Agentic Blueprint / p.01</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── SHIFT ───────────────── -->
+  <section id="shift">
+    <div class="eyebrow"><span class="num">01</span><span>The Shift</span><span class="grow"></span><span class="meta">Code-First → Intent-First</span></div>
+    <h2>実装者から、エージェントの<br><span class="pink">「指揮者（Conductor）」</span>へ。</h2>
+    <p class="lede">パラダイムは、人間がコードを書く<strong>「Code-First」</strong>から、ユーザーの意図をシステムが直接解釈・実行する<strong>「Intent-First」</strong>へ移行した。エンジニアは命令型コーディングを手放し、<em>「Prompt-as-Interface」と「制約ベースのオーケストレーション」</em>でエージェントを統制する。新プラットフォーム <strong>Project Solara</strong> の <strong>BYOA（Bring Your Own Agent）</strong>は、特定モデルに縛られず最適なエージェントを自由に組み込む柔軟性を与える。</p>
+    <div class="split wide-l">
+      <div class="body">
+        <p><strong>受動から自律へ。</strong> 従来の待機型AI <em>「Copilot」</em> のアーキテクチャ上の後継として、Microsoft は自律エージェントの新カテゴリ <strong>「Autopilot」</strong> を定義した。その第一号 <strong>「Scout」</strong> は、人間と同様の権限・監査ログを持つ独立した主体として動く。</p>
+        <p><strong>意味的な接地が精度を担保する。</strong> Scout のような自律エージェントは、次節の <strong>Microsoft IQ</strong> によって意味的グラウンディング（Semantic Grounding）を得て初めて、実用的な精度で「先回りの実行」を成立させる。</p>
+      </div>
+      <div class="cardplate">
+        <div class="hd"><span>Scout · Autopilot の3要件</span><b>Entra ID</b></div>
+        <ul>
+          <li><span class="k">▸</span><span><strong>Identity（Entra ID）</strong> — 匿名ではなく独自の Entra ID を所有。人間同様の権限と監査ログを持つ独立主体。</span></li>
+          <li><span class="k">▸</span><span><strong>Autonomous（自律）</strong> — 定期的な <em>Heartbeat（心拍）</em> 監視で状況を判断し、人間の介入なしにバックグラウンドでタスクを進行。</span></li>
+          <li><span class="k">▸</span><span><strong>Always-on（常時稼働）</strong> — コンテキストを継続保持し、メール・会議・ファイル操作を先回りして実行。</span></li>
+        </ul>
+      </div>
+    </div>
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>観点</th>
+          <th class="a">Code-First<small>Chat / 従来</small></th>
+          <th class="b">Intent-First<small>Agentic / 現在</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>開発の起点</td><td>コードと実装の記述</td><td class="b"><strong>意図（Intent）の宣言と制約設計</strong></td></tr>
+        <tr><td>AIの接し方</td><td>UIから指示しながら都度コードを書く</td><td class="b">エージェント自身がコードを書き・実行・検証</td></tr>
+        <tr><td>エンジニアの役割</td><td>実装者（Implementer）</td><td class="b"><strong>エージェントの指揮者（Conductor）</strong></td></tr>
+        <tr><td>統制</td><td>命令型コーディング</td><td class="b">制約ベースのオーケストレーション ＋ BYOA</td></tr>
+      </tbody>
+    </table>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p02.jpg" alt="パラダイムシフト：チャット補助から自律型エージェントワークフローへ" loading="lazy">
+      <figcaption><b>FIG.02</b> パラダイムシフト——Code-First / Chat（受動）から Intent-First / Agentic（自律）へ。開発の起点・AIの接し方・統制のすべてが再定義される。 · The Agentic Blueprint / p.02</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── ARCHITECTURE ───────────────── -->
+  <section id="arch">
+    <div class="eyebrow"><span class="num">02</span><span>Agentic Architecture</span><span class="grow"></span><span class="meta">統合スタック</span></div>
+    <h2>4つのレイヤーで再定義された、<br><span class="pink">エージェント・ネイティブ基盤</span>。</h2>
+    <p class="lede">Build 2026 が示したのは、単独機能の寄せ集めではなく、<strong>Windows・Azure・Microsoft 365 を貫くフルスタック</strong>での再設計だ。開発体験（Dev UI）／知識層（Context）／推論エンジン（Models）／実行境界（Security）が一枚のスタックとして噛み合い、自律エージェントを安全に成立させる。</p>
+    <div class="layers">
+      <div class="layer l3">
+        <div class="tag"><span class="n">1</span>Dev UI</div>
+        <div class="body">
+          <span class="role">開発体験 · Experience</span>
+          <h3>GitHub Copilot App</h3>
+          <p>IDE拡張から「開発プロセスの実行主体」へ。Git worktree で複数エージェントを並列実行し、Canvases で計画とコードを視覚的に統合する。</p>
+        </div>
+      </div>
+      <div class="layer l2">
+        <div class="tag"><span class="n">2</span>Context</div>
+        <div class="body">
+          <span class="role">知識層 · Grounding</span>
+          <h3>Microsoft IQ</h3>
+          <p>組織・個人・世界の知識を統合する共通知識層。Work / Web / Foundry / Fabric IQ がエージェントに一貫したインテリジェンスを供給する。</p>
+        </div>
+      </div>
+      <div class="layer l2">
+        <div class="tag"><span class="n">3</span>Models</div>
+        <div class="body">
+          <span class="role">推論エンジン · Reasoning</span>
+          <h3>MAI ＋ Aion ファミリー</h3>
+          <p>OpenAI依存から脱却した自社最適化モデル。クラウド推論の MAI と、ローカル特化の Aion によるハイブリッド戦略。</p>
+        </div>
+      </div>
+      <div class="layer l1">
+        <div class="tag"><span class="n">4</span>Security<br>＆ HW</div>
+        <div class="body">
+          <span class="role">実行境界 · Isolation</span>
+          <h3>MXC ＋ Surface RTX Spark</h3>
+          <p>OSネイティブな隔離環境 MXC が暴走リスクを封じ、1 PFLOPS のローカル基盤が機密データのオンデバイス推論を可能にする。</p>
+        </div>
+      </div>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p03.jpg" alt="Microsoft Agentic Architecture — 統合アーキテクチャ（Dev UI / Models / Governance & Security / Hardware & OS）" loading="lazy">
+      <figcaption><b>FIG.03</b> Microsoft Agentic Architecture——単独機能ではなく、Microsoft がフルスタックで「エージェント中心」のOSとインフラを再構築した統合スタック。 · The Agentic Blueprint / p.03</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── MICROSOFT IQ ───────────────── -->
+  <section id="iq">
+    <div class="eyebrow"><span class="num">03</span><span>Microsoft IQ · Agentic Retrieval</span><span class="grow"></span><span class="meta">RAG → 検索計画</span></div>
+    <h2>エージェントのための、<br><span class="pink">共通知識層</span>とRAGの進化。</h2>
+    <p class="lede">自律エージェントが正確に動くには、高度な<strong>コンテキスト供給源</strong>が要る。<strong>Microsoft IQ</strong> は組織・個人・世界の知識を統合し、データの所在を抽象化する4つのコンポーネントで構成される。さらに <em>Foundry IQ</em> の <strong>Agentic Retrieval</strong> が、「1回で終わるRAG」を過去のものにする。</p>
+    <table class="roles">
+      <tbody>
+        <tr>
+          <td class="role"><strong>Work IQ</strong><span class="en">Implicit Context</span></td>
+          <td class="pain">メール・会議・チャット・協働パターン</td>
+          <td class="tools">組織内の<b>暗黙の業務文脈</b>や人間関係を解釈可能に。<b>2026/6/16 GA予定</b>。</td>
+        </tr>
+        <tr>
+          <td class="role"><strong>Web IQ</strong><span class="en">Real-time Web</span></td>
+          <td class="pain">リアルタイムWeb（ニュース・画像・動画）</td>
+          <td class="tools"><b>サブ165ms</b> の超低遅延取得。従来比 <b>2.5×</b> の高速グラウンディング。</td>
+        </tr>
+        <tr>
+          <td class="role"><strong>Foundry IQ</strong><span class="en">Unstructured</span></td>
+          <td class="pain">非構造化データ・企業ナレッジベース</td>
+          <td class="tools"><b>Agentic Retrieval</b> により RAG パイプライン構築を自動化。</td>
+        </tr>
+        <tr>
+          <td class="role"><strong>Fabric IQ</strong><span class="en">Structured</span></td>
+          <td class="pain">OneLake 上の構造化データ</td>
+          <td class="tools">セマンティックモデルに基づき、大規模データに<b>一貫した意味基盤</b>を提供。</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="split" style="margin-top:48px">
+      <div class="body">
+        <p><strong>LLMが自ら検索計画を立てる。</strong> Agentic Retrieval は、複雑な質問をサブクエリに分解する <em>Query Planning</em>、取得結果を自己評価し不足があれば再検索する <em>Evaluation &amp; Iteration</em> のループ構造を持つ。</p>
+        <p><strong>推論深度を制御できる。</strong> 開発者は検索計画で「どれだけ考えさせるか」を <span class="mono-tag">minimal</span> <span class="mono-tag">low</span> <span class="mono-tag">medium</span> の3段階で調整し、<strong>コストとレイテンシを最適化</strong>。不要な読み込みを排除し、トークン消費を最大80%削減する。</p>
+      </div>
+      <div class="flow">
+        <div class="step"><div class="n">1</div><h4>Query Planning</h4><p>複雑な質問をサブクエリへ分解。</p></div>
+        <div class="step"><div class="n">2</div><h4>Iterate</h4><p>結果をLLMが自己評価し再検索。</p></div>
+        <div class="step"><div class="n">3</div><h4>Reasoning Effort</h4><p>推論深度を3段階で制御。</p></div>
+        <div class="step"><div class="n">4</div><h4>−80% Tokens</h4><p>不要な読み込みを排除。</p></div>
+      </div>
+    </div>
+    <div class="formula">
+      <span class="skills">Microsoft IQ</span> <span class="op">=</span> Work <span class="op">+</span> Web <span class="op">+</span> Foundry <span class="op">+</span> Fabric <span class="op">→</span> −80% Tokens
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p07.jpg" alt="Layer 3: Context — Microsoft IQ の統合（Work / Web / Foundry / Fabric IQ）" loading="lazy">
+      <figcaption><b>FIG.04</b> Microsoft IQ の統合——エージェントへの「文脈」を供給する4コンポーネント。組織・個人・世界の知識を1つの知能レイヤーへ束ねる。 · The Agentic Blueprint / p.07</figcaption>
+    </figure>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p08.jpg" alt="検索の進化 — Traditional RAG vs Agentic Retrieval（トークン80%削減）" loading="lazy">
+      <figcaption><b>FIG.05</b> Traditional RAG vs Agentic Retrieval——1回の検索で終わるRAGから、LLMが検索計画を立て自己評価で反復する構造へ。トークン消費を最大80%削減。 · The Agentic Blueprint / p.08</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── GITHUB COPILOT APP ───────────────── -->
+  <section id="copilot">
+    <div class="eyebrow"><span class="num">04</span><span>GitHub Copilot App</span><span class="grow"></span><span class="meta">並列エージェント · Agent Merge</span></div>
+    <h2>書く側から、<br><span class="pink">検証・統合する側</span>へ。</h2>
+    <p class="lede">GitHub Copilot App は、単なるIDE拡張から<strong>「開発プロセスの実行主体」</strong>へ昇華した。内部で <strong>Git worktree</strong> を使い、複数のエージェントセッションを物理的に分離して<em>並列実行</em>する。リファクタリング・Issue解決・ドキュメント生成を、同時並行で別々のエージェントに任せられる。</p>
+    <div class="split wide-l">
+      <div class="body">
+        <p><strong>Agent Merge。</strong> Issue起票からPR作成、CI実行、レビュー、マージまでをエージェントが自動化する。人間は<strong>「コードを書く」側から、計画とコードを <em>Canvases（双方向作業面）</em> 上で視覚的に確認し「検証・統合する」側</strong>へ完全にシフトする。</p>
+        <p>この開発プロセス自動化の安全性を、次節の <strong>MXC</strong> がOSレベルで担保する。自由な並列実行と、確実な実行境界は両立する。</p>
+      </div>
+      <div class="flow">
+        <div class="step"><div class="n">1</div><h4>Issue</h4><p>起票内容をエージェントが解釈。</p></div>
+        <div class="step"><div class="n">2</div><h4>PR / Code</h4><p>worktree で並列に編集・生成。</p></div>
+        <div class="step"><div class="n">3</div><h4>CI / Review</h4><p>テスト実行と自己レビュー。</p></div>
+        <div class="step"><div class="n">4</div><h4>Merge</h4><p>人は Canvases で検証・統合。</p></div>
+      </div>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p05.jpg" alt="Layer 1: Dev UI — GitHub Copilot App（My Work Dashboard / Parallel Agent Sessions / Agent Merge）" loading="lazy">
+      <figcaption><b>FIG.06</b> GitHub Copilot App——My Work Dashboard、Parallel Agent Sessions、Agent Merge ＆ CI/Pipeline。開発体験そのものがエージェント・ネイティブへ。 · The Agentic Blueprint / p.05</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── MXC ───────────────── -->
+  <section id="mxc">
+    <div class="eyebrow"><span class="num">05</span><span>Microsoft Execution Containers</span><span class="grow"></span><span class="meta">OSレベル隔離 · 宣言的ポリシー</span></div>
+    <h2>暴走リスクを封じる、<br><span class="pink">OSネイティブな実行境界</span>。</h2>
+    <p class="lede">自律エージェントの「暴走リスク」に対し、Microsoft は OSネイティブな隔離環境 <strong>MXC（Microsoft Execution Containers）</strong> でセキュリティの概念を再定義した。エージェントの挙動を <strong>JSONベースの「宣言的ポリシー」</strong> で制限し、ファイルシステム・ネットワーク・プロセス・クリップボード・UIへのアクセスを<em>OSが強制的に隔離</em>する。</p>
+    <div class="split">
+      <div class="body">
+        <p><strong>隔離レベルはスケールする。</strong> プロセス分離（Process isolation）からセッション分離（Session isolation）、さらには <strong>Micro-VM</strong> へと、リスクに応じて段階的に強化できる。</p>
+        <p><strong>ガバナンスをバイパスさせない。</strong> MXC は <strong>Agent 365 / Purview</strong> と直結し、エージェントが <em>「感度ラベル（Sensitivity Labels）」や DLP（データ損失防止）</em> ポリシーをすり抜けることを<strong>物理的に防止</strong>する。</p>
+        <p><strong>OpenClaw との統合。</strong> OSS の <strong>OpenClaw</strong> が Windows 上でネイティブ動作し MXC と統合。ローカルでの自由な実験と、Intune / Entra ID を通じた企業ガバナンスを両立させる。</p>
+      </div>
+      <div class="cardplate">
+        <div class="hd"><span>Policy-Driven Isolation</span><b>JSON</b></div>
+        <ul>
+          <li><span class="k">▸</span><span><strong>宣言的ポリシー</strong> — JSONでファイル／ネット／プロセス／クリップボード／UIアクセスを定義。</span></li>
+          <li><span class="k">▸</span><span><strong>段階的隔離</strong> — Process → Session → Micro-VM へリスクに応じてスケール。</span></li>
+          <li><span class="k">▸</span><span><strong>Purview 直結</strong> — 感度ラベル・DLP のバイパスを物理的に防止。</span></li>
+          <li><span class="k">▸</span><span><strong>OpenClaw 統合</strong> — ローカル実験と Intune / Entra ID ガバナンスを両立。</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="gov-foot">
+      <div><div class="k">実行境界</div><p>OSが強制隔離するため、エージェントが許可外のリソースへ到達できない。</p></div>
+      <div><div class="k">監査性</div><p>Agent 365 と連携し、誰の／どのエージェントが何を実行したかを追跡。</p></div>
+      <div><div class="k">企業統合</div><p>Intune / Entra ID 下で、ローカルの自由とエンタープライズ統制を両立。</p></div>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p10.jpg" alt="MXC Deep Dive — ポリシー駆動型アイソレーション（JSON宣言的ポリシー）" loading="lazy">
+      <figcaption><b>FIG.07</b> MXC Deep Dive——JSONベースの宣言的ポリシーで、ファイル・ネットワーク・プロセスをOSレベルで隔離する。プレビュー版がまもなくサンプルコードと共に提供。 · The Agentic Blueprint / p.10</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── MODELS & LOCAL ───────────────── -->
+  <section id="models">
+    <div class="eyebrow"><span class="num">06</span><span>MAI / Aion · Local AI</span><span class="grow"></span><span class="meta">自社最適化 ＋ オンデバイス</span></div>
+    <h2>OpenAI依存からの脱却、<br><span class="pink">MAI ＋ Aion</span> のハイブリッド。</h2>
+    <p class="lede">Microsoft は自社最適化を象徴する <strong>MAI ファミリー</strong> と、ローカル特化の <strong>Aion ファミリー</strong> によるハイブリッド戦略を展開した。さらに <em>Frontier Tuning</em> は、組織データからドメイン知識だけでなく「仕事のやり方」そのものを学習させ、<strong>超専門家エージェント</strong>の構築を可能にする。</p>
+    <div class="models">
+      <div class="m">
+        <div class="badge">Cloud · Reasoning</div>
+        <h4>MAI-Thinking-1</h4>
+        <div class="spec">1T Sparse MoE / 35B active / 256K ctx</div>
+        <p>アクティブパラメータを35Bに抑えつつ256Kのロングコンテキストを処理。SWE-Bench Pro でトップクラスの論理推論を示す。</p>
+      </div>
+      <div class="m">
+        <div class="badge">Cloud · Coding</div>
+        <h4>MAI-Code-1-Flash</h4>
+        <div class="spec">軽量 / 高速リファクタリング最適化</div>
+        <p>エージェントによる高速なリファクタリングに最適化された軽量コーディングモデル。反復の速さが武器。</p>
+      </div>
+      <div class="m">
+        <div class="badge">Local · Tool-calling</div>
+        <h4>Aion 1.0 Plan</h4>
+        <div class="spec">14B / 32K ctx / オンデバイス</div>
+        <p>ローカル推論に特化。特にローカルでの<strong>ツール呼び出し（Tool-calling）</strong>で最高レベルの効率を誇る。</p>
+      </div>
+    </div>
+    <div class="split" style="margin-top:48px">
+      <div class="body">
+        <p><strong>クラウドに頼らず、デスクサイドで回す。</strong> <strong>Surface RTX Spark Dev Box</strong> は <em>128GB ユニファイドメモリ</em> と <em>1 PFLOPS</em> の演算性能を備え、<strong>120Bパラメータ級</strong>の大規模モデルをローカルで完全に動作させる。</p>
+        <p>金融・医療など機密性の高い領域で、ネットワーク遅延やプライバシー懸念のない<strong>「ローカル・ロングコンテキスト」</strong>の実験が可能に。クラウドのコストやクォータを気にせず、推論サイクルを高速に回せる。</p>
+      </div>
+      <figure class="plate">
+        <img src="images/0604/p11.jpg" alt="究極のローカル環境 — RTX Spark Dev Box + OpenClaw + MXC（1 PFLOPS / 128GB / 120B）" loading="lazy">
+        <figcaption><b>FIG.08</b> Surface RTX Spark Dev Box——128GB ユニファイドメモリ・1 PFLOPS で 120B 級モデルをローカル実行。OpenClaw ＋ MXC と統合した究極のオンデバイス環境。 · The Agentic Blueprint / p.11</figcaption>
+      </figure>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p06.jpg" alt="Layer 2: Models — MAI ファミリーの登場（Token Efficiency / Latency / Context Length / Reasoning Depth）" loading="lazy">
+      <figcaption><b>FIG.09</b> MAI ファミリーの特性マップ——トークン効率・レイテンシ・コンテキスト長・推論深度の4軸。用途に応じて MAI と Aion を使い分ける。 · The Agentic Blueprint / p.06</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── ACTION PLAN ───────────────── -->
+  <section id="action">
+    <div class="eyebrow"><span class="num">07</span><span>Action Plan</span><span class="grow"></span><span class="meta">明日から、やるべきこと</span></div>
+    <h2>道具として「使う」から、<br>エージェントを<span class="pink">「統制・運用」</span>する。</h2>
+    <p class="lede">Build 2026 が示したのは、AIを<strong>「道具」</strong>として使う時代から、複数のエージェントを<strong>「指揮・統制・運用」</strong>する時代への移行だ。エンジニアに求められるのは、コードを書く技術以上に<em>「意図（Intent）を設計し、安全な実行境界（MXC）を定義する能力」</em>である。</p>
+    <div class="roadmap">
+      <div class="r"><div class="n">1</div><div class="repo">IMMEDIATE · 今すぐ</div><h4>ローカル推論を検証</h4><p>Edge Insider を導入し Aion でローカル推論とツール呼び出しを検証。GitHub Copilot App（Technical Preview）で並列エージェントと Canvases を体験する。</p></div>
+      <div class="r"><div class="n">2</div><div class="repo">WEEKS · 数週間以内</div><h4>Work IQ を組み込む</h4><p>2026年6月16日の GA に合わせ、Work IQ API を自作エージェントのコンテキスト層として組み込み、トークン削減効果を測定する。</p></div>
+      <div class="r"><div class="n">3</div><div class="repo">MONTHS · 数ヶ月以内</div><h4>安全な隔離をPoC</h4><p>OpenClaw ＋ MXC で、JSONポリシーによる安全な隔離環境を PoC として構築。企業導入のためのセキュリティ基準を策定する。</p></div>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0604/p14.jpg" alt="Action Matrix — エンジニアが明日からやるべきこと（導入難易度 × 時間軸）" loading="lazy">
+      <figcaption><b>FIG.10</b> Action Matrix——GitHub Copilot App / MAI-Code-1-Flash / MXC＋ローカル環境 / Work IQ API を、導入難易度と時間軸で配置した優先順位マップ。 · The Agentic Blueprint / p.14</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── PULL ───────────────── -->
+  <section class="pull">
+    <q>「作る」対象から、<span class="pink">「安全に運用し、共生する」</span>対象へ。</q>
+    <cite>— Microsoft Build 2026 / The Agentic Blueprint · 2026·06·04</cite>
+  </section>
+
+  <!-- ───────────────── SOURCES ───────────────── -->
+  <section id="sources">
+    <div class="eyebrow"><span class="num">08</span><span>Sources / References</span><span class="grow"></span><span class="meta">一次ソース</span></div>
+    <h2>出典と<span class="pink">関連リファレンス</span>。</h2>
+    <p class="lede" style="margin-bottom:32px">本スライドは Microsoft Build 2026 の発表に基づく、AIエンジニア向けの技術解説。確定情報・GA日程は各公式ドキュメントでの裏取りを推奨する。</p>
+    <div class="source-list">
+      <a href="https://build.microsoft.com/" target="_blank" rel="noopener">
+        <span class="idx">01</span>
+        <span><strong>Microsoft Build 2026 — 公式</strong><span>Autopilot / Scout、Microsoft IQ、Agent 365 など主要発表の一次情報源。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/features/copilot" target="_blank" rel="noopener">
+        <span class="idx">02</span>
+        <span><strong>GitHub Copilot — 公式</strong><span>Copilot App の並列エージェント・Agent Merge・Canvases の最新仕様。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://azure.microsoft.com/products/ai-foundry" target="_blank" rel="noopener">
+        <span class="idx">03</span>
+        <span><strong>Azure AI Foundry — Agentic Retrieval</strong><span>Foundry IQ / Agentic Retrieval、Reasoning Effort 制御によるトークン最適化。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://learn.microsoft.com/entra/identity/" target="_blank" rel="noopener">
+        <span class="idx">04</span>
+        <span><strong>Microsoft Entra ID</strong><span>エージェントに独自IDと監査ログを付与する Scout（Autopilot）の Identity 基盤。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://www.microsoft.com/security/business/microsoft-purview" target="_blank" rel="noopener">
+        <span class="idx">05</span>
+        <span><strong>Microsoft Purview</strong><span>MXC が直結する感度ラベル・DLP ガバナンス。エージェントのポリシーバイパスを防止。</span></span>
+        <span class="arr">→</span>
+      </a>
+    </div>
+
+    <div class="pager">
+      <a href="day_slide_2026_06_03.html">
+        <span class="dir">← 前日 · 06·03</span>
+        <strong>OpenAI Codex — 業務を「アプリ化」するエージェント基盤</strong>
+      </a>
+      <a href="../index.html">
+        <span class="dir">一覧へ →</span>
+        <strong>AI Daily Briefing インデックス</strong>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="inner">
+    <div class="f-title">AI Daily Briefing</div>
+    <div class="f-meta">2026·06·04 · THU — Microsoft Build 2026 / The Agentic Blueprint · Generated by awano27</div>
+  </div>
+</footer>
+
+</body>
+</html>
