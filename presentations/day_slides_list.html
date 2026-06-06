@@ -1827,6 +1827,81 @@
       </div>
     </div>
   </footer>
+
+  <!-- Auto-render the slide grid from day_slides_index.html (canonical source).
+       The static cards above are the fallback + seed: if the fetch fails the page
+       still works, and any slug missing from the index (e.g. 2025/09/03, 2025/09/11)
+       is preserved by merging. Prevents the manual-update drift this page had through
+       2025-11..2026-06. See memory: daily-slide-editorial-redesign. -->
+  <script>
+  (function () {
+    function ymd(slug) {
+      var m = slug.match(/day_slide_(\d{4})_(\d{2})_(\d{2})/);
+      return m ? { y: m[1], m: m[2], d: m[3] } : null;
+    }
+    function shortTitle(t) {
+      if (!t) return '';
+      t = t.replace(/\s+/g, ' ').trim();
+      var i = t.indexOf(' / ');
+      if (i > 0) t = t.slice(0, i);
+      i = t.indexOf(' × '); /* space × space */
+      if (i > 0) t = t.slice(0, i);
+      if (t.length > 80) t = t.slice(0, 80) + '…';
+      return t.trim();
+    }
+    function esc(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function harvest(scope, sel) {
+      var out = {};
+      scope.querySelectorAll(sel).forEach(function (a) {
+        var href = a.getAttribute('href') || '';
+        var mm = href.match(/day_slide_\d{4}_\d{2}_\d{2}/);
+        if (!mm) return;
+        var slug = mm[0], y = ymd(slug);
+        if (!y) return;
+        var tEl = a.querySelector('.slide-title');
+        out[slug] = { slug: slug, ymd: y, title: shortTitle(tEl ? tEl.textContent : a.textContent) };
+      });
+      return out;
+    }
+    function jp(y) { return y.y + '年' + (+y.m) + '月' + (+y.d) + '日'; }
+    function render(map) {
+      var arr = Object.keys(map).map(function (k) { return map[k]; });
+      if (!arr.length) return;
+      arr.sort(function (a, b) { return a.slug < b.slug ? 1 : a.slug > b.slug ? -1 : 0; });
+      var grid = document.querySelector('.slides-grid');
+      if (grid) {
+        grid.innerHTML = arr.map(function (s) {
+          var date = s.ymd.y + '/' + s.ymd.m + '/' + s.ymd.d;
+          return '<a href="/presentations/day_slides/' + s.slug + '.html" class="slide-card">' +
+                 '<span class="date-badge">' + date + '</span>' +
+                 '<div class="slide-title">' + esc(s.title) + '</div></a>';
+        }).join('\n');
+      }
+      var lead = document.querySelector('.ntt-subhero-lead');
+      if (lead) {
+        lead.textContent = jp(arr[arr.length - 1].ymd) + 'から' + jp(arr[0].ymd) +
+          'までの日次AIニューススライド。' +
+          '各スライドには最新のAI技術動向・' +
+          '製品リリース・研究成果がまとめられています。';
+      }
+    }
+    var seed = harvest(document, '.slides-grid a.slide-card');
+    fetch('day_slides_index.html?t=' + Date.now())
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var fromIndex = harvest(doc, 'a.slide-card');
+        if (!Object.keys(fromIndex).length) throw new Error('no slides parsed from index');
+        var merged = {};
+        Object.keys(seed).forEach(function (k) { merged[k] = seed[k]; });
+        Object.keys(fromIndex).forEach(function (k) { merged[k] = fromIndex[k]; });
+        render(merged);
+      })
+      .catch(function (e) { console.warn('slide list auto-render failed, using static fallback:', e); });
+  })();
+  </script>
 </body>
 
 </html>
