@@ -68,4 +68,4 @@ DATE_LOOKBACK_HOURS = 28
 _default_vault = "C:/develop/obsidian/2026" if os.name == "nt" else os.path.expanduser("~/vault")
 OBSIDIAN_VAULT_PATH = Path(os.environ.get("OBSIDIAN_VAULT_PATH", _default_vault))
 X_BOOKMARKS_DIR = OBSIDIAN_VAULT_PATH / "00 Inbox" / "X-Bookmarks"
-X_LOOKBACK_HOURS = 72
+X_LOOKBACK_HOURS = 36

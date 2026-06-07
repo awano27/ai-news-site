@@ -97,6 +97,7 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
             "category_raw": cat_raw,
             "source": a.get("rss_source") or a.get("source") or "",
             "tag_group": tag,
+            "date": a.get("date") or a.get("published_at") or a.get("updated_at") or "",
         })
     return out
 
@@ -223,6 +224,19 @@ def _render_timeline(items: List[Dict]) -> str:
     return "\n".join(cards)
 
 
+def _is_today(item: Dict, today: date) -> bool:
+    """Return True if the item's date matches today (JST). Items with no date pass through."""
+    for key in ("bookmark_date", "date"):
+        val = item.get(key, "")
+        if not val:
+            continue
+        try:
+            return date.fromisoformat(str(val)[:10]) == today
+        except ValueError:
+            continue
+    return True
+
+
 def generate_daily_news(
     today: date,
     articles: List[Dict],
@@ -241,6 +255,12 @@ def generate_daily_news(
     timeline.extend(_flatten_news(benchmark_articles or [], tag="研究"))
     timeline.extend(_flatten_news(funding_articles or [], tag="ビジネス"))
     timeline.extend(_flatten_x(x_articles or []))
+
+    before = len(timeline)
+    timeline = [item for item in timeline if _is_today(item, today)]
+    dropped = before - len(timeline)
+    if dropped:
+        logger.info(f"[daily-news] date filter: dropped {dropped} items not from {today}")
 
     # Sort by date desc first (stable), then by score desc — Python sort is
     # stable, so within each score bucket items remain in date-desc order.
