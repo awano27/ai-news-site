@@ -19,7 +19,7 @@ import json
 import logging
 import re
 from collections import Counter
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -224,14 +224,19 @@ def _render_timeline(items: List[Dict]) -> str:
     return "\n".join(cards)
 
 
-def _is_today(item: Dict, today: date) -> bool:
-    """Return True if the item's date matches today (JST). Items with no date pass through."""
+def _is_recent(item: Dict, today: date) -> bool:
+    """Allow items from today or yesterday; block items 2+ days old. No-date items pass through.
+
+    The 7:00 JST daily job collects articles published the previous day,
+    so yesterday's date is intentional content — only older dates are stale.
+    """
+    cutoff = today - timedelta(days=1)
     for key in ("bookmark_date", "date"):
         val = item.get(key, "")
         if not val:
             continue
         try:
-            return date.fromisoformat(str(val)[:10]) == today
+            return date.fromisoformat(str(val)[:10]) >= cutoff
         except ValueError:
             continue
     return True
@@ -257,10 +262,10 @@ def generate_daily_news(
     timeline.extend(_flatten_x(x_articles or []))
 
     before = len(timeline)
-    timeline = [item for item in timeline if _is_today(item, today)]
+    timeline = [item for item in timeline if _is_recent(item, today)]
     dropped = before - len(timeline)
     if dropped:
-        logger.info(f"[daily-news] date filter: dropped {dropped} items not from {today}")
+        logger.info(f"[daily-news] date filter: dropped {dropped} items older than {today - timedelta(days=1)}")
 
     # Sort by date desc first (stable), then by score desc — Python sort is
     # stable, so within each score bucket items remain in date-desc order.
