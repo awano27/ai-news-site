@@ -4,21 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIニューステクノロジーランキング・レポート（プレビュー）</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%23070F26'/><text x='50' y='66' text-anchor='middle' font-family='sans-serif' font-weight='700' font-size='38' fill='%23FFCC00'>AI</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <style>
         :root {
-            --primary: #0f172a;
-            --accent: #3b82f6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #020617;
-            --light: #f8fafc;
-            --border: #e2e8f0;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
+            --navy: #070F26;
+            --navy-2: #0c1838;
+            --navy-line: rgba(255,255,255,0.08);
+            --primary: #070F26;
+            --accent: #0d6efd;
+            --accent-d: #0a59cf;
+            --yellow: #FFCC00;
+            --yellow-d: #e6b800;
+            --success: #1f9d57;
+            --warning: #e6b800;
+            --danger: #d6453a;
+            --light: #F6F7F9;
+            --panel: #ffffff;
+            --border: #e6e8ee;
+            --text-primary: #1a1f2e;
+            --text-secondary: #4a5260;
+            --text-muted: #8a93a3;
+            --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', system-ui, sans-serif;
+            --serif: 'Source Serif 4', 'Hiragino Mincho ProN', 'YuMincho', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+            --maxw: 1180px;
         }
 
         * {
@@ -28,65 +41,94 @@
         }
 
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
+            font-family: var(--sans);
+            font-size: 15px;
+            line-height: 1.7;
             color: var(--text-primary);
             background: var(--light);
         }
+        a { color: inherit; text-decoration: none; }
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 260px;
-            height: 100vh;
-            background: var(--primary);
-            padding: 24px 16px;
-            overflow-y: auto;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            z-index: 1000;
+        /* ---- Top header (matches visionhub TOP) ---- */
+        .site-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(7,15,38,0.92);
+            backdrop-filter: saturate(140%) blur(16px);
+            -webkit-backdrop-filter: saturate(140%) blur(16px);
+            border-bottom: 1px solid var(--navy-line);
+        }
+        .header-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 18px; height: 68px;
+        }
+        .brand {
+            display: inline-flex; align-items: center; gap: 12px;
+            font-weight: 700; font-size: 17px; color: #fff; letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .brand-mark {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 2px solid var(--yellow); color: var(--yellow);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 15px;
+        }
+        .nav {
+            display: flex; align-items: center; gap: 2px; font-size: 14px; flex-wrap: nowrap;
+        }
+        .nav a {
+            color: #fff; padding: 8px 12px; font-weight: 500; white-space: nowrap;
+            border-radius: 8px; transition: color 0.15s ease, background 0.15s ease;
+        }
+        .nav a:hover { color: var(--yellow); }
+        .cta {
+            background: var(--yellow); color: var(--navy);
+            padding: 11px 20px; border-radius: 999px; font-weight: 700; font-size: 14px;
+            white-space: nowrap; transition: background 0.15s ease;
+            display: inline-flex; align-items: center; gap: 7px;
+        }
+        .cta:hover { background: var(--yellow-d); }
+
+        .container {
+            max-width: var(--maxw); margin: 0 auto;
+            padding-inline: clamp(20px, 4vw, 48px);
         }
 
-        .sidebar h1 {
-            color: white;
-            font-size: 1.3rem;
-            margin-bottom: 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 16px;
+        /* ---- Hero band ---- */
+        .report-hero {
+            background:
+              radial-gradient(900px 460px at 82% -12%, rgba(13,110,253,0.20), transparent 60%),
+              radial-gradient(700px 420px at 4% 6%, rgba(255,204,0,0.10), transparent 58%),
+              var(--navy);
+            color: #fff; padding: 56px 0 60px; border-bottom: 1px solid var(--navy-line);
         }
-
-        .nav-item {
-            color: #94a3b8;
-            display: block;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            margin-bottom: 4px;
-            transition: all 0.2s;
+        .report-hero .eyebrow {
+            display: inline-flex; align-items: center; gap: 9px;
+            font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--yellow); margin-bottom: 18px;
         }
-
-        .nav-item:hover {
-            background: rgba(255,255,255,0.08);
-            color: white;
+        .report-hero .eyebrow::before {
+            content: ""; width: 22px; height: 2px; background: var(--yellow); display: inline-block;
         }
-
-        .nav-item.active {
-            background: var(--accent);
-            color: white;
+        .report-hero h1 {
+            font-family: var(--serif); font-weight: 700;
+            font-size: clamp(30px, 4.6vw, 50px); line-height: 1.22; color: #fff;
+            letter-spacing: 0.005em; margin-bottom: 16px; max-width: 22ch;
         }
-
-        .main-content {
-            margin-left: 260px;
-            padding: 32px 48px;
-            max-width: 1600px;
-            background: white;
-            min-height: 100vh;
+        .report-hero .period {
+            font-size: 15px; color: var(--on-dark-mu, #a8b2c3); font-weight: 500;
+            display: inline-flex; align-items: center; gap: 10px;
         }
+        .report-hero .period .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); }
 
-        h1 { font-size: 2.2rem; color: var(--primary); }
-        h2 { font-size: 1.5rem; margin: 32px 0 16px; color: var(--primary); }
-        h3 { font-size: 1.1rem; margin: 24px 0 12px; color: var(--primary); }
+        .main-content { padding: 0 0 40px; background: var(--light); }
+        section { scroll-margin-top: 84px; }
+        .section-wrap { padding: 46px 0; }
+        .section-wrap + .section-wrap { border-top: 1px solid var(--border); }
+
+        h1 { font-size: 2rem; color: var(--primary); font-family: var(--serif); }
+        h2 { font-size: 1.5rem; margin: 0 0 18px; color: var(--primary); font-family: var(--serif); font-weight: 700; }
+        h3 { font-size: 1.12rem; margin: 22px 0 12px; color: var(--primary); font-weight: 700; }
+        h4 { font-size: 1rem; color: var(--primary); font-weight: 700; }
 
         .card {
             background: white;
@@ -98,19 +140,24 @@
         }
 
         .stats-card {
-            background: var(--primary);
+            background: var(--navy);
             color: white;
             text-align: center;
+            border: 1px solid var(--navy-line);
         }
 
         .stats-value {
-            font-size: 1.8rem;
-            font-weight: bold;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--yellow);
+            font-family: var(--serif);
+            line-height: 1.1;
         }
+        .stats-card > div:last-child { color: #cdd4e0; font-size: 0.82rem; margin-top: 6px; }
 
         .feature-card {
-            background: #f8f9fa;
-            border-left: 3px solid var(--accent);
+            background: #fffdf2;
+            border-left: 3px solid var(--yellow);
         }
 
         .tier-card {
@@ -135,11 +182,12 @@
         }
 
         th {
-            background: var(--primary);
+            background: var(--navy);
             color: white;
-            padding: 10px 12px;
+            padding: 11px 13px;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
+            font-weight: 700;
         }
 
         td {
@@ -156,7 +204,7 @@
         }
 
         .badge.high { background: var(--danger); color: white; }
-        .badge.medium { background: var(--warning); color: white; }
+        .badge.medium { background: var(--warning); color: var(--navy); }
         .badge.low { background: var(--success); color: white; }
         .badge.score { background: var(--accent); color: white; }
 
@@ -189,21 +237,24 @@
         }
 
         .ranking-number {
-            background: var(--primary);
-            color: white;
-            width: 30px;
-            height: 30px;
+            background: var(--yellow);
+            color: var(--navy);
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            margin-right: 12px;
+            font-weight: 900;
+            font-family: var(--serif);
+            margin-right: 14px;
         }
+        .ranking-item:nth-child(-n+4) .ranking-number { box-shadow: 0 0 0 3px rgba(255,204,0,0.22); }
 
         .ranking-title {
-            font-size: 1.1rem;
-            font-weight: bold;
+            font-size: 1.12rem;
+            font-weight: 700;
             color: var(--primary);
             margin-bottom: 8px;
         }
@@ -221,17 +272,17 @@
             font-weight: bold;
         }
 
-        .score-eng { background: #e6f3ff; color: var(--accent); }
-        .score-biz { background: #e6f9f0; color: var(--success); }
-        .score-total { background: var(--primary); color: white; }
+        .score-eng { background: #e7f0ff; color: var(--accent-d); }
+        .score-biz { background: #e8f6ee; color: var(--success); }
+        .score-total { background: var(--navy); color: var(--yellow); }
 
         .section-header {
-            background: linear-gradient(135deg, var(--primary), #1e293b);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 32px 0 16px 0;
+            border-left: 4px solid var(--yellow);
+            padding: 4px 0 4px 18px;
+            margin: 0 0 22px 0;
         }
+        .section-header h2 { margin: 0 0 4px; }
+        .section-header p { color: var(--text-secondary); font-size: 0.92rem; }
 
         .trend-indicator {
             display: inline-block;
@@ -249,25 +300,57 @@
             text-align: center;
             margin: 20px 0;
         }
+
+        .text-secondary { color: var(--text-secondary); }
+        .card { border-radius: 12px; }
+        .card h3, .card h4 { font-family: var(--sans); }
+        .chart-container {
+            background: var(--panel);
+            border-radius: 10px;
+        }
+        ul { padding-left: 1.2em; }
+        li { margin: 4px 0; }
+
+        @media (max-width: 900px) {
+            .nav { display: none; }
+            .report-hero { padding: 40px 0 44px; }
+        }
+        @media (max-width: 560px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .brand-text { display: none; }
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h1>🚀 AIランキング・レポート</h1>
-        <a href="#overview" class="nav-item active">📊 概要</a>
-        <a href="#rankings" class="nav-item">🏆 ランキング</a>
-        <a href="#analysis" class="nav-item">📈 分析</a>
-        <a href="#categories" class="nav-item">🏷️ カテゴリ別</a>
-        <a href="#trends" class="nav-item">📊 トレンド</a>
-        <a href="#insights" class="nav-item">💡 洞察</a>
-        <a href="#recommendations" class="nav-item">🎯 推奨事項</a>
+    <header class="site-header">
+        <div class="container header-row">
+            <a class="brand" href="../index.html">
+                <span class="brand-mark">AI</span>
+                <span class="brand-text">AI Intelligence Hub</span>
+            </a>
+            <nav class="nav" aria-label="セクション">
+                <a href="#overview">概要</a>
+                <a href="#rankings">ランキング</a>
+                <a href="#analysis">分析</a>
+                <a href="#categories">カテゴリ別</a>
+                <a href="#trends">トレンド</a>
+                <a href="#recommendations">推奨</a>
+            </nav>
+            <a class="cta" href="../index.html"><span aria-hidden="true">←</span> TOPページ</a>
+        </div>
+    </header>
+
+    <div class="report-hero">
+        <div class="container">
+            <span class="eyebrow">AI Technology Ranking</span>
+            <h1>AIニューステクノロジーランキング・レポート（プレビュー）</h1>
+            <p class="period"><span class="dot"></span>2026年5月15日 〜 2026年6月13日　|　生成 2026年06月13日 12:17</p>
+        </div>
     </div>
 
     <div class="main-content">
-        <section id="overview">
-            <h1>AIニューステクノロジーランキング・レポート（プレビュー）</h1>
-            <p class="text-secondary">2026年5月15日 〜 2026年6月13日</p>
-            
+      <div class="container">
+        <section id="overview" class="section-wrap">
             <div class="stats-grid">
                 <div class="card stats-card">
                     <div class="stats-value">17</div>
@@ -290,7 +373,7 @@
             <div class="card feature-card">
                 <h3>📋 レポートサマリー</h3>
                 <p>直近1ヶ月間のAI技術トレンドを、エンジニア活用度とビジネス効率化の2軸で評価・ランキング化。</p>
-                <p><strong>生成日時:</strong> 2026年06月13日 11:33</p>
+                <p><strong>生成日時:</strong> 2026年06月13日 12:17</p>
             </div>
 
             <div class="card">
@@ -307,7 +390,7 @@
             </div>
         </section>
 
-        <section id="rankings">
+        <section id="rankings" class="section-wrap">
             <div class="section-header">
                 <h2>🏆 AIニューステクノロジーランキング Top 30</h2>
                 <p>エンジニア活用度 + ビジネス効率化度の総合評価</p>
@@ -588,7 +671,7 @@
             
         </section>
 
-        <section id="analysis">
+        <section id="analysis" class="section-wrap">
             <div class="section-header">
                 <h2>📈 詳細分析</h2>
             </div>
@@ -608,7 +691,7 @@
             </div>
         </section>
 
-        <section id="categories">
+        <section id="categories" class="section-wrap">
             <div class="section-header">
                 <h2>🏷️ カテゴリ別分析</h2>
             </div>
@@ -714,7 +797,7 @@
             
         </section>
 
-        <section id="trends">
+        <section id="trends" class="section-wrap">
             <div class="section-header">
                 <h2>📊 トレンド分析</h2>
             </div>
@@ -808,7 +891,7 @@
             </div>
         </section>
 
-        <section id="insights">
+        <section id="insights" class="section-wrap">
             <div class="section-header">
                 <h2>💡 インサイト・洞察</h2>
             </div>
@@ -970,7 +1053,7 @@
             
         </section>
 
-        <section id="recommendations">
+        <section id="recommendations" class="section-wrap">
             <div class="section-header">
                 <h2>🎯 推奨事項・アクションプラン</h2>
             </div>
@@ -1106,16 +1189,38 @@
             </div>
         </section>
 
-        <div style="margin-top: 60px; padding: 20px; background: var(--light); border-radius: 8px; text-align: center;">
-            <p><strong>Generated by AI News Intelligence Platform v2.0</strong></p>
-            <p>2026年06月13日 11:33 | Based on 17 AI technologies analysis</p>
-            <p><em>このレポートは直近1ヶ月のX(Twitter)投稿から抽出・分析されたデータに基づいています</em></p>
-        </div>
+      </div>
     </div>
 
+    <footer class="site-footer">
+        <div class="container">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <span class="brand-mark">AI</span>
+                <strong style="color:#fff; letter-spacing:0.04em;">AI Intelligence Hub</strong>
+            </div>
+            <p style="margin-bottom:6px;">2026年06月13日 12:17 ｜ 17 技術を分析（直近1ヶ月）</p>
+            <p style="margin-bottom:16px; color:#7e8799;"><em>本レポートは直近1ヶ月のAIニュースアーカイブから抽出・スコアリングしたデータに基づきます。</em></p>
+            <div style="display:flex; gap:18px; flex-wrap:wrap; font-size:13px;">
+                <a href="../index.html" style="color:var(--yellow); font-weight:600;">← TOPページに戻る</a>
+                <a href="day_slides_index.html" style="color:#fff;">日次スライド</a>
+                <a href="news_archive.html" style="color:#fff;">ニュースアーカイブ</a>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Mermaid初期化
-        mermaid.initialize({ startOnLoad: true });
+        // Mermaid初期化（ブランドテーマ）
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#070F26',
+                primaryTextColor: '#ffffff',
+                primaryBorderColor: '#FFCC00',
+                lineColor: '#0d6efd',
+                fontFamily: "'Noto Sans JP', sans-serif"
+            }
+        });
 
         // スコア分布チャート
         const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
@@ -1125,7 +1230,7 @@
                 labels: ["8-9\u70b9", "7\u70b9", "6\u70b9", "5\u70b9\u4ee5\u4e0b"],
                 datasets: [{
                     data: [4, 6, 2, 5],
-                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#94a3b8']
+                    backgroundColor: ['#FFCC00', '#0d6efd', '#1f9d57', '#94a3b8']
                 }]
             },
             options: {
@@ -1147,11 +1252,11 @@
                 datasets: [{
                     label: 'エンジニア活用度',
                     data: [4, 4, 4, 4, 4, 3, 4, 3, 4, 4],
-                    backgroundColor: '#3b82f6'
+                    backgroundColor: '#0d6efd'
                 }, {
                     label: 'ビジネス効率化',
                     data: [4, 4, 4, 4, 3, 4, 3, 4, 3, 3],
-                    backgroundColor: '#10b981'
+                    backgroundColor: '#FFCC00'
                 }]
             },
             options: {
@@ -1174,7 +1279,7 @@
                 labels: ["LLM\u30e2\u30c7\u30eb", "\u305d\u306e\u4ed6\u30fb\u7279\u6b8a", "\u751f\u7523\u6027\u30c4\u30fc\u30eb"],
                 datasets: [{
                     data: [3, 13, 1],
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                    backgroundColor: ['#0d6efd', '#FFCC00', '#1f9d57', '#8b5cf6']
                 }]
             },
             options: {
@@ -1187,16 +1292,12 @@
             }
         });
 
-        // サイドバーナビゲーション
-        document.querySelectorAll('.nav-item').forEach(item => {
+        // ヘッダー内アンカーのスムーススクロール
+        document.querySelectorAll('.nav a[href^="#"]').forEach(item => {
             item.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
                 const target = this.getAttribute('href');
-                if (target && target !== '#') {
-                    document.querySelector(target).scrollIntoView({ behavior: 'smooth' });
-                }
+                const el = target && target !== '#' ? document.querySelector(target) : null;
+                if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
             });
         });
 
