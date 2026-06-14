@@ -1,0 +1,29 @@
+name: Freshness Guard
+
+# Fails if the newest generated day-slide has NOT been propagated into the canonical
+# index (presentations/day_slides_index.html) and sitemap.xml. The dynamic hub pages
+# (presentations/index.html, presentations/day_slides_list.html) render their slide
+# lists at runtime from that index, so a missing entry there means every hub page
+# silently shows stale content. This guard turns that silent "更新漏れ" into a red build.
+
+on:
+  # Run after presentations-daily (00:05 UTC) and the report/archive jobs settle.
+  schedule:
+    - cron: '35 0 * * *'
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'presentations/day_slides/**'
+      - 'presentations/day_slides_index.html'
+      - 'sitemap.xml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify newest slide is propagated to index + sitemap
+        run: python scripts/check_site_freshness.py
