@@ -15,6 +15,7 @@ import calendar
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from src.utils.sanitize import sanitize_html
+from src.utils import read_json, write_text, NEWS_DIR, TEMPLATES_DIR
 
 
 class SlideGenerator:
@@ -48,12 +49,11 @@ class SlideGenerator:
             
             if news_file.exists():
                 try:
-                    with open(news_file, 'r', encoding='utf-8') as f:
-                        daily_data = json.load(f)
-                        # 日付情報を追加
-                        for item in daily_data:
-                            item['date'] = date_str
-                        monthly_data.extend(daily_data)
+                    daily_data = read_json(news_file)
+                    # 日付情報を追加
+                    for item in daily_data:
+                        item['date'] = date_str
+                    monthly_data.extend(daily_data)
                 except Exception as e:
                     print(f"Warning: Failed to load {news_file}: {e}")
         
@@ -139,8 +139,7 @@ class SlideGenerator:
             
             # ファイル出力
             output_file = self.output_dir / f"monthly_report_{year:04d}_{month:02d}.html"
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(html_content)
+            write_text(output_file, html_content)
             
             print(f"Monthly slides generated: {output_file}")
             return str(output_file)
@@ -158,9 +157,8 @@ class SlideGenerator:
             return ""
         
         try:
-            with open(news_file, 'r', encoding='utf-8') as f:
-                daily_data = json.load(f)
-            
+            daily_data = read_json(news_file)
+
             # 高品質記事のフィルタリング
             high_quality = [item for item in daily_data 
                            if item.get('evaluation', {}).get('overall_score', 0) > 0.7]
@@ -179,8 +177,7 @@ class SlideGenerator:
             html_content = sanitize_html(html_content)
             
             output_file = self.output_dir / f"daily_slide_{date}.html"
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(html_content)
+            write_text(output_file, html_content)
             
             print(f"Daily slide generated: {output_file}")
             return str(output_file)
@@ -235,8 +232,7 @@ class SlideGenerator:
             html_content = sanitize_html(html_content)
             
             index_file = self.output_dir / "index.html"
-            with open(index_file, 'w', encoding='utf-8') as f:
-                f.write(html_content)
+            write_text(index_file, html_content)
             
             print(f"Index updated: {index_file}")
             

@@ -11,21 +11,20 @@ from datetime import datetime
 from pathlib import Path
 import hashlib
 
+from src.utils import (
+    mmdd_to_iso, filename_to_iso,
+    INPUT_DAY_DIR, PUBLIC_NEWS_DIR, ARCHIVE_INDEX_FILE, VERSION_FILE,
+    read_text, write_json,
+)
+
+
 def parse_date_from_filename(filename):
-    """ファイル名から日付を解析 (例: 0913.txt -> 2026-09-13)"""
-    match = re.match(r'(\d{2})(\d{2})\.txt', filename)
-    if match:
-        month, day = match.groups()
-        now = datetime.now()
-        year = now.year
-        try:
-            candidate = datetime(year, int(month), int(day))
-        except ValueError:
-            return None
-        if candidate.date() > now.date():
-            year -= 1
-        return f"{year}-{month}-{day}"
-    return None
+    """ファイル名から日付を解析 (例: 0913.txt -> 2026-09-13)
+
+    Thin wrapper around src.utils.mmdd_to_iso / filename_to_iso so that
+    other modules that import this symbol continue to work unchanged.
+    """
+    return filename_to_iso(filename)
 
 def extract_news_content(text):
     """テキストからニュース内容を抽出（改良版）"""
@@ -104,38 +103,37 @@ def extract_news_content(text):
 
 def update_archive():
     """アーカイブデータを更新"""
-    input_dir = Path("input/day")
-    output_dir = Path("public-pages/news")
-    
+    input_dir = INPUT_DAY_DIR
+    output_dir = PUBLIC_NEWS_DIR
+
     if not input_dir.exists():
         print(f"Input directory not found: {input_dir}")
         return
-    
+
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # 既存のアーカイブインデックスを読み込み
-    index_file = output_dir / "archive_index.json"
+    index_file = ARCHIVE_INDEX_FILE
     if index_file.exists():
-        with open(index_file, 'r', encoding='utf-8') as f:
-            existing_index = json.load(f)
+        existing_index = json.loads(read_text(index_file))
     else:
         existing_index = []
-    
+
     # 既存の日付を取得
     existing_dates = {item['date'] for item in existing_index}
-    
+
     # 新しいエントリを処理
     new_entries = []
     updated_count = 0
-    
+
     for txt_file in input_dir.glob("*.txt"):
         file_date = parse_date_from_filename(txt_file.name)
         if not file_date:
             continue
-            
+
         # 既存のデータをチェック
         json_file = output_dir / f"{file_date}.json"
-        
+
         # ファイルの更新時間をチェック（今日のデータは強制更新）
         today = datetime.now().strftime('%Y-%m-%d')
         should_update = True
@@ -144,21 +142,20 @@ def update_archive():
             txt_mtime = txt_file.stat().st_mtime
             json_mtime = json_file.stat().st_mtime
             should_update = txt_mtime > json_mtime
-        
+
         if not should_update:
             continue
-            
+
         try:
-            with open(txt_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
+            content = read_text(txt_file)
+
             news_item = extract_news_content(content)
             if not news_item:
                 continue
-                
+
             # 日付を追加
             news_item["date"] = file_date
-            
+
             # JSONデータを作成
             archive_data = {
                 "date": file_date,
@@ -166,18 +163,17 @@ def update_archive():
                 "count": 1,
                 "items": [news_item]
             }
-            
+
             # JSONファイルに保存
-            with open(json_file, 'w', encoding='utf-8') as f:
-                json.dump(archive_data, f, ensure_ascii=False, indent=2)
-            
+            write_json(json_file, archive_data)
+
             # インデックスエントリを準備
             index_entry = {
                 "date": file_date,
                 "file": f"{file_date}.json",
                 "count": 1
             }
-            
+
             # 既存エントリを更新または新規追加
             if file_date in existing_dates:
                 for i, item in enumerate(existing_index):
@@ -186,39 +182,35 @@ def update_archive():
                         break
             else:
                 new_entries.append(index_entry)
-            
+
             updated_count += 1
             print(f"Updated: {file_date} ({txt_file.name})")
-            
+
         except Exception as e:
             print(f"Error processing {txt_file.name}: {e}")
             continue
-    
+
     # 新しいエントリを追加してソート
     all_entries = existing_index + new_entries
     all_entries.sort(key=lambda x: x['date'], reverse=True)  # 新しい順
-    
+
     # インデックスファイルを更新
-    with open(index_file, 'w', encoding='utf-8') as f:
-        json.dump(all_entries, f, ensure_ascii=False, indent=2)
-    
+    write_json(index_file, all_entries)
+
     # バージョンファイルを更新
-    version_file = output_dir / "version.json"
     version_data = {
         "version": datetime.now().isoformat(),
         "sha": hashlib.md5(datetime.now().isoformat().encode()).hexdigest()[:8],
         "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "total_entries": len(all_entries)
     }
-    
-    with open(version_file, 'w', encoding='utf-8') as f:
-        json.dump(version_data, f, ensure_ascii=False, indent=2)
-    
+    write_json(VERSION_FILE, version_data)
+
     print(f"\nUpdate completed:")
     print(f"- Processed files: {updated_count}")
     print(f"- Total entries: {len(all_entries)}")
     print(f"- Latest date: {all_entries[0]['date'] if all_entries else 'None'}")
-    
+
     return updated_count > 0
 
 if __name__ == "__main__":

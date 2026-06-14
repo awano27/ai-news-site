@@ -1,12 +1,8 @@
 """Hacker News AI-filtered auto-collector."""
 
 import logging
-import sys
 from datetime import date, datetime, timezone
 from typing import List, Dict, Optional
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from scripts.collectors.hn import HackerNewsCollector, HN_API_BASE, ITEM_URL, TOP_STORIES_URL
 from ..config import HN_MIN_SCORE, HN_MAX_STORIES, HN_AI_KEYWORDS

@@ -1,12 +1,8 @@
 """Japanese AI news collector (ITmedia, GIGAZINE)."""
 
 import logging
-import sys
 from datetime import date
 from typing import List, Dict, Optional
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from scripts.collectors.rss import RSSCollector
 from ..config import JP_RSS_FEEDS, JP_AI_KEYWORDS

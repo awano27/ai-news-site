@@ -17,15 +17,14 @@ Usage:
 """
 from __future__ import annotations
 
-import argparse
 import html
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from inject._framework import ROOT, Injector, insert_after_body_anchor
+
 SLIDE_DIR = ROOT / "presentations" / "day_slides"
-MARKER = "<!-- EDITOR_NOTE_INJECTED v1 -->"
 
 ASIDE_END_RE = re.compile(r"</aside>\s*", re.IGNORECASE)
 BODY_OPEN_RE = re.compile(r"<body[^>]*>", re.IGNORECASE)
@@ -86,7 +85,7 @@ NOTES: dict[str, str] = {
 }
 
 
-def build_block(comment: str) -> str:
+def build_widget(comment: str) -> str:
     esc = html.escape(comment, quote=False)
     style_outer = (
         "background:linear-gradient(180deg,rgba(255,204,0,.06),rgba(255,204,0,.02));"
@@ -100,11 +99,9 @@ def build_block(comment: str) -> str:
         "font-size:12px;letter-spacing:.05em;padding:3px 10px;border-radius:999px;"
         "margin-right:10px;vertical-align:middle;"
     )
-    style_by = (
-        "color:#8A9ABF;font-size:12px;letter-spacing:.04em;margin-left:8px;"
-    )
+    style_by = "color:#8A9ABF;font-size:12px;letter-spacing:.04em;margin-left:8px;"
     return (
-        f"\n{MARKER}\n"
+        f"\n<!-- EDITOR_NOTE_INJECTED v1 -->\n"
         f'<aside class="editor-note" aria-label="運営者のひと言" style="{style_outer}">'
         f'<span style="{style_label}">運営者のひと言</span>'
         f'<span style="color:#B5C3E1">{esc}</span>'
@@ -113,62 +110,70 @@ def build_block(comment: str) -> str:
     )
 
 
-def insert_after_related_nav(text: str, block: str) -> str:
-    """Insert block after the first </aside> (end of related-nav bar).
-    Falls back to inserting right after <body> if no </aside> is found."""
-    m = ASIDE_END_RE.search(text)
-    if m:
-        return text[: m.end()] + block + text[m.end():]
-    bm = BODY_OPEN_RE.search(text)
-    if bm:
-        return text[: bm.end()] + block + text[bm.end():]
-    return text  # give up silently
+class EditorNotesInjector(Injector):
+    MARKER = "<!-- EDITOR_NOTE_INJECTED v1 -->"
+    DESCRIPTION = "Inject per-slide editor commentary into recent day slides."
+    TAG = "inject_editor_notes"
+    # END_PATTERN for strip_marker_block: match the closing </aside>
+    END_PATTERN = r"</aside>\s*"
 
+    def build_block(self, path: Path, text: str) -> str | None:
+        # comment is passed via _current_comment set before process_file
+        comment = getattr(self, "_current_comment", None)
+        if comment is None:
+            return None
+        return build_widget(comment)
 
-def process(path: Path, comment: str, force: bool, dry_run: bool) -> str:
-    try:
-        text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        return "skip (non-utf8)"
-    if MARKER in text and not force:
-        return "skip (already injected)"
-    if force and MARKER in text:
-        text = re.sub(
-            rf"\n?{re.escape(MARKER)}.*?</aside>\s*",
-            "",
-            text,
-            count=1,
-            flags=re.DOTALL | re.IGNORECASE,
-        )
-    block = build_block(comment)
-    new = insert_after_related_nav(text, block)
-    if new == text:
-        return "skip (no insertion point)"
-    if dry_run:
-        return f"would inject ({len(block)} bytes)"
-    path.write_text(new, encoding="utf-8")
-    return "injected"
+    def insertion_point(self, text: str, block: str) -> str:
+        return insert_after_body_anchor(text, block, ASIDE_END_RE, BODY_OPEN_RE)
+
+    def process_file(self, path: Path, force: bool, dry_run: bool) -> str:  # type: ignore[override]
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return "skip (non-utf8)"
+        if self.MARKER in text and not force:
+            return "skip (already injected)"
+        if force and self.MARKER in text:
+            text = re.sub(
+                rf"\n?{re.escape(self.MARKER)}.*?</aside>\s*",
+                "",
+                text,
+                count=1,
+                flags=re.DOTALL | re.IGNORECASE,
+            )
+        block = self.build_block(path, text)
+        if block is None:
+            return "skip (no payload)"
+        new = self.insertion_point(text, block)
+        if new == text:
+            return "skip (no insertion point)"
+        if dry_run:
+            return f"would inject ({len(block)} bytes)"
+        path.write_text(new, encoding="utf-8")
+        return "injected"
+
+    def run(self, argv: list[str] | None = None) -> int:
+        args = self._parse_args(argv, extra_args=True)
+
+        stats: dict[str, int] = {}
+        for name, comment in NOTES.items():
+            p = SLIDE_DIR / name
+            if not p.exists():
+                stats["missing"] = stats.get("missing", 0) + 1
+                print(f"  missing: {name}")
+                continue
+            self._current_comment = comment
+            r = self.process_file(p, args.force, args.dry_run)
+            k = "would inject" if r.startswith("would") else r
+            stats[k] = stats.get(k, 0) + 1
+            print(f"  {r}: {name}")
+        print(f"[inject_editor_notes] {sum(stats.values())} files: {stats}")
+        return 0
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--force", action="store_true")
-    args = ap.parse_args()
-
-    stats: dict[str, int] = {}
-    for name, comment in NOTES.items():
-        p = SLIDE_DIR / name
-        if not p.exists():
-            stats["missing"] = stats.get("missing", 0) + 1
-            print(f"  missing: {name}")
-            continue
-        r = process(p, comment, args.force, args.dry_run)
-        k = "would inject" if r.startswith("would") else r
-        stats[k] = stats.get(k, 0) + 1
-        print(f"  {r}: {name}")
-    print(f"[inject_editor_notes] {sum(stats.values())} files: {stats}")
-    return 0
+    return EditorNotesInjector().run()
 
 
 if __name__ == "__main__":

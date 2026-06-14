@@ -16,17 +16,15 @@ Usage:
 """
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-CONFIG = ROOT / "config" / "adsense.json"
-MARKER = "<!-- ADSENSE_INJECTED v1 -->"
+from inject._framework import ROOT, Injector
 
-HEAD_CLOSE_RE = re.compile(r"</head>", re.IGNORECASE)
+CONFIG = ROOT / "config" / "adsense.json"
+
 DEFAULT_TARGETS = [
     ROOT / "index.html",
     ROOT / "about.html",
@@ -38,7 +36,10 @@ DEFAULT_TARGETS = [
 
 def load_publisher_id() -> str | None:
     if not CONFIG.exists():
-        print(f"[adsense] {CONFIG.relative_to(ROOT)} missing — create it after AdSense approval", file=sys.stderr)
+        print(
+            f"[adsense] {CONFIG.relative_to(ROOT)} missing — create it after AdSense approval",
+            file=sys.stderr,
+        )
         return None
     try:
         cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
@@ -52,74 +53,29 @@ def load_publisher_id() -> str | None:
     return pub
 
 
-def snippet(pub: str) -> str:
-    return (
-        f"{MARKER}\n"
-        f'<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={pub}"'
-        f' crossorigin="anonymous"></script>\n'
-    )
+class AdsenseInjector(Injector):
+    MARKER = "<!-- ADSENSE_INJECTED v1 -->"
+    DESCRIPTION = "Inject Google AdSense snippet site-wide."
+    TAG = "adsense"
+    DEFAULT_TARGETS = DEFAULT_TARGETS
+    END_PATTERN = r"</script>"
 
+    def __init__(self, pub: str) -> None:
+        self._pub = pub
 
-def process_file(path: Path, block: str, force: bool, dry_run: bool) -> str:
-    try:
-        text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        return "skip (non-utf8)"
-
-    if MARKER in text and not force:
-        return "skip (already injected)"
-
-    if not HEAD_CLOSE_RE.search(text):
-        return "skip (no </head>)"
-
-    if force and MARKER in text:
-        text = re.sub(
-            rf"{re.escape(MARKER)}.*?</script>\s*",
-            "",
-            text,
-            count=1,
-            flags=re.DOTALL | re.IGNORECASE,
+    def build_block(self, path: Path, text: str) -> str | None:
+        return (
+            f"{self.MARKER}\n"
+            f'<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={self._pub}"'
+            f' crossorigin="anonymous"></script>\n'
         )
-
-    new = HEAD_CLOSE_RE.sub(block + "</head>", text, count=1)
-    if dry_run:
-        return "would inject"
-    path.write_text(new, encoding="utf-8")
-    return "injected"
-
-
-def iter_files(paths: list[Path]) -> list[Path]:
-    out: list[Path] = []
-    for p in paths:
-        if p.is_file() and p.suffix.lower() == ".html":
-            out.append(p)
-        elif p.is_dir():
-            out.extend(sorted(x for x in p.rglob("*.html") if "test_" not in x.name and "tmp_" not in x.name))
-    return out
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("paths", nargs="*")
-    ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--force", action="store_true")
-    args = ap.parse_args()
-
     pub = load_publisher_id()
     if not pub:
         return 1
-
-    block = snippet(pub)
-    targets = [Path(p) if Path(p).is_absolute() else (ROOT / p) for p in args.paths] if args.paths else DEFAULT_TARGETS
-    files = iter_files(targets)
-
-    stats: dict[str, int] = {}
-    for f in files:
-        r = process_file(f, block, args.force, args.dry_run)
-        k = "would inject" if r.startswith("would") else r
-        stats[k] = stats.get(k, 0) + 1
-    print(f"[adsense] {sum(stats.values())} files: {stats}")
-    return 0
+    return AdsenseInjector(pub).run()
 
 
 if __name__ == "__main__":

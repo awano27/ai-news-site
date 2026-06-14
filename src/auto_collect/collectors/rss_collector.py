@@ -1,13 +1,8 @@
 """RSS Feed auto-collector for AI news."""
 
 import logging
-import sys
 from datetime import date, timedelta
 from typing import List, Dict, Optional
-from pathlib import Path
-
-# Add project root to path for importing existing collectors
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from scripts.collectors.rss import RSSCollector, RSS_FEEDS
 from ..config import EN_RSS_FEEDS, JP_RSS_FEEDS, DATE_LOOKBACK_HOURS

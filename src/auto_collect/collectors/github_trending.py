@@ -2,12 +2,8 @@
 
 import logging
 import re
-import sys
 from datetime import date
 from typing import List, Dict, Optional
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from scripts.collectors.base import BaseCollector
 
