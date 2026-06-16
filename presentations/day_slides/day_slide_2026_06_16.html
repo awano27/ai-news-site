@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>「最強モデル1つ」の終焉 — OpenRouter Fusion API が切り拓く「合議制AI」 | 2026-06-16 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Shippori+Mincho:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
+
+<meta name="description" content="2026年6月、OpenRouter が公開した『Fusion API』は『どのLLMが世界最強か』というパラダイムを過去のものにした。単一モデルのスケーリングから、最大8つの異なるモデルを並列実行し相互検証させる『合議制（Model Council）』への移行——これはテストタイム・コンピューティングの実装である。Model Panel → Judge Model → Synthesizer の3層が動き、深層リサーチ・ベンチマーク DRACO では半額の『予算版チーム』(64.7%) がフロンティア単体 GPT-5.5(60.0%)・Claude Opus 4.8(58.8%) を凌駕。モデルブランドはコモディティ化し、企業の競争優位は『どう組み合わせるか＝オーケストレーション・ロジック』へ移行した。Neurodiversity、Server Tools(Exa)による自律リサーチ、Error-to-Cost による投入判断、OpenAI互換SDKでのドロップイン実装までを解説。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_16.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="「最強モデル1つ」の終焉 — 合議制AI（Model Council）の衝撃 | 2026-06-16" />
+<meta property="og:description" content="OpenRouter Fusion API。最大8モデルを並列実行し相互検証する『合議制』へ。半額の予算版チームがフロンティア単体を凌駕。競争優位は『どのモデルか』ではなく『どう組み合わせるか』へ。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_16.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0616/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="「最強モデル1つ」の終焉 — 合議制AI（Model Council） | 2026-06-16" />
+<meta name="twitter:description" content="Fusion API：8モデル並列 → Judge → Synthesizer。半額の予算版チームが王者を凌駕。価値はモデルではなくオーケストレーションに宿る。" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0616/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "「最強モデル1つ」の終焉 — OpenRouter Fusion API が切り拓く「合議制AI」",
+  "datePublished": "2026-06-16",
+  "dateModified": "2026-06-16",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/presentations/day_slides/images/0616/cover.jpg"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_16.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_16.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     THE AI ORCHESTRATION ERA · "MODEL COUNCIL" · WARM EDITORIAL · 2026-06-16
+     ============================================================
+     Same warm-editorial chassis as the 06-14 issue, recolored to a
+     calmer, strategic register for an opportunity story (not an
+     incident): a deep indigo-VIOLET accent for "the council / the
+     orchestration", and an emerald WIN channel for the headline data
+     ("half-price budget team beats the frontier"). Amber marks cost /
+     caution. Strict reading order: shift → mechanism → proof →
+     autonomy → deploy → build, each closing on a "So What" takeaway.
+     ============================================================ */
+  :root {
+    --paper:     #F0EEE9;
+    --paper-2:   #E8E6DF;
+    --surface:   #FAF9F5;
+    --surface-hi:#FFFFFF;
+    --ink:       #211F28;
+    --ink-2:     #565162;
+    --ink-3:     #8A8597;
+    --line:      #E4E0EC;
+    --line-2:    #D5CFE2;
+    --vi:        #6D5DD3;
+    --vi-deep:   #4B3CA8;
+    --vi-soft:   #C8C0EE;
+    --vi-wash:   #EDEAFA;
+    --win:       #0E9272;
+    --win-deep:  #0B7459;
+    --win-soft:  #A9DDCB;
+    --win-wash:  #E0F1EA;
+    --gold:      #B98726;
+    --amber-soft:#E4D29C;
+    --amber-wash:#F6EDD6;
+    --display: 'Fraunces', 'Shippori Mincho', 'Noto Serif JP', Georgia, serif;
+    --serif:   'Shippori Mincho', 'Noto Serif JP', Georgia, serif;
+    --sans:    'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --shadow-sm: 0 1px 2px rgba(33,31,40,.05), 0 2px 8px -4px rgba(33,31,40,.12);
+    --shadow:    0 2px 4px rgba(33,31,40,.04), 0 18px 40px -20px rgba(40,32,72,.30);
+    --radius:    22px;
+    --radius-sm: 14px;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(1200px 600px at 82% -8%, rgba(109,93,211,.12), transparent 60%),
+      radial-gradient(900px 500px at 6% 4%, rgba(14,146,114,.07), transparent 55%);
+    background-attachment: fixed;
+  }
+  ::selection { background: var(--vi); color: #fff; }
+  a { color: inherit; }
+  .grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E"); }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding: 15px 40px;
+    background: rgba(240,238,233,.82);
+    backdrop-filter: blur(14px) saturate(1.4);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 11px; font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: -.01em; }
+  .topbar .brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--vi); box-shadow: 0 0 0 4px var(--vi-wash); }
+  .topbar nav { display: flex; gap: 22px; }
+  .topbar nav a { color: var(--ink-3); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color .18s; }
+  .topbar nav a:hover { color: var(--vi-deep); }
+  .topbar .stamp { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ── shell ──────────────────────────────────────── */
+  main { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 0 40px 120px; }
+  section { padding: 92px 0; border-bottom: 1px solid var(--line); position: relative; }
+  section:last-of-type { border-bottom: 0; }
+
+  .kicker {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--vi-deep);
+    background: var(--vi-wash); border: 1px solid var(--vi-soft);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 26px;
+  }
+  .kicker .n { font-family: var(--display); font-weight: 600; }
+
+  h2 {
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(30px, 4.4vw, 52px); line-height: 1.22;
+    letter-spacing: .005em; color: var(--ink); margin-bottom: 22px;
+  }
+  h2 .vi { color: var(--vi-deep); }
+  h2 .win { color: var(--win-deep); }
+  h2 em { font-family: var(--display); font-style: italic; font-weight: 500; color: var(--vi-deep); }
+  .lede {
+    max-width: 66ch; font-family: var(--serif); font-weight: 400;
+    font-size: clamp(17px, 1.5vw, 21px); line-height: 1.95; color: var(--ink-2);
+    margin-bottom: 54px;
+  }
+  .lede strong { font-weight: 700; color: var(--ink); }
+  .lede em { font-family: var(--display); font-style: italic; color: var(--vi-deep); }
+
+  p { font-size: 15.5px; line-height: 1.85; color: var(--ink-2); }
+  p strong { color: var(--ink); font-weight: 700; }
+  p em { font-family: var(--display); font-style: italic; color: var(--vi-deep); font-weight: 500; }
+  .chip { display: inline-block; font-family: var(--sans); font-size: 12.5px; font-weight: 600; background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; padding: 2px 11px; color: var(--ink-2); }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 76px 0 86px; border-bottom: 1px solid var(--line); }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); margin-bottom: 34px;
+  }
+  .hero-eyebrow .pill { color: var(--vi-deep); background: var(--vi-wash); border: 1px solid var(--vi-soft); padding: 5px 13px; border-radius: 999px; }
+  .hero-eyebrow .sep { width: 26px; height: 1px; background: var(--line-2); }
+  h1 {
+    font-family: var(--serif); font-weight: 800;
+    font-size: clamp(42px, 7.4vw, 96px); line-height: 1.08;
+    letter-spacing: .01em; color: var(--ink);
+  }
+  h1 .vi { color: var(--vi); }
+  h1 .win { color: var(--win-deep); }
+  h1 .breath { font-family: var(--display); font-style: italic; font-weight: 500; }
+  .hero-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 56px; align-items: end; margin-top: 36px; }
+  .hero-lead { font-family: var(--serif); font-size: 18px; line-height: 1.95; color: var(--ink-2); border-left: 3px solid var(--vi); padding-left: 22px; }
+  .hero-lead strong { color: var(--ink); font-weight: 700; }
+  .hero-lead em { font-family: var(--display); font-style: italic; color: var(--vi-deep); }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px;
+    font-family: var(--sans); font-size: 14px; font-weight: 600; text-decoration: none;
+    border-radius: 999px; transition: transform .16s ease, box-shadow .16s ease, background .16s;
+  }
+  .btn .arr { transition: transform .18s ease; }
+  .btn:hover .arr { transform: translateX(4px); }
+  .btn.primary { background: var(--vi); color: #fff; box-shadow: 0 8px 20px -8px rgba(75,60,168,.7); }
+  .btn.primary:hover { background: var(--vi-deep); transform: translateY(-1px); }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line-2); }
+  .btn.ghost:hover { border-color: var(--vi-soft); color: var(--vi-deep); transform: translateY(-1px); }
+
+  /* ── council pipeline motif ─────────────────────── */
+  .pipe { display: flex; align-items: flex-start; gap: 0; margin: 6px 0 4px; }
+  .pipe-step { flex: 1; text-align: center; position: relative; }
+  .pipe-step .d { font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .pipe-step .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--vi-soft); margin: 12px auto; box-shadow: 0 0 0 5px var(--vi-wash); }
+  .pipe-step.key .dot { background: var(--vi); box-shadow: 0 0 0 5px var(--vi-wash); }
+  .pipe-step.end .dot { background: var(--win); box-shadow: 0 0 0 5px var(--win-wash); }
+  .pipe-step .lb { font-size: 13px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  .pipe-step .sb { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .pipe-line { flex: 0 0 auto; width: 40px; height: 2px; background: linear-gradient(90deg, var(--vi-soft), var(--vi)); align-self: flex-start; margin-top: 39px; }
+
+  /* ── stat row ───────────────────────────────────── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 44px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 24px 22px; box-shadow: var(--shadow-sm); }
+  .stat.win { background: linear-gradient(160deg, var(--win-wash), var(--surface) 72%); border-color: var(--win-soft); }
+  .stat.vi { background: linear-gradient(160deg, var(--vi-wash), var(--surface) 72%); border-color: var(--vi-soft); }
+  .stat .v { font-family: var(--display); font-weight: 600; font-size: clamp(32px, 4vw, 44px); line-height: 1; letter-spacing: -.01em; color: var(--ink); }
+  .stat.win .v { color: var(--win-deep); }
+  .stat.vi .v { color: var(--vi-deep); }
+  .stat .v .u { font-family: var(--sans); font-size: .42em; font-weight: 600; color: var(--vi-deep); margin-left: 3px; }
+  .stat.win .v .u { color: var(--win-deep); }
+  .stat .v sup { font-size: .5em; }
+  .stat .l { margin-top: 12px; font-size: 12.5px; font-weight: 600; letter-spacing: .04em; color: var(--ink-3); }
+
+  /* ── flow (pipeline / before-after) ─────────────── */
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 14px; margin-top: 8px; }
+  .node { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 24px 22px; box-shadow: var(--shadow-sm); }
+  .node.io { background: var(--paper-2); border-style: dashed; }
+  .node.vi { background: linear-gradient(160deg, var(--vi-wash), var(--surface) 72%); border-color: var(--vi-soft); }
+  .node.win { background: linear-gradient(160deg, var(--win-wash), var(--surface) 72%); border-color: var(--win-soft); }
+  .node .step { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--vi-deep); margin-bottom: 10px; }
+  .node.win .step { color: var(--win-deep); }
+  .node h4 { font-family: var(--serif); font-weight: 700; font-size: 18px; color: var(--ink); margin-bottom: 4px; }
+  .node .param { font-family: var(--display); font-weight: 600; font-size: 14px; color: var(--vi-deep); margin-bottom: 8px; }
+  .node.win .param { color: var(--win-deep); }
+  .node p { font-size: 13px; line-height: 1.7; }
+  .arrow { display: flex; align-items: center; justify-content: center; color: var(--vi); font-size: 26px; font-family: var(--display); }
+
+  /* ── "So What" callout ──────────────────────────── */
+  .sowhat { margin-top: 30px; background: var(--vi-wash); border: 1px solid var(--vi-soft); border-left: 4px solid var(--vi); border-radius: var(--radius-sm); padding: 22px 26px; }
+  .sowhat .tag { display: inline-block; font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--vi-deep); margin-bottom: 8px; }
+  .sowhat p { font-size: 14.5px; color: var(--ink-2); }
+  .sowhat p strong { color: var(--vi-deep); }
+  .sowhat.win { background: var(--win-wash); border-color: var(--win-soft); border-left-color: var(--win); }
+  .sowhat.win .tag { color: var(--win-deep); }
+  .sowhat.win p strong { color: var(--win-deep); }
+
+  /* ── benchmark table ────────────────────────────── */
+  .rtable { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .rtable .rhead, .rtable .rrow { display: grid; grid-template-columns: 1.5fr .8fr 1.5fr; gap: 18px; align-items: center; padding: 18px 26px; }
+  .rtable .rhead { background: linear-gradient(160deg, var(--vi-wash), var(--surface) 80%); border-bottom: 1px solid var(--line); font-family: var(--sans); font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+  .rtable .rrow { border-bottom: 1px solid var(--line); }
+  .rtable .rrow:last-child { border-bottom: 0; }
+  .rtable .rrow.best { background: linear-gradient(160deg, var(--vi-wash), transparent 75%); }
+  .rtable .rrow.winrow { background: linear-gradient(160deg, var(--win-wash), transparent 75%); }
+  .rtable .metric { font-family: var(--serif); font-weight: 700; font-size: 16px; color: var(--ink); }
+  .rtable .metric small { display: block; font-family: var(--sans); font-weight: 500; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .rtable .fab { font-family: var(--display); font-weight: 600; font-size: 24px; color: var(--ink); }
+  .rtable .rrow.best .fab { color: var(--vi-deep); }
+  .rtable .rrow.winrow .fab { color: var(--win-deep); }
+  .rtable .insight { font-size: 13.5px; color: var(--ink-2); }
+  .rtable .insight b { color: var(--ink); }
+  .ins-badge { display: inline-block; margin-right: 8px; font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
+  .ins-badge.best { color: #fff; background: var(--vi); }
+  .ins-badge.win  { color: var(--win-deep); background: var(--win-wash); border: 1px solid var(--win-soft); }
+  .ins-badge.base { color: var(--ink-3); background: var(--surface); border: 1px solid var(--line-2); }
+
+  /* ── two-card compare (duo) ─────────────────────── */
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .ccard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px 30px; box-shadow: var(--shadow-sm); position: relative; }
+  .ccard.yes { background: linear-gradient(160deg, var(--vi-wash), var(--surface) 70%); border-color: var(--vi-soft); }
+  .ccard.no { background: linear-gradient(160deg, var(--amber-wash), var(--surface) 70%); border-color: var(--amber-soft); }
+  .ccard .tag { font-family: var(--sans); font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 14px; }
+  .ccard.yes .tag { color: var(--vi-deep); }
+  .ccard.no .tag { color: var(--gold); }
+  .ccard h3 { font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 1.4; margin-bottom: 12px; color: var(--ink); }
+  .ccard p { font-size: 14.5px; }
+  .ccard .big { font-family: var(--display); font-weight: 500; font-style: italic; font-size: 18px; margin-bottom: 6px; }
+  .ccard.yes .big { color: var(--vi-deep); }
+  .ccard.no .big { color: var(--gold); }
+  .ccard ul { list-style: none; margin-top: 12px; }
+  .ccard li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; font-size: 14px; color: var(--ink-2); padding: 5px 0; }
+  .ccard li .m { font-family: var(--display); font-weight: 700; }
+  .ccard.yes li .m { color: var(--vi); }
+  .ccard.no li .m { color: var(--gold); }
+
+  /* ── use case / actor cards ─────────────────────── */
+  .cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .case { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 28px; box-shadow: var(--shadow-sm); transition: transform .18s ease, box-shadow .18s ease, border-color .18s; }
+  .case:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--vi-soft); }
+  .case .ic { width: 46px; height: 46px; border-radius: 13px; background: var(--vi-wash); border: 1px solid var(--vi-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .case .ic svg { width: 24px; height: 24px; stroke: var(--vi-deep); fill: none; stroke-width: 1.7; }
+  .case h3 { font-family: var(--serif); font-weight: 700; font-size: 19px; color: var(--ink); margin-bottom: 4px; }
+  .case .sub { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 14px; }
+  .case p { font-size: 14px; color: var(--ink-2); }
+  .case p b { color: var(--vi-deep); }
+
+  /* ── split (text + listcard / codecard) ─────────── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .split .body p + p { margin-top: 16px; }
+  .listcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .listcard .hd { padding: 18px 24px; background: linear-gradient(160deg, var(--vi-wash), var(--surface) 75%); border-bottom: 1px solid var(--line); font-family: var(--serif); font-weight: 700; font-size: 17px; color: var(--ink); display: flex; justify-content: space-between; align-items: center; }
+  .listcard .hd .badge { font-family: var(--sans); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vi-deep); background: var(--surface); border: 1px solid var(--vi-soft); padding: 3px 10px; border-radius: 999px; }
+  .listcard ul { list-style: none; }
+  .listcard li { display: grid; grid-template-columns: 26px 1fr; gap: 13px; padding: 18px 24px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-2); }
+  .listcard li:last-child { border-bottom: 0; }
+  .listcard li .k { color: var(--vi); font-weight: 700; font-family: var(--display); }
+  .listcard li strong { color: var(--ink); }
+
+  /* ── code card ──────────────────────────────────── */
+  .codecard { background: #1c1a26; border: 1px solid #2c2840; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .codecard .chd { display: flex; align-items: center; gap: 7px; padding: 13px 18px; border-bottom: 1px solid #2c2840; background: #232032; }
+  .codecard .chd i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .codecard .chd .t { margin-left: 10px; font-family: var(--mono); font-size: 12px; font-weight: 600; color: #b7b1c9; letter-spacing: .03em; }
+  .codecard pre { margin: 0; padding: 20px 22px; overflow-x: auto; }
+  .codecard code { font-family: var(--mono); font-size: 13px; line-height: 1.95; color: #e6e3f2; white-space: pre; }
+  .codecard .c { color: #7d7691; font-style: italic; }
+  .codecard .k { color: #c4b5fd; }
+  .codecard .s { color: #86efac; }
+  .codecard .f { color: #93c5fd; }
+  .codecard .n { color: #fcd34d; }
+
+  /* ── pull ───────────────────────────────────────── */
+  .pull { text-align: center; padding: 104px 0; }
+  .pull q { quotes: none; display: block; max-width: 24ch; margin: 0 auto; font-family: var(--serif); font-weight: 700; font-size: clamp(28px, 4.6vw, 56px); line-height: 1.34; color: var(--ink); letter-spacing: .01em; }
+  .pull q .vi { color: var(--vi); }
+  .pull q .win { color: var(--win-deep); }
+  .pull q em { font-family: var(--display); font-style: italic; font-weight: 500; color: var(--vi-deep); }
+  .pull cite { display: block; margin-top: 40px; font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); font-style: normal; }
+
+  /* ── sources ────────────────────────────────────── */
+  .sources { display: grid; gap: 0; border-top: 1px solid var(--line-2); }
+  .sources a { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: baseline; padding: 22px 6px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); transition: padding .18s, background .18s; border-radius: 10px; }
+  .sources a:hover { padding-left: 18px; background: var(--surface); }
+  .sources .idx { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--vi); }
+  .sources strong { display: block; font-family: var(--serif); font-weight: 700; font-size: 16.5px; color: var(--ink); margin-bottom: 3px; }
+  .sources span span { font-size: 13.5px; color: var(--ink-2); }
+  .sources .arr { color: var(--vi); font-family: var(--display); font-size: 18px; transition: transform .18s; }
+  .sources a:hover .arr { transform: translateX(5px); }
+
+  /* ── pager + footer ─────────────────────────────── */
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 56px; }
+  .pager a { display: block; padding: 26px 28px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: transform .16s, box-shadow .16s; }
+  .pager a:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .pager a:last-child { text-align: right; }
+  .pager .dir { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--vi-deep); margin-bottom: 9px; }
+  .pager strong { font-family: var(--serif); font-weight: 700; font-size: 16px; line-height: 1.4; color: var(--ink); }
+  .site-foot { position: relative; z-index: 1; border-top: 1px solid var(--line-2); padding: 40px 0 80px; }
+  .site-foot .inner { max-width: 1160px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .site-foot .ft { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
+  .site-foot .fm { font-size: 12.5px; color: var(--ink-3); letter-spacing: .04em; }
+
+  /* ── image plates ───────────────────────────────── */
+  figure.plate { margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--surface-hi); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  figure.plate img { display: block; width: 100%; height: auto; }
+  figure.plate figcaption { padding: 16px 22px; font-size: 13px; line-height: 1.65; color: var(--ink-2); border-top: 1px solid var(--line); background: var(--surface); }
+  figure.plate figcaption b { font-family: var(--display); font-weight: 600; color: var(--vi-deep); margin-right: 8px; }
+  .plate-hero { margin-top: 44px; }
+  .plate-wide { margin-top: 34px; }
+
+  /* ── briefing gallery ───────────────────────────── */
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 8px; }
+  .gallery figure { margin: 0; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); background: var(--surface-hi); box-shadow: var(--shadow-sm); transition: transform .18s ease, box-shadow .18s ease, border-color .18s; }
+  .gallery figure:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--vi-soft); }
+  .gallery img { display: block; width: 100%; height: auto; }
+  .gallery figcaption { padding: 13px 16px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); border-top: 1px solid var(--line); }
+  .gallery figcaption b { font-family: var(--display); font-weight: 600; color: var(--vi-deep); }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 940px) {
+    .topbar { padding: 13px 20px; } .topbar nav { display: none; }
+    main { padding: 0 22px 80px; } section { padding: 64px 0; }
+    .hero-grid, .split { grid-template-columns: 1fr; gap: 30px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .duo, .cases { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr; }
+    .flow .arrow { transform: rotate(90deg); padding: 4px 0; }
+    .pipe { flex-direction: column; gap: 4px; align-items: stretch; }
+    .pipe-line { width: 2px; height: 28px; margin: 0 auto; align-self: center; }
+    .pipe-step { display: flex; align-items: center; gap: 14px; text-align: left; }
+    .pipe-step .dot { margin: 0; }
+    .rtable .rhead { display: none; }
+    .rtable .rrow { grid-template-columns: 1fr auto; gap: 8px 14px; }
+    .rtable .insight { grid-column: 1 / -1; }
+    .pager { grid-template-columns: 1fr; }
+    .site-foot .inner { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 540px) {
+    .stats { grid-template-columns: 1fr; }
+    h1 { font-size: 40px; }
+    .sources a { grid-template-columns: auto 1fr; } .sources .arr { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<!-- INTERNAL_LINKS_INJECTED v1 -->
+<aside class="related-nav" aria-label="関連ガイド" style="position:relative;z-index:2;background:var(--surface);border-bottom:1px solid var(--line);padding:9px 20px;font:13px/1.4 'Inter','Noto Sans JP',system-ui,sans-serif;color:var(--ink-3);display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+  <span style="color:var(--vi-deep);font-weight:700;letter-spacing:.04em">関連ガイド</span>
+  <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">Claude vs ChatGPT vs Gemini 比較</a>
+  <a href="/presentations/hubs/claude-code-guide-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">Claude Code 完全ガイド</a>
+  <a href="/presentations/hubs/mcp-complete-guide.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">MCP 完全ガイド</a>
+  <a href="/presentations/hubs/claude-models-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">Claude モデル料金比較</a>
+  <a href="/presentations/hubs/ai-funding-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">AI資金調達まとめ</a>
+</aside>
+
+<header class="topbar">
+  <div class="brand"><span class="dot"></span>AI Daily Briefing</div>
+  <nav>
+    <a href="#shift">パラダイム転換</a>
+    <a href="#council">合議の機構</a>
+    <a href="#data">衝撃のデータ</a>
+    <a href="#research">自律リサーチ</a>
+    <a href="#deploy">投入判断</a>
+    <a href="#build">実装</a>
+    <a href="#briefing">原典</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span class="stamp">2026 · 06 · 16 · Tue</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-eyebrow">
+      <span class="pill">Briefing № 06·16</span>
+      <span class="sep"></span>
+      <span>OpenRouter · Fusion API</span>
+      <span class="sep"></span>
+      <span>Model Council / Test-time Compute</span>
+    </div>
+    <h1>「最強モデル1つ」の<br>時代が、<span class="vi">終わった</span>。</h1>
+    <div class="hero-grid">
+      <div>
+        <div class="pipe" aria-hidden="false">
+          <div class="pipe-step"><div class="d">Step 1</div><div class="dot"></div><div class="lb">Model Panel</div><div class="sb">最大8モデルが並列思考</div></div>
+          <div class="pipe-line"></div>
+          <div class="pipe-step key"><div class="d">Step 2</div><div class="dot"></div><div class="lb">Judge Model</div><div class="sb">合議の「脳」・構造化分析</div></div>
+          <div class="pipe-line"></div>
+          <div class="pipe-step end"><div class="d">Step 3</div><div class="dot"></div><div class="lb">Synthesizer</div><div class="sb">磨き上げた最終回答</div></div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <p class="hero-lead">2026年6月、OpenRouter の <strong>Fusion API</strong> は「どのLLMが世界最強か」という問いを過去のものにした。単一モデルのスケーリングから、複数の知能を編成する <em>合議制（Model Council）</em>へ。「一人の天才に頼る時代」は終わり、<strong>「最適なチームを組む時代」</strong>が始まった。</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#council">合議の仕組み <span class="arr">→</span></a>
+          <a class="btn ghost" href="#data">衝撃のベンチマーク <span class="arr">→</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat vi"><div class="v">69.0<span class="u">%</span></div><div class="l">Qualityパネル · DRACO（Fable 5 単体は 65.3%）</div></div>
+      <div class="stat win"><div class="v">64.7<span class="u">%</span></div><div class="l">Budgetパネル · 王者に肉薄しコストは<strong>約半額</strong></div></div>
+      <div class="stat"><div class="v">8<span class="u">並列</span></div><div class="l">Model Panel が同時稼働する異種モデル数</div></div>
+      <div class="stat win"><div class="v">50<span class="u">%減</span></div><div class="l">知能グレード当たりの<strong>実質コスト</strong></div></div>
+    </div>
+    <figure class="plate plate-hero">
+      <img src="images/0616/cover.jpg" alt="The AI Orchestration Era — 「最強モデル1つ」の時代は終わった" loading="lazy">
+      <figcaption><b>OVERVIEW</b> 知能のオーケストレーション時代へ——単一モデルの性能競争から、複数モデルを編成する「合議制（Model Council）」への移行を告げる OpenRouter Fusion API。 · The AI Orchestration Era</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── PARADIGM SHIFT ───────────────── -->
+  <section id="shift">
+    <span class="kicker"><span class="n">01</span> · Paradigm Shift</span>
+    <h2>「一人の天才」を待つ時代は、<em>終わった</em>。</h2>
+    <p class="lede">我々はこれまで「どのLLMが世界で最も賢いか」に固執し、特定ベンダーの<strong>「一人の天才」</strong>の進化を待ち続けてきた。Fusion API はその依存を断ち切る。起きているのは、推論時に計算資源を追加投入して回答の質を数学的に高める<em>テストタイム・コンピューティング</em>の実装——すなわち<strong>「合議制（Model Council）」への移行</strong>だ。</p>
+    <div class="flow">
+      <div class="node io">
+        <div class="step">これまで · Old Paradigm</div>
+        <h4>一人の天才に賭ける</h4>
+        <div class="param">Single-model Scaling</div>
+        <p>特定ベンダーの「最強モデル」の更新を待ち、それに固執する。性能はモデル単体の進化に縛られる。</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node vi">
+        <div class="step">いま · Shift</div>
+        <h4>最適なチームを組む</h4>
+        <div class="param">Test-time Compute</div>
+        <p>推論時に計算資源を追加投入し、複数の知能を編成。数学的に回答の質を引き上げる。</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node win">
+        <div class="step">これから · New Standard</div>
+        <h4>知能をオーケストレーション</h4>
+        <div class="param">Model Council</div>
+        <p>合議制が標準に。競争優位は「どのモデルか」ではなく「どう組み合わせるか」へ移る。</p>
+      </div>
+    </div>
+    <div class="sowhat">
+      <span class="tag">So What?</span>
+      <p><strong>勝負どころが移動した。</strong> 高額な最新モデルのリリースを待つ必要はもうない。企業の競争優位性は「どのモデルを契約しているか」ではなく、<em>「どう組み合わせるかというオーケストレーション・ロジック」</em>に宿るようになった。</p>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0616/p02.jpg" alt="単一モデルの限界から、多様な専門家チーム（Model Council）への移行" loading="lazy">
+      <figcaption><b>FIG.01</b> 「1人の天才への依存」から「多様な専門家チーム（Model Council）」へ——Compound AI へのパラダイムシフトを示す原典スライド。 · 出典 / The AI Orchestration Era p.2</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── COUNCIL MECHANISM ───────────────── -->
+  <section id="council">
+    <span class="kicker"><span class="n">02</span> · The Council Mechanism</span>
+    <h2>多様性（<span class="vi">Neurodiversity</span>）が、<br>客観性を生む。</h2>
+    <p class="lede">Fusion API の核心は <strong>「Neurodiversity（モデル版の神経多様性）」</strong>にある。Anthropic・Google・OpenAI・DeepSeek——異なる思想と学習データを持つモデルは、固有のバイアスとブラインドスポットを抱える。これらを並列稼働させ相互検証させることで、単一モデルでは不可能な<em>客観性</em>を担保する。合議は次の3層で組織的に実行される。</p>
+    <div class="flow">
+      <div class="node">
+        <div class="step">Role 1 · 分析担当</div>
+        <h4>Model Panel</h4>
+        <div class="param">最大8モデルが並列</div>
+        <p>異なる開発思想のモデルが独立して思考し、回答案を並列生成。多角的な視点の母集団をつくる。</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node vi">
+        <div class="step">Role 2 · 構造化分析</div>
+        <h4>Judge Model</h4>
+        <div class="param">合議の「脳」</div>
+        <p>全回答を精査し、コンセンサス・矛盾点・独自洞察をあぶり出す最重要レイヤー。品質を左右する心臓部。</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node win">
+        <div class="step">Role 3 · 最終回答</div>
+        <h4>Synthesizer</h4>
+        <div class="param">Grounded Synthesis</div>
+        <p>分析結果に基づき、証拠能力の高い最終回答を練り上げる。アンサンブルの手間を隠蔽し「真実」だけを届ける。</p>
+      </div>
+    </div>
+    <div class="sowhat">
+      <span class="tag">So What? · ソリューションアーキテクトの視点</span>
+      <p><strong>知能指数を決めるのは「ジャッジの選定」だ。</strong> ベンチマークではジャッジの品質次第で最終スコアが <em>10〜25ポイント</em>変動する。さらに同一モデルを複数並べる<strong>「自己融合（Self-fusion）」</strong>でも性能が向上する事実は、<em>「合成・統合」プロセスそのもの</em>に数学的な知能向上の価値があることを証明している。</p>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0616/p04.jpg" alt="Fusion APIアーキテクチャ：1回のコールで動く4つの思考プロセス" loading="lazy">
+      <figcaption><b>FIG.02</b> 1回のAPIコールの内側で動く合議の思考プロセス——パネルの並列生成からジャッジの構造化分析、シンセサイザーの最終統合まで。 · 出典 / The AI Orchestration Era p.4</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── THE DATA ───────────────── -->
+  <section id="data">
+    <span class="kicker"><span class="n">03</span> · The Proof</span>
+    <h2>半額の「予算版チーム」が、<br><span class="win">王者を凌駕する</span>。</h2>
+    <p class="lede">合議制の有効性は、深層リサーチ特化のベンチマーク <strong>「DRACO（100タスク）」</strong>で証明されている。注目すべきは、安価なモデルを組み合わせた<em>「予算版チーム」</em>の躍進だ。最高品質はもちろん、コスト効率の観点でも構図が一変している。</p>
+    <div class="rtable">
+      <div class="rhead">
+        <span>構成（Model Council）</span>
+        <span>DRACO</span>
+        <span>戦略的インサイト</span>
+      </div>
+      <div class="rrow best">
+        <span class="metric">Qualityパネル<small>Fable 5 / GPT-5.5 等の融合</small></span>
+        <span class="fab">69.0%</span>
+        <span class="insight"><span class="ins-badge best">最高品質</span>現時点で到達可能な<b>最高峰の知能</b>。重要意思決定の主戦力。</span>
+      </div>
+      <div class="rrow">
+        <span class="metric">Fable 5<small>単体 · 旧ベンチマーク王者</small></span>
+        <span class="fab">65.3%</span>
+        <span class="insight"><span class="ins-badge base">単体王者</span>単一モデルの最高峰。だが合議制パネルには及ばない。</span>
+      </div>
+      <div class="rrow winrow">
+        <span class="metric">Budgetパネル<small>Gemini 3 Flash / DeepSeek V4 Pro 等</small></span>
+        <span class="fab">64.7%</span>
+        <span class="insight"><span class="ins-badge win">半額で肉薄</span>Fable 5 単体に<b>差1%以内</b>まで肉薄し、コストは<b>約半額</b>。</span>
+      </div>
+      <div class="rrow">
+        <span class="metric">GPT-5.5<small>単体</small></span>
+        <span class="fab">60.0%</span>
+        <span class="insight"><span class="ins-badge base">標準</span>フロンティア単体。予算版パネルに逆転を許す。</span>
+      </div>
+      <div class="rrow">
+        <span class="metric">Claude Opus 4.8<small>単体</small></span>
+        <span class="fab">58.8%</span>
+        <span class="insight"><span class="ins-badge base">標準</span>単体では予算版チームに後塵を拝する水準。</span>
+      </div>
+    </div>
+    <div class="sowhat win">
+      <span class="tag">So What? · モデルはコモディティになった</span>
+      <p><strong>個々のモデルブランドは「部品（コモディティ）」化した。</strong> 高額な最新モデルを待たずとも、現存する安価な知能を賢く編成すれば、最高峰の品質を圧倒的な投資対効果で手に入れられる。<em>※1クエリの絶対コストは単体の4〜5倍だが、得られる知能グレード当たりのコストは実質50%削減される。</em></p>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0616/p07.jpg" alt="衝撃のデータ：半額の予算版チームが王者を凌駕する DRACO ベンチマーク" loading="lazy">
+      <figcaption><b>FIG.03</b> DRACO（深層リサーチ100タスク）スコア比較。予算版パネルがフロンティア単体モデルを上回る逆転構造を可視化。 · 出典 / The AI Orchestration Era p.7</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── AUTONOMOUS RESEARCH ───────────────── -->
+  <section id="research">
+    <span class="kicker"><span class="n">04</span> · Autonomous Research</span>
+    <h2>AIチームが、勝手に調べて<em>矛盾を突く</em>。</h2>
+    <p class="lede">Fusion API の真価は知能の統合に留まらない。内部には Exa をエンジンにした強力なサーバー側ツール（<strong>openrouter:web_search / web_fetch</strong>）が標準装備され、AI自身が情報を収集・検証する<em>「自律型リサーチャー」</em>として機能する。一度のAPI呼び出しで、調査・矛盾チェック・レポート作成までが完結する。</p>
+    <div class="cases">
+      <div class="case">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+        <h3>標準装備の Server Tools</h3>
+        <div class="sub">web_search / web_fetch</div>
+        <p>Exa を採用した<b>サーバー側ツール</b>を標準搭載。開発者は複雑な検索エンジン実装を書かずに済む。</p>
+      </div>
+      <div class="case">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 6h13M3 12h9M3 18h13"/><path d="M18 9l3 3-3 3"/></svg></div>
+        <h3>並列で自律調査</h3>
+        <div class="sub">Cross-examination</div>
+        <p>パネル内の各モデルが必要に応じて<b>自律的に最新情報を調査・比較</b>し、相互に矛盾を検証する。</p>
+      </div>
+      <div class="case">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8l7-5 7 5"/><circle cx="12" cy="14" r="3"/></svg></div>
+        <h3>人間は「解釈」に集中</h3>
+        <div class="sub">High-value Decision</div>
+        <p>調査の人的工数は劇的に削減。人間はAIが提示した<b>矛盾点の戦略的解釈</b>という高度な意思決定へ。</p>
+      </div>
+    </div>
+    <div class="sowhat">
+      <span class="tag">So What?</span>
+      <p><strong>「リサーチ」が一行のAPIに畳み込まれた。</strong> 複数モデルを手で比較し報告書をまとめる作業は、<em>AIチームが勝手に調査・矛盾チェック・統合する</em>ワークフローに置き換わる。競合分析やビジネスリサーチの主導権は、人間の「問いの設計」へと上流移動する。</p>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0616/p06.jpg" alt="自律的リサーチ機能：Server Tools の衝撃" loading="lazy">
+      <figcaption><b>FIG.04</b> Exa をエンジンとした web_search / web_fetch により、パネル各モデルが自律的に外部情報を調査・検証する構造。 · 出典 / The AI Orchestration Era p.6</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── WHEN TO DEPLOY ───────────────── -->
+  <section id="deploy">
+    <span class="kicker"><span class="n">05</span> · Error-to-Cost</span>
+    <h2>「間違いが許されない<br>重いタスク」こそ、主戦場。</h2>
+    <p class="lede">Fusion は強力だが、<strong>2〜7倍のレイテンシ</strong>と<strong>4〜5倍のコスト</strong>を許容する必要がある。戦略的リーダーは <em>「Error-to-Cost（誤りのコスト）」</em>比率に基づき、投入領域を峻別しなければならない。多角的な視点が価値を生むのは、間違いが高くつく領域だけだ。</p>
+    <div class="duo">
+      <div class="ccard yes">
+        <div class="tag">推奨 · 高付加価値タスク</div>
+        <div class="big">「最高品質を、確実に」</div>
+        <h3>間違いのコストが高い領域</h3>
+        <ul>
+          <li><span class="m">→</span><span>競合分析・技術選定</span></li>
+          <li><span class="m">→</span><span>医療・金融リサーチ</span></li>
+          <li><span class="m">→</span><span>複雑な意思決定支援</span></li>
+        </ul>
+        <p style="margin-top:14px">APIコスト増を、<b style="color:var(--vi-deep)">人件費削減とリスク回避</b>で相殺できる領域。</p>
+      </div>
+      <div class="ccard no">
+        <div class="tag">非推奨 · 低付加価値タスク</div>
+        <div class="big">「速さと低単価が最優先」</div>
+        <h3>多角的視点が価値を生まない領域</h3>
+        <ul>
+          <li><span class="m">×</span><span>短い要約・定型メール作成</span></li>
+          <li><span class="m">×</span><span>リアルタイムチャット</span></li>
+          <li><span class="m">×</span><span>高頻度のコード補完</span></li>
+        </ul>
+        <p style="margin-top:14px">速度と単価が支配的で、<b style="color:var(--gold)">合議のオーバーヘッドが無駄</b>になる領域。</p>
+      </div>
+    </div>
+    <div class="sowhat">
+      <span class="tag">So What?</span>
+      <p><strong>「適当な回答を速く」より「最高品質を確実に」。</strong> 間違いが許されないビジネスの<em>「重いタスク」</em>こそが Fusion の真の戦場だ。投入領域を Error-to-Cost で見極めれば、コスト増は投資へと転換する。</p>
+    </div>
+    <figure class="plate plate-wide">
+      <img src="images/0616/p09.jpg" alt="戦略的プレイブック：タスク別・最適AI投入マトリクス" loading="lazy">
+      <figcaption><b>FIG.05</b> タスクの「誤りのコスト」と「価値」で投入先を切り分ける戦略マトリクス。Fusion を高付加価値領域に集中させる。 · 出典 / The AI Orchestration Era p.9</figcaption>
+    </figure>
+  </section>
+
+  <!-- ───────────────── IMPLEMENTATION ───────────────── -->
+  <section id="build">
+    <span class="kicker"><span class="n">06</span> · Drop-in Implementation</span>
+    <h2>数行のコードで、<em>未来</em>を組み込む。</h2>
+    <p class="lede">Fusion API は <strong>OpenAI互換SDK</strong> を利用できるため、既存システムへの<em>ドロップイン置換</em>が容易だ。<code style="font-family:var(--mono);font-size:.92em;background:var(--vi-wash);padding:1px 6px;border-radius:6px;color:var(--vi-deep)">model="openrouter/fusion"</code> を指定し、プリセットを選ぶだけで合議制が走り出す。運用は3つのKPIで効果を可視化する。</p>
+    <div class="split">
+      <div class="codecard">
+        <div class="chd"><i style="background:#ED6A5E"></i><i style="background:#F4BF4F"></i><i style="background:#61C554"></i><span class="t">fusion_call.py</span></div>
+<pre><code><span class="k">import</span> openai
+
+client = openai.<span class="f">OpenAI</span>(
+    base_url=<span class="s">"https://openrouter.ai/api/v1"</span>,
+    api_key=<span class="s">"YOUR_OPENROUTER_API_KEY"</span>,
+)
+
+response = client.chat.completions.<span class="f">create</span>(
+    model=<span class="s">"openrouter/fusion"</span>,   <span class="c"># 合議制を指定</span>
+    messages=[{<span class="s">"role"</span>: <span class="s">"user"</span>,
+               <span class="s">"content"</span>: <span class="s">"次世代半導体市場の競合戦略を多角的に分析せよ"</span>}],
+    <span class="c"># Pro tip: 自律判断に任せず確実にFusionを走らせる</span>
+    tool_choice=<span class="s">"required"</span>,
+    extra_body={<span class="s">"fusion"</span>: {
+        <span class="s">"preset"</span>: <span class="s">"general-budget"</span>   <span class="c"># 半額でフロンティア級</span>
+    }},
+)
+
+<span class="f">print</span>(response.choices[<span class="n">0</span>].message.content)</code></pre>
+      </div>
+      <div class="listcard">
+        <div class="hd">運用KPIチェックリスト<span class="badge">3 KPIs</span></div>
+        <ul>
+          <li><span class="k">01</span><span><strong>Conflict Detection Rate。</strong> 単一モデルが見逃した誤情報・論理矛盾を、Fusion が発見・指摘した割合。</span></li>
+          <li><span class="k">02</span><span><strong>Time-to-Insight 削減率。</strong> 複数モデルを手動比較し報告書をまとめていた時間と、導入後の時間差。</span></li>
+          <li><span class="k">03</span><span><strong>一次回答採用率。</strong> ジャッジの統合回答が、人の大幅修正なしに経営資料へそのまま使えた割合。</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="sowhat">
+      <span class="tag">So What?</span>
+      <p><strong>導入の摩擦はほぼゼロ。</strong> 既存の OpenAI 互換コードを数行変えるだけで合議制に移行できる。鍵は <em>preset の選定</em>（budget で半額・フロンティア級）と、<code style="font-family:var(--mono);font-size:.9em;background:var(--vi-wash);padding:1px 6px;border-radius:6px;color:var(--vi-deep)">tool_choice="required"</code> による確実な実行制御だ。</p>
+    </div>
+  </section>
+
+  <!-- ───────────────── PULL ───────────────── -->
+  <section class="pull">
+    <q>競争力は <span class="vi">「どのモデルか」</span>ではなく、<br><em>「どう組み合わせるか」</em>に宿る。</q>
+    <cite>The AI Orchestration Era — 2026·06·16</cite>
+  </section>
+
+  <!-- ───────────────── BRIEFING GALLERY ───────────────── -->
+  <section id="briefing">
+    <span class="kicker">From the Briefing Deck</span>
+    <h2>オーケストレーション、<span class="vi">原典より</span>。</h2>
+    <p class="lede" style="margin-bottom:34px">本スライドの元となったブリーフィング資料の主要図版。合議の機構・データ・戦略・実装を、原典のビジュアルで俯瞰する。</p>
+    <div class="gallery">
+      <figure><img src="images/0616/p03.jpg" alt="勝利の法則：モデル版の多様性（Neurodiversity）" loading="lazy"><figcaption><b>Neurodiversity</b> 異なる思想のモデルが盲点を補い合う「モデル版の神経多様性」。</figcaption></figure>
+      <figure><img src="images/0616/p05.jpg" alt="システムの頭脳：ジャッジモデルによる構造化分析" loading="lazy"><figcaption><b>The Judge</b> 合議の「脳」——全回答からコンセンサスと矛盾をあぶり出す心臓部。</figcaption></figure>
+      <figure><img src="images/0616/p10.jpg" alt="スペック比較表：目的に合わせた2つのプリセット" loading="lazy"><figcaption><b>Presets</b> Quality と Budget——目的に合わせて選ぶ2つの合議プリセット。</figcaption></figure>
+      <figure><img src="images/0616/p11.jpg" alt="出力品質の劇的な差：合議分析のユースケース" loading="lazy"><figcaption><b>Output Gap</b> 単一回答と合議統合回答の、出力品質の劇的な差。</figcaption></figure>
+      <figure><img src="images/0616/p13.jpg" alt="高度なアーキテクチャ：エージェントシステムへの戦略的統合" loading="lazy"><figcaption><b>Agent Tool</b> Base Agent の「思考ツール」として Fusion を組み込む統合パターン。</figcaption></figure>
+      <figure><img src="images/0616/p14.jpg" alt="実践：自社の業務でベンチマークを実装する3ステップ" loading="lazy"><figcaption><b>Adopt</b> タスク選定 → ブラインドテスト → 採用判定の実践3ステップ。</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ───────────────── SOURCES ───────────────── -->
+  <section id="sources">
+    <span class="kicker">Sources / References</span>
+    <h2>出典と<span class="vi">関連リファレンス</span>。</h2>
+    <p class="lede" style="margin-bottom:30px">本スライドは OpenRouter Fusion API をめぐる解説。ベンチマーク値・プリセット仕様は各一次ソースでの裏取りを推奨する。</p>
+    <div class="sources">
+      <a href="https://openrouter.ai/docs" target="_blank" rel="noopener">
+        <span class="idx">01</span>
+        <span><strong>OpenRouter — 公式ドキュメント</strong><span>Fusion API・プリセット（quality / budget）・Server Tools（web_search / web_fetch）の一次仕様。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://openrouter.ai/" target="_blank" rel="noopener">
+        <span class="idx">02</span>
+        <span><strong>OpenRouter — モデルルーティング基盤</strong><span>複数ベンダーのモデルを単一APIで横断利用するルーティングプラットフォーム。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://exa.ai/" target="_blank" rel="noopener">
+        <span class="idx">03</span>
+        <span><strong>Exa — 検索エンジン（Server Tools エンジン）</strong><span>Fusion の自律リサーチを支える web 検索エンジン。LLM向け構造化検索を提供。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://platform.openai.com/docs/api-reference/chat" target="_blank" rel="noopener">
+        <span class="idx">04</span>
+        <span><strong>OpenAI — Chat Completions API リファレンス</strong><span>Fusion がドロップイン互換とする OpenAI SDK の仕様。既存コードからの移行の基準。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="../day_slides/day_slide_2026_06_14.html" target="_self">
+        <span class="idx">05</span>
+        <span><strong>関連 · 06·14 Claude Fable 5 インシデント</strong><span>「価値は重みではなく統治と設計に宿る」——本稿の合議制が生存戦略として登場した前々日の回。</span></span>
+        <span class="arr">→</span>
+      </a>
+    </div>
+
+    <div class="pager">
+      <a href="day_slide_2026_06_15.html">
+        <div class="dir">← 前日 · 06·15</div>
+        <strong>Claude Agent SDK 課金プレイブック</strong>
+      </a>
+      <a href="../index.html">
+        <div class="dir">一覧へ →</div>
+        <strong>AI Daily Briefing インデックス</strong>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="inner">
+    <div class="ft">The best model is no longer one model.</div>
+    <div class="fm">2026 · 06 · 16 · TUE — The AI Orchestration Era · OpenRouter Fusion API · Generated by awano27</div>
+  </div>
+</footer>
+
+</body>
+</html>
