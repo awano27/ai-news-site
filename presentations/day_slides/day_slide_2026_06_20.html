@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI時代の品質至上主義 — SDDとGenesis-Legacy-V2 | 2026-06-20</title>
+  <meta name="description" content="AI時代の品質至上主義、仕様駆動開発（SDD）とGenesis-Legacy-V2による品質革命を整理した2026年6月20日のスライド。">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_20.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="AI時代の品質至上主義 — SDDとGenesis-Legacy-V2 | 2026-06-20">
+  <meta property="og:description" content="Vibe Codingから仕様駆動開発へ。Genesis-Legacy-V2の4つの基盤文書、5レンズ監査、Double Gate、導入戦略を15枚で整理。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_20.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0620/cover.jpg">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI時代の品質至上主義 — SDDとGenesis-Legacy-V2">
+  <meta name="twitter:description" content="AI開発の競争軸は生成速度から正しさの証明能力へ。Genesis-Legacy-V2を品質管理OSとして整理。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0620/cover.jpg">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": "AI時代の品質至上主義 — SDDとGenesis-Legacy-V2",
+    "datePublished": "2026-06-20",
+    "dateModified": "2026-06-20",
+    "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AI Intelligence Hub",
+      "url": "https://visionhub.jp/",
+      "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+    },
+    "image": ["https://visionhub.jp/presentations/day_slides/images/0620/cover.jpg"],
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_20.html",
+    "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_20.html",
+    "inLanguage": "ja",
+    "articleSection": "AI News"
+  }
+  </script>
+  <style>
+    :root {
+      --paper: #f8f5ec;
+      --surface: #fffdf6;
+      --ink: #1b1b1b;
+      --muted: #5b5f66;
+      --line: #d8d1c2;
+      --accent: #2f9db5;
+      --risk: #d95f45;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Noto Sans JP", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+      line-height: 1.65;
+    }
+    a { color: inherit; }
+    .shell { max-width: 1180px; margin: 0 auto; padding: 28px 20px 56px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .topbar a { text-decoration: none; border-bottom: 1px solid var(--line); }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 28px;
+      align-items: end;
+      padding: 30px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 246, 0.74);
+    }
+    .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: .04em; font-size: 13px; }
+    h1 { margin: 8px 0 12px; font-size: clamp(32px, 4.6vw, 58px); line-height: 1.08; letter-spacing: 0; }
+    .lead { margin: 0; color: var(--muted); font-size: 17px; max-width: 760px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .meta {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .meta strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+    .deck {
+      margin-top: 30px;
+      display: grid;
+      gap: 24px;
+    }
+    .slide {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 12px;
+    }
+    .slide img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+    .slide figcaption {
+      padding: 10px 4px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .toc {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .toc a {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .note {
+      margin-top: 28px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 246, .72);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; padding: 22px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <a href="../day_slides_index.html">← 日次スライド一覧へ</a>
+      <span>2026-06-20 / AI Daily Slide</span>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">SPEC-DRIVEN QUALITY OS</div>
+        <h1>AI時代の品質至上主義</h1>
+        <p class="lead">仕様駆動開発（SDD）とGenesis-Legacy-V2による品質革命。Vibe Codingの速度優位から、正しさを証明できる開発管理OSへの転換を整理します。</p>
+        <div class="actions">
+          <a class="button primary" href="#slides">スライドを見る</a>
+          <a class="button" href="downloads/day_slide_2026_06_20_genesis_legacy_v2_quality_os.pptx">PPTXをダウンロード</a>
+        </div>
+      </div>
+      <div class="meta">
+        <strong>15 slides</strong>
+        生成画像を1枚ずつ配置したPPTX版と、Web閲覧用のJPEG版を同梱しています。
+      </div>
+    </section>
+
+    <nav class="toc" aria-label="スライド目次">
+      <a href="#slide-01">AI時代の品質至上主義</a>
+      <a href="#slide-02">本日の流れ</a>
+      <a href="#slide-03">Vibe Codingの限界</a>
+      <a href="#slide-04">SDDという労働税</a>
+      <a href="#slide-05">Genesis-Legacy-V2の全体像</a>
+      <a href="#slide-06">4つの基盤文書</a>
+      <a href="#slide-07">文書が審判になる</a>
+      <a href="#slide-08">5レンズ監査ループ</a>
+      <a href="#slide-09">Double Gateの論理</a>
+      <a href="#slide-10">FurnaceとBrownfield</a>
+      <a href="#slide-11">SDDエコシステム比較</a>
+      <a href="#slide-12">選定戦略</a>
+      <a href="#slide-13">高信頼性領域とPersonal AIOS</a>
+      <a href="#slide-14">Lowfieldによる知的生産</a>
+      <a href="#slide-15">導入ロードマップと結論</a>
+    </nav>
+
+    <section id="slides" class="deck" aria-label="スライド画像">
+      <figure id="slide-01" class="slide"><img src="images/0620/cover.jpg" alt="AI時代の品質至上主義"><figcaption>AI時代の品質至上主義</figcaption></figure>
+      <figure id="slide-02" class="slide"><img src="images/0620/p01.jpg" alt="本日の流れ"><figcaption>本日の流れ</figcaption></figure>
+      <figure id="slide-03" class="slide"><img src="images/0620/p02.jpg" alt="Vibe Codingの限界"><figcaption>Vibe Codingの限界</figcaption></figure>
+      <figure id="slide-04" class="slide"><img src="images/0620/p03.jpg" alt="SDDという労働税"><figcaption>SDDという労働税</figcaption></figure>
+      <figure id="slide-05" class="slide"><img src="images/0620/p04.jpg" alt="Genesis-Legacy-V2の全体像"><figcaption>Genesis-Legacy-V2の全体像</figcaption></figure>
+      <figure id="slide-06" class="slide"><img src="images/0620/p05.jpg" alt="4つの基盤文書"><figcaption>4つの基盤文書</figcaption></figure>
+      <figure id="slide-07" class="slide"><img src="images/0620/p06.jpg" alt="文書が審判になる"><figcaption>文書が審判になる</figcaption></figure>
+      <figure id="slide-08" class="slide"><img src="images/0620/p07.jpg" alt="5レンズ監査ループ"><figcaption>5レンズ監査ループ</figcaption></figure>
+      <figure id="slide-09" class="slide"><img src="images/0620/p08.jpg" alt="Double Gateの論理"><figcaption>Double Gateの論理</figcaption></figure>
+      <figure id="slide-10" class="slide"><img src="images/0620/p09.jpg" alt="FurnaceとBrownfield"><figcaption>FurnaceとBrownfield</figcaption></figure>
+      <figure id="slide-11" class="slide"><img src="images/0620/p10.jpg" alt="SDDエコシステム比較"><figcaption>SDDエコシステム比較</figcaption></figure>
+      <figure id="slide-12" class="slide"><img src="images/0620/p11.jpg" alt="選定戦略"><figcaption>選定戦略</figcaption></figure>
+      <figure id="slide-13" class="slide"><img src="images/0620/p12.jpg" alt="高信頼性領域とPersonal AIOS"><figcaption>高信頼性領域とPersonal AIOS</figcaption></figure>
+      <figure id="slide-14" class="slide"><img src="images/0620/p13.jpg" alt="Lowfieldによる知的生産"><figcaption>Lowfieldによる知的生産</figcaption></figure>
+      <figure id="slide-15" class="slide"><img src="images/0620/p14.jpg" alt="導入ロードマップと結論"><figcaption>導入ロードマップと結論</figcaption></figure>
+    </section>
+
+    <div class="note">
+      このページは2026年6月20日のスライドとして公開するため、PPTX版とWeb表示用画像を同じ内容で配置しています。
+    </div>
+  </main>
+</body>
+</html>
