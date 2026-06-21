@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Agent 構築・活用ガイド | 自己進化型OSSエージェントの始め方 — VisionHub</title>
+    <meta name="description" content="Nous Research の自己進化型オープンソースAIエージェント「Hermes Agent」の構築方法とおすすめの使い方を解説。インストール・モデル選定・実行バックエンド・スキル/永続メモリ/SOUL.md・メッセージングゲートウェイ・セキュリティの注意点まで、コピペできるコマンド付き2026年版。" />
+    <meta name="keywords" content="Hermes Agent,ハーメスエージェント,Nous Research,AIエージェント,自己進化,OSS,Ollama,OpenRouter,SOUL.md,自律エージェント" />
+    <link rel="canonical" href="https://visionhub.jp/presentations/hermes_agent_guide.html" />
+    <meta property="og:title" content="Hermes Agent 構築・活用ガイド | 自己進化型OSSエージェントの始め方" />
+    <meta property="og:description" content="インストール・モデル選定・スキル/永続メモリ・おすすめの使い方と注意点を、コピペできるコマンド付きで解説。" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://visionhub.jp/presentations/hermes_agent_guide.html" />
+    <link rel="stylesheet" href="../assets/ntt-theme.css">
+    <style>
+        :root { --transition: border-color 0.2s ease, transform 0.2s ease; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { line-height: 1.8; min-height: 100vh; overflow-x: hidden; }
+        .bg-blobs { display: none; }
+        .container { max-width: var(--ntt-maxw); margin: 0 auto; padding: 0 var(--ntt-pad-x); }
+
+        .lede { max-width: 760px; font-size: .98rem; color: var(--ntt-on-dark-mu); margin-bottom: 2.5rem; }
+        .updated-note { display:inline-flex; align-items:center; gap:.5rem; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ntt-yellow); font-weight:700; margin-bottom:1.25rem; }
+
+        .toc { display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:3.5rem; }
+        .toc a { font-size:.8rem; color:var(--ntt-on-dark-mu); text-decoration:none; border:1px solid var(--ntt-line); border-radius:999px; padding:.35rem .9rem; transition:var(--transition); }
+        .toc a:hover { color:var(--ntt-on-dark); border-color:var(--ntt-yellow); }
+
+        .category-section { margin-bottom:4rem; scroll-margin-top:90px; }
+        .category-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.75rem; border-left:3px solid var(--ntt-yellow); padding-left:1.5rem; }
+        .category-header h2 { font-size:1.5rem; font-weight:700; color:var(--ntt-on-dark); }
+        .category-header .en-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.2em; color:var(--ntt-yellow); font-weight:700; display:block; margin-bottom:.25rem; }
+        .section-intro { color:var(--ntt-on-dark-mu); font-size:.92rem; max-width:760px; margin-bottom:1.75rem; }
+
+        /* feature / step cards */
+        .resource-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem; }
+        .tech-card { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-radius:8px; padding:1.5rem; transition:var(--transition); position:relative; overflow:hidden; }
+        .tech-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--ntt-yellow); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+        .tech-card:hover { border-color:var(--ntt-line-2); transform:translateY(-2px); }
+        .tech-card:hover::before { transform:scaleX(1); }
+        .tech-card .num { font-family:var(--ntt-mono, monospace); font-size:.75rem; color:var(--ntt-yellow); font-weight:700; }
+        .tech-card h3 { font-size:1.02rem; color:var(--ntt-on-dark); margin:.3rem 0 .5rem; }
+        .tech-card p { font-size:.85rem; color:var(--ntt-on-dark-mu); }
+
+        /* command / code block */
+        .tpl { background:#0d1530; border:1px solid var(--ntt-line); border-radius:8px; margin:1.25rem 0; overflow:hidden; }
+        .tpl-head { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.1rem; background:var(--ntt-navy-2); border-bottom:1px solid var(--ntt-line); }
+        .tpl-head .t { font-size:.85rem; font-weight:700; color:var(--ntt-on-dark); }
+        .tpl-head .copy { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ntt-yellow); font-weight:700; background:none; border:1px solid var(--ntt-line-2); border-radius:4px; padding:.25rem .6rem; cursor:pointer; transition:var(--transition); }
+        .tpl-head .copy:hover { border-color:var(--ntt-yellow); }
+        .tpl pre { margin:0; padding:1.1rem 1.2rem; overflow-x:auto; }
+        .tpl code { font-family:var(--ntt-mono, 'SFMono-Regular', Consolas, monospace); font-size:.82rem; line-height:1.65; color:#cdd6e8; white-space:pre-wrap; word-break:break-word; }
+        .tpl code .cm { color:#7d8aa8; }
+        .tpl code .ph { color:var(--ntt-yellow); }
+
+        .callout { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-left:3px solid var(--ntt-yellow); border-radius:8px; padding:1.4rem 1.6rem; margin:1.5rem 0; }
+        .callout.warn { border-left-color:#ff7b72; }
+        .callout h4 { color:var(--ntt-on-dark); font-size:.98rem; margin-bottom:.6rem; }
+        .callout p { font-size:.9rem; color:var(--ntt-on-dark-mu); }
+        ul.check, ul.cross, ul.steps { list-style:none; display:grid; gap:.7rem; }
+        ul.check li, ul.cross li, ul.steps li { position:relative; padding-left:1.8rem; font-size:.9rem; color:var(--ntt-on-dark-mu); }
+        ul.check li::before { content:'✓'; position:absolute; left:0; color:var(--ntt-yellow); font-weight:700; }
+        ul.cross li::before { content:'✕'; position:absolute; left:0; color:#ff7b72; font-weight:700; }
+        ul.steps { counter-reset:step; }
+        ul.steps li { counter-increment:step; }
+        ul.steps li::before { content:counter(step); position:absolute; left:0; top:.05rem; width:1.25rem; height:1.25rem; line-height:1.25rem; text-align:center; font-size:.7rem; border-radius:50%; background:var(--ntt-yellow); color:#0d1530; font-weight:700; }
+        .twocol { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        @media (max-width:768px){ .category-header h2{font-size:1.25rem} .twocol{grid-template-columns:1fr} }
+
+        .link-card { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-radius:6px; padding:1.25rem 1.4rem; text-decoration:none; color:var(--ntt-on-dark); transition:var(--transition); display:flex; flex-direction:column; }
+        .link-card:hover { border-color:var(--ntt-yellow); transform:translateY(-2px); }
+        .link-card .lc-title { font-weight:700; font-size:.95rem; margin-bottom:.3rem; }
+        .link-card .lc-desc { font-size:.8rem; color:var(--ntt-on-dark-mu); }
+        .link-card .lc-go { font-size:.7rem; color:var(--ntt-yellow); font-weight:700; text-transform:uppercase; margin-top:.8rem; letter-spacing:.08em; }
+    </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+
+<body class="ntt-page">
+    <header class="ntt-header">
+      <div class="ntt-header-row">
+        <a class="ntt-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span class="ntt-brand-text">INTELLIGENCE HUB<small>DAILY AI INSIGHTS</small></span>
+        </a>
+        <nav class="ntt-nav">
+          <a href="/#this-week">最新スライド</a>
+          <a href="/#archive">アーカイブ</a>
+          <a href="/#resources" class="is-active">リソース</a>
+          <a class="ntt-cta" href="/presentations/day_slides_index.html">今日のスライド →</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="ntt-subhero">
+      <div class="ntt-subhero-inner">
+        <div class="ntt-subhero-eyebrow">Resource Guide 11 — Hermes Agent</div>
+        <h1 class="ntt-subhero-title">Hermes Agent 構築・活用ガイド</h1>
+        <p class="ntt-subhero-lead">
+          Nous Research が公開した自己進化型のオープンソースAIエージェント「Hermes Agent」。使うほど自分でスキルを覚え、セッションを越えて記憶を引き継ぐ「育つエージェント」です。インストールからモデル選定、スキル・記憶・SOUL.md、そしておすすめの使い方とセキュリティ注意点まで、コピペできるコマンド付きで解説します。
+        </p>
+      </div>
+    </section>
+
+    <main style="padding: 56px 0 96px;">
+      <div class="container">
+
+        <div class="updated-note">最終更新 2026-06-21 ／ macOS・Linux（Windows は Docker / WSL）対応のCLIエージェント</div>
+
+        <p class="lede">
+          Hermes Agent の特徴は<strong>「自己進化」</strong>にあります。複雑な作業を終えるたびに、その手順を再利用可能な<strong>スキル</strong>としてmarkdownに保存し、次回はそれを呼び出して効率化。さらに会話やユーザーの好みを<strong>永続メモリ</strong>に蓄積し、使うほど自分に最適化されていきます。完全なセルフホスト型で、月$5程度のVPSでも常駐運用が可能。モデルは Claude / GPT / Gemini からローカルの Ollama まで自由に差し替えられます。
+        </p>
+
+        <nav class="toc">
+          <a href="#what">① Hermes Agentとは</a>
+          <a href="#req">② 動作要件と準備</a>
+          <a href="#install">③ インストールと初期設定</a>
+          <a href="#model">④ モデルと実行バックエンド</a>
+          <a href="#evolve">⑤ 自己進化（スキル・記憶・SOUL.md）</a>
+          <a href="#gateway">⑥ メッセージングゲートウェイ</a>
+          <a href="#usecases">⑦ おすすめの使い方</a>
+          <a href="#security">⑧ セキュリティと注意点</a>
+          <a href="#cheatsheet">⑨ 主要コマンド早見表</a>
+          <a href="#links">⑩ 公式リソース</a>
+        </nav>
+
+        <!-- ===== What ===== -->
+        <section class="category-section" id="what">
+          <div class="category-header">
+            <div><span class="en-label">Overview</span><h2>① Hermes Agentとは</h2></div>
+          </div>
+          <p class="section-intro">「使えば使うほど賢くなる」をコンセプトに、学習ループを内蔵した自律エージェント。以下が他のエージェントと差別化される中核機能です。</p>
+          <div class="resource-grid">
+            <div class="tech-card"><span class="num">01</span><h3>自己進化（成長する）</h3><p>作業からスキルを自動生成し、利用中にもより良い手順へ更新。タスクをこなすほど精度と速度が上がる。</p></div>
+            <div class="tech-card"><span class="num">02</span><h3>永続メモリ</h3><p>セッションを越えて記憶を保持。過去の全会話はSQLite＋全文検索で参照でき、文脈が積み上がる。</p></div>
+            <div class="tech-card"><span class="num">03</span><h3>OSS＆セルフホスト</h3><p>完全オープンソース。手元のPCや$5のVPS、GPUクラスタまで、自分の環境で動かせる。</p></div>
+            <div class="tech-card"><span class="num">04</span><h3>マルチモデル対応</h3><p>Nous Portal / OpenRouter（200+モデル）/ NVIDIA NIM / Ollama（ローカル）/ OpenAI など自由に選択。</p></div>
+            <div class="tech-card"><span class="num">05</span><h3>幅広いツール実行</h3><p>ファイル操作・ターミナル・ブラウザ操作・コード実行に対応。標準で多数のスキルを同梱。</p></div>
+            <div class="tech-card"><span class="num">06</span><h3>多チャネル操作</h3><p>Telegram・Discord・Slack・WhatsApp・Signal・メール等から、1つの常駐プロセスで指示できる。</p></div>
+          </div>
+        </section>
+
+        <!-- ===== Requirements ===== -->
+        <section class="category-section" id="req">
+          <div class="category-header">
+            <div><span class="en-label">Requirements</span><h2>② 動作要件と準備</h2></div>
+          </div>
+          <div class="callout warn">
+            <h4>必須: コンテキスト 64,000 トークン以上のモデル</h4>
+            <p>マルチステップのツール呼び出しを連続で行うには十分な作業メモリが必要です。コンテキストの小さいモデルは途中で文脈が溢れて動作が不安定になります。まずは大きめのコンテキストを持つモデルを選んでください。</p>
+          </div>
+          <div class="twocol">
+            <div class="callout">
+              <h4>用意するもの</h4>
+              <ul class="check">
+                <li>モデルのAPIキー（または Nous Portal アカウント）</li>
+                <li>CLIを動かすシェル環境（macOS / Linux）</li>
+                <li>本番運用なら Docker（隔離実行に使う）</li>
+                <li>ゲートウェイを使うなら各SNSのBotトークン</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h4>2つの導入形態</h4>
+              <ul class="check">
+                <li><strong>CLIのみ</strong>: ワンライナーで最速導入（後述）</li>
+                <li><strong>Hermes Desktop</strong>: 公式サイトのインストーラでCLI＋デスクトップアプリを同時導入</li>
+                <li>Windowsユーザーは Docker / WSL 経由が安心</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Install ===== -->
+        <section class="category-section" id="install">
+          <div class="category-header">
+            <div><span class="en-label">Setup</span><h2>③ インストールと初期設定</h2></div>
+          </div>
+          <p class="section-intro">最短ルートは「ワンライナーで入れて → セットアップウィザードを回す」だけ。初回は <code>hermes setup</code> がモデル・ツールをまとめて構成してくれます。</p>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">A. CLIをインストール（macOS / Linux）</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># コマンドラインのみを最速で導入</span>
+curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash</code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">B. セットアップウィザードを実行</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># モデル・ツールなどを対話形式でまとめて設定</span>
+hermes setup
+
+<span class="cm"># Nous Portal を使う場合：1回のOAuthでモデル＋4種のツール</span>
+<span class="cm"># （Web検索・画像生成・音声合成・ブラウザ）を一括有効化</span>
+hermes setup --portal</code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">C. 起動と動作確認</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># 対話を開始</span>
+hermes
+
+<span class="cm"># 設定や接続の不具合を診断</span>
+hermes doctor</code></pre>
+          </div>
+
+          <div class="callout">
+            <h4>初心者の推奨ステップ</h4>
+            <ul class="steps">
+              <li>まず公式どおり <code>hermes setup</code> → <code>hermes</code> で動かす</li>
+              <li>永続メモリとスキルの仕組みを理解する（⑤参照）</li>
+              <li>得意な作業を1つ任せて、スキルが自動生成されるのを体験する</li>
+              <li>ログやcronで運用を可視化し、必要に応じて周辺ツール・ゲートウェイを追加する</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== Model & Backend ===== -->
+        <section class="category-section" id="model">
+          <div class="category-header">
+            <div><span class="en-label">Model &amp; Backend</span><h2>④ モデルと実行バックエンド</h2></div>
+          </div>
+          <p class="section-intro">モデルは後からいつでも差し替え可能。コマンドの実行場所（ターミナルバックエンド）は安全性に直結するので、本番は <strong>docker</strong> を推奨します。</p>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">モデルを選ぶ / 設定する</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># 対話でプロバイダ／モデルを選択</span>
+hermes model
+
+<span class="cm"># 値を直接指定する場合（例：Claude）</span>
+hermes config set model anthropic/claude-opus-4
+
+<span class="cm"># OpenRouter なら 1つのAPIキーで 200+ モデルにアクセス可能</span></code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">ローカルモデル（Ollama）を使う</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># ~/.hermes/.env に追記してローカルの Ollama を指す</span>
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_API_KEY=ollama
+
+<span class="cm"># ※ ローカルモデルでも 64k 以上のコンテキストを満たすものを選ぶ</span></code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">ターミナルバックエンドを切り替える</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># 初期テストは local、本番は docker（権限を絞った隔離環境）</span>
+hermes config set terminal.backend docker</code></pre>
+          </div>
+
+          <div class="callout">
+            <h4>バックエンド選びの指針</h4>
+            <p>シェルコマンドの実行先は7種類から選べます。動作確認は手軽な <strong>local</strong>、実運用では <strong>docker</strong>（権限を全て落とし権限昇格も無効化）で隔離するのが定石。未検証・実験的なコードを走らせるほど docker の価値が上がります。</p>
+          </div>
+        </section>
+
+        <!-- ===== Self-evolution ===== -->
+        <section class="category-section" id="evolve">
+          <div class="category-header">
+            <div><span class="en-label">Self-Improvement</span><h2>⑤ 自己進化 — スキル・記憶・SOUL.md</h2></div>
+          </div>
+          <p class="section-intro">Hermes Agent が「育つ」3本柱。設定は <code>~/.hermes/</code> 配下にファイルとして残るので、中身を読んで調整できます。</p>
+          <div class="resource-grid">
+            <div class="tech-card"><h3>スキル（自動生成）</h3><p>複雑な作業（おおむね5回以上のツール呼び出し）を終えると、手順・落とし穴・検証方法を構造化したスキルmarkdownを自分で作成。利用中にもより良い方法を見つければ更新する。</p></div>
+            <div class="tech-card"><h3>段階的開示</h3><p>スキルはまず「名前と説明」だけを読み、必要時に本文・参照ファイルへ踏み込む構造。数百のスキルを抱えてもコンテキストの肥大を抑えられる。</p></div>
+            <div class="tech-card"><h3>3層メモリ</h3><p>①セッション内の短期記憶 ②セッションを越える長期記憶（MEMORY.md / USER.md）③過去の全セッションをSQLite＋FTS5全文検索で参照、の3層構造。</p></div>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">SOUL.md — エージェントの人格・基本方針を固定</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># ~/.hermes/SOUL.md（システムプロンプトの先頭に読み込まれる）</span>
+# 基本方針
+- 結論から話す。要点を先に、詳細は後に。
+- 不確かなことは断定せず、根拠と一緒に示す。
+- 破壊的・不可逆な操作は実行前に必ず確認する。
+- 日本語でやり取りする。専門用語は噛み砕く。</code></pre>
+          </div>
+
+          <div class="callout">
+            <h4>~/.hermes/ のディレクトリ構成</h4>
+            <ul class="check">
+              <li><code>SOUL.md</code> — エージェントのアイデンティティ（人格・トーン・方針）</li>
+              <li><code>memories/</code> — 永続メモリ（MEMORY.md / USER.md など）</li>
+              <li><code>skills/</code> — 自動生成・同梱のスキル群</li>
+              <li><code>cron/</code> — 定期実行ジョブ ／ <code>sessions/</code> — ゲートウェイのセッション ／ <code>logs/</code> — ログ</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== Gateway ===== -->
+        <section class="category-section" id="gateway">
+          <div class="category-header">
+            <div><span class="en-label">Messaging Gateway</span><h2>⑥ メッセージングゲートウェイ</h2></div>
+          </div>
+          <p class="section-intro">1つの常駐プロセスから、複数のチャットアプリ越しにエージェントへ指示できます。外出先からスマホのチャットで作業を頼む、といった使い方が可能になります。</p>
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">ゲートウェイを起動</span><button class="copy" type="button">COPY</button></div>
+            <pre><code><span class="cm"># Telegram / Discord / Slack / WhatsApp / Signal / Email など</span>
+<span class="cm"># 計20近いプラットフォームを単一プロセスで束ねる</span>
+hermes gateway</code></pre>
+          </div>
+          <div class="callout warn">
+            <h4>ゲートウェイの認可はデフォルト「拒否」</h4>
+            <p>誰でも操作できると危険なため、プラットフォーム別の許可・DMペアリング・許可ユーザーリスト・全体許可リストの順で認可を扱い、明示的に許可した相手以外はブロックされます。公開チャネルに繋ぐ前に必ず許可範囲を設定してください。</p>
+          </div>
+        </section>
+
+        <!-- ===== Use cases ===== -->
+        <section class="category-section" id="usecases">
+          <div class="category-header">
+            <div><span class="en-label">Recommended Use</span><h2>⑦ おすすめの使い方</h2></div>
+          </div>
+          <p class="section-intro">「繰り返し発生し、手順が決まっていて、記憶が効く」タスクほど Hermes Agent の自己進化が活きます。</p>
+          <div class="resource-grid">
+            <div class="tech-card"><h3>リサーチ＆情報収集</h3><p>Web検索ツールと組み合わせ、調査→要約→レポート化を任せる。やり方がスキルとして残り、2回目以降が速い。</p></div>
+            <div class="tech-card"><h3>定型業務の自動化</h3><p>cron で定期実行。日次レポート生成、ファイル整理、データ収集など「毎回同じ作業」を常駐させる。</p></div>
+            <div class="tech-card"><h3>DevOps / サーバー運用</h3><p>docker バックエンドで隔離しつつ、ログ確認・デプロイ補助・監視といった運用作業を補助させる。</p></div>
+            <div class="tech-card"><h3>コーディング補助</h3><p>ファイル操作・ターミナル・コード実行を使い、小さな実装やリファクタ、検証までを一気通貫で。</p></div>
+            <div class="tech-card"><h3>パーソナルアシスタント</h3><p>ゲートウェイで Telegram / Discord bot 化。チャットから雑務を頼める“自分専用の秘書”として常駐。</p></div>
+            <div class="tech-card"><h3>コンテンツ制作</h3><p>下書き生成→推敲→画像生成（Portalツール）まで。よく使う制作フローをスキル化して再利用。</p></div>
+          </div>
+        </section>
+
+        <!-- ===== Security ===== -->
+        <section class="category-section" id="security">
+          <div class="category-header">
+            <div><span class="en-label">Security</span><h2>⑧ セキュリティと注意点</h2></div>
+          </div>
+          <p class="section-intro">できることが広いぶんリスクも増えます。長期稼働させるならセキュリティ設定は後回しにできません。</p>
+          <div class="twocol">
+            <div class="callout warn">
+              <h4>✕ 初心者がやりがちなNG</h4>
+              <ul class="cross">
+                <li>「便利だから」と実行権限を広げすぎる</li>
+                <li>本番でも local バックエンドのまま走らせる</li>
+                <li>ゲートウェイを認可設定せず公開チャネルに接続</li>
+                <li>SOUL.md を空のまま放置し、暴走の歯止めがない</li>
+                <li>未検証のコード／コマンドをそのまま実行させる</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h4>✓ 安全運用の基本</h4>
+              <ul class="check">
+                <li>危険なコマンドは「実行前に承認」を有効化</li>
+                <li>本番は docker バックエンドで隔離する</li>
+                <li>許可は最小限から。永続許可リストで明示管理</li>
+                <li>SOUL.md に「不可逆操作は事前確認」を明記</li>
+                <li>ログ・cron で何をしているか常に可視化する</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Cheatsheet ===== -->
+        <section class="category-section" id="cheatsheet">
+          <div class="category-header">
+            <div><span class="en-label">Cheat Sheet</span><h2>⑨ 主要コマンド早見表</h2></div>
+          </div>
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">よく使うコマンド</span><button class="copy" type="button">COPY</button></div>
+            <pre><code>hermes              <span class="cm"># 対話を開始する</span>
+hermes setup        <span class="cm"># セットアップウィザード（初期構成）</span>
+hermes setup --portal <span class="cm"># Nous Portal を一括接続（モデル＋4ツール）</span>
+hermes model        <span class="cm"># 使用するLLM／プロバイダを選ぶ</span>
+hermes tools        <span class="cm"># 有効化するツールを設定</span>
+hermes config set <span class="ph">KEY VALUE</span>  <span class="cm"># 個別設定（例: terminal.backend docker）</span>
+hermes skills       <span class="cm"># スキルの一覧・管理</span>
+hermes gateway      <span class="cm"># メッセージングゲートウェイを起動</span>
+hermes doctor       <span class="cm"># 設定・接続の不具合を診断</span></code></pre>
+          </div>
+        </section>
+
+        <!-- ===== Links ===== -->
+        <section class="category-section" id="links">
+          <div class="category-header">
+            <div><span class="en-label">Official Docs</span><h2>⑩ 公式リソース・参考リンク</h2></div>
+          </div>
+          <div class="resource-grid">
+            <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">GitHub — NousResearch/hermes-agent</div><div class="lc-desc">本体リポジトリ。インストール手順とソース</div><div class="lc-go">GitHub →</div>
+            </a>
+            <a href="https://hermes-agent.nousresearch.com/docs/" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">Hermes Agent 公式ドキュメント</div><div class="lc-desc">設定・コマンド・セキュリティの一次情報</div><div class="lc-go">Docs →</div>
+            </a>
+            <a href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">Quickstart（公式）</div><div class="lc-desc">最短で動かすための入門ガイド</div><div class="lc-go">Quickstart →</div>
+            </a>
+            <a href="https://docs.ollama.com/integrations/hermes" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">Ollama × Hermes 連携</div><div class="lc-desc">ローカルモデルで動かすための公式手順</div><div class="lc-go">Ollama →</div>
+            </a>
+            <a href="ai_coding_agents_guide.html" class="link-card">
+              <div class="lc-title">AIコーディングエージェント比較（当サイト）</div><div class="lc-desc">Claude Code・Cursor 等との使い分け</div><div class="lc-go">VisionHub →</div>
+            </a>
+            <a href="prompt_engineering_guide.html" class="link-card">
+              <div class="lc-title">プロンプト実践ガイド（当サイト）</div><div class="lc-desc">SOUL.md・指示設計の質を上げる原則</div><div class="lc-go">VisionHub →</div>
+            </a>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="ntt-footer">
+      <div class="ntt-footer-row">
+        <a class="ntt-footer-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span>INTELLIGENCE HUB</span>
+        </a>
+        <div class="ntt-footer-meta">
+          <a href="/#resources">リソース一覧</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/awano27">awano27</a>
+          &nbsp;·&nbsp;
+          © 2026
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.querySelectorAll('.tpl .copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var code = btn.closest('.tpl').querySelector('code');
+          var text = code.innerText;
+          navigator.clipboard.writeText(text).then(function () {
+            var old = btn.textContent;
+            btn.textContent = 'COPIED!';
+            setTimeout(function () { btn.textContent = old; }, 1400);
+          });
+        });
+      });
+    </script>
+</body>
+
+</html>
