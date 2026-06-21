@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="信頼できるAIエージェントの設計パターンを体系化。コンテキスト管理、ツール設計、失敗モードと対策、評価方法まで、自律エージェントを安定運用するための実践ガイド。">
+  <title>AIエージェント設計＆コンテキストエンジニアリング実践ガイド｜VisionHub</title>
+  <link rel="canonical" href="https://visionhub.jp/presentations/ai-agent-context-engineering-guide.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..800,30..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="AIエージェント設計とコンテキストエンジニアリング実践ガイド">
+  <meta property="og:description" content="プロンプト単発から一歩進み、自律的に動くエージェントを設計する。コンテキストの組み立て方、ツール設計、失敗モードと対策、評価設計まで実務の勘所をまとめました。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/ai-agent-context-engineering-guide.html">
+  <meta property="og:image" content="https://visionhub.jp/assets/res-08.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AIエージェント設計とコンテキストエンジニアリング実践ガイド">
+  <meta name="twitter:description" content="プロンプト単発から一歩進み、自律的に動くエージェントを設計する。コンテキストの組み立て方、ツール設計、失敗モードと対策、評価設計まで実務の勘所をまとめました。">
+  <meta name="twitter:image" content="https://visionhub.jp/assets/res-08.jpg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "AIエージェント設計とコンテキストエンジニアリング実践ガイド",
+        "description": "信頼できるAIエージェントの設計パターンを体系化。コンテキスト管理、ツール設計、失敗モードと対策、評価方法まで、自律エージェントを安定運用するための実践ガイド。",
+        "inLanguage": "ja",
+        "url": "https://visionhub.jp/presentations/ai-agent-context-engineering-guide.html",
+        "mainEntityOfPage": "https://visionhub.jp/presentations/ai-agent-context-engineering-guide.html",
+        "publisher": {
+          "@type": "Organization",
+          "name": "VisionHub",
+          "url": "https://visionhub.jp/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "ホーム", "item": "https://visionhub.jp/" },
+          { "@type": "ListItem", "position": 2, "name": "リソース", "item": "https://visionhub.jp/#resources" },
+          { "@type": "ListItem", "position": 3, "name": "AIエージェント設計とコンテキストエンジニアリング実践ガイド", "item": "https://visionhub.jp/presentations/ai-agent-context-engineering-guide.html" }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "AIエージェントと普通のプロンプトの使い分けは？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "手順が固定で結果が予測できる作業は通常のプロンプトや自動化で十分です。状況に応じた判断やツール操作の連鎖が必要な場合にエージェントが有効です。まず小さな自律範囲から始め、信頼を確認しながら広げるのが安全です。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "コンテキストエンジニアリングとプロンプトエンジニアリングの違いは？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "プロンプトは『1回の指示の書き方』、コンテキストエンジニアリングは『エージェントの各判断に、どの情報をいつどれだけ渡すかを設計する』ことです。履歴の圧縮、状態の分離、鮮度管理など、有限なコンテキストを資源として運用する視点が中心になります。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "エージェントの暴走や誤操作はどう防げばよいですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "不可逆・影響の大きい操作の前に人間の承認点を挟み、試行回数の上限と打ち切り条件を設けます。破壊的ツールにはドライランや確認フラグを備え、全行動をログ化して追跡可能にすることで被害を限定できます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "ツールはたくさん用意したほうが良いですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "いいえ。似た機能のツールが乱立すると選択ミスを招きます。少数精鋭で統合し、名前・説明・引数・返り値を曖昧さなく定義することが信頼性につながります。返り値は構造化し、失敗時は次の一手が分かるエラーを返すのが理想です。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "エージェントの良し悪しはどう評価しますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "代表タスクの評価セットを用意し、変更の前後で成功率・所要ステップ数・人間介入回数・コストを比較します。最終成果だけでなく途中の判断やツール呼び出しの妥当性も見て、本番前にステージングで危険シナリオを検証してください。"
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    /* ================================================================
+       CLAUDE DESIGN — Editorial cream paper aesthetic
+       Warm cream background · Fraunces + Noto Serif JP display ·
+       Hairline rules · Coral accent · Generous editorial spacing.
+       ================================================================ */
+
+    :root {
+      /* Paper palette */
+      --paper:        #faf7f0;
+      --paper-warm:   #f3ead8;
+      --paper-deep:   #ebdfc6;
+      --paper-shade:  #f7f1e2;
+
+      /* Ink */
+      --ink:          #1d1b18;
+      --ink-soft:     #4a443c;
+      --ink-mute:     #847868;
+      --ink-faint:    #b3a791;
+
+      /* Rule lines */
+      --rule:         #d6c6a5;
+      --rule-soft:    rgba(125, 95, 50, 0.18);
+      --rule-strong:  #5d4d35;
+
+      /* Accents — Claude coral + supporting */
+      --coral:        #cc785c;
+      --coral-deep:   #a85a3f;
+      --coral-soft:   #e8b9a3;
+      --coral-tint:   rgba(204, 120, 92, 0.10);
+      --moss:         #5d6b48;
+      --gold:         #b8893a;
+      --berry:        #8a3d4a;
+      --slate:        #475363;
+
+      /* Type stack */
+      --serif:  'Fraunces', 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', 'Times New Roman', serif;
+      --sans:   'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      --mono:   'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.78;
+      font-size: 16px;
+      letter-spacing: 0.005em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'palt' 1, 'kern' 1, 'liga' 1;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.22  0 0 0 0.045 0'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>");
+    }
+    a { color: inherit; text-decoration: none; }
+    sup a, .prose a { color: var(--coral-deep); border-bottom: 1px solid var(--coral-soft); transition: border-color .2s; }
+    .prose a:hover { border-bottom-color: var(--coral-deep); }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 36px; position: relative; z-index: 2; }
+    .wrap-narrow { max-width: 880px; margin: 0 auto; padding: 0 36px; position: relative; z-index: 2; }
+
+    /* ============================ HEADER =========================== */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(250, 247, 240, 0.86);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border-bottom: 1px solid var(--rule-soft);
+    }
+    .topbar-row {
+      max-width: 1180px; margin: 0 auto; padding: 18px 36px;
+      display: flex; align-items: baseline; justify-content: space-between; gap: 24px;
+    }
+    .brand {
+      display: inline-flex; align-items: baseline; gap: 12px;
+      font-family: var(--serif);
+      font-size: 22px; font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .brand-mark {
+      font-family: var(--serif); font-style: italic; font-weight: 500;
+      color: var(--coral-deep);
+    }
+    .brand small {
+      display: inline-block; margin-left: 6px;
+      font-family: var(--sans);
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-mute); font-weight: 600;
+    }
+    .nav { display: flex; align-items: center; gap: 28px; font-size: 13.5px; }
+    .nav a { color: var(--ink-soft); transition: color .2s; }
+    .nav a:hover { color: var(--coral-deep); }
+    .nav .nav-cta {
+      font-family: var(--serif); font-style: italic; font-weight: 500;
+      color: var(--coral-deep);
+      border-bottom: 1px solid var(--coral-soft);
+      padding-bottom: 2px;
+    }
+
+    /* ============================ HERO ============================= */
+    .hero {
+      padding: 120px 0 80px;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(60% 50% at 18% 22%, rgba(204,120,92,0.10), transparent 70%),
+        radial-gradient(50% 40% at 82% 75%, rgba(184,137,58,0.08), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: baseline; gap: 14px;
+      font-family: var(--sans);
+      font-size: 11.5px; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: 36px;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 36px; height: 1px; background: var(--coral);
+      transform: translateY(-4px);
+    }
+    .hero-title {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: clamp(44px, 7.4vw, 96px);
+      line-height: 0.98;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      max-width: 18ch;
+      margin-bottom: 36px;
+      font-variation-settings: "opsz" 144, "SOFT" 50;
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--coral-deep);
+      font-weight: 400;
+    }
+    .hero-title .ja {
+      font-family: 'Noto Serif JP', var(--serif);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .hero-rule {
+      width: 88px; height: 1px;
+      background: var(--coral);
+      margin: 0 0 36px;
+    }
+    .hero-lead {
+      font-family: var(--sans);
+      font-size: clamp(17px, 1.5vw, 21px);
+      line-height: 1.65;
+      max-width: 56ch;
+      color: var(--ink-soft);
+      margin-bottom: 48px;
+      letter-spacing: 0.005em;
+    }
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      max-width: 720px;
+      margin-bottom: 56px;
+    }
+    .hero-meta div {
+      flex: 1; min-width: 160px;
+      padding: 18px 24px 18px 0;
+      border-right: 1px solid var(--rule-soft);
+    }
+    .hero-meta div:last-child { border-right: none; padding-right: 0; }
+    .hero-meta .label {
+      display: block;
+      font-family: var(--sans);
+      font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-mute); font-weight: 600; margin-bottom: 6px;
+    }
+    .hero-meta .value {
+      font-family: var(--serif); font-size: 19px; font-weight: 500;
+      color: var(--ink); letter-spacing: -0.005em;
+    }
+    .hero-meta .value.tabular { font-variant-numeric: tabular-nums; }
+
+    /* TL;DR — pull-quote treatment */
+    .tldr {
+      max-width: 760px;
+      padding: 36px 0 36px 40px;
+      border-left: 2px solid var(--coral);
+      position: relative;
+    }
+    .tldr::before {
+      content: '"';
+      position: absolute; left: 22px; top: 0;
+      font-family: var(--serif); font-size: 90px; line-height: 0.6;
+      color: var(--coral-soft); font-weight: 400;
+    }
+    .tldr-label {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--coral-deep); font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .tldr p {
+      font-family: var(--serif);
+      font-size: 22px; line-height: 1.55; font-weight: 400;
+      color: var(--ink); letter-spacing: -0.005em;
+      font-variation-settings: "opsz" 36;
+    }
+    .tldr p strong { font-weight: 600; color: var(--ink); }
+    .tldr .ja { font-family: 'Noto Serif JP', var(--serif); }
+
+    /* =========================== SECTION =========================== */
+    .chapter {
+      padding: 96px 0;
+      border-top: 1px solid var(--rule);
+      position: relative;
+    }
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+    .chapter-marker {
+      position: sticky; top: 100px;
+      align-self: start;
+    }
+    .chapter-num {
+      font-family: var(--serif);
+      font-size: 84px; font-weight: 300; line-height: 0.9;
+      color: var(--ink-faint);
+      letter-spacing: -0.04em;
+      font-variant-numeric: lining-nums;
+      font-variation-settings: "opsz" 144, "SOFT" 100;
+      margin-bottom: 14px;
+    }
+    .chapter-tag {
+      font-family: var(--sans);
+      font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--coral-deep); font-weight: 700;
+    }
+    .chapter-content { min-width: 0; }
+    .chapter-title {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: clamp(28px, 3.4vw, 44px);
+      line-height: 1.18;
+      letter-spacing: -0.018em;
+      color: var(--ink);
+      margin-bottom: 18px;
+      font-variation-settings: "opsz" 72;
+    }
+    .chapter-title .ja { font-family: 'Noto Serif JP', var(--serif); }
+    .chapter-deck {
+      font-family: var(--serif);
+      font-size: 18.5px; font-weight: 400; line-height: 1.55;
+      color: var(--ink-soft); font-style: italic;
+      max-width: 64ch;
+      margin-bottom: 40px;
+      font-variation-settings: "opsz" 24;
+    }
+
+    .prose { font-size: 16px; line-height: 1.85; color: var(--ink); max-width: 68ch; }
+    .prose p { margin-bottom: 22px; }
+    .prose p + h3 { margin-top: 14px; }
+    .prose strong { font-weight: 600; color: var(--ink); }
+    .prose ul { list-style: none; padding-left: 0; margin: 0 0 22px; }
+    .prose ul li {
+      position: relative;
+      padding-left: 24px;
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+    .prose ul li::before {
+      content: ''; position: absolute; left: 0; top: 12px;
+      width: 14px; height: 1px; background: var(--coral);
+    }
+    .prose code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: var(--paper-warm);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: var(--coral-deep);
+      border: 1px solid var(--rule-soft);
+    }
+
+    /* Drop cap on the first paragraph of a chapter */
+    .chapter-content > .prose:first-of-type > p:first-of-type::first-letter,
+    .chapter-content > .prose-lead:first-of-type::first-letter {
+      font-family: var(--serif);
+      font-size: 4.6em;
+      font-weight: 500;
+      float: left;
+      line-height: 0.88;
+      padding: 0.06em 0.12em 0 0;
+      color: var(--coral-deep);
+      font-variation-settings: "opsz" 144;
+    }
+
+    h3.sub-head {
+      font-family: var(--serif);
+      font-size: 22px; font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 48px 0 14px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule-soft);
+      font-variation-settings: "opsz" 48;
+    }
+    h3.sub-head .ja { font-family: 'Noto Serif JP', var(--serif); }
+    .sub-deck {
+      font-size: 14px; color: var(--ink-mute);
+      max-width: 60ch; margin-bottom: 22px;
+      line-height: 1.7;
+    }
+
+    /* ============================ TABLES =========================== */
+    .table-wrap {
+      margin: 28px 0 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+    .data-table thead th {
+      font-family: var(--sans);
+      font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-mute); font-weight: 700;
+      text-align: left;
+      padding: 14px 16px 12px 0;
+      border-bottom: 1.5px solid var(--rule-strong);
+      white-space: nowrap;
+    }
+    .data-table tbody td {
+      padding: 16px 16px 16px 0;
+      border-bottom: 1px solid var(--rule-soft);
+      color: var(--ink-soft);
+      vertical-align: top;
+    }
+    .data-table tbody tr:last-child td { border-bottom: 1px solid var(--rule); }
+    .data-table tbody tr:hover td { background: rgba(204, 120, 92, 0.04); }
+    .data-table strong { color: var(--ink); font-weight: 600; }
+    .data-table .center { text-align: center; }
+    .data-table tbody td:first-child { font-weight: 500; color: var(--ink); }
+
+    /* Rating badges in NIM table */
+    .rate {
+      display: inline-block;
+      font-family: var(--serif); font-weight: 600;
+      font-size: 17px; line-height: 1;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      text-align: center;
+      padding-top: 4px;
+    }
+    .rate.dbl { background: var(--coral); color: var(--paper); }
+    .rate.cir { background: var(--moss); color: var(--paper); }
+    .rate.tri { background: var(--gold); color: var(--paper); }
+    .rate.cro { background: var(--berry); color: var(--paper); }
+
+    /* ========================== CALLOUT ============================ */
+    .callout {
+      margin: 32px 0;
+      padding: 26px 30px;
+      background: var(--paper-warm);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--coral);
+      border-radius: 2px;
+      position: relative;
+    }
+    .callout.warn { border-left-color: var(--berry); background: #f7ebe6; }
+    .callout.info { border-left-color: var(--moss); background: #f1ecdc; }
+    .callout-label {
+      font-family: var(--sans);
+      font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+      font-weight: 700;
+      color: var(--coral-deep);
+      margin-bottom: 10px;
+    }
+    .callout.warn .callout-label { color: var(--berry); }
+    .callout.info .callout-label { color: var(--moss); }
+    .callout p {
+      font-family: var(--serif);
+      font-size: 17px; line-height: 1.65; font-weight: 400;
+      color: var(--ink);
+      font-variation-settings: "opsz" 24;
+    }
+    .callout p strong { font-weight: 600; }
+
+    /* ========================= TOOL CARDS ========================== */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--rule-soft);
+      border: 1px solid var(--rule-soft);
+      margin: 32px 0;
+    }
+    .tool-card {
+      background: var(--paper);
+      padding: 28px 30px;
+      transition: background .2s;
+    }
+    .tool-card:hover { background: var(--paper-shade); }
+    .tool-card-tag {
+      display: inline-flex; align-items: baseline; gap: 10px;
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .tool-card-tag::before {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      transform: translateY(-1px);
+    }
+    .tool-card.coral .tool-card-tag { color: var(--coral-deep); }
+    .tool-card.coral .tool-card-tag::before { background: var(--coral); }
+    .tool-card.moss  .tool-card-tag { color: var(--moss); }
+    .tool-card.moss  .tool-card-tag::before { background: var(--moss); }
+    .tool-card.gold  .tool-card-tag { color: var(--gold); }
+    .tool-card.gold  .tool-card-tag::before { background: var(--gold); }
+    .tool-card.slate .tool-card-tag { color: var(--slate); }
+    .tool-card.slate .tool-card-tag::before { background: var(--slate); }
+    .tool-card.berry .tool-card-tag { color: var(--berry); }
+    .tool-card.berry .tool-card-tag::before { background: var(--berry); }
+
+    .tool-card-name {
+      font-family: var(--serif);
+      font-size: 22px; font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 8px;
+      letter-spacing: -0.005em;
+      font-variation-settings: "opsz" 36;
+    }
+    .tool-card-desc {
+      font-size: 14.5px; line-height: 1.7;
+      color: var(--ink-soft);
+    }
+
+    /* DON'T cards (red list) */
+    .dont-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--rule-soft);
+      border: 1px solid var(--rule-soft);
+      margin: 24px 0;
+    }
+    .dont-card {
+      background: var(--paper);
+      padding: 24px 26px;
+    }
+    .dont-card .ix {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 28px;
+      color: var(--berry);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .dont-card .head {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: 17px;
+      line-height: 1.4;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .dont-card .body {
+      font-size: 14px; line-height: 1.65; color: var(--ink-soft);
+    }
+
+    /* =========================== PRICING =========================== */
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin: 32px 0 16px;
+    }
+    .price-card {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      padding: 36px 32px 32px;
+      position: relative;
+      display: flex; flex-direction: column;
+      transition: transform .25s, border-color .25s;
+    }
+    .price-card:hover { transform: translateY(-3px); border-color: var(--coral-soft); }
+    .price-card.featured {
+      background: var(--paper-warm);
+      border-color: var(--coral);
+      box-shadow: 0 1px 0 var(--coral) inset;
+    }
+    .price-card.featured::before {
+      content: 'RECOMMENDED';
+      position: absolute; top: -12px; left: 32px;
+      background: var(--coral); color: var(--paper);
+      font-family: var(--sans);
+      font-size: 10px; letter-spacing: 0.22em;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 2px;
+    }
+    .price-tag {
+      font-family: var(--sans);
+      font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+      font-weight: 700;
+      color: var(--ink-mute);
+      margin-bottom: 14px;
+    }
+    .price-card.featured .price-tag { color: var(--coral-deep); }
+    .price-amount {
+      font-family: var(--serif);
+      font-size: 38px; font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.05;
+      margin-bottom: 6px;
+      font-variation-settings: "opsz" 96;
+      font-variant-numeric: tabular-nums;
+    }
+    .price-amount em {
+      font-style: italic; color: var(--coral-deep); font-weight: 400;
+    }
+    .price-target {
+      font-size: 13.5px; line-height: 1.65;
+      color: var(--ink-mute);
+      padding: 14px 0 18px;
+      border-bottom: 1px solid var(--rule-soft);
+      margin-bottom: 18px;
+    }
+    .price-list { list-style: none; padding: 0; margin: 0; }
+    .price-list li {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dotted var(--rule-soft);
+      font-size: 13.5px; line-height: 1.5;
+    }
+    .price-list li:last-child { border-bottom: none; }
+    .price-list b {
+      font-family: var(--sans);
+      font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-mute); font-weight: 700;
+      padding-top: 1px;
+    }
+    .price-list span { color: var(--ink-soft); }
+    .price-list em { font-style: italic; color: var(--coral-deep); font-weight: 400; }
+
+    /* ============================ STEPS ============================ */
+    .steps { margin: 32px 0; }
+    .step {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 32px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--rule-soft);
+      align-items: start;
+    }
+    .step:first-child { border-top: 1px solid var(--rule); }
+    .step-num {
+      font-family: var(--serif);
+      font-size: 56px; font-weight: 300;
+      color: var(--coral-deep);
+      line-height: 0.9;
+      letter-spacing: -0.04em;
+      font-variation-settings: "opsz" 144, "SOFT" 80;
+      font-variant-numeric: lining-nums;
+    }
+    .step-num::after {
+      content: ''; display: block;
+      width: 32px; height: 1px;
+      background: var(--coral);
+      margin-top: 14px;
+    }
+    .step-title {
+      font-family: var(--serif);
+      font-size: 22px; font-weight: 500;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      margin-bottom: 8px;
+      line-height: 1.35;
+      font-variation-settings: "opsz" 36;
+    }
+    .step-desc {
+      font-size: 14.5px; line-height: 1.7;
+      color: var(--ink-soft);
+      max-width: 60ch;
+    }
+
+    /* ========================== RELATED ============================ */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--rule-soft);
+      border: 1px solid var(--rule-soft);
+      margin: 24px 0;
+    }
+    .related-card {
+      background: var(--paper);
+      padding: 28px 30px;
+      display: block;
+      transition: background .2s;
+      position: relative;
+    }
+    .related-card:hover { background: var(--paper-warm); }
+    .related-eyebrow {
+      display: block;
+      font-family: var(--sans);
+      font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--coral-deep); font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .related-title {
+      display: block;
+      font-family: var(--serif);
+      font-size: 21px; font-weight: 500;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      margin-bottom: 8px;
+      line-height: 1.3;
+      font-variation-settings: "opsz" 36;
+    }
+    .related-desc {
+      display: block;
+      font-size: 14px; line-height: 1.65;
+      color: var(--ink-soft);
+      margin-bottom: 16px;
+    }
+    .related-go {
+      display: inline-flex; align-items: baseline; gap: 8px;
+      font-family: var(--sans);
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+      font-weight: 700;
+      color: var(--coral-deep);
+    }
+    .related-card:hover .related-go { letter-spacing: 0.20em; }
+
+    /* ========================= REFERENCES ========================== */
+    .refs {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+      counter-reset: refnum;
+    }
+    .refs ol { list-style: none; padding: 0; margin: 0; }
+    .refs li {
+      counter-increment: refnum;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--rule-soft);
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--ink-soft);
+    }
+    .refs li::before {
+      content: counter(refnum, decimal-leading-zero);
+      font-family: var(--serif);
+      font-size: 18px; font-weight: 500;
+      color: var(--coral-deep);
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .refs a { color: var(--ink); border-bottom: 1px solid var(--rule); }
+    .refs a:hover { color: var(--coral-deep); border-color: var(--coral); }
+
+    /* =========================== FOOTER ============================ */
+    .siteft {
+      margin-top: 80px;
+      padding: 60px 0 64px;
+      border-top: 1px solid var(--rule);
+      background: var(--paper-warm);
+    }
+    .siteft-row {
+      max-width: 1180px; margin: 0 auto; padding: 0 36px;
+      display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: baseline;
+    }
+    .siteft-brand {
+      font-family: var(--serif);
+      font-size: 22px; font-weight: 500;
+      color: var(--ink); letter-spacing: -0.01em;
+    }
+    .siteft-brand em { color: var(--coral-deep); font-style: italic; font-weight: 400; }
+    .siteft-meta {
+      font-size: 13px; color: var(--ink-mute);
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline;
+    }
+    .siteft-meta a { color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+    .siteft-meta a:hover { color: var(--coral-deep); border-color: var(--coral); }
+    .siteft-meta .dot { color: var(--ink-faint); }
+
+    /* =========================== UTILITIES ========================= */
+    .colophon {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 15px;
+      color: var(--ink-mute);
+      max-width: 56ch;
+      margin: 24px 0;
+      line-height: 1.7;
+    }
+
+    /* ========================== RESPONSIVE ========================= */
+    @media (max-width: 920px) {
+      .chapter-grid { grid-template-columns: 1fr; gap: 28px; }
+      .chapter-marker { position: static; display: flex; align-items: baseline; gap: 18px; }
+      .chapter-num { font-size: 48px; margin-bottom: 0; }
+      .chapter-tag { padding-bottom: 8px; }
+      .price-grid { grid-template-columns: 1fr; }
+      .tool-grid, .dont-grid, .related-grid { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 80px 1fr; gap: 22px; }
+      .step-num { font-size: 42px; }
+      .hero { padding: 80px 0 56px; }
+      .hero-meta div { flex-basis: 50%; min-width: 50%; }
+    }
+    @media (max-width: 600px) {
+      .wrap, .wrap-narrow { padding: 0 22px; }
+      .topbar-row { padding: 14px 22px; }
+      .nav { gap: 18px; font-size: 12.5px; }
+      .nav a:not(.nav-cta) { display: none; }
+      .chapter { padding: 64px 0; }
+      .hero-title { font-size: 44px; max-width: 14ch; }
+      .tldr p { font-size: 18px; }
+      .step { grid-template-columns: 64px 1fr; gap: 16px; }
+      .step-num { font-size: 36px; }
+    }
+
+    /* Reveal animation */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-eyebrow,
+    .hero-title,
+    .hero-rule,
+    .hero-lead,
+    .hero-meta,
+    .tldr {
+      animation: rise .9s cubic-bezier(.2,.7,.2,1) both;
+    }
+    .hero-title { animation-delay: .08s; }
+    .hero-rule  { animation-delay: .16s; }
+    .hero-lead  { animation-delay: .22s; }
+    .hero-meta  { animation-delay: .30s; }
+    .tldr       { animation-delay: .40s; }
+
+  </style>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <a class="brand" href="/">
+        <span class="brand-mark">VisionHub</span>
+        <small>Intelligence&nbsp;Hub</small>
+      </a>
+      <nav class="nav">
+        <a href="/#this-week">最新スライド</a>
+        <a href="/#archive">アーカイブ</a>
+        <a href="/#resources">リソース</a>
+        <a class="nav-cta" href="/presentations/day_slides_index.html">今日のスライド →</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero">
+      <div class="wrap">
+        <p class="hero-eyebrow">実践ガイド / エージェント設計</p>
+        <h1 class="hero-title">
+          <span class="ja">AIエージェント</span>は<br>
+          <em>文脈</em>で動く。
+        </h1>
+        <div class="hero-rule"></div>
+        <p class="hero-lead">
+          単発のプロンプトから一歩進み、自律的に観察・判断・行動するエージェントを設計する。
+          コンテキストの組み立て方、ツール設計、失敗モードと対策、評価設計まで——
+          信頼できるエージェントを安定運用するための実務の勘所をまとめました。
+        </p>
+
+        <div class="hero-meta">
+          <div>
+            <span class="label">Category</span>
+            <span class="value">実践ガイド / 設計</span>
+          </div>
+          <div>
+            <span class="label">Audience</span>
+            <span class="value">開発者 / AI設計者</span>
+          </div>
+          <div>
+            <span class="label">Reading time</span>
+            <span class="value tabular">約 22 min</span>
+          </div>
+          <div>
+            <span class="label">Issue</span>
+            <span class="value">No. 09 / Agents</span>
+          </div>
+        </div>
+
+        <div class="tldr">
+          <p class="tldr-label">— TL;DR</p>
+          <p>
+            <span class="ja"><strong>エージェントの成否は、文脈の設計で決まる。</strong>
+            必要な情報を、必要なときに、必要な分だけ渡す。ツールは少数精鋭で明快に。
+            不可逆操作の前に人間の承認点を置き、全行動をログ化して評価する——
+            これが自律エージェントを安定運用するための土台です。</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 01 AGENT vs PROMPT ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">01</div>
+            <div class="chapter-tag">Foundation</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">エージェントとプロンプトの違い</span></h2>
+            <p class="chapter-deck">「1回の指示」と「自律的に動き続けるループ」は別物。どちらを使うかの判断が、設計の出発点になります。</p>
+
+            <div class="prose">
+              <p>単発のプロンプトは、入力に対して1往復で答えを返す仕組みです。これに対してエージェントは、<strong>観察→判断→行動→観察</strong>を繰り返す自律ループとして動きます。外部の検索・ファイル操作・APIといったツールを呼び出し、自ら世界の状態を変えながら目標に近づいていく点が決定的な違いです。</p>
+              <p>自律性が上がるほど便利になりますが、同時に<strong>誤った行動が連鎖して暴走するリスク</strong>も上がります。だからこそ、どこまでを自律に任せるかの設計が要になります。</p>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr><th style="width: 180px;">観点</th><th>単発プロンプト</th><th>エージェント</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>動き方</strong></td><td>入力に対し1往復で完結</td><td>観察→判断→行動を繰り返す自律ループ</td></tr>
+                  <tr><td><strong>外部作用</strong></td><td>テキストを返すのみ</td><td>ツールで状態を変えられる（検索・ファイル・API）</td></tr>
+                  <tr><td><strong>主なリスク</strong></td><td>出力の品質・誤り</td><td>誤った行動の連鎖（暴走）</td></tr>
+                  <tr><td><strong>向く作業</strong></td><td>手順が固定で結果が予測できる</td><td>状況依存で判断が要る</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">どちらを使うかの判断</span></h3>
+            <p class="sub-deck">手順が固定なら自動化スクリプトやテンプレ化したプロンプトで十分。状況に応じた判断やツール操作の連鎖が要るときにエージェントが活きます。</p>
+            <div class="prose">
+              <ul>
+                <li>手順が常に同じ → 自動化スクリプト / 定型プロンプト</li>
+                <li>状況によって次の一手が変わる → エージェント</li>
+                <li>判断材料が動的で、途中で取捨選択が要る → エージェント</li>
+              </ul>
+            </div>
+
+            <div class="callout">
+              <p class="callout-label">— 導入の鉄則</p>
+              <p><strong>まず最小の自律範囲から始める。</strong> 信頼が確認できた領域だけ、段階的に権限を広げる。いきなり広い裁量を与えないことが、暴走を防ぐ最初の一歩です。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 02 CONTEXT ENGINEERING ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">02</div>
+            <div class="chapter-tag">Context</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">コンテキストエンジニアリングの原則</span></h2>
+            <p class="chapter-deck">コンテキストは無限ではない。何を、いつ、どれだけ渡すかを設計することが、判断の質を左右します。</p>
+
+            <div class="prose">
+              <p>コンテキストは<strong>有限の資源</strong>です。詰め込みすぎると、かえって精度が落ち、判断がぶれます。多く渡すほど賢くなるわけではない、というのが出発点の認識です。</p>
+              <p>原則はシンプルで、<strong>そのターンの判断に必要な情報だけを、必要なタイミングで渡す</strong>こと。恒久的な前提（役割・方針・制約）と、一時的な作業状態は明確に分離します。長い履歴はそのまま積み上げず、要約して圧縮し、原文が要るときだけ取り出す参照方式にします。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">原則チェックリスト</span></h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th style="width: 220px;">原則</th><th>具体的にやること</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>有限資源として扱う</strong></td><td>詰め込みすぎず、不要な情報は削ぎ落とす</td></tr>
+                  <tr><td><strong>必要十分に絞る</strong></td><td>そのターンの判断に要る情報だけを、要るときに渡す</td></tr>
+                  <tr><td><strong>前提と作業状態を分離</strong></td><td>役割・方針・制約と、一時的な作業メモを別管理にする</td></tr>
+                  <tr><td><strong>履歴は圧縮して参照</strong></td><td>長い履歴は要約し、原文は必要時のみ取り出す</td></tr>
+                  <tr><td><strong>鮮度・出典を添える</strong></td><td>情報の信頼度をメタ情報化し、古い前提の混入を防ぐ</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout info">
+              <p class="callout-label">— 覚えておくこと</p>
+              <p>コンテキストは「足し算」ではなく「<strong>編集</strong>」。良いエージェント設計とは、何を入れるかと同じくらい、<strong>何を入れないか</strong>を決める作業です。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 03 DESIGN PATTERNS ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">03</div>
+            <div class="chapter-tag">Patterns</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">信頼できるエージェントの<br>設計パターン</span></h2>
+            <p class="chapter-deck">いきなり全部を任せない。計画と実行を分け、役割を割り、承認点を置く——再現性の高い構成パターンを使います。</p>
+
+            <div class="tool-grid">
+              <article class="tool-card coral">
+                <div class="tool-card-tag">Plan / Execute</div>
+                <div class="tool-card-name">計画と実行の分離</div>
+                <p class="tool-card-desc">先に手順を立てさせ、各ステップを検証しながら進めます。計画と実行を一気に走らせず、節目で照合することで、誤りが連鎖する前に気づけます。</p>
+              </article>
+              <article class="tool-card moss">
+                <div class="tool-card-tag">Multi-Role</div>
+                <div class="tool-card-name">役割分割</div>
+                <p class="tool-card-desc">調査役・実行役・検証役に分け、相互チェックさせる多段構成。単一のエージェントに全責任を負わせるより、誤りを捕まえやすくなります。</p>
+              </article>
+              <article class="tool-card berry">
+                <div class="tool-card-tag">Human-in-the-loop</div>
+                <div class="tool-card-name">人間の承認点</div>
+                <p class="tool-card-desc">不可逆な操作の前には、必ず人間の承認点を挟みます。削除・送信・課金など影響の大きい行動を、自動で完結させないためのガードレールです。</p>
+              </article>
+              <article class="tool-card gold">
+                <div class="tool-card-tag">Incremental</div>
+                <div class="tool-card-name">小さく試して観察</div>
+                <p class="tool-card-desc">小さく実行して結果を観察し、それに応じて次手を決めるインクリメンタルな進行。一度に大きく動かさないことで、軌道修正の余地を残します。</p>
+              </article>
+              <article class="tool-card slate">
+                <div class="tool-card-tag">State Externalization</div>
+                <div class="tool-card-name">状態の外部化</div>
+                <p class="tool-card-desc">重要な進捗や決定は、メモリやファイルに残します。文脈が途切れても再開できるよう、エージェントの「記憶」を外部に持たせておきます。</p>
+              </article>
+              <article class="tool-card coral">
+                <div class="tool-card-tag">Verify Step</div>
+                <div class="tool-card-name">検証段の挿入</div>
+                <p class="tool-card-desc">各ステップの結果を次に進む前に検証する段を入れます。「進んだか」ではなく「正しく進んだか」を毎回確認するのが、信頼の土台です。</p>
+              </article>
+            </div>
+
+            <div class="callout">
+              <p class="callout-label">— パターンの使い分け</p>
+              <p>単純な作業なら<strong>計画と実行の分離</strong>だけで十分。複雑で誤りが許されない作業ほど、<strong>役割分割</strong>と<strong>承認点</strong>を厚くする——タスクの重さに応じてガードレールの強さを調整します。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 04 TOOL DESIGN ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">04</div>
+            <div class="chapter-tag">Tooling</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">ツール設計のベストプラクティス</span></h2>
+            <p class="chapter-deck">エージェントの行動の質は、与えるツールの質で決まる。多ければ良いわけではありません。</p>
+
+            <div class="prose">
+              <p>ツールは<strong>少数精鋭</strong>が基本です。似た機能のツールが乱立すると、エージェントはどれを使うべきか迷い、選択ミスを起こします。重複するものは統合・整理し、それぞれの役割を明確にします。</p>
+              <p>名前と説明は曖昧さなく書きます。<strong>いつ使うか・引数の意味・返り値の形</strong>がひと目で分かることが、正しい選択につながります。返り値はエージェントが扱いやすい構造化形式にし、不要な情報は削ります。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">設計チェックリスト</span></h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th style="width: 200px;">項目</th><th>あるべき姿</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>数</strong></td><td>少数精鋭。似た機能は統合・整理する</td></tr>
+                  <tr><td><strong>名前と説明</strong></td><td>いつ使うか・引数・返り値を曖昧さなく明記</td></tr>
+                  <tr><td><strong>返り値</strong></td><td>構造化形式。不要な情報は削って渡す</td></tr>
+                  <tr><td><strong>失敗時</strong></td><td>無言で落とさず、原因と次の一手が分かるエラーを返す</td></tr>
+                  <tr><td><strong>破壊的操作</strong></td><td>確認フラグやドライランを備え、誤実行の被害を限定</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">ツール定義のテンプレート</span></h3>
+            <p class="sub-deck">説明文は人間ではなくエージェントが読む前提で書きます。次の枠を埋める形で定義すると、曖昧さが減ります。</p>
+            <div class="prose">
+              <ul>
+                <li><code>name</code>: 動詞＋対象で機能が分かる名前（例: <code>search_orders</code>）</li>
+                <li><code>description</code>: 「いつ使うか」を1文で。使ってはいけない場面も書く</li>
+                <li><code>arguments</code>: 各引数の意味・型・必須/任意・例を明記</li>
+                <li><code>returns</code>: 返る構造とフィールドの意味。空・該当なしの表現も定義</li>
+                <li><code>errors</code>: 想定エラーと、その時にエージェントが取るべき次手</li>
+                <li><code>destructive</code>: 破壊的なら <code>dry_run</code> / <code>confirm</code> を用意</li>
+              </ul>
+            </div>
+
+            <div class="callout warn">
+              <p class="callout-label">⚠ よくある失敗</p>
+              <p>失敗時に<strong>無言でエラーを握りつぶす</strong>と、エージェントは何が起きたか分からず同じ行動を繰り返します。失敗は必ず「原因」と「次にどうすべきか」を含めて返してください。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 05 MEMORY ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">05</div>
+            <div class="chapter-tag">Memory</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">メモリと状態管理</span></h2>
+            <p class="chapter-deck">エージェントは放っておくと文脈を失う。短期と長期の記憶を役割で分け、状態の置き場所を決めます。</p>
+
+            <div class="prose">
+              <p>記憶は用途で分けます。<strong>短期記憶</strong>は現在の作業文脈、<strong>長期記憶</strong>は恒久的な知識。両者を混ぜると、一時的なメモが永続知識を汚し、判断がぶれます。</p>
+              <p>会話が伸びてきたら、定期的に要約して圧縮し、<strong>決定事項とToDo</strong>を構造化して保持します。知識そのものは外部ストアに置き、必要なときに検索して取り込む方式にすると、コンテキストを節約できます。</p>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th style="width: 200px;">記憶の種類</th><th>役割</th><th>置き場所の例</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>短期記憶</strong></td><td>現在の作業文脈・直近のやり取り</td><td>コンテキストウィンドウ / 作業メモ</td></tr>
+                  <tr><td><strong>長期記憶</strong></td><td>恒久的な知識・方針・過去の決定</td><td>外部ストア / ドキュメント</td></tr>
+                  <tr><td><strong>要約メモ</strong></td><td>圧縮した履歴・決定事項・ToDo</td><td>セッション内の構造化メモ</td></tr>
+                  <tr><td><strong>現在地メモ</strong></td><td>再開時に最初に読む進捗の地図</td><td>ファイル（例: <code>STATE.md</code>）</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout info">
+              <p class="callout-label">— 単一情報源の原則</p>
+              <p>同じ情報を複数箇所に散らさないこと。<strong>状態の単一情報源（single source of truth）</strong>を決め、セッションをまたぐ作業には、再開時に必ず読む「現在地メモ」を残します。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 06 FAILURE MODES ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">06</div>
+            <div class="chapter-tag">Failure&nbsp;Modes</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">失敗モードと対策</span></h2>
+            <p class="chapter-deck">エージェントは決まった壊れ方をする。典型的な失敗を先に知っておけば、対策は設計に組み込めます。</p>
+
+            <div class="prose">
+              <p>自律エージェントの失敗には<strong>反復するパターン</strong>があります。あらかじめ典型を把握しておけば、検知の仕組みとガードレールを設計段階で仕込めます。次の表が代表的な失敗モードと、その対策です。</p>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th style="width: 170px;">失敗モード</th><th>症状</th><th>対策</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>ループ・スタック</strong></td><td>同じ行動を繰り返して進まない</td><td>反復を検知し、試行上限と打ち切り条件を設ける</td></tr>
+                  <tr><td><strong>目標逸脱</strong></td><td>途中で当初の目的を見失う</td><td>各ステップで元のゴールを再確認させる</td></tr>
+                  <tr><td><strong>誤ったツール選択</strong></td><td>場面に合わないツールを呼ぶ</td><td>選定理由を明示させ、不適切なら差し戻す検証段</td></tr>
+                  <tr><td><strong>文脈汚染</strong></td><td>古い・誤った情報が混入する</td><td>行動前に出典と鮮度を検証する</td></tr>
+                  <tr><td><strong>過剰な自律</strong></td><td>影響の大きい操作を勝手に実行</td><td>必ず人間の承認を経るガードレールを敷く</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout warn">
+              <p class="callout-label">⚠ 最も危険なのは「過剰な自律」</p>
+              <p>多くのインシデントは、エージェントが<strong>影響の大きい操作を自分で完結させた</strong>ときに起きます。削除・送信・公開・課金などの不可逆操作は、例外なく人間の承認点を経由させてください。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 07 EVALUATION ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">07</div>
+            <div class="chapter-tag">Evaluation</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">評価とモニタリング</span></h2>
+            <p class="chapter-deck">「動いた気がする」では運用できない。代表タスクで測り、過程も含めて評価します。</p>
+
+            <div class="prose">
+              <p>改善の前に、まず<strong>測れる状態</strong>を作ります。代表的なタスクを集めた評価セットを用意し、変更の前後で成功率を比較します。これがないと、変更が改善なのか改悪なのか判断できません。</p>
+              <p>評価は最終成果だけでなく、<strong>途中の判断やツール呼び出しの妥当性</strong>も見ます。たまたま正解にたどり着いただけ、を見抜くためです。全行動ログ（思考・行動・観察）を残し、失敗時に原因を追跡できるようにします。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">計測すべき指標</span></h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>指標</th><th class="center" style="width: 110px;">重要度</th><th>見るポイント</th></tr></thead>
+                <tbody>
+                  <tr><td>成功率</td><td class="center"><span class="rate dbl">◎</span></td><td>評価セットでの達成割合。変更前後で比較する</td></tr>
+                  <tr><td>過程の妥当性</td><td class="center"><span class="rate dbl">◎</span></td><td>判断・ツール選択が筋の通ったものか</td></tr>
+                  <tr><td>所要ステップ数</td><td class="center"><span class="rate cir">○</span></td><td>無駄な行き来が増えていないか</td></tr>
+                  <tr><td>人間介入回数</td><td class="center"><span class="rate cir">○</span></td><td>どれだけ自律で完結できているか</td></tr>
+                  <tr><td>コスト</td><td class="center"><span class="rate cir">○</span></td><td>1タスクあたりの消費が見合っているか</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout">
+              <p class="callout-label">— 本番投入前のルール</p>
+              <p><strong>本番に出す前に、ステージング環境で危険操作のシナリオを必ずテストする。</strong> 削除・送信・課金などを含むケースを意図的に流し、ガードレールが働くことを確認してから本番に上げます。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 08 MODEL ORCHESTRATION ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">08</div>
+            <div class="chapter-tag">Orchestration</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">モデルの使い分けと最適化</span></h2>
+            <p class="chapter-deck">すべてを最上位モデルで回す必要はない。役割ごとに最適なモデルを当てるのが、コストと速度の両立点です。</p>
+
+            <div class="prose">
+              <p>エージェントの各役割——計画・実行・検証——には、それぞれ適したモデルがあります。難しい判断には強いモデルを、定型処理には軽量なモデルを当てる<strong>オーケストレーション設計</strong>が、品質とコストの両立につながります。</p>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th style="width: 220px;">モデル</th><th>得意な役割</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Opus 4.8</strong>（<code>claude-opus-4-8</code>）</td><td>高難度な計画立案・難しい判断。標準フラッグシップとして要所に割り当てる</td></tr>
+                  <tr><td><strong>Sonnet 4.6</strong>（<code>claude-sonnet-4-6</code>）</td><td>標準的な実行・要約・抽出。バランス良く処理する中核</td></tr>
+                  <tr><td><strong>Haiku 4.5</strong>（<code>claude-haiku-4-5</code>）</td><td>大量・単純な定型処理。コストとスピードを最適化する</td></tr>
+                  <tr><td><strong>Fable 5</strong>（<code>claude-fable-5</code>）</td><td>用途に応じて選べるClaudeモデルの一つ</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">役割別の割り当て例</span></h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th style="width: 160px;">役割</th><th>割り当て</th><th>理由</th></tr></thead>
+                <tbody>
+                  <tr><td>計画</td><td>Opus 4.8</td><td>分解と段取りの質が全体を左右する</td></tr>
+                  <tr><td>実行</td><td>Sonnet 4.6</td><td>速度と品質のバランスが取りやすい</td></tr>
+                  <tr><td>検証</td><td>Opus 4.8 / Sonnet 4.6</td><td>重い判断は上位、定型確認は中核に</td></tr>
+                  <tr><td>定型処理</td><td>Haiku 4.5</td><td>抽出・分類など量の出る作業を安価に</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout info">
+              <p class="callout-label">— 反復を加速する</p>
+              <p>Claude Code の <strong>Fast Mode（<code>/fast</code>）</strong>は、Opus 4.8 / 4.7 / 4.6 で出力を高速化します（小型モデルへの切り替えではありません）。設計と検証の反復サイクルを速く回したい場面で有効です。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 09 FAQ ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">§</div>
+            <div class="chapter-tag">FAQ</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">よくある質問</span></h2>
+            <p class="chapter-deck">エージェント設計とコンテキストエンジニアリングについて、現場で繰り返し聞かれる疑問への回答。</p>
+
+            <h3 class="sub-head"><span class="ja">AIエージェントと普通のプロンプトの使い分けは？</span></h3>
+            <div class="prose">
+              <p>手順が固定で結果が予測できる作業は、通常のプロンプトや自動化で十分です。状況に応じた判断やツール操作の連鎖が必要な場合にエージェントが有効です。まず小さな自律範囲から始め、信頼を確認しながら広げるのが安全です。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">コンテキストエンジニアリングとプロンプトエンジニアリングの違いは？</span></h3>
+            <div class="prose">
+              <p>プロンプトは「1回の指示の書き方」、コンテキストエンジニアリングは「エージェントの各判断に、どの情報をいつどれだけ渡すかを設計する」ことです。履歴の圧縮、状態の分離、鮮度管理など、有限なコンテキストを資源として運用する視点が中心になります。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">エージェントの暴走や誤操作はどう防げばよいですか？</span></h3>
+            <div class="prose">
+              <p>不可逆・影響の大きい操作の前に人間の承認点を挟み、試行回数の上限と打ち切り条件を設けます。破壊的ツールにはドライランや確認フラグを備え、全行動をログ化して追跡可能にすることで被害を限定できます。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">ツールはたくさん用意したほうが良いですか？</span></h3>
+            <div class="prose">
+              <p>いいえ。似た機能のツールが乱立すると選択ミスを招きます。少数精鋭で統合し、名前・説明・引数・返り値を曖昧さなく定義することが信頼性につながります。返り値は構造化し、失敗時は次の一手が分かるエラーを返すのが理想です。</p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">エージェントの良し悪しはどう評価しますか？</span></h3>
+            <div class="prose">
+              <p>代表タスクの評価セットを用意し、変更の前後で成功率・所要ステップ数・人間介入回数・コストを比較します。最終成果だけでなく途中の判断やツール呼び出しの妥当性も見て、本番前にステージングで危険シナリオを検証してください。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 10 CONCLUSION ========== -->
+    <section class="chapter">
+      <div class="wrap">
+        <div class="chapter-grid">
+          <aside class="chapter-marker">
+            <div class="chapter-num">10</div>
+            <div class="chapter-tag">Conclusion</div>
+          </aside>
+          <div class="chapter-content">
+            <h2 class="chapter-title"><span class="ja">エージェントは"賢さ"ではなく<br>"設計"で信頼される</span></h2>
+
+            <div class="callout">
+              <p class="callout-label">— 最終結論</p>
+              <p>
+                <strong>信頼できるエージェントは、文脈の設計から生まれる。</strong><br>
+                必要な情報を、必要なときに、必要な分だけ渡す。ツールは少数精鋭で明快に定義する。<br>
+                計画と実行を分け、不可逆操作の前には人間の承認点を置く。<br>
+                そして全行動をログ化し、代表タスクで継続的に評価する——
+                <em>賢いモデルを選ぶことではなく、安全に動き続ける仕組みを設計すること</em>が、自律エージェント運用の本質です。
+              </p>
+            </div>
+
+            <h3 class="sub-head"><span class="ja">関連ガイド</span></h3>
+            <div class="related-grid">
+              <a class="related-card" href="ai_coding_agents_guide.html">
+                <span class="related-eyebrow">Setup</span>
+                <span class="related-title"><span class="ja">AIコーディングエージェント完全ガイド2026</span></span>
+                <span class="related-desc">Claude Code・Codex・GitHub Copilot・Antigravity の設定・構築・運用を網羅した導入ガイド。</span>
+                <span class="related-go">View detail →</span>
+              </a>
+              <a class="related-card" href="ai_tool_optimization_2026_04.html">
+                <span class="related-eyebrow">Tools</span>
+                <span class="related-title"><span class="ja">AIツール選択最適化ガイド</span></span>
+                <span class="related-desc">有料AI・NVIDIA NIM・ローカルAI・無料クラウドの役割分担でコストを抑える実用ガイド。</span>
+                <span class="related-go">View detail →</span>
+              </a>
+              <a class="related-card" href="hubs/claude-code-guide-2026.html">
+                <span class="related-eyebrow">Deep Dive</span>
+                <span class="related-title"><span class="ja">Claude Code・MCP 特集ガイド</span></span>
+                <span class="related-desc">Claude Code の運用、MCP・skills・hooks など検索から読まれる固定ガイド。</span>
+                <span class="related-go">View detail →</span>
+              </a>
+              <a class="related-card" href="ai_external_resources.html">
+                <span class="related-eyebrow">Resources</span>
+                <span class="related-title"><span class="ja">AI業界 外部リソース集</span></span>
+                <span class="related-desc">業界レポート・ベンチマーク・公式ブログへの厳選リンク集。</span>
+                <span class="related-go">View detail →</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="siteft">
+    <div class="siteft-row">
+      <div class="siteft-brand"><em>VisionHub</em> · Intelligence Hub</div>
+      <div class="siteft-meta">
+        <a href="/#resources">Resources</a>
+        <span class="dot">·</span>
+        <a href="/#archive">Archive</a>
+        <span class="dot">·</span>
+        <a href="https://github.com/awano27/ai-news-site" target="_blank" rel="noopener">GitHub</a>
+        <span class="dot">·</span>
+        <span>© 2026 VisionHub</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
