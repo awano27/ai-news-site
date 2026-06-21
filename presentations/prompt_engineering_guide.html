@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロンプトエンジニアリング実践ガイド | コピペできるテンプレート集 — VisionHub</title>
+    <meta name="description" content="LLMの精度を引き上げる実践テクニックを体系化。明確な指示・役割設定・Few-shot・思考の連鎖（CoT）・構造化出力・プロンプトチェインを、コピペできるテンプレート付きで解説。モデル非依存で使える2026年版。" />
+    <meta name="keywords" content="プロンプトエンジニアリング,プロンプト,Few-shot,Chain of Thought,CoT,構造化出力,テンプレート,Claude,ChatGPT" />
+    <link rel="canonical" href="https://visionhub.jp/presentations/prompt_engineering_guide.html" />
+    <meta property="og:title" content="プロンプトエンジニアリング実践ガイド | コピペできるテンプレート集" />
+    <meta property="og:description" content="明確な指示・役割設定・Few-shot・CoT・構造化出力を、すぐ使えるテンプレート付きで解説。" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://visionhub.jp/presentations/prompt_engineering_guide.html" />
+    <link rel="stylesheet" href="../assets/ntt-theme.css">
+    <style>
+        :root { --transition: border-color 0.2s ease, transform 0.2s ease; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { line-height: 1.8; min-height: 100vh; overflow-x: hidden; }
+        .bg-blobs { display: none; }
+        .container { max-width: var(--ntt-maxw); margin: 0 auto; padding: 0 var(--ntt-pad-x); }
+
+        .lede { max-width: 760px; font-size: .98rem; color: var(--ntt-on-dark-mu); margin-bottom: 2.5rem; }
+        .updated-note { display:inline-flex; align-items:center; gap:.5rem; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ntt-yellow); font-weight:700; margin-bottom:1.25rem; }
+
+        .toc { display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:3.5rem; }
+        .toc a { font-size:.8rem; color:var(--ntt-on-dark-mu); text-decoration:none; border:1px solid var(--ntt-line); border-radius:999px; padding:.35rem .9rem; transition:var(--transition); }
+        .toc a:hover { color:var(--ntt-on-dark); border-color:var(--ntt-yellow); }
+
+        .category-section { margin-bottom:4rem; scroll-margin-top:90px; }
+        .category-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.75rem; border-left:3px solid var(--ntt-yellow); padding-left:1.5rem; }
+        .category-header h2 { font-size:1.5rem; font-weight:700; color:var(--ntt-on-dark); }
+        .category-header .en-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.2em; color:var(--ntt-yellow); font-weight:700; display:block; margin-bottom:.25rem; }
+        .section-intro { color:var(--ntt-on-dark-mu); font-size:.92rem; max-width:760px; margin-bottom:1.75rem; }
+
+        /* principle cards */
+        .resource-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem; }
+        .tech-card { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-radius:8px; padding:1.5rem; transition:var(--transition); position:relative; overflow:hidden; }
+        .tech-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--ntt-yellow); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+        .tech-card:hover { border-color:var(--ntt-line-2); transform:translateY(-2px); }
+        .tech-card:hover::before { transform:scaleX(1); }
+        .tech-card .num { font-family:var(--ntt-mono, monospace); font-size:.75rem; color:var(--ntt-yellow); font-weight:700; }
+        .tech-card h3 { font-size:1.02rem; color:var(--ntt-on-dark); margin:.3rem 0 .5rem; }
+        .tech-card p { font-size:.85rem; color:var(--ntt-on-dark-mu); }
+
+        /* template block */
+        .tpl { background:#0d1530; border:1px solid var(--ntt-line); border-radius:8px; margin:1.25rem 0; overflow:hidden; }
+        .tpl-head { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.1rem; background:var(--ntt-navy-2); border-bottom:1px solid var(--ntt-line); }
+        .tpl-head .t { font-size:.85rem; font-weight:700; color:var(--ntt-on-dark); }
+        .tpl-head .copy { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ntt-yellow); font-weight:700; background:none; border:1px solid var(--ntt-line-2); border-radius:4px; padding:.25rem .6rem; cursor:pointer; transition:var(--transition); }
+        .tpl-head .copy:hover { border-color:var(--ntt-yellow); }
+        .tpl pre { margin:0; padding:1.1rem 1.2rem; overflow-x:auto; }
+        .tpl code { font-family:var(--ntt-mono, 'SFMono-Regular', Consolas, monospace); font-size:.82rem; line-height:1.65; color:#cdd6e8; white-space:pre-wrap; word-break:break-word; }
+        .tpl code .ph { color:var(--ntt-yellow); }
+
+        .callout { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-left:3px solid var(--ntt-yellow); border-radius:8px; padding:1.4rem 1.6rem; margin:1.5rem 0; }
+        .callout.warn { border-left-color:#ff7b72; }
+        .callout h4 { color:var(--ntt-on-dark); font-size:.98rem; margin-bottom:.6rem; }
+        ul.check, ul.cross { list-style:none; display:grid; gap:.7rem; }
+        ul.check li, ul.cross li { position:relative; padding-left:1.8rem; font-size:.9rem; color:var(--ntt-on-dark-mu); }
+        ul.check li::before { content:'✓'; position:absolute; left:0; color:var(--ntt-yellow); font-weight:700; }
+        ul.cross li::before { content:'✕'; position:absolute; left:0; color:#ff7b72; font-weight:700; }
+        .twocol { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        @media (max-width:768px){ .category-header h2{font-size:1.25rem} .twocol{grid-template-columns:1fr} }
+
+        .link-card { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-radius:6px; padding:1.25rem 1.4rem; text-decoration:none; color:var(--ntt-on-dark); transition:var(--transition); display:flex; flex-direction:column; }
+        .link-card:hover { border-color:var(--ntt-yellow); transform:translateY(-2px); }
+        .link-card .lc-title { font-weight:700; font-size:.95rem; margin-bottom:.3rem; }
+        .link-card .lc-desc { font-size:.8rem; color:var(--ntt-on-dark-mu); }
+        .link-card .lc-go { font-size:.7rem; color:var(--ntt-yellow); font-weight:700; text-transform:uppercase; margin-top:.8rem; letter-spacing:.08em; }
+    </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+
+<body class="ntt-page">
+    <header class="ntt-header">
+      <div class="ntt-header-row">
+        <a class="ntt-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span class="ntt-brand-text">INTELLIGENCE HUB<small>DAILY AI INSIGHTS</small></span>
+        </a>
+        <nav class="ntt-nav">
+          <a href="/#this-week">最新スライド</a>
+          <a href="/#archive">アーカイブ</a>
+          <a href="/#resources" class="is-active">リソース</a>
+          <a class="ntt-cta" href="/presentations/day_slides_index.html">今日のスライド →</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="ntt-subhero">
+      <div class="ntt-subhero-inner">
+        <div class="ntt-subhero-eyebrow">Resource Guide 09 — Prompting</div>
+        <h1 class="ntt-subhero-title">プロンプトエンジニアリング実践ガイド</h1>
+        <p class="ntt-subhero-lead">
+          同じモデルでも、頼み方ひとつで出力品質は大きく変わります。明確な指示・役割設定・Few-shot・思考の連鎖・構造化出力——現場で効く8つの基本テクニックを、そのままコピペして使えるテンプレート付きで解説します。特定モデルに依存しない普遍的な型です。
+        </p>
+      </div>
+    </section>
+
+    <main style="padding: 56px 0 96px;">
+      <div class="container">
+
+        <div class="updated-note">最終更新 2026-06-21 ／ Claude・ChatGPT・Gemini など主要モデル共通で使える原則です</div>
+
+        <p class="lede">
+          プロンプトエンジニアリングの本質は「魔法の呪文」ではなく、<strong>曖昧さを減らし、期待する出力を具体的に伝える</strong>こと。良いプロンプトは4つの要素——<strong>① 明確なタスク ② 十分な文脈 ③ 出力形式の指定 ④ 制約と評価基準</strong>——を備えています。まずこの4点を意識するだけで結果は安定します。
+        </p>
+
+        <nav class="toc">
+          <a href="#basics">① 基本8テクニック</a>
+          <a href="#templates">② コピペ・テンプレート集</a>
+          <a href="#anti">③ アンチパターン</a>
+          <a href="#advanced">④ 上級テクニック</a>
+          <a href="#checklist">⑤ 仕上げチェックリスト</a>
+          <a href="#links">⑥ 公式リソース</a>
+        </nav>
+
+        <!-- ===== Basics ===== -->
+        <section class="category-section" id="basics">
+          <div class="category-header">
+            <div><span class="en-label">Core Techniques</span><h2>① 現場で効く基本8テクニック</h2></div>
+          </div>
+          <div class="resource-grid">
+            <div class="tech-card"><span class="num">01</span><h3>明確で具体的な指示</h3><p>「いい感じに」ではなく、対象・目的・読者・長さ・トーンを言語化する。曖昧さがブレの最大要因。</p></div>
+            <div class="tech-card"><span class="num">02</span><h3>役割（ロール）を与える</h3><p>「あなたは熟練の校正者です」と立場を設定すると、語彙と観点がその専門に寄り精度が上がる。</p></div>
+            <div class="tech-card"><span class="num">03</span><h3>Few-shot（例示）</h3><p>入力→出力の例を2〜3個見せる。形式・粒度・トーンを「説明」より「実例」で伝える方が確実。</p></div>
+            <div class="tech-card"><span class="num">04</span><h3>思考の連鎖（CoT）</h3><p>「手順を踏んで考えてから答えて」と促す。推論や計算を要するタスクで誤りが減る。</p></div>
+            <div class="tech-card"><span class="num">05</span><h3>構造化出力</h3><p>JSON / 表 / 見出し付き等、出力フォーマットを明示。後工程で機械処理する場合は特に重要。</p></div>
+            <div class="tech-card"><span class="num">06</span><h3>文脈・参照資料を渡す</h3><p>前提情報・社内用語・元データを本文に含める。XMLタグ等で「資料」と「指示」を区切ると誤読が減る。</p></div>
+            <div class="tech-card"><span class="num">07</span><h3>制約と禁止事項</h3><p>「300字以内」「推測は明示」「固有名詞は変えない」など境界条件を先に与える。</p></div>
+            <div class="tech-card"><span class="num">08</span><h3>自己検証を促す</h3><p>「出力前に要件を満たすか確認して」と添えると、抜け漏れや形式違反を自分で正す。</p></div>
+          </div>
+        </section>
+
+        <!-- ===== Templates ===== -->
+        <section class="category-section" id="templates">
+          <div class="category-header">
+            <div><span class="en-label">Copy &amp; Paste</span><h2>② そのまま使えるテンプレート集</h2></div>
+          </div>
+          <p class="section-intro"><span style="color:var(--ntt-yellow)">【黄色の箇所】</span>を自分の内容に置き換えてください。コピーボタンで全文をクリップボードへコピーできます。</p>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">A. 要約する</span><button class="copy" type="button">COPY</button></div>
+            <pre><code>あなたは<span class="ph">【分野】</span>に詳しい編集者です。
+次の文章を、<span class="ph">【読者：例 経営層】</span>向けに<span class="ph">【文字数：例 300字】</span>で要約してください。
+
+# 制約
+- 専門用語は噛み砕く / 数値と固有名詞は変えない
+- 事実と筆者の意見を分けて書く
+- 最後に「3つの要点」を箇条書きで添える
+
+# 対象テキスト
+"""
+<span class="ph">【ここに本文を貼る】</span>
+"""</code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">B. 文章を校正・推敲する</span><button class="copy" type="button">COPY</button></div>
+            <pre><code>あなたはプロの日本語校正者です。次の文章を校正してください。
+
+# やること
+1. 誤字脱字・誤用・二重表現を修正
+2. 読みにくい箇所を自然な日本語に
+3. 修正後の全文を出力
+4. そのあと「主な修正点」を箇条書きで列挙（理由を一言添える）
+
+# 守ること
+- 原文の意味・トーンは変えない
+- 固有名詞・数値は勝手に変えない
+
+# 文章
+"""
+<span class="ph">【ここに文章】</span>
+"""</code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">C. コードを書いてもらう</span><button class="copy" type="button">COPY</button></div>
+            <pre><code># 目的
+<span class="ph">【何を作りたいか：例 CSVを読み込み日付で集計する関数】</span>
+
+# 前提
+- 言語/環境: <span class="ph">【例 Python 3.11】</span>
+- 既存コードの規約: <span class="ph">【命名・スタイル等／なければ「標準的に」】</span>
+
+# 要件
+- <span class="ph">【入力】</span> を受け取り <span class="ph">【出力】</span> を返す
+- エラー処理とエッジケースを考慮
+- 簡潔なコメントを付ける
+
+# 出力形式
+1. 完成コード
+2. 使い方の例
+3. 注意点・限界</code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">D. 分類・抽出（構造化出力）</span><button class="copy" type="button">COPY</button></div>
+            <pre><code>次のテキストから情報を抽出し、JSONのみを出力してください（前後の説明は不要）。
+
+# スキーマ
+{
+  "category": "問い合わせ | 苦情 | 要望 | その他",
+  "urgency": "高 | 中 | 低",
+  "summary": "1文で要約",
+  "action_needed": true/false
+}
+
+# 例
+入力: "請求額が先月と違う。至急確認してほしい"
+出力: {"category":"問い合わせ","urgency":"高","summary":"請求額の差異確認の依頼","action_needed":true}
+
+# 入力
+<span class="ph">【ここにテキスト】</span></code></pre>
+          </div>
+
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">E. 壁打ち・ブレスト</span><button class="copy" type="button">COPY</button></div>
+            <pre><code>あなたは<span class="ph">【領域】</span>の戦略アドバイザーです。
+テーマ「<span class="ph">【テーマ】</span>」について一緒に考えたい。
+
+# 進め方
+1. まず私の前提に抜けている論点を3つ指摘
+2. 切り口の異なるアイデアを5つ、各メリット/リスク付きで
+3. 最後に「次の一歩」を1つ提案
+
+# 私の状況・制約
+<span class="ph">【予算・期限・体制など】</span></code></pre>
+          </div>
+        </section>
+
+        <!-- ===== Anti ===== -->
+        <section class="category-section" id="anti">
+          <div class="category-header">
+            <div><span class="en-label">Anti-patterns</span><h2>③ 避けるべきアンチパターン</h2></div>
+          </div>
+          <div class="twocol">
+            <div class="callout warn">
+              <h4>✕ やりがちなNG</h4>
+              <ul class="cross">
+                <li>「いい感じにまとめて」など曖昧な丸投げ</li>
+                <li>1つのプロンプトに5個も6個もタスクを詰め込む</li>
+                <li>出力形式を指定せず、毎回バラバラの体裁で返ってくる</li>
+                <li>必要な前提（社内用語・元データ）を渡さず推測させる</li>
+                <li>長い会話を延々続け、文脈が汚れたまま指示する</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h4>✓ 改善の方向</h4>
+              <ul class="check">
+                <li>対象・目的・読者・長さ・トーンを具体語で</li>
+                <li>タスクは分割。複雑なら手順を番号で指示</li>
+                <li>出力形式（JSON/表/見出し）を明示する</li>
+                <li>参照資料を本文に貼り、指示と区切る</li>
+                <li>話題が変わったら新しい会話で仕切り直す</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Advanced ===== -->
+        <section class="category-section" id="advanced">
+          <div class="category-header">
+            <div><span class="en-label">Advanced</span><h2>④ 一段上の上級テクニック</h2></div>
+          </div>
+          <div class="resource-grid">
+            <div class="tech-card"><h3>プロンプトチェイン</h3><p>「抽出→整形→要約」のように1つの大タスクを複数の小プロンプトに分割。各段の出力を次段の入力にすると精度と再現性が上がる。</p></div>
+            <div class="tech-card"><h3>セルフクリティック</h3><p>一度書かせた後に「批判的に見直して改善版を出して」と二段構えにする。レビュアー役を別に立てるのも有効。</p></div>
+            <div class="tech-card"><h3>RAG前提の指示</h3><p>検索した資料を渡すときは「資料に基づいてのみ回答」「無い情報は『不明』と書く」と縛り、ハルシネーションを抑える。</p></div>
+            <div class="tech-card"><h3>長文コンテキスト管理</h3><p>重要な指示は冒頭と末尾に。長い資料はXMLタグやセクション見出しで区切ると、必要箇所を正確に参照しやすい。</p></div>
+            <div class="tech-card"><h3>出力の足場を作る</h3><p>「次の見出しに沿って書いて」と骨組みを与える、あるいは書き出しの数語を提示すると、狙った構造に誘導できる。</p></div>
+            <div class="tech-card"><h3>評価ループ</h3><p>代表サンプルで「良い出力」の基準を決め、プロンプトを変えて結果を比較。感覚でなくデータで改善する。</p></div>
+          </div>
+        </section>
+
+        <!-- ===== Checklist ===== -->
+        <section class="category-section" id="checklist">
+          <div class="category-header">
+            <div><span class="en-label">Final Checklist</span><h2>⑤ 送信前チェックリスト</h2></div>
+          </div>
+          <div class="callout">
+            <ul class="check">
+              <li>タスクは1つに絞れているか（複数なら分割したか）</li>
+              <li>誰向け・何のための出力か明記したか</li>
+              <li>出力形式（長さ・体裁・JSON等）を指定したか</li>
+              <li>必要な前提・参照資料を渡したか</li>
+              <li>やってほしくないこと（制約）を書いたか</li>
+              <li>必要なら例（Few-shot）を添えたか</li>
+              <li>推論が要るタスクで「手順を踏んで」と促したか</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== Links ===== -->
+        <section class="category-section" id="links">
+          <div class="category-header">
+            <div><span class="en-label">Official Docs</span><h2>⑥ 公式リソース・参考リンク</h2></div>
+          </div>
+          <div class="resource-grid">
+            <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">Anthropic — Prompt Engineering</div><div class="lc-desc">Claude公式のプロンプト設計ガイド</div><div class="lc-go">Anthropic →</div>
+            </a>
+            <a href="https://platform.openai.com/docs/guides/prompt-engineering" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">OpenAI — Prompting Guide</div><div class="lc-desc">GPT向けの実践プロンプト集</div><div class="lc-go">OpenAI →</div>
+            </a>
+            <a href="https://www.promptingguide.ai/jp" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">Prompt Engineering Guide（日本語）</div><div class="lc-desc">技法を体系的にまとめた定番OSSガイド</div><div class="lc-go">Guide →</div>
+            </a>
+            <a href="claude-code-guide/index.html" class="link-card">
+              <div class="lc-title">Claude Code 完全ガイド（当サイト）</div><div class="lc-desc">CLAUDE.md設計などエージェント向けの指示設計</div><div class="lc-go">VisionHub →</div>
+            </a>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="ntt-footer">
+      <div class="ntt-footer-row">
+        <a class="ntt-footer-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span>INTELLIGENCE HUB</span>
+        </a>
+        <div class="ntt-footer-meta">
+          <a href="/#resources">リソース一覧</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/awano27">awano27</a>
+          &nbsp;·&nbsp;
+          © 2026
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.querySelectorAll('.tpl .copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var code = btn.closest('.tpl').querySelector('code');
+          var text = code.innerText;
+          navigator.clipboard.writeText(text).then(function () {
+            var old = btn.textContent;
+            btn.textContent = 'COPIED!';
+            setTimeout(function () { btn.textContent = old; }, 1400);
+          });
+        });
+      });
+    </script>
+</body>
+
+</html>

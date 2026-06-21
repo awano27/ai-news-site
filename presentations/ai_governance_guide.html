@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成AI 業務導入ガバナンス・法務・セキュリティガイド（日本向け） — VisionHub</title>
+    <meta name="description" content="生成AIを仕事で安全に使うための実務ガイド。入力してはいけないデータ、コンシューマ版とAPI/法人版のデータ利用の違い、著作権の論点（日本）、セキュリティ・チェックリスト、社内ガイドラインのひな形、シャドーAI対策までを整理。" />
+    <meta name="keywords" content="生成AI,ガバナンス,セキュリティ,著作権,個人情報,社内ガイドライン,シャドーAI,AI利用ポリシー" />
+    <link rel="canonical" href="https://visionhub.jp/presentations/ai_governance_guide.html" />
+    <meta property="og:title" content="生成AI 業務導入ガバナンス・法務・セキュリティガイド（日本向け）" />
+    <meta property="og:description" content="入力NGデータ・データ利用ポリシー・著作権・セキュリティ・社内ガイドラインのひな形を1ページに。" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://visionhub.jp/presentations/ai_governance_guide.html" />
+    <link rel="stylesheet" href="../assets/ntt-theme.css">
+    <style>
+        :root { --transition: border-color 0.2s ease, transform 0.2s ease; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { line-height:1.8; min-height:100vh; overflow-x:hidden; }
+        .bg-blobs { display:none; }
+        .container { max-width:var(--ntt-maxw); margin:0 auto; padding:0 var(--ntt-pad-x); }
+
+        .lede { max-width:760px; font-size:.98rem; color:var(--ntt-on-dark-mu); margin-bottom:2.5rem; }
+        .updated-note { display:inline-flex; align-items:center; gap:.5rem; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ntt-yellow); font-weight:700; margin-bottom:1.25rem; }
+
+        .toc { display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:3.5rem; }
+        .toc a { font-size:.8rem; color:var(--ntt-on-dark-mu); text-decoration:none; border:1px solid var(--ntt-line); border-radius:999px; padding:.35rem .9rem; transition:var(--transition); }
+        .toc a:hover { color:var(--ntt-on-dark); border-color:var(--ntt-yellow); }
+
+        .category-section { margin-bottom:4rem; scroll-margin-top:90px; }
+        .category-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.75rem; border-left:3px solid var(--ntt-yellow); padding-left:1.5rem; }
+        .category-header h2 { font-size:1.5rem; font-weight:700; color:var(--ntt-on-dark); }
+        .category-header .en-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.2em; color:var(--ntt-yellow); font-weight:700; display:block; margin-bottom:.25rem; }
+        .section-intro { color:var(--ntt-on-dark-mu); font-size:.92rem; max-width:760px; margin-bottom:1.75rem; }
+
+        .resource-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:1rem; }
+        .info-card { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-radius:8px; padding:1.5rem; position:relative; overflow:hidden; transition:var(--transition); }
+        .info-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--ntt-yellow); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+        .info-card:hover { border-color:var(--ntt-line-2); transform:translateY(-2px); }
+        .info-card:hover::before { transform:scaleX(1); }
+        .info-card h3 { font-size:1.02rem; color:var(--ntt-on-dark); margin-bottom:.5rem; }
+        .info-card p { font-size:.85rem; color:var(--ntt-on-dark-mu); }
+
+        .table-wrap { overflow-x:auto; border:1px solid var(--ntt-line); border-radius:8px; }
+        table.cmp { width:100%; border-collapse:collapse; min-width:640px; font-size:.86rem; }
+        table.cmp th, table.cmp td { padding:.85rem 1rem; text-align:left; border-bottom:1px solid var(--ntt-line); vertical-align:top; }
+        table.cmp thead th { background:var(--ntt-navy-2); color:var(--ntt-on-dark); font-weight:700; }
+        table.cmp td:first-child { color:var(--ntt-on-dark); font-weight:700; }
+        table.cmp td { color:var(--ntt-on-dark-mu); }
+        table.cmp tbody tr:hover { background:#1a2853; }
+
+        .callout { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-left:3px solid var(--ntt-yellow); border-radius:8px; padding:1.4rem 1.6rem; margin:1.5rem 0; }
+        .callout.danger { border-left-color:#ff7b72; }
+        .callout h4 { color:var(--ntt-on-dark); font-size:.98rem; margin-bottom:.6rem; }
+        .callout p { font-size:.88rem; color:var(--ntt-on-dark-mu); }
+        ul.check, ul.cross { list-style:none; display:grid; gap:.7rem; }
+        ul.check li, ul.cross li { position:relative; padding-left:1.8rem; font-size:.9rem; color:var(--ntt-on-dark-mu); }
+        ul.check li::before { content:'✓'; position:absolute; left:0; color:var(--ntt-yellow); font-weight:700; }
+        ul.cross li::before { content:'✕'; position:absolute; left:0; color:#ff7b72; font-weight:700; }
+
+        .tpl { background:#0d1530; border:1px solid var(--ntt-line); border-radius:8px; margin:1.25rem 0; overflow:hidden; }
+        .tpl-head { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.1rem; background:var(--ntt-navy-2); border-bottom:1px solid var(--ntt-line); }
+        .tpl-head .t { font-size:.85rem; font-weight:700; color:var(--ntt-on-dark); }
+        .tpl-head .copy { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ntt-yellow); font-weight:700; background:none; border:1px solid var(--ntt-line-2); border-radius:4px; padding:.25rem .6rem; cursor:pointer; transition:var(--transition); }
+        .tpl-head .copy:hover { border-color:var(--ntt-yellow); }
+        .tpl pre { margin:0; padding:1.1rem 1.2rem; overflow-x:auto; }
+        .tpl code { font-family:var(--ntt-mono,'SFMono-Regular',Consolas,monospace); font-size:.82rem; line-height:1.7; color:#cdd6e8; white-space:pre-wrap; word-break:break-word; }
+
+        .link-card { background:var(--ntt-navy-3); border:1px solid var(--ntt-line); border-radius:6px; padding:1.25rem 1.4rem; text-decoration:none; color:var(--ntt-on-dark); transition:var(--transition); display:flex; flex-direction:column; }
+        .link-card:hover { border-color:var(--ntt-yellow); transform:translateY(-2px); }
+        .link-card .lc-title { font-weight:700; font-size:.95rem; margin-bottom:.3rem; }
+        .link-card .lc-desc { font-size:.8rem; color:var(--ntt-on-dark-mu); }
+        .link-card .lc-go { font-size:.7rem; color:var(--ntt-yellow); font-weight:700; text-transform:uppercase; margin-top:.8rem; letter-spacing:.08em; }
+
+        .disclaimer { font-size:.78rem; color:var(--ntt-on-dark-mu2); border-top:1px solid var(--ntt-line); padding-top:1.5rem; margin-top:1rem; }
+        @media (max-width:768px){ .category-header h2{font-size:1.25rem} }
+    </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+
+<body class="ntt-page">
+    <header class="ntt-header">
+      <div class="ntt-header-row">
+        <a class="ntt-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span class="ntt-brand-text">INTELLIGENCE HUB<small>DAILY AI INSIGHTS</small></span>
+        </a>
+        <nav class="ntt-nav">
+          <a href="/#this-week">最新スライド</a>
+          <a href="/#archive">アーカイブ</a>
+          <a href="/#resources" class="is-active">リソース</a>
+          <a class="ntt-cta" href="/presentations/day_slides_index.html">今日のスライド →</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="ntt-subhero">
+      <div class="ntt-subhero-inner">
+        <div class="ntt-subhero-eyebrow">Resource Guide 10 — Governance</div>
+        <h1 class="ntt-subhero-title">生成AI 業務導入ガバナンスガイド</h1>
+        <p class="ntt-subhero-lead">
+          生成AIを「禁止」でも「野放し」でもなく、安全に使いこなすための実務ガイド。入力してはいけないデータ、無料版と法人版のデータ利用の違い、著作権の論点（日本）、セキュリティ点検、そして社内ガイドラインのひな形までを1ページにまとめました。
+        </p>
+      </div>
+    </section>
+
+    <main style="padding: 56px 0 96px;">
+      <div class="container">
+
+        <div class="updated-note">最終更新 2026-06-21 ／ 本ページは一般的な情報提供であり法的助言ではありません</div>
+
+        <p class="lede">
+          生成AIの最大の事故は「高度な攻撃」ではなく、<strong>うっかり機密や個人情報を入力してしまう</strong>といった日常的なミスから起きます。だからこそ必要なのは難しい技術ではなく、<strong>全員が守れるシンプルなルール</strong>。本ガイドはそのルール作りの土台として使えるよう構成しています。
+        </p>
+
+        <nav class="toc">
+          <a href="#data">① 入力してはいけないデータ</a>
+          <a href="#policy">② 無料版 vs 法人版</a>
+          <a href="#copyright">③ 著作権の論点</a>
+          <a href="#security">④ セキュリティ点検</a>
+          <a href="#template">⑤ 社内ガイドラインひな形</a>
+          <a href="#shadow">⑥ シャドーAI対策</a>
+          <a href="#links">⑦ 公式リンク</a>
+        </nav>
+
+        <!-- ===== Data ===== -->
+        <section class="category-section" id="data">
+          <div class="category-header">
+            <div><span class="en-label">Data Handling</span><h2>① まず「入力してはいけないデータ」を決める</h2></div>
+          </div>
+          <p class="section-intro">最初に線引きすべきはここです。原則として、外部のAIサービスへ次のような情報を貼り付けない、という共通認識を作ります。</p>
+          <div class="callout danger">
+            <h4>原則：外部AIに入力しない情報</h4>
+            <ul class="cross">
+              <li>個人情報・特定個人情報（氏名＋連絡先、マイナンバー、健康情報 等）</li>
+              <li>顧客・取引先から預かった機密情報、NDA対象の情報</li>
+              <li>未公開の財務・人事・M&amp;A・経営情報</li>
+              <li>ソースコードや設計のうち、社外秘に該当するもの</li>
+              <li>パスワード・APIキー・トークンなどの認証情報</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <h4>使ってよい例（一般化・匿名化すればOKになることも）</h4>
+            <ul class="check">
+              <li>公開済みの情報、一般的な知識・調べもの</li>
+              <li>個人や企業が特定できないよう加工・ダミー化したデータ</li>
+              <li>会社が契約した法人版／API（データが学習に使われない設定）での業務利用</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== Policy ===== -->
+        <section class="category-section" id="policy">
+          <div class="category-header">
+            <div><span class="en-label">Consumer vs Enterprise</span><h2>② 無料版・個人版と 法人版・API の違い</h2></div>
+          </div>
+          <p class="section-intro">「同じAIだから同じ」ではありません。<strong>契約形態によってデータの扱いが大きく変わります。</strong>業務利用では、入力が学習に使われない契約を選ぶのが基本です。</p>
+          <div class="table-wrap">
+            <table class="cmp">
+              <thead>
+                <tr><th>観点</th><th>無料版・個人向け</th><th>法人版・API・エンタープライズ</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>入力データの学習利用</td><td>設定や規約により学習に使われる場合がある</td><td>原則「学習に使わない」契約・設定が一般的</td></tr>
+                <tr><td>管理者によるコントロール</td><td>個人任せ（統制しにくい）</td><td>組織で利用範囲・ログ・保持期間を管理可能</td></tr>
+                <tr><td>監査・ログ</td><td>限定的</td><td>監査ログ・アクセス管理を提供することが多い</td></tr>
+                <tr><td>契約・責任関係</td><td>個人と提供元</td><td>会社間契約（DPA等）を結べる</td></tr>
+                <tr><td>業務利用の適性</td><td>下調べ・学習・非機密用途向き</td><td>機密を含む実務に向く（要設定確認）</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <h4>確認ポイント</h4>
+            <p>導入時は各サービスの「データ利用・プライバシー設定」と「商用利用・データ保持」の規約を必ず確認し、<strong>学習オプトアウトやゼロデータ保持の有無</strong>をチェックしてください。設定は変わることがあるため、定期的な再確認も必要です。</p>
+          </div>
+        </section>
+
+        <!-- ===== Copyright ===== -->
+        <section class="category-section" id="copyright">
+          <div class="category-header">
+            <div><span class="en-label">IP &amp; Copyright</span><h2>③ 著作権・知的財産の論点（日本）</h2></div>
+          </div>
+          <p class="section-intro">生成AIと著作権は論点が多く、ケースバイケースです。実務では次の3つを意識すると事故を避けやすくなります。</p>
+          <div class="resource-grid">
+            <div class="info-card"><h3>入力（学習・利用）側</h3><p>他者の著作物をプロンプトに大量に貼って利用する場合、利用目的や範囲によっては権利者の利益を害さないか注意が必要。社外秘・ライセンス制約のある素材の扱いにも留意。</p></div>
+            <div class="info-card"><h3>生成物の権利</h3><p>AI生成物が「著作物」として保護されるか、誰の権利になるかは、人の創作的関与の度合い等により判断が分かれる領域。重要な成果物は契約や社内規程で帰属を明確にしておく。</p></div>
+            <div class="info-card"><h3>既存著作物との類似</h3><p>生成結果がたまたま既存の作品に酷似することがある。公開・商用利用前に、特にロゴ・キャラクター・文章で類似していないかを人間が確認する。</p></div>
+          </div>
+          <div class="callout">
+            <h4>実務での運用</h4>
+            <ul class="check">
+              <li>商用・対外公開の成果物は、公開前に人間がオリジナリティと類似リスクを確認する</li>
+              <li>ブランド資産（ロゴ・商標）に関わる生成物は特に慎重にチェック</li>
+              <li>判断に迷う重要案件は、社内法務・専門家へ相談する</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== Security ===== -->
+        <section class="category-section" id="security">
+          <div class="category-header">
+            <div><span class="en-label">Security Checklist</span><h2>④ セキュリティ点検チェックリスト</h2></div>
+          </div>
+          <div class="callout">
+            <ul class="check">
+              <li>業務で使ってよいAIサービスを「許可リスト」で明確にしている</li>
+              <li>法人契約で、入力が学習に使われない設定になっている</li>
+              <li>アカウントはSSO／多要素認証（MFA）で保護している</li>
+              <li>機密データの入力禁止ルールを全社員が知っている</li>
+              <li>AIの出力（コード・文章・数値）は鵜呑みにせず人間が検証している</li>
+              <li>外部連携（MCP・プラグイン・拡張）は信頼できるものに限定している</li>
+              <li>プロンプトインジェクション（外部テキストに紛れた不正指示）を想定している</li>
+              <li>インシデント時の報告窓口・手順が決まっている</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== Template ===== -->
+        <section class="category-section" id="template">
+          <div class="category-header">
+            <div><span class="en-label">Policy Template</span><h2>⑤ 社内AI利用ガイドライン ひな形</h2></div>
+          </div>
+          <p class="section-intro">そのままコピーして、自社の実情に合わせて編集してください。まずは1ページの簡潔なルールから始めるのが定着のコツです。</p>
+          <div class="tpl">
+            <div class="tpl-head"><span class="t">生成AI利用ガイドライン（社内向けひな形）</span><button class="copy" type="button">COPY</button></div>
+            <pre><code>【目的】
+本ガイドラインは、生成AIを安全かつ効果的に業務で活用するための
+基本ルールを定める。
+
+【使ってよいサービス】
+・会社が許可した次のサービスのみを業務利用する：______
+・上記以外を業務で使う場合は事前に______へ申請する。
+
+【入力してはいけない情報】
+・個人情報／特定個人情報、顧客から預かった機密
+・未公開の財務・人事・経営情報
+・パスワード・APIキー等の認証情報
+・社外秘のソースコード・設計
+ → 必要な場合は匿名化・一般化してから入力する。
+
+【出力の取り扱い】
+・AIの出力は下書きとみなし、事実・数値・引用は人間が必ず検証する。
+・対外公開・商用利用する成果物は、著作権・類似リスクを公開前に確認する。
+
+【禁止事項】
+・差別的・違法・他者の権利を侵害する用途での利用。
+・許可外サービスへの業務データの入力。
+
+【困ったとき・インシデント】
+・判断に迷う場合や情報を誤って入力した場合は、速やかに______へ報告する。
+
+【改訂】
+・本ガイドラインは技術・法令の動向に応じて随時見直す。
+（最終改訂：____年__月）</code></pre>
+          </div>
+        </section>
+
+        <!-- ===== Shadow AI ===== -->
+        <section class="category-section" id="shadow">
+          <div class="category-header">
+            <div><span class="en-label">Shadow AI</span><h2>⑥ シャドーAI（無許可利用）への対策</h2></div>
+          </div>
+          <p class="section-intro">禁止だけでは、社員は個人アカウントでこっそり使い始めます（＝シャドーAI）。むしろ「安全に使える正規ルート」を用意することがリスクを下げます。</p>
+          <div class="resource-grid">
+            <div class="info-card"><h3>正規ルートを用意する</h3><p>法人契約の安全なAIを全員に配り、「使うならこれ」を明確に。便利な正規手段があれば無許可利用は減る。</p></div>
+            <div class="info-card"><h3>禁止より教育</h3><p>なぜ機密入力が危険かを具体例で共有。短い研修や1ページのルールで十分に効果がある。</p></div>
+            <div class="info-card"><h3>相談しやすい窓口</h3><p>「これ使っていい？」を気軽に聞ける窓口を設ける。隠れて使われるより、可視化される方が安全。</p></div>
+          </div>
+        </section>
+
+        <!-- ===== Links ===== -->
+        <section class="category-section" id="links">
+          <div class="category-header">
+            <div><span class="en-label">Official Sources</span><h2>⑦ 公式・参考リンク（日本）</h2></div>
+          </div>
+          <div class="resource-grid">
+            <a href="https://www.ppc.go.jp/" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">個人情報保護委員会（PPC）</div><div class="lc-desc">個人情報・特定個人情報の取り扱いの公式情報</div><div class="lc-go">ppc.go.jp →</div>
+            </a>
+            <a href="https://www.bunka.go.jp/seisaku/chosakuken/" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">文化庁 — 著作権</div><div class="lc-desc">著作権制度とAIに関する公式資料</div><div class="lc-go">bunka.go.jp →</div>
+            </a>
+            <a href="https://www.meti.go.jp/" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">経済産業省</div><div class="lc-desc">AI事業者ガイドライン等の政策情報</div><div class="lc-go">meti.go.jp →</div>
+            </a>
+            <a href="https://www.soumu.go.jp/" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">総務省</div><div class="lc-desc">AIガバナンス・情報通信関連の指針</div><div class="lc-go">soumu.go.jp →</div>
+            </a>
+            <a href="https://www.ipa.go.jp/" target="_blank" rel="noopener" class="link-card">
+              <div class="lc-title">IPA（情報処理推進機構）</div><div class="lc-desc">情報セキュリティ対策の実務資料</div><div class="lc-go">ipa.go.jp →</div>
+            </a>
+            <a href="ai_models_comparison_2026.html" class="link-card">
+              <div class="lc-title">主要AIモデル比較ガイド（当サイト）</div><div class="lc-desc">データ要件からのモデル選定はこちら</div><div class="lc-go">VisionHub →</div>
+            </a>
+          </div>
+          <p class="disclaimer">
+            ※ 本ページは生成AIを業務導入する際の一般的な留意点をまとめた情報提供であり、法的助言ではありません。著作権・個人情報・契約に関する個別の判断は、最新の法令・各サービスの規約を確認のうえ、必要に応じて弁護士等の専門家にご相談ください。記載は2026年6月時点の一般的な理解に基づきます。
+          </p>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="ntt-footer">
+      <div class="ntt-footer-row">
+        <a class="ntt-footer-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span>INTELLIGENCE HUB</span>
+        </a>
+        <div class="ntt-footer-meta">
+          <a href="/#resources">リソース一覧</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/awano27">awano27</a>
+          &nbsp;·&nbsp;
+          © 2026
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.querySelectorAll('.tpl .copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var code = btn.closest('.tpl').querySelector('code');
+          navigator.clipboard.writeText(code.innerText).then(function () {
+            var old = btn.textContent;
+            btn.textContent = 'COPIED!';
+            setTimeout(function () { btn.textContent = old; }, 1400);
+          });
+        });
+      });
+    </script>
+</body>
+
+</html>
