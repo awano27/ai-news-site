@@ -32,7 +32,9 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 BASE_URL = "https://visionhub.jp"
 SITE_NAME = "AI Intelligence Hub"
-TOP_N_PER_CATEGORY = 4
+# Surface the full month: each daily slide contributes one curated topic, so a
+# low cap silently drops most of the month. Keep it generous but bounded.
+TOP_N_PER_CATEGORY = 24
 
 MONTH_JP = {
     1: "1月", 2: "2月", 3: "3月", 4: "4月", 5: "5月", 6: "6月",
@@ -137,7 +139,7 @@ def gather_month_items(files: list[Path]) -> tuple[list[dict], dict[str, list[di
 
 def render_item(item: dict) -> str:
     title = html.escape(item["title"])
-    blurb = html.escape((item.get("blurb") or "").strip())[:180]
+    blurb = html.escape((item.get("blurb") or "").strip())[:260]
     stars = int(item.get("stars") or 0)
     src = item.get("source") or {}
     src_name = html.escape(src.get("name", "") or "")
@@ -174,6 +176,9 @@ def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict
         f"カテゴリ別に整理し、各記事から当日のスライドと一次ソースに直接アクセスできます。"
     )
     canonical = f"{BASE_URL}/presentations/digests/{ym}.html"
+
+    total_shown = len(highlights) + sum(len(v) for v in by_category.values())
+    n_cats = sum(1 for v in by_category.values() if v)
 
     # compose category sections (exclude empties)
     cat_sections: list[str] = []
@@ -251,7 +256,11 @@ def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict
     .eyebrow .dot{{width:8px;height:8px;background:var(--accent);border-radius:50%}}
     h1{{font-size:clamp(28px,4.5vw,40px);line-height:1.25;margin:0 0 12px;letter-spacing:-.01em}}
     h1 .accent{{color:var(--accent)}}
-    .lede{{color:var(--mute2);font-size:17px;margin:0 0 28px;max-width:68ch}}
+    .lede{{color:var(--mute2);font-size:17px;margin:0 0 22px;max-width:68ch}}
+    .stats{{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 30px}}
+    .stat{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 18px;min-width:96px}}
+    .stat b{{display:block;font-size:26px;color:var(--accent);line-height:1.15}}
+    .stat span{{font-size:12px;color:var(--mute);letter-spacing:.06em}}
     h2{{font-size:22px;margin:40px 0 10px;padding-left:14px;border-left:4px solid var(--accent)}}
     h3{{font-size:17px;margin:6px 0;color:var(--ink);line-height:1.45}}
     .digest-item{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}}
@@ -285,10 +294,16 @@ def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict
       <div class="eyebrow"><span class="dot"></span><span>MONTHLY DIGEST</span></div>
       <h1>{html.escape(month_title)} <span class="accent">AIニュースまとめ</span></h1>
       <p class="lede">
-        {html.escape(month_title)}に visionhub.jp が収集・要約した AI 関連ニュースの中から、
-        運営者（awano27 / Claudian）が選んだ注目トピックをカテゴリ別に整理しました。
-        各項目から当日のスライドと一次ソースへアクセスできます。
+        {html.escape(month_title)}に visionhub.jp が収集・要約した AI 関連ニュースから、
+        運営者（awano27 / Claudian）が選んだ全 {total_shown} 本のトピックをカテゴリ別に整理しました。
+        その日に最も重要だった話題を1日1本ピックアップしており、各項目から当日のスライドと一次ソースへ直接アクセスできます。
       </p>
+
+      <div class="stats">
+        <div class="stat"><b>{total_shown}</b><span>本のトピック</span></div>
+        <div class="stat"><b>{n_cats}</b><span>カテゴリ</span></div>
+        <div class="stat"><b>{len(highlights)}</b><span>ハイライト</span></div>
+      </div>
 
       <section class="cat"><h2>今月のハイライト</h2>
 {hi_html}
