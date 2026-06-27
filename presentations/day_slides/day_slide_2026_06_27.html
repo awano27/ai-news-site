@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw vs Hermes Agent v0.17.0 — 自己ホストAIエージェント、どっちを使う? | 2026-06-27 · AI Daily Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Shippori+Mincho:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
+
+<meta name="description" content="OpenClaw と Hermes Agent v0.17.0 の最新アップデートを比較し、誰がどちらを使うべきかを整理。両者ともMITライセンス・自己ホスト・モデル非依存（BYO-LLM）・メッセージアプリ操作という共通点が大きく、違いは思想にある。OpenClaw（Peter Steinberger発／OpenClaw Foundation、TypeScript）は多チャネル配信と運用の堅牢性（信頼性・復旧・セッション安全＝paper cuts）を磨く実務志向で、最新安定版は2026.6.10（自動fastモード /fast auto を追加）。Hermes Agent（Nous Research／Teknium、Python）は経験からスキルを蒸留し長期記憶を育てる自己改善ループが中核で、v0.17.0「The Reach Release」（2026-06-19）の目玉はiMessage（Photon・Macリレー不要）＋Raftによる到達範囲拡大、非同期サブエージェント、Unreal Engine 5.8 MCP、Stripe決済スキル、Automation Blueprints。X起点（Grokネイティブ検索）→ GitHub/公式で敵対的に検証。" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_27.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="OpenClaw vs Hermes Agent v0.17.0 — 自己ホストAIエージェント、どっちを使う? | 2026-06-27" />
+<meta property="og:description" content="MITライセンスの自己ホスト型AIエージェント対決。OpenClaw=運用の堅牢性（最新2026.6.10）、Hermes Agent v0.17.0=自己改善ループ＋iMessage等の到達範囲拡大。誰がどちらを使うべきかを整理。" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_27.html" />
+<meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="OpenClaw vs Hermes Agent v0.17.0 — どっちを使う? | 2026-06-27" />
+<meta name="twitter:description" content="自己ホスト型AIエージェント対決。OpenClaw=運用の堅牢性、Hermes v0.17.0=自己改善ループ＋到達範囲拡大。誰がどちらを使うべきか。" />
+<meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "OpenClaw vs Hermes Agent v0.17.0 — 自己ホストAIエージェント、どっちを使う?",
+  "datePublished": "2026-06-27",
+  "dateModified": "2026-06-27",
+  "author": { "@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html" },
+  "publisher": {
+    "@type": "Organization", "name": "AI Intelligence Hub", "url": "https://visionhub.jp/",
+    "logo": { "@type": "ImageObject", "url": "https://visionhub.jp/assets/og/default.png", "width": 1200, "height": 630 }
+  },
+  "image": ["https://visionhub.jp/assets/og/default.png"],
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_27.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_06_27.html",
+  "inLanguage": "ja",
+  "articleSection": "AI News"
+}
+</script>
+<style>
+  /* ============================================================
+     OPENCLAW vs HERMES AGENT · DUAL-ACCENT COMPARISON · CLAUDE-WARM · 2026-06-27
+     ============================================================
+     Warm cream paper. Neutral slate chrome + two tool-coded accents:
+     OpenClaw = coral/lobster, Hermes = teal. Native HTML only.
+     ============================================================ */
+  :root {
+    --paper:     #F4EFE5;
+    --paper-2:   #ECE6D8;
+    --surface:   #FBF8F2;
+    --surface-hi:#FFFFFF;
+    --ink:       #1C1E22;
+    --ink-2:     #4E535C;
+    --ink-3:     #888B93;
+    --line:      #E1DBCC;
+    --line-2:    #D3CBB8;
+    --accent:     #3D4654;
+    --accent-deep:#272E3A;
+    --accent-soft:#C7CCD4;
+    --accent-wash:#EDEEF1;
+    --oc:        #C2533A;
+    --oc-deep:   #9A3C28;
+    --oc-soft:   #ECC0B4;
+    --oc-wash:   #F7E7E1;
+    --hm:        #1F7A8C;
+    --hm-deep:   #13596A;
+    --hm-soft:   #A8D2DA;
+    --hm-wash:   #E2F0F3;
+    --gold:      #C0913C;
+    --display: 'Fraunces', 'Shippori Mincho', 'Noto Serif JP', Georgia, serif;
+    --serif:   'Shippori Mincho', 'Noto Serif JP', Georgia, serif;
+    --sans:    'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow-sm: 0 1px 2px rgba(28,30,34,.05), 0 2px 8px -4px rgba(28,30,34,.10);
+    --shadow:    0 2px 4px rgba(28,30,34,.04), 0 18px 40px -20px rgba(40,46,58,.28);
+    --radius:    22px;
+    --radius-sm: 14px;
+  }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(1100px 560px at 86% -8%, rgba(31,122,140,.09), transparent 60%),
+      radial-gradient(1000px 520px at 4% 2%, rgba(194,83,58,.08), transparent 55%);
+    background-attachment: fixed;
+  }
+  ::selection { background: var(--accent); color: #fff; }
+  a { color: inherit; }
+  .grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E"); }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding: 15px 40px;
+    background: rgba(244,239,229,.82);
+    backdrop-filter: blur(14px) saturate(1.4);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 11px; font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: -.01em; }
+  .topbar .brand .dot { width: 11px; height: 11px; border-radius: 50%; background: linear-gradient(135deg, var(--oc), var(--hm)); }
+  .topbar nav { display: flex; gap: 22px; }
+  .topbar nav a { color: var(--ink-3); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color .18s; }
+  .topbar nav a:hover { color: var(--accent-deep); }
+  .topbar .stamp { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ── shell ──────────────────────────────────────── */
+  main { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 0 40px 120px; }
+  section { padding: 88px 0; border-bottom: 1px solid var(--line); position: relative; }
+  section:last-of-type { border-bottom: 0; }
+
+  .kicker {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--accent-deep);
+    background: var(--accent-wash); border: 1px solid var(--accent-soft);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 26px;
+  }
+  .kicker.oc { color: var(--oc-deep); background: var(--oc-wash); border-color: var(--oc-soft); }
+  .kicker.hm { color: var(--hm-deep); background: var(--hm-wash); border-color: var(--hm-soft); }
+  .kicker .n { font-family: var(--display); font-weight: 600; }
+
+  h2 {
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(28px, 4.2vw, 48px); line-height: 1.24;
+    letter-spacing: .005em; color: var(--ink); margin-bottom: 22px;
+  }
+  h2 .oc { color: var(--oc-deep); }
+  h2 .hm { color: var(--hm-deep); }
+  h2 em { font-family: var(--display); font-style: italic; font-weight: 500; }
+  .lede {
+    max-width: 66ch; font-family: var(--serif); font-weight: 400;
+    font-size: clamp(16px, 1.4vw, 20px); line-height: 1.95; color: var(--ink-2);
+    margin-bottom: 48px;
+  }
+  .lede strong { font-weight: 700; color: var(--ink); }
+  .lede em { font-family: var(--display); font-style: italic; }
+
+  p { font-size: 15px; line-height: 1.85; color: var(--ink-2); }
+  p strong { color: var(--ink); font-weight: 700; }
+  code { font-family: 'SFMono-Regular', ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace; font-size: .86em; background: var(--paper-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; color: var(--accent-deep); }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero { padding: 70px 0 80px; border-bottom: 1px solid var(--line); }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); margin-bottom: 30px;
+  }
+  .hero-eyebrow .pill { color: var(--accent-deep); background: var(--accent-wash); border: 1px solid var(--accent-soft); padding: 5px 13px; border-radius: 999px; }
+  .hero-eyebrow .sep { width: 26px; height: 1px; background: var(--line-2); }
+  h1 {
+    font-family: var(--serif); font-weight: 800;
+    font-size: clamp(38px, 6.4vw, 84px); line-height: 1.08;
+    letter-spacing: .01em; color: var(--ink); text-wrap: balance;
+  }
+  h1 .oc { color: var(--oc); }
+  h1 .hm { color: var(--hm); }
+  .hero-lead { max-width: 70ch; font-family: var(--serif); font-size: 18px; line-height: 1.95; color: var(--ink-2); margin-top: 22px; border-left: 3px solid var(--accent-soft); padding-left: 22px; }
+  .hero-lead strong { color: var(--ink); font-weight: 700; }
+
+  /* ── versus tiles ───────────────────────────────── */
+  .versus { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: stretch; margin-top: 36px; }
+  .vtile { border-radius: var(--radius); padding: 26px 26px; border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+  .vtile.oc { background: linear-gradient(160deg, var(--oc-wash), var(--surface) 72%); border-color: var(--oc-soft); }
+  .vtile.hm { background: linear-gradient(160deg, var(--hm-wash), var(--surface) 72%); border-color: var(--hm-soft); }
+  .vtile .vh { font-family: var(--display); font-weight: 600; font-size: 28px; line-height: 1; }
+  .vtile.oc .vh { color: var(--oc-deep); }
+  .vtile.hm .vh { color: var(--hm-deep); }
+  .vtile .vv { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-top: 8px; }
+  .vtile p { font-size: 13.5px; margin-top: 12px; }
+  .vtile .chips { margin-top: 14px; display: flex; gap: 7px; flex-wrap: wrap; }
+  .vtile .chips span { font-size: 11.5px; font-weight: 600; background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; padding: 2px 10px; color: var(--ink-2); }
+  .vmid { display: flex; align-items: center; justify-content: center; font-family: var(--display); font-style: italic; font-weight: 500; font-size: 32px; color: var(--ink-3); }
+
+  /* ── common-ground strip ────────────────────────── */
+  .common { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }
+  .cm { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 22px 20px; box-shadow: var(--shadow-sm); }
+  .cm .t { font-family: var(--display); font-weight: 600; font-size: 17px; color: var(--ink); margin-bottom: 6px; }
+  .cm p { font-size: 13px; }
+
+  /* ── tool update panels ─────────────────────────── */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .panel .hd { padding: 22px 26px; border-bottom: 1px solid var(--line); }
+  .panel.oc .hd { background: linear-gradient(160deg, var(--oc-wash), var(--surface) 78%); }
+  .panel.hm .hd { background: linear-gradient(160deg, var(--hm-wash), var(--surface) 78%); }
+  .panel .hd .nm { font-family: var(--display); font-weight: 600; font-size: 26px; }
+  .panel.oc .hd .nm { color: var(--oc-deep); }
+  .panel.hm .hd .nm { color: var(--hm-deep); }
+  .panel .hd .ver { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-top: 4px; }
+  .panel .hd .meta { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; line-height: 1.6; }
+  .panel ul { list-style: none; padding: 8px 0; }
+  .panel li { display: grid; grid-template-columns: 20px 1fr; gap: 12px; padding: 13px 26px; border-bottom: 1px solid var(--line); font-size: 13.8px; color: var(--ink-2); }
+  .panel li:last-child { border-bottom: 0; }
+  .panel li strong { color: var(--ink); }
+  .panel.oc li .k { color: var(--oc); font-weight: 700; font-family: var(--display); }
+  .panel.hm li .k { color: var(--hm); font-weight: 700; font-family: var(--display); }
+  .panel .ft { padding: 14px 26px; font-size: 12px; color: var(--ink-3); background: var(--paper-2); border-top: 1px solid var(--line); }
+
+  /* ── comparison table ───────────────────────────── */
+  .ptwrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+  .cmp { width: 100%; border-collapse: collapse; background: var(--surface); min-width: 720px; }
+  .cmp th, .cmp td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: top; line-height: 1.6; }
+  .cmp thead th { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .cmp thead th.axis { background: var(--accent-wash); color: var(--accent-deep); width: 20%; }
+  .cmp thead th.oc { background: var(--oc-wash); color: var(--oc-deep); }
+  .cmp thead th.hm { background: var(--hm-wash); color: var(--hm-deep); }
+  .cmp tbody td:first-child { font-family: var(--sans); font-weight: 700; color: var(--ink); background: var(--paper-2); }
+  .cmp tr:last-child td { border-bottom: 0; }
+
+  /* ── who-should-use picks ───────────────────────── */
+  .picks { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .pick { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line-2); border-radius: var(--radius); padding: 24px 26px; box-shadow: var(--shadow-sm); }
+  .pick.oc { border-top-color: var(--oc); }
+  .pick.hm { border-top-color: var(--hm); }
+  .pick .badge { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 12px; border-radius: 999px; margin-bottom: 13px; }
+  .pick.oc .badge { color: var(--oc-deep); background: var(--oc-wash); border: 1px solid var(--oc-soft); }
+  .pick.hm .badge { color: var(--hm-deep); background: var(--hm-wash); border: 1px solid var(--hm-soft); }
+  .pick .who { font-family: var(--serif); font-weight: 700; font-size: 16px; color: var(--ink); margin-bottom: 9px; line-height: 1.5; }
+  .pick p { font-size: 13.5px; }
+  .pick.span { grid-column: 1 / -1; }
+
+  /* ── pull ───────────────────────────────────────── */
+  .pull { text-align: center; padding: 96px 0; }
+  .pull q { quotes: none; display: block; max-width: 26ch; margin: 0 auto; font-family: var(--serif); font-weight: 700; font-size: clamp(26px, 4.4vw, 54px); line-height: 1.34; color: var(--ink); }
+  .pull q .oc { color: var(--oc-deep); }
+  .pull q .hm { color: var(--hm-deep); }
+  .pull cite { display: block; margin-top: 34px; font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); font-style: normal; }
+
+  /* ── limits ─────────────────────────────────────── */
+  .limits { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 8px; }
+  .lim { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; box-shadow: var(--shadow-sm); }
+  .lim .tag { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .lim h4 { font-family: var(--serif); font-weight: 700; font-size: 17px; color: var(--ink); margin-bottom: 7px; }
+  .lim p { font-size: 13.5px; }
+
+  /* ── sources ────────────────────────────────────── */
+  .sources { display: grid; gap: 0; border-top: 1px solid var(--line-2); }
+  .sources a { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: baseline; padding: 20px 6px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); transition: padding .18s, background .18s; border-radius: 10px; }
+  .sources a:hover { padding-left: 18px; background: var(--surface); }
+  .sources .idx { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--accent); }
+  .sources strong { display: block; font-family: var(--serif); font-weight: 700; font-size: 16px; color: var(--ink); margin-bottom: 3px; }
+  .sources span span { font-size: 13px; color: var(--ink-2); }
+  .sources .arr { color: var(--accent); font-family: var(--display); font-size: 18px; transition: transform .18s; }
+  .sources a:hover .arr { transform: translateX(5px); }
+  .src-note { margin-top: 18px; font-size: 12.5px; color: var(--ink-3); line-height: 1.7; }
+
+  /* ── pager + footer ─────────────────────────────── */
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 54px; }
+  .pager a { display: block; padding: 26px 28px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: transform .16s, box-shadow .16s; }
+  .pager a:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .pager a:last-child { text-align: right; }
+  .pager .dir { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 9px; }
+  .pager strong { font-family: var(--serif); font-weight: 700; font-size: 16px; line-height: 1.4; color: var(--ink); }
+  .site-foot { position: relative; z-index: 1; border-top: 1px solid var(--line-2); padding: 40px 0 80px; }
+  .site-foot .inner { max-width: 1160px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .site-foot .ft { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 19px; color: var(--ink); }
+  .site-foot .fm { font-size: 12.5px; color: var(--ink-3); letter-spacing: .04em; }
+
+  /* ── responsive ─────────────────────────────────── */
+  @media (max-width: 940px) {
+    .topbar { padding: 13px 20px; } .topbar nav { display: none; }
+    main { padding: 0 22px 80px; } section { padding: 60px 0; }
+    .versus { grid-template-columns: 1fr; } .vmid { transform: rotate(90deg); padding: 4px 0; }
+    .common { grid-template-columns: 1fr 1fr; }
+    .duo2 { grid-template-columns: 1fr !important; }
+    .picks { grid-template-columns: 1fr; } .pick.span { grid-column: auto; }
+    .limits { grid-template-columns: 1fr; }
+    .pager { grid-template-columns: 1fr; }
+    .site-foot .inner { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 540px) {
+    .common { grid-template-columns: 1fr; }
+    h1 { font-size: clamp(32px, 9vw, 42px); }
+    .sources a { grid-template-columns: auto 1fr; } .sources .arr { display: none; }
+  }
+  .duo2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<!-- INTERNAL_LINKS_INJECTED v1 -->
+<aside class="related-nav" aria-label="関連ガイド" style="position:relative;z-index:2;background:var(--surface);border-bottom:1px solid var(--line);padding:9px 20px;font:13px/1.4 'Inter','Noto Sans JP',system-ui,sans-serif;color:var(--ink-3);display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+  <span style="color:var(--accent-deep);font-weight:700;letter-spacing:.04em">関連ガイド</span>
+  <a href="/presentations/hubs/claude-code-guide-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">Claude Code 完全ガイド</a>
+  <a href="/presentations/hubs/mcp-complete-guide.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">MCP 完全ガイド</a>
+  <a href="/presentations/hubs/ai-model-comparison-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">Claude vs ChatGPT vs Gemini 比較</a>
+  <a href="/presentations/hubs/ai-funding-2026.html" style="color:var(--ink-2);text-decoration:none;padding:2px 11px;border-radius:999px;border:1px solid var(--line-2)">AI資金調達まとめ</a>
+</aside>
+
+<header class="topbar">
+  <div class="brand"><span class="dot"></span>AI Daily Briefing</div>
+  <nav>
+    <a href="#common">共通点</a>
+    <a href="#openclaw">OpenClaw</a>
+    <a href="#hermes">Hermes</a>
+    <a href="#compare">比較表</a>
+    <a href="#who">使い分け</a>
+    <a href="#limits">注意</a>
+    <a href="../index.html">戻る</a>
+  </nav>
+  <span class="stamp">2026 · 06 · 27 · Sat</span>
+</header>
+
+<main>
+
+  <!-- ───────────────── HERO ───────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-eyebrow">
+      <span class="pill">Issue № 06·27</span>
+      <span class="sep"></span>
+      <span>Self-hosted AI Agents</span>
+      <span class="sep"></span>
+      <span>OpenClaw vs Hermes Agent</span>
+    </div>
+    <h1>自己ホストAIエージェント、<br><span class="oc">OpenClaw</span> vs <span class="hm">Hermes</span>。</h1>
+    <p class="hero-lead">どちらも <strong>MIT ライセンス・自己ホスト・モデル非依存（BYO-LLM）・メッセージアプリ操作</strong>と、驚くほど似ている。違いは<strong>思想</strong>にある——<span class="oc">OpenClaw</span> は運用の堅牢性を磨く実務志向、<span class="hm">Hermes</span> は使うほど賢くなる自己改善ループが核。最新アップデートと「誰がどちらを使うべきか」を、検証済みの事実だけで整理する。</p>
+    <div class="versus">
+      <div class="vtile oc">
+        <div class="vh">OpenClaw</div>
+        <div class="vv">最新安定版 2026.6.10</div>
+        <p>Peter Steinberger 発／OpenClaw Foundation。TypeScript・メッセージアプリ中心。直近は信頼性・配信・復旧の改善（paper cuts）。</p>
+        <div class="chips"><span>MIT / OSS</span><span>TypeScript</span><span>約38万★</span></div>
+      </div>
+      <div class="vmid">vs</div>
+      <div class="vtile hm">
+        <div class="vh">Hermes Agent</div>
+        <div class="vv">v0.17.0「The Reach Release」</div>
+        <p>Nous Research（Teknium）。Python・自己改善ループ。v0.17.0 の目玉は到達範囲の拡大（iMessage 等）。</p>
+        <div class="chips"><span>MIT / OSS</span><span>Python</span><span>約20.4万★</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── COMMON ───────────────── -->
+  <section id="common">
+    <span class="kicker"><span class="n">01</span> · Common Ground</span>
+    <h2>まず、<em>似ている</em>部分。</h2>
+    <p class="lede">比較の前提として、両者の共通点は大きい。だからこそ「どちらを選ぶか」が悩ましい。土台が同じなら、決め手は<strong>思想と最新アップデートの方向性</strong>になる。</p>
+    <div class="common">
+      <div class="cm"><div class="t">MIT・OSS</div><p>どちらもオープンソース。無料で自己ホスト可能、ソースを検査できる。</p></div>
+      <div class="cm"><div class="t">自己ホスト</div><p>クラウドSaaSではなく、自分の環境でローカル運用する設計。</p></div>
+      <div class="cm"><div class="t">BYO-LLM</div><p>モデル非依存。Claude/GPT/Grok 等、自分のAPIキー/契約を接続。</p></div>
+      <div class="cm"><div class="t">メッセージ操作</div><p>Telegram/Discord/Slack など、チャットアプリから操作できる。</p></div>
+    </div>
+  </section>
+
+  <!-- ───────────────── OPENCLAW ───────────────── -->
+  <section id="openclaw">
+    <span class="kicker oc"><span class="n">02</span> · OpenClaw</span>
+    <h2><span class="oc">OpenClaw</span> の最新 — <em>「paper cuts」</em>で運用を磨く。</h2>
+    <p class="lede">IDE でも CLI でもなく、Telegram/WhatsApp/Signal/Discord/Slack/Mattermost から操作する自律エージェント。直近サイクルは大型新機能より<strong>信頼性・配信・復旧・セッション安全</strong>の地道な改善が主軸。最新の安定版は <strong>2026.6.10</strong>（2026-06-24）。</p>
+    <div class="panel oc">
+      <div class="hd">
+        <div class="nm">OpenClaw</div>
+        <div class="ver">最新安定版 2026.6.10 ／ 最新プレリリース 2026.6.11-beta.1（カレンダー版）</div>
+        <div class="meta">Peter Steinberger（@steipete）発・現 OpenClaw Foundation ／ MIT・TypeScript ／ BYO-LLM（Claude・GPT/Codex・DeepSeek・GLM 等）</div>
+      </div>
+      <ul>
+        <li><span class="k">◆</span><span><strong>自動 fast モード</strong>（2026.6.10）— <code>/fast auto</code> で短い対話は即応、長い処理は通常モードへ自動復帰。状態を失わない。</span></li>
+        <li><span class="k">◆</span><span><strong>Telegram 配信の高品質化</strong>（2026.6.9）— リッチ HTML/Markdown・ステッカー・進捗ドラフト・表の正規化に対応。</span></li>
+        <li><span class="k">◆</span><span><strong>エージェント復旧の安定化</strong>（2026.6.9）— リトライ・履歴修復・返信整合で、中断したターンも可視の最終結果へ。</span></li>
+        <li><span class="k">◆</span><span><strong>Codex 連携強化</strong>（2026.6.9/6.10）— SecretRefs・スレッド文脈・承認ルーティング・型付き SDK ヘルパー。</span></li>
+        <li><span class="k">◆</span><span><strong>モデルルーティング/フェイルオーバー</strong>（2026.6.10-beta.2）— GLM 過負荷時のフェイルオーバー、ネイティブ推論レベル選択。</span></li>
+        <li><span class="k">◆</span><span><strong>チャネル制御・プラグイン外部化</strong>（2026.6.11-beta.1）— Slack リレー、Mattermost <code>/oc_queue</code>、DMごとのモデル上書き、公式プラグインの外部化。</span></li>
+      </ul>
+      <div class="ft">※「OpenClaw 4.26」という版は存在しない（カレンダーバージョニング採用、全タグ検索で0件）。</div>
+    </div>
+  </section>
+
+  <!-- ───────────────── HERMES ───────────────── -->
+  <section id="hermes">
+    <span class="kicker hm"><span class="n">03</span> · Hermes Agent</span>
+    <h2><span class="hm">Hermes Agent v0.17.0</span> — <em>「到達範囲」</em>を広げる。</h2>
+    <p class="lede">「使うほど育つ」自己改善型のパーソナルAIエージェント。経験から再利用スキルを蒸留し、長期記憶/プロフィールを育てる学習ループが中核。最新は <strong>v0.17.0「The Reach Release」</strong>（タグ v2026.6.19、2026-06-19）で、<strong>メッセージ到達範囲の拡大</strong>が真の目玉。</p>
+    <div class="panel hm">
+      <div class="hd">
+        <div class="nm">Hermes Agent v0.17.0</div>
+        <div class="ver">「The Reach Release」／ タグ v2026.6.19（2026-06-19 公開）</div>
+        <div class="meta">Nous Research（リード Teknium）／ MIT・Python（<code>pip install</code>）／ BYO-LLM・モデル非依存 ／ TUI＋ゲートウェイ</div>
+      </div>
+      <ul>
+        <li><span class="k">◆</span><span><strong>到達範囲の拡大（目玉）</strong>— <strong>iMessage（Photon・Macリレー不要）</strong>＋ Raft エージェントネットワークをチャネルに追加。</span></li>
+        <li><span class="k">◆</span><span><strong>非同期サブエージェント</strong>— <code>delegate_task(background=true)</code> で長時間タスクを背後に委譲、完了後に会話へ復帰。</span></li>
+        <li><span class="k">◆</span><span><strong>Unreal Engine 5.8 MCP</strong>— 公式 MCP カタログに追加。MCP サーバが対話を促せる elicitation 対応。</span></li>
+        <li><span class="k">◆</span><span><strong>Stripe 決済スキル</strong>— 購入・決済・サブスク連携のスキルセット（CLI ショップスキル含む）。</span></li>
+        <li><span class="k">◆</span><span><strong>Automation Blueprints</strong>— cron 構文なしで定期実行を設定。キュレーターの LLM コストも最適化。</span></li>
+        <li><span class="k">◆</span><span><strong>memory ツールの大幅強化</strong>— 長期記憶/プロフィール管理を改善。</span></li>
+      </ul>
+      <div class="ft">※ ベンダー主張の「MoA／+8% vs Opus 4.8」等は changelog に無く未確認のため除外。daily-news で使うローカル hermes-agent とは別物。</div>
+    </div>
+  </section>
+
+  <!-- ───────────────── COMPARE ───────────────── -->
+  <section id="compare">
+    <span class="kicker"><span class="n">04</span> · Head to Head</span>
+    <h2>同じ土台、<br><em>違う思想</em>。</h2>
+    <p class="lede">検証済みの事実だけで並べると、輪郭がはっきりする。<span class="oc">OpenClaw</span>＝運用の堅牢性、<span class="hm">Hermes</span>＝自己改善と到達範囲。</p>
+    <div class="ptwrap">
+      <table class="cmp">
+        <thead>
+          <tr><th class="axis">観点</th><th class="oc">OpenClaw</th><th class="hm">Hermes Agent v0.17.0</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>開発元 / ライセンス</td><td>OpenClaw Foundation（創始 Steinberger）/ MIT</td><td>Nous Research（リード Teknium）/ MIT</td></tr>
+          <tr><td>実装 / 導入</td><td>TypeScript・ローカル/自己ホスト</td><td>Python・<code>pip install</code>＋デスクトップ/Web</td></tr>
+          <tr><td>操作IF</td><td>メッセージアプリ中心（TG/WA/Signal/Discord/Slack/Mattermost）</td><td>TUI＋ゲートウェイ（＋iMessage/Raft/Email）</td></tr>
+          <tr><td>設計思想</td><td>多チャネル運用と信頼性（paper cuts）</td><td>自己改善ループ（スキル蒸留・長期記憶）</td></tr>
+          <tr><td>最新版（検証済）</td><td>安定版 2026.6.10（カレンダー版）</td><td>v0.17.0 = タグ v2026.6.19（06-19）</td></tr>
+          <tr><td>直近の目玉</td><td>/fast auto・Codex連携・ルーティング/フェイルオーバー</td><td>iMessage(Macリレー不要)・非同期サブエージェント・UE5.8 MCP</td></tr>
+          <tr><td>LLM接続</td><td>BYO-LLM（Claude/GPT/Codex/DeepSeek/GLM）</td><td>BYO-LLM（Grok/Anthropic/OpenAI 等）</td></tr>
+          <tr><td>コミュニティ規模</td><td>GitHub 約38万★</td><td>GitHub 約20.4万★</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ───────────────── WHO ───────────────── -->
+  <section id="who">
+    <span class="kicker"><span class="n">05</span> · Who Should Use Which</span>
+    <h2>あなたは、<span class="oc">どっち</span>を<span class="hm">使う</span>?</h2>
+    <p class="lede">土台が同じなら、決め手は「何を重視するか」。代表的な5プロフィールで使い分けを示す。</p>
+    <div class="picks">
+      <div class="pick oc">
+        <span class="badge">→ OpenClaw</span>
+        <div class="who">スマホ（Telegram/WhatsApp）から常時稼働のコーディング・エージェントを回したいソロ開発者・インディーハッカー</div>
+        <p>メッセージアプリ操作が一級市民で、多チャネル配信と復旧・セッション安全が磨かれている。並列実行・PRレビュー・バグ発見にも向く。</p>
+      </div>
+      <div class="pick hm">
+        <span class="badge">→ Hermes Agent</span>
+        <div class="who">使うほど賢くなる「自己改善型」が欲しい／長期記憶やスキル蒸留を実験したい開発者・研究者</div>
+        <p>学習ループ・長期記憶/プロフィール育成・スキル自動キュレーションが中核設計。MCPカタログ（UE5.8等）や非同期サブエージェントで拡張も効く。</p>
+      </div>
+      <div class="pick hm">
+        <span class="badge">→ Hermes Agent</span>
+        <div class="who">iMessage を含む日常のメッセンジャーから自己ホストAIに話しかけたい／Macリレー不要が条件のパワーユーザー</div>
+        <p>v0.17.0「The Reach Release」の本丸が iMessage（Photon、Macリレー/BlueBubbles 不要）＋Raft での到達範囲拡大。</p>
+      </div>
+      <div class="pick oc">
+        <span class="badge">→ OpenClaw</span>
+        <div class="who">Discord/Slack/Mattermost でチーム運用し、モデルルーティング・セッション復旧・プラグイン拡張を重視するチーム</div>
+        <p>多チャネル運用（Slackリレー、Mattermost <code>/oc_queue</code>）、プロバイダルーティング/フェイルオーバー、公式プラグインの外部化が直近で強化。</p>
+      </div>
+      <div class="pick hm span">
+        <span class="badge">→ Hermes Agent</span>
+        <div class="who">cron 構文を書かずに定期実行（日次ブリーフィング等）＋長時間タスクの委譲をしたい自動化志向のユーザー</div>
+        <p>「Automation Blueprints」で cron なしのスケジュール化、<code>delegate_task(background=true)</code> で長時間タスクをバックグラウンドのサブエージェントに委譲できる（キュレーターの LLM コスト最適化も導入）。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── PULL ───────────────── -->
+  <section class="pull">
+    <q>安定運用なら <span class="oc">OpenClaw</span>、<br>育てる自律性なら <span class="hm">Hermes</span>。</q>
+    <cite>OpenClaw vs Hermes Agent v0.17.0 · 2026·06·27</cite>
+  </section>
+
+  <!-- ───────────────── LIMITS ───────────────── -->
+  <section id="limits">
+    <span class="kicker"><span class="n">06</span> · Honest Constraints</span>
+    <h2>断定しない、<span class="oc">未確認</span>の<span class="hm">線引き</span>。</h2>
+    <p class="lede">ツール比較ほど、確報と噂を分ける必要がある。本スライドで「事実」として扱わなかった点を明記する。</p>
+    <div class="limits">
+      <div class="lim">
+        <div class="tag">Version</div>
+        <h4>「OpenClaw 4.26」は実在しない</h4>
+        <p>OpenClaw はカレンダーバージョニング（YYYY.M.patch）。検証済みの最新安定版は 2026.6.10、最新プレリリースは 2026.6.11-beta.1。全タグ検索で「4.26」は0件。</p>
+      </div>
+      <div class="lim">
+        <div class="tag">Refuted</div>
+        <h4>Hermes の MoA 数値は未確認</h4>
+        <p>「MoA／+8% vs Opus 4.8／+11% vs GPT-5.5」は v0.17.0 の changelog に一切登場せず、ベンダー主張のみ。捏造の可能性が高く不採用。</p>
+      </div>
+      <div class="lim">
+        <div class="tag">Identity</div>
+        <h4>この Hermes は Nous Research 製</h4>
+        <p>NousResearch/hermes-agent の製品。daily-news パイプラインで使うローカルの「hermes-agent」venv（無関係）とは完全に別物。</p>
+      </div>
+      <div class="lim">
+        <div class="tag">Soft</div>
+        <h4>一部の周辺主張は未検証</h4>
+        <p>Hermes の `/learn`・アニメペット・v0.17.0目玉としての Windows/Linux computer use、OpenClaw の「Clawcast」「$500移行ボーナス/毎日クラッシュ」批判は未確認のため扱わない。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── SOURCES ───────────────── -->
+  <section id="sources">
+    <span class="kicker">Sources / References</span>
+    <h2>出典と<span class="hm">一次資料</span>。</h2>
+    <p class="lede" style="margin-bottom:28px">確定情報は GitHub リリース・公式で確認した。最新仕様はリリースノートでの裏取りを推奨する。</p>
+    <div class="sources">
+      <a href="https://github.com/openclaw/openclaw/releases" target="_blank" rel="noopener">
+        <span class="idx">01</span>
+        <span><strong>OpenClaw — GitHub Releases</strong><span>最新安定版 2026.6.10／プレリリース 2026.6.11-beta.1 とリリースノートの一次情報。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://openclaw.ai" target="_blank" rel="noopener">
+        <span class="idx">02</span>
+        <span><strong>OpenClaw — 公式サイト</strong><span>製品概要・対応チャネル・導入方法。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/NousResearch/hermes-agent/releases/tag/v2026.6.19" target="_blank" rel="noopener">
+        <span class="idx">03</span>
+        <span><strong>Hermes Agent v0.17.0「The Reach Release」（タグ v2026.6.19）</strong><span>iMessage/Raft・非同期サブエージェント・UE5.8 MCP 等の changelog 一次情報。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">
+        <span class="idx">04</span>
+        <span><strong>Hermes Agent — リポジトリ（NousResearch/hermes-agent）</strong><span>導入（pip）・MIT ライセンス・スター数・設計思想。</span></span>
+        <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">
+        <span class="idx">05</span>
+        <span><strong>OpenClaw — リポジトリ</strong><span>ライセンス（MIT）・対応プラットフォーム・スター数。</span></span>
+        <span class="arr">→</span>
+      </a>
+    </div>
+    <p class="src-note">収集経路：X 投稿を Grok のネイティブ X 検索（スクレイピング無し・有料 API 無し）で収集 → 各ツールの主張を GitHub Releases・公式で<strong>敵対的に検証</strong>（確度 OpenClaw 0.90 / Hermes 0.86）。誤った版番号・ベンダー主張の数値・未確認機能は本文で明示的に除外した。</p>
+
+    <div class="pager">
+      <a href="day_slide_2026_06_26.html">
+        <div class="dir">← 前日 · 06·26</div>
+        <strong>GPT-5.6（Sol/Terra/Luna）— フロンティアAIに「政府のゲート」</strong>
+      </a>
+      <a href="../index.html">
+        <div class="dir">一覧へ →</div>
+        <strong>AI Daily Briefing インデックス</strong>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="inner">
+    <div class="ft">Reliable ops, or an agent that grows?</div>
+    <div class="fm">2026 · 06 · 27 · SAT — OpenClaw vs Hermes Agent v0.17.0 · Generated by awano27</div>
+  </div>
+</footer>
+
+</body>
+</html>
