@@ -609,6 +609,20 @@
       font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
       padding: 3px 8px; border-radius: 3px;
     }
+    .week-card.is-empty {
+      background: var(--grey-50);
+      border-style: dashed;
+      box-shadow: none;
+      color: var(--on-light-mu);
+    }
+    .week-card.is-empty:hover {
+      background: var(--grey-50);
+      border-color: rgba(8, 18, 46, 0.18);
+      box-shadow: none;
+      transform: none;
+    }
+    .week-card.is-empty::before { opacity: 0; }
+    .week-card.is-empty .week-go { color: var(--on-light-mu2); }
     .week-day {
       font-size: 11px;
       letter-spacing: 0.18em;
@@ -2078,7 +2092,7 @@
           <div>
             <div class="section-eyebrow">This Week</div>
             <h2 class="section-title">今週のスライド</h2>
-            <p class="section-note">直近の発表を日付別に整理。重要な動きだけをすばやく追えるスライド一覧です。</p>
+            <p class="section-note">最新スライド日から直近7日を日付別に整理。重要な動きだけをすばやく追えます。</p>
           </div>
           <a class="section-link" href="presentations/day_slides_list.html">すべてのスライドを見る <span aria-hidden="true">→</span></a>
         </div>
@@ -2293,6 +2307,11 @@
       var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
       return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
     }
+    function formatDate(d) {
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
     function clearSkel(el) {
       if (!el) return;
       if (el.classList) el.classList.remove('skel');
@@ -2346,26 +2365,73 @@
       }
     }
 
-    function renderWeek(entries, todayDate) {
+    function dailyNewsForDate(dateStr) {
+      return 'daily-news/archive/' + dateStr + '.html';
+    }
+
+    function countByDate(entries) {
+      var counts = {};
+      if (!Array.isArray(entries)) return counts;
+      entries.forEach(function (e) {
+        if (!e || !/^\d{4}-\d{2}-\d{2}$/.test(e.date || '')) return;
+        counts[e.date] = (counts[e.date] || 0) + (Number(e.count) || 0);
+      });
+      return counts;
+    }
+
+    function buildWeekEntries(entries, anchorDate) {
+      var anchor = parseDate(anchorDate);
+      if (!anchor) return Array.isArray(entries) ? entries.slice(0, 7) : [];
+      var counts = countByDate(entries);
+      var week = [];
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(anchor.getTime());
+        d.setDate(anchor.getDate() - i);
+        var date = formatDate(d);
+        week.push({ date: date, count: counts[date] || 0 });
+      }
+      return week;
+    }
+
+    function probeSlidesForDates(dates) {
+      return Promise.all(dates.map(function (date) {
+        return fetch(slideForDate(date), { method: 'HEAD', cache: 'no-store' })
+          .then(function (r) { return r.ok ? date : null; })
+          .catch(function () { return null; });
+      })).then(function (found) {
+        var map = {};
+        found.forEach(function (date) {
+          if (date) map[date] = true;
+        });
+        return map;
+      });
+    }
+
+    function renderWeek(entries, todayDate, slideDates) {
       var grid = document.getElementById('weekGrid');
       if (!grid || !entries || !entries.length) return;
       var html = '';
-      entries.slice(0, 8).forEach(function (e) {
+      entries.slice(0, 7).forEach(function (e) {
         var d = parseDate(e.date);
         if (!d) return;
         var dow = WEEKDAY_JP[d.getDay()];
         var mon = MONTH_EN[d.getMonth()];
-        var url = slideForDate(e.date);
-        var count = (typeof e.count === 'number') ? e.count + ' items' : '';
+        var hasSlide = !slideDates || slideDates[e.date];
+        var hasNews = (Number(e.count) || 0) > 0;
+        var url = hasSlide ? slideForDate(e.date) : dailyNewsForDate(e.date);
+        var count = hasNews ? e.count + ' items' : (hasSlide ? 'Slide' : 'No update');
         var isToday = (e.date === todayDate);
-        html += '<a class="week-card' + (isToday ? ' is-today' : '') + '" href="' + url + '">' +
-          (isToday ? '<span class="today-flag">TODAY</span>' : '') +
+        var tag = (hasSlide || hasNews) ? 'a' : 'div';
+        var href = (hasSlide || hasNews) ? ' href="' + url + '"' : '';
+        var className = 'week-card' + (isToday ? ' is-today' : '') + (!hasSlide && !hasNews ? ' is-empty' : '');
+        html += '<' + tag + ' class="' + className + '"' + href + '>' +
+          (isToday ? '<span class="today-flag">LATEST</span>' : '') +
           '<span class="week-day">' + mon + ' · ' + dow + '曜</span>' +
           '<div class="week-date">' + String(d.getDate()).padStart(2,'0') + '</div>' +
           '<div class="week-month">' + e.date + '</div>' +
           '<div class="week-count"><span class="count-pill">' + count + '</span></div>' +
-          '<span class="week-go">スライドを見る →</span>' +
-          '</a>';
+          '<span class="week-go">' + (hasSlide ? 'スライドを見る →' : (hasNews ? 'ニュースを見る →' : '更新なし')) + '</span>' +
+          '</' + tag + '>';
       });
       if (html) grid.innerHTML = html;
     }
@@ -2483,20 +2549,17 @@
         renderCategories(null);
       }
 
-      if (Array.isArray(entries) && entries.length) {
-        var weekEntries = entries.slice();
-        if (todayDate && weekEntries[0].date !== todayDate) {
-          // todayDate が既に entries 内にある場合は、その位置から並べ直す（複製防止）。
-          // 存在しなければ先頭に新規エントリを追加する（本当に新しい日）。
-          var existingIdx = weekEntries.findIndex(function(e){ return e && e.date === todayDate; });
-          if (existingIdx > 0) {
-            weekEntries = weekEntries.slice(existingIdx);
-          } else if (existingIdx === -1) {
-            weekEntries.unshift({ date: todayDate, count: weekEntries[0].count || 0 });
-          }
-        }
-        renderWeek(weekEntries, todayDate);
-        renderStats(weekEntries);
+      var archiveEntries = Array.isArray(entries) ? entries : [];
+      if (todayDate || archiveEntries.length) {
+        var weekEntries = buildWeekEntries(archiveEntries, todayDate);
+        probeSlidesForDates(weekEntries.map(function (e) { return e.date; }))
+          .then(function (slideDates) {
+            renderWeek(weekEntries, todayDate, slideDates);
+          })
+          .catch(function () {
+            renderWeek(weekEntries, todayDate, {});
+          });
+        if (archiveEntries.length) renderStats(archiveEntries);
       }
     });
   })();
