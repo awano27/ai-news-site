@@ -19,6 +19,17 @@
       gap: 20px;
       margin: 32px 0 56px;
     }
+    .search-panel { margin:32px 0 56px;padding:24px;background:var(--ntt-navy-3);border:1px solid var(--ntt-line);border-radius:6px; }
+    .search-controls { display:grid;grid-template-columns:minmax(180px,2fr) repeat(3,minmax(130px,1fr));gap:12px; }
+    .search-controls input,.search-controls select { width:100%;min-height:44px;padding:10px 12px;color:var(--ntt-on-dark);background:var(--ntt-navy-2);border:1px solid var(--ntt-line-2);border-radius:4px; }
+    .search-status { min-height:24px;margin:18px 0;color:var(--ntt-on-dark-mu); }
+    .search-results { display:grid;gap:12px; }
+    .result-card { padding:18px;background:var(--ntt-navy-2);border-left:3px solid var(--ntt-yellow); }
+    .result-card a { color:var(--ntt-on-dark);font-weight:700;text-decoration:none; }
+    .result-meta { margin-bottom:7px;color:var(--ntt-on-dark-mu);font-size:12px; }
+    .result-summary { margin:8px 0 0;color:var(--ntt-on-dark-mu);font-size:13px;line-height:1.7; }
+    .load-more { display:none;min-height:44px;margin:20px auto 0;padding:10px 24px;border:1px solid var(--ntt-yellow);background:transparent;color:var(--ntt-yellow);border-radius:999px;cursor:pointer; }
+    @media (max-width:720px) { .search-panel{padding:16px}.search-controls{grid-template-columns:1fr}.result-card{min-width:0}.result-card a{overflow-wrap:anywhere} }
     .feature-card {
       background: var(--ntt-navy-3);
       border: 1px solid var(--ntt-line);
@@ -118,36 +129,50 @@
 
   <main>
     <div class="container">
+      <section class="search-panel" aria-labelledby="searchHeading">
+        <h2 id="searchHeading" class="feature-title">ニュースを検索</h2>
+        <p class="feature-desc">キーワード、カテゴリ、日付範囲を組み合わせて日次ニュースを検索できます。</p>
+        <div class="search-controls">
+          <input id="newsQuery" type="search" aria-label="ニュースのキーワード" placeholder="例: Claude">
+          <select id="newsCategory" aria-label="カテゴリ"><option value="">すべてのカテゴリ</option></select>
+          <input id="newsFrom" type="date" aria-label="開始日">
+          <input id="newsTo" type="date" aria-label="終了日">
+        </div>
+        <div id="searchStatus" class="search-status" role="status">検索データを読み込み中…</div>
+        <div id="searchResults" class="search-results"></div>
+        <button id="loadMore" class="load-more" type="button">さらに表示</button>
+      </section>
+
       <div class="features-grid">
         <div class="feature-card">
           <span class="feature-num">01</span>
-          <div class="feature-title">高度な検索機能</div>
-          <div class="feature-desc">キーワード・日付・重要度による詳細検索。AI関連の最新情報を素早く発見できます。</div>
+          <div class="feature-title">キーワード検索</div>
+          <div class="feature-desc">タイトル・要約・情報源を対象に、キーワードでニュースを絞り込めます。</div>
         </div>
         <div class="feature-card">
           <span class="feature-num">02</span>
-          <div class="feature-title">リアルタイム更新</div>
-          <div class="feature-desc">AIビジネス・技術革新・研究開発の最新動向を毎朝07:00に更新。業界のトレンドを見逃しません。</div>
+          <div class="feature-title">カテゴリ絞り込み</div>
+          <div class="feature-desc">収録データから作られたカテゴリを選び、目的のニュースだけを表示できます。</div>
         </div>
         <div class="feature-card">
           <span class="feature-num">03</span>
-          <div class="feature-title">カテゴリ別整理</div>
-          <div class="feature-desc">ビジネス・ツール・研究・SNSの4カテゴリで整理。目的に応じた情報収集が効率的に行えます。</div>
+          <div class="feature-title">日付範囲指定</div>
+          <div class="feature-desc">開始日と終了日を指定して、対象期間のニュースを検索できます。</div>
         </div>
         <div class="feature-card">
           <span class="feature-num">04</span>
-          <div class="feature-title">多様な情報ソース</div>
-          <div class="feature-desc">TechCrunch・Reddit・arXiv・公式ブログ・SNSなど幅広いソースから厳選された情報を提供。</div>
+          <div class="feature-title">条件の組み合わせ</div>
+          <div class="feature-desc">キーワード・カテゴリ・日付範囲を組み合わせて、結果を絞り込めます。</div>
         </div>
         <div class="feature-card">
           <span class="feature-num">05</span>
-          <div class="feature-title">レスポンシブ対応</div>
-          <div class="feature-desc">PC・タブレット・スマートフォンでの快適な閲覧体験。いつでもどこでもアクセス可能です。</div>
+          <div class="feature-title">日次ニュースの集約</div>
+          <div class="feature-desc">日次ニュースデータをまとめて確認できます。</div>
         </div>
         <div class="feature-card">
           <span class="feature-num">06</span>
-          <div class="feature-title">日本語最適化</div>
-          <div class="feature-desc">日本のAI業界に特化した情報と、海外情報の日本語要約で包括的な情報収集をサポート。</div>
+          <div class="feature-title">50件ずつ追加表示</div>
+          <div class="feature-desc">検索結果を50件ずつ追加表示し、多数の記事を段階的に確認できます。</div>
         </div>
       </div>
 
@@ -186,5 +211,15 @@
       </div>
     </div>
   </footer>
+  <script>
+  (function(){
+    var all=[],filtered=[],shown=50;
+    var q=document.getElementById('newsQuery'),cat=document.getElementById('newsCategory'),from=document.getElementById('newsFrom'),to=document.getElementById('newsTo'),results=document.getElementById('searchResults'),status=document.getElementById('searchStatus'),more=document.getElementById('loadMore');
+    function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+    function render(){var term=q.value.trim().toLowerCase();filtered=all.filter(function(x){return (!term||(x.title+' '+(x.summary||'')+' '+x.source).toLowerCase().indexOf(term)>=0)&&(!cat.value||x.category===cat.value)&&(!from.value||x.date>=from.value)&&(!to.value||x.date<=to.value)});var page=filtered.slice(0,shown);results.innerHTML=page.map(function(x){return '<article class="result-card"><div class="result-meta">'+esc(x.date)+' · '+esc(x.category)+' · '+esc(x.source)+'</div><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.title)+'</a>'+(x.summary?'<p class="result-summary">'+esc(x.summary)+'</p>':'')+'</article>'}).join('');status.textContent=filtered.length?filtered.length+'件中 '+page.length+'件を表示':'条件に一致するニュースはありません。';more.style.display=shown<filtered.length?'block':'none'}
+    [q,cat,from,to].forEach(function(el){el.addEventListener('input',function(){shown=50;render()})});more.addEventListener('click',function(){shown+=50;render()});
+    fetch('../public-pages/news/search_index.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(data){all=data;Array.from(new Set(all.map(function(x){return x.category}).filter(Boolean))).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cat.appendChild(o)});render()}).catch(function(){status.textContent='検索データを読み込めませんでした。時間をおいて再度お試しください。'});
+  })();
+  </script>
 </body>
 </html>

@@ -29,19 +29,20 @@ class AnalyticsInjector(Injector):
     DESCRIPTION = "Inject GA4 analytics loader into every HTML page."
     TAG = "inject_analytics"
     DEFAULT_TARGETS = [
-        ROOT / "index.html",
-        ROOT / "about.html",
-        ROOT / "contact.html",
-        ROOT / "privacy-policy.html",
+        *ROOT.glob("*.html"),
         ROOT / "presentations",
+        ROOT / "daily-news",
     ]
     EXCLUSION_PATTERNS = (
         re.compile(r"og-image-generator", re.IGNORECASE),
         re.compile(r"^test_", re.IGNORECASE),
         re.compile(r"^tmp_", re.IGNORECASE),
+        re.compile(r"_bak|\.bak", re.IGNORECASE),
     )
 
     def build_block(self, path: Path, text: str) -> str | None:
+        if re.search(r'<meta\s+[^>]*http-equiv=["\']refresh["\']', text, re.IGNORECASE):
+            return None
         return SNIPPET
 
 
