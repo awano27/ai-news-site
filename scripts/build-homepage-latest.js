@@ -323,14 +323,14 @@ function updateHomepage(data, slide, slideUrl) {
   );
   html = replaceFirst(
     html,
-    /<span id="heroNewsTitle"[\s\S]*?<\/span>\s*<span class="hero-news-meta" id="heroNewsMeta">[\s\S]*?<\/span>/,
-    `<span id="heroNewsTitle">${escapeHtml(heroTitle)}</span>\n              <span class="hero-news-meta" id="heroNewsMeta">${escapeHtml(heroMeta)}</span>`,
+    /(?:<!-- fallback:latest-slide -->)?<span id="heroNewsTitle"[\s\S]*?<\/span>(?:<!-- fallback:end -->)?\s*<span class="hero-news-meta" id="heroNewsMeta">[\s\S]*?<\/span>/,
+    `<!-- fallback:latest-slide --><span id="heroNewsTitle">${escapeHtml(heroTitle)}</span><!-- fallback:end -->\n              <span class="hero-news-meta" id="heroNewsMeta">${escapeHtml(heroMeta)}</span>`,
     'hero news title and meta'
   );
   html = replaceFirst(
     html,
-    /<noscript>\s*<span>[\s\S]*?<\/span>\s*<\/noscript>/,
-    `<noscript>\n                <span>最新トピック: ${escapeHtml(heroTitle)}。<a href="${slideUrl}">今日のスライド</a>または<a href="presentations/news_archive.html">アーカイブ</a>からご覧ください。</span>\n              </noscript>`,
+    /<noscript>\s*(?:<!-- fallback:latest-slide -->)?<span>[\s\S]*?<\/span>(?:<!-- fallback:end -->)?\s*<\/noscript>/,
+    `<noscript>\n                <!-- fallback:latest-slide --><span>最新トピック: ${escapeHtml(heroTitle)}。<a href="${slideUrl}">今日のスライド</a>または<a href="presentations/news_archive.html">アーカイブ</a>からご覧ください。</span><!-- fallback:end -->\n              </noscript>`,
     'hero noscript fallback'
   );
   html = replaceFirst(
