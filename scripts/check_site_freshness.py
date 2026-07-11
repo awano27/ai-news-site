@@ -17,6 +17,11 @@ This script catches that class of "更新漏れ" (missed update) drift:
     * The newest generated day-slide is present in day_slides_index.html
       (both the ``.feat-card`` highlight grid AND the ``.slide-card`` full list).
     * The newest generated day-slide URL is present in sitemap.xml.
+    * No calendar-day gap in the last ``--gap-days`` days (default 14) ending at the
+      newest slide: every day must have a slide file on disk, an entry in
+      day_slides_index.html, and an entry in sitemap.xml. This catches slides that
+      were created in a Claude cloud session but never merged to main (2026-06-30 /
+      2026-07-02 incident), and days that were skipped entirely (2026-06-29 / 07-07).
 
   WARN (reported, does not fail the build)
     * Each sibling daily pipeline (reports / news archive / ranking / news JSON /
@@ -121,7 +126,40 @@ def _days_between(a: str, b: str) -> int:
     return abs((date(ya, ma, da) - date(yb, mb, db)).days)
 
 
-def run(max_lag: int) -> dict:
+def _gap_check(expected: str, idx: str, sm: str, gap_days: int) -> dict:
+    """Every calendar day in the ``gap_days`` window ending at ``expected`` must have
+    a slide file on disk AND be present in the index AND in the sitemap."""
+    from datetime import timedelta
+    y, m, d = (int(x) for x in expected.split("-"))
+    end = date(y, m, d)
+    missing_file, missing_index, missing_sitemap = [], [], []
+    for i in range(gap_days):
+        day = end - timedelta(days=i)
+        slug = f"day_slide_{day.year:04d}_{day.month:02d}_{day.day:02d}"
+        iso = day.isoformat()
+        if not os.path.exists(_p("presentations", "day_slides", slug + ".html")):
+            missing_file.append(iso)
+            continue
+        if slug not in idx:
+            missing_index.append(iso)
+        if slug not in sm:
+            missing_sitemap.append(iso)
+    problems = []
+    if missing_file:
+        problems.append("no slide file (skipped day or unmerged branch): " + ", ".join(sorted(missing_file)))
+    if missing_index:
+        problems.append("file exists but MISSING from day_slides_index.html: " + ", ".join(sorted(missing_index)))
+    if missing_sitemap:
+        problems.append("file exists but MISSING from sitemap.xml: " + ", ".join(sorted(missing_sitemap)))
+    ok = not problems
+    return {
+        "name": f"no day gaps in last {gap_days} days (ending {expected})",
+        "ok": ok,
+        "detail": "complete" if ok else "; ".join(problems),
+    }
+
+
+def run(max_lag: int, gap_days: int = 14) -> dict:
     expected = _newest_slide_date()
     report: dict = {"expected_latest_slide": expected, "critical": [], "warn": []}
 
@@ -168,6 +206,10 @@ def run(max_lag: int) -> dict:
         "detail": f"{slug} {'present' if sm_ok else 'MISSING'} in sitemap.xml",
     })
 
+    # ---- CRITICAL: no calendar-day gaps in the recent window ----
+    if gap_days > 0:
+        report["critical"].append(_gap_check(expected, idx, sm, gap_days))
+
     # ---- WARN: sibling daily pipelines within max_lag days ----
     siblings = [
         ("daily report HTML", _newest_dated_file("presentations/daily_reports", UNDERSCORE_RE)),
@@ -198,10 +240,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="visionhub.jp freshness guard")
     ap.add_argument("--max-lag", type=int, default=1,
                     help="days a sibling pipeline may lag the newest slide before WARN (default 1)")
+    ap.add_argument("--gap-days", type=int, default=14,
+                    help="calendar window (ending at newest slide) that must have a slide "
+                         "every day, in the index and sitemap. 0 disables (default 14)")
     ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     args = ap.parse_args()
 
-    rep = run(args.max_lag)
+    rep = run(args.max_lag, args.gap_days)
 
     if args.json:
         print(json.dumps(rep, ensure_ascii=False, indent=2))

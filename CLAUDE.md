@@ -37,6 +37,7 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 - rebase で自動生成ファイルが衝突したら **`--ours`**（= リモート側を採用）: daily-news/*, auto_daily_report.*, version.json, latest.json
 - `.gitignore` が .github/ script/ scripts/ の新規ファイルをブロック → 新規追加は `git add -f`
 - behind + dirty の状態で特定ファイルだけ deploy する時: stash→rebase→pop は禁物。origin/main の detached worktree に cherry-pick → push
+- **Claude cloud/web セッションは `claude/*` ブランチに push する**。成果物は origin/main 到達（`git cat-file -e origin/main:<path>`）までが完了条件。孤立スライド検知は `scripts/check_orphaned_slide_branches.py`（freshness-guard.yml で毎朝実行）
 
 ## 復旧手順（要点）
 

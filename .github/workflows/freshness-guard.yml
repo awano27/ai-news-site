@@ -25,5 +25,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify newest slide is propagated to index + sitemap
+      - name: Verify newest slide is propagated to index + sitemap (+ no day gaps)
         run: python scripts/check_site_freshness.py
+      - name: Verify no day-slides stranded on unmerged claude/* branches
+        run: |
+          git fetch origin '+refs/heads/claude/*:refs/remotes/origin/claude/*'
+          python scripts/check_orphaned_slide_branches.py
