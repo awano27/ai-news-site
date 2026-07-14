@@ -5,85 +5,160 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="max-image-preview:large">
   <title>OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書 | 2026-06-29</title>
-  <meta name="description" content="自律型AI秘書OpenClawのモバイル版がリリース。Gateway/Node分業アーキテクチャ、SkillSpectorによる多層防御、Human-in-the-loop承認、Tailscale統合の5つの要点を整理する。">
+  <meta name="description" content="OpenClawモバイル版を、PCをGateway（脳）、スマートフォンをNode（身体・センサー）とするローカルファーストなAIインフラとして読み解く13枚のスライド。">
   <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_29.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Intelligence Hub">
-  <meta property="og:title" content="OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書">
-  <meta property="og:description" content="OpenClawモバイル版のGateway/Node分業、SkillSpector多層防御、承認フロー、Tailscale統合、OSSコミュニティの5つの要点を整理する。">
+  <meta property="og:title" content="OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書 | 2026-06-29">
+  <meta property="og:description" content="OpenClawモバイル版を、PCをGateway（脳）、スマートフォンをNode（身体・センサー）とするローカルファーストなAIインフラとして読み解く13枚のスライド。">
   <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_06_29.html">
   <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0629/cover.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書">
-  <meta name="twitter:description" content="AIの「身体」を持ち歩く。OpenClawモバイル版の5つの衝撃を5分で整理。">
+  <meta name="twitter:description" content="AIの「身体」を持ち歩く。OpenClawモバイル版のアーキテクチャ、承認、ゼロトラスト、ClawScanを13枚で整理。">
   <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0629/cover.jpg">
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"PresentationDigitalDocument","headline":"OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書","description":"自律型AI秘書OpenClawのモバイル版がリリース。Gateway/Node分業アーキテクチャ、SkillSpectorによる多層防御、Human-in-the-loop承認、Tailscale統合の5つの要点を整理する。","datePublished":"2026-06-29","dateModified":"2026-07-12","image":["https://visionhub.jp/presentations/day_slides/images/0629/cover.jpg"],"mainEntityOfPage":"https://visionhub.jp/presentations/day_slides/day_slide_2026_06_29.html","articleSection":"AI Agent","author":{"@type":"Organization","name":"AI Intelligence Hub"}}
+  {
+    "@context":"https://schema.org",
+    "@type":"PresentationDigitalDocument",
+    "headline":"OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書",
+    "description":"OpenClawモバイル版を、PCをGateway（脳）、スマートフォンをNode（身体・センサー）とするローカルファーストなAIインフラとして読み解く13枚のスライド。",
+    "datePublished":"2026-06-29",
+    "dateModified":"2026-07-12",
+    "image":["https://visionhub.jp/presentations/day_slides/images/0629/cover.jpg"],
+    "mainEntityOfPage":"https://visionhub.jp/presentations/day_slides/day_slide_2026_06_29.html",
+    "articleSection":"AI Agent",
+    "author":{"@type":"Organization","name":"AI Intelligence Hub"}
+  }
   </script>
   <style>
-    :root { --bg:#eef1f5; --paper:#fffdf7; --ink:#172033; --muted:#637087; --line:#d9e0ea; --navy:#070f26; --blue:#b0501a; --yellow:#ffcc00; --green:#0b7653; --gold:#8b6d00; --red:#a34343; }
-    * { box-sizing:border-box; } body { margin:0; background:var(--navy); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; line-height:1.8; }
-    main { max-width:1120px; margin:0 auto; background:var(--paper); min-height:100vh; padding:clamp(20px,4vw,64px); } a { color:var(--blue); }
-    .topbar { display:flex; justify-content:space-between; gap:20px; color:var(--muted); font-size:13px; } .topbar a { text-decoration:none; }
-    .hero { border-bottom:1px solid var(--line); padding:60px 0 42px; } .kicker,.eyebrow { color:var(--blue); font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
-    h1 { max-width:940px; font-size:clamp(34px,5.2vw,66px); line-height:1.15; text-wrap:balance; margin:12px 0 20px; letter-spacing:-.035em; } .dek { max-width:800px; color:var(--muted); font-size:clamp(17px,2vw,22px); margin:0; }
-    .meta { display:flex; flex-wrap:wrap; gap:9px; margin-top:24px; color:var(--muted); font-size:13px; } .pill { border:1px solid var(--line); padding:3px 9px; background:#fff; } .pill.fact { color:var(--green); border-color:#9bcab8; }
-    section { margin-top:56px; } h2 { font-size:clamp(25px,3vw,38px); line-height:1.25; border-top:4px solid var(--navy); padding-top:14px; margin:0 0 20px; } h3 { font-size:20px; line-height:1.4; margin:0 0 8px; }
-    .conclusion { background:#fbf1ea; border-left:6px solid var(--navy); padding:22px clamp(18px,3vw,32px); } .conclusion p { font-size:19px; margin:0; }
-    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; } .card { border:1px solid var(--line); padding:18px; background:#fff; } .label { display:inline-block; font-size:11px; padding:2px 7px; border:1px solid #a8b4c5; color:#43536b; margin-bottom:10px; }
-    .fact .label { color:var(--green); border-color:#9bcab8; } .claim .label { color:var(--gold); border-color:#d8c77d; } .analysis .label { color:var(--blue); border-color:#d8ab8e; }
-    .table-scroll { overflow-x:auto; } .matrix { width:100%; min-width:720px; border-collapse:collapse; background:#fff; } .matrix th,.matrix td { border:1px solid var(--line); text-align:left; padding:12px; vertical-align:top; } .matrix th { background:#f1f4f8; }
-    ul,ol { padding-left:1.4em; } li { margin:8px 0; } .note { color:var(--muted); font-size:13px; } .warning { border-left:5px solid var(--red); background:#fff3f1; padding:16px 20px; }
-    .actions { counter-reset:action; list-style:none; padding:0; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; } .actions li { counter-increment:action; border:1px solid var(--line); padding:18px; margin:0; background:#fff; } .actions li::before { content:"0" counter(action); display:block; color:var(--blue); font-weight:800; font-size:13px; margin-bottom:8px; }
-    .sources li { margin:12px 0; } .source-type { color:var(--muted); font-size:12px; margin-left:6px; } .vendor { border:1px solid #d8c77d; background:#fffaf0; padding:16px 20px; }
-    footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); }
-    @media (max-width:760px) { .grid,.actions { grid-template-columns:1fr; } .matrix { font-size:14px; } .matrix th,.matrix td { padding:9px; } .hero { padding-top:40px; } }
+    :root {
+      --bg:#0c0b0a; --panel:#161311; --surface:#1c1712; --ink:#f4f1ea;
+      --muted:#a7b0b5; --line:rgba(174,188,194,.20); --accent:#d76b43;
+      --accent2:#e7b34d; --shadow:0 28px 80px rgba(0,0,0,.45);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; background:var(--bg); }
+    body { margin:0; color:var(--ink); background:
+      radial-gradient(circle at 12% 0%, rgba(215,107,67,.12), transparent 30rem),
+      radial-gradient(circle at 90% 12%, rgba(231,179,77,.10), transparent 34rem),
+      var(--bg); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .progress { position:fixed; z-index:20; inset:0 0 auto; height:3px; background:rgba(255,255,255,.06); }
+    .progress > span { display:block; width:0; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); box-shadow:0 0 18px var(--accent); }
+    .shell { max-width:1696px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:22px; color:var(--muted); font-size:13px; letter-spacing:.06em; }
+    .topbar a { color:var(--accent); text-decoration:none; }
+    .hero { position:relative; overflow:hidden; border:1px solid var(--line); background:linear-gradient(135deg,rgba(24,22,28,.92),rgba(10,12,18,.80)); padding:clamp(24px,4vw,54px); margin-bottom:24px; box-shadow:var(--shadow); }
+    .hero::after { content:""; position:absolute; width:38rem; height:1px; right:-8rem; bottom:4rem; background:linear-gradient(90deg,transparent,var(--accent),var(--accent2)); box-shadow:0 0 30px var(--accent2); transform:rotate(-12deg); }
+    .kicker { color:var(--accent); font-size:12px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:14px; }
+    h1 { max-width:22ch; font-size:clamp(34px,5vw,74px); line-height:1.14; margin:0 0 18px; font-weight:400; letter-spacing:-.025em; }
+    .lead { max-width:72ch; color:var(--muted); font-size:clamp(15px,1.4vw,19px); margin:0; line-height:1.8; }
+    .actions { margin-top:24px; display:flex; flex-wrap:wrap; gap:10px; position:relative; z-index:1; }
+    .download,.source-link { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 17px; border:1px solid var(--line); text-decoration:none; font-weight:650; font-size:14px; }
+    .download { color:#120d0b; background:linear-gradient(135deg,var(--accent),#ffe6b3); border-color:transparent; }
+    .source-link { color:var(--ink); background:rgba(255,255,255,.035); }
+    .viewer-grid { display:grid; grid-template-columns:230px minmax(0,1fr); gap:22px; align-items:start; }
+    .rail { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid var(--line); background:rgba(12,13,18,.82); backdrop-filter:blur(18px); padding:12px; }
+    .rail-title { margin:4px 8px 12px; color:var(--muted); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
+    .rail a { display:block; padding:10px 11px; border-left:2px solid transparent; color:var(--muted); text-decoration:none; font-size:12px; line-height:1.45; }
+    .rail a:hover,.rail a.active { color:var(--ink); border-left-color:var(--accent); background:linear-gradient(90deg,rgba(215,107,67,.12),transparent); }
+    .slides { display:grid; gap:24px; min-width:0; }
+    figure { scroll-margin-top:18px; margin:0; border:1px solid var(--line); background:var(--panel); padding:10px; box-shadow:var(--shadow); }
+    figure::before { content:""; display:block; height:2px; background:linear-gradient(90deg,var(--accent),transparent 42%,var(--accent2)); opacity:.60; margin-bottom:10px; }
+    img { width:100%; height:auto; display:block; background:#081014; }
+    figcaption { color:var(--muted); font-size:13px; margin:10px 4px 2px; }
+    @media (max-width:980px) {
+      .shell { padding:18px 10px 48px; }
+      .viewer-grid { display:block; }
+      .rail { position:sticky; top:3px; z-index:15; display:flex; gap:4px; max-height:none; overflow-x:auto; margin-bottom:14px; padding:7px; }
+      .rail-title { display:none; }
+      .rail a { flex:0 0 auto; max-width:16rem; white-space:nowrap; border-left:0; border-bottom:2px solid transparent; }
+      .rail a:hover,.rail a.active { border-left:0; border-bottom-color:var(--accent); }
+      figure { padding:6px; }
+    }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
   </style>
 <!-- GA4_INJECTED v1 -->
 <script src="/assets/js/analytics.js" defer></script>
 </head>
-<body><main>
-  <nav class="topbar"><a href="../day_slides_index.html">日次スライド一覧</a><span>2026-06-29 / AI Agent</span></nav>
-  <header class="hero">
-    <div class="kicker">Daily AI Agent Brief · 2026-06-29</div>
-    <h1>OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書</h1>
-    <p class="dek">自律型AI秘書プロジェクトOpenClawのモバイル版がリリースされた。クラウドに預けないパーソナルAIインフラという設計思想を、5つの要点で整理する。</p>
-    <div class="meta"><span class="pill fact">iOS: super-alpha</span><span class="pill">Android: extremely alpha</span><span class="pill">5 min read</span></div>
-  </header>
-
-  <section class="conclusion"><h2>30秒でわかる発表</h2><p>OpenClawモバイル版は「スマホでLLMを動かすアプリ」ではない。自宅PCを<strong>Gateway（脳）</strong>、スマートフォンを<strong>Node（身体・センサー）</strong>と定義し、機密データをPC内に留めたまま、AIが外出先のカメラ・マイク・位置情報を「感覚器」として使えるようにする分業アーキテクチャの実装だ。AIを「クラウド上のサービス」から「個人のパーソナル・インフラ」へ変える試みである。</p></section>
-
-  <section><h2>衝撃1：スマホは「脳」ではなく「身体」</h2><div class="grid">
-    <article class="card fact"><span class="label">FACT · 設計</span><h3>Gateway = PC</h3><p>複雑な思考、長期記憶の保持、ブラウザ・CLI操作の実行を自宅やサーバーのPCが担当する。</p></article>
-    <article class="card fact"><span class="label">FACT · 設計</span><h3>Node = スマホ</h3><p>カメラ（目）、マイク（耳）、位置情報、スクリーン・Canvasといったセンサーと操作インターフェースを担当する。</p></article>
-    <article class="card analysis"><span class="label">ANALYSIS</span><h3>省電力と知能の両立</h3><p>スマホ側で重いLLMを動かさないため、バッテリー消費を抑えながら最強の知能をポケットに入れて持ち歩ける。</p></article>
-  </div></section>
-
-  <section><h2>衝撃2：既存ウイルス対策では防げない「0.69%」</h2><div class="vendor"><strong>OpenClaw開発チームによる自社分析です。</strong>6万件以上のスキルを対象とした数値であり、独立検証ではありません。</div><div class="table-scroll" role="region" aria-label="スキャナー比較" tabindex="0"><table class="matrix"><thead><tr><th>観点</th><th>既存ウイルススキャナー（VirusTotal等）</th><th>SkillSpector（NVIDIA共同開発）</th></tr></thead><tbody>
-    <tr><th>監視レイヤー</th><td>構文レベル（バイナリの不正）</td><td>セマンティックレベル（論理的意図の不正）</td></tr>
-    <tr><th>検知対象</th><td>既知のマルウェアパターン</td><td>プロンプト・インジェクション等の「綺麗なコードに見える悪意」</td></tr>
-    <tr><th>結果の一致率</th><td colspan="2">わずか0.69%。脅威の81.9%は特定のスキャナー1つでしか検知できなかった</td></tr>
-  </tbody></table></div><p class="note">OpenClawは「ClawScan」による多層防御でこの見えないリスクの可視化を図る、と説明している。</p></section>
-
-  <section><h2>衝撃3・4：承認フローとセキュアな接続</h2><div class="grid">
-    <article class="card fact"><span class="label">FACT · 機能</span><h3>Human-in-the-loop承認</h3><p>AIがPC上で重要な操作を実行しようとするとスマホにプッシュ通知が届き、ユーザーが「承認」を押すまでAIは待機する。外出先から指先一つで暴走を止められる。</p></article>
-    <article class="card fact"><span class="label">FACT · 機能</span><h3>Tailscale統合</h3><p>公開インターネットにPCを晒さず、ゼロトラストの専用トンネルで自宅PCへ接続。MagicDNSにより複雑な設定なしで固有ホスト名の接続が可能。</p></article>
-    <article class="card fact"><span class="label">FACT · 機能</span><h3>アイデンティティ・ヘッダー認証</h3><p>x-forwarded-*ヘッダーを活用し、パスワード認証を超えたデバイスと個人の同一性担保を図る認証システムを備える。</p></article>
-  </div></section>
-
-  <section><h2>衝撃5：脱皮し続ける「ロブスター」の魂</h2><div class="card analysis"><span class="label">CONTEXT</span><h3>Clawdbot → Moltbot → OpenClaw Foundation</h3><p>プロジェクトはロブスターの脱皮（Molt）のように名前を変えながら成長し、GitHubで38万超のスターを獲得する巨大なOSSムーブメントとなった。本質は、中央集権的なクラウドAIから「AIの主権（Sovereignty）」を個人の手に取り戻す「Sovereign AI Fabric」構想にある。</p></div></section>
-
-  <section><h2>リスク・未確認点</h2><div class="warning"><ul><li>iOS版は「super-alpha」、Android版は「extremely alpha」と極めて初期の段階。実運用データを預けるのは時期尚早。</li><li>スキャン一致率0.69%等の数値は開発チームの自社分析であり、独立検証されていない。</li><li>自律エージェントにPC操作権限を与える以上、承認ゲートと最小権限の設計はユーザー側の責任として残る。</li></ul></div></section>
-
-  <section><h2>今日やる3つ</h2><ol class="actions"><li>OpenClawの公式ドキュメントでGateway/Nodeのセットアップ要件と対応プラットフォームを確認する。</li><li>試すなら本番PCではなく、隔離した検証マシンをGatewayにしてアルファ品質を前提に触る。</li><li>スキルを導入する前にClawScanの検査結果を確認する運用を最初から組み込む。</li></ol></section>
-
-  <section><h2>一次情報</h2><ol class="sources">
-    <li>OpenClaw公式ドキュメント（モバイル版リリースノート）<span class="source-type">primary · 2026-06-29時点の入力メモに基づく</span></li>
-    <li>OpenClaw開発チームによるスキル分析（SkillSpector / ClawScan）<span class="source-type">vendor analysis · 6万件以上のスキルを対象</span></li>
-  </ol><p class="note">本ページは2026-06-29の入力メモを基に2026-07-12に遡及作成した。数値・提供状況は当時のものであり、最新状況は公式ドキュメントを確認すること。</p></section>
-
-  <footer><a href="/">AI Intelligence Hub</a> · <a href="../day_slides_index.html">日次スライド一覧</a> · <a href="../auto_daily_report.html">今日の全体レポート</a> · <a href="/daily-news/">Daily News</a></footer>
-</main><!-- slide-nav:start -->
+<body>
+  <div class="progress" aria-hidden="true"><span></span></div>
+  <main class="shell">
+    <nav class="topbar"><a href="../day_slides_index.html">All day slides</a><span>2026-06-29 / AI Agent</span></nav>
+    <section class="hero">
+      <div class="kicker">Daily AI Architecture Slide</div>
+      <h1>OpenClawモバイル版 — PCを「脳」、スマホを「身体」にするAI秘書</h1>
+      <p class="lead">PCを「脳」、スマートフォンを「身体」として分業させるOpenClawモバイル版。Gateway/Nodeアーキテクチャ、Human-in-the-loop承認、Tailscale、ClawScan、導入ロードマップを13枚で整理する。</p>
+      <div class="actions">
+        <a class="download" href="downloads/day_slide_2026_06_29_openclaw_mobile.pptx" download>Download PPTX</a>
+        <a class="source-link" href="../day_slides_index.html">一覧へ戻る</a>
+      </div>
+    </section>
+    <div class="viewer-grid">
+      <aside class="rail" aria-label="スライド目次">
+        <div class="rail-title">Slide Index</div>
+        <a href="#slide-1">OpenClawモバイルアーキテクチャ</a>
+        <a href="#slide-2">クラウドAI vs ローカルファースト</a>
+        <a href="#slide-3">Gateway / Mobile Node</a>
+        <a href="#slide-4">スマホがエージェントの目・耳・手になる</a>
+        <a href="#slide-5">Human-in-the-loop：究極の安全弁</a>
+        <a href="#slide-6">ゼロトラスト接続：Tailscale統合</a>
+        <a href="#slide-7">OS Reality Check：iOS vs Android</a>
+        <a href="#slide-8">The Semantic Threat</a>
+        <a href="#slide-9">ClawScan Pipeline：3層防御</a>
+        <a href="#slide-10">The 0.69% Insight</a>
+        <a href="#slide-11">Skill Card：AIスキルの栄養成分表示</a>
+        <a href="#slide-12">Deployment Roadmap</a>
+        <a href="#slide-13">強力な実行力にはガバナンス</a>
+      </aside>
+      <section class="slides" aria-label="Slide images">
+        <figure id="slide-1" data-title="OpenClawモバイルアーキテクチャ"><img src="images/0629/p01.jpg" alt="OpenClawモバイルアーキテクチャの全体像" loading="lazy" width="2064" height="1152"><figcaption>OpenClawモバイルアーキテクチャ：PCの脳とスマホの身体</figcaption></figure>
+        <figure id="slide-2" data-title="クラウドAI vs ローカルファースト"><img src="images/0629/p02.jpg" alt="クラウド型AIとローカルファーストAIの比較" loading="lazy" width="2064" height="1152"><figcaption>クラウドAIの限界を越えるローカルファースト設計</figcaption></figure>
+        <figure id="slide-3" data-title="Gateway / Mobile Node"><img src="images/0629/p03.jpg" alt="GatewayとMobile Nodeの役割分担" loading="lazy" width="2064" height="1152"><figcaption>Gateway（脳）とMobile Node（身体）の分業</figcaption></figure>
+        <figure id="slide-4" data-title="スマホがエージェントの目・耳・手になる"><img src="images/0629/p04.jpg" alt="スマホがAIの視覚・聴覚・位置情報・操作を担う" loading="lazy" width="2064" height="1152"><figcaption>スマホがエージェントの感覚器になる</figcaption></figure>
+        <figure id="slide-5" data-title="Human-in-the-loop：究極の安全弁"><img src="images/0629/p05.jpg" alt="Human-in-the-loopの承認フロー" loading="lazy" width="2064" height="1152"><figcaption>Human-in-the-loop：人間が最後の決定権を持つ</figcaption></figure>
+        <figure id="slide-6" data-title="ゼロトラスト接続：Tailscale統合"><img src="images/0629/p06.jpg" alt="Tailscale統合によるゼロトラスト接続" loading="lazy" width="2064" height="1152"><figcaption>The Nervous System：Tailscaleで安全な神経系をつなぐ</figcaption></figure>
+        <figure id="slide-7" data-title="OS Reality Check：iOS vs Android"><img src="images/0629/p07.jpg" alt="iOSとAndroidの実装状況比較" loading="lazy" width="2064" height="1152"><figcaption>iOSとAndroid：成熟度と導入条件の違い</figcaption></figure>
+        <figure id="slide-8" data-title="The Semantic Threat"><img src="images/0629/p08.jpg" alt="従来のバイナリ脅威とAI固有の意味的脅威" loading="lazy" width="2064" height="1152"><figcaption>The Semantic Threat：AIの意図を読む防御が必要になる</figcaption></figure>
+        <figure id="slide-9" data-title="ClawScan Pipeline：3層防御"><img src="images/0629/p09.jpg" alt="ClawScanの3層防御パイプライン" loading="lazy" width="2064" height="1152"><figcaption>ClawScan Pipeline：VirusTotal・静的解析・SkillSpector</figcaption></figure>
+        <figure id="slide-10" data-title="The 0.69% Insight"><img src="images/0629/p10.jpg" alt="VirusTotalとSkillSpectorの検知一致率0.69%" loading="lazy" width="2064" height="1152"><figcaption>The 0.69% Insight：多層防御の必要性を示す数字</figcaption></figure>
+        <figure id="slide-11" data-title="Skill Card：AIスキルの栄養成分表示"><img src="images/0629/p11.jpg" alt="AIスキルのリスクを可視化するSkill Card" loading="lazy" width="2064" height="1152"><figcaption>Skill Card：AIスキルの出自・権限・判定を可視化</figcaption></figure>
+        <figure id="slide-12" data-title="Deployment Roadmap"><img src="images/0629/p12.jpg" alt="ローカルファースト導入の段階的ロードマップ" loading="lazy" width="2064" height="1152"><figcaption>Deployment Roadmap：検証環境から実務導入へ</figcaption></figure>
+        <figure id="slide-13" data-title="強力な実行力にはガバナンス"><img src="images/0629/p13.jpg" alt="Architecture・Security・Deploymentのガバナンス" loading="lazy" width="2064" height="1152"><figcaption>強力な実行力には、高度なガバナンスが伴う</figcaption></figure>
+      </section>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const figures = [...document.querySelectorAll('.slides figure')];
+      const links = [...document.querySelectorAll('.rail a')];
+      const bar = document.querySelector('.progress > span');
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = `${max > 0 ? Math.min(100, scrollY / max * 100) : 100}%`;
+      };
+      addEventListener('scroll', updateProgress, { passive:true });
+      updateProgress();
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+          const visible = entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!visible) return;
+          links.forEach(a => a.classList.toggle('active', a.hash === `#${visible.target.id}`));
+        }, { rootMargin:'-20% 0px -55%', threshold:[.15,.4,.7] });
+        figures.forEach(figure => observer.observe(figure));
+      }
+      addEventListener('keydown', event => {
+        if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+        if (/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName || '')) return;
+        const current = Math.max(0, figures.findIndex(f => f.getBoundingClientRect().top > -innerHeight * .2));
+        const next = event.key === 'ArrowRight' ? Math.min(figures.length - 1, current + 1) : Math.max(0, current - 1);
+        figures[next]?.scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' });
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
 <nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_06_28.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_06_29.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-06-29.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_06_30.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">翌日 →</a></nav>
 <!-- slide-nav:end -->
-</body></html>
+</body>
+</html>
