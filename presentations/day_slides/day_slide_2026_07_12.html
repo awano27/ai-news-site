@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング | 2026-07-12</title>
+  <meta name="description" content="コードを書く人から、AIが安全に自走するループを設計する人へ。成功条件、検証負荷、外部メモリ、運用ガードレールを14枚で整理します。">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_12.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング | 2026-07-12">
+  <meta property="og:description" content="コードを書く人から、AIが安全に自走するループを設計する人へ。成功条件、検証負荷、外部メモリ、運用ガードレールを14枚で整理します。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_12.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0712/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング">
+  <meta name="twitter:description" content="コードを書く人から、AIが安全に自走するループを設計する人へ。成功条件、検証負荷、外部メモリ、運用ガードレールを14枚で整理します。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0712/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング",
+    "description": "コードを書く人から、AIが安全に自走するループを設計する人へ。成功条件、検証負荷、外部メモリ、運用ガードレールを14枚で整理します。",
+    "datePublished": "2026-07-12",
+    "dateModified": "2026-07-12",
+    "image": ["https://visionhub.jp/presentations/day_slides/images/0712/cover.jpg"],
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_07_12.html",
+    "articleSection": "AI Architecture"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg:#050a0d; --panel:#081014; --surface:#0b171c; --ink:#f4f1ea;
+      --muted:#9aabb2; --line:rgba(174,188,194,.20); --cyan:#28d7d1;
+      --orange:#ff7a3d; --shadow:0 28px 80px rgba(0,0,0,.45);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; background:var(--bg); }
+    body { margin:0; color:var(--ink); background:
+      radial-gradient(circle at 12% 0%, rgba(40,215,209,.10), transparent 30rem),
+      radial-gradient(circle at 90% 12%, rgba(255,122,61,.10), transparent 34rem),
+      var(--bg); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .progress { position:fixed; z-index:20; inset:0 0 auto; height:3px; background:rgba(255,255,255,.06); }
+    .progress > span { display:block; width:0; height:100%; background:linear-gradient(90deg,var(--cyan),var(--orange)); box-shadow:0 0 18px var(--cyan); }
+    .shell { max-width:1696px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:22px; color:var(--muted); font-size:13px; letter-spacing:.06em; }
+    .topbar a { color:var(--cyan); text-decoration:none; }
+    .hero { position:relative; overflow:hidden; border:1px solid var(--line); background:linear-gradient(135deg,rgba(11,30,35,.92),rgba(8,16,20,.80)); padding:clamp(24px,4vw,54px); margin-bottom:24px; box-shadow:var(--shadow); }
+    .hero::after { content:""; position:absolute; width:38rem; height:1px; right:-8rem; bottom:4rem; background:linear-gradient(90deg,transparent,var(--cyan),var(--orange)); box-shadow:0 0 30px var(--orange); transform:rotate(-12deg); }
+    .kicker { color:var(--cyan); font-size:12px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:14px; }
+    h1 { max-width:22ch; font-size:clamp(34px,5vw,74px); line-height:1.14; margin:0 0 18px; font-weight:400; letter-spacing:-.025em; }
+    .lead { max-width:72ch; color:var(--muted); font-size:clamp(15px,1.4vw,19px); margin:0; line-height:1.8; }
+    .actions { margin-top:24px; display:flex; flex-wrap:wrap; gap:10px; position:relative; z-index:1; }
+    .download { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 17px; border:1px solid transparent; color:#031012; background:linear-gradient(135deg,var(--cyan),#9ff7f2); text-decoration:none; font-weight:650; font-size:14px; }
+    .viewer-grid { display:grid; grid-template-columns:230px minmax(0,1fr); gap:22px; align-items:start; }
+    .rail { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid var(--line); background:rgba(8,16,20,.82); backdrop-filter:blur(18px); padding:12px; }
+    .rail-title { margin:4px 8px 12px; color:var(--muted); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
+    .rail a { display:block; padding:10px 11px; border-left:2px solid transparent; color:var(--muted); text-decoration:none; font-size:12px; line-height:1.45; }
+    .rail a:hover,.rail a.active { color:var(--ink); border-left-color:var(--cyan); background:linear-gradient(90deg,rgba(40,215,209,.10),transparent); }
+    .slides { display:grid; gap:24px; min-width:0; }
+    figure { scroll-margin-top:18px; margin:0; border:1px solid var(--line); background:var(--panel); padding:10px; box-shadow:var(--shadow); }
+    figure::before { content:""; display:block; height:2px; background:linear-gradient(90deg,var(--cyan),transparent 42%,var(--orange)); opacity:.60; margin-bottom:10px; }
+    img { width:100%; height:auto; display:block; background:#081014; }
+    figcaption { color:var(--muted); font-size:13px; margin:10px 4px 2px; }
+    @media (max-width:980px) {
+      .shell { padding:18px 10px 48px; }
+      .viewer-grid { display:block; }
+      .rail { position:sticky; top:3px; z-index:15; display:flex; gap:4px; max-height:none; overflow-x:auto; margin-bottom:14px; padding:7px; }
+      .rail-title { display:none; }
+      .rail a { flex:0 0 auto; max-width:16rem; white-space:nowrap; border-left:0; border-bottom:2px solid transparent; }
+      .rail a:hover,.rail a.active { border-left:0; border-bottom-color:var(--cyan); }
+      figure { padding:6px; }
+    }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+  </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span></span></div>
+  <main class="shell">
+    <nav class="topbar">
+      <a href="../day_slides_index.html">All day slides</a>
+      <span>2026-07-12 / AI Architecture</span>
+    </nav>
+    <section class="hero">
+      <div class="kicker">Daily AI Architecture Slide</div>
+      <h1>プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング</h1>
+      <p class="lead">コードを書く人から、AIが安全に自走するループを設計する人へ。成功条件、検証負荷、外部メモリ、運用ガードレールを14枚で整理します。</p>
+      <div class="actions">
+        <a class="download" href="downloads/day_slide_2026_07_12_loop_engineering.pptx" download>Download PPTX</a>
+      </div>
+    </section>
+    <div class="viewer-grid">
+  <aside class="rail" aria-label="スライド目次">
+    <div class="rail-title">Slide Index</div>
+<a href="#slide-1">プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング</a>
+<a href="#slide-2">本日の流れ</a>
+<a href="#slide-3">30秒でわかるループエンジニアリング</a>
+<a href="#slide-4">「点」の指示から「円」の設計へ</a>
+<a href="#slide-5">ループを閉じるのは成功条件</a>
+<a href="#slide-6">Planner・Builder・Judgeが自律反復する</a>
+<a href="#slide-7">/goal・/loop・/batchが開発時間を解放する</a>
+<a href="#slide-8">AIで熟練者が19%遅くなる理由</a>
+<a href="#slide-9">AIを投入すべき仕事、任せない仕事</a>
+<a href="#slide-10">長時間ループは文脈を捨てて強くなる</a>
+<a href="#slide-11">企業事例が示すのは「8倍」より運用設計</a>
+<a href="#slide-12">CLAUDE.mdとMCPがチーム知を永続化する</a>
+<a href="#slide-13">自律化にはコスト・権限・停止条件が要る</a>
+<a href="#slide-14">明日、自動化する1つのループを決める</a>
+  </aside>
+  <section class="slides" aria-label="Slide images">
+<figure id="slide-1" data-title="プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング">
+        <img src="images/0712/cover.jpg" alt="プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング" loading="eager" fetchpriority="high" width="1672" height="941">
+        <figcaption>プロンプトエンジニアリングは死んだ。開発現場を塗り替えるループエンジニアリング</figcaption>
+      </figure>
+<figure id="slide-2" data-title="本日の流れ">
+        <img src="images/0712/p01.jpg" alt="本日の流れ" loading="lazy" width="1672" height="941">
+        <figcaption>本日の流れ</figcaption>
+      </figure>
+<figure id="slide-3" data-title="30秒でわかるループエンジニアリング">
+        <img src="images/0712/p02.jpg" alt="30秒でわかるループエンジニアリング" loading="lazy" width="1672" height="941">
+        <figcaption>30秒でわかるループエンジニアリング</figcaption>
+      </figure>
+<figure id="slide-4" data-title="「点」の指示から「円」の設計へ">
+        <img src="images/0712/p03.jpg" alt="「点」の指示から「円」の設計へ" loading="lazy" width="1672" height="941">
+        <figcaption>「点」の指示から「円」の設計へ</figcaption>
+      </figure>
+<figure id="slide-5" data-title="ループを閉じるのは成功条件">
+        <img src="images/0712/p04.jpg" alt="ループを閉じるのは成功条件" loading="lazy" width="1672" height="941">
+        <figcaption>ループを閉じるのは成功条件</figcaption>
+      </figure>
+<figure id="slide-6" data-title="Planner・Builder・Judgeが自律反復する">
+        <img src="images/0712/p05.jpg" alt="Planner・Builder・Judgeが自律反復する" loading="lazy" width="1672" height="941">
+        <figcaption>Planner・Builder・Judgeが自律反復する</figcaption>
+      </figure>
+<figure id="slide-7" data-title="/goal・/loop・/batchが開発時間を解放する">
+        <img src="images/0712/p06.jpg" alt="/goal・/loop・/batchが開発時間を解放する" loading="lazy" width="1672" height="941">
+        <figcaption>/goal・/loop・/batchが開発時間を解放する</figcaption>
+      </figure>
+<figure id="slide-8" data-title="AIで熟練者が19%遅くなる理由">
+        <img src="images/0712/p07.jpg" alt="AIで熟練者が19%遅くなる理由" loading="lazy" width="1672" height="941">
+        <figcaption>AIで熟練者が19%遅くなる理由</figcaption>
+      </figure>
+<figure id="slide-9" data-title="AIを投入すべき仕事、任せない仕事">
+        <img src="images/0712/p08.jpg" alt="AIを投入すべき仕事、任せない仕事" loading="lazy" width="1672" height="941">
+        <figcaption>AIを投入すべき仕事、任せない仕事</figcaption>
+      </figure>
+<figure id="slide-10" data-title="長時間ループは文脈を捨てて強くなる">
+        <img src="images/0712/p09.jpg" alt="長時間ループは文脈を捨てて強くなる" loading="lazy" width="1672" height="941">
+        <figcaption>長時間ループは文脈を捨てて強くなる</figcaption>
+      </figure>
+<figure id="slide-11" data-title="企業事例が示すのは「8倍」より運用設計">
+        <img src="images/0712/p10.jpg" alt="企業事例が示すのは「8倍」より運用設計" loading="lazy" width="1672" height="941">
+        <figcaption>企業事例が示すのは「8倍」より運用設計</figcaption>
+      </figure>
+<figure id="slide-12" data-title="CLAUDE.mdとMCPがチーム知を永続化する">
+        <img src="images/0712/p11.jpg" alt="CLAUDE.mdとMCPがチーム知を永続化する" loading="lazy" width="1672" height="941">
+        <figcaption>CLAUDE.mdとMCPがチーム知を永続化する</figcaption>
+      </figure>
+<figure id="slide-13" data-title="自律化にはコスト・権限・停止条件が要る">
+        <img src="images/0712/p12.jpg" alt="自律化にはコスト・権限・停止条件が要る" loading="lazy" width="1672" height="941">
+        <figcaption>自律化にはコスト・権限・停止条件が要る</figcaption>
+      </figure>
+<figure id="slide-14" data-title="明日、自動化する1つのループを決める">
+        <img src="images/0712/p13.jpg" alt="明日、自動化する1つのループを決める" loading="lazy" width="1672" height="941">
+        <figcaption>明日、自動化する1つのループを決める</figcaption>
+      </figure>
+  </section>
+</div>
+  </main>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_11.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+
+  <script>
+    (() => {
+      const figures = [...document.querySelectorAll('.slides figure')];
+      const links = [...document.querySelectorAll('.rail a')];
+      const bar = document.querySelector('.progress > span');
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = `${max > 0 ? Math.min(100, scrollY / max * 100) : 100}%`;
+      };
+      addEventListener('scroll', updateProgress, { passive:true });
+      updateProgress();
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+          const visible = entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!visible) return;
+          links.forEach(a => a.classList.toggle('active', a.hash === `#${visible.target.id}`));
+        }, { rootMargin:'-20% 0px -55%', threshold:[.15,.4,.7] });
+        figures.forEach(figure => observer.observe(figure));
+      }
+      addEventListener('keydown', event => {
+        if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+        if (/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName || '')) return;
+        const current = Math.max(0, figures.findIndex(f => f.getBoundingClientRect().top > -innerHeight * .2));
+        const next = event.key === 'ArrowRight' ? Math.min(figures.length - 1, current + 1) : Math.max(0, current - 1);
+        figures[next]?.scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' });
+      });
+    })();
+  </script>
+
+</body>
+</html>
