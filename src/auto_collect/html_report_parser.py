@@ -37,15 +37,27 @@ def parse_daily_txt(txt_path: Path) -> Dict:
     for line in lines:
         # Section headers
         if "ヘッドライン速報" in line:
+            if current_item:
+                result[current_section].append(current_item)
+                current_item = None
             current_section = "headlines"
             continue
         elif "市場・資金動向" in line:
+            if current_item:
+                result[current_section].append(current_item)
+                current_item = None
             current_section = "funding"
             continue
         elif "GitHub Trending" in line:
+            if current_item:
+                result[current_section].append(current_item)
+                current_item = None
             current_section = "github"
             continue
         elif "HuggingFace注目モデル" in line:
+            if current_item:
+                result[current_section].append(current_item)
+                current_item = None
             current_section = "models"
             continue
         elif line.startswith("="):
