@@ -24,12 +24,17 @@ on:
     - cron: '0 21 * * *'
   workflow_dispatch: {}
 
+concurrency:
+  group: auto-daily-report-publish
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
   primary:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       TZ: Asia/Tokyo
     steps:
@@ -57,16 +62,14 @@ jobs:
 
       - name: Commit & push
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "No changes after cloud run; nothing to commit"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add input/day/*.txt presentations/auto_daily_report.html presentations/auto_daily_report.json presentations/daily_reports/ public-pages/api/auto_daily_report/ public-pages/news/ daily-news/ 2>/dev/null || true
-          git add -A presentations/ input/ public-pages/ daily-news/ 2>/dev/null || true
-          git commit -m "chore(report): cloud primary run $(date +%F)"
-          git push
+          REPORT_DATE="$(date +%F)"
+          python scripts/publish_daily_report.py \
+            --repo . \
+            --date "$REPORT_DATE" \
+            --message "chore(report): cloud primary run $REPORT_DATE" \
+            --push
 
       - name: Warn if local override missing for 2+ days
         # Detects silent failure of the local 08:00 JST override (X bookmarks)

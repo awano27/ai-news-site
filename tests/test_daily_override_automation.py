@@ -222,3 +222,29 @@ def test_runner_aborts_a_rebase_conflict_without_losing_local_commit_or_stash(tm
     assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == "local change"
     assert "daily override preflight" in git(runtime, "stash", "list").stdout
     assert git(runtime, "status", "--porcelain").stdout == ""
+
+
+def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "auto-daily-report-cloud-fallback.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "- cron: '0 21 * * *'" in workflow
+    assert "workflow_dispatch: {}" in workflow
+    assert "concurrency:\n  group: auto-daily-report-publish\n  cancel-in-progress: false" in workflow
+    assert "primary:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30" in workflow
+    assert "REPORT_DATE=\"$(date +%F)\"" in workflow
+    publisher_command = "\n".join(
+        (
+            "python scripts/publish_daily_report.py \\",
+            "            --repo . \\",
+            '            --date "$REPORT_DATE" \\',
+            '            --message "chore(report): cloud primary run $REPORT_DATE" \\',
+            "            --push",
+        )
+    )
+    assert publisher_command in workflow
+
+    lower_workflow = workflow.lower()
+    for prohibited in ("git add", "git commit", "git push", "git add -a", "git add -u"):
+        assert prohibited not in lower_workflow
