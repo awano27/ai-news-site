@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>チャット型AIの終着点 — SearchOS-V1 | 2026-07-18</title>
+  <meta name="description" content="SearchOS-V1が検索進捗を会話履歴から共有状態へ移し、Coverage Map、Evidence Graph、Failure Memory、並列スケジューリングによって網羅的で検証可能な調査を実現する仕組みを整理する。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_18.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="チャット型AIの終着点 — SearchOS-V1 | 2026-07-18">
+  <meta property="og:description" content="SearchOS-V1が検索進捗を会話履歴から共有状態へ移し、Coverage Map、Evidence Graph、Failure Memory、並列スケジューリングによって網羅的で検証可能な調査を実現する仕組みを整理する。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_18.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0718/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="チャット型AIの終着点 — SearchOS-V1">
+  <meta name="twitter:description" content="SearchOS-V1が検索進捗を会話履歴から共有状態へ移し、Coverage Map、Evidence Graph、Failure Memory、並列スケジューリングによって網羅的で検証可能な調査を実現する仕組みを整理する。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0718/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "チャット型AIの終着点 — SearchOS-V1",
+    "description": "SearchOS-V1が検索進捗を会話履歴から共有状態へ移し、Coverage Map、Evidence Graph、Failure Memory、並列スケジューリングによって網羅的で検証可能な調査を実現する仕組みを整理する。",
+    "datePublished": "2026-07-18",
+    "dateModified": "2026-07-18",
+    "image": [
+        "https://visionhub.jp/presentations/day_slides/images/0718/cover.jpg"
+    ],
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_07_18.html",
+    "articleSection": "AI Agent Architecture"
+}
+  </script>
+  <style>
+    :root { --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb; --line:rgba(143,161,181,.22); --cyan:#35d4e4; --amber:#f3b64c; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 80% 0%, rgba(53,212,228,.08), transparent 30%), var(--bg); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .shell { max-width:1696px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:24px; color:var(--muted); font-size:13px; }
+    .topbar a { color:var(--cyan); text-decoration:none; }
+    .hero { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:clamp(20px,3vw,38px); margin-bottom:18px; }
+    .kicker { color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px; }
+    h1 { max-width:22ch; font-size:clamp(32px,4.4vw,64px); line-height:1.14; margin:0 0 16px; font-weight:500; letter-spacing:-.02em; }
+    .lead { max-width:82ch; color:var(--muted); font-size:16px; margin:0; line-height:1.8; }
+    .actions { margin-top:22px; display:flex; flex-wrap:wrap; gap:12px; }
+    .download { display:inline-flex; justify-content:center; align-items:center; min-height:44px; padding:0 18px; border:1px solid var(--amber); color:#07111f; background:var(--amber); text-decoration:none; font-weight:700; }
+    .jump { position:sticky; top:0; z-index:10; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:12px; background:rgba(5,11,20,.94); backdrop-filter:blur(12px); scrollbar-width:thin; }
+    .jump a { flex:0 0 auto; min-width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; }
+    .jump a:hover,.jump a:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+    .slides { display:grid; gap:22px; }
+    figure { margin:0; border:1px solid var(--line); background:var(--paper); padding:14px; scroll-margin-top:64px; }
+    img { width:100%; height:auto; display:block; background:#07111f; }
+    figcaption { display:flex; gap:12px; align-items:baseline; color:var(--muted); font-size:13px; margin-top:10px; }
+    figcaption span { color:var(--cyan); font:500 11px/1 ui-monospace,monospace; }
+    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } figure { padding:8px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="topbar" aria-label="Breadcrumb">
+      <a href="../day_slides_index.html">All day slides</a>
+      <span>2026-07-18 / AI Agent Architecture</span>
+    </nav>
+    <section class="hero">
+      <div class="kicker">Daily AI Architecture Slide</div>
+      <h1>チャット型AIの終着点 — SearchOS-V1</h1>
+      <p class="lead">SearchOS-V1が検索進捗を会話履歴から共有状態へ移し、Coverage Map、Evidence Graph、Failure Memory、並列スケジューリングによって網羅的で検証可能な調査を実現する仕組みを整理する。</p>
+      <div class="actions">
+        <a class="download" href="downloads/day_slide_2026_07_18_searchos_v1.pptx" download>Download PPTX</a>
+      </div>
+    </section>
+    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="チャット型AIの終着点">01</a> <a href="#slide-2" aria-label="今日わかること">02</a> <a href="#slide-3" aria-label="長い調査ほど会話履歴は壊れる">03</a> <a href="#slide-4" aria-label="会話から共有状態の管理へ">04</a> <a href="#slide-5" aria-label="SearchOSの全体像">05</a> <a href="#slide-6" aria-label="Coverage Map：空欄が次の仕事を決める">06</a> <a href="#slide-7" aria-label="2つのSchemaMode">07</a> <a href="#slide-8" aria-label="Evidence Graph：答えを根拠へ戻せる">08</a> <a href="#slide-9" aria-label="失敗を記憶し同じ罠を踏まない">09</a> <a href="#slide-10" aria-label="探索・検索・執筆を重ねて走らせる">10</a> <a href="#slide-11" aria-label="網羅性がスコアを押し上げた">11</a> <a href="#slide-12" aria-label="約6分の構造化調査デモ">12</a> <a href="#slide-13" aria-label="価値は検索ではなく検証可能な表">13</a> <a href="#slide-14" aria-label="導入は軽い。運用設計は軽くない">14</a> <a href="#slide-15" aria-label="生成の時代から検証の時代へ">15</a></nav>
+    <section class="slides" aria-label="Slide images">
+      <figure id="slide-1">
+        <img src="images/0718/cover.jpg" alt="チャット型AIの終着点" loading="eager" width="1672" height="941">
+        <figcaption><span>01</span>チャット型AIの終着点</figcaption>
+      </figure>
+      <figure id="slide-2">
+        <img src="images/0718/p01.jpg" alt="今日わかること" loading="lazy" width="1672" height="941">
+        <figcaption><span>02</span>今日わかること</figcaption>
+      </figure>
+      <figure id="slide-3">
+        <img src="images/0718/p02.jpg" alt="長い調査ほど会話履歴は壊れる" loading="lazy" width="1672" height="941">
+        <figcaption><span>03</span>長い調査ほど会話履歴は壊れる</figcaption>
+      </figure>
+      <figure id="slide-4">
+        <img src="images/0718/p03.jpg" alt="会話から共有状態の管理へ" loading="lazy" width="1672" height="941">
+        <figcaption><span>04</span>会話から共有状態の管理へ</figcaption>
+      </figure>
+      <figure id="slide-5">
+        <img src="images/0718/p04.jpg" alt="SearchOSの全体像" loading="lazy" width="1672" height="941">
+        <figcaption><span>05</span>SearchOSの全体像</figcaption>
+      </figure>
+      <figure id="slide-6">
+        <img src="images/0718/p05.jpg" alt="Coverage Map：空欄が次の仕事を決める" loading="lazy" width="1672" height="941">
+        <figcaption><span>06</span>Coverage Map：空欄が次の仕事を決める</figcaption>
+      </figure>
+      <figure id="slide-7">
+        <img src="images/0718/p06.jpg" alt="2つのSchemaMode" loading="lazy" width="1672" height="941">
+        <figcaption><span>07</span>2つのSchemaMode</figcaption>
+      </figure>
+      <figure id="slide-8">
+        <img src="images/0718/p07.jpg" alt="Evidence Graph：答えを根拠へ戻せる" loading="lazy" width="1672" height="941">
+        <figcaption><span>08</span>Evidence Graph：答えを根拠へ戻せる</figcaption>
+      </figure>
+      <figure id="slide-9">
+        <img src="images/0718/p08.jpg" alt="失敗を記憶し同じ罠を踏まない" loading="lazy" width="1672" height="941">
+        <figcaption><span>09</span>失敗を記憶し同じ罠を踏まない</figcaption>
+      </figure>
+      <figure id="slide-10">
+        <img src="images/0718/p09.jpg" alt="探索・検索・執筆を重ねて走らせる" loading="lazy" width="1672" height="941">
+        <figcaption><span>10</span>探索・検索・執筆を重ねて走らせる</figcaption>
+      </figure>
+      <figure id="slide-11">
+        <img src="images/0718/p10.jpg" alt="網羅性がスコアを押し上げた" loading="lazy" width="1672" height="941">
+        <figcaption><span>11</span>網羅性がスコアを押し上げた</figcaption>
+      </figure>
+      <figure id="slide-12">
+        <img src="images/0718/p11.jpg" alt="約6分の構造化調査デモ" loading="lazy" width="1672" height="941">
+        <figcaption><span>12</span>約6分の構造化調査デモ</figcaption>
+      </figure>
+      <figure id="slide-13">
+        <img src="images/0718/p12.jpg" alt="価値は検索ではなく検証可能な表" loading="lazy" width="1672" height="941">
+        <figcaption><span>13</span>価値は検索ではなく検証可能な表</figcaption>
+      </figure>
+      <figure id="slide-14">
+        <img src="images/0718/p13.jpg" alt="導入は軽い。運用設計は軽くない" loading="lazy" width="1672" height="941">
+        <figcaption><span>14</span>導入は軽い。運用設計は軽くない</figcaption>
+      </figure>
+      <figure id="slide-15">
+        <img src="images/0718/p14.jpg" alt="生成の時代から検証の時代へ" loading="lazy" width="1672" height="941">
+        <figcaption><span>15</span>生成の時代から検証の時代へ</figcaption>
+      </figure>
+    </section>
+  </main>
+</body>
+</html>
