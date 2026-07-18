@@ -93,11 +93,19 @@ try {
         throw "git status failed."
     }
     if ($dirty) {
-        $stashCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "stash", "push", "--include-untracked", "-m", "daily override preflight") -Label "git stash"
+        $stashMessage = "daily-override recovery {0:yyyyMMddTHHmmss}" -f (Get-Date)
+        $previousStashId = "$(& git -C $repo for-each-ref "--format=%(objectname)" refs/stash)"
+        $previousStashId = $previousStashId.Trim()
+        $stashCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "stash", "push", "--include-untracked", "-m", $stashMessage) -Label "git stash"
         if ($stashCode -ne 0) {
             throw "Could not preserve dirty runtime state in a stash."
         }
-        Write-RunnerLog "Preserved dirty runtime state in a named stash."
+        $stashId = "$(& git -C $repo for-each-ref "--format=%(objectname)" refs/stash)"
+        $stashId = $stashId.Trim()
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($stashId) -or $stashId -eq $previousStashId) {
+            throw "Dirty runtime state did not create a recoverable stash."
+        }
+        Write-RunnerLog "Preserved dirty runtime state: stash=$stashId message='$stashMessage'."
     }
 
     $fetchCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "fetch", "origin", "main") -Label "git fetch"

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import date
@@ -183,13 +184,16 @@ def test_runner_stashes_tracked_and_untracked_changes_for_recovery(tmp_path: Pat
     _, _, runtime = make_runtime(tmp_path)
     (runtime / "base.txt").write_text("dirty\n", encoding="utf-8")
     (runtime / "untracked.txt").write_text("keep me\n", encoding="utf-8")
+    log_path = tmp_path / "runner.log"
 
-    result = run_runner(runtime, tmp_path / "runner.log")
+    result = run_runner(runtime, log_path)
 
     assert result.returncode == 0, result.stderr
     stash = git(runtime, "stash", "list").stdout
-    assert "daily override preflight" in stash
+    assert re.search(r"daily-override recovery \d{8}T\d{6}", stash)
     assert "untracked.txt" in git(runtime, "stash", "show", "--include-untracked", "--name-only", "stash@{0}").stdout
+    stash_id = git(runtime, "rev-parse", "refs/stash").stdout.strip()
+    assert stash_id in log_path.read_text(encoding="utf-8-sig")
 
 
 def test_runner_fast_forwards_behind_only_checkout_and_does_not_abort_without_ollama(tmp_path: Path) -> None:
@@ -239,7 +243,10 @@ def test_runner_aborts_a_rebase_conflict_without_losing_local_commit_or_stash(tm
 
     assert result.returncode != 0
     assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == "local change"
-    assert "daily override preflight" in git(runtime, "stash", "list").stdout
+    assert re.search(
+        r"daily-override recovery \d{8}T\d{6}",
+        git(runtime, "stash", "list").stdout,
+    )
     assert git(runtime, "status", "--porcelain").stdout == ""
 
 
