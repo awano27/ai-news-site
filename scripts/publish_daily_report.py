@@ -91,7 +91,12 @@ def _has_staged_changes(repo: Path) -> bool:
     raise RuntimeError(result.stderr.strip() or "could not inspect the Git index")
 
 
-def validate_changes(repo: Path, manifest: PublicationManifest) -> list[str]:
+def validate_changes(
+    repo: Path,
+    manifest: PublicationManifest,
+    *,
+    changed_paths: tuple[str, ...] | None = None,
+) -> list[str]:
     errors: list[str] = []
     if not repo.is_dir():
         return [f"repository does not exist: {repo}"]
@@ -101,7 +106,8 @@ def validate_changes(repo: Path, manifest: PublicationManifest) -> list[str]:
     try:
         if _has_staged_changes(repo):
             errors.append("pre-existing staged changes are not allowed")
-        changed_paths = _status_paths(repo)
+        if changed_paths is None:
+            changed_paths = _status_paths(repo)
     except (RuntimeError, subprocess.CalledProcessError, ValueError) as error:
         errors.append(str(error))
         return errors
@@ -138,7 +144,8 @@ def _push_with_one_rebase_retry(repo: Path) -> int:
 def publish(repo: Path, report_date: date, message: str, *, push: bool = False) -> int:
     try:
         manifest = load_manifest(MANIFEST_PATH, report_date)
-        errors = validate_changes(repo, manifest)
+        changed_paths = _status_paths(repo)
+        errors = validate_changes(repo, manifest, changed_paths=changed_paths)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(str(error), file=sys.stderr)
         return 1
@@ -146,7 +153,6 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
         print("\n".join(errors), file=sys.stderr)
         return 1
 
-    changed_paths = _status_paths(repo)
     if not changed_paths:
         print("no manifest paths have changed", file=sys.stderr)
         return 1

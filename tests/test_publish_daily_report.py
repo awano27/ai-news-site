@@ -5,6 +5,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
+from scripts import publish_daily_report
 from scripts.publish_daily_report import load_manifest, validate_changes
 
 
@@ -107,11 +108,13 @@ def test_allowed_changes_commit_exactly_changed_manifest_paths(tmp_path: Path) -
 def test_missing_required_path_rejects_before_staging(tmp_path: Path) -> None:
     repo, manifest = create_repo(tmp_path)
     (repo / manifest.required[0]).unlink()
+    head_before = git(repo, "rev-parse", "HEAD").stdout
 
     result = run_publisher(repo)
 
     assert result.returncode != 0
     assert git(repo, "diff", "--cached", "--name-only").stdout == ""
+    assert git(repo, "rev-parse", "HEAD").stdout == head_before
 
 
 def test_pre_staged_change_rejects_without_new_staged_changes(tmp_path: Path) -> None:
@@ -150,3 +153,29 @@ def test_validate_changes_reports_missing_required_path(tmp_path: Path) -> None:
     errors = validate_changes(repo, manifest)
 
     assert any("missing required path" in error for error in errors)
+
+
+def test_publish_stages_the_single_validated_status_snapshot(monkeypatch, tmp_path: Path) -> None:
+    repo, manifest = create_repo(tmp_path)
+    validated_path = manifest.required[0]
+    (repo / validated_path).write_text("validated update\n", encoding="utf-8")
+    (repo / "unrelated.txt").write_text("must never be staged\n", encoding="utf-8")
+    snapshots = iter(((validated_path,), ("unrelated.txt",)))
+    add_calls: list[tuple[str, ...]] = []
+    original_git = publish_daily_report._git
+
+    def changing_status(_: Path) -> tuple[str, ...]:
+        return next(snapshots)
+
+    def recording_git(repo_path: Path, args, *, check: bool = True):
+        if args[0] == "add":
+            add_calls.append(tuple(args))
+        return original_git(repo_path, args, check=check)
+
+    monkeypatch.setattr(publish_daily_report, "_status_paths", changing_status)
+    monkeypatch.setattr(publish_daily_report, "_git", recording_git)
+
+    result = publish_daily_report.publish(repo, REPORT_DATE, "publish daily report")
+
+    assert result == 0
+    assert add_calls == [("add", "--", validated_path)]
