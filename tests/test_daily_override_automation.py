@@ -231,8 +231,13 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
 
     assert "- cron: '0 21 * * *'" in workflow
     assert "workflow_dispatch: {}" in workflow
+    assert "permissions:\n  contents: write" in workflow
     assert "concurrency:\n  group: auto-daily-report-publish\n  cancel-in-progress: false" in workflow
     assert "primary:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30" in workflow
+    assert "env:\n      TZ: Asia/Tokyo" in workflow
+    assert "python -m src.auto_collect.main --provider nvidia --force" in workflow
+    assert 'git config user.name "github-actions[bot]"' in workflow
+    assert 'git config user.email "41898282+github-actions[bot]@users.noreply.github.com"' in workflow
     assert "REPORT_DATE=\"$(date +%F)\"" in workflow
     publisher_command = "\n".join(
         (
@@ -244,7 +249,21 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
         )
     )
     assert publisher_command in workflow
+    assert "- name: Warn if local override missing for 2+ days" in workflow
+    assert (
+        "::warning::No 'local override' commit in the last 2 days — X bookmarks may be missing "
+        "on visionhub.jp/daily-news/. Check Windows Task Scheduler "
+        "'visionhub-daily-news-override' on the user's PC."
+    ) in workflow
 
     lower_workflow = workflow.lower()
-    for prohibited in ("git add", "git commit", "git push", "git add -a", "git add -u"):
+    for prohibited in (
+        "git add",
+        "git commit",
+        "git push",
+        "git add -a",
+        "git add -u",
+        "git reset",
+        "git clean",
+    ):
         assert prohibited not in lower_workflow
