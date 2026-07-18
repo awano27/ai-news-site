@@ -9,8 +9,19 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repo = (Resolve-Path -LiteralPath $RepoPath).Path
-if (-not (Test-Path -LiteralPath (Join-Path $repo ".git"))) {
-    throw "RepoPath is not a Git checkout: $repo"
+$runtimeMarkerName = "visionhub-daily-news-override-runtime.json"
+$gitDirectory = Join-Path $repo ".git"
+if (-not (Test-Path -LiteralPath $gitDirectory -PathType Container)) {
+    throw "RepoPath must be an installer-provisioned independent Git clone: $repo"
+}
+$runtimeMarker = Join-Path $gitDirectory $runtimeMarkerName
+if (-not (Test-Path -LiteralPath $runtimeMarker -PathType Leaf)) {
+    throw "Runtime marker is missing; run the installer for this checkout."
+}
+$markerData = Get-Content -LiteralPath $runtimeMarker -Raw | ConvertFrom-Json
+$markerPath = [System.IO.Path]::GetFullPath([string]$markerData.checkoutPath)
+if (-not [string]::Equals($markerPath, $repo, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Runtime marker checkout path does not match RepoPath."
 }
 
 if ([string]::IsNullOrWhiteSpace($PythonPath)) {

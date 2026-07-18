@@ -21,6 +21,7 @@ function Normalize-GitUrl {
 
 $checkout = [System.IO.Path]::GetFullPath($CheckoutPath)
 $launcher = Join-Path $checkout "scripts\run_daily_override.bat"
+$runtimeMarkerName = "visionhub-daily-news-override-runtime.json"
 $actionArguments = "/d /s /c `"`"$launcher`"`""
 $plan = [ordered]@{
     checkoutPath = $checkout
@@ -64,6 +65,12 @@ else {
         throw "Existing checkout origin does not match RepositoryUrl; it was not changed."
     }
 }
+
+$gitDirectory = Join-Path $checkout ".git"
+if (-not (Test-Path -LiteralPath $gitDirectory -PathType Container)) {
+    throw "Checkout is not an independent Git clone: $checkout"
+}
+@{ checkoutPath = $checkout } | ConvertTo-Json -Compress | Set-Content -LiteralPath (Join-Path $gitDirectory $runtimeMarkerName) -Encoding utf8
 
 $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument $actionArguments -WorkingDirectory $checkout
 $trigger = New-ScheduledTaskTrigger -Daily -At $At

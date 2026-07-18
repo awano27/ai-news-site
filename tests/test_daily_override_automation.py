@@ -13,6 +13,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 POWERSHELL = "powershell.exe"
+RUNTIME_MARKER = "visionhub-daily-news-override-runtime.json"
 
 
 def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -60,6 +61,9 @@ def make_runtime(tmp_path: Path) -> tuple[Path, Path, Path]:
     run("git", "clone", "--branch", "main", str(origin), str(runtime), cwd=tmp_path)
     git(runtime, "config", "user.email", "test@example.invalid")
     git(runtime, "config", "user.name", "Test User")
+    (runtime / ".git" / RUNTIME_MARKER).write_text(
+        json.dumps({"checkoutPath": str(runtime.resolve())}), encoding="utf-8"
+    )
     return origin, source, runtime
 
 
@@ -88,7 +92,7 @@ def test_batch_is_a_thin_root_relative_launcher_without_unsafe_git_commands() ->
     assert "run_daily_override.ps1" in launcher
     assert 'set REPO=C:\\develop\\ai-news-site' not in launcher
     for forbidden in ("git add -u", "git add -A", "git reset", "git clean"):
-        assert forbidden not in launcher.lower()
+        assert forbidden.lower() not in launcher.lower()
 
 
 def test_installer_plan_only_emits_the_required_scheduled_task_contract(tmp_path: Path) -> None:
@@ -115,6 +119,7 @@ def test_installer_plan_only_emits_the_required_scheduled_task_contract(tmp_path
     assert plan["checkoutPath"] == str(checkout.resolve())
     assert plan["taskName"] == "VisionHub Daily Override Test"
     assert plan["action"]["execute"] == "cmd.exe"
+    assert "/d /s /c" in plan["action"]["arguments"]
     assert plan["action"]["workingDirectory"] == str(checkout.resolve())
     assert plan["trigger"] == {"dailyAt": "08:00"}
     assert plan["principal"] == {"logonType": "InteractiveToken"}
@@ -126,6 +131,31 @@ def test_installer_plan_only_emits_the_required_scheduled_task_contract(tmp_path
         "stopIfGoingOnBatteries": False,
     }
     assert not checkout.exists()
+
+
+def test_runner_rejects_a_normal_clone_without_the_runtime_marker(tmp_path: Path) -> None:
+    _, _, runtime = make_runtime(tmp_path)
+    (runtime / ".git" / RUNTIME_MARKER).unlink()
+    log_path = tmp_path / "runner.log"
+
+    result = run_runner(runtime, log_path)
+
+    assert result.returncode != 0
+    assert "runtime marker" in (result.stdout + result.stderr).lower()
+    assert not log_path.exists()
+
+
+def test_runner_rejects_a_linked_worktree_git_file_shape(tmp_path: Path) -> None:
+    linked_worktree = tmp_path / "linked-worktree"
+    linked_worktree.mkdir()
+    (linked_worktree / ".git").write_text("gitdir: elsewhere\n", encoding="utf-8")
+    log_path = tmp_path / "runner.log"
+
+    result = run_runner(linked_worktree, log_path)
+
+    assert result.returncode != 0
+    assert "independent git clone" in (result.stdout + result.stderr).lower()
+    assert not log_path.exists()
 
 
 def test_runner_stashes_tracked_and_untracked_changes_for_recovery(tmp_path: Path) -> None:
