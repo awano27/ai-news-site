@@ -63,6 +63,16 @@ def parse_args():
     return p.parse_args()
 
 
+def build_processor(provider_name: str) -> LLMProcessor:
+    provider = make_provider(provider_name)
+    if not provider.available:
+        logging.getLogger("auto_collect").warning(
+            "[Main] %s provider unavailable; using deterministic heuristic fallback",
+            provider_name,
+        )
+    return LLMProcessor(provider=provider)
+
+
 def main():
     args = parse_args()
     setup_logging()
@@ -142,15 +152,11 @@ def main():
         logger.error(f"[Main] Funding failed: {e}")
 
     if not articles and not github_raw:
-        logger.warning("[Main] No articles collected")
-        return
+        logger.error("[Main] No headline or GitHub articles collected; aborting report generation")
+        raise SystemExit(1)
 
     # === Phase 2: Process with LLM + Evidence ===
-    provider = make_provider(args.provider)
-    if not provider.available and args.provider == "nvidia":
-        logger.error(f"[Main] NVIDIA provider unavailable; aborting to avoid an empty report")
-        sys.exit(1)
-    processor = LLMProcessor(provider=provider)
+    processor = build_processor(args.provider)
 
     processed = processor.process_batch(articles)
     logger.info(f"[Main] Processed {len(processed)} news articles")
