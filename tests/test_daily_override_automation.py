@@ -119,7 +119,9 @@ def test_installer_plan_only_emits_the_required_scheduled_task_contract(tmp_path
     assert plan["checkoutPath"] == str(checkout.resolve())
     assert plan["taskName"] == "VisionHub Daily Override Test"
     assert plan["action"]["execute"] == "cmd.exe"
-    assert "/d /s /c" in plan["action"]["arguments"]
+    action_arguments = plan["action"]["arguments"]
+    assert action_arguments.startswith("/d /s /c ")
+    assert action_arguments.endswith(f'""{checkout.resolve() / "scripts" / "run_daily_override.bat"}""')
     assert plan["action"]["workingDirectory"] == str(checkout.resolve())
     assert plan["trigger"] == {"dailyAt": "08:00"}
     assert plan["principal"] == {"logonType": "InteractiveToken"}
