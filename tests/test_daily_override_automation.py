@@ -135,6 +135,25 @@ def test_installer_plan_only_emits_the_required_scheduled_task_contract(tmp_path
     assert not checkout.exists()
 
 
+def test_installer_default_replaces_the_existing_scheduled_task(tmp_path: Path) -> None:
+    checkout = tmp_path / "automation"
+
+    result = run(
+        POWERSHELL,
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(SCRIPTS / "register_daily_override_task.ps1"),
+        "-CheckoutPath",
+        str(checkout),
+        "-PlanOnly",
+        cwd=ROOT,
+    )
+
+    assert json.loads(result.stdout)["taskName"] == "visionhub-daily-news-override"
+
+
 def test_runner_rejects_a_normal_clone_without_the_runtime_marker(tmp_path: Path) -> None:
     _, _, runtime = make_runtime(tmp_path)
     (runtime / ".git" / RUNTIME_MARKER).unlink()

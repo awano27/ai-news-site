@@ -2,7 +2,7 @@
 param(
     [string]$CheckoutPath = "C:\develop\ai-news-site-automation",
     [string]$RepositoryUrl = "https://github.com/awano27/ai-news-site.git",
-    [string]$TaskName = "VisionHub Daily News Override",
+    [string]$TaskName = "visionhub-daily-news-override",
     [string]$At = "08:00",
     [switch]$PlanOnly
 )
