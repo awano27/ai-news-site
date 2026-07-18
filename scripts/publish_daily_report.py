@@ -11,6 +11,7 @@ from typing import Sequence
 
 
 MANIFEST_PATH = Path(__file__).with_name("daily_report_paths.json")
+MANIFEST_REPO_PATH = "scripts/daily_report_paths.json"
 
 
 @dataclass(frozen=True)
@@ -38,8 +39,9 @@ def _expand_path(template: str, report_date: date) -> str:
     return expanded
 
 
-def load_manifest(path: Path, report_date: date) -> PublicationManifest:
-    data = json.loads(path.read_text(encoding="utf-8"))
+def _manifest_from_data(data: object, report_date: date) -> PublicationManifest:
+    if not isinstance(data, dict):
+        raise ValueError("manifest must be a JSON object")
     if set(data) != {"required", "optional"}:
         raise ValueError("manifest must contain exactly required and optional lists")
     if not all(isinstance(data[key], list) and all(isinstance(item, str) for item in data[key]) for key in data):
@@ -51,6 +53,10 @@ def load_manifest(path: Path, report_date: date) -> PublicationManifest:
     return PublicationManifest(required=required, optional=optional)
 
 
+def load_manifest(path: Path, report_date: date) -> PublicationManifest:
+    return _manifest_from_data(json.loads(path.read_text(encoding="utf-8")), report_date)
+
+
 def _git(repo: Path, args: Sequence[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["git", *args],
@@ -60,6 +66,11 @@ def _git(repo: Path, args: Sequence[str], *, check: bool = True) -> subprocess.C
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+
+
+def _load_manifest_from_head(repo: Path, report_date: date) -> PublicationManifest:
+    result = _git(repo, ("show", f"HEAD:{MANIFEST_REPO_PATH}"))
+    return _manifest_from_data(json.loads(result.stdout), report_date)
 
 
 def _status_paths(repo: Path) -> tuple[str, ...]:
@@ -91,6 +102,28 @@ def _has_staged_changes(repo: Path) -> bool:
     raise RuntimeError(result.stderr.strip() or "could not inspect the Git index")
 
 
+def _ignored_manifest_paths(repo: Path, manifest: PublicationManifest) -> tuple[str, ...]:
+    result = _git(
+        repo,
+        (
+            "ls-files",
+            "--others",
+            "--ignored",
+            "--exclude-standard",
+            "-z",
+            "--",
+            *sorted(manifest.allowed),
+        ),
+    )
+    return tuple(path for path in result.stdout.split("\0") if path)
+
+
+def _changed_paths(repo: Path, manifest: PublicationManifest) -> tuple[str, ...]:
+    visible = _status_paths(repo)
+    ignored = _ignored_manifest_paths(repo, manifest)
+    return tuple(dict.fromkeys((*visible, *ignored)))
+
+
 def validate_changes(
     repo: Path,
     manifest: PublicationManifest,
@@ -107,7 +140,7 @@ def validate_changes(
         if _has_staged_changes(repo):
             errors.append("pre-existing staged changes are not allowed")
         if changed_paths is None:
-            changed_paths = _status_paths(repo)
+            changed_paths = _changed_paths(repo, manifest)
     except (RuntimeError, subprocess.CalledProcessError, ValueError) as error:
         errors.append(str(error))
         return errors
@@ -121,7 +154,12 @@ def _cached_paths(repo: Path) -> tuple[str, ...]:
     return tuple(path for path in result.stdout.split("\0") if path)
 
 
-def _push_with_one_rebase_retry(repo: Path) -> int:
+def _head_commit_paths(repo: Path) -> tuple[str, ...]:
+    result = _git(repo, ("diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", "HEAD"))
+    return tuple(path for path in result.stdout.split("\0") if path)
+
+
+def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
     initial_push = _git(repo, ("push", "origin", "HEAD:main"), check=False)
     if initial_push.returncode == 0:
         return 0
@@ -134,6 +172,19 @@ def _push_with_one_rebase_retry(repo: Path) -> int:
         _git(repo, ("rebase", "--abort"), check=False)
         print(rebase.stderr.strip() or "git rebase origin/main failed", file=sys.stderr)
         return 1
+    try:
+        rebased_manifest = _load_manifest_from_head(repo, report_date)
+        rebased_paths = _head_commit_paths(repo)
+        errors = validate_changes(repo, rebased_manifest, changed_paths=rebased_paths)
+    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
+        print(f"post-rebase publication validation failed: {error}", file=sys.stderr)
+        return 1
+    if not rebased_paths:
+        print("post-rebase publication commit has no changed paths", file=sys.stderr)
+        return 1
+    if errors:
+        print("post-rebase publication rejected:\n" + "\n".join(errors), file=sys.stderr)
+        return 1
     retry = _git(repo, ("push", "origin", "HEAD:main"), check=False)
     if retry.returncode != 0:
         print(retry.stderr.strip() or "git push retry failed", file=sys.stderr)
@@ -143,8 +194,8 @@ def _push_with_one_rebase_retry(repo: Path) -> int:
 
 def publish(repo: Path, report_date: date, message: str, *, push: bool = False) -> int:
     try:
-        manifest = load_manifest(MANIFEST_PATH, report_date)
-        changed_paths = _status_paths(repo)
+        manifest = _load_manifest_from_head(repo, report_date)
+        changed_paths = _changed_paths(repo, manifest)
         errors = validate_changes(repo, manifest, changed_paths=changed_paths)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(str(error), file=sys.stderr)
@@ -156,7 +207,7 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
     if not changed_paths:
         print("no manifest paths have changed", file=sys.stderr)
         return 1
-    _git(repo, ("add", "--", *changed_paths))
+    _git(repo, ("add", "-f", "--", *changed_paths))
     cached_paths = _cached_paths(repo)
     if not set(cached_paths).issubset(manifest.allowed):
         print("staging produced paths outside the manifest", file=sys.stderr)
@@ -169,7 +220,7 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
     except subprocess.CalledProcessError as error:
         print(error.stderr.strip() or "git commit failed", file=sys.stderr)
         return 1
-    return _push_with_one_rebase_retry(repo) if push else 0
+    return _push_with_one_rebase_retry(repo, report_date) if push else 0
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

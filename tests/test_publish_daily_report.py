@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from datetime import date
@@ -33,6 +34,9 @@ def create_repo(tmp_path: Path, *, include_optional: bool = False) -> tuple[Path
     git(repo, "config", "user.name", "Test User")
     git(repo, "config", "user.email", "test@example.com")
     manifest = load_manifest(MANIFEST_PATH, REPORT_DATE)
+    repo_manifest = repo / "scripts" / "daily_report_paths.json"
+    repo_manifest.parent.mkdir(parents=True, exist_ok=True)
+    repo_manifest.write_text(MANIFEST_PATH.read_text(encoding="utf-8"), encoding="utf-8")
     for relative_path in manifest.required:
         path = repo / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -43,6 +47,7 @@ def create_repo(tmp_path: Path, *, include_optional: bool = False) -> tuple[Path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"optional")
     baseline_paths = [
+        "scripts/daily_report_paths.json",
         *manifest.required,
         *(path for path in manifest.optional if (repo / path).is_file()),
     ]
@@ -146,6 +151,86 @@ def test_missing_optional_ogp_succeeds_and_archive_name_is_dated(tmp_path: Path)
     assert git(repo, "show", "--format=", "--name-only", "HEAD").stdout.splitlines() == [archive_name]
 
 
+def test_ignored_required_file_is_discovered_and_force_added(tmp_path: Path) -> None:
+    repo, manifest = create_repo(tmp_path)
+    ignored_path = manifest.required[0]
+    (repo / ".gitignore").write_text("input/\n", encoding="utf-8")
+    git(repo, "rm", "--cached", "--", ignored_path)
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "-m", "ignore generated input")
+
+    assert git(repo, "status", "--porcelain=v1", "--untracked-files=all").stdout == ""
+    assert (repo / ignored_path).is_file()
+
+    result = run_publisher(repo)
+
+    assert result.returncode == 0, result.stderr
+    assert git(repo, "show", "--format=", "--name-only", "HEAD").stdout.splitlines() == [ignored_path]
+
+
+def test_dirty_manifest_cannot_self_allow_an_ignored_secret(
+    monkeypatch, tmp_path: Path
+) -> None:
+    repo, _manifest = create_repo(tmp_path)
+    repo_manifest = repo / "scripts" / "daily_report_paths.json"
+    (repo / ".gitignore").write_text(".env\n", encoding="utf-8")
+    git(repo, "add", ".gitignore", "scripts/daily_report_paths.json")
+    git(repo, "commit", "-m", "track publication policy")
+
+    dirty_policy = json.loads(repo_manifest.read_text(encoding="utf-8"))
+    dirty_policy["optional"].extend(["scripts/daily_report_paths.json", ".env"])
+    repo_manifest.write_text(json.dumps(dirty_policy), encoding="utf-8")
+    secret = repo / ".env"
+    secret.write_text("TOP_SECRET=must-not-commit\n", encoding="utf-8")
+    head_before = git(repo, "rev-parse", "HEAD").stdout
+    monkeypatch.setattr(publish_daily_report, "MANIFEST_PATH", repo_manifest)
+
+    result = publish_daily_report.publish(repo, REPORT_DATE, "publish daily report")
+
+    assert result != 0
+    assert git(repo, "rev-parse", "HEAD").stdout == head_before
+    assert git(repo, "diff", "--cached", "--name-only").stdout == ""
+    assert secret.read_text(encoding="utf-8") == "TOP_SECRET=must-not-commit\n"
+
+
+def test_rebase_retry_revalidates_a_tightened_remote_manifest(tmp_path: Path) -> None:
+    repo, manifest = create_repo(tmp_path)
+    origin = tmp_path / "origin.git"
+    writer = tmp_path / "policy-writer"
+    git(tmp_path, "init", "--bare", str(origin))
+    git(repo, "remote", "add", "origin", str(origin))
+    git(repo, "push", "-u", "origin", "HEAD:main")
+    git(tmp_path, "--git-dir", str(origin), "symbolic-ref", "HEAD", "refs/heads/main")
+    git(tmp_path, "clone", str(origin), str(writer))
+    git(writer, "config", "user.name", "Policy Writer")
+    git(writer, "config", "user.email", "policy@example.com")
+
+    removed_path = manifest.required[0]
+    writer_manifest = writer / "scripts" / "daily_report_paths.json"
+    tightened = json.loads(writer_manifest.read_text(encoding="utf-8"))
+    tightened["required"].remove("input/day/{MMDD}.txt")
+    writer_manifest.write_text(json.dumps(tightened), encoding="utf-8")
+    git(writer, "add", "scripts/daily_report_paths.json")
+    git(writer, "commit", "-m", "tighten publication policy")
+    git(writer, "push", "origin", "main")
+
+    (repo / removed_path).write_text("must not cross tightened policy\n", encoding="utf-8")
+
+    result = run_publisher(repo, push=True)
+
+    assert result.returncode != 0
+    remote_subject = git(
+        tmp_path,
+        "--git-dir",
+        str(origin),
+        "log",
+        "-1",
+        "--format=%s",
+        "refs/heads/main",
+    ).stdout.strip()
+    assert remote_subject == "tighten publication policy"
+
+
 def test_validate_changes_reports_missing_required_path(tmp_path: Path) -> None:
     repo, manifest = create_repo(tmp_path)
     (repo / manifest.required[-1]).unlink()
@@ -178,4 +263,4 @@ def test_publish_stages_the_single_validated_status_snapshot(monkeypatch, tmp_pa
     result = publish_daily_report.publish(repo, REPORT_DATE, "publish daily report")
 
     assert result == 0
-    assert add_calls == [("add", "--", validated_path)]
+    assert add_calls == [("add", "-f", "--", validated_path)]
