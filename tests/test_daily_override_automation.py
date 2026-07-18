@@ -155,6 +155,13 @@ def test_installer_default_replaces_the_existing_scheduled_task(tmp_path: Path) 
     assert json.loads(result.stdout)["taskName"] == "visionhub-daily-news-override"
 
 
+def test_installer_uses_the_windows_scheduled_task_interactive_enum() -> None:
+    installer = (SCRIPTS / "register_daily_override_task.ps1").read_text(encoding="utf-8")
+
+    assert re.search(r"-LogonType\s+Interactive(?:\s|$)", installer)
+    assert "-LogonType InteractiveToken" not in installer
+
+
 def test_runner_rejects_a_normal_clone_without_the_runtime_marker(tmp_path: Path) -> None:
     _, _, runtime = make_runtime(tmp_path)
     (runtime / ".git" / RUNTIME_MARKER).unlink()
