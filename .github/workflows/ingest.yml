@@ -24,9 +24,14 @@ env:
   PYTHON_VERSION: '3.11'
   TZ: Asia/Tokyo
 
+concurrency:
+  group: repo-push
+  cancel-in-progress: false
+
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -45,7 +50,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          # cache: 'pip'  # disabled — requirements.txt is git-ignored (see sync-daily-ai-news.yml)
+          # pip cache remains disabled: requirements.txt is tracked, but the installed
+          # requirements-ingest.txt is git-ignored and unavailable in a clean checkout.
 
       - name: Install dependencies
         run: |
