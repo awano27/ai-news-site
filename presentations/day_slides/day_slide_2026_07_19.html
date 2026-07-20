@@ -52,8 +52,13 @@
     .stat-label { color:var(--muted); font-size:12px; margin-top:6px; line-height:1.55; }
     .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
     .jump { position:sticky; top:0; z-index:10; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:12px; background:rgba(5,11,20,.94); backdrop-filter:blur(12px); scrollbar-width:thin; }
-    .jump a { flex:0 0 auto; min-width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; }
+    .jump a { flex:0 0 auto; display:flex; align-items:center; gap:7px; min-width:34px; height:34px; padding:0 10px; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; white-space:nowrap; }
+    .jump a .t { font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; font-size:11.5px; }
     .jump a:hover,.jump a:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+    .jump a.on { border-color:var(--cyan); color:var(--cyan); background:rgba(53,212,228,.08); }
+    @media (max-width:860px) { .jump a .t { display:none; } .jump a { padding:0; place-content:center; } }
+    .progress { position:fixed; top:0; left:0; height:2px; width:0; background:var(--cyan); z-index:20; }
+    .cmp tbody tr:hover td { background:rgba(53,212,228,.05); }
     .slides { display:grid; gap:22px; }
     section.slide { border:1px solid var(--line); background:var(--paper); padding:clamp(18px,2.6vw,32px); scroll-margin-top:64px; }
     .slide-no { color:var(--cyan); font:500 11px/1 ui-monospace,monospace; letter-spacing:.14em; margin-bottom:10px; }
@@ -102,6 +107,7 @@
   </style>
 </head>
 <body>
+  <div class="progress" aria-hidden="true"></div>
   <main class="shell">
     <nav class="topbar" aria-label="Breadcrumb">
       <a href="../day_slides_index.html">All day slides</a>
@@ -120,7 +126,7 @@
         <div class="stat-card"><div class="stat-num">2.4TB</div><div class="stat-label"><b>自前サーバーで動かす場合の容量</b><br>GPU30〜40枚が必要＝個人では非現実的</div></div>
       </div>
     </section>
-    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="2.4兆パラメータ時代の幕開け">01</a> <a href="#slide-2" aria-label="アーキテクチャ分析">02</a> <a href="#slide-3" aria-label="主要フロンティアモデルとの比較">03</a> <a href="#slide-4" aria-label="性能実証">04</a> <a href="#slide-5" aria-label="実践的導入ガイド">05</a> <a href="#slide-6" aria-label="オープンウェイト化の衝撃">06</a> <a href="#slide-7" aria-label="結論と推奨ステップ">07</a></nav>
+    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="2.4兆パラメータ時代の幕開け">01<span class="t">幕開け</span></a> <a href="#slide-2" aria-label="アーキテクチャ分析">02<span class="t">技術</span></a> <a href="#slide-3" aria-label="主要フロンティアモデルとの比較">03<span class="t">比較</span></a> <a href="#slide-4" aria-label="性能実証">04<span class="t">実証</span></a> <a href="#slide-5" aria-label="実践的導入ガイド">05<span class="t">導入</span></a> <a href="#slide-6" aria-label="オープンウェイト化の衝撃">06<span class="t">オープン化</span></a> <a href="#slide-7" aria-label="結論と推奨ステップ">07<span class="t">結論</span></a></nav>
     <div class="slides">
 
       <section class="slide" id="slide-1">
@@ -320,5 +326,30 @@
 
     </div>
   </main>
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+      document.querySelectorAll('section.slide').forEach(function (s) { io.observe(s); });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_18.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_07_19.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-07-19.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
 </body>
 </html>
