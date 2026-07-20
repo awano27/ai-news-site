@@ -79,24 +79,36 @@ function buildIndexes() {
       archiveEntriesByDate.set(entryDate, entry);
     }
 
-    if (isDaily) {
-      const dailyEntry = {
-        date: entryDate,
-        file: name,
-        count,
-        snapshot_date: entryDate !== date ? date : undefined,
-        extracted_at: data?.metadata?.extracted_at || data?.extracted_at || '',
-        source_date: data?.metadata?.source_date || '',
-        source: data?.metadata?.source || data?.source || '',
-      };
-      const existingDailyEntry = dailyEntriesByDate.get(entryDate);
-      if (!existingDailyEntry || name.localeCompare(existingDailyEntry.file) < 0) {
-        dailyEntriesByDate.set(entryDate, dailyEntry);
-      }
+    // Date-named snapshots (YYYY-MM-DD.json) also feed the daily index so
+    // downstream consumers keep getting current data after the *_daily.json
+    // extraction pipeline stopped (last file: 2026-03-20). A *_daily.json
+    // file still wins over a date-named file for the same date because it
+    // carries the richer multi-article payload.
+    const dailyEntry = {
+      date: entryDate,
+      file: name,
+      count,
+      snapshot_date: entryDate !== date ? date : undefined,
+      extracted_at: data?.metadata?.extracted_at || data?.extracted_at || '',
+      source_date: data?.metadata?.source_date || '',
+      source: data?.metadata?.source || data?.source || '',
+    };
+    const existingDailyEntry = dailyEntriesByDate.get(entryDate);
+    const existingIsDaily = existingDailyEntry ? existingDailyEntry.file.endsWith('_daily.json') : false;
+    if (
+      !existingDailyEntry ||
+      (isDaily && !existingIsDaily) ||
+      (isDaily === existingIsDaily && name.localeCompare(existingDailyEntry.file) < 0)
+    ) {
+      dailyEntriesByDate.set(entryDate, dailyEntry);
+    }
 
-      if (!newestDaily || entryDate > newestDaily.date) {
-        newestDaily = { date: entryDate, data };
-      }
+    if (
+      !newestDaily ||
+      entryDate > newestDaily.date ||
+      (entryDate === newestDaily.date && isDaily && !newestDaily.isDaily)
+    ) {
+      newestDaily = { date: entryDate, data, isDaily };
     }
   }
 

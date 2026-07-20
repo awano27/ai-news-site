@@ -504,34 +504,19 @@ def update_index(plan: PublishPlan) -> None:
     plan.index_path.write_text(text, encoding="utf-8")
 
 
-def list_card(plan: PublishPlan) -> str:
-    return f"""      <a href="{plan.abs_page_url}"
-        class="slide-card">
-        <span class="date-badge">{plan.date_slash}</span>
-        <div class="slide-title">{escape(plan.title)}</div>
-      </a>
-"""
-
-
 def update_list(plan: PublishPlan) -> None:
-    text = plan.list_path.read_text(encoding="utf-8")
-    text = re.sub(
-        r"2025年7月30日から\d{4}年\d{1,2}月\d{1,2}日まで",
-        f"2025年7月30日から{plan.day.year}年{plan.day.month}月{plan.day.day}日まで",
-        text,
-        count=1,
-    )
-    text = re.sub(
-        rf'\n\s*<a href="{re.escape(plan.abs_page_url)}"\s+class="slide-card">.*?</a>\s*',
-        "\n",
-        text,
-        flags=re.S,
-    )
-    marker = '    <div class="slides-grid">\n'
-    if marker not in text:
-        raise SystemExit("Could not find slides-grid in day_slides_list.html")
-    text = text.replace(marker, marker + list_card(plan), 1)
-    plan.list_path.write_text(text, encoding="utf-8")
+    """Regenerate day_slides_list.html (AI NEWSSTAND page) from on-disk decks.
+
+    The list page is a full static rebuild driven by each deck's own metadata
+    (og:title / description / articleSection / og:image), so publishing a new
+    deck only requires re-running the two builders; no in-place regex edits.
+    """
+    repo_root = plan.list_path.parent.parent
+    for builder in ("build_day_slides_index.py", "build_day_slides_list.py"):
+        subprocess.run(
+            [sys.executable, str(repo_root / "script" / builder)],
+            check=True,
+        )
 
 
 def update_sitemap(plan: PublishPlan) -> None:

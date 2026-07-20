@@ -37,6 +37,11 @@ jobs:
         run: |
           python script/build_day_slides_json.py
 
+      - name: Build day_slides metadata index + newsstand list page
+        run: |
+          python script/build_day_slides_index.py
+          python script/build_day_slides_list.py
+
       - name: Build detail analysis report from news+slides
         run: |
           python -m pip install -U pip
@@ -52,7 +57,7 @@ jobs:
           if [ -n "$(git status --porcelain presentations)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add presentations/*.html presentations/day_slides/list.json || true
+            git add presentations/*.html presentations/day_slides/list.json presentations/day_slides/meta_index.json || true
             git commit -m "chore(presentations): refresh latest report aliases"
             git push
           else

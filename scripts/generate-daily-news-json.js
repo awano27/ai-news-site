@@ -152,7 +152,11 @@ function loadDailySnapshots() {
         };
       }
 
-      const articles = Array.isArray(data.articles) ? data.articles : [];
+      // Old *_daily.json snapshots carry {articles: [...]}; the current
+      // date-named snapshots carry {items: [...]} — accept both.
+      const articles = Array.isArray(data.articles)
+        ? data.articles
+        : (Array.isArray(data.items) ? data.items : []);
       const effectiveDate = effectiveDailyDate(data, entry.date);
       if (seenDates.has(effectiveDate)) return null;
       seenDates.add(effectiveDate);
