@@ -75,7 +75,29 @@
     .steps li::before { counter-increment:step; content:counter(step,decimal-leading-zero); position:absolute; left:16px; top:14px; color:var(--amber); font:600 15px/1.4 ui-monospace,monospace; }
     .steps b { color:var(--ink); display:block; margin-bottom:4px; }
     .steps li p { margin:0; font-size:13.5px; }
-    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } section.slide { padding:16px; } }
+    /* visuals */
+    .viz { border:1px solid var(--line); background:rgba(5,11,20,.5); padding:18px 20px 14px; margin:16px 0; }
+    .viz-title { color:var(--ink); font-size:13.5px; font-weight:600; margin:0 0 2px; }
+    .viz-sub { color:var(--muted); font-size:12px; margin:0 0 12px; }
+    .viz svg { width:100%; height:auto; display:block; }
+    .viz .note { color:var(--muted); font-size:11.5px; margin:8px 0 0; line-height:1.6; }
+    .scroll-x { overflow-x:auto; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:640px; }
+    .cmp th { text-align:left; color:var(--cyan); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(143,161,181,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; white-space:nowrap; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-ng { color:var(--amber); font-weight:600; white-space:nowrap; }
+    .meter { margin:12px 0 4px; }
+    .meter .track { height:14px; border:1px solid var(--line); background:rgba(5,11,20,.7); border-radius:4px; overflow:hidden; }
+    .meter .fill { height:100%; width:100%; background:linear-gradient(90deg, rgba(53,212,228,.55), var(--cyan)); border-radius:3px 0 0 3px; }
+    .meter .cap { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:6px; }
+    .meter .cap b { color:var(--ink); font-family:ui-monospace,monospace; }
+    .gpu-grid { display:grid; grid-template-columns:repeat(20,1fr); gap:4px; margin:12px 0 6px; }
+    .gpu-grid span { aspect-ratio:1; background:rgba(53,212,228,.72); border-radius:2px; }
+    .gpu-grid span.opt { background:rgba(53,212,228,.22); }
+    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } section.slide { padding:16px; } .gpu-grid { grid-template-columns:repeat(10,1fr); } }
   </style>
 </head>
 <body>
@@ -105,6 +127,20 @@
         <h2>2.4兆パラメータ時代の幕開けとQwen3.8の衝撃</h2>
         <p>2026年7月19日、Alibaba Cloudが発表した<strong>「Qwen3.8-Max-Preview」</strong>は、AI業界に「2.4兆（2.4T）パラメータ」という未曾有の数字を突きつけた。Claude Fable 5やKimi K3が主導権を握るフロンティアモデル市場に対し、Alibabaが真っ向から挑んだ野心的な挑戦状である。</p>
         <div class="warn"><p><strong>ただし額面通りに受け取るのは時期尚早。</strong>「Fable 5に次ぐ世界第2位の性能」を標榜する一方、公式の技術レポートやモデルカードは欠落しており、BenchLMなど主要トラッカーの検証済みベンチマークスコアは「0%（未公開）」のままである。</p></div>
+        <div class="viz">
+          <p class="viz-title">検証ステータス：何が確認できて、何がまだ主張のままか</p>
+          <p class="viz-sub">2026-07-19 時点</p>
+          <div class="scroll-x"><table class="cmp">
+            <thead><tr><th>情報源</th><th>状態</th><th>内容</th></tr></thead>
+            <tbody>
+              <tr><td>公式技術レポート</td><td class="st-ng">✕ 未公開</td><td>アーキテクチャ詳細・学習データの一次情報が存在しない</td></tr>
+              <tr><td>モデルカード</td><td class="st-ng">✕ 未公開</td><td>活性化パラメータ数・安全性評価が不明</td></tr>
+              <tr><td>BenchLM 検証スコア</td><td class="st-ng">✕ 0%（未検証）</td><td>主要トラッカーでの第三者検証はゼロ</td></tr>
+              <tr><td>KingBench（第三者）</td><td class="st-ok">✔ 81.25%</td><td>AICodeKing による実測。Fable 5（82.5%）に肉薄</td></tr>
+              <tr><td>StackPerf（第三者）</td><td class="st-ok">✔ 失敗 0件</td><td>269ファイル・354参照のリポジトリ調査でツール呼び出し失敗ゼロ</td></tr>
+            </tbody>
+          </table></div>
+        </div>
         <p>本スライドでは、この巨大モデルが孕む戦略的ポテンシャルとプレビュー版ゆえの不確実性を分けて評価する。</p>
       </section>
 
@@ -113,6 +149,32 @@
         <h2>技術プロファイル：Sparse MoEと常時稼働の「Thinkingモード」</h2>
         <h3>スペックの解剖 — 2.4兆パラメータとMoEの実像</h3>
         <p>総パラメータ2.4兆の<strong>Sparse MoE（Mixture of Experts）</strong>構造。推論コストと速度を規定するのは総パラメータではなく<strong>「アクティブパラメータ数」</strong>だが、その活性化率は未公表。巨大な知識ベースが推論効率にどう転換されているかの見極めが技術選定の鍵になる。</p>
+        <div class="viz">
+          <p class="viz-title">Sparse MoE の仕組み：2.4Tのうち、実際に計算するのは一部だけ</p>
+          <p class="viz-sub">トークンごとにRouterが少数のExpertを選択して活性化する</p>
+          <svg viewBox="0 0 720 220" role="img" aria-label="Sparse MoEの構造図。プロンプトがRouterを経由し、多数のExpertのうち一部だけが活性化して応答を生成する">
+            <rect x="12" y="86" width="118" height="48" rx="4" fill="none" stroke="#93a7bb" stroke-opacity=".45" stroke-width="1.5"/>
+            <text x="71" y="115" text-anchor="middle" fill="#f7fbff" font-size="14" font-family="'Noto Sans JP',sans-serif">プロンプト</text>
+            <path d="M134 110 h34" stroke="#35d4e4" stroke-width="2" fill="none"/><path d="M164 105 l10 5 -10 5 z" fill="#35d4e4"/>
+            <rect x="178" y="86" width="100" height="48" rx="4" fill="none" stroke="#35d4e4" stroke-width="1.5"/>
+            <text x="228" y="115" text-anchor="middle" fill="#35d4e4" font-size="14" font-family="ui-monospace,monospace">Router</text>
+            <path d="M282 110 h34" stroke="#35d4e4" stroke-width="2" fill="none"/><path d="M312 105 l10 5 -10 5 z" fill="#35d4e4"/>
+            <g>
+              <rect x="330" y="24" width="252" height="172" rx="4" fill="none" stroke="#93a7bb" stroke-opacity=".3" stroke-width="1"/>
+              <text x="342" y="44" fill="#93a7bb" font-size="11" font-family="ui-monospace,monospace">EXPERTS — 総パラメータ 2.4T</text>
+              <g fill="none" stroke="#93a7bb" stroke-opacity=".4">
+                <rect x="346" y="58"  width="26" height="26" rx="3"/><rect x="378" y="58"  width="26" height="26" rx="3"/><rect x="410" y="58"  width="26" height="26" rx="3" fill="#35d4e4" stroke="#35d4e4"/><rect x="442" y="58"  width="26" height="26" rx="3"/><rect x="474" y="58"  width="26" height="26" rx="3"/><rect x="506" y="58"  width="26" height="26" rx="3"/><rect x="538" y="58"  width="26" height="26" rx="3"/>
+                <rect x="346" y="90"  width="26" height="26" rx="3"/><rect x="378" y="90"  width="26" height="26" rx="3"/><rect x="410" y="90"  width="26" height="26" rx="3"/><rect x="442" y="90"  width="26" height="26" rx="3"/><rect x="474" y="90"  width="26" height="26" rx="3" fill="#35d4e4" stroke="#35d4e4"/><rect x="506" y="90"  width="26" height="26" rx="3"/><rect x="538" y="90"  width="26" height="26" rx="3"/>
+                <rect x="346" y="122" width="26" height="26" rx="3"/><rect x="378" y="122" width="26" height="26" rx="3" fill="#35d4e4" stroke="#35d4e4"/><rect x="410" y="122" width="26" height="26" rx="3"/><rect x="442" y="122" width="26" height="26" rx="3"/><rect x="474" y="122" width="26" height="26" rx="3"/><rect x="506" y="122" width="26" height="26" rx="3"/><rect x="538" y="122" width="26" height="26" rx="3"/>
+                <rect x="346" y="154" width="26" height="26" rx="3"/><rect x="378" y="154" width="26" height="26" rx="3"/><rect x="410" y="154" width="26" height="26" rx="3"/><rect x="442" y="154" width="26" height="26" rx="3"/><rect x="474" y="154" width="26" height="26" rx="3"/><rect x="506" y="154" width="26" height="26" rx="3"/><rect x="538" y="154" width="26" height="26" rx="3"/>
+              </g>
+            </g>
+            <path d="M586 110 h34" stroke="#35d4e4" stroke-width="2" fill="none"/><path d="M616 105 l10 5 -10 5 z" fill="#35d4e4"/>
+            <rect x="630" y="86" width="78" height="48" rx="4" fill="none" stroke="#93a7bb" stroke-opacity=".45" stroke-width="1.5"/>
+            <text x="669" y="115" text-anchor="middle" fill="#f7fbff" font-size="14" font-family="'Noto Sans JP',sans-serif">応答</text>
+          </svg>
+          <p class="note">■ シアン = 活性化されたExpert。1トークンあたり実際に計算へ参加するのはごく一部で、これが「2.4Tなのに推論できる」根拠。ただし<strong style="color:#f3b64c">活性化率（アクティブパラメータ数）は未公表</strong>のため、推論コストの正確な見積もりはまだできない。</p>
+        </div>
         <h3>マルチモーダル — 現状は「テキスト＋画像」</h3>
         <p>テキスト生成に加え<strong>Vision understanding（画像理解）</strong>にネイティブ対応。ドキュメント解析や画像ベースのプロトタイプ生成に適性を持つが、音声・動画を含む「真の万能型」という主張は未実証である。</p>
         <h3>エージェント志向のThinkingモード</h3>
@@ -120,16 +182,55 @@
           <li><strong>常時稼働・無効化不可</strong>。推論強度は xhigh / high / low から選択でき、標準の xhigh は極めて深い推論ステップを踏む。</li>
           <li>トレードオフとして<strong>推論遅延とトークン消費が増大</strong>。リアルタイム用途より、一貫性と正確性が要る長時間タスク（Long-running tasks）向きの設計。</li>
         </ul>
+        <div class="viz">
+          <p class="viz-title">推論強度の選択とトレードオフ</p>
+          <p class="viz-sub">Thinkingモードは無効化できない — 選べるのは「深さ」だけ</p>
+          <div class="scroll-x"><table class="cmp">
+            <thead><tr><th>推論強度</th><th>推論の深さ</th><th>遅延・トークン消費</th><th>向いている用途</th></tr></thead>
+            <tbody>
+              <tr><td>xhigh（標準）</td><td><b>●●●</b> 極めて深い</td><td><b>大</b> — 応答遅延・消費とも最大</td><td>長時間の自律タスク、一貫性が要る調査・実装</td></tr>
+              <tr><td>high</td><td><b>●●</b>○ 深い</td><td><b>中</b></td><td>通常のコーディング・分析</td></tr>
+              <tr><td>low</td><td><b>●</b>○○ 浅い</td><td><b>小</b></td><td>軽量な変換・要約（それでもThinkingは切れない）</td></tr>
+            </tbody>
+          </table></div>
+        </div>
       </section>
 
       <section class="slide" id="slide-3">
         <div class="slide-no">03 / COMPETITIVE LANDSCAPE</div>
         <h2>主要フロンティアモデルとの徹底比較</h2>
         <p>焦点はAlibabaが主張する「Fable 5級」の真偽。限定的なサードパーティデータに基づく現時点の整理は次の通り。</p>
-        <div class="grid-3">
-          <div class="vs-card"><h4><span>VS ANTHROPIC</span>Claude Fable 5 — 実力伯仲の挑戦者</h4><p>KingBenchスコア81.25%は Fable 5 の82.5%に肉薄。ただしSWE-Bench Pro 80.3%の実績、数時間級エージェントタスクの安定性、確立された安全ガバナンスを踏まえると、Qwen3.8は依然として「追う立場」。</p></div>
-          <div class="vs-card"><h4><span>VS OPENAI</span>GPT-5.6 Sol — 実用性とスピードの差</h4><p>Solは推論速度とクリーンなコード生成で高い信頼性を維持。Qwen3.8は「思考の深さ」で対抗するが、ビジネスワークフロー統合の容易さとエコシステム成熟度はOpenAIがリード。</p></div>
-          <div class="vs-card"><h4><span>VS MOONSHOT</span>Kimi K3 — デザインと信頼性の対比</h4><p>2.8T規模のK3はFrontend Arena（1679点）でデザインセンスと3D生成が突出。一方Qwen3.8の強みは<strong>ツール呼び出しの堅牢性</strong>で、自律エージェントとしての信頼性ではKimiを凌駕する可能性がある。</p></div>
+        <div class="viz">
+          <p class="viz-title">KingBench スコア — 「Fable 5級」主張の実測値</p>
+          <p class="viz-sub">AICodeKing 実測（0–100%）。差はわずか1.25ポイント</p>
+          <svg viewBox="0 0 720 152" role="img" aria-label="KingBenchスコアの棒グラフ。Claude Fable 5が82.5%、Qwen3.8-Max-Previewが81.25%">
+            <g stroke="#93a7bb" stroke-opacity=".18">
+              <line x1="170" y1="16" x2="170" y2="122"/><line x1="300" y1="16" x2="300" y2="122"/><line x1="430" y1="16" x2="430" y2="122"/><line x1="560" y1="16" x2="560" y2="122"/><line x1="690" y1="16" x2="690" y2="122"/>
+            </g>
+            <text x="164" y="40" text-anchor="end" fill="#93a7bb" font-size="13" font-family="'Noto Sans JP',sans-serif">Claude Fable 5</text>
+            <rect x="170" y="22" width="429" height="26" rx="3" fill="#35d4e4"/>
+            <text x="607" y="40" fill="#f7fbff" font-size="13" font-family="ui-monospace,monospace">82.5%</text>
+            <text x="164" y="88" text-anchor="end" fill="#93a7bb" font-size="13" font-family="'Noto Sans JP',sans-serif">Qwen3.8-Max</text>
+            <rect x="170" y="70" width="422" height="26" rx="3" fill="#35d4e4"/>
+            <text x="600" y="88" fill="#f7fbff" font-size="13" font-family="ui-monospace,monospace">81.25%</text>
+            <g fill="#93a7bb" font-size="11" font-family="ui-monospace,monospace">
+              <text x="170" y="140" text-anchor="middle">0</text><text x="300" y="140" text-anchor="middle">25</text><text x="430" y="140" text-anchor="middle">50</text><text x="560" y="140" text-anchor="middle">75</text><text x="690" y="140" text-anchor="middle">100%</text>
+            </g>
+          </svg>
+          <p class="note">※ SWE-Bench Pro（Fable 5: 80.3%）や Frontend Arena（Kimi K3: 1679点）は測定軸が異なるため同一グラフにはしない。Qwen3.8 の BenchLM 等での公式検証は未実施。</p>
+        </div>
+        <div class="viz">
+          <p class="viz-title">フロンティア4モデルの現在地</p>
+          <p class="viz-sub">2026-07-19 時点の公開情報・サードパーティ実測に基づく</p>
+          <div class="scroll-x"><table class="cmp">
+            <thead><tr><th>モデル</th><th>規模</th><th>公開されている実測</th><th>強み</th><th>現在地</th></tr></thead>
+            <tbody>
+              <tr><td>Qwen3.8-Max<br>(Alibaba)</td><td><b>2.4T</b> Sparse MoE</td><td>KingBench 81.25%<br>StackPerf ツール失敗 0件</td><td><b>ツール呼び出しの堅牢性</b>、圧倒的低コスト、常時Thinking</td><td>プレビュー版。公式検証なし、「追う立場」</td></tr>
+              <tr><td>Claude Fable 5<br>(Anthropic)</td><td>非公開</td><td>KingBench 82.5%<br>SWE-Bench Pro 80.3%</td><td>数時間級エージェントの<b>安定性</b>、確立された安全ガバナンス</td><td>性能リーダー</td></tr>
+              <tr><td>GPT-5.6 Sol<br>(OpenAI)</td><td>非公開</td><td>—</td><td><b>速度</b>とクリーンなコード生成、エコシステム成熟度</td><td>実用性リーダー</td></tr>
+              <tr><td>Kimi K3<br>(Moonshot)</td><td><b>2.8T</b> MoE</td><td>Frontend Arena 1679点</td><td><b>デザインセンス</b>・3D生成</td><td>7/27 オープンウェイト化予定</td></tr>
+            </tbody>
+          </table></div>
         </div>
       </section>
 
@@ -141,6 +242,15 @@
           <li><strong>フロントエンド生成の驚異：</strong>Three.jsやSVGを用いた視覚的コンテンツ生成で高い適性。天気アプリのデモでは、アニメーション付きUIを単一プロンプトで生成した。</li>
           <li><strong>ツール利用の完全性：</strong>269ファイル規模のリポジトリ調査タスクで、354箇所の参照を行いながら<strong>ツール呼び出しの失敗ゼロ</strong>。大規模コードベース解析における安定挙動の強力なエビデンス。</li>
         </ul>
+        <div class="viz">
+          <p class="viz-title">StackPerf：リポジトリ調査タスクでのツール呼び出し成功率</p>
+          <p class="viz-sub">269ファイル規模のコードベース調査（サードパーティ計測）</p>
+          <div class="meter">
+            <div class="track"><div class="fill"></div></div>
+            <div class="cap"><span>成功 <b>354 / 354</b>（失敗 <b>0件</b>）</span><b>100%</b></div>
+          </div>
+          <p class="note">自律エージェントは1回のツール呼び出し失敗が後続タスク全体を狂わせるため、この「完全性」は実務上ベンチマークスコア以上に重要な指標。</p>
+        </div>
         <h3>プレビュー版特有の課題（So What?）</h3>
         <ul>
           <li><strong>「思考ループ」への陥入：</strong>複雑な推論で同じ論理を繰り返し、回答遅延とトークン過剰消費を招く傾向が散見される。</li>
@@ -153,6 +263,22 @@
         <h2>実践的導入ガイド：$18で「40倍」の経済学</h2>
         <h3>「40倍の価値」を生むロジック</h3>
         <p>Standardプラン（<strong>$18/月</strong>）が「他社の40倍（40x utility）」相当と言われる背景は、<strong>Qwen3.8-Max利用時のクレジット1/10消費キャンペーン</strong>と<strong>夜間最大98%オフ</strong>の組み合わせ。Fable 5級の推論を極めて安価に実行できる。</p>
+        <div class="viz">
+          <p class="viz-title">同等の作業量にかかる相対コスト</p>
+          <p class="viz-sub">Alibaba公称の「40x utility」に基づく相対値（小さいほど安い）</p>
+          <svg viewBox="0 0 720 130" role="img" aria-label="相対コストの棒グラフ。一般的なフロンティアAPIを40とした場合、Qwen3.8のToken Planは1に相当">
+            <text x="184" y="38" text-anchor="end" fill="#93a7bb" font-size="13" font-family="'Noto Sans JP',sans-serif">一般的なフロンティアAPI</text>
+            <rect x="190" y="20" width="500" height="26" rx="3" fill="#35d4e4"/>
+            <text x="682" y="38" text-anchor="end" fill="#07111f" font-size="13" font-weight="700" font-family="ui-monospace,monospace">40</text>
+            <text x="184" y="86" text-anchor="end" fill="#93a7bb" font-size="13" font-family="'Noto Sans JP',sans-serif">Qwen3.8 Token Plan</text>
+            <rect x="190" y="68" width="13" height="26" rx="3" fill="#35d4e4"/>
+            <text x="211" y="86" fill="#f7fbff" font-size="13" font-family="ui-monospace,monospace">1</text>
+            <g fill="#93a7bb" font-size="11" font-family="ui-monospace,monospace">
+              <text x="190" y="118" text-anchor="middle">0</text><text x="440" y="118" text-anchor="middle">20</text><text x="690" y="118" text-anchor="middle">40</text>
+            </g>
+          </svg>
+          <p class="note">内訳：クレジット<strong>1/10消費</strong>キャンペーン × 夜間<strong>最大98%オフ</strong>（Nightly discount）。ベンダー公称値のため、実ワークロードでの再計測を推奨。</p>
+        </div>
         <h3>利用プラットフォームとガバナンス</h3>
         <ul>
           <li><strong>OpenAI互換API</strong>を提供。CursorやClaude Codeなど既存ツールチェーンへの「差し替え（リップ・アンド・リプレース）」で迅速に評価可能。</li>
@@ -167,6 +293,14 @@
         <p>2.4兆パラメータ級が<strong>オープンウェイト（Apache 2.0想定）</strong>で公開されれば、クローズドモデル中心の価格戦略は維持が困難になる。ベンダーロックインを回避し、自社インフラで最高峰の知能を運用できる時代の到来を予感させる。</p>
         <h3>ハードウェア要件の現実</h3>
         <p>「オープン」は「安易なローカル実行」を意味しない。8bit量子化時でも約<strong>2.4TB</strong>に達し、実運用には<strong>H100/H200 GPUを30〜40枚</strong>備えたデータセンター級クラスタが必要。個人PCでの実行は非現実的で、蒸留モデルの登場が実質的な前提となる。</p>
+        <div class="viz">
+          <p class="viz-title">自社運用に必要なGPU：H100/H200 × 30〜40枚</p>
+          <p class="viz-sub">8bit量子化でも約2.4TB — ■ 最低ライン30枚 / ▨ 構成により+10枚</p>
+          <div class="gpu-grid" role="img" aria-label="必要GPU数の図。30枚が最低ライン、構成により最大40枚">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span><span class="opt"></span>
+          </div>
+          <p class="note">1マス = H100/H200 1枚（80GB級）。個人PC・単一サーバでの実行は非現実的で、実質的には<strong>蒸留モデルの公開待ち</strong>か、クラウドAPI利用の二択となる。</p>
+        </div>
         <h3>戦略的アクション</h3>
         <p><strong>7月27日にオープン化が予定されるKimi K3</strong>と合わせ、現在は「大規模モデルのオープン化競争」の渦中。APIを通じてモデルの癖（推論強度とループの相関など）を把握し、ウェイト公開後のファインチューニングや自社運用に向けた知見を今から蓄積すべきだ。</p>
       </section>
