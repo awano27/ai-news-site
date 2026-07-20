@@ -33,25 +33,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Removed steps (2026-07): "Extract Daily AI News Pages data"
+      # (extract_daily_news.py was lost in April 2026; date-named snapshots
+      # now reach daily_index.json via scripts/rebuild-news-indexes.js),
+      # "Build advanced report" (advanced_intelligence_report_latest.html was
+      # deliberately converted to a redirect in the 2026-06-15 legacy purge),
+      # and "Rebuild day slides index" (the quick rebuild would clobber the
+      # actively-maintained day_slides_index.html hub page).
+
       - name: Archive daily AI news (JST)
         run: |
           python tools/archive_daily_ai_news.py || true
 
-      - name: Extract Daily AI News Pages data
-        run: |
-          python extract_daily_news.py || echo "Daily AI News extraction failed, continuing..."
-
       - name: Normalize archive JSON
         run: |
           python tools/normalize_archive_json.py
-
-      - name: Build advanced report
-        run: |
-          python tools/build_advanced_report.py
-
-      - name: Rebuild day slides index (best-effort)
-        run: |
-          python tools/rebuild_day_slides_index_quick.py || true
 
       - name: Validate archive data
         run: |
@@ -63,6 +59,9 @@ jobs:
           echo "{\n  \"sha\": \"${GITHUB_SHA}\",\n  \"ts\": \"$(date +%Y-%m-%dT%H:%M:%S%z)\"\n}" > public-pages/version.json
 
       - name: Link check (lychee)
+        # Report-only: external link rot must not block archiving and the
+        # data commit below.
+        continue-on-error: true
         uses: lycheeverse/lychee-action@v1
         with:
           args: --no-progress --max-concurrency 8 --exclude-mail presentations/**/*.html
