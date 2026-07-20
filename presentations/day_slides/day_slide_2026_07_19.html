@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Qwen3.8-Max-Preview 徹底分析 — 2.4兆パラメータの挑戦状 | 2026-07-19</title>
+  <meta name="description" content="Qwen3.8-Max-Previewを、2.4兆パラメータのSparse MoE、常時稼働のThinkingモード、Fable 5・GPT-5.6 Sol・Kimi K3との比較、Token Planのコスト戦略、オープンウェイト化の影響、導入3ステップの観点から整理する。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_19.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Qwen3.8-Max-Preview 徹底分析 — 2.4兆パラメータの挑戦状 | 2026-07-19">
+  <meta property="og:description" content="Qwen3.8-Max-Previewを、2.4兆パラメータのSparse MoE、常時稼働のThinkingモード、Fable 5・GPT-5.6 Sol・Kimi K3との比較、Token Planのコスト戦略、オープンウェイト化の影響、導入3ステップの観点から整理する。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_19.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0719/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Qwen3.8-Max-Preview 徹底分析 — 2.4兆パラメータの挑戦状">
+  <meta name="twitter:description" content="Fable 5級の推論を1/40のコストで。2.4兆パラメータのプレビュー版が示す実力と不確実性を冷静に解剖する。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0719/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Qwen3.8-Max-Preview 徹底分析 — 2.4兆パラメータの挑戦状",
+    "description": "Qwen3.8-Max-Previewを、2.4兆パラメータのSparse MoE、常時稼働のThinkingモード、Fable 5・GPT-5.6 Sol・Kimi K3との比較、Token Planのコスト戦略、オープンウェイト化の影響、導入3ステップの観点から整理する。",
+    "datePublished": "2026-07-19",
+    "dateModified": "2026-07-19",
+    "image": [
+        "https://visionhub.jp/presentations/day_slides/images/0719/cover.jpg"
+    ],
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_07_19.html",
+    "articleSection": "Frontier AI Models"
+}
+  </script>
+  <style>
+    :root { --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb; --line:rgba(143,161,181,.22); --cyan:#35d4e4; --amber:#f3b64c; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 80% 0%, rgba(53,212,228,.08), transparent 30%), var(--bg); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .shell { max-width:1200px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:24px; color:var(--muted); font-size:13px; }
+    .topbar a { color:var(--cyan); text-decoration:none; }
+    .hero { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:clamp(20px,3vw,38px); margin-bottom:18px; }
+    .kicker { color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px; }
+    h1 { max-width:24ch; font-size:clamp(30px,4.2vw,56px); line-height:1.16; margin:0 0 16px; font-weight:500; letter-spacing:-.02em; }
+    .lead { max-width:82ch; color:var(--muted); font-size:16px; margin:0; line-height:1.8; }
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:22px 0 0; }
+    .stat-card { border:1px solid var(--line); background:rgba(5,11,20,.6); padding:14px 16px; }
+    .stat-num { font:600 26px/1.1 ui-monospace,SFMono-Regular,monospace; color:var(--cyan); }
+    .stat-num.amber { color:var(--amber); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:6px; line-height:1.5; }
+    .jump { position:sticky; top:0; z-index:10; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:12px; background:rgba(5,11,20,.94); backdrop-filter:blur(12px); scrollbar-width:thin; }
+    .jump a { flex:0 0 auto; min-width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; }
+    .jump a:hover,.jump a:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+    .slides { display:grid; gap:22px; }
+    section.slide { border:1px solid var(--line); background:var(--paper); padding:clamp(18px,2.6vw,32px); scroll-margin-top:64px; }
+    .slide-no { color:var(--cyan); font:500 11px/1 ui-monospace,monospace; letter-spacing:.14em; margin-bottom:10px; }
+    h2 { font-size:clamp(21px,2.6vw,30px); line-height:1.3; margin:0 0 14px; font-weight:600; letter-spacing:-.01em; }
+    h3 { font-size:16px; margin:20px 0 8px; color:var(--cyan); font-weight:600; }
+    p { color:var(--muted); line-height:1.9; margin:0 0 12px; font-size:15px; }
+    strong { color:var(--ink); font-weight:600; }
+    ul { margin:0 0 12px; padding-left:1.3em; color:var(--muted); line-height:1.9; font-size:15px; }
+    li { margin-bottom:6px; }
+    li::marker { color:var(--cyan); }
+    .grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:16px 18px; }
+    .vs-card h4 { margin:0 0 8px; font-size:14px; color:var(--ink); }
+    .vs-card h4 span { color:var(--amber); font:500 10px/1 ui-monospace,monospace; letter-spacing:.12em; display:block; margin-bottom:6px; }
+    .vs-card p { font-size:13.5px; line-height:1.75; margin:0; }
+    .warn { border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:12px 16px; margin:14px 0; }
+    .warn p { margin:0; font-size:14px; }
+    .steps { counter-reset:step; display:grid; gap:10px; margin:14px 0; padding:0; list-style:none; }
+    .steps li { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:14px 16px 14px 54px; position:relative; margin:0; }
+    .steps li::before { counter-increment:step; content:counter(step,decimal-leading-zero); position:absolute; left:16px; top:14px; color:var(--amber); font:600 15px/1.4 ui-monospace,monospace; }
+    .steps b { color:var(--ink); display:block; margin-bottom:4px; }
+    .steps li p { margin:0; font-size:13.5px; }
+    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } section.slide { padding:16px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="topbar" aria-label="Breadcrumb">
+      <a href="../day_slides_index.html">All day slides</a>
+      <span>2026-07-19 / Frontier AI Models</span>
+    </nav>
+    <section class="hero">
+      <div class="kicker">Daily AI Frontier Slide</div>
+      <h1>Qwen3.8-Max-Preview — 2.4兆パラメータの挑戦状</h1>
+      <p class="lead">Alibaba Cloudが投じた2.4Tパラメータのフロンティアモデルを、アーキテクチャ、Fable 5・GPT-5.6 Sol・Kimi K3との比較、コスト戦略、オープンウェイト化の影響から冷静に解剖し、エンタープライズ導入の実利的な評価を下す。</p>
+      <div class="stats-bar" aria-label="キーメトリクス">
+        <div class="stat-card"><div class="stat-num">2.4T</div><div class="stat-label">総パラメータ（Sparse MoE）</div></div>
+        <div class="stat-card"><div class="stat-num">81.25%</div><div class="stat-label">KingBench（Fable 5は82.5%）</div></div>
+        <div class="stat-card"><div class="stat-num">0件</div><div class="stat-label">StackPerf 354参照でのツール呼び出し失敗</div></div>
+        <div class="stat-card"><div class="stat-num amber">$18/月</div><div class="stat-label">Standardプラン（他社比40x utility）</div></div>
+        <div class="stat-card"><div class="stat-num amber">98%オフ</div><div class="stat-label">夜間割引（Nightly discount）</div></div>
+        <div class="stat-card"><div class="stat-num">2.4TB</div><div class="stat-label">8bit量子化時のモデルサイズ</div></div>
+      </div>
+    </section>
+    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="2.4兆パラメータ時代の幕開け">01</a> <a href="#slide-2" aria-label="アーキテクチャ分析">02</a> <a href="#slide-3" aria-label="主要フロンティアモデルとの比較">03</a> <a href="#slide-4" aria-label="性能実証">04</a> <a href="#slide-5" aria-label="実践的導入ガイド">05</a> <a href="#slide-6" aria-label="オープンウェイト化の衝撃">06</a> <a href="#slide-7" aria-label="結論と推奨ステップ">07</a></nav>
+    <div class="slides">
+
+      <section class="slide" id="slide-1">
+        <div class="slide-no">01 / INTRODUCTION</div>
+        <h2>2.4兆パラメータ時代の幕開けとQwen3.8の衝撃</h2>
+        <p>2026年7月19日、Alibaba Cloudが発表した<strong>「Qwen3.8-Max-Preview」</strong>は、AI業界に「2.4兆（2.4T）パラメータ」という未曾有の数字を突きつけた。Claude Fable 5やKimi K3が主導権を握るフロンティアモデル市場に対し、Alibabaが真っ向から挑んだ野心的な挑戦状である。</p>
+        <div class="warn"><p><strong>ただし額面通りに受け取るのは時期尚早。</strong>「Fable 5に次ぐ世界第2位の性能」を標榜する一方、公式の技術レポートやモデルカードは欠落しており、BenchLMなど主要トラッカーの検証済みベンチマークスコアは「0%（未公開）」のままである。</p></div>
+        <p>本スライドでは、この巨大モデルが孕む戦略的ポテンシャルとプレビュー版ゆえの不確実性を分けて評価する。</p>
+      </section>
+
+      <section class="slide" id="slide-2">
+        <div class="slide-no">02 / ARCHITECTURE</div>
+        <h2>技術プロファイル：Sparse MoEと常時稼働の「Thinkingモード」</h2>
+        <h3>スペックの解剖 — 2.4兆パラメータとMoEの実像</h3>
+        <p>総パラメータ2.4兆の<strong>Sparse MoE（Mixture of Experts）</strong>構造。推論コストと速度を規定するのは総パラメータではなく<strong>「アクティブパラメータ数」</strong>だが、その活性化率は未公表。巨大な知識ベースが推論効率にどう転換されているかの見極めが技術選定の鍵になる。</p>
+        <h3>マルチモーダル — 現状は「テキスト＋画像」</h3>
+        <p>テキスト生成に加え<strong>Vision understanding（画像理解）</strong>にネイティブ対応。ドキュメント解析や画像ベースのプロトタイプ生成に適性を持つが、音声・動画を含む「真の万能型」という主張は未実証である。</p>
+        <h3>エージェント志向のThinkingモード</h3>
+        <ul>
+          <li><strong>常時稼働・無効化不可</strong>。推論強度は xhigh / high / low から選択でき、標準の xhigh は極めて深い推論ステップを踏む。</li>
+          <li>トレードオフとして<strong>推論遅延とトークン消費が増大</strong>。リアルタイム用途より、一貫性と正確性が要る長時間タスク（Long-running tasks）向きの設計。</li>
+        </ul>
+      </section>
+
+      <section class="slide" id="slide-3">
+        <div class="slide-no">03 / COMPETITIVE LANDSCAPE</div>
+        <h2>主要フロンティアモデルとの徹底比較</h2>
+        <p>焦点はAlibabaが主張する「Fable 5級」の真偽。限定的なサードパーティデータに基づく現時点の整理は次の通り。</p>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>VS ANTHROPIC</span>Claude Fable 5 — 実力伯仲の挑戦者</h4><p>KingBenchスコア81.25%は Fable 5 の82.5%に肉薄。ただしSWE-Bench Pro 80.3%の実績、数時間級エージェントタスクの安定性、確立された安全ガバナンスを踏まえると、Qwen3.8は依然として「追う立場」。</p></div>
+          <div class="vs-card"><h4><span>VS OPENAI</span>GPT-5.6 Sol — 実用性とスピードの差</h4><p>Solは推論速度とクリーンなコード生成で高い信頼性を維持。Qwen3.8は「思考の深さ」で対抗するが、ビジネスワークフロー統合の容易さとエコシステム成熟度はOpenAIがリード。</p></div>
+          <div class="vs-card"><h4><span>VS MOONSHOT</span>Kimi K3 — デザインと信頼性の対比</h4><p>2.8T規模のK3はFrontend Arena（1679点）でデザインセンスと3D生成が突出。一方Qwen3.8の強みは<strong>ツール呼び出しの堅牢性</strong>で、自律エージェントとしての信頼性ではKimiを凌駕する可能性がある。</p></div>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-4">
+        <div class="slide-no">04 / EVIDENCE</div>
+        <h2>性能実証：ベンチマークと実利用フィードバック</h2>
+        <h3>KingBench &amp; StackPerf の分析</h3>
+        <ul>
+          <li><strong>フロントエンド生成の驚異：</strong>Three.jsやSVGを用いた視覚的コンテンツ生成で高い適性。天気アプリのデモでは、アニメーション付きUIを単一プロンプトで生成した。</li>
+          <li><strong>ツール利用の完全性：</strong>269ファイル規模のリポジトリ調査タスクで、354箇所の参照を行いながら<strong>ツール呼び出しの失敗ゼロ</strong>。大規模コードベース解析における安定挙動の強力なエビデンス。</li>
+        </ul>
+        <h3>プレビュー版特有の課題（So What?）</h3>
+        <ul>
+          <li><strong>「思考ループ」への陥入：</strong>複雑な推論で同じ論理を繰り返し、回答遅延とトークン過剰消費を招く傾向が散見される。</li>
+          <li><strong>ベンチマーク最適化の疑惑：</strong>モデルカード不在の現状では過学習（オーバーフィッティング）を排除できない。実務導入には独自データセットでの再検証が不可欠。</li>
+        </ul>
+      </section>
+
+      <section class="slide" id="slide-5">
+        <div class="slide-no">05 / ADOPTION GUIDE</div>
+        <h2>実践的導入ガイド：$18で「40倍」の経済学</h2>
+        <h3>「40倍の価値」を生むロジック</h3>
+        <p>Standardプラン（<strong>$18/月</strong>）が「他社の40倍（40x utility）」相当と言われる背景は、<strong>Qwen3.8-Max利用時のクレジット1/10消費キャンペーン</strong>と<strong>夜間最大98%オフ</strong>の組み合わせ。Fable 5級の推論を極めて安価に実行できる。</p>
+        <h3>利用プラットフォームとガバナンス</h3>
+        <ul>
+          <li><strong>OpenAI互換API</strong>を提供。CursorやClaude Codeなど既存ツールチェーンへの「差し替え（リップ・アンド・リプレース）」で迅速に評価可能。</li>
+        </ul>
+        <div class="warn"><p><strong>データレジデンシーへの警鐘：</strong>プレビュー版の利用リージョンは<strong>シンガポール（ap-southeast-1）のみ</strong>。データ越境移転に厳格な制約を持つ日本のエンタープライズには、機密情報の取り扱い上の大きな懸念材料となる。</p></div>
+      </section>
+
+      <section class="slide" id="slide-6">
+        <div class="slide-no">06 / OPEN WEIGHTS</div>
+        <h2>オープンウェイト化の衝撃：市場とハードウェアの現実</h2>
+        <h3>市場への圧力とコスト破壊</h3>
+        <p>2.4兆パラメータ級が<strong>オープンウェイト（Apache 2.0想定）</strong>で公開されれば、クローズドモデル中心の価格戦略は維持が困難になる。ベンダーロックインを回避し、自社インフラで最高峰の知能を運用できる時代の到来を予感させる。</p>
+        <h3>ハードウェア要件の現実</h3>
+        <p>「オープン」は「安易なローカル実行」を意味しない。8bit量子化時でも約<strong>2.4TB</strong>に達し、実運用には<strong>H100/H200 GPUを30〜40枚</strong>備えたデータセンター級クラスタが必要。個人PCでの実行は非現実的で、蒸留モデルの登場が実質的な前提となる。</p>
+        <h3>戦略的アクション</h3>
+        <p><strong>7月27日にオープン化が予定されるKimi K3</strong>と合わせ、現在は「大規模モデルのオープン化競争」の渦中。APIを通じてモデルの癖（推論強度とループの相関など）を把握し、ウェイト公開後のファインチューニングや自社運用に向けた知見を今から蓄積すべきだ。</p>
+      </section>
+
+      <section class="slide" id="slide-7">
+        <div class="slide-no">07 / VERDICT</div>
+        <h2>結論：Qwen3.8-Max-Preview は「買い」か</h2>
+        <p>真価は「2.4兆」という象徴的な数字ではなく、<strong>「Fable 5級の推論性能を、圧倒的低コストかつ既存ツールと即時接続可能な形で市場に解き放ったこと」</strong>にある。マーケティング的主張が先行している面は否めないが、ツール呼び出しの堅牢性に見られる実力は本物である。</p>
+        <ol class="steps">
+          <li><b>個人開発での初期評価</b><p>$18のStandardプランを契約し、クレジット消費優遇期間中に、既存コーディングエージェントでの「Thinkingモード」の費用対効果を測定する。</p></li>
+          <li><b>非機密データでのA/Bテスト</b><p>Fable 5やGPT-5.6 Solと同じ開発課題を与え、ツール呼び出し精度とデザイン品質を自社基準で再検証する。</p></li>
+          <li><b>正式版・ライセンス確定後の本格導入</b><p>オープンウェイト版の正式公開、ライセンス条件、シンガポール以外のリージョン可否が確定した段階で、本番適用を判断する。</p></li>
+        </ol>
+        <p>Qwen3.8-Max-Previewは、AI開発の民主化とコスト破壊を加速させる歴史的なプレビューとなる可能性を秘めている。まずはこの「思考する巨人」を低コストで使い倒すことから、次世代のAI戦略を開始したい。</p>
+      </section>
+
+    </div>
+  </main>
+</body>
+</html>
