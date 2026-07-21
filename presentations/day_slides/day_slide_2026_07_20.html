@@ -28,354 +28,250 @@
   }
   </script>
   <style>
-    :root {
-      --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb;
-      --line:rgba(143,161,181,.22); --cyan:#35d4e4; --amber:#f3b64c; --green:#7ddb8a;
-    }
+    :root { --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb; --line:rgba(143,161,181,.22); --cyan:#35d4e4; --amber:#f3b64c; }
     * { box-sizing:border-box; }
-    html, body { margin:0; padding:0; height:100%; }
-    body {
-      background: radial-gradient(circle at 80% 0%, rgba(53,212,228,.08), transparent 30%), var(--bg);
-      color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
-      display:flex; overflow:hidden;
-    }
-    /* Left Panel */
-    .nav-panel {
-      width:210px; background:rgba(10,21,36,.95); border-right:1px solid var(--line);
-      overflow-y:auto; padding:16px 0; display:flex; flex-direction:column; z-index:20;
-    }
-    .nav-panel-header {
-      padding:0 14px 12px; border-bottom:1px solid var(--line); margin-bottom:12px;
-      font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
-    }
-    .nav-panel-header b { display:block; color:var(--cyan); font-size:13px; margin-bottom:4px; letter-spacing:.04em; }
-    .nav-slides { flex:1; overflow-y:auto; padding:0 8px; display:flex; flex-direction:column; gap:6px; }
-    .nav-slide {
-      padding:10px 12px; border:1px solid transparent; background:rgba(53,212,228,.08);
-      color:var(--muted); font-size:12px; cursor:pointer; border-radius:4px;
-      transition:all .2s ease; text-align:left; flex:0 0 auto; line-height:1.4;
-    }
-    .nav-slide:hover { border-color:var(--cyan); color:var(--ink); background:rgba(53,212,228,.15); }
-    .nav-slide.active { background:var(--cyan); color:var(--bg); border-color:var(--cyan); font-weight:600; }
-    .nav-slide small { display:block; font-size:10px; opacity:.7; margin-bottom:2px; font-family:ui-monospace,monospace; }
-    .nav-footer { padding:12px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); text-align:center; margin-top:auto; }
-
-    /* Main Viewer */
-    .viewer-container { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-    .viewer-header {
-      display:flex; justify-content:space-between; align-items:center; padding:16px 24px;
-      border-bottom:1px solid var(--line); background:rgba(10,21,36,.6); flex:0 0 auto;
-    }
-    .slide-title-header { font-size:16px; font-weight:600; color:var(--ink); }
-    .slide-counter { font-size:13px; color:var(--muted); font-family:ui-monospace,monospace; }
-    .viewer-body { flex:1; overflow-y:auto; padding:32px 40px; background:var(--bg); }
-    .slide-content { max-width:940px; margin:0 auto; display:none; }
-    .slide-content.active { display:block; animation:fadeIn .3s ease-out; }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-
-    /* Cover */
-    .slide-cover {
-      text-align:center; padding:56px 40px; display:flex; flex-direction:column;
-      justify-content:center; align-items:center; min-height:560px;
-    }
-    .slide-cover .kicker { color:var(--cyan); font-size:12px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:20px; }
-    .slide-cover h1 { font-size:46px; line-height:1.32; margin:0 0 22px; font-weight:500; letter-spacing:-.02em; max-width:820px; }
-    .slide-cover h1 .hl { color:var(--cyan); }
-    .slide-cover .desc { color:var(--muted); font-size:16px; line-height:1.8; max-width:700px; margin-bottom:34px; }
-    .cover-stats { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
-    .cover-stat { border:1px solid var(--line); background:rgba(5,11,20,.6); padding:14px 22px; min-width:120px; }
-    .cover-stat .n { font:600 30px/1 ui-monospace,monospace; color:var(--amber); }
-    .cover-stat .l { color:var(--muted); font-size:11.5px; margin-top:7px; line-height:1.5; }
-
-    /* Content sections */
-    .slide-content-section .slide-no { color:var(--cyan); font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; font-weight:600; }
-    .slide-content-section h2 { font-size:32px; margin:0 0 16px; font-weight:600; color:var(--ink); line-height:1.3; letter-spacing:-.01em; }
-    .slide-content-section p, .slide-content-section li { color:var(--muted); line-height:1.9; font-size:16px; margin:12px 0; }
-    .slide-content-section ul, .slide-content-section ol { padding-left:24px; margin:16px 0; }
-    .slide-content-section li { margin:8px 0; }
-    .slide-content-section li::marker { color:var(--cyan); }
-    .slide-content-section h3 { color:var(--cyan); font-size:18px; margin:24px 0 10px; font-weight:600; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 80% 0%, rgba(53,212,228,.08), transparent 30%), var(--bg); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:var(--cyan); z-index:50; transition:width .1s linear; }
+    .shell { max-width:1200px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:24px; color:var(--muted); font-size:13px; }
+    .topbar a { color:var(--cyan); text-decoration:none; }
+    .hero { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:clamp(20px,3vw,38px); margin-bottom:18px; }
+    .kicker { color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px; }
+    h1 { max-width:24ch; font-size:clamp(30px,4.2vw,56px); line-height:1.16; margin:0 0 16px; font-weight:500; letter-spacing:-.02em; }
+    .lead { max-width:82ch; color:var(--muted); font-size:16px; margin:0; line-height:1.8; }
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:22px 0 0; }
+    .stat-card { border:1px solid var(--line); background:rgba(5,11,20,.6); padding:14px 16px; }
+    .stat-num { font:600 26px/1.1 ui-monospace,SFMono-Regular,monospace; color:var(--cyan); }
+    .stat-num.amber { color:var(--amber); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:6px; line-height:1.55; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+    .jump { position:sticky; top:0; z-index:10; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:12px; background:rgba(5,11,20,.94); backdrop-filter:blur(12px); scrollbar-width:thin; }
+    .jump a { flex:0 0 auto; min-width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; }
+    .jump a:hover,.jump a:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+    .slides { display:grid; gap:22px; }
+    section.slide { border:1px solid var(--line); background:var(--paper); padding:clamp(18px,2.6vw,32px); scroll-margin-top:64px; }
+    .slide-no { color:var(--cyan); font:500 11px/1 ui-monospace,monospace; letter-spacing:.14em; margin-bottom:10px; }
+    h2 { font-size:clamp(21px,2.6vw,30px); line-height:1.3; margin:0 0 14px; font-weight:600; letter-spacing:-.01em; }
+    h3 { font-size:16px; margin:20px 0 8px; color:var(--cyan); font-weight:600; }
+    p { color:var(--muted); line-height:1.9; margin:0 0 12px; font-size:15px; }
     strong { color:var(--ink); font-weight:600; }
-
-    /* Stat row */
-    .stat-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:20px 0; }
-    .stat-box { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:16px 18px; }
-    .stat-box .n { font:600 26px/1.1 ui-monospace,monospace; color:var(--cyan); }
-    .stat-box .n.amber { color:var(--amber); }
-    .stat-box .n.green { color:var(--green); }
-    .stat-box .l { color:var(--muted); font-size:12px; margin-top:8px; line-height:1.6; }
-    .stat-box .l b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
-
-    /* Callout */
-    .callout { border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:14px 18px; margin:20px 0; }
-    .callout p { margin:0; font-size:14.5px; }
-    .callout.cyan { border-left-color:var(--cyan); background:rgba(53,212,228,.06); }
-
-    /* MoT diagram */
-    .mot { display:grid; grid-template-columns:1fr auto 1fr; gap:0; align-items:stretch; margin:22px 0; }
-    .mot-tower { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:18px 20px; }
-    .mot-tower h4 { margin:0 0 8px; color:var(--ink); font-size:15px; }
-    .mot-tower h4 span { display:block; color:var(--amber); font:500 10px/1.4 ui-monospace,monospace; letter-spacing:.1em; margin-bottom:5px; }
-    .mot-tower p { margin:0; font-size:13px; line-height:1.7; }
-    .mot-bridge { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 16px; color:var(--cyan); }
-    .mot-bridge .arrow { font-size:22px; line-height:1; }
-    .mot-bridge .lbl { font-size:10px; color:var(--muted); margin-top:6px; writing-mode:vertical-rl; text-orientation:upright; letter-spacing:.1em; }
-    .mot-out { text-align:center; margin-top:12px; color:var(--cyan); font-size:13.5px; }
-
-    /* Speed table */
-    .scroll-x { overflow-x:auto; margin:20px 0; }
-    table.cmp { width:100%; border-collapse:collapse; font-size:14px; min-width:560px; }
-    .cmp th { text-align:left; color:var(--cyan); font-weight:600; font-size:12px; letter-spacing:.05em; padding:11px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
-    .cmp td { color:var(--muted); padding:11px 14px; border-bottom:1px solid rgba(143,161,181,.12); line-height:1.7; vertical-align:top; }
+    ul { margin:0 0 12px; padding-left:1.3em; color:var(--muted); line-height:1.9; font-size:15px; }
+    li { margin-bottom:6px; }
+    li::marker { color:var(--cyan); }
+    .grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:16px 18px; }
+    .vs-card h4 { margin:0 0 8px; font-size:14px; color:var(--ink); }
+    .vs-card h4 span { color:var(--amber); font:500 10px/1 ui-monospace,monospace; letter-spacing:.12em; display:block; margin-bottom:6px; }
+    .vs-card p { font-size:13.5px; line-height:1.75; margin:0; }
+    .warn { border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:12px 16px; margin:14px 0; }
+    .warn p { margin:0; font-size:14px; }
+    .steps { counter-reset:step; display:grid; gap:10px; margin:14px 0; padding:0; list-style:none; }
+    .steps li { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:14px 16px 14px 54px; position:relative; margin:0; }
+    .steps li::before { counter-increment:step; content:counter(step,decimal-leading-zero); position:absolute; left:16px; top:14px; color:var(--amber); font:600 15px/1.4 ui-monospace,monospace; }
+    .steps b { color:var(--ink); display:block; margin-bottom:4px; }
+    .steps li p { margin:0; font-size:13.5px; }
+    /* visuals */
+    .viz { border:1px solid var(--line); background:rgba(5,11,20,.5); padding:18px 20px 14px; margin:16px 0; }
+    .viz-title { color:var(--ink); font-size:13.5px; font-weight:600; margin:0 0 2px; }
+    .viz-sub { color:var(--muted); font-size:12px; margin:0 0 12px; }
+    .viz svg { width:100%; height:auto; display:block; }
+    .viz .note { color:var(--muted); font-size:11.5px; margin:8px 0 0; line-height:1.6; }
+    .scroll-x { overflow-x:auto; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:560px; }
+    .cmp th { text-align:left; color:var(--cyan); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(143,161,181,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
     .cmp tr td:first-child { color:var(--ink); font-weight:600; white-space:nowrap; }
-    .cmp .fast { color:var(--green); font-weight:600; font-family:ui-monospace,monospace; }
-    .cmp .mid { color:var(--cyan); font-weight:600; font-family:ui-monospace,monospace; }
-    .cmp .slow { color:var(--amber); font-weight:600; font-family:ui-monospace,monospace; }
-
-    /* Coalition chips */
-    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-ng { color:var(--amber); font-weight:600; white-space:nowrap; }
+    .meter { margin:12px 0 4px; }
+    .meter .track { height:14px; border:1px solid var(--line); background:rgba(5,11,20,.7); border-radius:4px; overflow:hidden; }
+    .meter .fill { height:100%; width:100%; background:linear-gradient(90deg, rgba(53,212,228,.55), var(--cyan)); border-radius:3px 0 0 3px; }
+    .meter .cap { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:6px; }
+    .meter .cap b { color:var(--ink); font-family:ui-monospace,monospace; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
     .chip { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:7px 14px; font-size:13px; color:var(--ink); border-radius:20px; }
-    .quote-jp { border:1px solid var(--line); background:rgba(53,212,228,.05); padding:16px 20px; margin:18px 0; font-size:15px; color:var(--ink); font-style:italic; line-height:1.7; }
-
-    /* Viewer footer */
-    .viewer-footer {
-      padding:16px 24px; border-top:1px solid var(--line); display:flex; justify-content:space-between;
-      align-items:center; background:rgba(10,21,36,.6); flex:0 0 auto;
-    }
-    .nav-button {
-      padding:9px 18px; border:1px solid var(--line); background:transparent; color:var(--muted);
-      cursor:pointer; border-radius:4px; font-size:13px; transition:all .2s ease; font-family:inherit;
-    }
-    .nav-button:hover:not(:disabled) { border-color:var(--cyan); color:var(--cyan); background:rgba(53,212,228,.1); }
-    .nav-button:disabled { opacity:.35; cursor:not-allowed; }
-    .dots { display:flex; gap:7px; }
-    .dot { width:9px; height:9px; border-radius:50%; background:rgba(143,161,181,.3); cursor:pointer; transition:all .2s; }
-    .dot.active { background:var(--cyan); transform:scale(1.25); }
-
-    @media (max-width:1024px) {
-      .nav-panel { width:170px; }
-      .viewer-body { padding:22px 24px; }
-      .slide-cover h1 { font-size:34px; }
-      .slide-content-section h2 { font-size:26px; }
-      .mot { grid-template-columns:1fr; }
-      .mot-bridge { flex-direction:row; padding:10px 0; }
-      .mot-bridge .arrow { transform:rotate(90deg); }
-      .mot-bridge .lbl { writing-mode:horizontal-tb; margin:0 0 0 8px; }
-    }
-    @media (max-width:768px) {
-      .nav-panel { display:none; }
-      .slide-cover { padding:36px 18px; min-height:auto; }
-      .slide-cover h1 { font-size:26px; }
-      .viewer-body { padding:16px; }
-      .dots { display:none; }
-    }
+    .quote-jp { border:1px solid var(--line); background:rgba(53,212,228,.05); padding:16px 20px; margin:14px 0; font-size:15px; color:var(--ink); font-style:italic; line-height:1.7; }
+    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } section.slide { padding:16px; } }
   </style>
 </head>
 <body>
-  <div class="nav-panel">
-    <div class="nav-panel-header"><b>2026.07.20 · No.354</b>NVIDIA Cosmos 3 Edge</div>
-    <div class="nav-slides" id="navSlides"></div>
-    <div class="nav-footer" id="navFooter">1 / 8</div>
-  </div>
+  <div class="progress" aria-hidden="true"></div>
+  <main class="shell">
+    <nav class="topbar" aria-label="Breadcrumb">
+      <a href="../day_slides_index.html">All day slides</a>
+      <span>2026-07-20 / Frontier AI Models</span>
+    </nav>
+    <section class="hero">
+      <div class="kicker">今日の深掘り — フィジカルAI / エッジ推論</div>
+      <h1>「物理AI」がクラウドを脱出した日。<br>エッジで動く4B世界モデルの衝撃</h1>
+      <p class="lead">SIGGRAPH 2026でNVIDIAが発表した「Cosmos 3 Edge」。データセンター級の物理知能が、わずか4Bパラメータで手のひらサイズのJetsonに降りてきた。クラウドを介さず、ロボット自身がその場で「世界を理解し、未来を予測し、行動を選択する」——そんな物理AIが、ラボから現場へと解き放たれた実力を検証する。</p>
+      <div class="stats-bar" aria-label="キーメトリクス">
+        <div class="stat-card"><div class="stat-num">4B</div><div class="stat-label"><b>AIの規模（パラメータ数）</b><br>手のひらサイズのエッジ機器で動く小ささ</div></div>
+        <div class="stat-card"><div class="stat-num">#1</div><div class="stat-label"><b>視覚分析ベンチマークの順位</b><br>VANTAGE-Benchで同サイズ帯トップ</div></div>
+        <div class="stat-card"><div class="stat-num">15Hz</div><div class="stat-label"><b>ロボットの反応速度</b><br>1秒間に15回、次の行動を判断・更新</div></div>
+        <div class="stat-card"><div class="stat-num amber">137秒</div><div class="stat-label"><b>高品質な動画生成にかかる時間</b><br>※こちらはリアルタイムではない用途</div></div>
+        <div class="stat-card"><div class="stat-num amber">完全公開</div><div class="stat-label"><b>重みと学習レシピの提供形態</b><br>OpenMDW 1.1で誰でも利用・改変可</div></div>
+        <div class="stat-card"><div class="stat-num">8枚+数時間</div><div class="stat-label"><b>自社データで再学習する際の規模</b><br>GPU8枚あれば現場特化の「専用の脳」に</div></div>
+      </div>
+    </section>
+    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="なぜ今、世界モデルが必要か">01<span class="t">背景</span></a> <a href="#slide-2" aria-label="4Bパラメータのフロンティア級知能">02<span class="t">知能</span></a> <a href="#slide-3" aria-label="Mixture-of-Transformers">03<span class="t">構造</span></a> <a href="#slide-4" aria-label="15Hzのリアルタイム制御">04<span class="t">速度</span></a> <a href="#slide-5" aria-label="Embodiment-Agnostic">05<span class="t">汎用性</span></a> <a href="#slide-6" aria-label="Openly available">06<span class="t">開放性</span></a> <a href="#slide-7" aria-label="結論">07<span class="t">結論</span></a></nav>
+    <div class="slides">
 
-  <div class="viewer-container">
-    <div class="viewer-header">
-      <div class="slide-title-header" id="headerTitle">読み込み中…</div>
-      <div class="slide-counter" id="slideCounter">1 / 8</div>
-    </div>
-    <div class="viewer-body" id="viewerBody"></div>
-    <div class="viewer-footer">
-      <button class="nav-button" id="prevBtn" onclick="previousSlide()">← 前へ</button>
-      <div class="dots" id="dots"></div>
-      <button class="nav-button" id="nextBtn" onclick="nextSlide()">次へ →</button>
-    </div>
-  </div>
+      <section class="slide" id="slide-1">
+        <div class="slide-no">01 / INTRODUCTION</div>
+        <h2>なぜ今、ロボティクスに「世界モデル」が必要なのか</h2>
+        <p>これまで、高度な物理知能（フロンティア級モデル）を動かすにはデータセンターの膨大な計算資源が不可欠であり、現場（エッジ）で動作するロボットの知能には厳しい制限がありました。リアルタイムな反応が求められる物理環境において、<strong>クラウドとの通信遅延は致命的なリスク</strong>となるため、私たちは「知能」と「現場」のどちらかを妥協せざるを得なかったのです。</p>
+        <div class="warn"><p><strong>SIGGRAPH 2026で発表された「NVIDIA Cosmos 3 Edge」は、この常識を根本から覆す。</strong>データセンター級の物理知能が、手のひらサイズのJetsonに降りてきた。クラウドを介さず、ロボット自身がその場で「世界を理解し、未来を予測し、行動を選択する」——そんな物理AI（Physical AI）が、ついにラボから現場へと解き放たれた。</p></div>
+        <p>本スライドでは、Cosmos 3 Edgeが持つ技術的なブレークスルーと、実用化に向けて依然として残る制約を分けて評価する。</p>
+      </section>
 
+      <section class="slide" id="slide-2">
+        <div class="slide-no">02 / A 4B FRONTIER INTELLIGENCE</div>
+        <h2>4Bパラメータに凝縮された「フロンティア級」の物理知能</h2>
+        <p>Cosmos 3 Edgeは、単なる既存モデルの軽量化ではありません。上位モデル（Nano/Super）がQwen3-VLをベースにしているのに対し、この4Bモデルは<strong>エッジでの実行に最適化するためスクラッチから開発されたDense（密）モデル</strong>であるという点が極めて重要です。</p>
+        <div class="viz">
+          <p class="viz-title">同サイズ帯での実力：VANTAGE-Bench 視覚分析ベンチマーク</p>
+          <p class="viz-sub">エッジ向け4Bモデルのカテゴリ内比較（第三者計測）</p>
+          <div class="meter">
+            <div class="track"><div class="fill"></div></div>
+            <div class="cap"><span>同サイズ帯モデル中の順位 <b>#1（首位）</b></span><b>TOP</b></div>
+          </div>
+          <p class="note">「フロンティア級の物理理解・予測・行動生成」と「エッジでのリアルタイム動作」の間には、長年<strong>明確なトレードオフ</strong>が存在した。Cosmos 3 Edgeは4Bというコンパクトな設計でありながら、理解（VLM）から予測、そして行動生成（Policy）までを統合し、現場のセンサーに近いオンデバイス環境で妥協のない知能を稼働させることを可能にした。</p>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-3">
+        <div class="slide-no">03 / MIXTURE-OF-TRANSFORMERS</div>
+        <h2>見る・考える・動くを統合する「Mixture-of-Transformers」の魔術</h2>
+        <p>この知能を支えるのは、Reasoner（理由器）とGenerator（生成器）を統合した<strong>「Mixture-of-Transformers（MoT）」</strong>というハイブリッド構造です。特筆すべきは、エッジでの効率化のために<strong>256p/480pという戦略的な解像度</strong>を選択している点です。これにより、ロボットに必要な「理解」と「予測」を最小限の負荷で実現しています。</p>
+        <div class="viz">
+          <p class="viz-title">MoT構造：2つの塔が情報を共有し、未来をシミュレーションする</p>
+          <p class="viz-sub">Reasoner（状況理解・計画）と Generator（未来予測）が協調して行動を決定する</p>
+          <svg viewBox="0 0 720 220" role="img" aria-label="Mixture-of-Transformersの構造図。観測情報がReasonerとGeneratorの2つの塔に入力され、両者が情報を共有しながら最終的な行動選択を出力する">
+            <rect x="12" y="86" width="118" height="48" rx="4" fill="none" stroke="#93a7bb" stroke-opacity=".45" stroke-width="1.5"/>
+            <text x="71" y="115" text-anchor="middle" fill="#f7fbff" font-size="14" font-family="'Noto Sans JP',sans-serif">観測情報</text>
+            <path d="M134 100 h34" stroke="#35d4e4" stroke-width="2" fill="none"/><path d="M164 95 l10 5 -10 5 z" fill="#35d4e4"/>
+            <path d="M134 120 h34" stroke="#35d4e4" stroke-width="2" fill="none"/><path d="M164 115 l10 5 -10 5 z" fill="#35d4e4"/>
+            <g>
+              <rect x="180" y="24" width="200" height="76" rx="4" fill="none" stroke="#35d4e4" stroke-width="1.5"/>
+              <text x="280" y="46" text-anchor="middle" fill="#35d4e4" font-size="13" font-family="ui-monospace,monospace">Reasoner（自己回帰型）</text>
+              <text x="280" y="66" text-anchor="middle" fill="#93a7bb" font-size="11" font-family="'Noto Sans JP',sans-serif">状況理解・タスク推論</text>
+              <text x="280" y="84" text-anchor="middle" fill="#93a7bb" font-size="11" font-family="'Noto Sans JP',sans-serif">計画立案</text>
+            </g>
+            <g>
+              <rect x="180" y="120" width="200" height="76" rx="4" fill="none" stroke="#35d4e4" stroke-width="1.5"/>
+              <text x="280" y="142" text-anchor="middle" fill="#35d4e4" font-size="13" font-family="ui-monospace,monospace">Generator（拡散型）</text>
+              <text x="280" y="162" text-anchor="middle" fill="#93a7bb" font-size="11" font-family="'Noto Sans JP',sans-serif">行動後の未来の視覚的</text>
+              <text x="280" y="180" text-anchor="middle" fill="#93a7bb" font-size="11" font-family="'Noto Sans JP',sans-serif">変化を予測・生成</text>
+            </g>
+            <path d="M380 62 h50" stroke="#f3b64c" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+            <path d="M380 158 h50" stroke="#f3b64c" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+            <path d="M430 62 v96" stroke="#f3b64c" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+            <text x="440" y="112" fill="#f3b64c" font-size="10" font-family="ui-monospace,monospace">情報共有</text>
+            <path d="M380 62 h0" stroke="none"/>
+            <path d="M430 62 h34" stroke="#35d4e4" stroke-width="2" fill="none" transform="translate(0,0)"/>
+            <path d="M430 158 h34" stroke="#35d4e4" stroke-width="2" fill="none"/>
+            <path d="M480 62 L 560 110" stroke="#35d4e4" stroke-width="2" fill="none"/>
+            <path d="M480 158 L 560 110" stroke="#35d4e4" stroke-width="2" fill="none"/>
+            <path d="M555 105 l14 5 -8 12 z" fill="#35d4e4"/>
+            <rect x="580" y="86" width="128" height="48" rx="4" fill="none" stroke="#93a7bb" stroke-opacity=".45" stroke-width="1.5"/>
+            <text x="644" y="110" text-anchor="middle" fill="#f7fbff" font-size="13" font-family="'Noto Sans JP',sans-serif">最適な行動を</text>
+            <text x="644" y="126" text-anchor="middle" fill="#f7fbff" font-size="13" font-family="'Noto Sans JP',sans-serif">選択</text>
+          </svg>
+          <p class="note">2つのタワーが情報を共有することで、ロボットは<strong>「もしこの操作を行えば、世界はどう変化するか」を脳内でシミュレーション</strong>しながら、最適な行動を決定できるようになる。</p>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-4">
+        <div class="slide-no">04 / REAL-TIME CONTROL</div>
+        <h2>ロボットを止めない「15Hz」のリアルタイム制御ループ</h2>
+        <p>エッジAIにおいて「リアルタイム」の定義は厳密に区別されるべきです。Cosmos 3 Edgeは、用途に応じてハードウェアと速度のバランスを緻密に設計しています。</p>
+        <div class="viz">
+          <p class="viz-title">処理内容ごとの推論速度（Jetson Thor T5000）</p>
+          <p class="viz-sub">用途によって求められる「リアルタイム性」は異なる</p>
+          <div class="scroll-x"><table class="cmp">
+            <thead><tr><th>処理内容</th><th>推論速度</th><th>実用上の位置づけ</th></tr></thead>
+            <tbody>
+              <tr><td>行動生成 (Policy)</td><td class="st-ok">15Hz</td><td>32アクション/推論 — <b>リアルタイム制御可能</b></td></tr>
+              <tr><td>視覚推論 (Reasoner)</td><td>約3秒</td><td>状況判断・計画立案に使用</td></tr>
+              <tr><td>高品質動画生成 (I2V)</td><td class="st-ng">約137秒</td><td>シミュレーション・検証用（リアルタイムではない）</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <p>フラッグシップである<strong>Jetson Thor（T5000）</strong>では15Hzの制御ループを実現しますが、エントリー層のT2000では7.63秒を要し、リアルタイム制御には至りません。一方で、<strong>2BパラメータのReasonerモジュール単体であれば、Jetson Orin 8GB上でも動作可能</strong>という柔軟性も持ち合わせています。</p>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>フラッグシップ</span>Jetson Thor T5000</h4><p>行動生成 15Hzでリアルタイム制御が可能。フル性能を発揮する構成。</p></div>
+          <div class="vs-card"><h4><span>エントリー層</span>Jetson Thor T2000</h4><p>行動生成に7.63秒を要し、リアルタイム制御には未到達。</p></div>
+          <div class="vs-card"><h4><span>軽量構成</span>Jetson Orin 8GB</h4><p>2BのReasonerモジュール単体なら動作可能。状況判断用途に限定。</p></div>
+        </div>
+        <div class="warn"><p><strong>誤解に注意：</strong>「高品質な長尺動画生成まで含めてリアルタイムで動く」という理解は不正確。物理AIとしての実用性は、あくまで<strong>「行動生成」の速度（15Hz）</strong>にある。</p></div>
+      </section>
+
+      <section class="slide" id="slide-5">
+        <div class="slide-no">05 / EMBODIMENT-AGNOSTIC</div>
+        <h2>「Embodiment-Agnostic」— あらゆるロボットに即適応できる汎用性</h2>
+        <p>Cosmos 3 Edgeは、アクション（行動）を特定のハードウェアに依存しない<strong>「幾何ベクトル（並進・回転・操作状態）」</strong>として扱います。これにより、カメラ姿勢制御、自動運転車両、あるいは多指ハンドのロボットアームなど、異なる形態（Embodiment）のハードウェアであっても、共通の表現空間で知能を機能させることができます。</p>
+        <h3>日本の製造業にとって「再発明」の好機</h3>
+        <p>この汎用性は、日本のトップランナーが参加する「Cosmos Coalition」に向け、NVIDIAが呼びかけている理由でもあります。</p>
+        <div class="chips">
+          <span class="chip">FANUC</span>
+          <span class="chip">安川電機</span>
+          <span class="chip">川崎重工</span>
+          <span class="chip">Honda R&amp;D</span>
+        </div>
+        <div class="quote-jp">"Japan invented modern manufacturing. Now reinvent it."</div>
+      </section>
+
+      <section class="slide" id="slide-6">
+        <div class="slide-no">06 / OPENLY AVAILABLE</div>
+        <h2>重みもレシピも「Openly available」という圧倒的な開放性</h2>
+        <p>NVIDIAは、Cosmos 3 Edgeを<strong>「OpenMDW 1.1」ライセンス</strong>のもと、極めてオープンな形で提供しています。Hugging Faceでの重み公開だけでなく、GitHubでは<strong>「Action post-training」や「DROID Policy」といった具体的な学習レシピまでもがOSSとして公開</strong>されています。</p>
+        <div class="warn"><p>これは、企業が「NVIDIAの完成品を借りて使う」時代が終わり、<strong>「自社の現場データに適応させた独自の世界モデルを所有する」</strong>時代が来たことを意味する。</p></div>
+        <h3>現場で「専用の脳」を育てる</h3>
+        <ul>
+          <li><strong>所有の自由：</strong>自社の工場や病院の秘匿データを用い、オンプレミスでファインチューニングが可能。</li>
+          <li><strong>現場の最適化：</strong>8枚のGPUがあれば、わずか数時間の学習で特定のタスクに特化した「専用の脳」へと進化させることができる。</li>
+        </ul>
+      </section>
+
+      <section class="slide" id="slide-7">
+        <div class="slide-no">07 / VERDICT</div>
+        <h2>結論：ラボから現場へ。物理AIが切り拓く次の5年</h2>
+        <p>NVIDIA Cosmos 3 Edgeの登場は、物理AIが研究室のシミュレーションを飛び出し、工場、病院、スマートインフラといった「現実の現場」で真に実用化されるターニングポイントです。4Bというサイズに凝縮された知能は、もはやクラウドという命綱を必要としません。</p>
+        <p>ロボットは自らの瞳（カメラ）で世界を見、自らの脳（エッジGPU）で考え、そして即座に動く。<strong>この自律性の獲得こそが、次世代の自動化の本質</strong>です。</p>
+        <div class="quote-jp">「もし、あなたの現場で動くエッジAIが、次の瞬間の世界を予測し、自律的に判断できるとしたら。その知能は、何を予測し、どう動くべきでしょうか？」</div>
+        <p>物理AIの可能性を解き放つ準備は、すでに整っています。</p>
+      </section>
+
+    </div>
+  </main>
   <script>
-    const slides = [
-      {
-        navLabel: "タイトル", navNo: "COVER", type: "cover",
-        title: "「物理AI」がクラウドを脱出した日",
-        content: `
-          <div class="kicker">今日の深掘り · 2026.07.20</div>
-          <h1><span class="hl">「物理AI」</span>がクラウドを脱出した日</h1>
-          <div class="desc">エッジで動く4B世界モデル「NVIDIA Cosmos 3 Edge」の衝撃 —— データセンター級の物理知能が、手のひらサイズのJetsonに降りてきた。</div>
-          <div class="cover-stats">
-            <div class="cover-stat"><div class="n">4B</div><div class="l">パラメータ<br>手のひらサイズで動く</div></div>
-            <div class="cover-stat"><div class="n">15Hz</div><div class="l">制御ループ<br>ロボットを止めない速度</div></div>
-            <div class="cover-stat"><div class="n">#1</div><div class="l">VANTAGE-Bench<br>同サイズ帯で首位</div></div>
-          </div>
-        `
-      },
-      {
-        navLabel: "なぜ世界モデルが必要か", navNo: "01", type: "content", title: "なぜ今、ロボティクスに「世界モデル」が必要なのか",
-        content: `
-          <p>これまで高度な物理知能（フロンティア級モデル）を動かすには、データセンターの膨大な計算資源が不可欠でした。現場（エッジ）で動くロボットの知能には厳しい制限があり、リアルタイムな反応が求められる物理環境では<strong>クラウドとの通信遅延が致命的なリスク</strong>となります。私たちは「知能」と「現場」のどちらかを妥協せざるを得なかったのです。</p>
-          <div class="callout cyan">
-            <p>SIGGRAPH 2026で発表された<strong>「NVIDIA Cosmos 3 Edge」</strong>は、この常識を根本から覆す。データセンター級の物理知能が、手のひらサイズのJetsonに降りてきた。</p>
-          </div>
-          <p>クラウドを介さず、ロボット自身がその場で<strong>「世界を理解し、未来を予測し、行動を選択する」</strong>。そんな物理AI（Physical AI）が、ついにラボから現場へと解き放たれました。</p>
-        `
-      },
-      {
-        navLabel: "4Bのフロンティア級知能", navNo: "02", type: "content", title: "4Bパラメータに凝縮された「フロンティア級」の物理知能",
-        content: `
-          <p>Cosmos 3 Edgeは単なる既存モデルの軽量版ではありません。上位モデル（Nano/Super）がQwen3-VLベースなのに対し、この4Bモデルはエッジ実行に最適化するため<strong>スクラッチから開発されたDense（密）モデル</strong>である点が極めて重要です。</p>
-          <div class="stat-row">
-            <div class="stat-box"><div class="n">4B</div><div class="l"><b>モデルの規模（パラメータ数）</b>エッジGPUで動く小ささに凝縮</div></div>
-            <div class="stat-box"><div class="n green">#1</div><div class="l"><b>VANTAGE-Bench 同サイズ帯首位</b>視覚分析ベンチマークで1位を獲得</div></div>
-          </div>
-          <p>「フロンティア級の物理理解・予測・行動生成」と「エッジでのリアルタイム動作」の間には、長年<strong>明確なトレードオフ</strong>が存在しました。Cosmos 3 Edgeは4Bというコンパクトな設計で、理解（VLM）→予測→行動生成（Policy）までを統合し、現場のセンサーに近いオンデバイス環境で妥協のない知能を稼働させます。</p>
-        `
-      },
-      {
-        navLabel: "MoT構造", navNo: "03", type: "content", title: "見る・考える・動くを統合する「Mixture-of-Transformers」",
-        content: `
-          <p>この知能を支えるのは、<strong>Reasoner（理由器）</strong>と<strong>Generator（生成器）</strong>を統合したハイブリッド構造「Mixture-of-Transformers（MoT）」です。2つのタワーが情報を共有し、ロボットは<strong>「もしこの操作を行えば、世界はどう変化するか」を脳内でシミュレーション</strong>しながら最適な行動を決定します。</p>
-          <div class="mot">
-            <div class="mot-tower">
-              <h4><span>REASONER · 自己回帰型</span>状況を理解し、計画する</h4>
-              <p>因果的自己注意で、状況理解・タスク推論・計画立案を担当。</p>
-            </div>
-            <div class="mot-bridge"><div class="arrow">⇄</div><div class="lbl">情報共有</div></div>
-            <div class="mot-tower">
-              <h4><span>GENERATOR · 拡散型</span>未来を予測し、生成する</h4>
-              <p>拡散プロセスで「その行動を取った時の未来の視覚的変化」を予測・生成。</p>
-            </div>
-          </div>
-          <div class="mot-out">↓ 2つの塔が協調 → 最適な行動を選択</div>
-          <div class="callout">
-            <p>エッジ効率化のため<strong>256p / 480pという戦略的な解像度</strong>を選択。ロボットに必要な「理解」と「予測」を最小限の負荷で実現しています。</p>
-          </div>
-        `
-      },
-      {
-        navLabel: "15Hzリアルタイム制御", navNo: "04", type: "content", title: "ロボットを止めない「15Hz」のリアルタイム制御ループ",
-        content: `
-          <p>エッジAIにおいて「リアルタイム」の定義は厳密に区別すべきです。Cosmos 3 Edgeは用途に応じてハードウェアと速度のバランスを緻密に設計しています（フラッグシップ<strong>Jetson Thor T5000</strong>での実測）。</p>
-          <div class="scroll-x">
-            <table class="cmp">
-              <thead><tr><th>処理内容</th><th>推論速度</th><th>実用上の位置づけ</th></tr></thead>
-              <tbody>
-                <tr><td>行動生成 (Policy)</td><td class="fast">15Hz</td><td>32アクション/推論 —— <strong>リアルタイム制御が可能</strong></td></tr>
-                <tr><td>視覚推論 (Reasoner)</td><td class="mid">約3秒</td><td>状況判断・計画立案に使う</td></tr>
-                <tr><td>高品質動画生成 (I2V)</td><td class="slow">約137秒</td><td>シミュレーション・検証用（リアルタイムではない）</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>エントリー層のT2000では7.63秒を要しリアルタイム制御には至りませんが、<strong>2BのReasonerモジュール単体ならJetson Orin 8GBでも動作可能</strong>という柔軟性も持ちます。</p>
-          <div class="callout">
-            <p><strong>※ 誤解に注意：</strong>「長尺の高品質動画生成まで含めてリアルタイムで動く」という理解は不正確。物理AIとしての実用性は<strong>「行動生成（Policy）」の速度</strong>にあります。</p>
-          </div>
-        `
-      },
-      {
-        navLabel: "Embodiment-Agnostic", navNo: "05", type: "content", title: "あらゆるロボットに即適応する「Embodiment-Agnostic」",
-        content: `
-          <p>Cosmos 3 Edgeは、アクション（行動）を特定のハードウェアに依存しない<strong>「幾何ベクトル（並進・回転・操作状態）」</strong>として扱います。これにより、カメラ姿勢制御・自動運転車両・多指ハンドのロボットアームなど、<strong>異なる形態（Embodiment）</strong>のハードウェアでも共通の表現空間で知能を機能させられます。</p>
-          <h3>日本の製造業にとって「再発明」の好機</h3>
-          <p>NVIDIAは日本のトップランナーが参加する「Cosmos Coalition」に呼びかけています。</p>
-          <div class="chips">
-            <span class="chip">FANUC</span>
-            <span class="chip">安川電機</span>
-            <span class="chip">川崎重工</span>
-            <span class="chip">Honda R&D</span>
-          </div>
-          <div class="quote-jp">“Japan invented modern manufacturing. Now reinvent it.”<br><span style="font-style:normal; color:var(--muted); font-size:13px;">（日本は近代製造業を発明した。今こそ、それを再発明せよ。）</span></div>
-        `
-      },
-      {
-        navLabel: "Openly available", navNo: "06", type: "content", title: "重みもレシピも「Openly available」という圧倒的な開放性",
-        content: `
-          <p>NVIDIAはCosmos 3 Edgeを<strong>「OpenMDW 1.1」ライセンス</strong>のもと、極めてオープンに提供。Hugging Faceでの重み公開だけでなく、GitHubでは<strong>「Action post-training」「DROID Policy」といった具体的な学習レシピまでOSS公開</strong>されています。</p>
-          <div class="callout cyan">
-            <p>企業が「NVIDIAの完成品を借りて使う」時代が終わり、<strong>「自社の現場データに適応させた独自の世界モデルを所有する」</strong>時代が来た。</p>
-          </div>
-          <div class="stat-row">
-            <div class="stat-box"><div class="n">所有の自由</div><div class="l"><b>秘匿データでオンプレ調整</b>自社の工場・病院データでファインチューニング可能</div></div>
-            <div class="stat-box"><div class="n amber">数時間</div><div class="l"><b>現場特化の学習</b>GPU 8枚があれば専用の「脳」へ進化させられる</div></div>
-          </div>
-        `
-      },
-      {
-        navLabel: "結論", navNo: "07", type: "content", title: "ラボから現場へ。物理AIが切り拓く次の5年",
-        content: `
-          <p>NVIDIA Cosmos 3 Edgeの登場は、物理AIが研究室のシミュレーションを飛び出し、<strong>工場・病院・スマートインフラといった「現実の現場」で真に実用化される</strong>ターニングポイントです。4Bに凝縮された知能は、もはやクラウドという命綱を必要としません。</p>
-          <p>ロボットは自らの瞳（カメラ）で世界を見、自らの脳（エッジGPU）で考え、そして即座に動く。<strong>この自律性の獲得こそが、次世代の自動化の本質</strong>です。</p>
-          <div class="quote-jp">「もし、あなたの現場で動くエッジAIが、次の瞬間の世界を予測し、自律的に判断できるとしたら —— その知能は、何を予測し、どう動くべきでしょうか？」</div>
-          <p style="text-align:center; color:var(--cyan); margin-top:24px;">物理AIの可能性を解き放つ準備は、すでに整っている。</p>
-        `
-      }
-    ];
-
-    let currentSlide = 0;
-
-    function initSlideshow() {
-      renderNav();
-      renderDots();
-      showSlide(0);
-    }
-
-    function renderNav() {
-      const navSlides = document.getElementById('navSlides');
-      navSlides.innerHTML = '';
-      slides.forEach((slide, idx) => {
-        const item = document.createElement('div');
-        item.className = 'nav-slide' + (idx === currentSlide ? ' active' : '');
-        item.innerHTML = `<small>${slide.navNo}</small>${slide.navLabel}`;
-        item.onclick = () => showSlide(idx);
-        navSlides.appendChild(item);
-      });
-    }
-
-    function renderDots() {
-      const dots = document.getElementById('dots');
-      dots.innerHTML = '';
-      slides.forEach((_, idx) => {
-        const d = document.createElement('div');
-        d.className = 'dot' + (idx === currentSlide ? ' active' : '');
-        d.onclick = () => showSlide(idx);
-        dots.appendChild(d);
-      });
-    }
-
-    function showSlide(idx) {
-      currentSlide = Math.max(0, Math.min(idx, slides.length - 1));
-      const slide = slides[currentSlide];
-      const body = document.getElementById('viewerBody');
-      const div = document.createElement('div');
-      if (slide.type === 'cover') {
-        div.className = 'slide-content active slide-cover';
-        div.innerHTML = slide.content;
-      } else {
-        div.className = 'slide-content active slide-content-section';
-        div.innerHTML = `<div class="slide-no">${slide.navNo} / ${slide.navLabel}</div><h2>${slide.title}</h2>${slide.content}`;
-      }
-      body.innerHTML = '';
-      body.appendChild(div);
-      body.scrollTop = 0;
-
-      document.getElementById('headerTitle').textContent = slide.title;
-      document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${slides.length}`;
-      document.getElementById('navFooter').textContent = `${currentSlide + 1} / ${slides.length}`;
-      document.getElementById('prevBtn').disabled = currentSlide === 0;
-      document.getElementById('nextBtn').disabled = currentSlide === slides.length - 1;
-
-      renderNav();
-      renderDots();
-    }
-
-    function nextSlide() { showSlide(currentSlide + 1); }
-    function previousSlide() { showSlide(currentSlide - 1); }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); }
-      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); previousSlide(); }
-      if (e.key === 'Home') showSlide(0);
-      if (e.key === 'End') showSlide(slides.length - 1);
-    });
-
-    initSlideshow();
+    (function () {
+      var bar = document.querySelector('.progress');
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+      document.querySelectorAll('section.slide').forEach(function (s) { io.observe(s); });
+    })();
   </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_19.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
 </body>
 </html>
