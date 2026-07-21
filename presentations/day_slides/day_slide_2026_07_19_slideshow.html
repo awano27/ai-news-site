@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alibabaの新AI「Qwen3.8」は本物か — スライドショー | 2026-07-19</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb;
+      --line:rgba(143,161,181,.22); --cyan:#35d4e4; --amber:#f3b64c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; height:100%; }
+    body {
+      background: radial-gradient(circle at 80% 0%, rgba(53,212,228,.08), transparent 30%), var(--bg);
+      color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+      display:flex; overflow:hidden;
+    }
+    /* Left Panel */
+    .nav-panel {
+      width:200px; background:rgba(10,21,36,.95); border-right:1px solid var(--line);
+      overflow-y:auto; padding:16px 0; display:flex; flex-direction:column;
+      z-index:20;
+    }
+    .nav-panel-header {
+      padding:0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:12px;
+      font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
+    }
+    .nav-slides { flex:1; overflow-y:auto; padding:0 8px; display:flex; flex-direction:column; gap:6px; }
+    .nav-slide {
+      padding:10px 12px; border:1px solid transparent; background:rgba(53,212,228,.08);
+      color:var(--muted); font-size:12px; cursor:pointer; border-radius:4px;
+      transition:all .2s ease; text-align:left; flex:0 0 auto;
+      max-height:60px; overflow:hidden; text-overflow:ellipsis;
+    }
+    .nav-slide:hover { border-color:var(--cyan); color:var(--ink); background:rgba(53,212,228,.15); }
+    .nav-slide.active {
+      background:var(--cyan); color:var(--bg); border-color:var(--cyan); font-weight:600;
+    }
+    .nav-footer {
+      padding:12px; border-top:1px solid var(--line); font-size:11px; color:var(--muted);
+      text-align:center; margin-top:auto;
+    }
+
+    /* Main Viewer */
+    .viewer-container {
+      flex:1; display:flex; flex-direction:column; overflow:hidden;
+    }
+    .viewer-header {
+      display:flex; justify-content:space-between; align-items:center; padding:16px 24px;
+      border-bottom:1px solid var(--line); background:rgba(10,21,36,.6);
+      flex:0 0 auto;
+    }
+    .slide-title-header { font-size:16px; font-weight:600; color:var(--ink); }
+    .slide-counter {
+      font-size:13px; color:var(--muted); font-family:ui-monospace,monospace;
+    }
+    .viewer-body {
+      flex:1; overflow-y:auto; padding:32px 40px;
+      background:var(--bg);
+    }
+    .slide-content {
+      max-width:900px; margin:0 auto; display:none;
+    }
+    .slide-content.active { display:block; animation:fadeIn .3s ease-out; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    /* Slide Styles */
+    .slide-cover {
+      text-align:center; padding:60px 40px;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      min-height:600px;
+    }
+    .slide-cover .kicker {
+      color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+      margin-bottom:24px;
+    }
+    .slide-cover h1 {
+      font-size:48px; line-height:1.3; margin:0 0 24px; font-weight:500;
+      letter-spacing:-.02em; max-width:800px;
+    }
+    .slide-cover .desc {
+      color:var(--muted); font-size:16px; line-height:1.8; max-width:700px; margin-bottom:40px;
+    }
+    .slide-content-section h2 {
+      font-size:36px; margin:0 0 12px; font-weight:600; color:var(--ink);
+    }
+    .slide-content-section .slide-no {
+      color:var(--cyan); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+      margin-bottom:16px; font-weight:600;
+    }
+    .slide-content-section p, .slide-content-section li {
+      color:var(--muted); line-height:1.9; font-size:16px; margin:12px 0;
+    }
+    .slide-content-section ul { padding-left:24px; margin:16px 0; }
+    .slide-content-section h3 {
+      color:var(--cyan); font-size:18px; margin:20px 0 12px; font-weight:600;
+    }
+    .viz, .scroll-x table { margin:20px 0; }
+    .viz-title { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:8px; }
+    .viz-sub { font-size:13px; color:var(--muted); margin-bottom:12px; }
+    .viz svg { max-width:100%; height:auto; }
+
+    /* Controls */
+    .viewer-footer {
+      padding:16px 24px; border-top:1px solid var(--line);
+      display:flex; justify-content:space-between; align-items:center;
+      background:rgba(10,21,36,.6); flex:0 0 auto;
+    }
+    .nav-button {
+      padding:8px 16px; border:1px solid var(--line); background:transparent;
+      color:var(--muted); cursor:pointer; border-radius:4px; font-size:13px;
+      transition:all .2s ease; font-family:inherit;
+    }
+    .nav-button:hover {
+      border-color:var(--cyan); color:var(--cyan); background:rgba(53,212,228,.1);
+    }
+    .nav-button:disabled {
+      opacity:0.4; cursor:not-allowed;
+    }
+
+    /* Responsive */
+    @media (max-width:1024px) {
+      .nav-panel { width:160px; }
+      .viewer-body { padding:20px 24px; }
+      .slide-cover h1 { font-size:36px; }
+      .slide-content-section h2 { font-size:28px; }
+    }
+    @media (max-width:768px) {
+      .nav-panel { width:120px; }
+      .nav-slide { font-size:11px; padding:8px 10px; }
+      .slide-cover { padding:40px 20px; }
+      .slide-cover h1 { font-size:28px; }
+      .viewer-body { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-panel">
+    <div class="nav-panel-header">スライド一覧</div>
+    <div class="nav-slides" id="navSlides"></div>
+    <div class="nav-footer" id="navFooter">1 / 7</div>
+  </div>
+
+  <div class="viewer-container">
+    <div class="viewer-header">
+      <div class="slide-title-header" id="headerTitle">コンテンツを読み込み中…</div>
+      <div class="slide-counter" id="slideCounter">1 / 7</div>
+    </div>
+
+    <div class="viewer-body" id="viewerBody"></div>
+
+    <div class="viewer-footer">
+      <button class="nav-button" id="prevBtn" onclick="previousSlide()">← 前へ</button>
+      <div style="color:var(--muted); font-size:13px;" id="slideInfo"></div>
+      <button class="nav-button" id="nextBtn" onclick="nextSlide()">次へ →</button>
+    </div>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        title: "最高級AIとほぼ同点、料金は約1/40",
+        type: "cover",
+        subtitle: "Alibabaの新AI「Qwen3.8」は本物か"
+      },
+      {
+        title: "2.4兆パラメータ時代の幕開け",
+        type: "content",
+        number: "01 / INTRODUCTION",
+        content: `
+          <p>2026年7月19日、Alibaba Cloudが発表した「Qwen3.8-Max-Preview」は、AI業界に「2.4兆（2.4T）パラメータ」という未曾有の数字を突きつけた。Claude Fable 5やKimi K3が主導権を握るフロンティアモデル市場に対し、Alibabaが真っ向から挑んだ野心的な挑戦状である。</p>
+          <div style="border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:12px 16px; margin:20px 0;">
+            <p style="margin:0;"><strong style="color:var(--ink);">ただし額面通りに受け取るのは時期尚早。</strong>「Fable 5に次ぐ世界第2位の性能」を標榜する一方、公式の技術レポートやモデルカードは欠落しており、BenchLMなど主要トラッカーの検証済みベンチマークスコアは「0%（未公開）」のままである。</p>
+          </div>
+          <p>本スライドでは、この巨大モデルが孕む戦略的ポテンシャルとプレビュー版ゆえの不確実性を分けて評価する。</p>
+        `
+      },
+      {
+        title: "技術プロファイル：アーキテクチャと常時稼働の推論モード",
+        type: "content",
+        number: "02 / ARCHITECTURE",
+        content: `
+          <h3>スペック：2.4兆パラメータのSparse MoE構造</h3>
+          <p>総パラメータ2.4兆の<strong>Sparse MoE（Mixture of Experts）</strong>構造。推論コストと速度を規定するのは総パラメータではなく<strong>「アクティブパラメータ数」</strong>だが、その活性化率は未公表。巨大な知識ベースが推論効率にどう転換されているかの見極めが技術選定の鍵になる。</p>
+          <h3>Thinkingモード：常時稼働・無効化不可</h3>
+          <ul>
+            <li><strong>推論強度は xhigh / high / low から選択。</strong>標準の xhigh は極めて深い推論ステップを踏む。</li>
+            <li><strong>トレードオフ：推論遅延とトークン消費が増大。</strong>リアルタイム用途より、一貫性と正確性が要る長時間タスク向きの設計。</li>
+          </ul>
+          <p style="color:var(--amber); margin-top:20px;"><strong>※ 活性化パラメータ数・推論遅延の正確な数値は未公表のため、実測による評価が必須。</strong></p>
+        `
+      },
+      {
+        title: "フロンティアモデルとの徹底比較",
+        type: "content",
+        number: "03 / COMPETITION",
+        content: `
+          <p>焦点はAlibabaが主張する「Fable 5級」の真偽。限定的なサードパーティデータに基づく現時点の整理。</p>
+          <div style="margin:20px 0; padding:16px; border:1px solid var(--line); background:rgba(5,11,20,.5);">
+            <strong style="color:var(--ink);">KingBench スコア「Fable 5級」主張の実測値</strong><br>
+            <span style="color:var(--muted); font-size:14px;">Claude Fable 5: 82.5% / Qwen3.8-Max: 81.25%（差：1.25ポイント）</span>
+          </div>
+          <h3>vs Claude Fable 5 — 実力伯仲の挑戦者</h3>
+          <p>KingBenchスコア81.25%はFable 5の82.5%に肉薄。ただしSWE-Bench Pro 80.3%の実績、数時間級エージェントタスクの安定性、確立された安全ガバナンスを踏まえると、Qwen3.8は依然として「追う立場」。</p>
+          <h3>vs GPT-5.6 Sol / Kimi K3</h3>
+          <p><strong>Sol</strong>は推論速度とコード生成で信頼性維持。<strong>K3</strong>はデザインセンス・3D生成が突出。Qwen3.8の強みは<strong>ツール呼び出しの堅牢性</strong>——自律エージェントとしての信頼性ではKimiを凌駕する可能性がある。</p>
+        `
+      },
+      {
+        title: "性能実証：ベンチマークと実利用フィードバック",
+        type: "content",
+        number: "04 / EVIDENCE",
+        content: `
+          <h3>KingBench & StackPerf の分析</h3>
+          <ul>
+            <li><strong>フロントエンド生成の適性：</strong>Three.jsやSVGを用いた視覚的コンテンツ生成で高い適性を見せた天気アプリのデモ。</li>
+            <li><strong>ツール利用の完全性：</strong>269ファイル規模のリポジトリ調査タスクで、354箇所の参照を行いながら<strong>ツール呼び出しの失敗ゼロ</strong>。大規模コード解析における安定挙動の強力なエビデンス。</li>
+          </ul>
+          <h3>プレビュー版特有の課題</h3>
+          <ul>
+            <li><strong>「思考ループ」への陥入：</strong>複雑な推論で同じ論理を繰り返し、回答遅延とトークン過剰消費を招く傾向が散見される。</li>
+            <li><strong>ベンチマーク最適化の疑惑：</strong>モデルカード不在では過学習を排除できない。実務導入には独自データセットでの再検証が不可欠。</li>
+          </ul>
+        `
+      },
+      {
+        title: "実践的導入ガイド：$18で「40倍」の経済学",
+        type: "content",
+        number: "05 / ADOPTION",
+        content: `
+          <h3>「40倍の価値」を生むロジック</h3>
+          <p>Standardプラン（<strong>$18/月</strong>）が「他社の40倍（40x utility）」相当と言われる背景は、<strong>Qwen3.8-Max利用時のクレジット1/10消費キャンペーン</strong>と<strong>夜間最大98%オフ</strong>の組み合わせ。Fable 5級の推論を極めて安価に実行できる。</p>
+          <h3>利用プラットフォームとガバナンス</h3>
+          <ul>
+            <li><strong>OpenAI互換API</strong>を提供。CursorやClaude Codeなど既存ツールチェーンへの「差し替え」で迅速に評価可能。</li>
+          </ul>
+          <div style="border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:12px 16px; margin:20px 0;">
+            <p style="margin:0;"><strong style="color:var(--ink);">データレジデンシーへの警鐘：</strong>プレビュー版の利用リージョンは<strong>シンガポール（ap-southeast-1）のみ</strong>。データ越境移転に厳格な制約を持つ日本のエンタープライズには、機密情報の取り扱い上の大きな懸念材料となる。</p>
+          </div>
+        `
+      },
+      {
+        title: "結論：Qwen3.8-Max-Preview は「買い」か",
+        type: "content",
+        number: "06 / VERDICT",
+        content: `
+          <p>真価は「2.4兆」という象徴的な数字ではなく、<strong>「Fable 5級の推論性能を、圧倒的低コストかつ既存ツールと即時接続可能な形で市場に解き放ったこと」</strong>にある。マーケティング的主張が先行している面は否めないが、ツール呼び出しの堅牢性に見られる実力は本物である。</p>
+          <h3>推奨ステップ</h3>
+          <ol style="margin:16px 0; padding-left:24px;">
+            <li><strong>個人開発での初期評価：</strong>$18のStandardプランを契約し、クレジット消費優遇期間中に費用対効果を測定。</li>
+            <li><strong>非機密データでのA/Bテスト：</strong>Fable 5・GPT-5.6 Solと同じ課題を与え、ツール呼び出し精度とデザイン品質を自社基準で再検証。</li>
+            <li><strong>正式版・ライセンス確定後の本格導入：</strong>オープンウェイト版正式公開とライセンス条件が確定した段階で本番適用を判断。</li>
+          </ol>
+          <p style="margin-top:20px;">Qwen3.8-Max-Previewは、AI開発の民主化とコスト破壊を加速させる歴史的なプレビューとなる可能性を秘めている。</p>
+        `
+      }
+    ];
+
+    let currentSlide = 0;
+
+    function initSlideshow() {
+      renderNav();
+      showSlide(0);
+    }
+
+    function renderNav() {
+      const navSlides = document.getElementById('navSlides');
+      navSlides.innerHTML = '';
+      slides.forEach((slide, idx) => {
+        const navItem = document.createElement('div');
+        navItem.className = 'nav-slide' + (idx === currentSlide ? ' active' : '');
+        navItem.textContent = (idx === 0 ? 'タイトル' : `スライド ${idx}`);
+        navItem.onclick = () => showSlide(idx);
+        navSlides.appendChild(navItem);
+      });
+    }
+
+    function showSlide(idx) {
+      currentSlide = Math.max(0, Math.min(idx, slides.length - 1));
+      const slide = slides[currentSlide];
+      const viewerBody = document.getElementById('viewerBody');
+      viewerBody.innerHTML = '';
+
+      if (slide.type === 'cover') {
+        const html = document.createElement('div');
+        html.className = 'slide-content active slide-cover';
+        html.innerHTML = `
+          <div class="kicker">今日の深掘り</div>
+          <h1>${slide.title}</h1>
+          <div class="desc">${slide.subtitle}</div>
+        `;
+        viewerBody.appendChild(html);
+      } else {
+        const html = document.createElement('div');
+        html.className = 'slide-content active slide-content-section';
+        html.innerHTML = `
+          <div class="slide-no">${slide.number}</div>
+          <h2>${slide.title}</h2>
+          ${slide.content}
+        `;
+        viewerBody.appendChild(html);
+      }
+
+      document.getElementById('headerTitle').textContent = slide.title;
+      document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${slides.length}`;
+      document.getElementById('navFooter').textContent = `${currentSlide + 1} / ${slides.length}`;
+      document.getElementById('slideInfo').textContent = `スライド ${currentSlide + 1}`;
+
+      document.getElementById('prevBtn').disabled = currentSlide === 0;
+      document.getElementById('nextBtn').disabled = currentSlide === slides.length - 1;
+
+      renderNav();
+    }
+
+    function nextSlide() {
+      showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      showSlide(currentSlide - 1);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowLeft') previousSlide();
+    });
+
+    initSlideshow();
+  </script>
+</body>
+</html>
