@@ -119,6 +119,32 @@ try {
     $ahead = [int]$Matches[1]
     $behind = [int]$Matches[2]
     Write-RunnerLog "Git state ahead=$ahead behind=$behind"
+    if ($ahead -gt 0) {
+        # A publish that failed to push leaves its override commit behind. Rebasing it
+        # onto the cloud run conflicts on generated artifacts every morning, which used
+        # to deadlock the runner before it ever collected X bookmarks. The pipeline
+        # regenerates every one of those files below, so a stale override is disposable.
+        $todaySubject = "chore(report): local override {0:yyyy-MM-dd}" -f (Get-Date)
+        $localSubjects = @(& git -C $repo log "--format=%s" "origin/main..HEAD")
+        if ($LASTEXITCODE -ne 0) {
+            throw "Could not list local commits ahead of origin/main."
+        }
+        $stale = $localSubjects.Count -gt 0
+        foreach ($subject in $localSubjects) {
+            if ($subject -notmatch '^chore\(report\): local override \d{4}-\d{2}-\d{2}$' -or $subject -eq $todaySubject) {
+                $stale = $false
+            }
+        }
+        if ($stale) {
+            Write-RunnerLog "Discarding stale override commit(s) the pipeline will regenerate: $($localSubjects -join '; ')"
+            $resetCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "reset", "--hard", "origin/main") -Label "git reset"
+            if ($resetCode -ne 0) {
+                throw "Could not discard stale override commits."
+            }
+            $ahead = 0
+            $behind = 0
+        }
+    }
     if ($ahead -eq 0 -and $behind -gt 0) {
         $syncCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "merge", "--ff-only", "origin/main") -Label "git fast-forward"
         if ($syncCode -ne 0) {
@@ -126,7 +152,7 @@ try {
         }
     }
     elseif ($ahead -gt 0 -and $behind -gt 0) {
-        $rebaseCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "rebase", "origin/main") -Label "git rebase"
+        $rebaseCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "rebase", "-X", "theirs", "origin/main") -Label "git rebase"
         if ($rebaseCode -ne 0) {
             [void](Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "rebase", "--abort") -Label "git rebase abort")
             throw "Rebase conflict or failure; local commit and stash were retained."

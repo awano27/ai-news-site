@@ -167,7 +167,11 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
     if fetch.returncode != 0:
         print(fetch.stderr.strip() or "git fetch origin main failed", file=sys.stderr)
         return 1
-    rebase = _git(repo, ("rebase", "origin/main"), check=False)
+    # The replayed commit is the override itself, so it must win over the cloud run
+    # that landed on origin/main while the pipeline was running. In a rebase "theirs"
+    # is the commit being replayed; the manifest already constrains its paths to
+    # generated daily-report artifacts, and validation below re-checks the result.
+    rebase = _git(repo, ("rebase", "-X", "theirs", "origin/main"), check=False)
     if rebase.returncode != 0:
         _git(repo, ("rebase", "--abort"), check=False)
         print(rebase.stderr.strip() or "git rebase origin/main failed", file=sys.stderr)
