@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grok 4.5：単なるAIチャットから「業務エージェントOS」への進化 | 2026-07-24</title>
+  <meta name="description" content="xAIが2026年7月に全プラットフォーム展開したGrok 4.5。V9 Foundation Model（約1.5兆パラメータ）を基盤に、Google WorkspaceとMicrosoft 365のサイドパネルへネイティブ常駐し、ファイルを直接編集する。SWE Bench Pro 64.7%を約4.2倍少ない出力トークンで達成するトークン効率、最大1,024エージェントの並列Workflows、そして広範なOAuthスコープが突きつける統制課題を読み解く。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_24.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Grok 4.5：単なるAIチャットから「業務エージェントOS」への進化">
+  <meta property="og:description" content="Google WorkspaceとMicrosoft 365のサイドパネルに常駐し、ファイルを直接編集するGrok 4.5。SWE Bench Pro 64.7%を約4.2倍少ない出力トークンで達成する効率と、最大1,024エージェント並列実行。そして広範なOAuthスコープが突きつける統制課題。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_24.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0724/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Grok 4.5：AIチャットから「業務エージェントOS」へ">
+  <meta name="twitter:description" content="Workspace / M365 のサイドパネルに常駐しファイルを直接編集。SWE Bench Pro 64.7% を約4.2倍少ない出力トークンで達成。最大1,024エージェント並列と、広範なOAuthスコープの統制課題。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0724/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Grok 4.5：単なるAIチャットから「業務エージェントOS」への進化",
+    "description": "xAIが2026年7月に全プラットフォーム展開したGrok 4.5の技術仕様、Google Workspace / Microsoft 365 へのネイティブ統合、トークン効率、エージェント機能、およびセキュリティ・ガバナンス上の論点を整理する。",
+    "datePublished": "2026-07-24",
+    "dateModified": "2026-07-24",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_07_24.html",
+    "articleSection": "AI Models & Enterprise Integration"
+  }
+  </script>
+  <style>
+    :root { --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb; --line:rgba(143,161,181,.22); --cyan:#a48bff; --amber:#f3b64c; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 80% 0%, rgba(164,139,255,.10), transparent 30%), var(--bg); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:var(--cyan); z-index:50; transition:width .1s linear; }
+    .shell { max-width:1200px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:24px; color:var(--muted); font-size:13px; }
+    .topbar a { color:var(--cyan); text-decoration:none; }
+    .hero { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:clamp(20px,3vw,38px); margin-bottom:18px; }
+    .kicker { color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px; }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 16px; font-weight:500; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:var(--muted); font-size:16px; margin:0; line-height:1.8; }
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:22px 0 0; }
+    .stat-card { border:1px solid var(--line); background:rgba(5,11,20,.6); padding:14px 16px; }
+    .stat-num { font:600 26px/1.1 ui-monospace,SFMono-Regular,monospace; color:var(--cyan); }
+    .stat-num.amber { color:var(--amber); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:6px; line-height:1.55; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+    .cover-figure { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:14px 14px 12px; margin-bottom:18px; }
+    .cover-figure img { width:100%; height:auto; display:block; border-radius:3px; }
+    .cover-caption { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:12px; margin:10px 4px 0; }
+    .cover-caption b { color:var(--ink); font-weight:600; }
+    .jump { position:sticky; top:0; z-index:10; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:12px; background:rgba(5,11,20,.94); backdrop-filter:blur(12px); scrollbar-width:thin; }
+    .jump a { flex:0 0 auto; min-width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; }
+    .jump a:hover,.jump a:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+    .slides { display:grid; gap:22px; }
+    section.slide { border:1px solid var(--line); background:var(--paper); padding:clamp(18px,2.6vw,32px); scroll-margin-top:64px; min-width:0; }
+    .slide-no { color:var(--cyan); font:500 11px/1 ui-monospace,monospace; letter-spacing:.14em; margin-bottom:10px; }
+    h2 { font-size:clamp(21px,2.6vw,30px); line-height:1.3; margin:0 0 14px; font-weight:600; letter-spacing:-.01em; }
+    h3 { font-size:16px; margin:20px 0 8px; color:var(--cyan); font-weight:600; }
+    p { color:var(--muted); line-height:1.9; margin:0 0 12px; font-size:15px; }
+    strong { color:var(--ink); font-weight:600; }
+    ul { margin:0 0 12px; padding-left:1.3em; color:var(--muted); line-height:1.9; font-size:15px; }
+    li { margin-bottom:6px; }
+    li::marker { color:var(--cyan); }
+    .grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:16px 18px; }
+    .vs-card h4 { margin:0 0 8px; font-size:14px; color:var(--ink); }
+    .vs-card h4 span { color:var(--amber); font:500 10px/1 ui-monospace,monospace; letter-spacing:.12em; display:block; margin-bottom:6px; }
+    .vs-card p { font-size:13.5px; line-height:1.75; margin:0; }
+    .warn { border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:12px 16px; margin:14px 0; }
+    .warn p { margin:0; font-size:14px; }
+    .steps { counter-reset:step; display:grid; gap:10px; margin:14px 0; padding:0; list-style:none; }
+    .steps li { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:14px 16px 14px 54px; position:relative; margin:0; }
+    .steps li::before { counter-increment:step; content:counter(step,decimal-leading-zero); position:absolute; left:16px; top:14px; color:var(--amber); font:600 15px/1.4 ui-monospace,monospace; }
+    .steps b { color:var(--ink); display:block; margin-bottom:4px; }
+    .steps li p { margin:0; font-size:13.5px; }
+    /* visuals */
+    .viz { border:1px solid var(--line); background:rgba(5,11,20,.5); padding:18px 20px 14px; margin:16px 0; }
+    .viz-title { color:var(--ink); font-size:13.5px; font-weight:600; margin:0 0 2px; }
+    .viz-sub { color:var(--muted); font-size:12px; margin:0 0 12px; }
+    .viz svg { width:100%; height:auto; display:block; }
+    .viz .note { color:var(--muted); font-size:11.5px; margin:8px 0 0; line-height:1.6; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:560px; }
+    .cmp th { text-align:left; color:var(--cyan); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(143,161,181,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; white-space:nowrap; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-ng { color:var(--amber); font-weight:600; white-space:nowrap; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+    .chip { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:7px 14px; font-size:13px; color:var(--ink); border-radius:20px; }
+    .quote-jp { border:1px solid var(--line); background:rgba(164,139,255,.06); padding:16px 20px; margin:14px 0; font-size:15px; color:var(--ink); font-style:italic; line-height:1.7; }
+    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } section.slide { padding:16px; } .cover-caption { flex-direction:column; gap:2px; } }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+  <main class="shell">
+    <nav class="topbar" aria-label="Breadcrumb">
+      <a href="../day_slides_index.html">All day slides</a>
+      <span>2026-07-24 / AI Models &amp; Enterprise Integration</span>
+    </nav>
+    <section class="hero">
+      <div class="kicker">今日の深掘り — モデル / 業務統合</div>
+      <h1>Grok 4.5：単なるAIチャットから「業務エージェントOS」への進化</h1>
+      <p class="lead">xAI が 2026年7月に段階的公開し、7/22〜23 に全プラットフォームへ展開した Grok 4.5。約1.5兆パラメータの V9 Foundation Model を基盤に、Google Workspace と Microsoft 365 のサイドパネルへアドオンとして常駐し、シートやドキュメントを直接編集する。SWE Bench Pro 64.7% を競合比 約4.2倍少ない出力トークンで達成するトークン効率、最大1,024エージェントの並列 Workflows、そして全文書の閲覧・編集・削除を求める広範な OAuth スコープが企業導入に突きつける統制課題を整理する。</p>
+      <div class="stats-bar" aria-label="キーメトリクス">
+        <div class="stat-card"><div class="stat-num">1.5兆</div><div class="stat-label"><b>V9 Foundation Model のパラメータ数</b><br>前世代から大幅に拡張された基盤モデル</div></div>
+        <div class="stat-card"><div class="stat-num">500k</div><div class="stat-label"><b>コンテキスト窓（トークン）</b><br>200k 超で追加課金が発生する可能性あり</div></div>
+        <div class="stat-card"><div class="stat-num">64.7%</div><div class="stat-label"><b>SWE Bench Pro スコア</b><br>実務的なソフトウェア工学タスクの解決率</div></div>
+        <div class="stat-card"><div class="stat-num amber">約4.2倍</div><div class="stat-label"><b>少ない出力トークンで課題解決</b><br>Opus 4.8 max 比。1タスク平均 15,954 トークン</div></div>
+        <div class="stat-card"><div class="stat-num amber">1,024</div><div class="stat-label"><b>Workflows の並列エージェント上限</b><br>PR レビュー・Issue 分類・コード監査に適用</div></div>
+        <div class="stat-card"><div class="stat-num">$2 / $6</div><div class="stat-label"><b>API 価格（入力／出力・1M トークン）</b><br>キャッシュ入力は $0.30 / 1M トークン</div></div>
+      </div>
+    </section>
+    <figure class="cover-figure">
+      <img src="images/0724/cover.jpg" alt="Grok 4.5：単なるAIチャットから業務エージェントOSへの進化。ビジネススイート統合（Sheets・Slides・Docs・Outlook）、次世代エージェント機能（Workflows・Automations）、テクニカルスペック、主要フロンティアモデルとの実務性能・コスト比較、企業導入の安全性と統制を1枚にまとめたインフォグラフィック" loading="eager" width="1600" height="893">
+      <figcaption class="cover-caption"><span>Grok 4.5 の業務統合・エージェント機能・コスト比較を1枚に整理したサマリー図解</span><b>Source: NotebookLM</b></figcaption>
+    </figure>
+    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="モデル仕様">01<span class="t">仕様</span></a> <a href="#slide-2" aria-label="業務スイート統合">02<span class="t">統合</span></a> <a href="#slide-3" aria-label="ベンチマーク">03<span class="t">性能</span></a> <a href="#slide-4" aria-label="トークン効率">04<span class="t">効率</span></a> <a href="#slide-5" aria-label="エージェント機能">05<span class="t">自動化</span></a> <a href="#slide-6" aria-label="セキュリティと統制">06<span class="t">統制</span></a> <a href="#slide-7" aria-label="競合比較">07<span class="t">比較</span></a> <a href="#slide-8" aria-label="結論">08<span class="t">結論</span></a></nav>
+    <div class="slides">
+
+      <section class="slide" id="slide-1">
+        <div class="slide-no">01 / MODEL SPEC</div>
+        <h2>Grok 4.5 とは何か：速度・精度・コストのパレート最適</h2>
+        <p>Grok 4.5 は xAI（現 SpaceXAI）が 2026年7月に段階的公開した、<strong>コーディング・エージェント指向のフラッグシップモデル</strong>である。API 提供が 7/8、公開告知が 7/16、そして 7/22〜23 に全プラットフォームへ展開された。狙いは単一指標での首位ではなく、<strong>速度・精度・コストのパレート最適（Pareto frontier）</strong>にある。</p>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th>項目</th><th>詳細仕様</th></tr></thead>
+          <tbody>
+            <tr><td>アーキテクチャ</td><td>V9 Foundation Model（<b>約1.5兆パラメータ</b>）</td></tr>
+            <tr><td>コンテキスト窓</td><td><b>500,000 トークン</b>（200k 超で追加課金が発生する可能性あり）</td></tr>
+            <tr><td>配信速度</td><td>約 <b>80 TPS</b>（Tokens Per Second）</td></tr>
+            <tr><td>推論オプション</td><td>Low / Medium / High の3段階（デフォルト High、<b>無効化不可</b>）</td></tr>
+            <tr><td>API 価格</td><td>入力 <b>$2</b> / 出力 <b>$6</b>（1M トークン）、キャッシュ入力 $0.30</td></tr>
+          </tbody>
+        </table></div>
+        <h3>学習手法の特異性：IDE との共同トレーニング</h3>
+        <p>Grok 4.5 は IDE「<strong>Cursor</strong>」と共同でトレーニングされ、匿名化されたワークフローデータを用いた「Supplemental training」を実施している。これは単なる知識の蓄積ではなく、<strong>「エンジニアがどう思考し、どう修正を重ねるか」というプロセス自体を学習信号として取り込んでいる</strong>ことを意味する。ベンチマーク上の知識量ではなく、実務での手戻りの少なさに効くタイプの学習と位置づけられる。</p>
+      </section>
+
+      <section class="slide" id="slide-2">
+        <div class="slide-no">02 / SUITE INTEGRATION</div>
+        <h2>業務スイート統合：サイドパネルに常駐し、ファイルを直接編集する</h2>
+        <p>今回のアップデートで最も実務インパクトが大きいのは、Grok が<strong>外部アドオン／アドインとして業務アプリのサイドパネルに常駐し、ファイルを直接編集・操作できるようになった</strong>点である。「チャットにコピペして、返答をコピペで戻す」という往復が消える。</p>
+        <h3>Google Workspace（1つのアドオンで3アプリ対応）</h3>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>Sheets</span>セル引用付きの分析</h4><p>選択範囲を読み取り、根拠となるセルを引用しながら分析。自然言語から本物の数式を生成してセルに挿入し、シナリオの再計算やチャート生成まで行う。</p></div>
+          <div class="vs-card"><h4><span>Slides</span>アウトラインから即デッキ化</h4><p>箇条書きのアウトラインから既存テーマに沿ったスライド一式を生成。Web / X 検索によるリサーチ結果を反映し、編集可能な形式で出力する。</p></div>
+          <div class="vs-card"><h4><span>Docs</span>粗いメモを構造化ドラフトへ</h4><p>文法修正・スタイル統一に加え、コネクタ経由で Drive やメールを参照して内容を補強する。</p></div>
+        </div>
+        <h3>Microsoft 365（Excel / Word / PowerPoint / Outlook）</h3>
+        <p>Google 版とほぼ同等の機能をアドインとして提供する。とりわけ <strong>Outlook 統合の深度</strong>が特徴で、長いメールスレッドの要約、決定事項や未対応タスクの抽出、<strong>ユーザー自身の文体に合わせた返信下書き</strong>の作成に加え、受信トレイの整理（アーカイブ・削除）まで指示できる。</p>
+        <div class="warn"><p>「サイドパネルからファイルを直接編集できる」ことは、裏を返せば<strong>アドオンが文書の閲覧・作成・編集・削除の権限を持つ</strong>ということでもある。この点は 06 で詳述する。</p></div>
+      </section>
+
+      <section class="slide" id="slide-3">
+        <div class="slide-no">03 / BENCHMARKS</div>
+        <h2>ベンチマーク：エージェント性能と低い幻覚率</h2>
+        <p>公開ベンチマークにおいて、Grok 4.5 は実務的なソフトウェア工学およびエージェント性能で高いスコアを記録している。特筆すべきは<strong>幻覚率の低さ</strong>で、シングルターンで 0.98% と、GPT-5.5 の 1.14%、Opus 4.8 の 3.35% を下回る。</p>
+        <div class="viz">
+          <p class="viz-title">Grok 4.5 の主要ベンチマークスコア</p>
+          <p class="viz-sub">エージェント／ソフトウェア工学系の評価。数値は xAI 公表値</p>
+          <svg viewBox="0 0 720 210" role="img" aria-label="Grok 4.5 の主要ベンチマークを示す横棒グラフ。Terminal Bench 2.1 が83.3パーセント、SWE Bench Pro が64.7パーセント、DeepSWE 1.0 が62.0パーセント、単一ターン幻覚率が0.98パーセント">
+            <g font-family="'Noto Sans JP',sans-serif" font-size="12">
+              <text x="0" y="24" fill="#93a7bb">Terminal Bench 2.1</text>
+              <rect x="190" y="12" width="441" height="18" fill="#a48bff" fill-opacity=".85"/>
+              <text x="641" y="26" fill="#f7fbff" font-family="ui-monospace,monospace" font-size="13">83.3%</text>
+
+              <text x="0" y="66" fill="#93a7bb">SWE Bench Pro</text>
+              <rect x="190" y="54" width="343" height="18" fill="#a48bff" fill-opacity=".85"/>
+              <text x="543" y="68" fill="#f7fbff" font-family="ui-monospace,monospace" font-size="13">64.7%</text>
+
+              <text x="0" y="108" fill="#93a7bb">DeepSWE 1.0</text>
+              <rect x="190" y="96" width="328" height="18" fill="#a48bff" fill-opacity=".85"/>
+              <text x="528" y="110" fill="#f7fbff" font-family="ui-monospace,monospace" font-size="13">62.0%</text>
+
+              <text x="0" y="160" fill="#93a7bb">幻覚率（Single-turn）</text>
+              <text x="0" y="178" fill="#93a7bb" font-size="10">※ 低いほど良い</text>
+              <rect x="190" y="148" width="5" height="18" fill="#f3b64c"/>
+              <text x="205" y="162" fill="#f3b64c" font-family="ui-monospace,monospace" font-size="13">0.98%</text>
+              <text x="270" y="162" fill="#93a7bb" font-size="11">GPT-5.5: 1.14% ／ Opus 4.8: 3.35%</text>
+            </g>
+            <line x1="190" y1="0" x2="190" y2="200" stroke="#93a7bb" stroke-opacity=".25" stroke-width="1"/>
+          </svg>
+          <p class="note">上位3項目は 0〜100% を横幅 530px にスケールした比較。幻覚率のみ「低いほど良い」指標のため、同一スケールで表示している。</p>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-4">
+        <div class="slide-no">04 / TOKEN EFFICIENCY</div>
+        <h2>本当の差別化点：驚異的な「トークン効率」</h2>
+        <p>スコアそのものより実務インパクトが大きいのが<strong>出力トークン効率</strong>である。xAI のデータによれば、Grok 4.5 は SWE Bench Pro の1タスクあたり<strong>平均 15,954 出力トークン</strong>で解決に達する。これは Opus 4.8 max の<strong>約4.2分の1</strong>にあたる。</p>
+        <div class="viz">
+          <p class="viz-title">SWE Bench Pro：1タスクあたりの平均出力トークン数</p>
+          <p class="viz-sub">少ないほどコストが低く、実効的な待ち時間も短い</p>
+          <svg viewBox="0 0 720 150" role="img" aria-label="1タスクあたり平均出力トークン数の比較。Grok 4.5 が15,954トークン、Opus 4.8 max がその約4.2倍にあたる約67,000トークン">
+            <g font-family="'Noto Sans JP',sans-serif" font-size="12">
+              <text x="0" y="34" fill="#93a7bb">Grok 4.5</text>
+              <rect x="140" y="22" width="130" height="22" fill="#a48bff" fill-opacity=".85"/>
+              <text x="280" y="38" fill="#f7fbff" font-family="ui-monospace,monospace" font-size="13">15,954 tokens</text>
+
+              <text x="0" y="94" fill="#93a7bb">Opus 4.8 max</text>
+              <rect x="140" y="82" width="546" height="22" fill="#f3b64c" fill-opacity=".55"/>
+              <text x="150" y="98" fill="#050b14" font-family="ui-monospace,monospace" font-size="13" font-weight="600">約4.2倍（≒ 67,000 tokens 相当）</text>
+
+              <text x="140" y="132" fill="#93a7bb" font-size="11">同じ課題を解くのに必要な出力量が 1/4 で済む ＝ API コストと待ち時間が同時に下がる</text>
+            </g>
+          </svg>
+          <p class="note">Opus 4.8 max 側の絶対値は「約4.2倍」の公表比から算出した参考値。比率は xAI 公表、絶対値は本図での換算である点に留意されたい。</p>
+        </div>
+        <p>この効率性は API コストの低減にとどまらない。エージェントが自律的に何十ターンも回るワークロードでは、<strong>1タスクあたりの出力量がそのままレイテンシと課金の両方に直結する</strong>。ベンチマーク順位が同程度なら、トークン効率の差が実運用での体感差になる。</p>
+      </section>
+
+      <section class="slide" id="slide-5">
+        <div class="slide-no">05 / AGENTIC WORKFLOWS</div>
+        <h2>受動的なチャットから、自律的なワークフロー実行へ</h2>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>Automations</span>スケジュール／メール起動</h4><p>毎日・毎週などの時刻指定や、特定のメール受信をトリガーにジョブを自動実行。朝のニュース要約や定期リサーチの無人化に使える。</p></div>
+          <div class="vs-card"><h4><span>Workflows</span>最大1,024エージェント並列</h4><p>大規模タスクを分割し、最大1,024のエージェントを並列稼働させて処理。PR レビュー、大量の Issue 分類、コードベース監査などに適する。</p></div>
+          <div class="vs-card"><h4><span>Voice Agent Builder</span>コード不要の電話対応</h4><p>25以上の言語に対応した電話対応エージェントをノーコードで構築。API・MCP ツール呼び出しと、人間オペレーターへの転送に対応。</p></div>
+          <div class="vs-card"><h4><span>OSS 化</span>エージェントハーネス公開</h4><p>Grok Build のエージェントハーネス、TUI、ツール呼び出し実装がオープンソース化。ローカル推論エンジンへの接続も可能になった。</p></div>
+        </div>
+        <p>ここで質的な変化が起きている。従来のAI活用が「人間が質問し、AIが答える」単発の往復だったのに対し、<strong>Automations と Workflows は人間不在の時間帯にタスクが進行する</strong>。ユーザーの役割は「問いかける人」から「起動条件と検収基準を設計する人」へ移る。</p>
+      </section>
+
+      <section class="slide" id="slide-6">
+        <div class="slide-no">06 / SECURITY &amp; GOVERNANCE</div>
+        <h2>強力な機能は、広範な権限と表裏一体である</h2>
+        <p>企業導入において最も慎重な検討を要するのが権限とデータの扱いである。Workspace アドオンは<strong>全文書の閲覧・作成・編集・削除を含む非常に強力な OAuth スコープ</strong>を要求する。「ファイル内での直接動作」という利便性は、この権限があって初めて成立する。</p>
+        <h3>データ学習ポリシーは利用形態で明確に分かれる</h3>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th>利用形態</th><th>入出力データのモデル訓練利用</th><th>備考</th></tr></thead>
+          <tbody>
+            <tr><td>API / Business / Enterprise</td><td class="st-ok">原則として使用されない</td><td>業務利用はこちらを前提とすべき</td></tr>
+            <tr><td>Consumer（X / grok.com）</td><td class="st-ng">使用される場合がある</td><td>X の公開ポストや Grok とのやり取りがデフォルトで対象。設定でオフにするか Private Chat の利用が必要</td></tr>
+          </tbody>
+        </table></div>
+        <h3>運用上の推奨策</h3>
+        <ol class="steps">
+          <li><b>段階的導入とスコープ審査</b><p>全社配布の前に、機密度の低い部門でパイロット運用を行い、OAuth スコープをガバナンス観点で審査する。</p></li>
+          <li><b>プランの選定</b><p>業務利用では、学習不使用が明記されている Business / Enterprise プランを前提とする。Consumer プランの業務転用は避ける。</p></li>
+          <li><b>Human in the loop の徹底</b><p>数式の生成、メールの自動下書き、ファイルの更新・削除については、必ず人間が最終確認を行う運用を敷く。</p></li>
+        </ol>
+        <div class="warn"><p>とくに Outlook 統合の「受信トレイの整理（アーカイブ・削除）」と Sheets の「数式をセルへ直接挿入」は、<strong>誤動作が静かにデータを壊すタイプの操作</strong>である。自動実行の対象から外し、明示的な承認を挟む設計を推奨する。</p></div>
+      </section>
+
+      <section class="slide" id="slide-7">
+        <div class="slide-no">07 / COMPETITIVE LANDSCAPE</div>
+        <h2>競合比較：最高精度と包括統合の「間」を突く</h2>
+        <p>Grok 4.5 の立ち位置は、<strong>最高精度を追求する Fable 5</strong> と <strong>包括的なネイティブ統合を誇る Gemini / Copilot</strong> の間にある、実務特化型の選択肢と整理できる。</p>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th>観点</th><th>Grok 4.5</th><th>Google Gemini</th><th>MS 365 Copilot</th></tr></thead>
+          <tbody>
+            <tr><td>強み</td><td>リアルタイム X 検索、<b>最高クラスのトークン効率</b>、エージェント並列処理</td><td>Google アプリとの深いネイティブ統合、強いデータ保護明文化</td><td>大企業向けコンプライアンスの厚さ、MS Graph との連携</td></tr>
+            <tr><td>提供形態</td><td>サードパーティ製アドオン（<b>ベンダー中立的</b>）</td><td>第一者純正機能</td><td>第一者純正機能</td></tr>
+            <tr><td>価格感</td><td>API 単価が安く、アドオンのインストールは無料</td><td>対象プランのライセンスに依存</td><td>$30/月/ユーザー（標準）</td></tr>
+            <tr><td>特筆機能</td><td>Sheets でのセル引用付き分析、OSS エージェント基盤</td><td>ユーザーデータの学習不使用の強い保証</td><td>エンタープライズデータ保護（EDP）</td></tr>
+          </tbody>
+        </table></div>
+        <p>Google / Microsoft が「自社スイートの純正機能」として提供するのに対し、Grok は<strong>両方のスイートに後付けで入り込むベンダー中立的なアドオン</strong>という形を取る。既に Workspace と M365 が混在している組織では、この中立性そのものが選定理由になり得る。</p>
+      </section>
+
+      <section class="slide" id="slide-8">
+        <div class="slide-no">08 / VERDICT</div>
+        <h2>結論：ベンチ順位ではなく、自社タスクでの実測で判断せよ</h2>
+        <p>Grok 4.5 の登場により、AI活用は「チャットへの質問」という単発の行為から、<strong>OS レベルで常駐する自律ワークフォース</strong>との共生フェーズへ移行しつつある。とりわけ「Sheets でのセル根拠付き分析」と「最大1,024エージェントによる並列調査」は、これまでのAIでは到達できなかった種類のユースケースを開いた。</p>
+        <p>一方で、導入判断をベンチマーク順位で下すのは誤りである。実務で効くのは<strong>自社の典型タスクにおける「成功率」「出力トークン効率」「P95 応答速度」</strong>の3点であり、これらは公開スコアからは読み取れない。パイロット部門での実測を経てから全社展開を判断すべきだ。</p>
+        <div class="quote-jp">Grok 4.5 は、正しく統制された環境下で運用されて初めて「業務工程を劇的に短縮するエージェントOS」として機能する。権限設計を後回しにした導入は、効率化ではなく事故の自動化になる。</div>
+      </section>
+
+    </div>
+  </main>
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+      document.querySelectorAll('section.slide').forEach(function (s) { io.observe(s); });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_23.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_07_24.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-07-24.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
