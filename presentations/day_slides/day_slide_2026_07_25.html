@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Opus 5：フロンティア級の知能を「半額」で日常に | 2026-07-25</title>
+  <meta name="description" content="Anthropicが2026年7月24日に公開した Claude Opus 5。Fable 5 の半額（入力$5／出力$25 per MTok）でフロンティア級の知能を日常運用に落とし込んだ。ARC-AGI-3 で 30.2%（前世代 Opus 4.8 は 1.5%）という流動的知能の飛躍、SWE-bench Verified 96.0%、Adaptive Thinking と Effort 制御によるコスト最適化、そして Constitutional AI に基づくアラインメントを技術的に読み解く。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_25.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Claude Opus 5：フロンティア級の知能を「半額」で日常に">
+  <meta property="og:description" content="Fable 5 の半額でフロンティア級の知能を日常運用へ。ARC-AGI-3 で 30.2%（前世代 1.5%）という流動的知能の飛躍、SWE-bench Verified 96.0%、Adaptive Thinking と Effort 制御によるコスト最適化、Constitutional AI に基づくアラインメントを読み解く。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_25.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0725/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Claude Opus 5：フロンティア級の知能を「半額」で日常に">
+  <meta name="twitter:description" content="ARC-AGI-3 で 30.2%（前世代 Opus 4.8 は 1.5%）。SWE-bench Verified 96.0%。Fable 5 の半額でフロンティア級の推論を日常運用に落とし込んだ Claude Opus 5 の技術分析。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0725/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Claude Opus 5：フロンティア級の知能を「半額」で日常に",
+    "description": "Anthropic が 2026年7月24日に公開した Claude Opus 5 の位置づけ、ベンチマーク性能、コスト効率化の技術的要因、Constitutional AI による安全性設計、および実務運用上のベストプラクティスを整理する。",
+    "datePublished": "2026-07-25",
+    "dateModified": "2026-07-25",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_07_25.html",
+    "articleSection": "AI Models & Agentic Coding"
+  }
+  </script>
+  <style>
+    :root { --bg:#050b14; --paper:#0a1524; --ink:#f7fbff; --muted:#93a7bb; --line:rgba(143,161,181,.22); --cyan:#ef7a5d; --amber:#f3b64c; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 80% 0%, rgba(239,122,93,.10), transparent 30%), var(--bg); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:var(--cyan); z-index:50; transition:width .1s linear; }
+    .shell { max-width:1200px; margin:0 auto; padding:28px 20px 64px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:24px; color:var(--muted); font-size:13px; }
+    .topbar a { color:var(--cyan); text-decoration:none; }
+    .hero { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:clamp(20px,3vw,38px); margin-bottom:18px; }
+    .kicker { color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px; }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 16px; font-weight:500; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:var(--muted); font-size:16px; margin:0; line-height:1.8; }
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:22px 0 0; }
+    .stat-card { border:1px solid var(--line); background:rgba(5,11,20,.6); padding:14px 16px; }
+    .stat-num { font:600 26px/1.1 ui-monospace,SFMono-Regular,monospace; color:var(--cyan); }
+    .stat-num.amber { color:var(--amber); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:6px; line-height:1.55; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+    .cover-figure { border:1px solid var(--line); background:rgba(10,21,36,.86); padding:14px 14px 12px; margin-bottom:18px; }
+    .cover-figure img { width:100%; height:auto; display:block; border-radius:3px; }
+    .cover-caption { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:12px; margin:10px 4px 0; }
+    .cover-caption b { color:var(--ink); font-weight:600; }
+    .jump { position:sticky; top:0; z-index:10; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:12px; background:rgba(5,11,20,.94); backdrop-filter:blur(12px); scrollbar-width:thin; }
+    .jump a { flex:0 0 auto; min-width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:var(--muted); text-decoration:none; font:500 11px/1 ui-monospace,monospace; }
+    .jump a:hover,.jump a:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+    .slides { display:grid; gap:22px; }
+    section.slide { border:1px solid var(--line); background:var(--paper); padding:clamp(18px,2.6vw,32px); scroll-margin-top:64px; min-width:0; }
+    .slide-no { color:var(--cyan); font:500 11px/1 ui-monospace,monospace; letter-spacing:.14em; margin-bottom:10px; }
+    h2 { font-size:clamp(21px,2.6vw,30px); line-height:1.3; margin:0 0 14px; font-weight:600; letter-spacing:-.01em; }
+    h3 { font-size:16px; margin:20px 0 8px; color:var(--cyan); font-weight:600; }
+    p { color:var(--muted); line-height:1.9; margin:0 0 12px; font-size:15px; }
+    strong { color:var(--ink); font-weight:600; }
+    ul { margin:0 0 12px; padding-left:1.3em; color:var(--muted); line-height:1.9; font-size:15px; }
+    li { margin-bottom:6px; }
+    li::marker { color:var(--cyan); }
+    .grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:16px 18px; }
+    .vs-card h4 { margin:0 0 8px; font-size:14px; color:var(--ink); }
+    .vs-card h4 span { color:var(--amber); font:500 10px/1 ui-monospace,monospace; letter-spacing:.12em; display:block; margin-bottom:6px; }
+    .vs-card p { font-size:13.5px; line-height:1.75; margin:0; }
+    .warn { border-left:3px solid var(--amber); background:rgba(243,182,76,.06); padding:12px 16px; margin:14px 0; }
+    .warn p { margin:0; font-size:14px; }
+    .steps { counter-reset:step; display:grid; gap:10px; margin:14px 0; padding:0; list-style:none; }
+    .steps li { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:14px 16px 14px 54px; position:relative; margin:0; }
+    .steps li::before { counter-increment:step; content:counter(step,decimal-leading-zero); position:absolute; left:16px; top:14px; color:var(--amber); font:600 15px/1.4 ui-monospace,monospace; }
+    .steps b { color:var(--ink); display:block; margin-bottom:4px; }
+    .steps li p { margin:0; font-size:13.5px; }
+    /* visuals */
+    .viz { border:1px solid var(--line); background:rgba(5,11,20,.5); padding:18px 20px 14px; margin:16px 0; }
+    .viz-title { color:var(--ink); font-size:13.5px; font-weight:600; margin:0 0 2px; }
+    .viz-sub { color:var(--muted); font-size:12px; margin:0 0 12px; }
+    .viz svg { width:100%; height:auto; display:block; }
+    .viz .note { color:var(--muted); font-size:11.5px; margin:8px 0 0; line-height:1.6; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:560px; }
+    .cmp th { text-align:left; color:var(--cyan); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(143,161,181,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; white-space:nowrap; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-ng { color:var(--amber); font-weight:600; white-space:nowrap; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+    .chip { border:1px solid var(--line); background:rgba(5,11,20,.55); padding:7px 14px; font-size:13px; color:var(--ink); border-radius:20px; }
+    .quote-jp { border:1px solid var(--line); background:rgba(239,122,93,.06); padding:16px 20px; margin:14px 0; font-size:15px; color:var(--ink); font-style:italic; line-height:1.7; }
+    @media (max-width:860px) { .shell { padding:18px 10px 42px; } .hero { padding:18px; } section.slide { padding:16px; } .cover-caption { flex-direction:column; gap:2px; } }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+  <main class="shell">
+    <nav class="topbar" aria-label="Breadcrumb">
+      <a href="../day_slides_index.html">All day slides</a>
+      <span>2026-07-25 / AI Models &amp; Agentic Coding</span>
+    </nav>
+    <section class="hero">
+      <div class="kicker">今日の深掘り — モデル / エージェント型コーディング</div>
+      <h1>Claude Opus 5：フロンティア級の知能を「半額」で日常に</h1>
+      <p class="lead">Anthropic は 2026年7月24日、フラッグシップモデル Claude Opus 5 を公開した。核心的な価値提案は<strong>「最上位の Fable 5 に迫るフロンティア級の知能を、Fable 5 の半額で日常運用可能にする」</strong>ことにある。未知のルールをその場で発見する流動的知能を測る ARC-AGI-3 で 30.2%（前世代 Opus 4.8 は 1.5%）を記録し、SWE-bench Verified では 96.0% と Fable 5 を上回った。Adaptive Thinking と Effort 制御による推論リソースの動的割り当て、そして Constitutional AI に基づく自己修正能力までを技術的に読み解く。</p>
+      <div class="stats-bar" aria-label="キーメトリクス">
+        <div class="stat-card"><div class="stat-num">30.2%</div><div class="stat-label"><b>ARC-AGI-3（SOTA）</b><br>前世代 Opus 4.8 は 1.5%、GPT-5.6 Sol は 7.8%</div></div>
+        <div class="stat-card"><div class="stat-num">96.0%</div><div class="stat-label"><b>SWE-bench Verified</b><br>Fable 5 の 95.0% を上回る</div></div>
+        <div class="stat-card"><div class="stat-num amber">$5 / $25</div><div class="stat-label"><b>入力／出力価格（per MTok）</b><br>Fable 5（$10 / $50）のちょうど半額</div></div>
+        <div class="stat-card"><div class="stat-num">100万</div><div class="stat-label"><b>コンテキスト長（トークン）</b><br>長文プレミアム課金は廃止</div></div>
+        <div class="stat-card"><div class="stat-num">128k</div><div class="stat-label"><b>最大出力長（トークン）</b><br>大規模なリファクタリングを一度に扱える</div></div>
+        <div class="stat-card"><div class="stat-num amber">1861</div><div class="stat-label"><b>GDPval-AA v2 の Elo</b><br>知識労働リーダーボードで新首位</div></div>
+      </div>
+    </section>
+    <figure class="cover-figure">
+      <img src="images/0725/cover.jpg" alt="Claude Opus 5：フロンティア級の知能を「半額」で日常に。圧倒的なエージェント能力（ARC-AGI-3 30.2%）、コーディング性能 SWE-bench Verified 96.0%、モデル階層における再定義、コスト効率化の技術（Adaptive Thinking・Effort制御・プロンプトキャッシュ・長文プレミアム撤廃）、Constitutional AI による安全性と自己修正、実務運用のベストプラクティスを1枚にまとめたインフォグラフィック" loading="eager" width="1600" height="893">
+      <figcaption class="cover-caption"><span>Claude Opus 5 の性能・価格・安全性設計・運用指針を1枚に整理したサマリー図解</span><b>Source: NotebookLM</b></figcaption>
+    </figure>
+    <nav class="jump" aria-label="Slide navigation"><a href="#slide-1" aria-label="モデルの位置づけ">01<span class="t">位置</span></a> <a href="#slide-2" aria-label="ARC-AGI-3">02<span class="t">知能</span></a> <a href="#slide-3" aria-label="コーディング性能">03<span class="t">性能</span></a> <a href="#slide-4" aria-label="コスト効率化">04<span class="t">コスト</span></a> <a href="#slide-5" aria-label="Constitutional AI">05<span class="t">安全</span></a> <a href="#slide-6" aria-label="運用上の落とし穴">06<span class="t">運用</span></a> <a href="#slide-7" aria-label="推奨ユースケース">07<span class="t">用途</span></a> <a href="#slide-8" aria-label="結論">08<span class="t">結論</span></a></nav>
+    <div class="slides">
+
+      <section class="slide" id="slide-1">
+        <div class="slide-no">01 / POSITIONING</div>
+        <h2>モデル階層における「主力層」としての再定義</h2>
+        <p>Claude Opus 5 は、Anthropic のモデル階層において<strong>「企業実務と高度な開発における主力モデル」</strong>として位置づけられている。最上位層を Fable 5 / Mythos 5 が担い、軽量・高速層を Sonnet 5 / Haiku 4.5 が担う構成のなかで、Opus 5 は「最難関ではないが十分に複雑な、日々の実務タスク」を引き受ける層だ。</p>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>最上位層</span>Fable 5 / Mythos 5</h4><p>最難関タスク、長時間の自律エージェント、未知の研究課題向け。到達点を押し上げる役割を担う。</p></div>
+          <div class="vs-card"><h4><span>主力層</span>Opus 5（本モデル）</h4><p>高度な開発、企業業務、複雑なエージェント型コーディング向け。日常運用可能な価格帯にフロンティア級の推論を落とし込む。</p></div>
+          <div class="vs-card"><h4><span>軽量・高速層</span>Sonnet 5 / Haiku 4.5</h4><p>速度・コスト・知能のバランス重視。大量処理や低レイテンシが要件になるワークロード向け。</p></div>
+        </div>
+        <h3>公開仕様一覧</h3>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th>項目</th><th>詳細仕様</th><th>備考</th></tr></thead>
+          <tbody>
+            <tr><td>リリース日</td><td><b>2026年7月24日</b></td><td>—</td></tr>
+            <tr><td>コンテキスト長</td><td><b>100万トークン</b></td><td>業界標準の長大文脈に対応</td></tr>
+            <tr><td>最大出力長</td><td><b>128,000 トークン</b></td><td>大規模なリファクタリングが一度に可能</td></tr>
+            <tr><td>入力価格</td><td><b>$5 / MTok</b></td><td>Fable 5（$10）の半額</td></tr>
+            <tr><td>出力価格</td><td><b>$25 / MTok</b></td><td>Fable 5（$50）の半額</td></tr>
+            <tr><td>Thinking</td><td>Adaptive Thinking</td><td>デフォルトで常時有効</td></tr>
+            <tr><td>Effort 制御</td><td>5段階（Low 〜 Max）</td><td>知能とコストのトレードオフを調整</td></tr>
+            <tr><td>知識カットオフ</td><td>2026年5月</td><td>Fable 5（2026年1月）より新しい</td></tr>
+          </tbody>
+        </table></div>
+        <div class="warn"><p>パラメータ数や MoE（Mixture of Experts）の有無といった<strong>内部アーキテクチャの詳細は公式資料では未公開</strong>である。本稿の分析は公開仕様と公表ベンチマークに基づく。</p></div>
+      </section>
+
+      <section class="slide" id="slide-2">
+        <div class="slide-no">02 / FLUID INTELLIGENCE</div>
+        <h2>ARC-AGI-3：暗記ではない「考える力」の飛躍</h2>
+        <p>今回のリリースで最も非連続な変化が起きたのが <strong>ARC-AGI-3</strong> である。このベンチマークは<strong>未知のルールをその場で発見し、適応する能力</strong>を測る。学習データに答えが含まれていないため、暗記では解けない設計になっている。</p>
+        <div class="viz">
+          <p class="viz-title">ARC-AGI-3 スコア比較：未知の課題への適応力</p>
+          <p class="viz-sub">前世代・競合モデルとの比較。Opus 5 は 30.2% で SOTA</p>
+          <svg viewBox="0 0 720 190" role="img" aria-label="ARC-AGI-3 スコアの横棒グラフ。Claude Opus 5 が30.2パーセント、GPT-5.6 Sol が7.8パーセント、前世代の Claude Opus 4.8 が1.5パーセント">
+            <g font-family="'Noto Sans JP',sans-serif" font-size="12">
+              <text x="0" y="34" fill="#f7fbff">Claude Opus 5</text>
+              <rect x="200" y="20" width="453" height="24" fill="#ef7a5d" fill-opacity=".9"/>
+              <text x="212" y="37" fill="#050b14" font-family="ui-monospace,monospace" font-size="14" font-weight="600">30.2%</text>
+
+              <text x="0" y="94" fill="#93a7bb">GPT-5.6 Sol</text>
+              <rect x="200" y="80" width="117" height="24" fill="#93a7bb" fill-opacity=".45"/>
+              <text x="327" y="97" fill="#93a7bb" font-family="ui-monospace,monospace" font-size="14">7.8%</text>
+
+              <text x="0" y="154" fill="#93a7bb">Claude Opus 4.8（前世代）</text>
+              <rect x="200" y="140" width="23" height="24" fill="#93a7bb" fill-opacity=".45"/>
+              <text x="233" y="157" fill="#93a7bb" font-family="ui-monospace,monospace" font-size="14">1.5%</text>
+            </g>
+            <line x1="200" y1="10" x2="200" y2="178" stroke="#93a7bb" stroke-opacity=".25" stroke-width="1"/>
+          </svg>
+          <p class="note">横幅は 0〜48% を 720px 幅にスケール。前世代の 1.5% から 30.2% へという伸びは、スコアの積み上げというより<strong>質的な段差</strong>に近い。</p>
+        </div>
+        <p>実務面でも、この「その場で考える力」は具体的な行動として現れる。表面的なエラー修正に留まらず、<strong>不足している観測能力を補うためにテストハーネスを自ら構築する</strong>、あるいは不具合の根本原因を特定しにいくといった自律的な振る舞いが確認されている。</p>
+      </section>
+
+      <section class="slide" id="slide-3">
+        <div class="slide-no">03 / BENCHMARKS</div>
+        <h2>コーディングと知識労働：上位モデルを上回る領域</h2>
+        <p>エージェント型コーディングと知識労働の評価では、Opus 5 が<strong>上位層である Fable 5 を上回るケース</strong>が出ている。価格が半額であることを踏まえると、実務での選択順位が入れ替わりうる数値だ。</p>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th>ベンチマーク</th><th>Opus 5</th><th>比較対象</th><th>意味するもの</th></tr></thead>
+          <tbody>
+            <tr><td>SWE-bench Verified</td><td><b>96.0%</b></td><td>Fable 5: 95.0%</td><td>実リポジトリの Issue 解決率。半額のモデルが上位層を凌駕</td></tr>
+            <tr><td>Frontier-Bench v0.1</td><td><b>43.5%</b></td><td class="st-ok">首位</td><td>エージェント型コーディングでトップ</td></tr>
+            <tr><td>GDPval-AA v2</td><td><b>1861 Elo</b></td><td class="st-ok">新首位</td><td>知識労働分野のリーダーボードを更新</td></tr>
+            <tr><td>ARC-AGI-3</td><td><b>30.2%</b></td><td>Opus 4.8: 1.5%</td><td>未知課題への適応力（詳細は 02）</td></tr>
+          </tbody>
+        </table></div>
+        <h3>科学・専門領域での伸び</h3>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>有機化学</span>+10.2 ポイント</h4><p>有機化学タスクでの改善幅。専門領域の推論が実用水準に近づいている。</p></div>
+          <div class="vs-card"><h4><span>生命科学</span>+7.7 ポイント</h4><p>タンパク質機能予測での改善幅。研究支援用途での適用余地が広がる。</p></div>
+          <div class="vs-card"><h4><span>実務特性</span>自律的な原因究明</h4><p>症状への対症療法ではなく、観測手段の構築と根本原因の特定に向かう行動が確認されている。</p></div>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-4">
+        <div class="slide-no">04 / COST ENGINEERING</div>
+        <h2>「性能維持でコスト半減」を支える4つの仕組み</h2>
+        <p>価格表の半額は入口にすぎない。Opus 5 は<strong>運用面の最適化機能を重ねることで、実効コストをさらに押し下げる</strong>設計になっている。</p>
+        <ol class="steps">
+          <li><b>Adaptive Thinking と Effort 制御</b><p>入力の難易度に応じて思考量を動的に制御する。簡単なタスクでは思考をスキップし、トークン消費とレイテンシの両方を抑制する。Effort は Low 〜 Max の5段階で明示的に指定できる。</p></li>
+          <li><b>Prompt Caching の高度化</b><p>キャッシュ読み取りを通常価格の <strong>90% 割引</strong>で提供。会話途中でシステムプロンプトを変更してもキャッシュを維持しやすい設計が導入された。</p></li>
+          <li><b>Batch API</b><p><strong>50% 割引</strong>が適用される。デバッグ、要約といった大量の非同期ジョブのコストを大幅に引き下げる。</p></li>
+          <li><b>Long-context Premium の廃止</b><p>100万トークンの長文利用時でも、短文と同じ単価体系が適用される。大規模 RAG やコードベース全体の投入コストが読みやすくなった。</p></li>
+        </ol>
+        <div class="viz">
+          <p class="viz-title">API 価格の比較（per MTok）</p>
+          <p class="viz-sub">Opus 5 は Fable 5 のちょうど半額に設定されている</p>
+          <svg viewBox="0 0 720 170" role="img" aria-label="API価格の比較棒グラフ。Fable 5 は入力10ドル出力50ドル、Opus 5 は入力5ドル出力25ドルで、いずれも半額">
+            <g font-family="'Noto Sans JP',sans-serif" font-size="12">
+              <text x="0" y="26" fill="#93a7bb">Fable 5 / 出力</text>
+              <rect x="160" y="12" width="520" height="20" fill="#93a7bb" fill-opacity=".4"/>
+              <text x="500" y="27" fill="#f7fbff" font-family="ui-monospace,monospace" font-size="13">$50 / MTok</text>
+
+              <text x="0" y="60" fill="#f7fbff">Opus 5 / 出力</text>
+              <rect x="160" y="46" width="260" height="20" fill="#ef7a5d" fill-opacity=".9"/>
+              <text x="430" y="61" fill="#ef7a5d" font-family="ui-monospace,monospace" font-size="13">$25 / MTok</text>
+
+              <text x="0" y="112" fill="#93a7bb">Fable 5 / 入力</text>
+              <rect x="160" y="98" width="104" height="20" fill="#93a7bb" fill-opacity=".4"/>
+              <text x="274" y="113" fill="#f7fbff" font-family="ui-monospace,monospace" font-size="13">$10 / MTok</text>
+
+              <text x="0" y="146" fill="#f7fbff">Opus 5 / 入力</text>
+              <rect x="160" y="132" width="52" height="20" fill="#ef7a5d" fill-opacity=".9"/>
+              <text x="222" y="147" fill="#ef7a5d" font-family="ui-monospace,monospace" font-size="13">$5 / MTok</text>
+            </g>
+          </svg>
+          <p class="note">同一スケール（$0〜$52 を 520px に対応）で描画。ここに Prompt Caching の 90% 割引と Batch API の 50% 割引が重なる。</p>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-5">
+        <div class="slide-no">05 / CONSTITUTIONAL AI</div>
+        <h2>安全性設計：憲法に基づく自己批判と自己修正</h2>
+        <p>Opus 5 は、Anthropic が開発したなかで<strong>「最もアラインメントが取れたモデル」</strong>と評価されている。その基盤にあるのが <strong>Constitutional AI（CAI）</strong>——人間による大量のラベリングに依存せず、文章化された「憲法（Constitution）」に基づいて<strong>AI 自身に自己批判と修正を行わせる</strong>学習手法である。</p>
+        <h3>2026年版 憲法の優先順位</h3>
+        <ol class="steps">
+          <li><b>Broadly safe</b><p>人間の監督を妨害しない。他の3つに優先する最上位の原則。</p></li>
+          <li><b>Broadly ethical</b><p>誠実かつ非有害な行動をとる。</p></li>
+          <li><b>Guideline compliance</b><p>Anthropic の指針を遵守する。</p></li>
+          <li><b>Helpful</b><p>ユーザーを実質的に助ける。順位としては最後に置かれる。</p></li>
+        </ol>
+        <p>「Helpful」が最下位に置かれている点が設計思想を端的に示している。<strong>有用性は、安全性・倫理性・指針遵守を満たしたうえで初めて追求される</strong>という順序が明文化されている。</p>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>境界設計</span>脆弱性の特定と抑制の非対称</h4><p>ソースコードからの脆弱性発見能力は高い一方、悪用コード（Exploit）の生成は意図的に抑制されている。攻撃と防御で能力を非対称に設計している。</p></div>
+          <div class="vs-card"><h4><span>可用性</span>自動フォールバック</h4><p>セーフガードにより回答がブロックされた場合、前世代の Opus 4.8 等へ自動的にルーティングするシステムが構築されている。</p></div>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-6">
+        <div class="slide-no">06 / OPERATIONAL PITFALLS</div>
+        <h2>運用の落とし穴：「思慮深さ」がそのままコストになる</h2>
+        <p>Opus 5 はリリース直後から GitHub Copilot へ正式対応し、IDE 内での高度なエージェント実行が可能になっている。ただし、その<strong>「思慮深く主体的」な性質は、適切な制御がないとコスト増大に直結する</strong>。過去モデル向けに最適化されたプロンプトをそのまま流用すると、むしろ悪化するケースがある。</p>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th>行動特性</th><th>リスク</th><th>推奨される対策</th></tr></thead>
+          <tbody>
+            <tr><td>冗長性</td><td class="st-ng">出力トークンの過多</td><td>「簡潔に」「結論から」とプロンプトで明示する</td></tr>
+            <tr><td>過剰検証</td><td class="st-ng">無用な思考ループ</td><td>過去モデル向けの「必ず再確認せよ」等の指示を<b>削除する</b></td></tr>
+            <tr><td>サブエージェント乱発</td><td class="st-ng">並列処理によるコスト増</td><td>委任の判断基準を明示し、生成（spawn）数を制限する</td></tr>
+            <tr><td>スコープ拡大</td><td class="st-ng">依頼外の修正の実施</td><td>「依頼範囲を超えない」「勝手な改善は不要」と制約を設ける</td></tr>
+          </tbody>
+        </table></div>
+        <div class="warn"><p>特に注意すべきは<strong>「過剰検証」</strong>である。旧世代モデルの信頼性を補うために入れていた「必ず再確認せよ」のような指示は、Adaptive Thinking を持つ Opus 5 では<strong>二重の思考を誘発してコストを押し上げるだけ</strong>になりうる。移行時はプロンプトの棚卸しから始めるべきだ。</p></div>
+      </section>
+
+      <section class="slide" id="slide-7">
+        <div class="slide-no">07 / USE CASES</div>
+        <h2>実務で効く領域：長い文脈と根本原因</h2>
+        <p>100万トークンの文脈と 128k の出力長、そして自律的な原因究明という特性が噛み合うのは、<strong>「広く読んで、深く直す」タイプのタスク</strong>である。</p>
+        <div class="grid-3">
+          <div class="vs-card"><h4><span>開発</span>横断的な大規模リファクタリング</h4><p>複数ファイルにまたがる変更。100万トークンの文脈にコードベースを載せ、128k 出力で一度に書き換えられる。</p></div>
+          <div class="vs-card"><h4><span>運用</span>根本原因分析（RCA）</h4><p>複雑なシステムエラーに対し、観測手段の構築から原因特定までを自律的に進める。</p></div>
+          <div class="vs-card"><h4><span>専門業務</span>高文脈な文書分析</h4><p>財務・法務・医療など、前提条件が複雑に絡む専門的文書の読解と分析。</p></div>
+        </div>
+        <div class="chips">
+          <span class="chip">GitHub Copilot 正式対応</span>
+          <span class="chip">Effort 5段階制御</span>
+          <span class="chip">Prompt Caching 90% off</span>
+          <span class="chip">Batch API 50% off</span>
+          <span class="chip">長文プレミアム廃止</span>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-8">
+        <div class="slide-no">08 / VERDICT</div>
+        <h2>結論：知能の「商用コモディティ化」が始まった</h2>
+        <p>Claude Opus 5 が象徴するのは、<strong>フロンティア級の推論能力が、企業が日常運用できる価格帯まで降りてきた</strong>という事実である。SWE-bench Verified で上位層の Fable 5 を上回りながら価格は半分、という構図は、モデル選定の考え方そのものを変える。「最高性能を使うかコストを取るか」という二択が、少なくともこの層では成立しなくなった。</p>
+        <p>一方で、実効コストを決めるのはもはや価格表ではない。<strong>Effort 設定、プロンプトの棚卸し、サブエージェントの生成制限——制御側の設計が支出の大半を左右する</strong>。半額という数字だけを見て移行すると、冗長性と過剰検証で価格差を食い潰しかねない。</p>
+        <div class="quote-jp">安くなったのはトークン単価であって、運用の巧拙ではない。Opus 5 の価値を引き出せるかどうかは、モデルをどう抑制するかの設計にかかっている。</div>
+      </section>
+
+    </div>
+  </main>
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+      document.querySelectorAll('section.slide').forEach(function (s) { io.observe(s); });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_24.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_07_25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-07-25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
