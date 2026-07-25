@@ -11,7 +11,7 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 - レポートアーカイブ: `presentations/daily_reports/index.json`（html_report 実行時に自動再生成）
 - トップ #categories: `news/latest.json` の sections ← build-homepage-latest.js が auto_daily_report/latest.json から生成
 - AI Ranking ページ: `build-ranking-preview.yml` が 08:30 JST に日次自動更新
-- CI ガード: `freshness-guard.yml`（最新スライドの index/sitemap 伝播監視）、mojibake-guard、pages-heal
+- CI ガード: `freshness-guard.yml`（最新スライドの index/sitemap 伝播監視 + daily-news の X 欠落を2日連続で検知＝`check_x_freshness.py`）、mojibake-guard、pages-heal
 
 ## 日次スライド作成（最重要ワークフロー）
 
