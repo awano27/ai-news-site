@@ -871,6 +871,29 @@
     }
     @media (max-width: 980px) { .res-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 540px) { .res-grid { grid-template-columns: 1fr; } }
+    .res-expand {
+      display: none;
+      width: 100%;
+      min-height: 44px;
+      margin-top: 18px;
+      padding: 12px 20px;
+      border: 1px solid rgba(255,204,0,0.45);
+      border-radius: 8px;
+      background: rgba(255,204,0,0.08);
+      color: var(--yellow);
+      font: 700 14px/1.4 var(--sans);
+      cursor: pointer;
+    }
+    .res-expand:hover {
+      border-color: var(--yellow);
+      background: rgba(255,204,0,0.14);
+    }
+    @media (max-width: 768px) {
+      :root { --sec-y: 48px; }
+      .hero { padding-block: 56px; }
+      .res-grid.is-collapsed .res-card:nth-child(n+4) { display: none; }
+      .res-grid.is-collapsed + .res-expand { display: block; }
+    }
     .res-card {
       display: flex; flex-direction: column;
       background: rgba(255,255,255,0.045);
@@ -1665,6 +1688,9 @@
       @media (prefers-reduced-motion: reduce) {
         .featured-reports .briefing-status strong::before { animation: none; }
       }
+      @media (max-width: 768px) {
+        .featured-reports { padding-block: 52px; }
+      }
     </style>
     <section id="featured-reports" class="featured-reports">
       <div class="container">
@@ -2240,6 +2266,7 @@
             </div>
           </a>
         </div>
+        <button class="res-expand" type="button" aria-expanded="false">すべてのリソースを見る（残り 8 件）</button>
       </div>
     </section>
 
@@ -2283,6 +2310,16 @@
 
     var LATEST_JSON   = 'news/latest.json';
     var ARCHIVE_INDEX = 'public-pages/news/archive_index.json';
+    var resourceGrid = document.querySelector('#resources .res-grid');
+    var resourceExpand = document.querySelector('#resources .res-expand');
+    if (resourceGrid && resourceExpand) {
+      resourceGrid.classList.add('is-collapsed');
+      resourceExpand.addEventListener('click', function () {
+        resourceGrid.classList.remove('is-collapsed');
+        resourceExpand.setAttribute('aria-expanded', 'true');
+        resourceExpand.hidden = true;
+      });
+    }
     var slideForDate = function (dateStr) {
       return 'presentations/day_slides/day_slide_' + dateStr.replace(/-/g, '_') + '.html';
     };
