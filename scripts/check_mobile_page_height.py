@@ -1,4 +1,4 @@
-"""Measure the local top page at the acceptance-test viewports."""
+"""Verify local hero readability at the acceptance-test viewports."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from playwright.sync_api import Page, sync_playwright
 
 
 REPO = Path(__file__).resolve().parents[1]
-OUTPUT_DIR = REPO / "outputs" / "mobile_height_2026-07-25"
+OUTPUT_DIR = REPO / "outputs" / "hero_readability_2026-07-25"
 VIEWPORTS = {
     "mobile": {"width": 390, "height": 844},
     "desktop": {"width": 1440, "height": 900},
@@ -27,30 +27,51 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 def page_snapshot(page: Page) -> dict[str, object]:
     return page.evaluate(
         """() => {
-          const visible = el => {
+          const rect = selector => {
+            const el = document.querySelector(selector);
+            const box = el ? el.getBoundingClientRect() : null;
+            return box ? {
+              top: Math.round(box.top * 10) / 10,
+              bottom: Math.round(box.bottom * 10) / 10,
+              width: Math.round(box.width * 10) / 10,
+              height: Math.round(box.height * 10) / 10,
+            } : null;
+          };
+          const visible = selector => {
+            const el = document.querySelector(selector);
+            if (!el) return false;
             const style = getComputedStyle(el);
             return style.display !== 'none' && style.visibility !== 'hidden' &&
               el.getBoundingClientRect().height > 0;
           };
-          const button = document.querySelector('#resources .res-expand');
-          const grid = document.querySelector('#resources .res-grid');
+          const resources = performance.getEntriesByType('resource')
+            .filter(entry => /hero-planck/i.test(entry.name))
+            .map(entry => ({
+              url: entry.name,
+              transferBytes: entry.transferSize,
+              encodedBodyBytes: entry.encodedBodySize,
+              decodedBodyBytes: entry.decodedBodySize,
+              initiatorType: entry.initiatorType,
+            }));
+          const bg = document.querySelector('.hero-bg');
           return {
-            scrollHeight: document.documentElement.scrollHeight,
-            sections: Array.from(document.querySelectorAll('main section')).map(section => ({
-              id: section.id || '(no id)',
-              height: Math.round(section.getBoundingClientRect().height),
-            })),
-            visibleResourceCards: Array.from(
-              document.querySelectorAll('#resources .res-card')
-            ).filter(visible).length,
-            resourceLinksInDom: document.querySelectorAll(
-              '#resources a.res-card[href]'
-            ).length,
-            resourceColumns: grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').length : 0,
-            buttonVisible: button ? visible(button) : false,
-            buttonHeight: button ? Math.round(button.getBoundingClientRect().height) : 0,
-            buttonExpanded: button ? button.getAttribute('aria-expanded') : null,
-            staticGridClass: grid ? grid.getAttribute('class') : null,
+            pageHeight: document.documentElement.scrollHeight,
+            hero: rect('.hero'),
+            h1: rect('.hero h1'),
+            heroSlideBtn: rect('#heroSlideBtn'),
+            heroBackground: {
+              rect: rect('.hero-bg'),
+              computedWidth: bg ? getComputedStyle(bg).width : null,
+              backgroundImage: bg ? getComputedStyle(bg).backgroundImage : null,
+            },
+            heroResources: resources,
+            resExpandVisible: visible('#resources .res-expand'),
+            heroDynamicContent: {
+              date: document.querySelector('#heroDate')?.textContent.trim() || null,
+              newsTitle: document.querySelector('#heroNewsTitle')?.textContent.trim() || null,
+              newsMeta: document.querySelector('#heroNewsMeta')?.textContent.trim() || null,
+              slideHref: document.querySelector('#heroSlideBtn')?.href || null,
+            },
           };
         }"""
     )
@@ -74,50 +95,49 @@ def main() -> None:
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     url = f"http://127.0.0.1:{server.server_port}/index.html"
-    results: dict[str, object] = {}
+    results: dict[str, object] = {"localUrl": url}
 
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()
-            for name, viewport in VIEWPORTS.items():
-                page = browser.new_page(viewport=viewport)
-                errors = open_page(page, url)
-                before = page_snapshot(page)
-                page.screenshot(
-                    path=str(
-                        OUTPUT_DIR /
-                        ("mobile_collapsed.png" if name == "mobile" else "desktop.png")
-                    ),
-                    full_page=True,
-                )
-                result: dict[str, object] = {
-                    "viewport": viewport,
-                    "beforeExpand": before,
-                    "consoleErrors": errors,
-                }
-                if name == "mobile":
-                    page.locator("#resources .res-expand").click()
-                    after = page_snapshot(page)
-                    page.screenshot(
-                        path=str(OUTPUT_DIR / "mobile_expanded.png"),
-                        full_page=True,
-                    )
-                    result["afterExpand"] = after
-                results[name] = result
-                page.close()
-            no_js_context = browser.new_context(
-                viewport=VIEWPORTS["mobile"],
-                java_script_enabled=False,
+
+            mobile = browser.new_page(viewport=VIEWPORTS["mobile"])
+            mobile_errors = open_page(mobile, url)
+            results["mobile"] = {
+                "viewport": VIEWPORTS["mobile"],
+                "metrics": page_snapshot(mobile),
+                "consoleErrors": mobile_errors,
+                "consoleErrorCount": len(mobile_errors),
+            }
+            mobile.screenshot(
+                path=str(OUTPUT_DIR / "mobile_first_view.png"),
+                full_page=False,
             )
-            no_js_page = no_js_context.new_page()
-            no_js_page.goto(url, wait_until="load")
-            results["mobileNoJavaScript"] = page_snapshot(no_js_page)
-            no_js_context.close()
+            mobile.locator(".hero").screenshot(
+                path=str(OUTPUT_DIR / "mobile_hero_full.png"),
+            )
+            mobile.close()
+
+            desktop = browser.new_page(viewport=VIEWPORTS["desktop"])
+            desktop_errors = open_page(desktop, url)
+            results["desktop"] = {
+                "viewport": VIEWPORTS["desktop"],
+                "metrics": page_snapshot(desktop),
+                "consoleErrors": desktop_errors,
+                "consoleErrorCount": len(desktop_errors),
+            }
+            desktop.locator(".hero").screenshot(
+                path=str(OUTPUT_DIR / "desktop_hero.png"),
+            )
+            desktop.close()
             browser.close()
-        results["staticHtmlHasCollapsedGridClass"] = (
-            'class="res-grid is-collapsed"' in
-            (REPO / "index.html").read_text(encoding="utf-8")
-        )
+
+        html = (REPO / "index.html").read_text(encoding="utf-8")
+        results["staticChecks"] = {
+            "fallbackStartCount": html.count("<!-- fallback:latest-slide -->"),
+            "fallbackEndCount": html.count("<!-- fallback:end -->"),
+            "noscriptPresent": "<noscript>" in html and "</noscript>" in html,
+        }
     finally:
         server.shutdown()
         server.server_close()

@@ -1,44 +1,52 @@
-# 2026-07-25 トップページ モバイル高さ短縮 実装計画
+# 2026-07-25 ヒーロー可読性改善 第2弾 実装計画
 
 ## Goal
 
-ルート `index.html` のモバイル表示だけを圧縮し、リソースを3枚から展開可能にする。desktop表示、11本のリンク、JavaScript無効時の表示を維持する。
+ルート `index.html` の 768px 以下のヒーローを圧縮し、見出し・本文・本日のトピック・主CTAを 390x844 のファーストビュー内に収める。desktop とフォールバック更新契約は維持する。
 
 ## Scope
 
 - Modify: `index.html`
-- Create: `scripts/check_mobile_page_height.py`
-- Create: `outputs/mobile_height_2026-07-25/` の検証ログと3枚のスクリーンショット
-- Do not modify: `presentations/index.html`、リソースカードの順序・内容、remote、DB
+- Modify: `scripts/check_mobile_page_height.py`
+- Create: `assets/hero-planck.webp`
+- Create: `assets/hero-planck-mobile.webp`
+- Create: `outputs/hero_readability_2026-07-25/` の検証ログと3枚のスクリーンショット
+- Do not modify: `presentations/index.html`、元画像 `assets/hero-planck.jpg`、DB、remote
 
-## Dependencies and Sequence
+## Dependencies and Parallelizable Work
 
-1. 現在のCSS、HTML、IIFE、dirty treeを確認する。
-2. 768px以下限定のpadding、折りたたみ、展開ボタンを実装する。
-3. Python検証スクリプトを作成し、ローカルHTTPサーバーとPlaywright Chromiumで測定する。
-4. mobile/desktopの数値、カード枚数、button、console、DOMリンク数を受け入れ条件と照合する。
-5. `git diff --check` と限定diffレビューを行う。
+1. 現行の CSS、画像寸法、検証スクリプト、dirty tree、baseline を確認する。
+2. Pillow で desktop/mobile WebP を生成する。
+3. `index.html` にレスポンシブ CSS、`image-set()`、desktop限定 preload、クレジット可読性を実装する。
+4. 既存 Playwright スクリプトを拡張し、mobile/desktop の数値・画像取得・console error・スクリーンショットを保存する。
+5. 受け入れ条件、UTF-8 BOM、marker位置、限定diffをレビューする。
+
+画像生成と HTML 実装は独立だが、変更範囲が小さく共有ファイル競合を避けるため直接順次実行する。
 
 ## Risks and Mitigations
 
-- desktopデグレ: すべての新規レイアウト規則を `max-width: 768px` 内に限定し、1440pxで実測する。
-- JavaScript無効時の欠落: `is-collapsed` はHTMLに書かず、IIFEでのみ付与する。
-- dirty tree混入: `index.html`、`PLAN.md`、指定の新規script/output以外を編集・stageしない。
-- file URLのfetch制約: localhostの一時HTTPサーバーをスクリプト内で起動する。
+- desktopデグレ: 画像 preload 以外のモバイル変更を `max-width: 768px` に限定し、1440x900 の baseline と比較する。
+- 769〜920pxの急変: 既存の 30vh を 10vh に抑え、769px以上の最低高さは維持する。
+- 不要画像取得: desktop preload に `media="(min-width: 769px)"` を付け、mobile用 CSS は mobile WebP と JPEG fallback のみ指定し、PerformanceResourceTiming で確認する。
+- marker/JS破損: fallback markerを移動せず、動的書き換え結果と console error をローカルHTTPで確認する。
+- dirty tree混入: 指定ファイル以外を編集・stageせず、pushはユーザーの明示指示後に限る。
 
-## Acceptance Criteria
+## Acceptance Criteria and Tests
 
-- 390x844: 全高9700px以下、初期3枚、展開後11枚、button 44px以上。
-- 1440x900: 全高7400〜7650px、11枚3カラム、button非表示。
-- console error 0、リソースリンク11本、静的HTMLに `is-collapsed` なし。
-- desktop各対象sectionの高さが既知のbaselineから±20px以内。
-- UTF-8 BOMなし、カードの削除・並べ替えなし、Git/remote操作なし。
+- 390x844: h1 top 240px以下、hero 680px以下、全高9400px以下、CTA bottom 760px以下。
+- 1440x900: hero高さ baseline ±20px、hero-bg幅50%、全高 baseline ±40px、`.res-expand` 非表示。
+- mobile WebP 50KB以下、desktop WebP 120KB以下、JPEG保持。
+- mobileで取得するhero画像はmobile WebPのみ、desktop preloadはmobileで取得されない。
+- console error 0、heroの4項目がfetch成功後に更新、noscriptとfallback marker維持。
+- 指定ログと3スクリーンショットを保存し、`git diff --check` と限定diffを確認する。
 
 ## Review Checklist
 
 - [x] Functional correctness
 - [x] Scope adherence
-- [x] Accessibility and no-JS fallback
-- [x] Mobile and desktop measurements
-- [x] Console/link regressions
-- [x] Maintainable inline CSS/var-based IIFE
+- [x] Mobile acceptance metrics
+- [x] Desktop regression metrics
+- [x] Image size and network behavior
+- [x] Console and fallback behavior
+- [x] UTF-8 BOMなし
+- [x] Gitの変更操作/remote操作なし
