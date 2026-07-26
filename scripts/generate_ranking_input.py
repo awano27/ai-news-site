@@ -1,6 +1,13 @@
 """
 Generate presentations/ai_ranking_input_latest.txt from the last 30 days of
-news/YYYY-MM-DD.json archives.
+news archives.
+
+Per-day source priority (root news/*.json stopped being written on
+2026-06-14, which starved the 30-day window and broke the cron on 07-14):
+  1. news/YYYY-MM-DD.json                                   (legacy schema)
+  2. presentations/daily_reports/auto_daily_report_YYYY_MM_DD.html
+     — parsed via the stable ".row" card markup (title / cat / src /
+     score / tldr), score 0-100 mapped to stars 1-5.
 
 The output format mirrors the markdown-like structure that
 RankingReportGenerator.parse_ranking_data() expects:
@@ -25,6 +32,7 @@ Source data shape (news/YYYY-MM-DD.json):
 """
 from __future__ import annotations
 
+import html as htmllib
 import json
 import re
 from collections import Counter, defaultdict
@@ -33,6 +41,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 NEWS_DIR = REPO_ROOT / "news"
+DAILY_REPORT_DIR = REPO_ROOT / "presentations" / "daily_reports"
 OUTPUT = REPO_ROOT / "presentations" / "ai_ranking_input_latest.txt"
 
 WINDOW_DAYS = 30
@@ -100,6 +109,7 @@ def _scores_for(stars: int, category: str) -> tuple[int, int]:
 
 
 def _collect_archive_files() -> list[Path]:
+    """Per day, prefer the legacy news JSON, else the daily report HTML."""
     today = datetime.now().date()
     files: list[Path] = []
     for delta in range(WINDOW_DAYS):
@@ -107,12 +117,72 @@ def _collect_archive_files() -> list[Path]:
         p = NEWS_DIR / f"{d.isoformat()}.json"
         if p.exists():
             files.append(p)
+            continue
+        rp = DAILY_REPORT_DIR / f"auto_daily_report_{d.strftime('%Y_%m_%d')}.html"
+        if rp.exists():
+            files.append(rp)
     return files
+
+
+# Matches one headline card in auto_daily_report_*.html. The markup is
+# machine-generated and stable: row-trend/row-label chips between the title
+# and the category are optional, hence the non-greedy gaps.
+ROW_RE = re.compile(
+    r'<span class="row-title">(?P<title>.*?)</span>'
+    r'.*?<span class="row-cat[^"]*">(?P<cat>.*?)</span>'
+    r'.*?<span class="row-src">(?P<src>.*?)</span>'
+    r'.*?<span class="row-score[^"]*">(?P<score>\d+)</span>'
+    r'.*?<div class="row-tldr">(?P<tldr>.*?)</div>',
+    re.DOTALL,
+)
+
+_CATEGORY_NORM = {
+    "ai model": "tech",
+    "model": "tech",
+    "business": "biz",
+    "funding": "biz",
+    "research": "research",
+    "paper": "research",
+    "repo": "tool",
+    "repository": "tool",
+    "product": "tool",
+    "regulation": "policy",
+}
+
+
+def _strip_tags(s: str) -> str:
+    return htmllib.unescape(re.sub(r"<[^>]+>", "", s or "")).strip()
+
+
+def _items_from_report_html(path: Path) -> list[dict]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception as e:
+        print(f"skip {path.name}: {e}")
+        return []
+    items: list[dict] = []
+    for m in ROW_RE.finditer(text):
+        title = _strip_tags(m.group("title"))
+        if not title:
+            continue
+        score = int(m.group("score"))
+        cat = _strip_tags(m.group("cat")).lower()
+        items.append({
+            "title": title,
+            "blurb": _strip_tags(m.group("tldr")),
+            "stars": max(1, min(5, int(score / 20 + 0.5))),
+            "category": _CATEGORY_NORM.get(cat, cat),
+            "source": {"name": _strip_tags(m.group("src")) or "—"},
+        })
+    return items
 
 
 def _load_items(files: list[Path]) -> list[dict]:
     items: list[dict] = []
     for f in files:
+        if f.suffix == ".html":
+            items.extend(_items_from_report_html(f))
+            continue
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
         except Exception as e:
