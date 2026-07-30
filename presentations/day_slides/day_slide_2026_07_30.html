@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>足先から指先まで！DeepMindが人間型ロボットの『全身知能』を解禁 | 2026-07-30</title>
+  <meta name="description" content="Google DeepMindが2026-07-30にGemini Robotics 2 / ER 2 / On-Device 2を正式リリース。全身制御（feet to fingertips）、高度器用作業、動画進行追跡型推論、マルチロボット協働、on-device高速適応を整理する。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_30.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="足先から指先まで！DeepMindが人間型ロボットの『全身知能』を解禁">
+  <meta property="og:description" content="Gemini Robotics 2 が全身制御・器用作業・マルチロボット協働を解禁。ER 2 の動画進行追跡と on-device 適応で Physical AI が一気に前へ。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_07_30.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0730/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DeepMind Gemini Robotics 2 — 全身知能">
+  <meta name="twitter:description" content="feet to fingertips。ゴミ袋結び・電球交換・Apollo 実機デモ。ER 2 + VLA 2 + On-Device 2。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0730/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "足先から指先まで！DeepMindが人間型ロボットの『全身知能』を解禁",
+    "description": "Google DeepMindがGemini Robotics 2 / ER 2 / On-Device 2を正式リリース。全身制御、器用作業、動画進行追跡、マルチロボット協働を整理する。",
+    "datePublished": "2026-07-30",
+    "dateModified": "2026-07-30",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_07_30.html",
+    "articleSection": "Physical AI & Robotics"
+  }
+  </script>
+  <style>
+    :root {
+      --bg:#0e050a; --panel:#180a12; --panel2:rgba(34,14,25,.72);
+      --ink:#fff0f7; --muted:#b89da9; --line:rgba(255,122,184,.20);
+      --accent:#ff7ab8; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(255,122,184,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(255,122,184,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(255,122,184,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#ffd3e7); z-index:60; transition:width .1s linear; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(255,122,184,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,122,184,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(255,122,184,.16), transparent 62%),
+      #0e050a;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#ddc4cf; font-size:13px; }
+    .topbar a { color:#ffc9e0; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#2a0a1b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#ffb8d9; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#e0c5d2; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(255,197,224,.4); background:rgba(18,6,13,.55); color:#f5d0e3; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(46,19,33,.94), rgba(20,8,15,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(10,1,6,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-num small { font-size:14px; font-weight:600; margin-left:2px; }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(14,5,10,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(255,122,184,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(255,122,184,.12); outline:none; }
+
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(255,122,184,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(255,122,184,.30); border-radius:8px; overflow:hidden; background:linear-gradient(165deg,#0a1a18 0%,#061210 50%,#0a1210 100%); box-shadow:0 24px 70px rgba(26,2,15,.6), 0 0 0 1px rgba(12,2,8,.6); }
+    .shot-inner { padding:22px 24px 20px; }
+    .shot-title { font-size:18px; font-weight:700; color:var(--ink); margin:0 0 4px; letter-spacing:-.01em; }
+    .shot-sub { font-size:12.5px; color:var(--muted); margin:0 0 18px; }
+    .board-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .board-cell { border:1px solid rgba(255,122,184,.22); background:rgba(18,6,13,.55); border-radius:6px; padding:14px 15px; }
+    .board-cell h5 { margin:0 0 8px; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; color:var(--accent); }
+    .board-cell p { margin:0; font-size:13px; line-height:1.7; color:#e0c5d2; }
+    .board-score { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+    .board-score span { border:1px solid rgba(255,201,77,.45); background:rgba(255,201,77,.08); color:#ffe6a8; font:700 12px/1 ui-monospace,monospace; padding:8px 14px; border-radius:20px; }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(255,122,184,.07); padding:14px 18px; margin:14px 0; color:#f2d7e6; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(255,122,184,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card.alert { border-color:rgba(255,143,122,.45); }
+    .vs-card.alert h4 span { color:var(--alert); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .vs-card p { font-size:13.5px; margin:0; line-height:1.8; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(255,122,184,.35); background:rgba(255,122,184,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step.hot { border-color:rgba(255,143,122,.55); background:rgba(255,143,122,.1); color:#ffd0c6; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .step.hot small { color:var(--alert); }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:640px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+    .st-ng { color:var(--alert); font-weight:600; white-space:nowrap; }
+
+    .evo { display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:stretch; margin:16px 0; }
+    .evo-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .evo-card.from { opacity:.9; }
+    .evo-card.to { border-color:rgba(255,122,184,.5); background:linear-gradient(180deg, rgba(255,122,184,.12), rgba(34,14,25,.72)); }
+    .evo-card h4 { margin:0 0 10px; font-size:14px; }
+    .evo-card h4 span { display:block; font:700 10px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:6px; color:var(--muted); }
+    .evo-card.to h4 span { color:var(--accent); }
+    .evo-card ul { margin:0; font-size:13.5px; }
+    .evo-arr { display:flex; align-items:center; justify-content:center; color:var(--gold); font:800 28px/1 ui-monospace,monospace; }
+
+    .demo-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:14px 0; }
+    .demo-tile { border:1px solid rgba(255,122,184,.25); border-radius:8px; padding:14px 14px 12px; background:rgba(18,6,13,.6); text-align:center; }
+    .demo-tile .icon { font-size:28px; line-height:1; margin-bottom:8px; }
+    .demo-tile b { display:block; font-size:13px; color:var(--ink); margin-bottom:4px; }
+    .demo-tile span { font-size:11.5px; color:var(--muted); line-height:1.5; }
+
+    .finale { margin-top:56px; border:1px solid rgba(255,122,184,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(255,122,184,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    .sources { margin-top:28px; padding-top:18px; border-top:1px solid rgba(255,122,184,.14); font-size:12.5px; color:var(--muted); line-height:1.8; }
+    .sources a { color:#ffb8d9; text-decoration:none; border-bottom:1px solid rgba(255,197,224,.3); }
+
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(255,197,224,.4); border-radius:10px; background:#170a11; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(7,1,4,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+      .evo { grid-template-columns:1fr; }
+      .evo-arr { transform:rotate(90deg); padding:4px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="../day_slides_index.html">All day slides</a>
+        <span>2026-07-30 / Physical AI · Robotics</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — Physical AI / ロボティクス</span>
+        <p class="eyebrow">GEMINI ROBOTICS 2 · ER 2</p>
+        <h1>足先から指先まで！DeepMindが人間型ロボットの『全身知能』を解禁</h1>
+        <p class="lead">Google DeepMind が <strong>2026-07-30</strong> に <strong>Gemini Robotics 2</strong>（VLA）・<strong>Gemini Robotics ER 2</strong>（Embodied Reasoning）・<strong>On-Device 2</strong> を正式リリース。上半身テーブルトップから <strong>feet to fingertips</strong> の全身制御へ一気に拡張し、ゴミ袋結び・電球交換など<strong>高度器用作業</strong>、複数機の<strong>協働</strong>、動画フィードによる<strong>進行追跡型推論</strong>、オンデバイス高速適応まで揃えた。<strong>Apptronik Apollo 2</strong> など実機デモが、Physical AI の「未来感」をそのまま映像にした一日だ。</p>
+        <div class="hero-meta">
+          <span>📅 DeepMind 発表：2026-07-30</span>
+          <span>🤖 3モデル：VLA 2 / ER 2 / On-Device 2</span>
+          <span>🦾 実機：Apptronik Apollo 2 · Franka · Spot</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num">3<small> models</small></div><div class="stat-label"><b>同時ローンチ</b>VLA · ER · On-Device の第2世代</div></div>
+      <div class="stat-card"><div class="stat-num gold">全身</div><div class="stat-label"><b>制御範囲</b>feet → fingertips の humanoid 全身</div></div>
+      <div class="stat-card"><div class="stat-num"><200<small> ex</small></div><div class="stat-label"><b>On-Device 適応</b>新実施形態へ数時間・200例未満</div></div>
+      <div class="stat-card"><div class="stat-num gold">91.3<small>%</small></div><div class="stat-label"><b>Moment-finding</b>ER 2 の精密イベント検出精度</div></div>
+      <div class="stat-card"><div class="stat-num">Multi</div><div class="stat-label"><b>協働</b>異種ロボットの共有セマンティクス</div></div>
+      <div class="stat-card"><div class="stat-num">9<small>/10</small></div><div class="stat-label"><b>サプライズ度</b>デモ映像×Physical AI 直球ヒット</div></div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b>サマリー</a>
+      <a href="#s2"><b>02</b>3モデル構成</a>
+      <a href="#s3"><b>03</b>上半身→全身</a>
+      <a href="#s4"><b>04</b>ER 2 推論</a>
+      <a href="#s5"><b>05</b>実機デモ</a>
+      <a href="#s6"><b>06</b>読みの注意</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+            <h2>1枚で見る Gemini Robotics 2</h2>
+          </div>
+        </div>
+        <div class="shot" role="img" aria-label="Gemini Robotics 2 サマリーボード">
+          <div class="shot-inner">
+            <p class="shot-title">Gemini Robotics 2 — Whole-Body Intelligence</p>
+            <p class="shot-sub">From feet to fingertips · fine dexterity · multi-robot teamwork · video-progress reasoning</p>
+            <div class="board-grid">
+              <div class="board-cell">
+                <h5>WHAT SHIPPED</h5>
+                <p><strong>Gemini Robotics 2</strong>（VLA）・<strong>ER 2</strong>（高位脳）・<strong>On-Device 2</strong>（ローカル VLA）の三点セットを 7/30 に同時公開。</p>
+              </div>
+              <div class="board-cell">
+                <h5>WHY IT MATTERS</h5>
+                <p>「上半身でテーブルをいじる」段階から、<strong>歩行・しゃがみ・伸展を伴う全身タスク</strong>へ。Physical AI のデモ品質が一段上がった。</p>
+              </div>
+              <div class="board-cell">
+                <h5>BRAIN + BODY</h5>
+                <p>ER 2 が計画・進行追跡・ツール呼出、VLA がモータ実行。<strong>考えながら動く</strong>設計で長時間タスクを自律完遂。</p>
+              </div>
+              <div class="board-cell">
+                <h5>SO WHAT</h5>
+                <p>VisionHub 直球の <strong>Physical AI 新発表</strong>。Apollo 実機映像が「未来感」を一発で伝える。</p>
+              </div>
+            </div>
+            <div class="board-score">
+              <span>サプライズ度 9/10</span>
+              <span>確度：高（deepmind.google · 7/30 公式）</span>
+              <span>カテゴリ：Physical AI / Robotics</span>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>公式のキャッチは明確だ——<strong>「From feet to fingertips」</strong>。人間型ロボットに、歩く・しゃがむ・伸ばす・指先で結ぶまでの<strong>全身知能</strong>を教え、単機では無理な作業を<strong>複数ロボットのチーム</strong>で解く。</p>
+            <ul>
+              <li>発表日：<strong>2026-07-30</strong>（DeepMind Blog 同時公開）</li>
+              <li>ER 2：Google AI Studio / Gemini API（public preview）・Enterprise は private preview</li>
+              <li>VLA 2 / On-Device 2：early-access partners 向け</li>
+            </ul>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">ファクト注記</span>
+            <p><strong>Gemini Robotics 2</strong>＝行動を出す VLA。<strong>ER 2</strong>＝高位の embodied reasoning（計画・会話・進行追跡）。報道ではまとめて「Robotics 2」と呼ばれるが、スライドでは意図的に <strong>脳（ER）と身体（VLA）</strong>を分けて読む。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">THREE-LAYER STACK</p>
+            <h2>脳・身体・エッジ——3モデルの役割分担</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <div class="loop" role="img" aria-label="Gemini Robotics 2 の制御ループ">
+              <span class="step"><small>HUMAN</small>自然言語指示</span><span class="arr">→</span>
+              <span class="step"><small>ER 2</small>計画・追跡・ツール</span><span class="arr">→</span>
+              <span class="step"><small>VLA 2</small>ビジョン→モータ</span><span class="arr">→</span>
+              <span class="step hot"><small>ON-DEVICE</small>ローカル高速適応</span>
+            </div>
+            <p class="loop-note">ER が「何をいつやるか」· VLA が「どう動くか」· On-Device が「現場で速く合わせる」</p>
+            <div class="grid-3">
+              <div class="vs-card now">
+                <h4><span>HIGH-LEVEL BRAIN</span>Gemini Robotics ER 2</h4>
+                <ul>
+                  <li>人とチャットし、物理世界を理解</li>
+                  <li>数分単位のマルチステップ計画</li>
+                  <li>動画進行追跡・瞬間検出</li>
+                  <li>Google Search 等のツール呼出</li>
+                  <li>異種ロボットの協働オーケストレーション</li>
+                </ul>
+              </div>
+              <div class="vs-card">
+                <h4><span>ACTION BODY</span>Gemini Robotics 2（VLA）</h4>
+                <ul>
+                  <li>Vision + Language → motor control</li>
+                  <li>humanoid 全身（足先〜指先）</li>
+                  <li>二腕ロボット・各種グリッパ</li>
+                  <li>結び・ジップロック・密充填など器用作業</li>
+                </ul>
+              </div>
+              <div class="vs-card">
+                <h4><span>EDGE</span>On-Device 2</h4>
+                <ul>
+                  <li>ネットワーク制約向け軽量 VLA</li>
+                  <li>新実施形態へ <200 例で適応</li>
+                  <li>適応時間：数時間オーダー</li>
+                  <li>Dexmate / SO101 / Trossen 等で実証</li>
+                </ul>
+              </div>
+            </div>
+            <div class="quote">Think of Gemini Robotics ER 2 as a high-level brain for robots. It allows robots to chat with humans, understand the physical world, and plan multi-step tasks.<small>— DeepMind Blog / Introducing Gemini Robotics ER 2</small></div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>Physical AI の勝負は単一モデルではなく <strong>「計画脳 × 行動身体 × 現場適応」</strong>のスタック。ER 2 が API で触れる点は、ロボ以外のエージェント設計にも波及する。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">UPPER BODY → WHOLE BODY</p>
+            <h2>「上半身→全身」進化比較——feet to fingertips</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>前世代はテーブルトップの上半身操作が主戦場だった。今回の VLA は <strong>歩行・しゃがみ・伸展・精密配置</strong>まで含めた全身モーションに踏み込み、人間型の作業空間を一気に広げた。</p>
+            <div class="evo" role="img" aria-label="上半身から全身への進化">
+              <div class="evo-card from">
+                <h4><span>BEFORE · 1.x 系</span>上半身・テーブルトップ中心</h4>
+                <ul>
+                  <li>固定ベース／上半身操作が主</li>
+                  <li>卓上の把持・配置が主タスク</li>
+                  <li>長時間・移動込み作業は弱い</li>
+                  <li>単機完結が前提</li>
+                </ul>
+              </div>
+              <div class="evo-arr" aria-hidden="true">→</div>
+              <div class="evo-card to">
+                <h4><span>NOW · Robotics 2</span>足先から指先まで</h4>
+                <ul>
+                  <li>歩行・しゃがみ・伸展を含む全身制御</li>
+                  <li>棚への移動→精密配置の一連化</li>
+                  <li>結び・ジップロック・電球など器用作業</li>
+                  <li>異種ロボットのマルチ協働</li>
+                </ul>
+              </div>
+            </div>
+            <div class="demo-strip" aria-label="器用作業デモ例">
+              <div class="demo-tile"><div class="icon">🗑️</div><b>ゴミ袋結び</b><span>柔軟物体の結び操作</span></div>
+              <div class="demo-tile"><div class="icon">💡</div><b>電球交換</b><span>締付進行を動画で追跡</span></div>
+              <div class="demo-tile"><div class="icon">🤐</div><b>ジップロック密封</b><span>Apollo 2 繊細操作デモ</span></div>
+              <div class="demo-tile"><div class="icon">📦</div><b>密充填パッキング</b><span>5指 22-DoF ハンド対応</span></div>
+              <div class="demo-tile"><div class="icon">🧹</div><b>散らかった部屋</b><span>歩行＋片付けの長時間タスク</span></div>
+            </div>
+            <div class="scroll-x"><table class="cmp">
+              <thead><tr><th>観点</th><th>前世代イメージ</th><th>Gemini Robotics 2</th></tr></thead>
+              <tbody>
+                <tr><td>制御範囲</td><td>上半身・固定ベース中心</td><td class="st-ok"><b>feet to fingertips 全身</b></td></tr>
+                <tr><td>器用作業</td><td>把持・配置が中心</td><td class="st-ok">結び・密封・締付・密充填</td></tr>
+                <tr><td>時間軸</td><td>短い操作シーケンス</td><td class="st-ok">数分単位の長時間タスク</td></tr>
+                <tr><td>進行把握</td><td>成功/失敗の粗い検出</td><td class="st-ok">動画進行分類 + 瞬間検出</td></tr>
+                <tr><td>協働</td><td>単機前提</td><td class="st-ok">Apollo × Franka 等の異種チーム</td></tr>
+                <tr><td>適応</td><td>実施形態ごとに重い再学習</td><td class="st-mid"><200 例・数時間（On-Device 2）</td></tr>
+              </tbody>
+            </table></div>
+            <div class="quote">From feet to fingertips — we are teaching robots intelligent whole-body control, fine dexterity, and teamwork to complete a broad range of complex tasks.<small>— DeepMind「Gemini Robotics 2 brings whole body intelligence to robots」</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">VIDEO-PROGRESS REASONING</p>
+            <h2>ER 2——「考えながら動く」長時間タスク自律</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>ER 2 の本質はスペック表ではなく <strong>連続動画で自分の進捗を見続ける能力</strong>だ。フレームごとに進行度を分類し、失敗（こぼし・滑り・ズレ）を途中検知し、「次のステップへ進む瞬間」をミリ秒〜秒単位で特定する。</p>
+            <div class="grid-2">
+              <div class="vs-card now">
+                <h4><span>PROGRESS TRACKING</span>動画進行追跡</h4>
+                <ul>
+                  <li>進行分類 5段階（0–20% … 80–100%）</li>
+                  <li>分類精度 <strong>57.4%</strong>（ベンチ報告）</li>
+                  <li>moment-finding 精度 <strong>91.3%</strong></li>
+                  <li>平均誤差 <strong>0.96 秒</strong></li>
+                  <li>moment-finding は 4× 高速・低コスト化</li>
+                </ul>
+              </div>
+              <div class="vs-card">
+                <h4><span>ORCHESTRATION</span>行動しながらの思考</h4>
+                <ul>
+                  <li>Gemini Live API で双方向ストリーム</li>
+                  <li>stop-and-think 待ちを削減</li>
+                  <li>VLA / ナビ API をツールとして宣言</li>
+                  <li>Google Search 等のネイティブ呼出</li>
+                  <li>失敗ステップのリトライ（全体再起動不要）</li>
+                </ul>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>MULTI-ROBOT</span>マルチロボット協働</h4>
+                <p>車輪ローバーと humanoid など<strong>異種機体</strong>が共有セマンティクスでハンドオフ。単機では解けないワークフローをチームで完遂。Apptronik Apollo 2 × Franka F3 Duo のデモが象徴。</p>
+              </div>
+              <div class="vs-card">
+                <h4><span>SAFETY</span>安全・不確実性</h4>
+                <p>ASIMOV-Agentic ベンチで危険ツール拒否・人間介入要求を評価。「人が近づいたら停止→離れたら再開」。ER 2 は「最も安全なモデル」と公式が位置づけ。</p>
+              </div>
+            </div>
+            <ul class="checks">
+              <li><b>Think-while-acting</b>——動作中に次ステップを並行推論</li>
+              <li><b>Progress before advance</b>——仕様どおり完了したか確認してから次へ</li>
+              <li><b>Tool-first body</b>——低レベル制御はツールとして差し替え可能</li>
+              <li><b>Based on Gemini 3.5 Flash</b>——ER 2 の基盤（Model Card）</li>
+            </ul>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>長時間ロボタスクのボトルネックはモータ精度より <strong>「今どこまで終わったか」</strong>。動画進行追跡はその計測器を脳に内蔵した。エージェント一般の「進捗可視化」問題にも通じる。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">HARDWARE DEMOS</p>
+            <h2>Apptronik Apollo ほか——実機が語る未来感</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>スライド映えの中核はデモ映像だ。公式は humanoid から固定二腕、四脚まで幅広く見せ、<strong>「どの体にも同じ知能レイヤを載せられる」</strong>メッセージを視覚化した。</p>
+            <div class="grid-2">
+              <div class="vs-card now">
+                <h4><span>HUMANOID</span>Apptronik Apollo 2</h4>
+                <ul>
+                  <li>全身制御＋繊細マニピュレーション</li>
+                  <li>SharpaWave（5指 22-DoF）/ Inspire hands</li>
+                  <li>ジップロック密封・じょうろ把持など</li>
+                  <li>Franka F3 Duo との協働デモ</li>
+                </ul>
+              </div>
+              <div class="vs-card">
+                <h4><span>OTHER BODIES</span>多様な実施形態</h4>
+                <ul>
+                  <li><b>Franka</b> 二腕 + Robotiq グリッパ</li>
+                  <li><b>Boston Dynamics Spot</b> — ER 2 が Spot API をオーケストレーション（物取り）</li>
+                  <li>On-Device：Dexmate / SO101 / Trossen</li>
+                  <li>パートナー：Apptronik · Boston Dynamics · Agile Robots 等</li>
+                </ul>
+              </div>
+            </div>
+            <div class="warn"><p><strong>スライド映えの使い方：</strong>「上半身→全身」比較の左右対比＋Apollo 連続カット＋協働シーンの3点セットが強い。テキストは短く、映像／連続画像を主役に。</p></div>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>AVAILABILITY</span>いま誰が触れるか</h4>
+                <ul>
+                  <li><b>ER 2</b>：AI Studio / Gemini API public preview</li>
+                  <li><b>ER 2</b>：Gemini Enterprise Agent Platform private preview</li>
+                  <li><b>VLA / On-Device</b>：early-access partners</li>
+                  <li>Live API サンプル：GitHub <code>robotics-samples</code></li>
+                </ul>
+              </div>
+              <div class="vs-card">
+                <h4><span>WHY #3 TODAY</span>優先3位の根拠</h4>
+                <ul>
+                  <li>VisionHub にドンピシャの Physical AI</li>
+                  <li>デモビジュアルが強く未来感が一気に伝わる</li>
+                  <li>7/30 当日の新発表（鮮度最大）</li>
+                  <li>脳（ER）公開で開発者ストーリーも立つ</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">文脈</span>
+            <p>前日の「チャットが IDE」に対し、本日は <strong>「モデルが身体を動かす」</strong>。デジタル創造の入口と、フィジカル世界の実行レイヤが同週に並んだ。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">CAVEATS & OPEN QUESTIONS</p>
+            <h2>盛りすぎない——デモと製品化のあいだ</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>公式デモは強力だが、Physical AI は常に <strong>ラボ成功率 ≠ 現場稼働率</strong> のギャップを抱える。次の論点を分けて読む。</p>
+            <div class="grid-2">
+              <div class="vs-card alert">
+                <h4><span>LIMITS</span>いま見えている制約</h4>
+                <ul>
+                  <li>多指器用操作は依然として難しい領域</li>
+                  <li>VLA / On-Device はパートナー限定</li>
+                  <li>進行分類 57.4% は「完璧」ではなく改善途上</li>
+                  <li>異種協働の現場オペレーション設計は未成熟</li>
+                  <li>安全ベンチと実環境のギャップは要監視</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>STILL POWERFUL</span>それでも動かした針</h4>
+                <ul>
+                  <li>「全身」が公式プロダクトメッセージになった</li>
+                  <li>ER 脳が API 経由で触れる（開発者参入）</li>
+                  <li>動画進行追跡が長時間自律の鍵を明示</li>
+                  <li>multi-robot を第1級機能として位置づけ</li>
+                  <li>200 例適応は導入コストのゲームチェンジ候補</li>
+                </ul>
+              </div>
+            </div>
+            <div class="quote">Gemini Robotics ER 2 represents a step change in powering robots with video understanding, task orchestration, and multi-robot collaboration — making it possible for robots to be more helpful in the physical world.<small>— DeepMind Blog 2026-07-30</small></div>
+            <p>読みのコツは「人間型が完成した」ではなく <strong>「全身＋協働＋進捗脳という設計図が公開された」</strong>と捉えること。ハードは各社、知能レイヤは Gemini——プラットフォーム戦争のフィジカル版が本格化した。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>評価軸はベンチ点数より <strong>「何分のタスクを、何回の介入で完遂できるか」</strong>。デモ映像の次に見るべきは、現場ログと介入回数だ。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="finale">
+      <p class="eyebrow">THE BOTTOM LINE</p>
+      <blockquote>これは「ロボットが少し上手くなった」ニュースではない。<em>足先から指先までの全身知能と、動画で進捗を見る脳が、同じスタックとして解禁された</em>ニュースである。</blockquote>
+      <p>2026-07-30 — AI Intelligence Hub / Day Slide</p>
+    </div>
+
+    <div class="sources">
+      <strong>主な出典：</strong>
+      <a href="https://deepmind.google/blog/gemini-robotics-2-brings-whole-body-intelligence-to-robots/" target="_blank" rel="noopener">DeepMind「Gemini Robotics 2 brings whole body intelligence to robots」</a>（2026-07-30） ／
+      <a href="https://deepmind.google/blog/gemini-robotics-er-2-powering-robotics-with-video-understanding-task-orchestration-and-multi-robot-collaboration" target="_blank" rel="noopener">DeepMind「Introducing Gemini Robotics ER 2」</a> ／
+      <a href="https://deepmind.google/models/model-cards/gemini-robotics-er-2/" target="_blank" rel="noopener">Model Card: Gemini Robotics ER 2</a> ／
+      <a href="https://deepmind.google/models/gemini-robotics/" target="_blank" rel="noopener">Gemini Robotics モデルページ</a> ／
+      <a href="https://deepmind.google/models/gemini-robotics/on-device/" target="_blank" rel="noopener">On-Device 2</a> ／
+      Google Developer Blog / GitHub robotics-samples ／ 前日 Day Slide：Grok Build Mode（2026-07-29）
+    </div>
+  </main>
+
+  <dialog class="zoom" id="zoom" aria-label="スライド拡大表示">
+    <img alt="スライド拡大画像">
+    <p class="hint">画像クリック / Esc で閉じる</p>
+  </dialog>
+
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-18% 0px -72% 0px' });
+      var sections = Array.prototype.slice.call(document.querySelectorAll('section.slide'));
+      sections.forEach(function (s) { io.observe(s); });
+
+      var dlg = document.getElementById('zoom');
+      var dimg = dlg.querySelector('img');
+      document.querySelectorAll('.shot img').forEach(function (img) {
+        img.addEventListener('click', function () {
+          dimg.src = img.src; dimg.alt = img.alt;
+          dlg.showModal();
+        });
+      });
+      dlg.addEventListener('click', function () { dlg.close(); });
+
+      addEventListener('keydown', function (ev) {
+        if (dlg.open || ev.altKey || ev.metaKey || ev.ctrlKey) return;
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_29.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_07_30.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-07-30.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
