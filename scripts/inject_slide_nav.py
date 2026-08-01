@@ -14,7 +14,14 @@ DATE_RE = re.compile(r"day_slide_(\d{4})_(\d{2})_(\d{2})\.html$")
 InjectionStatus = Literal["changed", "unchanged", "skipped-no-body"]
 
 
-def build_block(path: Path, previous: Path | None, following: Path | None) -> str:
+def build_block(
+    path: Path,
+    previous: Path | None,
+    following: Path | None,
+    *,
+    had_report_link: bool = False,
+    had_news_link: bool = False,
+) -> str:
     match = DATE_RE.search(path.name)
     assert match
     iso = "-".join(match.groups())
@@ -25,9 +32,13 @@ def build_block(path: Path, previous: Path | None, following: Path | None) -> st
     links.extend((("../day_slides_index.html", "一覧"), ("/", "ホーム")))
     report = ROOT / "presentations" / "daily_reports" / f"auto_daily_report_{stamp}.html"
     news = ROOT / "daily-news" / "archive" / f"{iso}.html"
-    if report.exists():
+    # exists() reflects whichever machine runs this script, which can differ
+    # (local PC vs. cloud CI vs. another worktree). Once a link has been
+    # committed, keep it even if this run can't see the file locally, so
+    # repeated runs across environments converge instead of flapping.
+    if report.exists() or had_report_link:
         links.append((f"../daily_reports/{report.name}", "同日のレポート"))
-    if news.exists():
+    if news.exists() or had_news_link:
         links.append((f"../../daily-news/archive/{news.name}", "同日のニュース"))
     links.append((following.name, "翌日 →") if following else ("../day_slides_index.html", "一覧へ"))
     anchors = "".join(
@@ -51,17 +62,28 @@ def inject(path: Path, block: str) -> InjectionStatus:
     return "changed"
 
 
+def existing_links(path: Path) -> tuple[bool, bool]:
+    match = BLOCK_RE.search(path.read_text(encoding="utf-8"))
+    if not match:
+        return False, False
+    block = match.group(0)
+    return "同日のレポート" in block, "同日のニュース" in block
+
+
 def main() -> int:
     slides = sorted(SLIDES.glob("day_slide_????_??_??.html"))
     changed = 0
     skipped = 0
     for i, path in enumerate(slides):
+        had_report_link, had_news_link = existing_links(path)
         status = inject(
             path,
             build_block(
                 path,
                 slides[i - 1] if i else None,
                 slides[i + 1] if i + 1 < len(slides) else None,
+                had_report_link=had_report_link,
+                had_news_link=had_news_link,
             ),
         )
         if status == "changed":
