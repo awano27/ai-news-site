@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="ja"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeepSeek V4-Flash-0731 がなぜ「最重要トレンド」なのか | Day Slide 2026-08-01</title>
+  <meta name="description" content="DeepSeek V4-Flash-0731 の公式リリースと MIT オープンウェイト公開を深掘り。後訓練のみでエージェント性能が跳ね、フロンティア級コスト効率を実現した理由を整理するスタンドアロン Day Slide。">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_01.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="DeepSeek V4-Flash-0731 がなぜ「最重要トレンド」なのか">
+  <meta property="og:description" content="同じ骨格のまま、後訓練だけでエージェント能力がフロンティア近傍へ跳んだ——DeepSeek V4-Flash-0731 の MIT オープンウェイト公開を8枚のビジュアルで読み解く。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_01.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0801/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DeepSeek V4-Flash-0731 がなぜ「最重要トレンド」なのか">
+  <meta name="twitter:description" content="事前学習は変えず後訓練のみでエージェント性能がフロンティア級へ。DeepSeek V4-Flash-0731 の MIT オープンウェイト公開を整理する Day Slide。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0801/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "DeepSeek V4-Flash-0731 がなぜ「最重要トレンド」なのか",
+    "description": "DeepSeek V4-Flash-0731 の公式リリースと MIT オープンウェイト公開を深掘り。同じ骨格のまま後訓練のみでエージェント性能がフロンティア近傍へ跳ね、コスト効率を実現した理由を整理する。",
+    "datePublished": "2026-08-01",
+    "dateModified": "2026-08-01",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_01.html",
+    "articleSection": "AI Models & Agentic Coding"
+  }
+  </script>
+  <style>
+:root {
+  --bg: #0d0704;
+  --panel: #170e07;
+  --panel2: rgba(35, 22, 12, 0.72);
+  --ink: #fff8ee;
+  --muted: #b8a993;
+  --line: rgba(255, 171, 64, 0.2);
+  --accent: #ffab40;
+  --gold: #ffc94d;
+  --alert: #ff8f7a;
+  --glow: rgba(255, 171, 64, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 520px at 88% -4%, rgba(255, 171, 64, 0.13), transparent 60%),
+    radial-gradient(820px 460px at -8% 34%, rgba(255, 171, 64, 0.06), transparent 55%),
+    var(--bg);
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent), #ffe2b0);
+  z-index: 60;
+  transition: width 0.1s linear;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(rgba(255, 171, 64, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 171, 64, 0.05) 1px, transparent 1px),
+    radial-gradient(900px 420px at 78% -10%, rgba(255, 171, 64, 0.16), transparent 62%),
+    #0d0704;
+  background-size:
+    44px 44px,
+    44px 44px,
+    auto,
+    auto;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  width: min(1200px, 100% - 40px);
+  margin: 0 auto;
+  padding: 22px 0 52px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  color: #d9cbb8;
+  font-size: 13px;
+}
+
+.topbar span:first-child {
+  color: #ffdba8;
+}
+
+.hero-body {
+  padding-top: clamp(48px, 9vh, 110px);
+  max-width: 980px;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #2e1503;
+  background: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  padding: 7px 14px;
+  border-radius: 3px;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  font:
+    800 clamp(15px, 2vw, 21px) / 1 ui-monospace,
+    SFMono-Regular,
+    monospace;
+  letter-spacing: 0.3em;
+  color: #ffd699;
+  margin: 0 0 14px;
+  text-shadow: 0 0 24px var(--glow);
+}
+
+h1 {
+  font-size: clamp(30px, 4.8vw, 58px);
+  line-height: 1.18;
+  margin: 0 0 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lead {
+  color: #dccbb9;
+  font-size: clamp(15px, 1.5vw, 17px);
+  margin: 0;
+  line-height: 2;
+  max-width: 920px;
+}
+
+.lead strong,
+p strong,
+li strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.hero-meta span {
+  border: 1px solid rgba(255, 214, 153, 0.4);
+  background: rgba(24, 15, 5, 0.55);
+  color: #f5dfc0;
+  font-size: 12.5px;
+  padding: 7px 14px;
+  border-radius: 20px;
+}
+
+.shell {
+  width: min(1200px, 100% - 40px);
+  margin: 0 auto;
+  padding-bottom: 70px;
+}
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 11px;
+  margin: 28px 0 40px;
+  position: relative;
+  z-index: 5;
+}
+
+.stat-card {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(46, 29, 14, 0.94), rgba(20, 12, 6, 0.94));
+  padding: 16px 17px 14px;
+  border-radius: 6px;
+  box-shadow: 0 18px 44px rgba(9, 5, 2, 0.55);
+}
+
+.stat-num {
+  font:
+    700 27px / 1.05 ui-monospace,
+    SFMono-Regular,
+    monospace;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.stat-num small {
+  font-size: 14px;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.stat-num.gold {
+  color: var(--gold);
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 7px;
+  line-height: 1.6;
+}
+
+.stat-label b {
+  color: var(--ink);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.jump {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 11px 0;
+  margin-bottom: 34px;
+  background: rgba(19, 12, 6, 0.92);
+  backdrop-filter: blur(14px);
+  scrollbar-width: thin;
+  border-bottom: 1px solid rgba(255, 171, 64, 0.14);
+}
+
+.jump a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.jump a b {
+  font:
+    700 11px / 1 ui-monospace,
+    monospace;
+  color: var(--accent);
+}
+
+.jump a.on,
+.jump a:hover,
+.jump a:focus-visible {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: rgba(255, 171, 64, 0.12);
+  outline: none;
+}
+
+.slides {
+  display: grid;
+  gap: 52px;
+}
+
+section.slide {
+  scroll-margin-top: 70px;
+  min-width: 0;
+}
+
+.slide-head {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.no {
+  flex: 0 0 auto;
+  font:
+    800 clamp(38px, 4.6vw, 58px) / 0.9 ui-monospace,
+    SFMono-Regular,
+    monospace;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 171, 64, 0.75);
+  letter-spacing: -0.03em;
+  padding-top: 4px;
+}
+
+.slide-kicker {
+  color: var(--accent);
+  font:
+    700 11px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.22em;
+  margin: 0 0 9px;
+}
+
+h2 {
+  font-size: clamp(21px, 2.7vw, 31px);
+  line-height: 1.35;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.shot {
+  margin: 0 0 10px;
+  position: relative;
+  border: 1px solid rgba(255, 171, 64, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0b0603;
+  box-shadow:
+    0 24px 70px rgba(26, 14, 3, 0.6),
+    0 0 0 1px rgba(14, 8, 3, 0.6);
+}
+
+.shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: zoom-in;
+  transition: opacity 0.25s;
+}
+
+.shot img:hover {
+  opacity: 0.94;
+}
+
+.shot .zoom-badge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  pointer-events: none;
+  background: rgba(21, 13, 4, 0.78);
+  border: 1px solid rgba(255, 214, 153, 0.4);
+  color: #f5dfc0;
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
+}
+
+.shot-caption {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.75;
+  margin: 0 0 22px;
+  padding: 0 2px;
+}
+
+.shot-caption b {
+  color: var(--accent);
+  font:
+    700 11px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.12em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.notes.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.notes-main {
+  min-width: 0;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.95;
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+ul {
+  margin: 0 0 12px;
+  padding-left: 1.25em;
+  color: var(--muted);
+  line-height: 1.9;
+  font-size: 14.5px;
+}
+
+li {
+  margin-bottom: 7px;
+}
+
+li::marker {
+  color: var(--accent);
+}
+
+.sowhat {
+  border: 1px solid rgba(255, 201, 77, 0.45);
+  background: linear-gradient(180deg, rgba(255, 201, 77, 0.09), rgba(255, 201, 77, 0.04));
+  border-radius: 8px;
+  padding: 16px 18px;
+  position: sticky;
+  top: 70px;
+}
+
+.sowhat .tag {
+  display: inline-block;
+  color: #1a1403;
+  background: var(--gold);
+  font:
+    800 10.5px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.18em;
+  padding: 5px 10px;
+  border-radius: 3px;
+  margin-bottom: 11px;
+}
+
+.sowhat p {
+  color: #e9e0c4;
+  font-size: 13.8px;
+  line-height: 1.85;
+  margin: 0;
+}
+
+.sowhat p strong {
+  color: #ffe6a8;
+}
+
+.quote {
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 171, 64, 0.07);
+  padding: 14px 18px;
+  margin: 14px 0;
+  color: #f2e2c9;
+  font-size: 14.5px;
+  line-height: 1.9;
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+}
+
+.quote small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-style: normal;
+  font-size: 12px;
+}
+
+.warn {
+  border-left: 3px solid var(--alert);
+  background: rgba(255, 143, 122, 0.07);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.warn p {
+  margin: 0;
+  font-size: 13.8px;
+  color: #f3d8d0;
+}
+
+.warn strong {
+  color: #ffb3a3;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.vs-card {
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+
+.vs-card h4 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.vs-card h4 span {
+  display: block;
+  font:
+    700 10.5px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.16em;
+  margin-bottom: 7px;
+  color: var(--muted);
+}
+
+.vs-card.now {
+  border-color: rgba(255, 171, 64, 0.45);
+}
+
+.vs-card.now h4 span {
+  color: var(--accent);
+}
+
+.vs-card ul {
+  font-size: 13.8px;
+  margin-bottom: 0;
+}
+
+.checks {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 9px;
+}
+
+.checks li {
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  border-radius: 6px;
+  padding: 12px 15px 12px 44px;
+  position: relative;
+  font-size: 13.8px;
+  color: var(--muted);
+  line-height: 1.75;
+  margin: 0;
+}
+
+.checks li::before {
+  content: "✓";
+  position: absolute;
+  left: 15px;
+  top: 11px;
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.checks b {
+  color: var(--ink);
+}
+
+.scroll-x {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+table.cmp {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 14px 0;
+  min-width: 640px;
+}
+
+.cmp th {
+  text-align: left;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.cmp td {
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(184, 169, 147, 0.12);
+  line-height: 1.7;
+  vertical-align: top;
+}
+
+.cmp td b,
+.cmp tr td:first-child {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.st-ok {
+  color: #7ddb8a;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.st-mid {
+  color: var(--gold);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.st-diff {
+  color: #ffd699;
+  font-weight: 600;
+}
+
+.info-board {
+  border: 1px solid rgba(255, 171, 64, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1f1306 0%, #160d06 100%);
+  box-shadow:
+    0 24px 70px rgba(26, 14, 3, 0.55),
+    0 0 0 1px rgba(14, 8, 3, 0.5);
+  margin: 0 0 18px;
+}
+
+.info-board-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(255, 171, 64, 0.18);
+  background: rgba(255, 171, 64, 0.06);
+}
+
+.info-board-head h3 {
+  margin: 0;
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.info-board-head p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.info-badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 201, 77, 0.5);
+  color: #ffe6a8;
+  font:
+    700 10px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.14em;
+  padding: 7px 10px;
+  border-radius: 4px;
+  background: rgba(255, 201, 77, 0.08);
+}
+
+.info-layers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(255, 171, 64, 0.12);
+  border-bottom: 1px solid rgba(255, 171, 64, 0.18);
+}
+
+.info-layer {
+  background: #1a1006;
+  padding: 14px 12px 16px;
+  min-height: 120px;
+}
+
+.info-layer .lv {
+  font:
+    800 10px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.info-layer .name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.info-layer .desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.info-layer.hl {
+  background: linear-gradient(180deg, rgba(255, 171, 64, 0.16), rgba(21, 13, 6, 0.95));
+}
+
+.info-layer.hl .name {
+  color: #ffe2b0;
+}
+
+.info-five {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid rgba(255, 171, 64, 0.14);
+}
+
+.five-card {
+  border: 1px solid rgba(255, 171, 64, 0.22);
+  border-radius: 7px;
+  padding: 12px 10px;
+  background: rgba(28, 17, 7, 0.85);
+  min-height: 108px;
+}
+
+.five-card .n {
+  font:
+    800 18px / 1 ui-monospace,
+    monospace;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 171, 64, 0.8);
+  margin-bottom: 8px;
+}
+
+.five-card .t {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 5px;
+  line-height: 1.35;
+}
+
+.five-card .d {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.info-oneline {
+  padding: 16px 18px 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.oneline {
+  border-left: 3px solid var(--gold);
+  background: rgba(255, 201, 77, 0.07);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  color: #f0e6c8;
+  font-size: 13.5px;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.oneline strong {
+  color: #ffe6a8;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-row span {
+  font-size: 11.5px;
+  color: var(--muted);
+  border: 1px solid rgba(255, 171, 64, 0.18);
+  padding: 5px 10px;
+  border-radius: 14px;
+}
+
+.stack-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.stack-flow .chip {
+  border: 1px solid rgba(255, 171, 64, 0.35);
+  background: rgba(255, 171, 64, 0.08);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 20px;
+}
+
+.stack-flow .chip small {
+  display: block;
+  font:
+    700 9.5px / 1 ui-monospace,
+    monospace;
+  color: var(--accent);
+  letter-spacing: 0.14em;
+  margin-bottom: 3px;
+}
+
+.stack-flow .arr {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.scope-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.scope-card {
+  border: 1px dashed rgba(255, 171, 64, 0.35);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 171, 64, 0.05);
+  text-align: center;
+}
+
+.scope-card b {
+  display: block;
+  color: var(--accent);
+  font:
+    700 11px / 1 ui-monospace,
+    monospace;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+
+.scope-card span {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.scope-card p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.finale {
+  margin-top: 56px;
+  border: 1px solid rgba(255, 171, 64, 0.35);
+  border-radius: 10px;
+  padding: clamp(26px, 4vw, 46px);
+  text-align: center;
+  background:
+    radial-gradient(640px 300px at 50% -30%, rgba(255, 171, 64, 0.15), transparent 70%),
+    var(--panel);
+}
+
+.finale .eyebrow {
+  letter-spacing: 0.3em;
+  margin-bottom: 16px;
+}
+
+.finale blockquote {
+  margin: 0 auto;
+  max-width: 900px;
+  font-size: clamp(18px, 2.4vw, 27px);
+  line-height: 1.7;
+  color: var(--ink);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.finale blockquote em {
+  color: var(--gold);
+  font-style: normal;
+}
+
+.finale p {
+  margin: 16px 0 0;
+  font-size: 13.5px;
+}
+
+dialog.zoom {
+  max-width: min(96vw, 1560px);
+  width: auto;
+  border: 1px solid rgba(255, 214, 153, 0.4);
+  border-radius: 10px;
+  background: #150d07;
+  padding: 10px;
+}
+
+dialog.zoom::backdrop {
+  background: rgba(1, 6, 5, 0.88);
+  backdrop-filter: blur(8px);
+}
+
+dialog.zoom img {
+  max-width: 100%;
+  max-height: 86vh;
+  display: block;
+  cursor: zoom-out;
+  border-radius: 4px;
+}
+
+dialog.zoom .hint {
+  color: var(--muted);
+  font-size: 11.5px;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+@media (max-width: 980px) {
+  .info-layers {
+    grid-template-columns: 1fr 1fr;
+  }
+  .info-five {
+    grid-template-columns: 1fr 1fr;
+  }
+  .scope-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .hero-body {
+    padding-top: 40px;
+  }
+  .notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sowhat {
+    position: static;
+  }
+  .slide-head {
+    gap: 13px;
+  }
+  .shell {
+    width: min(1200px, 100% - 24px);
+  }
+  .hero-inner {
+    width: min(1200px, 100% - 24px);
+  }
+  .info-layers,
+  .info-five {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .progress {
+    transition: none;
+  }
+}
+
+
+
+
+@media (max-width: 880px) {
+  .jump { top: 96px; }
+}
+@media print {
+  .progress, .jump, .zoom-badge, dialog.zoom { display: none !important; }
+}
+
+
+  
+
+#dl-status { flex: 1 1 100%; margin-left: 0 !important; margin-top: 2px; }
+
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+  </div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <span>AI Intelligence Hub / Day Slide</span>
+        <span>2026-08-01 / Models &amp; Agents</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — オープンモデル / エージェント</span>
+        <p class="eyebrow">DEEPSEEK · V4-FLASH-0731</p>
+        <h1>同じ骨格のまま、後訓練だけで<br>エージェント能力がフロンティア近傍へ跳ねた</h1>
+        <p class="lead">2026年7月31日、DeepSeek は <strong>V4-Flash の正式版「0731」</strong>を API 公開し、ほぼ同時に <strong>Hugging Face へ MIT ライセンスで重みを公開</strong>した。アーキテクチャもサイズもプレビューと同じ（約 <strong>284B MoE / アクティブ 13B</strong>、1M コンテキスト）。なのに Terminal-Bench 2.1 で <strong>82.7</strong>、Artificial Analysis Intelligence Index で <strong>50</strong>（旧版 40）。「新しい巨大モデル」ではなく、<strong>後訓練中心でエージェント実務を強くした低コスト・オープンな選択肢</strong>——なぜこれが最重要トレンドなのかを深く整理する。</p>
+        <div class="hero-meta">
+          <span>📅 発表：2026-07-31（API + HF）</span>
+          <span>📦 huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731 · MIT</span>
+          <span>🏷 284B total / ~13B active · 1M ctx</span>
+          <span>💰 $0.14 / $0.28 per 1M tok · cache $0.0028</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num">82.7</div><div class="stat-label"><b>Terminal-Bench 2.1</b>公式 · Preview 61.8 / Pro 72.1 を上回る</div></div>
+      <div class="stat-card"><div class="stat-num gold">50</div><div class="stat-label"><b>AA Intelligence Index</b>旧 Flash 40 → +10 · Luna(max) 51 とほぼ同帯</div></div>
+      <div class="stat-card"><div class="stat-num">54.4</div><div class="stat-label"><b>DeepSWE</b>Preview 7.3 から異常ジャンプ</div></div>
+      <div class="stat-card"><div class="stat-num">13B<small>active</small></div><div class="stat-label"><b>MoE 効率</b>総 284B（DSpark 込み HF 表記 ~304B）</div></div>
+      <div class="stat-card"><div class="stat-num gold">MIT</div><div class="stat-label"><b>ライセンス</b>API とほぼ同時の ungated オープンウェイト</div></div>
+      <div class="stat-card"><div class="stat-num">~60%<small>安</small></div><div class="stat-label"><b>対 Luna Cost/Task</b>同帯知能で約 60% 低コスト（AA）</div></div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b>インフォグラフィック</a>
+      <a href="#s2"><b>02</b>何を出したか</a>
+      <a href="#s3"><b>03</b>5層のすごさ</a>
+      <a href="#s4"><b>04</b>ベンチの跳躍</a>
+      <a href="#s5"><b>05</b>コスト効率</a>
+      <a href="#s6"><b>06</b>アーキテクチャ</a>
+      <a href="#s7"><b>07</b>冷静な注釈</a>
+      <a href="#s8"><b>08</b>一行結論</a>
+    </nav>
+
+    <div class="slides">
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">VISUAL SUMMARY · GROK IMAGINE</p>
+            <h2>まず全体像——0731 が動かした「座標」</h2>
+          </div>
+        </div>
+        <figure class="shot">
+          <img src="images/0801/s1-architecture.jpg" alt="後訓練によるエージェント跳躍を中核にした DeepSeek V4-Flash の積層とオープンエコシステム" width="1176" height="784">
+          <span class="zoom-badge">クリックで拡大</span>
+        </figure>
+        <p class="shot-caption"><b>図A · 後訓練が頂点の MoE 積層</b>下から BASE 284B MoE → ACTIVE 13B → <strong>POST-TRAINING AGENT LEAP</strong>。左は高コストなクローズド API、右は MIT / Hugging Face 経由のコミュニティ拡散。エージェント用途（ツール呼び出し・長期ループ）が周囲を取り囲む。</p>
+
+        <figure class="shot">
+          <img src="images/0801/s1-beforeafter.jpg" alt="BEFORE Preview と AFTER 0731 のエージェント性能比較" width="1176" height="784">
+          <span class="zoom-badge">クリックで拡大</span>
+        </figure>
+        <p class="shot-caption"><b>図B · BEFORE → AFTER 0731</b>骨格は同じ。後訓練だけで Terminal-Bench / DeepSWE が跳ね、AA Index 50、MIT オープンウェイト、$0.14/$0.28 の価格帯が揃った。</p>
+
+        <div class="info-board" aria-label="正確なラベル付きサマリー">
+          <div class="info-board-head">
+            <div>
+              <h3>テキストで固定する地図（画像の正確な読み取り）</h3>
+              <p>生成画像は比喩。数字・用語・比較はここに正本を置く。</p>
+            </div>
+            <span class="info-badge">KEY MAP</span>
+          </div>
+          <div class="info-layers">
+            <div class="info-layer"><div class="lv">LAYER 01</div><div class="name">事前学習骨格</div><p class="desc">284B MoE · 256 routed + 1 shared · 6 active · 1M ctx · 構造は不変</p></div>
+            <div class="info-layer"><div class="lv">LAYER 02</div><div class="name">推論効率</div><p class="desc">アクティブ ~13B · DSpark スペキュレーティブ · 3段階 reasoning effort</p></div>
+            <div class="info-layer hl"><div class="lv">LAYER 03 · NEW</div><div class="name">後訓練エージェント強化</div><p class="desc">Terminal / DeepSWE / Toolathlon 等で Pro Preview 超え — 本命の差分</p></div>
+            <div class="info-layer"><div class="lv">LAYER 04</div><div class="name">配布レイヤー</div><p class="desc">API 公開ベータ + MIT 即日重み · 蒸留・量子化・自前デプロイが加速</p></div>
+          </div>
+          <div class="info-five">
+            <div class="five-card"><div class="n">01</div><div class="t">何が変わったか</div><p class="d">アーキ変更なし。後訓練だけでエージェント実務スコアが跳ねた</p></div>
+            <div class="five-card"><div class="n">02</div><div class="t">なぜ実務か</div><p class="d">Terminal-Bench 等は「チャット賢さ」ではなく自律タスク完遂率</p></div>
+            <div class="five-card"><div class="n">03</div><div class="t">Pro 超えの皮肉</div><p class="d">より小さい Flash が V4-Pro Preview を複数指標で上回る</p></div>
+            <div class="five-card"><div class="n">04</div><div class="t">経済性</div><p class="d">同帯知能で Cost/Task 大幅優位 · 98% キャッシュ割引</p></div>
+            <div class="five-card"><div class="n">05</div><div class="t">オープンの破壊力</div><p class="d">MIT 即日公開で蒸留・ローカル・社内微調整が即スタート</p></div>
+          </div>
+          <div class="info-oneline">
+            <p class="oneline"><strong>一行要約：</strong>0731 は「もっと大きなモデル」ではなく、<strong>同じ骨格をエージェント実務向けに鍛え直し、安く・開いて配った</strong>ニュースである。</p>
+            <div class="meta-row">
+              <span>Terminal-Bench 82.7</span>
+              <span>DeepSWE 54.4</span>
+              <span>AA Index 50</span>
+              <span>MIT open weights</span>
+              <span>$0.14 / $0.28 /M</span>
+              <span>cache $0.0028</span>
+              <span>DSpark included</span>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>上の2枚が本スライドの<strong>視覚的フック</strong>。続く節は、出荷内容・5層のすごさ・ベンチ・経済・アーキ・注釈をテキストで論証する。</p>
+          </div>
+          <aside class="sowhat"><span class="tag">SO WHAT?</span><p>8/1 前後の TL で 0731 が跳ねたのは「また DeepSeek か」ではなく、<strong>競争の軸が事前学習の規模から後訓練とエージェント単価に移った</strong>とエンジニアが直感したからだ。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head"><span class="no">02</span><div><p class="slide-kicker">WHAT SHIPPED</p><h2>DeepSeek が出したのは「新しい巨大モデル」ではない</h2></div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>DeepSeek-V4-Flash-0731</strong> は V4-Flash の公式リリースで、4月プレビューを置き換える。DeepSeek 自身の説明は明確で、<strong>エージェント能力を大幅強化</strong>し、複数ベンチで <strong>V4-Pro Preview を上回る</strong>一方、構造とサイズは同じ。</p>
+            <ul>
+              <li><strong>API 公開ベータ</strong> — <code>deepseek-v4-flash</code> が 0731 を配信。Responses API / Codex 親和を強調</li>
+              <li><strong>オープンウェイト即日</strong> — Hugging Face <code>deepseek-ai/DeepSeek-V4-Flash-0731</code> · MIT · ungated</li>
+              <li><strong>同梱 DSpark</strong> — スペキュレーティブデコード用モジュール（vLLM / SGLang でフラグ1本）</li>
+              <li><strong>reasoning_effort</strong> — <code>low</code> / <code>high</code> / <code>max</code> の三段。高/max は長出力（最大 384K 級）</li>
+              <li><strong>価格据え置き</strong> — 入力 $0.14 / 出力 $0.28 / キャッシュヒット $0.0028 per 1M tokens</li>
+            </ul>
+            <div class="quote">「改善は Flash API に適用。V4-Pro の API/App/Web は当面そのまま。V4-Pro 正式版はまだ」<small>—— DeepSeek 公式のフォローアップ（要旨）</small></div>
+            <div class="warn"><p><strong>注意：</strong>Pro 本命は未着。今回の物語は「Flash が後訓練で先にエージェント面を取りに行った」話であり、最終天井の決着ではない。</p></div>
+          </div>
+          <aside class="sowhat"><span class="tag">SO WHAT?</span><p>出荷の本質はモデル新種ではなく <strong>「同じ商品 SKU の中身をエージェント向けに再訓練し、即オープンにした」</strong>こと。エコシステムが反応する速度が段違いになる。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head"><span class="no">03</span><div><p class="slide-kicker">WHY IT MATTERS</p><h2>エンジニア視点の「5層のすごさ」</h2></div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <div class="grid-2">
+              <div class="vs-card now"><h4><span>01 · 実務ベンチ</span>エージェント完遂率が跳ねた</h4><ul><li>Terminal-Bench / DeepSWE / Toolathlon</li><li>チャット知識より<strong>ツールと長期ループ</strong></li><li>コーディングエージェント即戦力に近い</li></ul></div>
+              <div class="vs-card now"><h4><span>02 · 研究シグナル</span>後訓練がフロンティア差分を決める</h4><ul><li>構造・サイズ不変</li><li>スケーリング則ストーリーではない</li><li>RL / 軌道データ / ツールポリシーの勝利</li></ul></div>
+              <div class="vs-card"><h4><span>03 · サイズ逆転</span>小さい Flash が Pro Preview を超える</h4><ul><li>「大きい＝強い」がエージェント領域で崩れる</li><li>13B active の推論経済が効く</li><li>デプロイと単価の両面で有利</li></ul></div>
+              <div class="vs-card"><h4><span>04 · 価格破壊</span>同帯知能で Cost/Task 優位</h4><ul><li>AA 50 ≒ Luna(max) 51</li><li>約 60% 安いタスク単価</li><li>98% キャッシュ割引がループ向き</li></ul></div>
+              <div class="vs-card now"><h4><span>05 · 配布形態</span>MIT 即日オープン</h4><ul><li>商用・改変・再配布ほぼ自由</li><li>量子化・蒸留・社内 SFT が即開始</li><li>クローズドの「強さで守る期間」が短縮</li></ul></div>
+              <div class="vs-card"><h4><span>横断 · 産業</span>競争軸の移動</h4><ul><li>モデル名 → エージェント単価とハーネス</li><li>オープン基盤がインフラ化</li><li>V4-Pro 本命前にエコシステムを先取り</li></ul></div>
+            </div>
+          </div>
+          <aside class="sowhat"><span class="tag">SO WHAT?</span><p>すごさは単一スコアではなく、<strong>実務 × 後訓練 × 経済 × オープン</strong>が同時に揃った点。どれか一つ欠けても「トレンド」にはなりにくい。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head"><span class="no">04</span><div><p class="slide-kicker">BENCHMARKS · AGENT LEAP</p><h2>数字で見る跳躍——公式と独立評価の両方</h2></div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>以下は主に DeepSeek モデルカード報告。条件は DeepSeek Harness（minimal）・max reasoning 等。独立評価は Artificial Analysis。</p>
+            <div class="scroll-x">
+              <table class="cmp">
+                <thead>
+                  <tr><th>ベンチ</th><th>V4-Flash-0731</th><th>Flash Preview</th><th>V4-Pro Preview</th><th>GLM-5.2</th><th>Opus-4.8</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Terminal Bench 2.1</td><td><strong>82.7</strong></td><td>61.8</td><td>72.1</td><td>81.0</td><td>85.0</td></tr>
+                  <tr><td>NL2Repo</td><td><strong>54.2</strong></td><td>39.4</td><td>38.5</td><td>48.9</td><td>69.7</td></tr>
+                  <tr><td>Cybergym</td><td><strong>76.7</strong></td><td>38.7</td><td>52.7</td><td>—</td><td>83.1</td></tr>
+                  <tr><td>DeepSWE</td><td><strong>54.4</strong></td><td>7.3</td><td>12.8</td><td>46.2</td><td>58.0</td></tr>
+                  <tr><td>Toolathlon-Verified</td><td><strong>70.3</strong></td><td>49.7</td><td>55.9</td><td>59.9</td><td>76.2</td></tr>
+                  <tr><td>Agents' Last Exam</td><td><strong>25.2</strong></td><td>15.8</td><td>16.5</td><td>23.8</td><td>25.7</td></tr>
+                  <tr><td>AutomationBench Public</td><td><strong>25.1</strong></td><td>10.8</td><td>12.8</td><td>12.9</td><td>27.2</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ul class="checks">
+              <li><b>AA Intelligence Index 50</b> — 旧 Flash 40 から +10。GPT-5.6 Luna (max, 51) と 1 ポイント差</li>
+              <li><b>独立 Terminal-Bench 2.1 ~79%</b> — 公式 82.7 より控えめだが +17pt 級の改善は確認</li>
+              <li><b>GDPval-AA v2 Elo 1559</b> — 1189 から大幅上昇。オープン勢では Kimi K3 に次ぐ帯</li>
+              <li><b>出力トークン使用 −12%</b> — 同じ仕事をより短く（＝より安く）回す傾向</li>
+            </ul>
+            <div class="warn"><p><strong>読み方：</strong>82.7 を絶対真理としない。ただし独立評価も同方向。DSBench 系は内部セットなので外部横断比較には使いにくい。</p></div>
+          </div>
+          <aside class="sowhat"><span class="tag">SO WHAT?</span><p>勝負どころは MMLU ではなく <strong>ターミナルとツールで仕事が終わるか</strong>。だから IDE / エージェント SaaS のデフォルト候補になりやすい。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head"><span class="no">05</span><div><p class="slide-kicker">ECONOMICS</p><h2>同帯知能 × 異常なコスト効率</h2></div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <div class="grid-2">
+              <div class="vs-card now"><h4><span>FIRST-PARTY API</span>価格帯</h4><ul><li>入力 <strong>$0.14</strong> / 1M tokens</li><li>出力 <strong>$0.28</strong> / 1M tokens</li><li>キャッシュヒット <strong>$0.0028</strong>（約 98% 割引）</li><li>Pro 出力 ($0.87 帯) の約 1/3</li></ul></div>
+              <div class="vs-card"><h4><span>INTELLIGENCE VS COST</span>Pareto 前線</h4><ul><li>AA Index <strong>50</strong> ≒ Luna 51 / GLM 51</li><li>Cost/Task は Luna(max) より <strong>~60% 安</strong></li><li>OpenAI の値下げ後でも優位（AA 報告）</li><li>エージェントはループでトークンを食うので単価が効く</li></ul></div>
+            </div>
+            <p>エージェントの本番コストは「入力単価」より <strong>システムプロンプトのキャッシュ</strong>と<strong>1タスクの総トークン</strong>で決まる。DeepSeek の攻撃的キャッシュ割引は、長いツールログと固定指示を回す用途に極端に相性が良い。</p>
+            <div class="stack-flow">
+              <span class="chip"><small>LOOP</small>長い指示 + ツール軌跡</span><span class="arr">→</span>
+              <span class="chip"><small>CACHE</small>98% 割引ヒット</span><span class="arr">→</span>
+              <span class="chip"><small>ACTIVE</small>13B 推論コスト</span><span class="arr">→</span>
+              <span class="chip"><small>RESULT</small>低 Cost/Task</span>
+            </div>
+          </div>
+          <aside class="sowhat"><span class="tag">SO WHAT?</span><p>クローズド側は「なぜ高いモデルを使うのか」の説明責任を負う。<strong>差分（安全・マルチモーダル・SLA・ブランド）で値付けを再設計</strong>せざるを得ない。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s6">
+        <div class="slide-head"><span class="no">06</span><div><p class="slide-kicker">ARCHITECTURE + DSPARK</p><h2>13B active で回る理由と推論スタック</h2></div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>V4 技術報告（arXiv:2606.19348）ベースの骨格。0731 で変わったのは主に後訓練側。</p>
+            <div class="scope-grid">
+              <div class="scope-card"><b>MOE</b><span>284B / 13B active</span><p>共有1 + ルーテッド256 · 6 expert/token · 初期3層は hash routing</p></div>
+              <div class="scope-card"><b>CONTEXT</b><span>1M tokens</span><p>巨大リポ・長いツールログ・分岐履歴を抱えやすい</p></div>
+              <div class="scope-card"><b>DSPARK</b><span>同梱 draft</span><p>スペキュレーティブで生成 60–85% 向上帯の報告 · HF 表記 ~304B</p></div>
+            </div>
+            <ul>
+              <li>注意は <strong>CSA + HCA</strong> ハイブリッド、残差は <strong>mHC</strong>（Manifold-Constrained Hyper-Connections）</li>
+              <li>事前学習は <strong>32T+ tokens</strong> + Muon オプティマイザ（V4 レポート）</li>
+              <li>ローカル: Unsloth 量子化で 3-bit ~103–110GB / 4-bit ~168GB 帯の報告</li>
+              <li>サービング: vLLM / SGLang が expert parallel・FP8 KV・DSpark フラグを即対応</li>
+            </ul>
+            <div class="quote">「知識の倉庫は大きく、1トークンの計算は小さく」——エージェントのループ回数に対して sparse の利点がチャットより効きやすい。<small>—— 本スライドの解釈</small></div>
+          </div>
+          <aside class="sowhat"><span class="tag">SO WHAT?</span><p>モデル単体ではなく <strong>サービング込み（DSpark・量子化・キャッシュ）</strong>で「速い・安い・強い」を押し出すのが DeepSeek 流。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s7">
+        <div class="slide-head"><span class="no">07</span><div><p class="slide-kicker">CAVEATS</p><h2>サプライズしすぎないための注釈</h2></div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>0731 は本物のジャンプだが、銀の弾丸ではない。過熱を避けるための境界線。</p>
+            <ul>
+              <li><strong>ハーネス依存</strong> — 公式エージェントスコアは DeepSeek Harness 条件。他スタックでは数字が落ちうる</li>
+              <li><strong>総合知性の天井</strong> — AA でも Kimi K3 (57) や最上位クローズドには届かない帯。エージェント特化の跳躍</li>
+              <li><strong>メモリ壁</strong> — アクティブ 13B でも expert 常駐。フル精度は多 GPU、量子化でも ~100GB+ 級</li>
+              <li><strong>安全性・透明性</strong> — 重みは開いたが後訓練データ / RL レシピの完全公開ではない</li>
+              <li><strong>Pro 本命は未着</strong> — Flash が先にエージェント面を取っただけ。天井競争は続く</li>
+            </ul>
+            <div class="warn"><p><strong>正確な理解：</strong>サプライズは「人類最高知能の独占開放」ではなく、<strong>エージェント実務で使えるフロンティア近傍能力が、安く・開いて・即流通した</strong>ことにある。</p></div>
+          </div>
+          <aside class="sowhat"><span class="tag">実務ヒント</span><p>明日やること候補：① 自社エージェントの Cost/Task を測る ② 0731 API と既存ハーネスを A/B ③ 必要なら量子化ローカル / 蒸留の可否を試算。</p></aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s8">
+        <div class="slide-head"><span class="no">08</span><div><p class="slide-kicker">THE BOTTOM LINE</p><h2>一行で言うと、何が起きたのか</h2></div></div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>DeepSeek V4-Flash-0731 の本質は、フロンティア競争の主戦場が <strong>「もっと大きな事前学習」</strong>から <strong>「後訓練の質 × エージェント完遂率 × 1タスク単価 × オープン配布」</strong>へ移ったことを、最もわかりやすく示した点にある。</p>
+            <div class="grid-3">
+              <div class="vs-card"><h4><span>以前の常識</span>巨大 × クローズド</h4><p style="margin:0;font-size:13.5px">オープンは少し遅れて少し弱い</p></div>
+              <div class="vs-card now"><h4><span>0731 の新常識</span>後訓練 × 低コスト × MIT</h4><p style="margin:0;font-size:13.5px">同じ骨格でも実務エージェントは跳ねる</p></div>
+              <div class="vs-card"><h4><span>次の問い</span>実装側</h4><p style="margin:0;font-size:13.5px">自社のハーネス・キャッシュ・評価を誰が設計するか</p></div>
+            </div>
+            <p style="margin-top:16px">だから 7/31–8/1 のエンジニア TL は「また中国モデルが強い」ではなく、<strong>「エージェント時代のデフォルト基盤候補が、価格破壊付きでオープンになった」</strong>と読んだ——それが深い読みである。</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="finale">
+      <p class="eyebrow">THE BOTTOM LINE</p>
+      <blockquote>これは「新しい天才モデルが出た」ニュースではない。<em>同じ骨格を後訓練でエージェント実務向けに鍛え直し、フロンティア近傍の能力を安く・MIT で即配布した</em>ニュースである。</blockquote>
+      <p>2026-08-01 — AI Intelligence Hub / Day Slide · DeepSeek V4-Flash-0731 深掘り · スタンドアロンHTML</p>
+    </div>
+  </main>
+
+  <dialog class="zoom" id="zoom" aria-label="スライド拡大表示">
+    <img alt="スライド拡大画像">
+    <p class="hint">画像クリック / Esc で閉じる</p>
+  </dialog>
+
+  <script>
+  (function () {
+    var bar = document.querySelector('.progress');
+    addEventListener('scroll', function () {
+      var max = document.documentElement.scrollHeight - innerHeight;
+      if (bar) bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+    }, { passive: true });
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var sections = Array.prototype.slice.call(document.querySelectorAll('section.slide'));
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.remove('on'); });
+        var a = byId[e.target.id];
+        if (a) a.classList.add('on');
+      });
+    }, { rootMargin: '-18% 0px -72% 0px' });
+    sections.forEach(function (s) { io.observe(s); });
+
+    var dlg = document.getElementById('zoom');
+    var dimg = dlg.querySelector('img');
+    document.querySelectorAll('.shot img').forEach(function (img) {
+      img.addEventListener('click', function () {
+        dimg.src = img.src;
+        dimg.alt = img.alt;
+        dlg.showModal();
+      });
+    });
+    dlg.addEventListener('click', function () { dlg.close(); });
+
+    addEventListener('keydown', function (ev) {
+      if (dlg.open) return;
+      if (ev.altKey || ev.metaKey || ev.ctrlKey) return;
+      if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+      var y = scrollY + 90, idx = -1;
+      for (var i = 0; i < sections.length; i++) if (sections[i].offsetTop <= y) idx = i;
+      var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+      sections[next].scrollIntoView({ behavior: 'smooth' });
+      ev.preventDefault();
+    });  })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_07_31.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_01.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-01.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
