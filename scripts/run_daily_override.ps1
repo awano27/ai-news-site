@@ -152,7 +152,10 @@ try {
         }
     }
     elseif ($ahead -gt 0 -and $behind -gt 0) {
-        $rebaseCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "rebase", "-X", "theirs", "origin/main") -Label "git rebase"
+        # Deliberately no -X theirs here: anything still ahead at this point is not a
+        # stale override (those were discarded above), so a conflict is a real one and
+        # must stop the run rather than silently overwrite origin/main.
+        $rebaseCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "rebase", "origin/main") -Label "git rebase"
         if ($rebaseCode -ne 0) {
             [void](Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "rebase", "--abort") -Label "git rebase abort")
             throw "Rebase conflict or failure; local commit and stash were retained."

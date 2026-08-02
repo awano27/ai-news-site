@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import functools
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -14,14 +16,31 @@ MANIFEST_PATH = Path(__file__).with_name("daily_report_paths.json")
 MANIFEST_REPO_PATH = "scripts/daily_report_paths.json"
 
 
+@functools.lru_cache(maxsize=None)
+def _pattern_matcher(pattern: str) -> re.Pattern[str]:
+    """Compile a manifest entry, where `*` matches within a single path segment.
+
+    update_news_archive.py rewrites public-pages/news/<date>.json for every
+    input/day/*.txt whose mtime overtakes its JSON, so a git operation that
+    refreshes old day files drags historical dates into the run. Pinning the
+    manifest to the report date alone rejected the whole publish when that
+    happened (2026-07-20, which cost that day's X posts), hence the glob.
+    """
+    return re.compile("[^/]*".join(re.escape(part) for part in pattern.split("*")) + r"\Z")
+
+
 @dataclass(frozen=True)
 class PublicationManifest:
     required: tuple[str, ...]
     optional: tuple[str, ...]
 
     @property
-    def allowed(self) -> frozenset[str]:
-        return frozenset((*self.required, *self.optional))
+    def allowed(self) -> tuple[str, ...]:
+        """Manifest entries as Git pathspecs. Optional entries may contain a `*` glob."""
+        return (*self.required, *self.optional)
+
+    def matches(self, path: str) -> bool:
+        return any(_pattern_matcher(pattern).match(path) for pattern in self.allowed)
 
 
 def _expand_path(template: str, report_date: date) -> str:
@@ -48,6 +67,10 @@ def _manifest_from_data(data: object, report_date: date) -> PublicationManifest:
         raise ValueError("manifest paths must be lists of strings")
     required = tuple(_expand_path(item, report_date) for item in data["required"])
     optional = tuple(_expand_path(item, report_date) for item in data["optional"])
+    # Required entries are checked with is_file(), so they must name one real path.
+    globbed = [item for item in required if "*" in item]
+    if globbed:
+        raise ValueError(f"required manifest paths must not contain '*': {globbed}")
     if len(set((*required, *optional))) != len(required) + len(optional):
         raise ValueError("manifest paths must be unique")
     return PublicationManifest(required=required, optional=optional)
@@ -144,7 +167,7 @@ def validate_changes(
     except (RuntimeError, subprocess.CalledProcessError, ValueError) as error:
         errors.append(str(error))
         return errors
-    outside = sorted(set(changed_paths) - manifest.allowed)
+    outside = sorted(path for path in set(changed_paths) if not manifest.matches(path))
     errors.extend(f"manifest excludes changed path: {path}" for path in outside)
     return errors
 
@@ -213,7 +236,7 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
         return 1
     _git(repo, ("add", "-f", "--", *changed_paths))
     cached_paths = _cached_paths(repo)
-    if not set(cached_paths).issubset(manifest.allowed):
+    if not all(manifest.matches(path) for path in cached_paths):
         print("staging produced paths outside the manifest", file=sys.stderr)
         return 1
     if not cached_paths:

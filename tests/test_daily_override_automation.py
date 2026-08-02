@@ -257,6 +257,45 @@ def test_runner_aborts_a_rebase_conflict_without_losing_local_commit_or_stash(tm
     assert git(runtime, "status", "--porcelain").stdout == ""
 
 
+def test_runner_discards_a_stale_override_commit_and_completes_the_run(tmp_path: Path) -> None:
+    # A publish whose push lost the race to the cloud run leaves this commit behind.
+    # Rebasing it the next morning conflicts forever, which is what silently stopped
+    # X bookmarks from reaching daily-news for three days in 2026-07.
+    _, source, runtime = make_runtime(tmp_path)
+    (runtime / "base.txt").write_text("stale override\n", encoding="utf-8")
+    git(runtime, "add", "base.txt")
+    git(runtime, "commit", "-m", "chore(report): local override 2026-07-23")
+    (source / "base.txt").write_text("cloud run\n", encoding="utf-8")
+    git(source, "add", "base.txt")
+    git(source, "commit", "-m", "remote change")
+    git(source, "push")
+    log_path = tmp_path / "runner.log"
+
+    result = run_runner(runtime, log_path)
+
+    assert result.returncode == 0, result.stderr
+    assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == "remote change"
+    assert (runtime / "publisher_args.json").is_file()
+    assert "Discarding stale override commit" in log_path.read_text(encoding="utf-8")
+
+
+def test_runner_keeps_todays_override_commit_instead_of_discarding_it(tmp_path: Path) -> None:
+    _, source, runtime = make_runtime(tmp_path)
+    subject = f"chore(report): local override {date.today().isoformat()}"
+    (runtime / "base.txt").write_text("today override\n", encoding="utf-8")
+    git(runtime, "add", "base.txt")
+    git(runtime, "commit", "-m", subject)
+    (source / "base.txt").write_text("cloud run\n", encoding="utf-8")
+    git(source, "add", "base.txt")
+    git(source, "commit", "-m", "remote change")
+    git(source, "push")
+
+    result = run_runner(runtime, tmp_path / "runner.log")
+
+    assert result.returncode != 0
+    assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == subject
+
+
 def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
     workflow = (ROOT / ".github" / "workflows" / "auto-daily-report-cloud-fallback.yml").read_text(
         encoding="utf-8"
