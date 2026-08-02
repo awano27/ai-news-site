@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gemini Spark（Pro）が日本で実務投入可能に | Day Slide 2026-08-02</title>
+  <meta name="description" content="Google AI Proでも使えるようになった24/7パーソナルAIエージェント Gemini Spark の日本展開、バックグラウンド限界、人間ハンドオフを深く解説する Day Slide。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_02.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Gemini Spark（Pro）が日本で実務投入可能に">
+  <meta property="og:description" content="24/7 で動くパーソナルAIエージェントが Pro 帯へ降りてきた。実行スタック（Task / Skill / Schedule）、バックグラウンド動作の限界、そして「どこで人間に渡すか」の設計点を10セクションで読み解く。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_02.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0802/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gemini Spark（Pro）が日本で実務投入可能に">
+  <meta name="twitter:description" content="Gemini Spark が Google AI Pro でも利用可能に。24/7 バックグラウンド動作の限界と、人間ハンドオフの設計点を整理する Day Slide。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0802/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Gemini Spark（Pro）が日本で実務投入可能に",
+    "description": "Google AI Pro でも使えるようになった 24/7 パーソナルAIエージェント Gemini Spark の日本展開を深掘り。Task / Skill / Schedule の実行スタック、バックグラウンド動作の限界、人間ハンドオフの設計点、日本での到達価格と利用条件までを整理する。",
+    "datePublished": "2026-08-02",
+    "dateModified": "2026-08-02",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_02.html",
+    "articleSection": "AI Agents & Product"
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --surface: #121214;
+      --elevated: #1a1a1e;
+      --fg: #f4f4f5;
+      --muted: #a1a1aa;
+      --subtle: #71717a;
+      --border: #2a2a2e;
+      --border-strong: #3f3f46;
+      --signal: #94a3b8;
+      --ok: #7d9b84;
+      --warn: #d6b56e;
+      --danger: #c27a7a;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --font: "Segoe UI", "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; color-scheme: dark; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--signal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px 64px; }
+    @media (min-width: 640px) { .wrap { padding: 0 24px 80px; } }
+
+    header.top {
+      position: sticky; top: 0; z-index: 40;
+      border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+      background: color-mix(in oklab, var(--bg) 90%, transparent);
+      backdrop-filter: blur(12px);
+    }
+    .top-inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 16px;
+    }
+    .brand-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--subtle); margin: 0; }
+    .brand-t { font-size: 14px; font-weight: 500; margin: 2px 0 0; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--fg); color: var(--bg);
+      font: 500 13px/1 var(--font);
+      padding: 10px 14px; border-radius: 999px;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn:hover { opacity: 0.92; text-decoration: none; }
+    .btn-ghost {
+      background: transparent; color: var(--fg);
+      border-color: var(--border);
+    }
+
+    .hero { padding: 48px 0 24px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 12px; color: var(--muted); margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+      font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+      margin: 0; max-width: 40rem; text-wrap: balance;
+    }
+    h1 .sub { display: block; margin-top: 8px; color: var(--muted); font-weight: 500; }
+    .lede {
+      margin: 20px 0 0; max-width: 42rem;
+      font-size: 16px; color: var(--muted);
+    }
+    @media (min-width: 640px) { .lede { font-size: 18px; } }
+    .meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 28px;
+    }
+    @media (min-width: 640px) { .meta-grid { grid-template-columns: repeat(4, 1fr); } }
+    .meta {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius); padding: 12px 14px;
+    }
+    .meta span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .meta strong { display: block; margin-top: 6px; font-size: 14px; font-weight: 500; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .tag {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: 999px; padding: 4px 10px;
+    }
+
+    /* ONE SHEET */
+    .sheet {
+      margin-top: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .sheet-head {
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      padding: 18px 20px;
+    }
+    .sheet-head .k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--signal); margin: 0;
+    }
+    .sheet-head h2 {
+      margin: 8px 0 0; font-size: clamp(1.15rem, 1rem + 1vw, 1.5rem);
+      font-weight: 600; letter-spacing: -0.02em;
+    }
+    .sheet-head p { margin: 8px 0 0; font-size: 14px; color: var(--muted); max-width: 40rem; }
+    .sheet-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      font-family: var(--mono); font-size: 11px;
+      border: 1px solid var(--border); background: var(--bg);
+      border-radius: 999px; padding: 4px 10px; color: var(--muted);
+    }
+    .badge.fg { color: var(--fg); }
+
+    .sheet-grid {
+      display: grid;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (min-width: 900px) {
+      .sheet-grid { grid-template-columns: 5fr 4fr 3fr; }
+      .sheet-grid > div { border-right: 1px solid var(--border); }
+      .sheet-grid > div:last-child { border-right: 0; }
+    }
+    .col { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+    @media (min-width: 900px) { .col { border-bottom: 0; padding: 20px; } }
+    .col-k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+      color: var(--subtle); margin: 0 0 12px;
+    }
+
+    .tl { list-style: none; margin: 0; padding: 0; }
+    .tl li { display: flex; gap: 12px; padding-bottom: 14px; }
+    .tl li:last-child { padding-bottom: 0; }
+    .dot-col { display: flex; flex-direction: column; align-items: center; }
+    .dot {
+      width: 10px; height: 10px; margin-top: 4px; border-radius: 999px;
+      border: 2px solid var(--signal); background: var(--bg); flex-shrink: 0;
+    }
+    .line { width: 1px; flex: 1; margin-top: 4px; background: var(--border); min-height: 12px; }
+    .tl .d { font-family: var(--mono); font-size: 12px; color: var(--signal); }
+    .tl .t { font-size: 14px; font-weight: 600; }
+    .tl .s { font-size: 12px; color: var(--muted); }
+
+    .what {
+      margin-top: 16px; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: var(--radius-lg); padding: 12px 14px;
+      font-size: 13px; color: var(--muted);
+    }
+
+    .pillar {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--bg) 60%, transparent);
+      border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px;
+    }
+    .pillar:last-child { margin-bottom: 0; }
+    .pillar .n { font-family: var(--mono); font-size: 10px; color: var(--signal); margin-right: 8px; }
+    .pillar .pt { font-size: 13px; font-weight: 600; }
+    .pillar .pb { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+    .price-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px; margin-bottom: 8px; background: color-mix(in oklab, var(--bg) 60%, transparent);
+    }
+    .price-card.hi { border-color: var(--border-strong); background: var(--elevated); }
+    .price-card .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--subtle); }
+    .price-card .v { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .price-card .v.sm { font-size: 14px; }
+    .price-card .ok { font-size: 12px; color: var(--ok); margin-top: 4px; }
+    .elig { margin: 12px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--muted); }
+    .elig li { margin: 3px 0; }
+
+    .bottom-grid { display: grid; }
+    @media (min-width: 900px) {
+      .bottom-grid { grid-template-columns: 3fr 4fr 5fr; }
+      .bottom-grid > div { border-right: 1px solid var(--border); }
+      .bottom-grid > div:last-child { border-right: 0; }
+    }
+    .bottom-grid > div { padding: 18px 16px; border-top: 1px solid var(--border); }
+    @media (min-width: 900px) { .bottom-grid > div { padding: 20px; border-top: 0; } }
+    .sheet > .bottom-grid { border-top: 1px solid var(--border); }
+
+    .lim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .lim {
+      text-align: center; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      border-radius: var(--radius); padding: 8px;
+    }
+    .lim .l { font-size: 10px; color: var(--subtle); }
+    .lim .v { font-family: var(--mono); font-size: 18px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+    .gates { display: flex; flex-wrap: wrap; gap: 6px; }
+    .gate {
+      border: 1px solid var(--border); background: var(--bg);
+      border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 500;
+    }
+    .flow { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+    .dodont { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .box {
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 30%, transparent);
+      border-radius: var(--radius); padding: 10px;
+    }
+    .box .h { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; }
+    .box .h.ok { color: var(--ok); }
+    .box .h.no { color: var(--danger); }
+    .box ul { margin: 6px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--muted); }
+    .box li { margin: 3px 0; }
+    .bline { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+
+    .sheet-foot {
+      display: flex; flex-direction: column; gap: 4px;
+      border-top: 1px solid var(--border);
+      background: color-mix(in oklab, var(--bg) 50%, transparent);
+      padding: 12px 16px; font-size: 11px; color: var(--subtle);
+    }
+    @media (min-width: 640px) {
+      .sheet-foot { flex-direction: row; justify-content: space-between; align-items: center; padding: 12px 20px; }
+    }
+    .sheet-foot .mono { font-family: var(--mono); letter-spacing: 0.14em; font-size: 10px; }
+
+    /* Sections */
+    section.sec {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+    .kicker {
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em;
+      color: var(--signal); margin: 0 0 10px;
+    }
+    section.sec h2 {
+      margin: 0 0 24px; font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+      font-weight: 600; letter-spacing: -0.02em; max-width: 36rem;
+    }
+    .card {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius-xl); padding: 18px 20px;
+    }
+    .card + .card { margin-top: 12px; }
+    .grid-2 { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .grid-3 { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+    .muted { color: var(--muted); font-size: 14px; }
+    .bullets { list-style: none; margin: 0; padding: 0; }
+    .bullets li { display: flex; gap: 10px; margin: 0 0 14px; }
+    .bullets .b { width: 6px; height: 6px; margin-top: 8px; border-radius: 999px; background: var(--signal); flex-shrink: 0; }
+    .bullets strong { display: block; font-size: 14px; }
+    .bullets span { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+      border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden;
+    }
+    th {
+      text-align: left; background: var(--elevated); color: var(--subtle);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      font-weight: 500; padding: 10px 14px;
+    }
+    td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+    td.fg { color: var(--fg); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .stat {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 60%, transparent);
+      border-radius: var(--radius-lg); padding: 14px;
+    }
+    .stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .stat .v { font-family: var(--mono); font-size: 28px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .stat .h { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .layer h3 { margin: 0 0 10px; font-size: 15px; }
+    .layer .n { font-family: var(--mono); font-size: 11px; color: var(--signal); margin-right: 8px; }
+    .layer ul { margin: 0; padding: 0; list-style: none; }
+    .layer li { font-size: 13px; color: var(--muted); margin: 6px 0; padding-left: 14px; position: relative; }
+    .layer li::before { content: "→"; position: absolute; left: 0; color: var(--subtle); font-size: 11px; top: 2px; }
+    .note { font-size: 12px; color: var(--subtle); margin-top: 12px; }
+    footer.page {
+      border-top: 1px solid var(--border); padding: 28px 0;
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+      font-size: 13px; color: var(--muted);
+    }
+    footer.page .mono { font-family: var(--mono); font-size: 12px; color: var(--subtle); }
+
+    @media print {
+      header.top { position: static; }
+      .btn, .no-print { display: none !important; }
+      body { background: #fff; color: #111; }
+      .sheet, .card, .meta, .stat, .pillar, .price-card, .lim, .box { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top no-print">
+    <div class="top-inner">
+      <div>
+        <p class="brand-k">VISIONHUB · DAY SLIDE · OFFLINE HTML</p>
+        <p class="brand-t">2026-08-02 · Gemini Spark Japan Pro</p>
+      </div>
+      <a class="btn" href="#onesheet" onclick="window.print()">印刷 / PDF保存</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">今日の深掘り — パーソナルエージェント / 日本展開</div>
+      <h1>
+        Gemini Spark（Pro）が日本で実務投入可能に
+        <span class="sub">24/7 バックグラウンド動作の限界と、人間ハンドオフの設計点</span>
+      </h1>
+      <p class="lede">
+        2026-07-29、Google は日本の <strong style="color:var(--fg);font-weight:500">Google AI Pro（月額 2,900 円）</strong>
+        へ Gemini Spark を数週間以内に順次提供すると発表。7/16 の日本語・Ultra 展開に続き、
+        エージェントの「常時稼働」が上位プラン限定から、より広い実務層へ降りてきた。
+        本スライドは、何が変わったか・どこまで任せられるか・どこで人が介入するかを固定する。
+      </p>
+      <div class="meta-grid">
+        <div class="meta"><span>発表</span><strong>2026-07-29（Pro 拡大）</strong></div>
+        <div class="meta"><span>日本語</span><strong>2026-07-16 開始</strong></div>
+        <div class="meta"><span>対象</span><strong>Pro / Ultra（個人）</strong></div>
+        <div class="meta"><span>形態</span><strong>クラウド 24/7 エージェント</strong></div>
+      </div>
+      <div class="tags">
+        <span class="tag">Gemini Spark</span>
+        <span class="tag">Google AI Pro</span>
+        <span class="tag">Antigravity</span>
+        <span class="tag">Tasks / Skills / Schedules</span>
+        <span class="tag">Human-in-the-loop</span>
+        <span class="tag">Japan</span>
+      </div>
+    </div>
+
+    <!-- ONE SHEET -->
+    <figure class="sheet" id="onesheet">
+      <div class="sheet-head">
+        <p class="k">DAY SLIDE 2026-08-02 · ONE-SHEET SUMMARY</p>
+        <h2>Gemini Spark（Pro）日本投入サマリ</h2>
+        <p>24/7 パーソナル AI エージェントが Ultra 限定から <strong style="color:var(--fg)">月額 2,900 円の Pro</strong> へ。任せられる範囲と、人が入る境界を1枚で固定。</p>
+        <div class="sheet-badges">
+          <span class="badge fg">JP · 個人アカウント</span>
+          <span class="badge">Beta · 監督前提</span>
+        </div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="col">
+          <p class="col-k">A · TIMELINE</p>
+          <ol class="tl">
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">05.19</div><div class="t">I/O 発表</div><div class="s">US 先行</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">07.16</div><div class="t">日本語対応</div><div class="s">Ultra 開始</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">07.29</div><div class="t">Pro 拡大発表</div><div class="s">数週間で順次</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span></div>
+              <div><div class="d">08.02</div><div class="t">本スライド</div><div class="s">ロールアウト中</div></div>
+            </li>
+          </ol>
+          <div class="what">
+            <strong style="color:var(--subtle);font-size:10px;letter-spacing:0.16em;font-family:var(--mono)">B · WHAT IT IS</strong><br />
+            チャット待ちではなく、クラウド上で動く <strong style="color:var(--fg);font-weight:500">常時オンの部下</strong>。
+            Gemini Flash + Antigravity でマルチステップを実行。デバイス電源は不要。
+          </div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">C · 4 PILLARS</p>
+          <div class="pillar"><span class="n">01</span><span class="pt">24/7 クラウド実行</span><p class="pb">専用 VM。端末オフでも Schedule / トリガーで継続</p></div>
+          <div class="pillar"><span class="n">02</span><span class="pt">Workspace 実行面</span><p class="pb">Gmail · Calendar · Docs · Sheets に API 連携</p></div>
+          <div class="pillar"><span class="n">03</span><span class="pt">Task / Skill / Schedule</span><p class="pb">What · How · When を分離。手順を再利用</p></div>
+          <div class="pillar"><span class="n">04</span><span class="pt">Human-in-the-loop</span><p class="pb">送信・課金・フォーム前は必ず確認</p></div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">D · PRICE · JP</p>
+          <div class="price-card hi">
+            <div class="l">Google AI Pro</div>
+            <div class="v">¥2,900</div>
+            <div class="ok">Spark 可（順次）</div>
+          </div>
+          <div class="price-card">
+            <div class="l">Ultra 5x / 20x</div>
+            <div class="v sm">¥14,500 / ¥32,000</div>
+            <div class="s" style="font-size:12px;color:var(--muted);margin-top:4px">7/16 から利用可</div>
+          </div>
+          <div class="price-card">
+            <div class="l">無料 / Plus</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Spark 対象外</div>
+          </div>
+          <ul class="elig">
+            <li>· 個人 Google アカウント</li>
+            <li>· 18歳以上 · Activity オン</li>
+            <li>· Workspace アカウント不可</li>
+            <li>· EEA / UK / CH / NG 除外</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div>
+          <p class="col-k">E · HARD LIMITS</p>
+          <div class="lim-grid">
+            <div class="lim"><div class="l">同時タスク</div><div class="v">15</div></div>
+            <div class="lim"><div class="l">Schedule</div><div class="v">50</div></div>
+            <div class="lim"><div class="l">使用量</div><div class="v" style="font-size:14px">Compute</div></div>
+            <div class="lim"><div class="l">起動</div><div class="v" style="font-size:14px">近似</div></div>
+          </div>
+          <p class="flow">条件監視は連続ではない。オフライン時は確認待ちを止められない場合あり。</p>
+        </div>
+        <div>
+          <p class="col-k">F · HUMAN HANDOFF</p>
+          <div class="gates">
+            <span class="gate">メール送信</span>
+            <span class="gate">データ変更</span>
+            <span class="gate">購入・支払い</span>
+            <span class="gate">フォーム送信</span>
+            <span class="gate">ブラウザ引き継ぎ</span>
+          </div>
+          <p class="flow">
+            <strong style="color:var(--fg)">Plan</strong> → 自律（読取・整理・下書き）→
+            <strong style="color:var(--fg)">Confirm</strong> → 必要なら Browser Takeover → 完了。
+            初期は「下書きまで自動 / 送信は人」。
+          </p>
+        </div>
+        <div>
+          <p class="col-k">G · DO / DON'T · BOTTOM LINE</p>
+          <div class="dodont">
+            <div class="box">
+              <div class="h ok">DO</div>
+              <ul>
+                <li>· 読取・転記から</li>
+                <li>· 下書きまで自動</li>
+                <li>· Skill で型化</li>
+                <li>· 権限は最小から</li>
+              </ul>
+            </div>
+            <div class="box">
+              <div class="h no">DON'T</div>
+              <ul>
+                <li>· 無監督で送信</li>
+                <li>· 機密を直書き</li>
+                <li>· 15並列前提</li>
+                <li>· リアルタイム誤解</li>
+              </ul>
+            </div>
+          </div>
+          <p class="bline">
+            結論: 価値の中心は新モデル名ではなく
+            <strong style="color:var(--fg)">クラウド常時実行 × Workspace × 確認ゲート</strong>。
+            Pro で実務実験が可能になったが、ベータ前提の監督設計が必須。
+          </p>
+        </div>
+      </div>
+
+      <figcaption class="sheet-foot">
+        <span class="mono">図 · ONE-SHEET · 全セクションの正本サマリ</span>
+        <span>Sources: Google Japan / Gemini Help / 7.16·7.29 報道</span>
+      </figcaption>
+    </figure>
+
+    <!-- 01 -->
+    <section class="sec" id="map">
+      <p class="kicker">01 · MAP</p>
+      <h2>まず全体像——Pro 拡大が動かした「座標」</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">KEY MAP · 4 LAYERS</p>
+          <p class="muted"><strong style="color:var(--fg)">LAYER 01 実行基盤</strong> — Google Cloud 専用 VM。端末オフでも継続。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 02 モデル + ハーネス</strong> — Gemini 3.5/3.6 Flash + Antigravity。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 03 · NEW 日本配布</strong> — 7/16 日本語·Ultra → 7/29 Pro 拡大。月 2,900 円帯。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 04 制御</strong> — Task/Skill/Schedule + 高ステークス確認 + ブラウザ引き継ぎ。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">BEFORE → AFTER（日本）</p>
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">BEFORE</strong><br />Ultra（14,500 円〜）限定。高単価ユーザー中心。</p>
+          <hr style="border:0;border-top:1px solid var(--border);margin:14px 0" />
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">AFTER · 2026-07-29</strong><br />Pro（2,900 円）へ順次。価格障壁が約 1/5。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="sec" id="shipped">
+      <p class="kicker">02 · WHAT SHIPPED</p>
+      <h2>Google が出したのは「新しいチャット」ではない</h2>
+      <div class="card" style="margin-bottom:16px">
+        <p class="muted" style="margin:0;font-size:16px">
+          <strong style="color:var(--fg)">Gemini Spark</strong> はクラウド上でタスク・スキル・スケジュールを持ち、
+          ユーザー指示の下で能動的に動く <strong style="color:var(--fg)">24/7 パーソナル AI エージェント</strong>。
+        </p>
+      </div>
+      <ul class="bullets grid-2" style="display:grid">
+        <li><span class="b"></span><div><strong>日本語展開（2026-07-16）</strong><span>Ultra 加入の日本語ユーザー向け順次提供</span></div></li>
+        <li><span class="b"></span><div><strong>Pro 拡大（2026-07-29）</strong><span>数週間以内に Pro へ。月額 2,900 円帯</span></div></li>
+        <li><span class="b"></span><div><strong>クラウド常時稼働</strong><span>PC/スマホオフでも Schedule・トリガーで継続</span></div></li>
+        <li><span class="b"></span><div><strong>Workspace ネイティブ</strong><span>Gmail / Docs / Sheets 等 + リモートブラウザ</span></div></li>
+      </ul>
+      <div style="overflow-x:auto;margin-top:20px">
+        <table>
+          <thead><tr><th>日付</th><th>イベント</th><th>対象</th></tr></thead>
+          <tbody>
+            <tr><td class="fg">2026-05-19</td><td>I/O 2026 で発表</td><td>US 先行</td></tr>
+            <tr><td class="fg">2026-07-16</td><td>日本語・日本 Ultra</td><td>AI Ultra 14,500円〜</td></tr>
+            <tr><td class="fg">2026-07-29</td><td>日本 Pro 拡大発表</td><td>AI Pro 2,900円 + Ultra</td></tr>
+            <tr><td class="fg">2026-08-02</td><td>ロールアウト進行中</td><td>アカウント差あり</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="sec" id="why">
+      <p class="kicker">03 · WHY IT MATTERS</p>
+      <h2>エンジニア視点の「5層のすごさ」</h2>
+      <div class="grid-2">
+        <div class="card layer"><h3><span class="n">01</span>常時稼働がクラウド側に移った</h3><ul><li>端末オン前提のローカル常駐と競合軸が違う</li><li>夜間・移動中でも Schedule が走る</li><li>「朝起きたら終わっている」運用が現実化</li></ul></div>
+        <div class="card layer"><h3><span class="n">02</span>Workspace が実行面</h3><ul><li>API 連携で予測可能性が高い</li><li>Gmail→Sheets / Calendar が本命</li><li>文体スキルの再利用</li></ul></div>
+        <div class="card layer"><h3><span class="n">03</span>価格帯の移動（日本）</h3><ul><li>実験コストが約 1/5</li><li>上位プラン障壁が低下</li><li>コンピュートは Pro < Ultra</li></ul></div>
+        <div class="card layer"><h3><span class="n">04</span>Task / Skill / Schedule</h3><ul><li>運用単位が分割されている</li><li>Skill が手順の型になる</li><li>イベント駆動が可能</li></ul></div>
+        <div class="card layer"><h3><span class="n">05</span>Human-in-the-loop</h3><ul><li>送信・課金は確認必須</li><li>Browser Takeover が明示</li><li>監督可能な部下モデル</li></ul></div>
+        <div class="card layer"><h3><span class="n">横断</span>産業インパクト</h3><ul><li>競争軸がエージェント単価×ハーネスへ</li><li>ローカル常駐との棲み分け</li><li>サブエージェント等ロードマップ</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="sec" id="arch">
+      <p class="kicker">04 · ARCHITECTURE</p>
+      <h2>Task / Skill / Schedule と実行スタック</h2>
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="stat"><div class="l">Task</div><div class="v" style="font-size:22px">What</div><div class="h">高レベル目標</div></div>
+        <div class="stat"><div class="l">Skill</div><div class="v" style="font-size:22px">How</div><div class="h">再利用手順・文体</div></div>
+        <div class="stat"><div class="l">Schedule</div><div class="v" style="font-size:22px">When</div><div class="h">時刻 or 条件トリガー</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">実行スタック</p>
+          <p class="muted"><strong style="color:var(--fg)">Runtime</strong> — Cloud 専用 VM</p>
+          <p class="muted"><strong style="color:var(--fg)">Model</strong> — Gemini 3.5 / 3.6 Flash</p>
+          <p class="muted"><strong style="color:var(--fg)">Harness</strong> — Antigravity</p>
+          <p class="muted"><strong style="color:var(--fg)">Connectors</strong> — Workspace + リモートブラウザ + MCP</p>
+        </div>
+        <div class="card">
+          <p class="col-k">デモ系ユースケース</p>
+          <p class="muted">予約メール→旅程 Sheet / 毎週イベント探索 / 出欠更新 / 請求書監査 / ゴーストライター Skill / Chrome 操作</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="sec" id="limits">
+      <p class="kicker">05 · BACKGROUND LIMITS</p>
+      <h2>バックグラウンド動作の限界</h2>
+      <div class="grid-2" style="margin-bottom:16px;grid-template-columns:repeat(2,1fr)">
+        <div class="stat"><div class="l">同時タスク</div><div class="v">15</div><div class="h">超過時は待ち</div></div>
+        <div class="stat"><div class="l">Schedule</div><div class="v">50</div><div class="h">上限時は整理</div></div>
+        <div class="stat"><div class="l">使用量</div><div class="v" style="font-size:22px">Compute</div><div class="h">Pro < Ultra</div></div>
+        <div class="stat"><div class="l">起動</div><div class="v" style="font-size:22px">近似</div><div class="h">高負荷で遅延</div></div>
+      </div>
+      <div class="card">
+        <p class="muted" style="margin:0">条件監視は連続ではない / オフライン時に確認待ちを止められない場合あり / ローカルファイルは端末オン必須 / 添付・曖昧コンテキストは失敗しやすい（ベータ）</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="sec" id="handoff">
+      <p class="kicker">06 · HUMAN HANDOFF</p>
+      <h2>人間ハンドオフのポイント</h2>
+      <div class="card" style="margin-bottom:12px">
+        <p class="muted" style="margin:0">設計言語は一貫して <strong style="color:var(--fg)">under your direction + 高ステークス前の確認</strong>。</p>
+      </div>
+      <div class="gates" style="margin-bottom:12px">
+        <span class="gate">メール送信</span><span class="gate">データ変更・削除</span><span class="gate">購入・支払い</span>
+        <span class="gate">Webフォーム</span><span class="gate">ログイン/CAPTCHA/決済</span>
+      </div>
+      <p class="muted"><strong style="color:var(--fg)">Plan</strong> → 自律実行 → <strong style="color:var(--fg)">Confirm gate</strong> → Browser takeover（必要時）→ 完了ログ</p>
+    </section>
+
+    <!-- 07 -->
+    <section class="sec" id="economics">
+      <p class="kicker">07 · ECONOMICS · JP</p>
+      <h2>日本での到達価格と利用条件</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>プラン</th><th>月額</th><th>Spark</th><th>メモ</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--fg)">無料 / Plus</td><td class="fg">0 / 〜725円</td><td>不可</td><td>対象外</td></tr>
+            <tr><td style="color:var(--fg)">Google AI Pro</td><td class="fg">2,900円</td><td style="color:var(--ok)">可（順次）</td><td>7/29 拡大発表</td></tr>
+            <tr><td style="color:var(--fg)">Ultra 5x / 20x</td><td class="fg">14,500 / 32,000円</td><td style="color:var(--ok)">可</td><td>7/16 日本語開始</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">条件: 18歳以上 · 個人アカウント · Pro/Ultra · アクティビティ保存オン · Workspace 不可</p>
+    </section>
+
+    <!-- 08 -->
+    <section class="sec" id="caveats">
+      <p class="kicker">08 · CAVEATS</p>
+      <h2>サプライズしすぎないための注釈</h2>
+      <div class="grid-2">
+        <div class="card"><strong>まだベータ</strong><p class="muted" style="margin:8px 0 0">監督必須。下書きまでから段階導入。</p></div>
+        <div class="card"><strong>ロールアウトばらつき</strong><p class="muted" style="margin:8px 0 0">同一プランでも表示差あり。</p></div>
+        <div class="card"><strong>権限は常設アクセス</strong><p class="muted" style="margin:8px 0 0">最小権限から拡張。機密は直書きしない。</p></div>
+        <div class="card"><strong>地域・アカウント制約</strong><p class="muted" style="margin:8px 0 0">EEA/UK/CH/NG 除外。仕事用アカウント不可。</p></div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="sec" id="bottom">
+      <p class="kicker">09 · THE BOTTOM LINE</p>
+      <h2>今日の結論</h2>
+      <div class="card" style="margin-bottom:16px;border-color:var(--border-strong)">
+        <p style="margin:0;font-size:17px;font-weight:500;line-height:1.5">
+          日本では 24/7 パーソナルエージェントが Ultra の特権から Pro 価格帯の実務ツールへ。
+          価値の中心は <span style="color:var(--signal)">クラウド常時実行 × Workspace 実行面 × 確認ゲート</span>。
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="card"><p class="col-k" style="color:var(--ok)">DO</p><p class="muted" style="margin:0">読取・転記から / 下書きまで自動 / Skill で型化 / 使用量をログ</p></div>
+        <div class="card"><p class="col-k" style="color:var(--danger)">DON'T</p><p class="muted" style="margin:0">無監督で送信 / 機密直書き / 15並列前提 / リアルタイム誤解</p></div>
+        <div class="card"><p class="col-k">WATCH NEXT</p><p class="muted" style="margin:0">Gmail 直指示 / サブエージェント / 添付改善 / Pro 実効上限</p></div>
+      </div>
+      <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
+        <p class="col-k">SOURCES</p>
+        <p class="note" style="margin:0">
+          Google Japan / Gemini 公式（2026-07-16, 07-29）· Gemini Apps Help ·
+          Impress Watch / ケータイ Watch / PC Watch / GIGAZINE · PCMag / 9to5Google
+        </p>
+        <p class="note">Day Slide 2026-08-02 · ベータ製品のため仕様は変更されうる。数値は公式ヘルプ優先。</p>
+      </div>
+    </section>
+
+    <footer class="page">
+      <span>Gemini Spark Japan Pro · Day Slide · スタンドアロン HTML</span>
+      <span class="mono">2026-08-02</span>
+    </footer>
+  </div>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_01.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_02.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-02.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
