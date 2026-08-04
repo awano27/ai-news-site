@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alibaba Qwen3.8-Max 正式リリース — 2.4T MoE / 16日自律コーディング | Day Slide 2026-08-03</title>
+  <meta name="description" content="Alibaba Qwen3.8-Max 正式発表の深掘り。総パラメータ2.4T・アクティブ95BのMoE、1Mコンテキスト、16日間ほぼ人間介入なしの自律コーディング（265コミット・127PR・151Issue）、価格$2/$6、来週オープンウェイト予定までを整理する Day Slide。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_03.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Alibaba Qwen3.8-Max 正式リリース — 2.4T MoE / 16日自律コーディング">
+  <meta property="og:description" content="チャットが上手いから「数日〜数週間でプロジェクトを完遂するエージェント」へ。2.4T MoE・95B active・1M context・$2/$6・来週オープンウェイトの意味を10セクションで固定する。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_03.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0803/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Alibaba Qwen3.8-Max 正式リリース — 2.4T MoE / 16日自律コーディング">
+  <meta name="twitter:description" content="2.4T MoE / 16日完全自律コーディング。長ホライゾンエージェントへのシフトとコスト構造の変化を読み解く Day Slide。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0803/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Alibaba Qwen3.8-Max 正式リリース — 2.4T MoE / 16日自律コーディング",
+    "description": "Alibaba Qwen3.8-Max の正式発表を深掘り。2.4T/95B MoE、1Mコンテキスト、16日自律コーディングデモ、ベンチマーク、価格、オープンウェイト計画、実験案までを整理する。",
+    "datePublished": "2026-08-03",
+    "dateModified": "2026-08-03",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_03.html",
+    "articleSection": "AI Models & Agents"
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #06090a;
+      --surface: #0d1213;
+      --elevated: #141b1c;
+      --fg: #eff5f2;
+      --muted: #9baba4;
+      --subtle: #6c7d76;
+      --border: #1e2827;
+      --border-strong: #35443f;
+      --signal: #a3e635;
+      --ok: #5ec9a0;
+      --warn: #d6b56e;
+      --danger: #c27a7a;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --font: "Segoe UI", "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; color-scheme: dark; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--signal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px 64px; }
+    @media (min-width: 640px) { .wrap { padding: 0 24px 80px; } }
+
+    header.top {
+      position: sticky; top: 0; z-index: 40;
+      border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+      background: color-mix(in oklab, var(--bg) 90%, transparent);
+      backdrop-filter: blur(12px);
+    }
+    .top-inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 16px;
+    }
+    .brand-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--subtle); margin: 0; }
+    .brand-t { font-size: 14px; font-weight: 500; margin: 2px 0 0; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--fg); color: var(--bg);
+      font: 500 13px/1 var(--font);
+      padding: 10px 14px; border-radius: 999px;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn:hover { opacity: 0.92; text-decoration: none; }
+    .btn-ghost {
+      background: transparent; color: var(--fg);
+      border-color: var(--border);
+    }
+
+    .hero { padding: 48px 0 24px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 12px; color: var(--muted); margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+      font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+      margin: 0; max-width: 42rem; text-wrap: balance;
+    }
+    h1 .sub { display: block; margin-top: 8px; color: var(--muted); font-weight: 500; font-size: 0.55em; letter-spacing: -0.01em; line-height: 1.35; }
+    .lede {
+      margin: 20px 0 0; max-width: 44rem;
+      font-size: 16px; color: var(--muted);
+    }
+    @media (min-width: 640px) { .lede { font-size: 18px; } }
+    .meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 28px;
+    }
+    @media (min-width: 640px) { .meta-grid { grid-template-columns: repeat(4, 1fr); } }
+    .meta {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius); padding: 12px 14px;
+    }
+    .meta span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .meta strong { display: block; margin-top: 6px; font-size: 14px; font-weight: 500; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .tag {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: 999px; padding: 4px 10px;
+    }
+
+    .sheet {
+      margin-top: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .sheet-head {
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      padding: 18px 20px;
+    }
+    .sheet-head .k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--signal); margin: 0;
+    }
+    .sheet-head h2 {
+      margin: 8px 0 0; font-size: clamp(1.15rem, 1rem + 1vw, 1.5rem);
+      font-weight: 600; letter-spacing: -0.02em;
+    }
+    .sheet-head p { margin: 8px 0 0; font-size: 14px; color: var(--muted); max-width: 42rem; }
+    .sheet-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      font-family: var(--mono); font-size: 11px;
+      border: 1px solid var(--border); background: var(--bg);
+      border-radius: 999px; padding: 4px 10px; color: var(--muted);
+    }
+    .badge.fg { color: var(--fg); }
+    .badge.ok { color: var(--ok); border-color: color-mix(in oklab, var(--ok) 40%, var(--border)); }
+
+    .sheet-grid {
+      display: grid;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (min-width: 900px) {
+      .sheet-grid { grid-template-columns: 5fr 4fr 3fr; }
+      .sheet-grid > div { border-right: 1px solid var(--border); }
+      .sheet-grid > div:last-child { border-right: 0; }
+    }
+    .col { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+    @media (min-width: 900px) { .col { border-bottom: 0; padding: 20px; } }
+    .col-k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+      color: var(--subtle); margin: 0 0 12px;
+    }
+
+    .tl { list-style: none; margin: 0; padding: 0; }
+    .tl li { display: flex; gap: 12px; padding-bottom: 14px; }
+    .tl li:last-child { padding-bottom: 0; }
+    .dot-col { display: flex; flex-direction: column; align-items: center; }
+    .dot {
+      width: 10px; height: 10px; margin-top: 4px; border-radius: 999px;
+      border: 2px solid var(--signal); background: var(--bg); flex-shrink: 0;
+    }
+    .line { width: 1px; flex: 1; margin-top: 4px; background: var(--border); min-height: 12px; }
+    .tl .d { font-family: var(--mono); font-size: 12px; color: var(--signal); }
+    .tl .t { font-size: 14px; font-weight: 600; }
+    .tl .s { font-size: 12px; color: var(--muted); }
+
+    .what {
+      margin-top: 16px; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: var(--radius-lg); padding: 12px 14px;
+      font-size: 13px; color: var(--muted);
+    }
+
+    .pillar {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--bg) 60%, transparent);
+      border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px;
+    }
+    .pillar:last-child { margin-bottom: 0; }
+    .pillar .n { font-family: var(--mono); font-size: 10px; color: var(--signal); margin-right: 8px; }
+    .pillar .pt { font-size: 13px; font-weight: 600; }
+    .pillar .pb { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+    .price-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px; margin-bottom: 8px; background: color-mix(in oklab, var(--bg) 60%, transparent);
+    }
+    .price-card.hi { border-color: var(--border-strong); background: var(--elevated); }
+    .price-card .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--subtle); }
+    .price-card .v { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .price-card .v.sm { font-size: 14px; }
+    .price-card .ok { font-size: 12px; color: var(--ok); margin-top: 4px; }
+    .elig { margin: 12px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--muted); }
+    .elig li { margin: 3px 0; }
+
+    .bottom-grid { display: grid; }
+    @media (min-width: 900px) {
+      .bottom-grid { grid-template-columns: 3fr 4fr 5fr; }
+      .bottom-grid > div { border-right: 1px solid var(--border); }
+      .bottom-grid > div:last-child { border-right: 0; }
+    }
+    .bottom-grid > div { padding: 18px 16px; border-top: 1px solid var(--border); }
+    @media (min-width: 900px) { .bottom-grid > div { padding: 20px; border-top: 0; } }
+    .sheet > .bottom-grid { border-top: 1px solid var(--border); }
+
+    .lim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .lim {
+      text-align: center; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      border-radius: var(--radius); padding: 8px;
+    }
+    .lim .l { font-size: 10px; color: var(--subtle); }
+    .lim .v { font-family: var(--mono); font-size: 18px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+    .gates { display: flex; flex-wrap: wrap; gap: 6px; }
+    .gate {
+      border: 1px solid var(--border); background: var(--bg);
+      border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 500;
+    }
+    .flow { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+    .dodont { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .box {
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 30%, transparent);
+      border-radius: var(--radius); padding: 10px;
+    }
+    .box .h { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; }
+    .box .h.ok { color: var(--ok); }
+    .box .h.no { color: var(--danger); }
+    .box ul { margin: 6px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--muted); }
+    .box li { margin: 3px 0; }
+    .bline { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+
+    .sheet-foot {
+      display: flex; flex-direction: column; gap: 4px;
+      border-top: 1px solid var(--border);
+      background: color-mix(in oklab, var(--bg) 50%, transparent);
+      padding: 12px 16px; font-size: 11px; color: var(--subtle);
+    }
+    @media (min-width: 640px) {
+      .sheet-foot { flex-direction: row; justify-content: space-between; align-items: center; padding: 12px 20px; }
+    }
+    .sheet-foot .mono { font-family: var(--mono); letter-spacing: 0.14em; font-size: 10px; }
+
+    section.sec {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+    .kicker {
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em;
+      color: var(--signal); margin: 0 0 10px;
+    }
+    section.sec h2 {
+      margin: 0 0 24px; font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+      font-weight: 600; letter-spacing: -0.02em; max-width: 38rem;
+    }
+    .card {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius-xl); padding: 18px 20px;
+    }
+    .card + .card { margin-top: 12px; }
+    .grid-2 { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .grid-3 { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+    .grid-4 { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+    @media (min-width: 720px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+    .muted { color: var(--muted); font-size: 14px; }
+    .bullets { list-style: none; margin: 0; padding: 0; }
+    .bullets li { display: flex; gap: 10px; margin: 0 0 14px; }
+    .bullets .b { width: 6px; height: 6px; margin-top: 8px; border-radius: 999px; background: var(--signal); flex-shrink: 0; }
+    .bullets strong { display: block; font-size: 14px; }
+    .bullets span { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+      border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden;
+    }
+    th {
+      text-align: left; background: var(--elevated); color: var(--subtle);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      font-weight: 500; padding: 10px 14px;
+    }
+    td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+    td.fg { color: var(--fg); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .stat {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 60%, transparent);
+      border-radius: var(--radius-lg); padding: 14px;
+    }
+    .stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .stat .v { font-family: var(--mono); font-size: 28px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .stat .h { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .layer h3 { margin: 0 0 10px; font-size: 15px; }
+    .layer .n { font-family: var(--mono); font-size: 11px; color: var(--signal); margin-right: 8px; }
+    .layer ul { margin: 0; padding: 0; list-style: none; }
+    .layer li { font-size: 13px; color: var(--muted); margin: 6px 0; padding-left: 14px; position: relative; }
+    .layer li::before { content: "→"; position: absolute; left: 0; color: var(--subtle); font-size: 11px; top: 2px; }
+    .note { font-size: 12px; color: var(--subtle); margin-top: 12px; }
+    .callout {
+      border-left: 3px solid var(--signal);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+    .callout p { margin: 0; font-size: 14px; color: var(--muted); }
+    .callout strong { color: var(--fg); font-weight: 500; }
+    footer.page {
+      border-top: 1px solid var(--border); padding: 28px 0;
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+      font-size: 13px; color: var(--muted);
+    }
+    footer.page .mono { font-family: var(--mono); font-size: 12px; color: var(--subtle); }
+
+    @media print {
+      header.top { position: static; }
+      .btn, .no-print { display: none !important; }
+      body { background: #fff; color: #111; }
+      .sheet, .card, .meta, .stat, .pillar, .price-card, .lim, .box { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top no-print">
+    <div class="top-inner">
+      <div>
+        <p class="brand-k">VISIONHUB · DAY SLIDE · OFFLINE HTML</p>
+        <p class="brand-t">2026-08-03 · Qwen3.8-Max Formal Release</p>
+      </div>
+      <a class="btn" href="#onesheet" onclick="window.print()">印刷 / PDF保存</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">今日の深掘り — 長ホライゾンエージェント / オープンウェイト競争</div>
+      <h1>
+        Alibaba Qwen3.8-Max 正式リリース
+        <span class="sub">2.4T MoE · 95B active · 16日完全自律コーディング · 来週オープンウェイト</span>
+      </h1>
+      <p class="lede">
+        2026年8月2〜3日、Alibaba Qwen チームが <strong style="color:var(--fg);font-weight:500">Qwen3.8-Max</strong> を正式発表。
+        総パラメータ <strong style="color:var(--fg);font-weight:500">2.4兆</strong>、アクティブ <strong style="color:var(--fg);font-weight:500">95B</strong> の sparse MoE。
+        空リポジトリから CLI ツールを <strong style="color:var(--fg);font-weight:500">16日間ほぼ人間介入なし</strong> で育て続け（265 commits · 127 PRs · 151 Issues、公開トレース）、
+        「チャットが上手いモデル」から「数日〜数週間単位でプロジェクトを完遂するエージェント」へのシフトを明示した。
+        価格は Input $2 / Output $6 per M tokens。Max 級のオープンウェイトは Qwen 初。
+      </p>
+      <div class="meta-grid">
+        <div class="meta"><span>正式発表</span><strong>2026-08-02〜03</strong></div>
+        <div class="meta"><span>Preview</span><strong>2026-07-19（WAIC）</strong></div>
+        <div class="meta"><span>規模</span><strong>2.4T / 95B active MoE</strong></div>
+        <div class="meta"><span>コンテキスト</span><strong>1M tokens</strong></div>
+      </div>
+      <div class="tags">
+        <span class="tag">Qwen3.8-Max</span>
+        <span class="tag">2.4T MoE</span>
+        <span class="tag">Long-horizon Agent</span>
+        <span class="tag">oh-my-cli</span>
+        <span class="tag">Open Weights Next Week</span>
+        <span class="tag">$2 / $6</span>
+        <span class="tag">QwenCloud</span>
+      </div>
+    </div>
+
+    <!-- ONE SHEET -->
+    <figure class="sheet" id="onesheet">
+      <div class="sheet-head">
+        <p class="k">DAY SLIDE 2026-08-03 · ONE-SHEET SUMMARY</p>
+        <h2>Qwen3.8-Max 正式リリース・サマリ</h2>
+        <p>長時間自律・コーディング・研究再現・Eコマースシミュレーションで実績を提示。競争軸は「単発の賢さ」から <strong style="color:var(--fg)">マルチデイ完遂力 × 単価 × オープンウェイト</strong> へ。</p>
+        <div class="sheet-badges">
+          <span class="badge fg">GA · QwenCloud</span>
+          <span class="badge ok">Open weights · ~来週</span>
+          <span class="badge">Max 級初の公開予定</span>
+        </div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="col">
+          <p class="col-k">A · TIMELINE</p>
+          <ol class="tl">
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">07.16</div><div class="t">Kimi K3 発表</div><div class="s">2.8T · オープン競合</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">07.19</div><div class="t">Qwen3.8-Max Preview</div><div class="s">WAIC Shanghai</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">07.30</div><div class="t">oh-my-cli 16日到達</div><div class="s">265c · 127PR · 151I</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span></div>
+              <div><div class="d">08.02–03</div><div class="t">正式 GA + ブログ</div><div class="s">価格確定 · OW 来週</div></div>
+            </li>
+          </ol>
+          <div class="what">
+            <strong style="color:var(--subtle);font-size:10px;letter-spacing:0.16em;font-family:var(--mono)">B · WHAT IT IS</strong><br />
+            単発回答用の巨大チャットではない。
+            <strong style="color:var(--fg);font-weight:500">日〜週単位の長ホライゾンタスク</strong>を自律で回し切ることを設計目標に据えたフラッグシップ。
+          </div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">C · 4 PILLARS</p>
+          <div class="pillar"><span class="n">01</span><span class="pt">2.4T / 95B MoE</span><p class="pb">総量は巨大、推論コストは active 95B で抑える sparse 設計</p></div>
+          <div class="pillar"><span class="n">02</span><span class="pt">16日自律コーディング</span><p class="pb">空フォルダ→本番相当 CLI。公開 Git トレース</p></div>
+          <div class="pillar"><span class="n">03</span><span class="pt">$2 in / $6 out</span><p class="pb">1M コンテキストまでフラット。K3 より安価</p></div>
+          <div class="pillar"><span class="n">04</span><span class="pt">Max 級オープンウェイト</span><p class="pb">HF / ModelScope 来週予定。Qwen-Max 初</p></div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">D · PRICE · API</p>
+          <div class="price-card hi">
+            <div class="l">Input / M tokens</div>
+            <div class="v">$2.00</div>
+            <div class="ok">1M ctx フラット</div>
+          </div>
+          <div class="price-card">
+            <div class="l">Output / M tokens</div>
+            <div class="v">$6.00</div>
+            <div class="s" style="font-size:12px;color:var(--muted);margin-top:4px">thinking も output 課金</div>
+          </div>
+          <div class="price-card">
+            <div class="l">Cache hit</div>
+            <div class="v sm">~$0.20–0.25</div>
+          </div>
+          <ul class="elig">
+            <li>· QwenCloud / Model Studio</li>
+            <li>· OpenAI · Anthropic 互換 API</li>
+            <li>· reasoning_effort: low/med/xhigh</li>
+            <li>· vs K3: $3/$15 → 大幅に安い</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div>
+          <p class="col-k">E · KEY NUMBERS</p>
+          <div class="lim-grid">
+            <div class="lim"><div class="l">総 params</div><div class="v" style="font-size:15px">2.4T</div></div>
+            <div class="lim"><div class="l">Active</div><div class="v" style="font-size:15px">95B</div></div>
+            <div class="lim"><div class="l">自律日数</div><div class="v">16</div></div>
+            <div class="lim"><div class="l">Commits</div><div class="v">265</div></div>
+          </div>
+          <p class="flow">TerminalBench-2.1 <strong style="color:var(--fg)">86.6</strong> · PaperBench <strong style="color:var(--fg)">93.0</strong> · GPQA Diamond <strong style="color:var(--fg)">92.6</strong>（公式自己報告）</p>
+        </div>
+        <div>
+          <p class="col-k">F · DEMO 面</p>
+          <div class="gates">
+            <span class="gate">oh-my-cli 16日</span>
+            <span class="gate">論文再現 ~5日</span>
+            <span class="gate">チップ設計 ~500 iter</span>
+            <span class="gate">Eコメ 365日 sim</span>
+            <span class="gate">Tianchi 24h</span>
+          </div>
+          <p class="flow">
+            公開トレースは <strong style="color:var(--fg)">qwen-code-dev-bot/oh-my-cli</strong>。
+            他デモは主に社内報告。外部独立検証はまだ薄い。
+          </p>
+        </div>
+        <div>
+          <p class="col-k">G · DO / DON'T · BOTTOM LINE</p>
+          <div class="dodont">
+            <div class="box">
+              <div class="h ok">DO</div>
+              <ul>
+                <li>· API で小さく試す</li>
+                <li>· 16日トレースを読む</li>
+                <li>· ハーネス移植を抽出</li>
+                <li>· E2E テストを必須化</li>
+              </ul>
+            </div>
+            <div class="box">
+              <div class="h no">DON'T</div>
+              <ul>
+                <li>· ベンチを鵜呑み</li>
+                <li>· 無監督で本番書込</li>
+                <li>· OW 前に self-host 前提</li>
+                <li>· 単発チャット比較で終了</li>
+              </ul>
+            </div>
+          </div>
+          <p class="bline">
+            結論: 価値の中心はパラメータ数ではなく
+            <strong style="color:var(--fg)">長時間自律 × 公開トレース × 破壊的単価 × OW 予告</strong>。
+            エンジニアのコスト構造とワークフローを変える候補。
+          </p>
+        </div>
+      </div>
+
+      <figcaption class="sheet-foot">
+        <span class="mono">図 · ONE-SHEET · 全セクションの正本サマリ</span>
+        <span>Sources: Qwen 公式ブログ · Bloomberg · The Decoder · MarkTechPost · X 実測</span>
+      </figcaption>
+    </figure>
+
+    <!-- 01 -->
+    <section class="sec" id="map">
+      <p class="kicker">01 · MAP</p>
+      <h2>まず全体像——何が「座標」を動かしたか</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">KEY MAP · 4 LAYERS</p>
+          <p class="muted"><strong style="color:var(--fg)">LAYER 01 モデル</strong> — 2.4T sparse MoE / 95B active / 1M context。マルチモーダル（文書200p+・動画100h+ 級の主張）。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 02 能力軸</strong> — コーディング · 長ホライゾン · 研究再現 · チップ · Eコマース · オフィス/コワーク。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 03 · NEW 配布</strong> — QwenCloud GA · $2/$6 · OpenAI/Anthropic 互換 · 来週 OW（HF/ModelScope）。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 04 競争</strong> — Kimi K3（2.8T, OW済）と並ぶ中国勢のフロンティア級。米側 Claude Fable 5 / GPT 系と「二番手」争いを公式が主張。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">BEFORE → AFTER</p>
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">BEFORE</strong><br />Qwen Max はホスト API 中心。長時間自律はデモ断片。オープンウェイトは中小〜中型が主戦場。</p>
+          <hr style="border:0;border-top:1px solid var(--border);margin:14px 0" />
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">AFTER · 2026-08-02/03</strong><br />Max 級を「数週間プロジェクト完遂」の実績で売り、OW を予告。コストは K3 より安く、トレースは GitHub 公開。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>なぜサプライズか:</strong> 「チャットが上手い」から「数日〜数週間単位でプロジェクトを完遂するエージェント」への明確なシフト。中国勢がフロンティア級の長時間自律をオープンウェイトで出してくるのは、エンジニアにとってコスト構造とワークフローを本気で変える可能性が高い。</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="sec" id="shipped">
+      <p class="kicker">02 · WHAT SHIPPED</p>
+      <h2>Alibaba が出したのは「もっと大きいチャット」ではない</h2>
+      <div class="card" style="margin-bottom:16px">
+        <p class="muted" style="margin:0;font-size:16px">
+          <strong style="color:var(--fg)">Qwen3.8-Max</strong> は、RL 環境をマルチデイ・ネストディレクトリ・複数エージェントハーネスに拡張し、
+          <strong style="color:var(--fg)">長時間・多ステップの完遂</strong>を主戦場に据えたフラッグシップ。7/19 Preview → 8月上旬 GA。
+        </p>
+      </div>
+      <ul class="bullets grid-2" style="display:grid">
+        <li><span class="b"></span><div><strong>アーキテクチャ</strong><span>Sparse MoE · 総 2.4T · アクティブ 95B（~4%）</span></div></li>
+        <li><span class="b"></span><div><strong>コンテキスト</strong><span>最大 1M tokens。長文・大リポジトリ前提</span></div></li>
+        <li><span class="b"></span><div><strong>API</strong><span>QwenCloud · OpenAI / Anthropic プロトコル互換</span></div></li>
+        <li><span class="b"></span><div><strong>制御ツマミ</strong><span>reasoning_effort（low / medium / xhigh）· preserve_thinking</span></div></li>
+        <li><span class="b"></span><div><strong>価格</strong><span>Input $2 · Output $6 · Cache hit ~$0.20–0.25 / M</span></div></li>
+        <li><span class="b"></span><div><strong>オープンウェイト</strong><span>来週 Hugging Face / ModelScope。Max 級初</span></div></li>
+      </ul>
+      <div style="overflow-x:auto;margin-top:20px">
+        <table>
+          <thead><tr><th>日付</th><th>イベント</th><th>意味</th></tr></thead>
+          <tbody>
+            <tr><td class="fg">2026-07-16</td><td>Moonshot Kimi K3 発表</td><td>2.8T · 中国勢 OW 競争加速</td></tr>
+            <tr><td class="fg">2026-07-19</td><td>Qwen3.8-Max Preview（WAIC）</td><td>2.4T · 「Fable 5 に次ぐ」主張</td></tr>
+            <tr><td class="fg">2026-07-27</td><td>K3 ウェイト公開</td><td>実際にダウンロード可能に</td></tr>
+            <tr><td class="fg">2026-07-30</td><td>oh-my-cli 16日到達</td><td>265c / 127PR / 151 Issue</td></tr>
+            <tr><td class="fg">2026-08-02〜03</td><td>正式発表・GA 強調</td><td>価格・ベンチ・OW 予告を固定</td></tr>
+            <tr><td class="fg">~2026-08-10</td><td>OW 予定（「来週」）</td><td>8/3 時点では未配布</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="sec" id="why">
+      <p class="kicker">03 · WHY IT MATTERS</p>
+      <h2>エンジニア視点の「5層のすごさ」</h2>
+      <div class="grid-2">
+        <div class="card layer"><h3><span class="n">01</span>評価軸が「単発」から「数週間」へ</h3><ul><li>チャット Elo ではなく完遂日数・PR 本数</li><li>Issue → 実装 → テスト → merge の閉ループ</li><li>エージェント製品の KPI が書き換えられる</li></ul></div>
+        <div class="card layer"><h3><span class="n">02</span>公開トレースがある</h3><ul><li>oh-my-cli は GitHub で追える</li><li>ブラックボックスデモより検証可能</li><li>自社ハーネス設計の教材になる</li></ul></div>
+        <div class="card layer"><h3><span class="n">03</span>コスト構造が壊れる</h3><ul><li>$2/$6 はフロンティア級で攻撃的</li><li>K3 $3/$15、Claude 系より大幅安</li><li>長時間ループを回す前提の単価</li></ul></div>
+        <div class="card layer"><h3><span class="n">04</span>Max 級 OW の予告</h3><ul><li>ホスト依存からの脱却可能性</li><li>コンプラ・空気ギャップ・自前 RL</li><li>K3 との二強ローカル実験</li></ul></div>
+        <div class="card layer"><h3><span class="n">05</span>中国勢の同時攻撃</h3><ul><li>K3 と 3 日差のプレビュー</li><li>価格・OW・エージェントの三点セット</li><li>米側とのギャップ縮小を印象付け</li></ul></div>
+        <div class="card layer"><h3><span class="n">横断</span>産業インパクト</h3><ul><li>競争軸 = モデル × ハーネス × 単価</li><li>「人間レビュー付き自律 PR」が標準化</li><li>16 日デモの再現性が次の戦場</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="sec" id="coding">
+      <p class="kicker">04 · AUTONOMOUS CODING</p>
+      <h2>16日間ほぼ人間介入なし——oh-my-cli トレース</h2>
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="stat"><div class="l">自律期間</div><div class="v">16</div><div class="h">日（〜2026-07-30）</div></div>
+        <div class="stat"><div class="l">Commits</div><div class="v">265</div><div class="h">公開リポジトリ</div></div>
+        <div class="stat"><div class="l">Pull Requests</div><div class="v">127</div><div class="h">自己マージ含む</div></div>
+        <div class="stat"><div class="l">Issues</div><div class="v">151</div><div class="h">フィードバック→Issue 化</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">何をしたか</p>
+          <p class="muted" style="margin:0">空のリポジトリから <strong style="color:var(--fg)">oh-my-cli</strong>（コマンドラインツール）を構築。ユーザー/コミュニティ要望を Issue 化し、自分にアサインし、コード生成・テスト・改善を反復。状態機械は <strong style="color:var(--fg)">ready → leased → active</strong>。Build / Unit / E2E / Desktop Lifecycle などの自己テストを組み込み。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">なぜ重要か</p>
+          <p class="muted" style="margin:0">「1 セッションで PR 1 本」ではなく、<strong style="color:var(--fg)">日単位で製品が進化し続ける</strong>ことを示した。トレースが公開されているため、ハーネス設計（Issue 駆動・自己テスト必須・マージ基準）を他社が移植・比較できる。</p>
+        </div>
+      </div>
+      <p class="note">Repo: github.com/qwen-code-dev-bot/oh-my-cli · 数値は Qwen 公式ブログ（2026-08-02 前後）および The Decoder / The New Stack 報道。外部の品質監査は途上。</p>
+    </section>
+
+    <!-- 05 -->
+    <section class="sec" id="benchmarks">
+      <p class="kicker">05 · BENCHMARKS</p>
+      <h2>公式が並べた「コーディングとエージェント」の数字</h2>
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table>
+          <thead><tr><th>領域</th><th>ベンチ</th><th>スコア</th><th>メモ</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--fg)">Coding Agent</td><td>TerminalBench-2.1</td><td class="fg">86.6</td><td>先頭級。GPT-5.6 Sol は 88.8 との比較あり</td></tr>
+            <tr><td style="color:var(--fg)">Coding Agent</td><td>SWE-bench Pro</td><td class="fg">67.7</td><td>実リポジトリ系</td></tr>
+            <tr><td style="color:var(--fg)">Coding Agent</td><td>FrontierSWE</td><td class="fg">73.5</td><td>前世代 40.7 から大幅改善との主張</td></tr>
+            <tr><td style="color:var(--fg)">Research</td><td>PaperBench</td><td class="fg">93.0</td><td>比較内最高と公式</td></tr>
+            <tr><td style="color:var(--fg)">Reasoning</td><td>GPQA Diamond</td><td class="fg">92.6</td><td>一般能力</td></tr>
+            <tr><td style="color:var(--fg)">Visual Agent</td><td>OSWorld-Verified</td><td class="fg">86.1</td><td>デスクトップ操作</td></tr>
+            <tr><td style="color:var(--fg)">Cowork</td><td>CoWorkBench</td><td class="fg">74.8</td><td>業務生産性</td></tr>
+            <tr><td style="color:var(--fg)">Long ctx</td><td>MRCR v2 256K</td><td class="fg">92.9</td><td>8-needle</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <p class="muted" style="margin:0"><strong style="color:var(--warn)">Caveat:</strong> 上記は主に Alibaba 自己報告。Artificial Analysis / LMArena 等の独立評価は 8/3 時点で揃っていない。内部インデックスは 0.474 → 0.725 上昇、最適は約 4,000 訓練環境付近とブログが述べる。比較表は必ず自前で再測定すること。</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="sec" id="demos">
+      <p class="kicker">06 · LONG-HORIZON DEMOS</p>
+      <h2>コーディング以外——研究・チップ・Eコマース</h2>
+      <div class="grid-2">
+        <div class="card layer">
+          <h3><span class="n">01</span>研究論文再現</h3>
+          <ul>
+            <li>論文 “Unified Data Selection for LLM Reasoning”</li>
+            <li>~5 日 / 約 125 GPU 時間 · 7,600 LOC · 33 訓練ジョブ</li>
+            <li>AIME24 +7.7pt、さらに改良で +2.7pt 上乗せ主張</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">02</span>チップ設計（暗号アクセラレータ）</h3>
+          <ul>
+            <li>約 500 イテレーションの自律最適化</li>
+            <li>ゲート数 8,298 → 678（約 81% 削減）</li>
+            <li>面積 106×106 → 46×46 µm² · 500 MHz タイミング</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">03</span>Eコマース 365 日シミュレーション</h3>
+          <ul>
+            <li>初期資本 ¥100,000 · 年末残高 ¥416,252（約 4.16x）</li>
+            <li>仕入・価格・返品・災害・詐欺検知 152 件</li>
+            <li>Qwen3.7-Max 比 2.5x、次点 GLM 5.2 を上回る主張</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">04</span>Tianchi マルチモーダル大会</h3>
+          <ul>
+            <li>WWW2025 意図認識 · 526 チーム中</li>
+            <li>24h で accuracy 0.60 → 0.853</li>
+            <li>458 チームを上回る（人間チーム含む）と報告</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">デモ群は「単一ベンチで勝つ」より「環境に長時間住み、改善サイクルを回せる」ことを示すためのポートフォリオ。再現可能な公開資産は oh-my-cli が中心。</p>
+    </section>
+
+    <!-- 07 -->
+    <section class="sec" id="economics">
+      <p class="kicker">07 · ECONOMICS · OPEN WEIGHTS</p>
+      <h2>価格・競合・オープンウェイトの座標</h2>
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table>
+          <thead><tr><th>項目</th><th>Qwen3.8-Max</th><th>Kimi K3</th><th>示唆</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--fg)">総パラメータ</td><td class="fg">2.4T</td><td class="fg">2.8T</td><td>同クラス</td></tr>
+            <tr><td style="color:var(--fg)">Active / token</td><td class="fg">95B</td><td class="fg">104B</td><td>どちらも sparse</td></tr>
+            <tr><td style="color:var(--fg)">Input / M</td><td class="fg">$2.00</td><td class="fg">$3.00</td><td>Qwen が安い</td></tr>
+            <tr><td style="color:var(--fg)">Output / M</td><td class="fg">$6.00</td><td class="fg">$15.00</td><td>長考ループで差が拡大</td></tr>
+            <tr><td style="color:var(--fg)">Cache hit</td><td class="fg">~$0.20–0.25</td><td class="fg">$0.30</td><td>反復エージェント向き</td></tr>
+            <tr><td style="color:var(--fg)">オープンウェイト</td><td class="fg">来週予定</td><td class="fg">07-27 公開済</td><td>K3 が先行実在</td></tr>
+            <tr><td style="color:var(--fg)">1M context 課金</td><td class="fg">フラット</td><td class="fg">—</td><td>長文リポに有利</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">API で今できること</p>
+          <p class="muted" style="margin:0">QwenCloud / Alibaba Cloud Model Studio。OpenAI Chat Completions および Anthropic Messages 互換。エージェント・長考は <strong style="color:var(--fg)">reasoning_effort=xhigh</strong> を試す。thinking トークンは output 単価。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">OW 待ちの注意</p>
+          <p class="muted" style="margin:0">8/3 時点でウェイト未配布。「来週」= おおよそ 8/10 前後の報道。ライセンス・量子化フォーマット・必要 VRAM は未確定。27B 級の軽量版併せて予告する報道もあり。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="sec" id="caveats">
+      <p class="kicker">08 · CAVEATS</p>
+      <h2>サプライズしすぎないための注釈</h2>
+      <div class="grid-2">
+        <div class="card"><strong>自己報告ベンチ</strong><p class="muted" style="margin:8px 0 0">主要スコアはベンダー内部。独立 third-party が揃うまで「公式表 = 確定性能」としない。</p></div>
+        <div class="card"><strong>デモの再現性</strong><p class="muted" style="margin:8px 0 0">oh-my-cli 以外はトレースが薄い。論文再現・チップ・Eコメは条件・シード・失敗率の公開が不足。</p></div>
+        <div class="card"><strong>OW はまだ「予定」</strong><p class="muted" style="margin:8px 0 0">K3 のようにファイルが落ちてからが本番。遅延・制限ライセンス・巨大量子化の可能性。</p></div>
+        <div class="card"><strong>ハーネス依存</strong><p class="muted" style="margin:8px 0 0">16 日デモはモデル単体ではなく Issue 状態機械・自己テスト・マージポリシー込み。移植しないと比較不能。</p></div>
+        <div class="card"><strong>安全・監督</strong><p class="muted" style="margin:8px 0 0">長時間自律ほど権限範囲が効く。本番リポジトリへの無監督書込・課金 API・社外通信はゲート必須。</p></div>
+        <div class="card"><strong>地域・データ</strong><p class="muted" style="margin:8px 0 0">クラウド利用時のデータの所在・契約条件を確認。コンプラ要件が高い組織は OW 後のオンプレを並行検討。</p></div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="sec" id="experiment">
+      <p class="kicker">09 · NEXT EXPERIMENTS</p>
+      <h2>明日から回せる実験案</h2>
+      <div class="grid-2">
+        <div class="card layer">
+          <h3><span class="n">A</span>最小 E2E 自律追加</h3>
+          <ul>
+            <li>小さな公開/社内リポを QwenCloud に渡す</li>
+            <li>指示:「この機能を自律追加して E2E テストまで通して」</li>
+            <li>計測: 所要時間 · 人間介入回数 · テスト成功率 · トークン費用</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">B</span>16日デモのハーネス移植</h3>
+          <ul>
+            <li>oh-my-cli の Issue 状態機械を読む</li>
+            <li>自社向けに ready/leased/active · 必須テスト · PR 基準を抽出</li>
+            <li>Claude Code / 自作ハーネスに同等ルールを載せ替え</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">C</span>価格感度テスト</h3>
+          <ul>
+            <li>同一タスクを reasoning_effort 三段階で実行</li>
+            <li>$2/$6 実効コストと品質のパレートを記録</li>
+            <li>K3・Claude・自社標準モデルと並列比較</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">D</span>OW 到着後の dual-track</h3>
+          <ul>
+            <li>API 継続 vs セルフホストのレイテンシ/コスト</li>
+            <li>ライセンス・量子化・最低 GPU をチェックリスト化</li>
+            <li>「長時間ループだけ API、機密はローカル」の分割設計</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <p><strong>推奨の最初の一手:</strong> 本番ではなくサンドボックス monorepo で「Issue 1 本 → テスト緑 → PR」を 24h 放置し、介入ログを取る。成功条件を先に数値で決めてから 16 日級にスケールする。</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="sec" id="bottom">
+      <p class="kicker">10 · THE BOTTOM LINE</p>
+      <h2>今日の結論</h2>
+      <div class="card" style="margin-bottom:16px;border-color:var(--border-strong)">
+        <p style="margin:0;font-size:17px;font-weight:500;line-height:1.5">
+          Qwen3.8-Max は「巨大チャット」ではなく、
+          <span style="color:var(--signal)">長時間自律 × 公開トレース × $2/$6 × Max 級 OW 予告</span>
+          の四点セットで座標を動かした。エンジニアが追うべきはパラメータ数ではなく、
+          自社ハーネスに移植可能な閉ループと、実効コスト付きの再現実験。
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="card"><p class="col-k" style="color:var(--ok)">DO</p><p class="muted" style="margin:0">API で小さく試す / 16日トレースを読む / E2E 必須化 / 介入回数を測る / OW 到着に備える</p></div>
+        <div class="card"><p class="col-k" style="color:var(--danger)">DON'T</p><p class="muted" style="margin:0">公式ベンチを確定値扱い / 無監督で本番書込 / OW 前に self-host 前提 / 単発チャット比較で打ち止め</p></div>
+        <div class="card"><p class="col-k">WATCH NEXT</p><p class="muted" style="margin:0">OW 実配布日 · ライセンス · 独立ベンチ · 27B 軽量版 · 他社 16日級デモの対抗</p></div>
+      </div>
+      <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
+        <p class="col-k">SOURCES</p>
+        <p class="note" style="margin:0">
+          Qwen 公式ブログ（qwen.ai · id=qwen3.8, 2026-08-02 前後）· Alibaba Qwen / QwenCloud 公式投稿 ·
+          The Decoder · The New Stack · Developer-Tech · Pulse2 · Apidog 比較 · Bloomberg / MarkTechPost 報道 ·
+          X 上の実測・エンゲージメント（8/3 時点）
+        </p>
+        <p class="note">Day Slide 2026-08-03 · 数値は公式・主要報道を優先。ベンチは自己報告を含み、独立検証前。仕様・価格・OW 日程は変更されうる。</p>
+      </div>
+    </section>
+
+    <footer class="page">
+      <span>Qwen3.8-Max Formal Release · Day Slide · スタンドアロン HTML</span>
+      <span class="mono">2026-08-03</span>
+    </footer>
+  </div>
+
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_02.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_03.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-03.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
