@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meta Muse Code（beta）＋ Muse Spark 1.2 — ターミナルコーディングエージェント本格参入 | Day Slide 2026-08-05</title>
+  <meta name="description" content="Metaが大規模リポジトリ対応のターミナルコーディングエージェント「Muse Code」をbeta公開。Muse Spark 1.2（コーディング特化）で駆動。async background sub-agents、isolated worktrees、ローカルイベントログによるクラッシュ後再開、/plan /grill /goal を搭載。Claude Code / Codex / Grok Buildへの本格参入。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_05.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Meta Muse Code（beta）＋ Muse Spark 1.2 — ターミナルコーディングエージェント本格参入">
+  <meta property="og:description" content="モデル＋エージェントをco-trainedした実用ターミナルエージェント。大規模コードベースで計画→実装→検証を一貫。価格競争力と持続・並列・再開性が強い。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_05.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0805/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Meta Muse Code（beta）＋ Muse Spark 1.2 — ターミナルコーディングエージェント本格参入">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0805/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Meta Muse Code（beta）＋ Muse Spark 1.2 — ターミナルコーディングエージェント本格参入",
+    "description": "Metaのターミナルコーディングエージェント。async sub-agents、isolated worktrees、event log再開、co-trained Muse Spark 1.2。",
+    "datePublished": "2026-08-05",
+    "dateModified": "2026-08-05",
+    "articleSection": "AI Coding Agents"
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #0c0705;
+      --surface: #18100d;
+      --elevated: #221713;
+      --fg: #fdf2ee;
+      --muted: #b8a099;
+      --subtle: #8a7169;
+      --border: #2e211c;
+      --border-strong: #4a352d;
+      --signal: #ff7a5c;
+      --ok: #6cc39a;
+      --warn: #d6b56e;
+      --danger: #e05a7a;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --font: "Segoe UI", "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; color-scheme: dark; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--signal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px 64px; }
+    @media (min-width: 640px) { .wrap { padding: 0 24px 80px; } }
+
+    header.top {
+      position: sticky; top: 0; z-index: 40;
+      border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+      background: color-mix(in oklab, var(--bg) 90%, transparent);
+      backdrop-filter: blur(12px);
+    }
+    .top-inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 16px;
+    }
+    .brand-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--subtle); margin: 0; }
+    .brand-t { font-size: 14px; font-weight: 500; margin: 2px 0 0; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--fg); color: var(--bg);
+      font: 500 13px/1 var(--font);
+      padding: 10px 14px; border-radius: 999px;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn:hover { opacity: 0.92; text-decoration: none; }
+
+    .hero { padding: 48px 0 24px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 12px; color: var(--muted); margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+      font-weight: 700; line-height: 1.2; margin: 0 0 16px; letter-spacing: -0.02em;
+    }
+    h1 .sub { display: block; margin-top: 8px; color: var(--muted); font-weight: 500; font-size: 0.55em; letter-spacing: -0.01em; line-height: 1.35; }
+    .lede { font-size: 16px; color: var(--muted); margin: 0 0 24px; max-width: 52em; }
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;
+    }
+    @media (min-width: 560px) { .meta-grid { grid-template-columns: repeat(4, 1fr); } }
+    .meta {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius); padding: 10px 12px;
+    }
+    .meta span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .meta strong { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .tag {
+      font-size: 11px; padding: 5px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 70%, transparent);
+      color: var(--muted);
+    }
+
+    .sheet {
+      border: 1px solid var(--border-strong); background: var(--surface);
+      border-radius: var(--radius-xl); overflow: hidden; margin: 32px 0 48px;
+    }
+    .sheet-head { padding: 22px 20px 16px; border-bottom: 1px solid var(--border); }
+    .sheet-head .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--subtle); margin: 0 0 6px; }
+    .sheet-head h2 { margin: 0 0 8px; font-size: 1.35rem; }
+    .sheet-head p { margin: 0; font-size: 14px; color: var(--muted); }
+    .sheet-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      font-size: 11px; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted);
+    }
+    .badge.fg { border-color: var(--signal); color: var(--signal); }
+    .badge.ok { border-color: var(--ok); color: var(--ok); }
+
+    .sheet-grid {
+      display: grid;
+    }
+    @media (min-width: 800px) {
+      .sheet-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .sheet-grid > .col { border-right: 1px solid var(--border); }
+      .sheet-grid > .col:last-child { border-right: 0; }
+    }
+    .sheet-grid > .col { padding: 18px 16px; }
+    .col-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--subtle); margin: 0 0 12px; }
+
+    .tl { list-style: none; margin: 0; padding: 0; }
+    .tl li { display: flex; gap: 10px; margin-bottom: 12px; }
+    .tl li:last-child { margin-bottom: 0; }
+    .dot-col { display: flex; flex-direction: column; align-items: center; width: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--signal); margin-top: 5px; }
+    .line { flex: 1; width: 1px; background: var(--border); margin: 4px 0; }
+    .tl .d { font-family: var(--mono); font-size: 12px; color: var(--signal); }
+    .tl .t { font-size: 14px; font-weight: 600; }
+    .tl .s { font-size: 12px; color: var(--muted); }
+
+    .what {
+      margin-top: 16px; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: var(--radius-lg); padding: 12px 14px;
+      font-size: 13px; color: var(--muted);
+    }
+
+    .pillar {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--bg) 60%, transparent);
+      border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px;
+    }
+    .pillar:last-child { margin-bottom: 0; }
+    .pillar .n { font-family: var(--mono); font-size: 10px; color: var(--signal); margin-right: 8px; }
+    .pillar .pt { font-size: 13px; font-weight: 600; }
+    .pillar .pb { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+    .price-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px; margin-bottom: 8px; background: color-mix(in oklab, var(--bg) 60%, transparent);
+    }
+    .price-card.hi { border-color: var(--border-strong); background: var(--elevated); }
+    .price-card .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--subtle); }
+    .price-card .v { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .price-card .v.sm { font-size: 14px; }
+    .price-card .ok { font-size: 12px; color: var(--ok); margin-top: 4px; }
+
+    .bottom-grid { display: grid; }
+    @media (min-width: 900px) {
+      .bottom-grid { grid-template-columns: 3fr 4fr 5fr; }
+      .bottom-grid > div { border-right: 1px solid var(--border); }
+      .bottom-grid > div:last-child { border-right: 0; }
+    }
+    .bottom-grid > div { padding: 18px 16px; border-top: 1px solid var(--border); }
+    @media (min-width: 900px) { .bottom-grid > div { padding: 20px; border-top: 0; } }
+    .sheet > .bottom-grid { border-top: 1px solid var(--border); }
+
+    .lim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .lim {
+      text-align: center; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      border-radius: var(--radius); padding: 8px;
+    }
+    .lim .l { font-size: 10px; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.1em; }
+    .lim .v { font-family: var(--mono); font-size: 18px; font-weight: 600; margin-top: 2px; }
+
+    .gates { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .gate {
+      font-size: 11px; padding: 4px 8px; border-radius: 6px;
+      border: 1px solid var(--border); color: var(--muted);
+    }
+    .flow { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+
+    .dodont { display: grid; gap: 10px; }
+    @media (min-width: 500px) { .dodont { grid-template-columns: 1fr 1fr; } }
+    .box {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 10px 12px; background: color-mix(in oklab, var(--bg) 50%, transparent);
+    }
+    .box .h { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .box .h.ok { color: var(--ok); }
+    .box .h.no { color: var(--danger); }
+    .box ul { margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); }
+    .box li { margin: 3px 0; }
+    .bline { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+
+    .sheet-foot {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+      padding: 12px 16px; border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--subtle);
+    }
+    .sheet-foot .mono { font-family: var(--mono); }
+
+    section.sec { margin: 40px 0; }
+    section.sec .kicker {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+      color: var(--signal); margin: 0 0 8px;
+    }
+    section.sec h2 {
+      font-size: 1.35rem; margin: 0 0 16px; letter-spacing: -0.01em;
+    }
+    .card {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--surface) 80%, transparent);
+      border-radius: var(--radius-lg); padding: 16px;
+    }
+    .card + .card { margin-top: 12px; }
+    .grid-2 { display: grid; gap: 12px; }
+    @media (min-width: 700px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .grid-3 { display: grid; gap: 12px; }
+    @media (min-width: 700px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+    .layer h3 { margin: 0 0 10px; font-size: 15px; }
+    .layer .n { font-family: var(--mono); font-size: 11px; color: var(--signal); margin-right: 8px; }
+    .layer ul { margin: 0; padding: 0; list-style: none; }
+    .layer li { font-size: 13px; color: var(--muted); margin: 6px 0; padding-left: 14px; position: relative; }
+    .layer li::before { content: "→"; position: absolute; left: 0; color: var(--subtle); font-size: 11px; top: 2px; }
+
+    .callout {
+      border-left: 3px solid var(--signal);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+    .callout p { margin: 0; font-size: 14px; color: var(--muted); }
+    .callout strong { color: var(--fg); font-weight: 500; }
+
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+      border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden;
+    }
+    th {
+      text-align: left; background: var(--elevated); color: var(--subtle);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      font-weight: 500; padding: 10px 14px;
+    }
+    td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+    td.fg { color: var(--fg); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+    .note { font-size: 12px; color: var(--subtle); margin-top: 12px; }
+    footer.page {
+      border-top: 1px solid var(--border); padding: 28px 0;
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+      font-size: 13px; color: var(--muted);
+    }
+    footer.page .mono { font-family: var(--mono); font-size: 12px; color: var(--subtle); }
+
+    @media print {
+      header.top { position: static; }
+      .btn, .no-print { display: none !important; }
+      body { background: #fff; color: #111; }
+      .sheet, .card, .meta, .stat, .pillar, .price-card, .lim, .box { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top no-print">
+    <div class="top-inner">
+      <div>
+        <p class="brand-k">VISIONHUB · DAY SLIDE · OFFLINE HTML</p>
+        <p class="brand-t">2026-08-05 · Meta Muse Code + Muse Spark 1.2</p>
+      </div>
+      <a class="btn" href="#onesheet" onclick="window.print(); return false;">印刷 / PDF保存</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">今日の深掘り — 大規模リポジトリ対応ターミナルエージェント / Co-trained / 価格・持続性</div>
+      <h1>
+        Meta Muse Code（beta）＋ Muse Spark 1.2
+        <span class="sub">ターミナルコーディングエージェント本格参入 · async sub-agents · isolated worktrees · event-log再開 · /plan /grill /goal</span>
+      </h1>
+      <p class="lede">
+        2026年8月5日、Meta が <strong style="color:var(--fg);font-weight:500">Muse Code（beta）</strong> を公開。駆動するのはコーディング特化アップデートの <strong style="color:var(--fg);font-weight:500">Muse Spark 1.2</strong>。
+        大規模リポジトリで「計画 → 実装 → 検証」を一貫して回す実用ターミナルエージェント。Claude Code / Codex / Grok Build に対する本格参入で、モデルとエージェントを <strong style="color:var(--fg);font-weight:500">co-trained</strong> した点が最大の差別化。価格競争力も強い。
+      </p>
+      <div class="meta-grid">
+        <div class="meta"><span>公開</span><strong>2026-08-05</strong></div>
+        <div class="meta"><span>状態</span><strong>beta</strong></div>
+        <div class="meta"><span>対象</span><strong>macOS / Linux</strong></div>
+        <div class="meta"><span>コンテキスト</span><strong>1M tokens</strong></div>
+      </div>
+      <div class="tags">
+        <span class="tag">Muse Code</span>
+        <span class="tag">Muse Spark 1.2</span>
+        <span class="tag">Terminal Agent</span>
+        <span class="tag">Async Sub-agents</span>
+        <span class="tag">Isolated Worktrees</span>
+        <span class="tag">Event Log</span>
+        <span class="tag">Co-trained</span>
+        <span class="tag">/plan /grill /goal</span>
+        <span class="tag">Contributor超安</span>
+      </div>
+    </div>
+
+    <!-- ONE SHEET -->
+    <figure class="sheet" id="onesheet">
+      <div class="sheet-head">
+        <p class="k">DAY SLIDE 2026-08-05 · ONE-SHEET SUMMARY</p>
+        <h2>Muse Code 爆誕・サマリ</h2>
+        <p>競争軸は「強いモデル単体」から <strong style="color:var(--fg)">co-trained エージェント製品 × 永続サブエージェント × 隔離並列 × クラッシュ耐性 × 価格</strong> へ。</p>
+        <div class="sheet-badges">
+          <span class="badge fg">beta · Meta</span>
+          <span class="badge ok">macOS / Linux</span>
+          <span class="badge">1M context · curl install</span>
+        </div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="col">
+          <p class="col-k">A · TIMELINE</p>
+          <ol class="tl">
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">07.09</div><div class="t">Muse Spark 1.1</div><div class="s">開発者テスト向け公開</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">〜1ヶ月</div><div class="t">コーディング特化学習</div><div class="s">compute拡大 · 環境多様化</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">08.05</div><div class="t">Muse Code beta + 1.2</div><div class="s">同時公開 · co-trained</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span></div>
+              <div><div class="d">08.05–07</div><div class="t">Zuckerberg / MSL発表</div><div class="s">X · research.meta.ai · Reuters</div></div>
+            </li>
+          </ol>
+          <div class="what">
+            <strong style="color:var(--subtle);font-size:10px;letter-spacing:0.16em;font-family:var(--mono)">B · WHAT IT IS</strong><br />
+            ただのモデルではない。<strong style="color:var(--fg);font-weight:500">大規模リポジトリで計画・実装・検証を一貫実行する実用ターミナルエージェント製品</strong>。モデルとハーネスを一緒に育てた。
+          </div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">C · 4 PILLARS</p>
+          <div class="pillar"><span class="n">01</span><span class="pt">Async Background Agents</span><p class="pb">セッション全体で持続。毎回spawnせずコンテキスト蓄積。レイテンシとsteeringを削減</p></div>
+          <div class="pillar"><span class="n">02</span><span class="pt">Isolated Worktrees</span><p class="pb">並列サブエージェントをGit worktreeで隔離。ワーキングコピー無触。衝突なし</p></div>
+          <div class="pillar"><span class="n">03</span><span class="pt">Local Event Log</span><p class="pb">全操作をログにappend。replay-exact・クラッシュ後正確再開。長時間タスク対応</p></div>
+          <div class="pillar"><span class="n">04</span><span class="pt">Co-trained + Skills</span><p class="pb">モデルとエージェント共同訓練。/plan /grill /goal を標準搭載</p></div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">D · COST · ACCESS</p>
+          <div class="price-card hi">
+            <div class="l">Standard tier</div>
+            <div class="v">$1.25 / $4.25</div>
+            <div class="ok">input / output per M · データ不使用</div>
+          </div>
+          <div class="price-card">
+            <div class="l">Contributor tier</div>
+            <div class="v sm">$0.10 / $0.20</div>
+            <div class="ok">約12〜21倍安い · データ利用許可</div>
+          </div>
+          <div class="price-card">
+            <div class="l">Install</div>
+            <div class="v sm" style="font-size:12px;line-height:1.4">curl -fsSL https://dev.meta.ai/install.sh | bash</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div>
+          <p class="col-k">E · KEY NUMBERS</p>
+          <div class="lim-grid">
+            <div class="lim"><div class="l">Terminal-Bench</div><div class="v" style="font-size:15px">82.9%</div></div>
+            <div class="lim"><div class="l">DeepSWE</div><div class="v" style="font-size:15px">59.3%</div></div>
+            <div class="lim"><div class="l">Context</div><div class="v" style="font-size:15px">1M</div></div>
+            <div class="lim"><div class="l">Long-run</div><div class="v" style="font-size:15px">24h+</div></div>
+          </div>
+          <p class="flow">Terminal-Bench 2位（Claude Opus 5次点） · Hopper kernel 1,000+ tool calls</p>
+        </div>
+        <div>
+          <p class="col-k">F · 競合位置</p>
+          <div class="gates">
+            <span class="gate">Claude Code</span>
+            <span class="gate">OpenAI Codex</span>
+            <span class="gate">Grok Build</span>
+            <span class="gate">Gemini CLI</span>
+          </div>
+          <p class="flow">
+            価格と持続・並列・再開性で勝負。<strong style="color:var(--fg)">製品として即試せる</strong>点がエンジニア直撃。
+          </p>
+        </div>
+        <div>
+          <p class="col-k">G · DO / DON'T · BOTTOM LINE</p>
+          <div class="dodont">
+            <div class="box">
+              <div class="h ok">DO</div>
+              <ul>
+                <li>· curl一発でインストール</li>
+                <li>· 中規模repoでリファクタ＋テスト</li>
+                <li>· /plan → /grill を試す</li>
+                <li>· Contributorでコスト確認</li>
+              </ul>
+            </div>
+            <div class="box">
+              <div class="h no">DON'T</div>
+              <ul>
+                <li>· Windows前提で期待</li>
+                <li>· betaを本番唯一に</li>
+                <li>· データ共有条件を無視</li>
+                <li>· ベンチのみで判断</li>
+              </ul>
+            </div>
+          </div>
+          <p class="bline">
+            結論: 価値の中心は「強いモデル」ではなく
+            <strong style="color:var(--fg)">co-trained エージェント製品 × 永続・隔離・再開 × 価格</strong>。
+            明日から既存リポで比較実験できる。
+          </p>
+        </div>
+      </div>
+
+      <figcaption class="sheet-foot">
+        <span class="mono">図 · ONE-SHEET · 全セクションの正本サマリ</span>
+        <span>Sources: research.meta.ai · Zuckerberg @finkd · Reuters · VentureBeat</span>
+      </figcaption>
+    </figure>
+
+    <!-- 01 -->
+    <section class="sec" id="map">
+      <p class="kicker">01 · MAP</p>
+      <h2>まず全体像——何が「座標」を動かしたか</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">KEY MAP · 4 LAYERS</p>
+          <p class="muted"><strong style="color:var(--fg)">LAYER 01 プロダクト</strong> — ターミナルエージェント。大規模リポジトリで計画・コード記述・検証まで一貫。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 02 ランタイム</strong> — Async Background Agents + Isolated Worktrees + Local Event Log。永続・並列・再開。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 03 モデル</strong> — Muse Spark 1.2。コーディング特化 + co-trained with Muse Code。1M context。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 04 戦略</strong> — Claude Code / Codex / Grok Buildへの本格参入。価格と実用性で開発者を獲得。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">BEFORE → AFTER</p>
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">BEFORE</strong><br />Metaは強力モデルを出しても、専用の実用コーディングエージェント製品が弱かった。開発者はClaude CodeやCodexに流れていた。</p>
+          <hr style="border:0;border-top:1px solid var(--border);margin:14px 0" />
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">AFTER · 2026-08-05</strong><br />モデルとエージェントを一緒に育てた「製品」を即beta公開。curl一発で試せ、価格も強い。座標が動いた。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>なぜサプライズか:</strong> 「ただのモデル」ではなく、<strong>大規模コードベースで計画→実装→検証を一貫して回せる実用エージェント製品</strong>として即試せる点。価格競争力と、永続サブエージェント＋隔離並列＋クラッシュ耐性の組み合わせがエンジニア直撃。</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="sec" id="shipped">
+      <p class="kicker">02 · WHAT SHIPPED</p>
+      <h2>Metaが出したのは「もう一つのコーディングモデル」ではない</h2>
+      <div class="card" style="margin-bottom:16px">
+        <p class="muted" style="margin:0;font-size:16px">
+          <strong style="color:var(--fg)">Muse Code</strong> は、ターミナル上で動作するコーディングエージェント。大規模リポジトリを対象に変更の計画・実装・検証までを一貫処理する。駆動モデルは <strong style="color:var(--fg)">Muse Spark 1.2</strong>（1.1からのコーディング特化アップデート）。モデルとエージェントは <strong style="color:var(--fg)">co-trained</strong> され、ツール使用精度・計画実行・再試行の少なさが最適化されている。
+        </p>
+      </div>
+      <div class="grid-2">
+        <div class="card layer">
+          <h3><span class="n">01</span>インストールと対象</h3>
+          <ul>
+            <li>macOS / Linux 対応（Windowsは現時点非対応）</li>
+            <li>一発: <code style="font-family:var(--mono);font-size:12px;color:var(--signal)">curl -fsSL https://dev.meta.ai/install.sh | bash</code></li>
+            <li>Metaアカウント＋課金情報登録が必要</li>
+            <li>Contributor tierがデフォルト寄りでコスト障壁が低い</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">02</span>標準スキル</h3>
+          <ul>
+            <li><strong>/plan</strong> — タスクを承認ゲート付き実行計画に分解</li>
+            <li><strong>/grill</strong> — 計画を弱点が出なくなるまでストレステスト</li>
+            <li><strong>/goal</strong> — 指定目標を達成するまで継続駆動</li>
+            <li>マルチモーダル（動画入力→サイト生成デモあり）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="sec" id="why">
+      <p class="kicker">03 · WHY IT MATTERS</p>
+      <h2>エンジニア視点の「5層のすごさ」</h2>
+      <div class="grid-2">
+        <div class="card layer"><h3><span class="n">01</span>製品として即試せる</h3><ul><li>モデル単体ではなくハーネス込み</li><li>curl一発で既存repoに投入可能</li><li>「明日から比較実験」できる感が強い</li></ul></div>
+        <div class="card layer"><h3><span class="n">02</span>永続サブエージェント</h3><ul><li>タスクごとにspawnしない</li><li>セッション全体でコンテキスト蓄積</li><li>レイテンシと人間のsteeringを削減</li></ul></div>
+        <div class="card layer"><h3><span class="n">03</span>隔離並列 + 衝突なし</h3><ul><li>Git worktreeでサブエージェントを分離</li><li>ワーキングコピーを触れない設計</li><li>6機能同時構築の内部テスト例あり</li></ul></div>
+        <div class="card layer"><h3><span class="n">04</span>クラッシュ耐性</h3><ul><li>全操作をローカルイベントログに記録</li><li>replay-exact / restart-safe</li><li>24時間規模の長時間タスクが現実的</li></ul></div>
+        <div class="card layer"><h3><span class="n">05</span>価格 + Co-training</h3><ul><li>Contributorで約12〜21倍安</li><li>モデルとエージェントを一緒に最適化</li><li>Metaの本気の開発者獲得戦略</li></ul></div>
+        <div class="card layer"><h3><span class="n">+</span>競合への直接挑戦</h3><ul><li>Claude Code / Codex / Grok Build</li><li>価格と持続性・並列性で差別化</li><li>エンジニアの日常ワークフローに刺さる</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="sec" id="architecture">
+      <p class="kicker">04 · ARCHITECTURE</p>
+      <h2>ランタイム設計の核心</h2>
+      <div class="card" style="margin-bottom:16px">
+        <p class="muted" style="margin:0">
+          Muse Code は単純なエージェントループに加え、セッション全体を通じて生き残る専門バックグラウンドエージェント群を動かす。大きな仕事ではサブエージェントが <strong style="color:var(--fg)">isolated Git worktrees</strong> に fan-out し、開発者の作業コピーは一切触れられない。すべてのモデル呼び出し・ツール実行・編集・承認はローカルイベントログに append され、これが single source of truth となる。
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <p class="col-k">ASYNC BG AGENTS</p>
+          <p class="muted" style="margin:0;font-size:13px">タスク単位でspawnせず、セッション永続。情報収集・検証を並行し、必要なタイミングでメインに報告。冗長な再探索を避ける。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">ISOLATED WORKTREES</p>
+          <p class="muted" style="margin:0;font-size:13px">並列書き込みを物理的に分離。Gitのネイティブ機能を活用。衝突ゼロで複数機能を同時実装可能。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">EVENT LOG</p>
+          <p class="muted" style="margin:0;font-size:13px">操作を逐次記録。クラッシュ後も正確に中断点から再開。エンタープライズの監査性にも寄与。</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <p><strong>ケーススタディ:</strong> NVIDIA Hopper GPU向けカーネル最適化。1,000回以上のツール呼び出しを最大24時間かけて実行し、Tritonで最適化を継続発見。長時間自律探索の実例。</p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="sec" id="model">
+      <p class="kicker">05 · MUSE SPARK 1.2</p>
+      <h2>コーディング特化 + Co-training</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">EVOLUTION FROM 1.1</p>
+          <p class="muted">コード生成・複雑デバッグ・コードベース理解・end-to-end開発フローを強化。コーディングタスクへの学習計算量を大幅増加、学習環境の多様性も拡大。一般エージェント能力は維持。</p>
+          <p class="muted" style="margin-top:10px">Long-horizonタスク（リポジトリ全体生成、大規模end-to-end、自動調査）を重点学習。planning・goal conditioning・context compactionを組み合わせる。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">CO-TRAINING</p>
+          <p class="muted">Muse Codeと共同訓練。rejection-sampled harness trajectories、目標・圧縮・サブエージェント向け最適化を導入。Muse Spark 1.1で生成した挑戦的環境を使った自己改善ループも活用。</p>
+          <p class="muted" style="margin-top:10px">結果としてツール使用の初回成功率向上、計画実行のクリーンさ、再プロンプトの減少が期待される。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="sec" id="benchmarks">
+      <p class="kicker">06 · BENCHMARKS</p>
+      <h2>位置づけ（Meta報告ベース）</h2>
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table>
+          <thead>
+            <tr>
+              <th>ベンチマーク</th>
+              <th>Muse Spark 1.2 + Muse Code</th>
+              <th>参考（上位）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Terminal-Bench 2.1</td>
+              <td class="fg">82.9%</td>
+              <td>Claude Opus 5 + Claude Code 86.7%（2位）</td>
+            </tr>
+            <tr>
+              <td>DeepSWE 1.1</td>
+              <td class="fg">59.3%</td>
+              <td>Opus 5 65.0% / GPT-5.6 Terra 64.8%（3位）</td>
+            </tr>
+            <tr>
+              <td>内部コーディングベンチ</td>
+              <td class="fg">70.6%</td>
+              <td>Opus 5 79.4%（向上は明確）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">ベンダー報告。ハーネス付き評価。独立検証を推奨。GPT-5.6 TerraやGrok 4.5を一部上回る位置。</p>
+    </section>
+
+    <!-- 07 -->
+    <section class="sec" id="economics">
+      <p class="kicker">07 · ECONOMICS & STRATEGY</p>
+      <h2>価格設計とMetaの狙い</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">STANDARD</p>
+          <p class="muted" style="margin:0">$1.25 / M input · $4.25 / M output<br />キャッシュ入力はさらに安い。<br />プロンプト・完了結果は学習に使わない。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">CONTRIBUTOR</p>
+          <p class="muted" style="margin:0">$0.10 / M input · $0.20 / M output<br />約12〜21倍安い。<br />データ利用許可が条件。レート制限あり。</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <p><strong>戦略的意味:</strong> 個人・実験用途のコスト障壁をほぼ消すことで、開発者を一気に取り込み、実世界のコーディング軌跡を集める。モデル改善のフライホイールを回す意図が明確。</p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="sec" id="caveats">
+      <p class="kicker">08 · CAVEATS</p>
+      <h2>注意点・限界</h2>
+      <div class="grid-2">
+        <div class="card"><strong>betaである</strong><p class="muted" style="margin:8px 0 0">仕様・品質は急速に変わりうる。本番唯一のツールに即切替は避ける。</p></div>
+        <div class="card"><strong>プラットフォーム</strong><p class="muted" style="margin:8px 0 0">現時点はmacOS / Linux。Windows非対応。Metaアカウント必須。</p></div>
+        <div class="card"><strong>Contributorのデータ</strong><p class="muted" style="margin:8px 0 0">安い代わりにプロンプトと完了結果がMetaのモデル改善に使われる。プライバシー方針を確認。</p></div>
+        <div class="card"><strong>ベンチマーク</strong><p class="muted" style="margin:8px 0 0">ベンダー報告中心。自前の中規模リポでの比較実験を優先すべき。</p></div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="sec" id="experiment">
+      <p class="kicker">09 · NEXT EXPERIMENTS</p>
+      <h2>明日から回せる実験案</h2>
+      <div class="grid-2">
+        <div class="card layer">
+          <h3><span class="n">A</span>インストール＆スモーク</h3>
+          <ul>
+            <li>curl一発で入れ、Metaアカウント登録</li>
+            <li>Contributor tierでコスト感を確認</li>
+            <li>簡単な「README更新」タスクを投げる</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">B</span>中規模リポ比較</h3>
+          <ul>
+            <li>既存の中規模プロジェクトで「リファクタ＋テスト追加」</li>
+            <li>同じタスクをClaude Code / Codexでも回す</li>
+            <li>介入回数・成功率・コストを記録</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">C</span>並列・再開性</h3>
+          <ul>
+            <li>複数機能を同時に依頼し、worktree隔離を観察</li>
+            <li>意図的に中断・再開してイベントログの堅牢性を確認</li>
+            <li>/plan → /grill の品質を評価</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">D</span>長時間タスク</h3>
+          <ul>
+            <li>探索系（最適化・大規模リファクタ）を長時間走らせる</li>
+            <li>トークン消費と品質のトレードオフを測る</li>
+            <li>結果をチームで共有し比較表を作る</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <p><strong>推奨の最初の一手:</strong> 中規模の自分のリポジトリで「リファクタリング＋テスト追加」を1本投げる。15〜30分で「計画品質・並列感・再開性・コスト」が一度に見える。</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="sec" id="bottom">
+      <p class="kicker">10 · THE BOTTOM LINE</p>
+      <h2>今日の結論</h2>
+      <div class="card" style="margin-bottom:16px;border-color:var(--border-strong)">
+        <p style="margin:0;font-size:17px;font-weight:500;line-height:1.5">
+          Muse Code は「強いモデルの追加」ではなく、
+          <span style="color:var(--signal)">co-trained エージェント製品 × 永続サブエージェント × 隔離並列 × クラッシュ耐性 × 価格競争力</span>
+          の五点セットで座標を動かした。追うべきはカタログ機能の多寡ではなく、自リポジトリでの比較実験と、Contributor / Standardのコスト体感。明日から試せる。
+        </p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">DO</p>
+          <p class="muted" style="margin:0">curlで入れて中規模repoを投げる · /plan /grillを使う · 競合と並走比較 · イベントログの再開を確認</p>
+        </div>
+        <div class="card">
+          <p class="col-k">DON'T</p>
+          <p class="muted" style="margin:0">Windows前提 · betaを本番唯一化 · データ共有条件を無視 · ベンチ数字 alone で判断</p>
+        </div>
+      </div>
+      <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
+        <p class="col-k">SOURCES</p>
+        <p class="note" style="margin:0">
+          <a href="https://research.meta.ai/blog/introducing-muse-code-and-muse-spark-1-2" target="_blank" rel="noopener">Meta AI Research 公式ブログ</a> ·
+          Mark Zuckerberg (@finkd) X投稿 ·
+          Reuters · VentureBeat · GIGAZINE · Unite.AI · Meta for Developers
+        </p>
+        <p class="note">Day Slide 2026-08-05 · 数値・対応OS・価格は 8/5 時点の公開情報。beta仕様は急速に変わりうる。ベンチや互換性は自前検証を優先。</p>
+      </div>
+    </section>
+
+    <footer class="page">
+      <span>Meta Muse Code + Muse Spark 1.2 · Day Slide · スタンドアロン HTML</span>
+      <span class="mono">2026-08-05</span>
+    </footer>
+  </div>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_04.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_05.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-05.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>

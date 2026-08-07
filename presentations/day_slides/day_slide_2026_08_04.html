@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GenOffice — 世界初フル機能OSS AIオフィススイートが爆誕 | Day Slide 2026-08-04</title>
+  <meta name="description" content="Genspark GenOffice の深掘り。Docs/Sheets/Slides/PDF を AI ネイティブに統合したフル機能 OSS オフィススイート。1エンジニア1週間+$10k トークンで Alpha を構築し即公開。ファイル忠実性（byte-preserving round-trip）と tool-calling agent が既存の AI+Office と決定的に違う。" />
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_04.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="GenOffice — 世界初フル機能OSS AIオフィススイートが爆誕">
+  <meta property="og:description" content="AIチャット＋Office とは次元が違う。AI編集を第一級市民にした完全無料・広告なし・Apache-2.0 のフル機能スイートが突然 OSS 公開された衝撃を10セクションで固定する。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_04.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0804/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GenOffice — 世界初フル機能OSS AIオフィススイートが爆誕">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0804/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "GenOffice — 世界初フル機能OSS AIオフィススイートが爆誕",
+    "description": "Genspark GenOffice の深掘り。AI-native Docs/Sheets/Slides/PDF、byte-preserving 編集、1エンジニア1週間 Alpha、Apache-2.0。",
+    "datePublished": "2026-08-03",
+    "dateModified": "2026-08-04",
+    "articleSection": "AI Tools & Office"
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #08060c;
+      --surface: #120e18;
+      --elevated: #1a1522;
+      --fg: #f5f0fa;
+      --muted: #a99cb5;
+      --subtle: #7a6d86;
+      --border: #241d2e;
+      --border-strong: #3d3348;
+      --signal: #d8a0f8;
+      --ok: #7fc9a8;
+      --warn: #d6b56e;
+      --danger: #c27a7a;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --font: "Segoe UI", "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; color-scheme: dark; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--signal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px 64px; }
+    @media (min-width: 640px) { .wrap { padding: 0 24px 80px; } }
+
+    header.top {
+      position: sticky; top: 0; z-index: 40;
+      border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+      background: color-mix(in oklab, var(--bg) 90%, transparent);
+      backdrop-filter: blur(12px);
+    }
+    .top-inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 16px;
+    }
+    .brand-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--subtle); margin: 0; }
+    .brand-t { font-size: 14px; font-weight: 500; margin: 2px 0 0; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--fg); color: var(--bg);
+      font: 500 13px/1 var(--font);
+      padding: 10px 14px; border-radius: 999px;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn:hover { opacity: 0.92; text-decoration: none; }
+    .btn-ghost {
+      background: transparent; color: var(--fg);
+      border-color: var(--border);
+    }
+
+    .hero { padding: 48px 0 24px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 12px; color: var(--muted); margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+      font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+      margin: 0; max-width: 42rem; text-wrap: balance;
+    }
+    h1 .sub { display: block; margin-top: 8px; color: var(--muted); font-weight: 500; font-size: 0.55em; letter-spacing: -0.01em; line-height: 1.35; }
+    .lede {
+      margin: 20px 0 0; max-width: 44rem;
+      font-size: 16px; color: var(--muted);
+    }
+    @media (min-width: 640px) { .lede { font-size: 18px; } }
+    .meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 28px;
+    }
+    @media (min-width: 640px) { .meta-grid { grid-template-columns: repeat(4, 1fr); } }
+    .meta {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius); padding: 12px 14px;
+    }
+    .meta span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .meta strong { display: block; margin-top: 6px; font-size: 14px; font-weight: 500; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .tag {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: 999px; padding: 4px 10px;
+    }
+
+    .sheet {
+      margin-top: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .sheet-head {
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      padding: 18px 20px;
+    }
+    .sheet-head .k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--signal); margin: 0;
+    }
+    .sheet-head h2 {
+      margin: 8px 0 0; font-size: clamp(1.15rem, 1rem + 1vw, 1.5rem);
+      font-weight: 600; letter-spacing: -0.02em;
+    }
+    .sheet-head p { margin: 8px 0 0; font-size: 14px; color: var(--muted); max-width: 42rem; }
+    .sheet-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      font-family: var(--mono); font-size: 11px;
+      border: 1px solid var(--border); background: var(--bg);
+      border-radius: 999px; padding: 4px 10px; color: var(--muted);
+    }
+    .badge.fg { color: var(--fg); }
+    .badge.ok { color: var(--ok); border-color: color-mix(in oklab, var(--ok) 40%, var(--border)); }
+
+    .sheet-grid {
+      display: grid;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (min-width: 900px) {
+      .sheet-grid { grid-template-columns: 5fr 4fr 3fr; }
+      .sheet-grid > div { border-right: 1px solid var(--border); }
+      .sheet-grid > div:last-child { border-right: 0; }
+    }
+    .col { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+    @media (min-width: 900px) { .col { border-bottom: 0; padding: 20px; } }
+    .col-k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+      color: var(--subtle); margin: 0 0 12px;
+    }
+
+    .tl { list-style: none; margin: 0; padding: 0; }
+    .tl li { display: flex; gap: 12px; padding-bottom: 14px; }
+    .tl li:last-child { padding-bottom: 0; }
+    .dot-col { display: flex; flex-direction: column; align-items: center; }
+    .dot {
+      width: 10px; height: 10px; margin-top: 4px; border-radius: 999px;
+      border: 2px solid var(--signal); background: var(--bg); flex-shrink: 0;
+    }
+    .line { width: 1px; flex: 1; margin-top: 4px; background: var(--border); min-height: 12px; }
+    .tl .d { font-family: var(--mono); font-size: 12px; color: var(--signal); }
+    .tl .t { font-size: 14px; font-weight: 600; }
+    .tl .s { font-size: 12px; color: var(--muted); }
+
+    .what {
+      margin-top: 16px; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: var(--radius-lg); padding: 12px 14px;
+      font-size: 13px; color: var(--muted);
+    }
+
+    .pillar {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--bg) 60%, transparent);
+      border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px;
+    }
+    .pillar:last-child { margin-bottom: 0; }
+    .pillar .n { font-family: var(--mono); font-size: 10px; color: var(--signal); margin-right: 8px; }
+    .pillar .pt { font-size: 13px; font-weight: 600; }
+    .pillar .pb { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+    .price-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px; margin-bottom: 8px; background: color-mix(in oklab, var(--bg) 60%, transparent);
+    }
+    .price-card.hi { border-color: var(--border-strong); background: var(--elevated); }
+    .price-card .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--subtle); }
+    .price-card .v { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .price-card .v.sm { font-size: 14px; }
+    .price-card .ok { font-size: 12px; color: var(--ok); margin-top: 4px; }
+    .elig { margin: 12px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--muted); }
+    .elig li { margin: 3px 0; }
+
+    .bottom-grid { display: grid; }
+    @media (min-width: 900px) {
+      .bottom-grid { grid-template-columns: 3fr 4fr 5fr; }
+      .bottom-grid > div { border-right: 1px solid var(--border); }
+      .bottom-grid > div:last-child { border-right: 0; }
+    }
+    .bottom-grid > div { padding: 18px 16px; border-top: 1px solid var(--border); }
+    @media (min-width: 900px) { .bottom-grid > div { padding: 20px; border-top: 0; } }
+    .sheet > .bottom-grid { border-top: 1px solid var(--border); }
+
+    .lim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .lim {
+      text-align: center; border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 40%, transparent);
+      border-radius: var(--radius); padding: 8px;
+    }
+    .lim .l { font-size: 10px; color: var(--subtle); }
+    .lim .v { font-family: var(--mono); font-size: 18px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+    .gates { display: flex; flex-wrap: wrap; gap: 6px; }
+    .gate {
+      border: 1px solid var(--border); background: var(--bg);
+      border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 500;
+    }
+    .flow { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+    .dodont { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .box {
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--elevated) 30%, transparent);
+      border-radius: var(--radius); padding: 10px;
+    }
+    .box .h { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; }
+    .box .h.ok { color: var(--ok); }
+    .box .h.no { color: var(--danger); }
+    .box ul { margin: 6px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--muted); }
+    .box li { margin: 3px 0; }
+    .bline { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+
+    .sheet-foot {
+      display: flex; flex-direction: column; gap: 4px;
+      border-top: 1px solid var(--border);
+      background: color-mix(in oklab, var(--bg) 50%, transparent);
+      padding: 12px 16px; font-size: 11px; color: var(--subtle);
+    }
+    @media (min-width: 640px) {
+      .sheet-foot { flex-direction: row; justify-content: space-between; align-items: center; padding: 12px 20px; }
+    }
+    .sheet-foot .mono { font-family: var(--mono); letter-spacing: 0.14em; font-size: 10px; }
+
+    section.sec {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+    .kicker {
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em;
+      color: var(--signal); margin: 0 0 10px;
+    }
+    section.sec h2 {
+      margin: 0 0 24px; font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+      font-weight: 600; letter-spacing: -0.02em; max-width: 38rem;
+    }
+    .card {
+      border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius-xl); padding: 18px 20px;
+    }
+    .card + .card { margin-top: 12px; }
+    .grid-2 { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .grid-3 { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+    .grid-4 { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+    @media (min-width: 720px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+    .muted { color: var(--muted); font-size: 14px; }
+    .bullets { list-style: none; margin: 0; padding: 0; }
+    .bullets li { display: flex; gap: 10px; margin: 0 0 14px; }
+    .bullets .b { width: 6px; height: 6px; margin-top: 8px; border-radius: 999px; background: var(--signal); flex-shrink: 0; }
+    .bullets strong { display: block; font-size: 14px; }
+    .bullets span { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+      border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden;
+    }
+    th {
+      text-align: left; background: var(--elevated); color: var(--subtle);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      font-weight: 500; padding: 10px 14px;
+    }
+    td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+    td.fg { color: var(--fg); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .stat {
+      border: 1px solid var(--border); background: color-mix(in oklab, var(--elevated) 60%, transparent);
+      border-radius: var(--radius-lg); padding: 14px;
+    }
+    .stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--subtle); }
+    .stat .v { font-family: var(--mono); font-size: 28px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .stat .h { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .layer h3 { margin: 0 0 10px; font-size: 15px; }
+    .layer .n { font-family: var(--mono); font-size: 11px; color: var(--signal); margin-right: 8px; }
+    .layer ul { margin: 0; padding: 0; list-style: none; }
+    .layer li { font-size: 13px; color: var(--muted); margin: 6px 0; padding-left: 14px; position: relative; }
+    .layer li::before { content: "→"; position: absolute; left: 0; color: var(--subtle); font-size: 11px; top: 2px; }
+    .note { font-size: 12px; color: var(--subtle); margin-top: 12px; }
+    .callout {
+      border-left: 3px solid var(--signal);
+      background: color-mix(in oklab, var(--elevated) 50%, transparent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+    .callout p { margin: 0; font-size: 14px; color: var(--muted); }
+    .callout strong { color: var(--fg); font-weight: 500; }
+    footer.page {
+      border-top: 1px solid var(--border); padding: 28px 0;
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+      font-size: 13px; color: var(--muted);
+    }
+    footer.page .mono { font-family: var(--mono); font-size: 12px; color: var(--subtle); }
+
+    @media print {
+      header.top { position: static; }
+      .btn, .no-print { display: none !important; }
+      body { background: #fff; color: #111; }
+      .sheet, .card, .meta, .stat, .pillar, .price-card, .lim, .box { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top no-print">
+    <div class="top-inner">
+      <div>
+        <p class="brand-k">VISIONHUB · DAY SLIDE · OFFLINE HTML</p>
+        <p class="brand-t">2026-08-04 · GenOffice Open Source AI Office</p>
+      </div>
+      <a class="btn" href="#onesheet" onclick="window.print(); return false;">印刷 / PDF保存</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">今日の深掘り — AI-native Office / ファイル忠実性 / 入口戦略</div>
+      <h1>
+        GenOffice — 世界初フル機能OSS AIオフィススイートが爆誕
+        <span class="sub">Docs · Sheets · Slides · PDF · AI編集を第一級市民に · 1エンジニア1週間 · $10k tokens · Apache-2.0</span>
+      </h1>
+      <p class="lede">
+        2026年8月3日、Genspark が <strong style="color:var(--fg);font-weight:500">GenOffice</strong> の Alpha を即 OSS 公開。
+        macOS（Apple Silicon）/ Windows（x64）向けに Word・Excel・PowerPoint・PDF 相当を提供し、
+        各エディタに <strong style="color:var(--fg);font-weight:500">Genspark Super Agent</strong> をネイティブ内蔵。
+        これまでの「AIチャット＋Office」とは次元が違い、
+        <strong style="color:var(--fg);font-weight:500">ファイル忠実性を保ちつつ AI 編集を第一級ワークフロー</strong>にした点が既存 Google / Microsoft 系と決定的に違う。
+        コアは完全無料・広告なし・透かしなし。AI のみ Genspark クレジット消費。
+      </p>
+      <div class="meta-grid">
+        <div class="meta"><span>公開</span><strong>2026-08-03</strong></div>
+        <div class="meta"><span>状態</span><strong>Alpha · v0.5.x</strong></div>
+        <div class="meta"><span>ライセンス</span><strong>Apache-2.0</strong></div>
+        <div class="meta"><span>対象</span><strong>macOS arm64 / Win x64</strong></div>
+      </div>
+      <div class="tags">
+        <span class="tag">GenOffice</span>
+        <span class="tag">Genspark</span>
+        <span class="tag">AI-native Office</span>
+        <span class="tag">Byte-preserving</span>
+        <span class="tag">Docs/Sheets/Slides/PDF</span>
+        <span class="tag">Apache-2.0</span>
+        <span class="tag">1 eng · 1 week · $10k</span>
+      </div>
+    </div>
+
+    <!-- ONE SHEET -->
+    <figure class="sheet" id="onesheet">
+      <div class="sheet-head">
+        <p class="k">DAY SLIDE 2026-08-04 · ONE-SHEET SUMMARY</p>
+        <h2>GenOffice 爆誕・サマリ</h2>
+        <p>競争軸は「サイドバーのチャット」から <strong style="color:var(--fg)">AI編集を first-class にしたデスクトップスイート × ファイル忠実性 × フルOSS × 無料コア</strong> へ。</p>
+        <div class="sheet-badges">
+          <span class="badge fg">Alpha · GitHub</span>
+          <span class="badge ok">Core free · Ad-free</span>
+          <span class="badge">AI = Genspark credits</span>
+        </div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="col">
+          <p class="col-k">A · TIMELINE</p>
+          <ol class="tl">
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">04.08</div><div class="t">AI Workspace 4.0</div><div class="s">MS Office 埋め込み Agents</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">~1週</div><div class="t">1 engineer Alpha 構築</div><div class="s">$10k tokens · AI-native 開発</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+              <div><div class="d">08.03</div><div class="t">AGI Playground 発表</div><div class="s">OSS 即公開 · Apache-2.0</div></div>
+            </li>
+            <li>
+              <div class="dot-col"><span class="dot"></span></div>
+              <div><div class="d">08.04–05</div><div class="t">v0.5.x 連日同期</div><div class="s">署名インストーラ · 1.3k★</div></div>
+            </li>
+          </ol>
+          <div class="what">
+            <strong style="color:var(--subtle);font-size:10px;letter-spacing:0.16em;font-family:var(--mono)">B · WHAT IT IS</strong><br />
+            ボルトオン AI チャットではない。
+            <strong style="color:var(--fg);font-weight:500">Docs/Sheets/Slides/PDF の状態を tool-calling で直接操作</strong>する AI-native デスクトップスイート。
+          </div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">C · 4 PILLARS</p>
+          <div class="pillar"><span class="n">01</span><span class="pt">AI が first-class</span><p class="pb">サイドバーではなくエディタ内でドキュメント状態を直接編集</p></div>
+          <div class="pillar"><span class="n">02</span><span class="pt">Byte-preserving</span><p class="pb">dirty 段落だけパッチ。Word で開いてもレイアウト壊れにくい</p></div>
+          <div class="pillar"><span class="n">03</span><span class="pt">フル OSS · 無料コア</span><p class="pb">Apache-2.0 · 広告なし · 透かしなし · フォーク可</p></div>
+          <div class="pillar"><span class="n">04</span><span class="pt">1週 Alpha 即公開</span><p class="pb">$10k tokens · コミュニティと一緒に磨く公開開発</p></div>
+        </div>
+
+        <div class="col">
+          <p class="col-k">D · COST · ACCESS</p>
+          <div class="price-card hi">
+            <div class="l">Core office</div>
+            <div class="v">$0</div>
+            <div class="ok">永久無料 · 広告なし</div>
+          </div>
+          <div class="price-card">
+            <div class="l">AI features</div>
+            <div class="v sm">Genspark credits</div>
+            <div class="s" style="font-size:12px;color:var(--muted);margin-top:4px">研究・生成・分析のみ課金</div>
+          </div>
+          <div class="price-card">
+            <div class="l">Feedback reward</div>
+            <div class="v sm">1,000+ credits</div>
+          </div>
+          <ul class="elig">
+            <li>· GitHub 署名インストーラ</li>
+            <li>· Genspark アカウント必須（AI）</li>
+            <li>· ローカルに API キー保存なし</li>
+            <li>· ee/ は Enterprise License</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div>
+          <p class="col-k">E · KEY NUMBERS</p>
+          <div class="lim-grid">
+            <div class="lim"><div class="l">Apps</div><div class="v">4+1</div></div>
+            <div class="lim"><div class="l">Build</div><div class="v" style="font-size:15px">1週</div></div>
+            <div class="lim"><div class="l">Tokens</div><div class="v" style="font-size:15px">$10k</div></div>
+            <div class="lim"><div class="l">Stars</div><div class="v" style="font-size:15px">~1.3k</div></div>
+          </div>
+          <p class="flow">Electron · React · TS · <strong style="color:var(--fg)">Univer</strong> + Rust sidecar · pdf.js · HarfBuzz</p>
+        </div>
+        <div>
+          <p class="col-k">F · APPS 面</p>
+          <div class="gates">
+            <span class="gate">Docs · .docx</span>
+            <span class="gate">Sheets · .xlsx</span>
+            <span class="gate">Slides · .pptx</span>
+            <span class="gate">PDF</span>
+            <span class="gate">Shell タブ統合</span>
+          </div>
+          <p class="flow">
+            自然言語で「ピボットしてグラフ化」「PDF を要約してスライド化」を
+            <strong style="color:var(--fg)">エディタ内で完結</strong>。
+          </p>
+        </div>
+        <div>
+          <p class="col-k">G · DO / DON'T · BOTTOM LINE</p>
+          <div class="dodont">
+            <div class="box">
+              <div class="h ok">DO</div>
+              <ul>
+                <li>· 自分の docx で round-trip 試験</li>
+                <li>· Sheets で数式生成を試す</li>
+                <li>· engine コードを読む</li>
+                <li>· Issue / フィードバック送る</li>
+              </ul>
+            </div>
+            <div class="box">
+              <div class="h no">DON'T</div>
+              <ul>
+                <li>· 本番唯一の編集器に即切替</li>
+                <li>· 複雑なテンプレを無検証</li>
+                <li>· AI オフライン前提</li>
+                <li>· クレジット消費を無視</li>
+              </ul>
+            </div>
+          </div>
+          <p class="bline">
+            結論: 価値の中心は機能数ではなく
+            <strong style="color:var(--fg)">AI-native × ファイル忠実性 × フルOSS × 無料コア入口</strong>。
+            明日から試作できる「これ使う感」が強い。
+          </p>
+        </div>
+      </div>
+
+      <figcaption class="sheet-foot">
+        <span class="mono">図 · ONE-SHEET · 全セクションの正本サマリ</span>
+        <span>Sources: GitHub genspark-ai/genoffice · genspark.ai · 公式ブログ · Impress · 窓の杜</span>
+      </figcaption>
+    </figure>
+
+    <!-- 01 -->
+    <section class="sec" id="map">
+      <p class="kicker">01 · MAP</p>
+      <h2>まず全体像——何が「座標」を動かしたか</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">KEY MAP · 4 LAYERS</p>
+          <p class="muted"><strong style="color:var(--fg)">LAYER 01 プロダクト</strong> — Docs / Sheets / Slides / PDF + Shell。Electron 5 アプリ、共有 TS エンジン層。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 02 AI</strong> — Super Agent 内蔵。Docs は block-granular 編集 + snapshots/diffs。Sheets/Slides/PDF は tool-calling over state。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 03 忠実性</strong> — 元ファイルを source of truth。狭いパッチ適用。DOCX は byte-preserving paragraph patch。</p>
+          <p class="muted" style="margin-top:10px"><strong style="color:var(--fg)">LAYER 04 戦略</strong> — ローカル日常オフィス入口 → 文脈蓄積 → Genspark Agent サービスへ繋ぐ。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">BEFORE → AFTER</p>
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">BEFORE</strong><br />AI はサイドバーやクラウド生成が中心。既存 .docx を壊さず深く編集する OSS フルスイートは実質不在。LibreOffice は成熟だが AI-native ではない。</p>
+          <hr style="border:0;border-top:1px solid var(--border);margin:14px 0" />
+          <p class="muted"><strong style="color:var(--subtle);font-size:11px;letter-spacing:0.12em">AFTER · 2026-08-03</strong><br />デスクトップで AI がドキュメント状態を直接操作。コア無料・フル OSS。Alpha だが「明日から試作」できる衝撃。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>なぜサプライズか:</strong> 「チャットが上手い Office アドイン」ではなく、<strong>AI 編集を第一級市民にしたフル機能スイートをいきなり OSS で出した</strong>こと。スライド映えする「これ明日から使う」感と、既存 VisionHub エントリとの被りゼロが刺さる。</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="sec" id="shipped">
+      <p class="kicker">02 · WHAT SHIPPED</p>
+      <h2>Genspark が出したのは「もう一つの Office クローン」ではない</h2>
+      <div class="card" style="margin-bottom:16px">
+        <p class="muted" style="margin:0;font-size:16px">
+          <strong style="color:var(--fg)">GenOffice</strong> は、編集ツールを揃えたうえで
+          <strong style="color:var(--fg)">Genspark Super Agent を各編集画面に内蔵</strong>し、
+          自然言語指示をドキュメント操作に直結させた AI-native スイート。Alpha を 1 エンジニア・1 週間・約 $10,000 トークンで構築し即公開。
+        </p>
+      </div>
+      <ul class="bullets grid-2" style="display:grid">
+        <li><span class="b"></span><div><strong>Docs</strong><span>.docx · byte-preserving round-trip · tracked changes / comments / equations / ink</span></div></li>
+        <li><span class="b"></span><div><strong>Sheets</strong><span>.xlsx · Univer + Rust (calamine/IronCalc) · ピボット / スライサー / チャート</span></div></li>
+        <li><span class="b"></span><div><strong>Slides</strong><span>.pptx · 自前エンジン · masters / charts / ink / HarfBuzz</span></div></li>
+        <li><span class="b"></span><div><strong>PDF</strong><span>pdf.js + pdf-lib · 注釈 / フォーム / 署名 / ハイライト質問</span></div></li>
+        <li><span class="b"></span><div><strong>Shell</strong><span>ホーム + タブ統合ホスト · 自動更新</span></div></li>
+        <li><span class="b"></span><div><strong>AI 経路</strong><span>Genspark サインイン · クラウド経由 · ローカル API キーなし</span></div></li>
+      </ul>
+      <div style="overflow-x:auto;margin-top:20px">
+        <table>
+          <thead><tr><th>日付</th><th>イベント</th><th>意味</th></tr></thead>
+          <tbody>
+            <tr><td class="fg">2026-04-08</td><td>Genspark AI Workspace 4.0</td><td>MS Office 内埋め込み Agents の先行</td></tr>
+            <tr><td class="fg">~1 week</td><td>1 engineer · $10k tokens</td><td>AI-native 時代の開発速度の象徴</td></tr>
+            <tr><td class="fg">2026-08-03</td><td>AGI Playground 2026 発表</td><td>Alpha 即 OSS · Apache-2.0</td></tr>
+            <tr><td class="fg">2026-08-03</td><td>GitHub / 公式サイト公開</td><td>genspark-ai/genoffice · インストーラ</td></tr>
+            <tr><td class="fg">2026-08-04</td><td>国内報道・v 更新</td><td>Impress / 窓の杜 · 連日 sync</td></tr>
+            <tr><td class="fg">2026-08-04</td><td>本 Day Slide 時点</td><td>Alpha 明示 · フィードバック募集中</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="sec" id="why">
+      <p class="kicker">03 · WHY IT MATTERS</p>
+      <h2>エンジニア / ビジネス視点の「5層のすごさ」</h2>
+      <div class="grid-2">
+        <div class="card layer"><h3><span class="n">01</span>AI がボルトオンではない</h3><ul><li>チャット箱ではなくドキュメント状態への tool-calling</li><li>生成 → 手動貼付 → レイアウト崩れ、のループを短縮</li><li>「プロンプト一発で会議資料」が編集器内で完結</li></ul></div>
+        <div class="card layer"><h3><span class="n">02</span>ファイル忠実性を技術目標にしている</h3><ul><li>元ファイルを source of truth</li><li>DOCX は dirty 段落のみ再生成（paragraph patch）</li><li>代替 Office 最大の弱点「開いて保存で崩れる」への対策</li></ul></div>
+        <div class="card layer"><h3><span class="n">03</span>フル OSS × 無料コア</h3><ul><li>Apache-2.0 で fork / 組み込み / PR 可能</li><li>ライセンス料・広告・透かしなし</li><li>社内ドキュメント自動化の試作ハードルが低い</li></ul></div>
+        <div class="card layer"><h3><span class="n">04</span>入口戦略として合理的</h3><ul><li>Genspark ARR ~$250M 規模の Agent 企業が「無料 Office」を出す</li><li>日常ワークフローに入り文脈を蓄積</li><li>AI クレジットが本線の収益接点</li></ul></div>
+        <div class="card layer"><h3><span class="n">05</span>開発プロセス自体がメッセージ</h3><ul><li>1 人 × 1 週 × $10k で Alpha → 即公開</li><li>完璧を待たずコミュニティと共創</li><li>AI-native 時代のプロダクト速度の実例</li></ul></div>
+        <div class="card layer"><h3><span class="n">+</span>スライド映え・即導入感</h3><ul><li>「明日から使う」デモが切り出しやすい</li><li>エンジニア試作 / ビジネス資料生成の両面</li><li>既存 VisionHub エントリとの被りがゼロ</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="sec" id="architecture">
+      <p class="kicker">04 · ARCHITECTURE · FILE FIDELITY</p>
+      <h2>決定的な差——byte-preserving round-trip</h2>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="stat"><div class="l">Core idea</div><div class="v" style="font-size:18px">Patch, not rewrite</div><div class="h">元ファイル = source of truth</div></div>
+        <div class="stat"><div class="l">Docs engine</div><div class="v" style="font-size:18px">paragraph patch</div><div class="h">dirty ブロックのみ OOXML 再生成</div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <p class="col-k">DOCX ROUND-TRIP フロー</p>
+        <ol class="tl" style="margin-top:8px">
+          <li>
+            <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+            <div><div class="t">Open</div><div class="s">元 .docx をハッシュでアーカイブ（直接変更しない）</div></div>
+          </li>
+          <li>
+            <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+            <div><div class="t">Parse</div><div class="s">document.xml → block tree · 各 block に docxIndex + 元 XML slice</div></div>
+          </li>
+          <li>
+            <div class="dot-col"><span class="dot"></span><span class="line"></span></div>
+            <div><div class="t">Edit</div><div class="s">TipTap 上で人間 / AI 編集 · dirty tracking</div></div>
+          </li>
+          <li>
+            <div class="dot-col"><span class="dot"></span></div>
+            <div><div class="t">Save</div><div class="s">dirty のみ OOXML 化 → splice · 他エントリは byte コピーで ZIP 再パック</div></div>
+          </li>
+        </ol>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">TECH STACK</p>
+          <p class="muted" style="margin:0">Electron + React + TypeScript · 純粋 TS エンジン層（Electron 非依存）· Sheets: Univer (Apache-2.0) + Rust sidecar · Charts: Konva · PDF: pdf.js + pdf-lib · Text: HarfBuzz · agent-core / ai-provider / ai-search</p>
+        </div>
+        <div class="card">
+          <p class="col-k">AI 配線</p>
+          <p class="muted" style="margin:0">全アプリ共通 AI パネル。モデル呼び出しは Genspark プロキシ（Claude / GPT / Gemini 系など）。ローカルに API キーを置かない。Web / 画像検索ツールも ai-search 経由。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>読みどころ:</strong> マーケティングの「AI Office」ではなく、<code style="font-family:var(--mono);font-size:12px;color:var(--signal)">docx-engine</code> のパッチ設計と <code style="font-family:var(--mono);font-size:12px;color:var(--signal)">agent-core</code> の tool-calling が、既存の生成→貼付ツールとの技術的境界線。</p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="sec" id="apps">
+      <p class="kicker">05 · APPS DEEP DIVE</p>
+      <h2>4 エディタで「なにができるのか」</h2>
+      <div class="grid-2">
+        <div class="card layer">
+          <h3><span class="n">01</span>Docs</h3>
+          <ul>
+            <li>プロンプトでセクション下書き・段落リスタイル・読者向けリライト</li>
+            <li>AI は block 単位 + version snapshots / diffs</li>
+            <li>tracked changes · comments · styles · equations · ink</li>
+            <li>最大の売りは byte-preserving 保存</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">02</span>Sheets</h3>
+          <ul>
+            <li>「予算トラッカー作れ」「月次差異をピボットして」→ 数式がセルに入る</li>
+            <li>ピボット · スライサー · 条件付き書式 · 数式トレース</li>
+            <li>Rust sidecar で xlsx ストリーミング I/O</li>
+            <li>チャートは Konva 自前描画</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">03</span>Slides</h3>
+          <ul>
+            <li>テーマを伝えるとストーリーライン計画 + 全スライド生成</li>
+            <li>すぐ発表 or そのまま編集できるデッキを返す</li>
+            <li>マスター · チャート · トリミング · インク対応</li>
+            <li>例: Nestly pitch を 1 プロンプトで 6 枚生成、という公式デモ</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">04</span>PDF</h3>
+          <ul>
+            <li>長契約・論文・明細を開きハイライトして質問</li>
+            <li>要約・Q&A を別タブに飛ばさない</li>
+            <li>注釈 · フォーム · スタンプ · 署名 · ページ操作</li>
+            <li>pdf.js 閲覧 + pdf-lib 編集</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">公式は「編集ツールは既知のもの、AI は Genspark credits で動く」と明確に二分。コア機能の無料と AI の従量を混同しないこと。</p>
+    </section>
+
+    <!-- 06 -->
+    <section class="sec" id="compare">
+      <p class="kicker">06 · COMPARISON</p>
+      <h2>既存スイートとの座標比較</h2>
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table>
+          <thead><tr><th>観点</th><th>GenOffice</th><th>MS Copilot / Google</th><th>LibreOffice 等</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--fg)">AI 統合</td><td class="fg">Native · state tool-call</td><td class="fg">主にサイドバー / アドイン</td><td class="fg">基本なし</td></tr>
+            <tr><td style="color:var(--fg)">ファイル忠実性</td><td class="fg">設計目標（patch）</td><td class="fg">高い（純正）</td><td class="fg">高い</td></tr>
+            <tr><td style="color:var(--fg)">コスト</td><td class="fg">コア $0 · AI クレジット</td><td class="fg">サブスク</td><td class="fg">$0</td></tr>
+            <tr><td style="color:var(--fg)">OSS</td><td class="fg">Apache-2.0</td><td class="fg">プロプライエタリ</td><td class="fg">OSS</td></tr>
+            <tr><td style="color:var(--fg)">成熟度</td><td class="fg">Alpha</td><td class="fg">成熟</td><td class="fg">成熟</td></tr>
+            <tr><td style="color:var(--fg)">オフライン AI</td><td class="fg">不可（クラウド）</td><td class="fg">一部</td><td class="fg">N/A</td></tr>
+            <tr><td style="color:var(--fg)">カスタム組込</td><td class="fg">fork / PR 前提</td><td class="fg">限定</td><td class="fg">可能だが重い</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">勝ち筋</p>
+          <p class="muted" style="margin:0">AI-native 操作 + 忠実性意識 + 無料コア + フル OSS。試作・内製・教育・スライド映えデモで強い。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">まだ弱い点</p>
+          <p class="muted" style="margin:0">Alpha 安定性 · 複雑テンプレの完全互換 · プラットフォーム限定 · AI の Genspark 依存 · クレジット体感コスト。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="sec" id="economics">
+      <p class="kicker">07 · ECONOMICS · STRATEGY</p>
+      <h2>なぜ無料・OSS で Office を出すのか</h2>
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="stat"><div class="l">Company</div><div class="v" style="font-size:18px">Genspark</div><div class="h">元 Baidu 幹部 · Super Agent</div></div>
+        <div class="stat"><div class="l">Scale (報道)</div><div class="v" style="font-size:18px">~$250M ARR</div><div class="h">評価額 ~$2.6B 級の言及あり</div></div>
+        <div class="stat"><div class="l">Play</div><div class="v" style="font-size:18px">入口</div><div class="h">日常 Office → Agent 文脈</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="col-k">ビジネスモデル</p>
+          <p class="muted" style="margin:0">コア編集は $0。研究・生成・分析など AI 機能のみ Genspark クレジット。貢献者に 1,000+ クレジット付与で Alpha 品質を加速。<code style="font-family:var(--mono);font-size:12px">ee/</code> に Enterprise 拡張の余地。</p>
+        </div>
+        <div class="card">
+          <p class="col-k">戦略的読み</p>
+          <p class="muted" style="margin:0">短期のライセンス収益ではなく、<strong style="color:var(--fg)">ローカル作業の第一入口</strong>を取り、ドキュメント文脈を Agent エコシステムに接続する。Workspace 4.0 の「Office 内 Agents」と連続する製品思想。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>実務の含意:</strong> 「無料 Office 代替」として見るより、「AI エージェントが住むデスクトップ作業面」として評価した方が、機能ギャップ（Alpha）とクレジット消費の両方を説明できる。</p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="sec" id="caveats">
+      <p class="kicker">08 · CAVEATS</p>
+      <h2>サプライズしすぎないための注釈</h2>
+      <div class="grid-2">
+        <div class="card"><strong>Alpha 明示</strong><p class="muted" style="margin:8px 0 0">公式がバグ・欠機能・ラフエッジを明言。本番唯一の編集器への即切替は非推奨。</p></div>
+        <div class="card"><strong>忠実性は「目標」であり保証ではない</strong><p class="muted" style="margin:8px 0 0">独立ガイドも複雑テンプレでの完全 round-trip は未確立と指摘。自分の代表ファイルで検証必須。</p></div>
+        <div class="card"><strong>AI はクラウド依存</strong><p class="muted" style="margin:8px 0 0">オフラインではコア編集のみ。ネット + Genspark アカウントが前提。本体のクレジット不透明さ・サポート課題が影響しうる。</p></div>
+        <div class="card"><strong>プラットフォーム限定</strong><p class="muted" style="margin:8px 0 0">現時点の公式インストーラは Apple Silicon macOS と Windows x64。Intel Mac / Linux は非対応。</p></div>
+        <div class="card"><strong>「世界初」は主張</strong><p class="muted" style="margin:8px 0 0">マーケティング文言。比較軸（フル機能・AI-native・OSS・デスクトップ）の定義次第。評価は機能とコードで行う。</p></div>
+        <div class="card"><strong>商標・ee/</strong><p class="muted" style="margin:8px 0 0">名称・ロゴは Mainfunc 商標。Apache-2.0 でも fork でのブランド流用は不可。ee/ は別 Enterprise License。</p></div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="sec" id="experiment">
+      <p class="kicker">09 · NEXT EXPERIMENTS</p>
+      <h2>明日から回せる実験案</h2>
+      <div class="grid-2">
+        <div class="card layer">
+          <h3><span class="n">A</span>Round-trip スモーク</h3>
+          <ul>
+            <li>自分の実 .docx を開いて保存だけする</li>
+            <li>Word で開きレイアウト / スタイル / 画像を確認</li>
+            <li>成功条件を先にチェックリスト化</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">B</span>Sheets 数式エージェント</h3>
+          <ul>
+            <li>生データで「ピボット + グラフ」を 1 プロンプト</li>
+            <li>数式の正しさ・参照ずれ・再計算を検証</li>
+            <li>Excel 再オープン互換を確認</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">C</span>会議資料 1 発生成</h3>
+          <ul>
+            <li>Slides で社内テーマを入力しデッキ生成</li>
+            <li>人間編集時間とクレジット消費を記録</li>
+            <li>PowerPoint エクスポート後の崩れを測る</li>
+          </ul>
+        </div>
+        <div class="card layer">
+          <h3><span class="n">D</span>エンジン学習 / 内製検討</h3>
+          <ul>
+            <li>docx-engine / agent-core を読む</li>
+            <li>社内ツールへの組込可否を評価</li>
+            <li>Issue で不足機能を送り credits を得る</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <p><strong>推奨の最初の一手:</strong> 本番ファイルではなくコピーで「開く → AI で 1 段落書き換え → 保存 → 純正 Office で開く」を 15 分で回す。忠実性と AI 品質の両方が一度に見える。</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="sec" id="bottom">
+      <p class="kicker">10 · THE BOTTOM LINE</p>
+      <h2>今日の結論</h2>
+      <div class="card" style="margin-bottom:16px;border-color:var(--border-strong)">
+        <p style="margin:0;font-size:17px;font-weight:500;line-height:1.5">
+          GenOffice は「巨大 Office の完成品」ではなく、
+          <span style="color:var(--signal)">AI-native 編集 × ファイル忠実性 × フルOSS × 無料コア入口</span>
+          の四点セットで座標を動かした。追うべきは機能カタログの多寡ではなく、
+          自ファイルでの round-trip 実験と、クレジット付きの実務ワークフロー再現。
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="card"><p class="col-k" style="color:var(--ok)">DO</p><p class="muted" style="margin:0">インストーラで試す / 自ファイル検証 / Sheets・Slides を 1 プロンプト / engine を読む / フィードバックで credits</p></div>
+        <div class="card"><p class="col-k" style="color:var(--danger)">DON'T</p><p class="muted" style="margin:0">本番唯一エディタ化 / 複雑テンプレ無検証 / オフライン AI 前提 / クレジット無視 / 「世界初」 alone で判断</p></div>
+        <div class="card"><p class="col-k">WATCH NEXT</p><p class="muted" style="margin:0">忠実性の実測報告 · Linux/Intel 対応 · クレジット単価体感 · ee/ 企業機能 · 競合の AI-native OSS 追随</p></div>
+      </div>
+      <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
+        <p class="col-k">SOURCES</p>
+        <p class="note" style="margin:0">
+          <a href="https://github.com/genspark-ai/genoffice" target="_blank" rel="noopener">GitHub genspark-ai/genoffice</a> ·
+          <a href="https://genspark.ai/genoffice" target="_blank" rel="noopener">genspark.ai/genoffice</a> ·
+          公式ブログ「GenOffice: The First Open-Source AI Office Suite」(2026-08-03) ·
+          Impress Watch · 窓の杜 / Yahoo 転載 · CryptoBriefing 等の二次報道 · README 技術記述（docx-engine / Univer / Rust sidecar）
+        </p>
+        <p class="note">Day Slide 2026-08-04 · 数値・対応 OS・バージョンは 8/4 時点の公開情報。Alpha 仕様は急速に変わりうる。ベンチや互換性は自前検証を優先。</p>
+      </div>
+    </section>
+
+    <footer class="page">
+      <span>GenOffice Open Source AI Office · Day Slide · スタンドアロン HTML</span>
+      <span class="mono">2026-08-04</span>
+    </footer>
+  </div>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_03.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_04.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-04.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_08_05.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">翌日 →</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
