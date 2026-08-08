@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NVIDIA NOOA：AIエージェントを「1つのPythonクラス」に変える新フレームワーク | 2026-08-07</title>
+  <meta name="description" content="NVIDIA Labsが2026年7月に公開したNOOA（Object-Oriented Agents）。エージェントを単一のPythonクラスとして定義し、メソッド=能力、フィールド=状態、docstring=プロンプト、型アノテーション=契約とするモデル非依存フレームワーク。トークンコスト約半減、SWE-bench Verifiedで82.2%など高性能を実証。既存フレームワークとの違いと価値を深掘りする。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_07.html">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0807/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "NVIDIA NOOA：AIエージェントを「1つのPythonクラス」に変える新フレームワーク",
+    "description": "NVIDIA Labsが2026年7月に公開したNOOA（Object-Oriented Agents）。エージェントを単一のPythonクラスとして定義し、メソッド=能力、フィールド=状態、docstring=プロンプト、型アノテーション=契約とするモデル非依存フレームワーク。トークンコスト約半減、SWE-bench Verifiedで82.2%など高性能を実証。既存フレームワークとの違いと価値を深掘りする。",
+    "datePublished": "2026-08-07",
+    "dateModified": "2026-08-07",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_07.html",
+    "articleSection": "AI Agent Frameworks"
+  }
+  </script>
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="NVIDIA NOOA：AIエージェントを「1つのPythonクラス」に変える新フレームワーク">
+  <meta property="og:description" content="エージェント開発を「普通のソフトウェア」に戻す試み。pass-by-referenceによるトークン半減とSOTA級ベンチマーク。研究プレビューながら設計思想の衝撃は大きい。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_07.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0807/cover.jpg">
+  <style>
+    :root {
+      --bg:#050912; --panel:#0a1122; --panel2:rgba(12,20,40,.72);
+      --ink:#eff5ff; --muted:#95a4bb; --line:rgba(77,155,255,.20);
+      --accent:#4d9bff; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(77,155,255,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(77,155,255,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(77,155,255,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#cfe2ff); z-index:60; transition:width .1s linear; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(77,155,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(77,155,255,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(77,155,255,.16), transparent 62%),
+      #050912;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c6cfe0; font-size:13px; }
+    .topbar a { color:#c6dcff; text-decoration:none; border-bottom:1px solid rgba(198,220,255,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#04173a; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#b9d6ff; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(32px,4.8vw,58px); line-height:1.18; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c9d6e8; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(185,214,255,.4); background:rgba(6,14,32,.55); color:#d3e3ff; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(16,26,50,.94), rgba(8,13,28,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(2,5,14,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-num small { font-size:14px; margin-left:2px; opacity:.85; }
+    .stat-label { margin-top:8px; font-size:12.5px; color:var(--muted); line-height:1.55; }
+    .stat-label b { display:block; color:var(--ink); font-size:13px; margin-bottom:3px; }
+
+    .jump { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 36px; }
+    .jump a { border:1px solid var(--line); background:rgba(10,17,36,.7); color:#cbdcf5; text-decoration:none; font-size:13px; padding:8px 14px; border-radius:999px; }
+    .jump a b { color:var(--accent); margin-right:6px; }
+
+    .slide { margin-bottom:48px; padding-top:12px; border-top:1px solid var(--line); }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:18px; }
+    .slide-head .no { font:800 42px/1 ui-monospace,monospace; color:var(--accent); opacity:.9; min-width:64px; }
+    .slide-kicker { font:700 11px/1 ui-monospace,monospace; letter-spacing:.2em; color:var(--muted); margin:0 0 6px; }
+    .slide-head h2 { font-size:clamp(22px,2.8vw,30px); margin:0; line-height:1.3; font-weight:600; }
+
+    .notes { display:grid; grid-template-columns:1fr minmax(240px,300px); gap:20px; align-items:start; }
+    @media (max-width:860px) { .notes { grid-template-columns:1fr; } }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+
+    .quote { border-left:3px solid var(--accent); background:rgba(77,155,255,.07); padding:14px 18px; margin:14px 0; color:#d8e6ff; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(77,155,255,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+
+    .bottom-line { margin:48px 0 24px; padding:22px 24px; border:1px solid rgba(77,155,255,.35); background:linear-gradient(135deg, rgba(77,155,255,.12), rgba(10,17,36,.9)); border-radius:10px; }
+    .bottom-line h3 { margin:0 0 12px; font-size:18px; color:var(--accent); letter-spacing:.08em; }
+    .bottom-line p { color:#d8e6ff; font-size:15.5px; line-height:1.9; margin:0; }
+
+    .footer-meta { margin-top:40px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); text-align:center; }
+    .footer-meta a { color:#b9d6ff; }
+
+    code { font-family:ui-monospace,SFMono-Regular,monospace; background:rgba(77,155,255,.12); padding:2px 6px; border-radius:3px; font-size:0.92em; color:#cfe2ff; }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="../day_slides_index.html">All day slides</a>
+        <span>2026-08-07 / AIエージェント / フレームワーク</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — AIエージェント / フレームワーク</span>
+        <p class="eyebrow">NVIDIA OBJECT-ORIENTED AGENTS</p>
+        <h1>エージェントを「1つのPythonクラス」に変える——NVIDIA NOOAの設計思想と実測効率</h1>
+        <p class="lead">NVIDIA Labsが公開した<strong>NOOA（NVIDIA Object-Oriented Agents）</strong>は、AIエージェントを<strong>単一のPythonクラス</strong>として定義するモデル非依存フレームワークだ。メソッドが能力、フィールドが状態、docstringがプロンプト、型アノテーションが契約になる。既存の「プロンプト・ツール・ワークフローを別々に管理する」アプローチを捨て、<strong>普通のソフトウェアと同じようにテスト・リファクタ・バージョン管理できる</strong>エージェントを目指す。トークン消費を約半分に抑えつつSWE-bench等で高性能を示した点が、技術コミュニティの注目を集めている。</p>
+        <div class="hero-meta">
+          <span>📅 論文公開：2026-07-22 / OSS公開：2026-07-27</span>
+          <span>⭐ GitHub 約1.1k stars（確認時点）</span>
+          <span>📦 pip / uv install nooa</span>
+          <span>🔬 研究プレビュー（Apache 2.0）</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num">~50<small>%</small></div><div class="stat-label"><b>トークンコスト削減</b>pass-by-referenceによる効率化（公式比較）</div></div>
+      <div class="stat-card"><div class="stat-num">82.2<small>%</small></div><div class="stat-label"><b>SWE-bench Verified</b>GPT-5.5使用・当時の公開SOTA超え</div></div>
+      <div class="stat-card"><div class="stat-num">86.8<small>%</small></div><div class="stat-label"><b>CyberGym L1</b>オープンソース勢でトップ級</div></div>
+      <div class="stat-card"><div class="stat-num gold">6</div><div class="stat-label"><b>モデル向けアイデア</b>typed I/O・pass-by-refなど初統合</div></div>
+      <div class="stat-card"><div class="stat-num">~11<small>日</small></div><div class="stat-label"><b>公開からの経過</b>極めて新しい研究プレビュー</div></div>
+      <div class="stat-card"><div class="stat-num gold">1</div><div class="stat-label"><b>クラスで完結</b>エージェント＝1つのPythonオブジェクト</div></div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b>サマリー</a>
+      <a href="#s2"><b>02</b>既存との違い</a>
+      <a href="#s3"><b>03</b>新しさ</a>
+      <a href="#s4"><b>04</b>6つの能力</a>
+      <a href="#s5"><b>05</b>ベンチマーク</a>
+      <a href="#s6"><b>06</b>導入と注意</a>
+    </nav>
+
+    <!-- 01 -->
+    <section class="slide" id="s1">
+      <div class="slide-head">
+        <span class="no">01</span>
+        <div>
+          <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+          <h2>1枚で見るNOOAの位置づけ</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>NOOAは「エージェント特有のDSLをまた一つ増やす」のではなく、<strong>Pythonがすでに持っている抽象化を最大限に使う</strong>方向を選んだ。エージェントはクラス、能力はメソッド、状態はフィールド、プロンプトはdocstring、契約は型アノテーション。本体が <code>...</code> のメソッドだけがLLM駆動ループになり、それ以外は普通の決定論的Pythonとして動く。</p>
+          <ul>
+            <li><strong>価値評価</strong>：Pythonエンジニアにとって設計思想と効率の両面で大きな価値。特にトークンコストと「ソフトウェアらしい」開発体験が強い。</li>
+            <li>ビジネス側でも「既存コードベースにエージェントを埋め込む」イメージが立てやすいが、現時点は研究プレビュー。</li>
+            <li>GitHub: <a href="https://github.com/NVIDIA-NeMo/labs-OO-Agents" style="color:#b9d6ff">NVIDIA-NeMo/labs-OO-Agents</a> / 論文: arXiv:2607.20709</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <span class="tag">価値評価</span>
+          <p>大きな価値あり（特にAIエンジニア向け）。設計思想が既存の痛みを真正面から突いており、実測のトークン半減とベンチマークが説得力を持っている。本番置き換えはまだ早いが、実験・参考価値は高い。</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="slide" id="s2">
+      <div class="slide-head">
+        <span class="no">02</span>
+        <div>
+          <p class="slide-kicker">DIFFERENCES FROM EXISTING</p>
+          <h2>既存の類似製品と何が違うポイントか</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>LangChain / LangGraph、CrewAI、AutoGen、LlamaIndexなどは、プロンプトテンプレート・ツールスキーマ・コールバック・ワークフローグラフを<strong>別々の抽象化</strong>として扱う。結果としてコードが散らばり、普通のソフトウェアのようにテスト・リファクタ・差分管理しにくい。</p>
+          <div class="grid-2">
+            <div class="vs-card">
+              <h4><span>従来の主流</span>LangChain系 / CrewAI / AutoGen など</h4>
+              <ul>
+                <li>プロンプト・ツール・ワークフローが分離</li>
+                <li>JSONスキーマやYAML、専用DSLが必要</li>
+                <li>状態は主に会話履歴に依存</li>
+                <li>シリアライズされたツール結果を渡すことが多く、トークンが膨らみやすい</li>
+              </ul>
+            </div>
+            <div class="vs-card now">
+              <h4><span>NOOA</span>エージェント＝1つのPythonクラス</h4>
+              <ul>
+                <li>すべてをクラスに集約</li>
+                <li>メソッド本体が<code>...</code>ならLLMループ、普通のコードなら決定論的ツール</li>
+                <li>フィールドが明示的な状態</li>
+                <li><strong>pass-by-reference</strong>（ライブオブジェクトを参照渡し）でトークンを大幅削減</li>
+              </ul>
+            </div>
+          </div>
+          <p style="margin-top:16px">論文は、NOOAが初めて一つの表面に統合したと主張する<strong>6つのモデル向けアイデア</strong>を挙げている：typed I/O、pass-by-reference over live objects、code as action、programmable loop engineering、explicit object state、model-callable harness APIs（context / events）。これらが組み合わさることで、開発者とエージェントが同じインターフェースを共有し、pytestやgit、型チェッカーがそのまま使えるようになる。</p>
+        </div>
+        <aside class="sowhat">
+          <span class="tag">SO WHAT?</span>
+          <p>「エージェントを特別扱いする」のではなく「普通のPythonオブジェクトとして扱う」——この転換が最大の違い。トークン効率と開発体験の両方が同時に改善する可能性を示した。</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="slide" id="s3">
+      <div class="slide-head">
+        <span class="no">03</span>
+        <div>
+          <p class="slide-kicker">RECENCY</p>
+          <h2>最近出た新しい製品か？</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p><strong>はい。極めて新しい。</strong></p>
+          <ul class="checks">
+            <li><b>論文投稿</b>：2026年7月22日（arXiv:2607.20709）</li>
+            <li><b>オープンソース公開</b>：2026年7月27日前後（NVIDIA Technical Blog および GitHub）</li>
+            <li><b>現在（2026年8月7日）時点</b>：公開から約11日前後の研究プレビュー</li>
+            <li><b>ステータス</b>：research preview。公式も「既存のハーネスの置き換えではない」と明言</li>
+          </ul>
+          <p>PyPIに <code>nooa</code> として公開され、 <code>uv add nooa</code> や <code>pip install nooa</code> で導入可能。GitHubはすでに約1.1k starsを集め、技術系コミュニティでの議論が始まっている。</p>
+        </div>
+        <aside class="sowhat">
+          <span class="tag">タイミング</span>
+          <p>エージェントフレームワークの乱立が続く中で、「もう一つ増やす」のではなく「Pythonに戻す」提案がNVIDIA Labsから出てきた点に意味がある。新しさ自体が価値の一部。</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="slide" id="s4">
+      <div class="slide-head">
+        <span class="no">04</span>
+        <div>
+          <p class="slide-kicker">SIX CAPABILITIES</p>
+          <h2>NOOAが統合した6つのモデル向けアイデア</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <ol style="color:var(--muted); line-height:1.9; font-size:14.5px; padding-left:1.4em;">
+            <li><strong>Typed input/output</strong> — 自由テキストではなく、型付き引数と検証済み戻り値</li>
+            <li><strong>Pass-by-reference</strong> — ライブPythonオブジェクトを参照渡し。モデルはboundedプレビューだけを見て実オブジェクトに対してコードを書く</li>
+            <li><strong>Code as action</strong> — モデルはPythonコードを書いて行動する（制御フローやメソッド呼び出しも可能）</li>
+            <li><strong>Programmable loop engineering</strong> — オーケストレーションループ自体が普通のPythonで、人間もモデルも書ける</li>
+            <li><strong>Explicit object state</strong> — 状態は会話履歴だけでなく、エージェントオブジェクト上の型付きフィールドに永続化</li>
+            <li><strong>Model-callable harness APIs</strong> — contextブロックやイベント履歴をモデル自身が操作できるAPI</li>
+          </ol>
+          <p>特に<strong>pass-by-reference</strong>がトークン削減の主因とされている。従来のようにツール結果を毎回シリアライズしてコンテキストに詰める必要が減り、セッションをappend-onlyに保ちやすくなる。</p>
+        </div>
+        <aside class="sowhat">
+          <span class="tag">核心</span>
+          <p>これらは個別には他フレームワークでも部分的に見られるが、「一つのPythonicな表面に全部載せる」のがNOOAの主張する新しさ。</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="slide" id="s5">
+      <div class="slide-head">
+        <span class="no">05</span>
+        <div>
+          <p class="slide-kicker">BENCHMARKS</p>
+          <h2>実測された性能と効率</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>NVIDIA公式ブログおよび論文で示された主な数字：</p>
+          <ul>
+            <li><strong>SWE-bench Verified</strong>：GPT-5.5で<strong>82.2%</strong>（当時の公開リーダーボードSOTA 79.2%を上回る）。約1.1Mトークン / 29回程度のLLM呼び出し。比較対象のハーネスは同程度の精度で約2.2Mトークン / 66回。</li>
+            <li><strong>CyberGym L1</strong>：GPT-5.5で<strong>86.8%</strong>（オープンソース提出としてトップ級）。</li>
+            <li><strong>ARC-AGI-3</strong>：スコア–コストのパレートフロンティアを前進させ、1ゲームあたり$20未満。</li>
+            <li>一般的な253行程度のエージェントで、ベンチマーク特化のプロンプトなしで達成した点が強調されている。</li>
+          </ul>
+          <div class="quote">
+            ハーネス設計だけでベンチマーク結果に二桁の変動と、トークンコストの大幅差が出る——同じモデルでも。
+            <small>— NVIDIA Technical Blog の趣旨</small>
+          </div>
+        </div>
+        <aside class="sowhat">
+          <span class="tag">注意</span>
+          <p>これらの数字は公式評価によるもの。再現性はGitHub上の評価パイプラインで確認可能とされるが、研究プレビュー段階である点は忘れないこと。</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="slide" id="s6">
+      <div class="slide-head">
+        <span class="no">06</span>
+        <div>
+          <p class="slide-kicker">HOW TO START & CAVEATS</p>
+          <h2>導入方法と注意点</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p><strong>導入</strong>：</p>
+          <ul>
+            <li><code>uv add nooa</code> または <code>pip install nooa</code></li>
+            <li>ソースから：<code>uv add "nooa @ git+https://github.com/NVIDIA-NeMo/labs-OO-Agents.git@main"</code></li>
+            <li>豊富なquickstart例がリポジトリに用意されている</li>
+          </ul>
+          <p><strong>使い方のイメージ</strong>：クラスを継承し、メソッドを定義する。本体を <code>...</code> にすればLLMが実行し、普通のコードを書けば決定論的ツールになる。型アノテーションが契約として機能する。</p>
+          <div class="warn">
+            <p><strong>重要な注意</strong>：LLMが生成したコードを実行するため、本番環境では必ずコンテナやNVIDIA OpenShellなどの<strong>sandbox</strong>が必要。公式も「研究ソフトウェアであり、OSレベルの隔離を推奨する」と明記している。既存の成熟したハーネス（LangGraphなど）の即座の置き換えを想定したものではない。</p>
+          </div>
+        </div>
+        <aside class="sowhat">
+          <span class="tag">X評価</span>
+          <p>技術系投稿で中〜高エンゲージ。特に「Pythonicでシンプル」「トークン効率」の部分が議論の中心。まだ爆発的なバイラルではないが、設計思想への関心が強い。</p>
+        </aside>
+      </div>
+    </section>
+
+    <div class="bottom-line">
+      <h3>THE BOTTOM LINE</h3>
+      <p>NOOAは「エージェントフレームワークをもう一つ増やす」ニュースではなく、<strong>エージェントを普通のソフトウェアオブジェクトとして扱う設計思想</strong>をNVIDIA Labsが実装・公開した出来事だ。トークンコスト約半減とSOTA級のベンチマーク数字が、その思想に実測の裏付けを与えている。研究プレビューであるため本番投入は慎重に、しかしPythonでエージェントを書いているエンジニアにとって、今すぐ試す価値は十分にある。エージェント開発の次の方向性を示すシグナルとして、注目に値する。</p>
+    </div>
+
+    <div class="footer-meta">
+      主要ソース：<a href="https://arxiv.org/abs/2607.20709">arXiv:2607.20709</a> · <a href="https://github.com/NVIDIA-NeMo/labs-OO-Agents">GitHub NVIDIA-NeMo/labs-OO-Agents</a> · <a href="https://developer.nvidia.com/blog/six-agent-harness-capabilities-for-higher-model-performance/">NVIDIA Technical Blog</a><br>
+      Day Slide — AI Intelligence Hub / VisionHub 系フォーマットに準拠 · 2026-08-07
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      var progress = document.querySelector('.progress');
+      var sections = document.querySelectorAll('.slide');
+      window.addEventListener('scroll', function(){
+        var h = document.documentElement.scrollHeight - innerHeight;
+        progress.style.width = (scrollY / h * 100) + '%';
+      });
+      window.addEventListener('keydown', function(ev){
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_07.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-07.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
