@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Plugins 1.0.0：ベンダーロックインの終わりの始まり — 競合各社が共同策定したポータブル・エージェント拡張標準 | 2026-08-06</title>
+  <meta name="description" content="Vercel主導、AWS・Anysphere(Cursor)・GitHub・Microsoft・OpenAIが共同策定したAgent Plugins 1.0.0。Agent SkillsとMCPサーバーを一度パッケージ化すればChatGPT/Codex・Cursor・GitHub Copilot・Kiro・VS Codeなどで共通利用可能。ベンダーロックイン解消の構造的一歩を深掘りする。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_06.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Agent Plugins 1.0.0：ベンダーロックインの終わりの始まり">
+  <meta property="og:description" content="競合6社＋Googleが足並みを揃えたオープン標準。一度書けば複数エージェントクライアントで動くSkills＋MCPのパッケージ形式を徹底解説。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_06.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0806/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0806/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Agent Plugins 1.0.0：ベンダーロックインの終わりの始まり",
+    "description": "Vercel・AWS・Cursor・GitHub・Microsoft・OpenAIが共同で公開したAgent Plugins 1.0.0の深掘り。既存のクライアント固有フォーマットとの違い、対応範囲、価値評価を整理。",
+    "datePublished": "2026-08-06",
+    "dateModified": "2026-08-06",
+    "articleSection": "AI Agents & Ecosystem Standards"
+  }
+  </script>
+  <style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+      line-height:1.7;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(28px,4.6vw,52px); line-height:1.22; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:1.95; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:11px; margin:28px 0 40px; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 26px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.55; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); }
+
+    .slide { margin-bottom:56px; }
+    .slide-head { display:flex; gap:16px; align-items:flex-start; margin-bottom:18px; }
+    .no { font:800 28px/1 ui-monospace,monospace; color:var(--accent); opacity:.85; min-width:42px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,30px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+
+    .notes { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:20px; align-items:start; }
+    /* grid items default to min-width:auto, so the <pre> min-content width would
+       otherwise widen the whole track and scroll the page on mobile */
+    .notes-main { min-width:0; }
+    .notes-main pre { max-width:100%; }
+    .notes.single { grid-template-columns:1fr; }
+    .notes-main p, .notes-main li { color:var(--muted); font-size:14.5px; line-height:1.85; }
+    .notes-main ul { padding-left:1.2em; margin:12px 0; }
+    .notes-main li { margin-bottom:6px; }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin:16px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin:0; padding-left:1.1em; color:var(--muted); }
+    .vs-card li { margin-bottom:5px; }
+
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+
+    /* the markup wraps wide tables in .scroll-x but the rule was missing, so the
+       560px min-width table scrolled the whole page on mobile */
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:560px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; }
+    .st-mid { color:var(--gold); font-weight:600; }
+
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; color:var(--accent); font:700 12px/1 ui-monospace,monospace; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(18px,2.4vw,26px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; color:var(--muted); }
+
+    .sources { margin-top:40px; padding-top:24px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); }
+    .sources a { color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(47,198,178,.35); }
+    .sources ul { padding-left:1.2em; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="../day_slides_index.html">All day slides</a>
+        <span>2026-08-06 / AI Agents &amp; Ecosystem</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — AIエージェント / エコシステム標準</span>
+        <p class="eyebrow">AGENT PLUGINS 1.0.0</p>
+        <h1>ベンダーロックインの終わりの始まり ——競合各社が足並み揃えた「一度書けばどこでも動く」エージェント拡張標準</h1>
+        <p class="lead">
+          Vercelが提案を主導し、<strong>AWS・Anysphere（Cursor）・GitHub・Microsoft・OpenAI</strong>が共同で洗練させたオープン標準<strong>Agent Plugins 1.0.0</strong>が2026年8月6日に公開された。
+          Agent Skills（再利用可能な指示・ワークフロー）とMCPサーバー設定を、<code>plugin.json</code>＋固定ディレクトリ構造で1パッケージ化する。
+          対応クライアントはChatGPT/Codex、Cursor、GitHub Copilot、Kiro、VS Code。Googleもコアメンテナーとして参加し自社製品への対応を開始。
+          AIエージェント開発の主戦場が「モデル単体」から「ポータブルな拡張資産」へ移ったことを示す、構造的な動きとして整理する。
+        </p>
+        <div class="hero-meta">
+          <span>公開：2026-08-06</span>
+          <span>仕様バージョン：1.0.0</span>
+          <span>公式：agent-plugins.org</span>
+          <span>対象：Skills + MCP</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card">
+        <div class="stat-num">6<small>社+</small></div>
+        <div class="stat-label"><b>共同策定・TSC</b>Vercel主導 + AWS, Cursor, GitHub, Microsoft, OpenAI。Googleもコアメンテナー参加</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5+</div>
+        <div class="stat-label"><b>ローンチ対応クライアント</b>ChatGPT/Codex, Cursor, GitHub Copilot, Kiro, VS Code</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">2</div>
+        <div class="stat-label"><b>標準化対象コンポーネント</b>Agent Skills + MCPサーバー設定（v1の焦点）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num gold">1.0.0</div>
+        <div class="stat-label"><b>公開直後の仕様</b>2026年8月6日に正式公開されたばかり</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0</div>
+        <div class="stat-label"><b>インストール・権限の標準化</b>パッケージ形式のみ。配布・権限・UXはクライアント任せ</div>
+      </div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b> SUMMARY</a>
+      <a href="#s2"><b>02</b> WHAT</a>
+      <a href="#s3"><b>03</b> WHO</a>
+      <a href="#s4"><b>04</b> DIFF</a>
+      <a href="#s5"><b>05</b> SCOPE</a>
+      <a href="#s6"><b>06</b> VALUE</a>
+      <a href="#s7"><b>07</b> CAVEATS</a>
+    </nav>
+
+    <div class="slides">
+
+      <!-- 01 -->
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+            <h2>1枚で見る Agent Plugins 1.0.0</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>Agent Plugins</strong>は、AIエージェント向け拡張機能（主にAgent SkillsとMCPサーバー）を<strong>ポータブルなパッケージ</strong>として配布するためのオープン・ベンダー中立仕様である。Vercelが初期提案を出し、主要エージェントクライアントを持つ企業が共同で1.0.0に仕上げた。</p>
+            <ul>
+              <li><b>何が変わるか</b>：これまでクライアントごとに異なっていたマニフェスト・フォルダ構造・発見方法を共通化。「一度書けば対応クライアント間で動く」を実現。</li>
+              <li><b>何が変わらないか</b>：インストール方法、マーケットプレイス、権限モデル、サンドボックス、UX、およびcommands/hooks/agentsなどのクライアント固有拡張。</li>
+              <li><b>なぜ今か</b>：Agent SkillsとMCPの普及が進み、「パッケージングの断片化」が開発者の実害になったタイミングで、競合が協調した。</li>
+            </ul>
+            <div class="quote">
+              これはベンダーロックインの終わりの始まりだ。……競合同士がここまで足並み揃えるのは、エージェント開発の主戦場がもう「モデル単体」じゃなく「エコシステム」に移った証拠だと思う。
+              <small>— @connect24h（発表翌日）</small>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>高い</strong>。スキル資産の蓄積・共有・移植コストを構造的に下げる。実務で複数エージェントを併用する開発者にとって、今週中に自作スキルを整理する動機になるレベルの動き。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">WHAT IT IS</p>
+            <h2>構造：plugin.json + 固定ディレクトリ</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>Agent Pluginは<strong>ただのフォルダ</strong>である。ルートに最小限の<code>plugin.json</code>を置き、コンポーネントを決められた場所に配置する。</p>
+            <pre style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:16px;font-size:13px;overflow-x:auto;color:#d6efe9;line-height:1.6;">my-plugin/
+├── plugin.json          ← 仕様バージョンと名前（必須）
+├── skills/
+│   └── summarize/
+│       ├── SKILL.md
+│       ├── scripts/
+│       └── references/
+├── mcp.json             ← MCPサーバー設定
+└── com.example.client/  ← クライアント固有拡張用名前空間</pre>
+            <ul>
+              <li><b>plugin.json</b>：仕様バージョンとプラグイン名を宣言する最小マニフェスト。</li>
+              <li><b>skills/</b>：既存のAgent Skills仕様に従ったスキルを配置。</li>
+              <li><b>mcp.json</b>：stdio / Streamable HTTP / 旧HTTP+SSEのMCPサーバー記述。</li>
+              <li>クライアント固有の拡張は逆ドメイン形式のディレクトリに隔離され、他クライアントは無視する。</li>
+            </ul>
+            <p>v1は意図的に小さく設計されている。「パッケージングと発見」だけを標準化し、実装コストを下げて採用を加速させる狙い。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">WHO &amp; GOVERNANCE</p>
+            <h2>誰が作ったのか：競合が協調した事実</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Vercelが提案を開始し、以下の企業が共同で仕様を洗練させた：</p>
+            <ul>
+              <li><b>初期コラボレーター</b>：Amazon Web Services (AWS)、Anysphere (Cursor)、GitHub、Microsoft、OpenAI、Vercel</li>
+              <li><b>Technical Steering Committee（コアメンテナー）</b>：AWS、Cursor、Microsoft、OpenAI、Vercel</li>
+              <li><b>後から参加</b>：Google（コアメンテナーとして参加、自社製品への対応を開始）</li>
+            </ul>
+            <p>プロジェクトはオープンライセンス。技術的決定は公開のGitHub Discussionsで行われ、単一企業のロードマップに依存しない設計を掲げている。仕様・スキーマ・ガバナンスは <a href="https://agent-plugins.org" style="color:var(--accent)">agent-plugins.org</a> と仕様リポジトリで公開。</p>
+            <p><strong>Anthropic / Claude Codeは初期リストに含まれていない。</strong>Claude Codeは独自のプラグイン形式（.claude-plugin/plugin.json など）を持ち、skills・agents・hooks・MCPをより幅広くパッケージできる。フォーマットは近いが互換ではない。オープン仕様のため将来の採用可能性はあるが、現時点では「Claude Codeでも動く」は公式保証ではない。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">注目点</span>
+            <p>競合が「モデル競争」ではなく「拡張資産の相互運用」で協調した点が本質。MCPやAgent Skillsの成功に続く、エージェント層の標準化波。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">DIFFERENCE FROM EXISTING</p>
+            <h2>既存の類似フォーマットと何が違うのか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>これまでは各クライアントが独自のパッケージ形式を持っていたため、同じスキルやMCPを複数ツールで使うには再構成やコピーが必要だった。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>従来</span>クライアント固有 / サイロ</h4>
+                <ul>
+                  <li>Claude Code：.claude-plugin/plugin.json + skills/agents/hooks</li>
+                  <li>Cursor / Codex / Copilot：それぞれ異なるマニフェスト・発見パス</li>
+                  <li>AWSの先行Agent Plugins：AWS特化のスキル集</li>
+                  <li>結果：スキル移植の都度「書き直し・コピペ」が発生</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>今回</span>Agent Plugins 1.0.0</h4>
+                <ul>
+                  <li>初めての<strong>マルチベンダー共通</strong>オープンパッケージング標準</li>
+                  <li>Skills + MCPを「箱」として標準化（中身の仕様は既存を流用）</li>
+                  <li>write-once, run-across を契約として定義</li>
+                  <li>クライアント固有拡張は名前空間で隔離可能</li>
+                </ul>
+              </div>
+            </div>
+            <p style="margin-top:16px;">要するに、<strong>MCPやAgent Skillsを置き換えるものではなく、それらを運ぶ「共通の箱」を定義した</strong>のが本質的な違いである。コンテナ標準が登場したときの感覚に近い。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">SCOPE &amp; LIMITS</p>
+            <h2>標準化されたもの / されていないもの</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <div class="scroll-x">
+              <table class="cmp">
+                <thead>
+                  <tr>
+                    <th>項目</th>
+                    <th>状態</th>
+                    <th>説明</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>パッケージ形式・発見</td>
+                    <td class="st-ok">標準化</td>
+                    <td>plugin.json + skills/ + mcp.json の固定構造</td>
+                  </tr>
+                  <tr>
+                    <td>Agent Skills</td>
+                    <td class="st-ok">対象</td>
+                    <td>既存Skills仕様をそのまま載せる</td>
+                  </tr>
+                  <tr>
+                    <td>MCPサーバー設定</td>
+                    <td class="st-ok">対象</td>
+                    <td>stdio / Streamable HTTP など記述を統一</td>
+                  </tr>
+                  <tr>
+                    <td>インストール・配布</td>
+                    <td class="st-mid">非標準</td>
+                    <td>各クライアントのマーケットプレイスやCLIに依存</td>
+                  </tr>
+                  <tr>
+                    <td>権限・サンドボックス・信頼</td>
+                    <td class="st-mid">非標準</td>
+                    <td>クライアント側の責任。仕様は触れない</td>
+                  </tr>
+                  <tr>
+                    <td>commands / hooks / agents</td>
+                    <td class="st-mid">非標準（v1）</td>
+                    <td>クライアント固有のまま。将来拡張の余地あり</td>
+                  </tr>
+                  <tr>
+                    <td>Claude Code互換</td>
+                    <td class="st-mid">未公式</td>
+                    <td>独自形式。オープンなので採用可能性はあるが現時点では非対応</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>仕様自体が「最小限の相互運用フロア」を定義している点が重要。過剰に縛らず、各製品の差別化余地を残している。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">VALUE &amp; IMPLICATIONS</p>
+            <h2>なぜ価値が高いのか / 何が変わるのか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>価値評価：高い。</strong> 理由は以下の通り。</p>
+            <ul class="checks">
+              <li><b>移植コストの構造的削減</b>：プロジェクトやツールを跨いだスキルのコピペ・再実装が減る。</li>
+              <li><b>スキル資産の蓄積インセンティブ</b>：「一度書けば複数クライアントで使える」なら、個人・チームで丁寧にスキルを設計する動機が強まる。</li>
+              <li><b>エコシステムシフトの証拠</b>：モデル性能競争から「エージェントが使える拡張資産」競争への移行を、競合自身が認めた形。</li>
+              <li><b>実務への即効性</b>：対応クライアントを日常的に併用している開発者は、今週から自作スキルをplugin形式に整理する価値がある。</li>
+            </ul>
+            <p>投稿者自身も「自作スキルを配布可能な形に整理し直すの、今週やる」と述べている。この感覚は多くのAI駆動開発者に共有されるはずだ。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">必須確認点</span>
+            <p><strong>1. 既存との違い</strong><br>クライアント固有のサイロ形式から、初めてのマルチベンダー共通オープンパッケージ標準へ。<br><br><strong>2. 最近の新製品か</strong><br>はい。2026年8月6日に1.0.0として公開されたばかりの超新しい仕様。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section class="slide" id="s7">
+        <div class="slide-head">
+          <span class="no">07</span>
+          <div>
+            <p class="slide-kicker">CAVEATS</p>
+            <h2>注意点と未解決の論点</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <ul>
+              <li><b>Claude Codeが未参加</b>：現時点で最もスキル資産が蓄積されているクライアントの一つが、ローンチ対応に入っていない。互換レイヤーや将来の採用が焦点。</li>
+              <li><b>配布・権限は標準外</b>：悪意あるプラグインやサプライチェーンリスクは各クライアント側で対処する必要がある。仕様は「箱」だけを定義している。</li>
+              <li><b>v1の範囲は狭い</b>：hooks、sub-agents、LSP、commandsなどはクライアント依存のまま。今後のTSC議論で拡張される可能性がある。</li>
+              <li><b>「動く」の程度差</b>：同じpluginを読み込んでも、クライアントによってSkillsの解釈やMCP接続の実装差が出る可能性は残る。</li>
+            </ul>
+            <p>それでも「断片化が収束し始めた」という方向性自体は明確である。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Finale -->
+      <div class="finale">
+        <p class="eyebrow">THE BOTTOM LINE</p>
+        <blockquote>
+          エージェント開発の主戦場はすでに「モデル」から「エコシステム」へ移った。<br>
+          <em>今のうちに自作スキルをポータブルな形に整理せよ。</em>
+        </blockquote>
+        <p>Agent Plugins 1.0.0は、その移行を公式に刻んだ最初の共通契約である。</p>
+      </div>
+
+      <div class="sources">
+        <p><strong>主な出典</strong></p>
+        <ul>
+          <li><a href="https://vercel.com/blog/introducing-agent-plugins" target="_blank" rel="noopener">Introducing Agent Plugins — Vercel</a></li>
+          <li><a href="https://agent-plugins.org" target="_blank" rel="noopener">agent-plugins.org（仕様・スキーマ）</a></li>
+          <li><a href="https://aws.amazon.com/blogs/opensource/aws-supports-agent-plugins-an-open-standard-for-portable-agent-extensions/" target="_blank" rel="noopener">AWS Supports Agent Plugins</a></li>
+          <li><a href="https://developers.googleblog.com/agent-plugins-package-your-skills-tools-and-more" target="_blank" rel="noopener">Google Developers Blog（コアメンテナー参加表明）</a></li>
+          <li>X投稿：@connect24h（発表翌日）ほか各社公式投稿</li>
+        </ul>
+        <p style="margin-top:18px;font-size:12px;opacity:.8;">2026-08-06 — AI Intelligence Hub / Day Slide　※本スライドは公開仕様と公式発表に基づく深掘り整理です。</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      var bar = document.querySelector('.progress');
+      function upd(){ var h = document.documentElement; var max = h.scrollHeight - h.clientHeight; bar.style.width = (max > 0 ? (h.scrollTop / max * 100) : 0) + '%'; }
+      addEventListener('scroll', upd, {passive:true}); upd();
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_05.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
