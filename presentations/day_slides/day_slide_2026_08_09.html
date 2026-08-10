@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>xAI Grok Imagine Image 2.0 がなぜ「実務編集の転換点」なのか | Day Slide 2026-08-09</title>
+  <meta name="description" content="xAIが2026年8月7-8日に公開したImagine Image 2.0（Quality Mode）を深掘り。Magic Wand / Segmentationによる精密リージョン編集、シャープテキスト、Multi-ref、Smart Resizeで「きれいな生成」から「実務で使える編集精度」へ明確にシフトした理由を整理する。">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_09.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="xAI Grok Imagine Image 2.0 がなぜ「実務編集の転換点」なのか">
+  <meta property="og:description" content="Arena text-to-image & edit 双方で#2。Magic Wandで「ここだけ直せ」が現実になり、エージェント連携と画像→動画パイプラインが実用域に入った。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_09.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0809/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="xAI Grok Imagine Image 2.0 がなぜ「実務編集の転換点」なのか">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0809/cover.jpg">
+  <meta name="twitter:description" content="精密編集を第一級能力に据えたImage 2.0。Arena #2、実務テンプレート、一貫性強化で「生成」から「使えるツール」へ。">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "xAI Grok Imagine Image 2.0 がなぜ「実務編集の転換点」なのか",
+    "description": "xAI Grok Imagine Image 2.0のQuality Mode公開を深掘り。精密リージョン編集・シャープテキスト・Multi-refで実務アセット作成ツールへ転換した意義を整理する。",
+    "datePublished": "2026-08-09",
+    "dateModified": "2026-08-09",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_09.html",
+    "articleSection": "AI Image Models & Creative Tools"
+  }
+  </script>
+  <style>
+:root {
+  --bg: #0e0512;
+  --panel: #1a0c20;
+  --panel2: rgba(38, 16, 43, 0.72);
+  --ink: #fdf0fb;
+  --muted: #c0a3bd;
+  --line: rgba(232, 87, 195, 0.2);
+  --accent: #e857c3;
+  --gold: #ffc94d;
+  --alert: #ff8f7a;
+  --glow: rgba(232, 87, 195, 0.28);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 520px at 88% -4%, rgba(232, 87, 195, 0.13), transparent 60%),
+    radial-gradient(820px 460px at -8% 34%, rgba(232, 87, 195, 0.06), transparent 55%),
+    var(--bg);
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0;
+  background: linear-gradient(90deg, var(--accent), #f7c9ea);
+  z-index: 60; transition: width 0.1s linear;
+}
+
+.hero {
+  position: relative; overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(rgba(232, 87, 195, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 87, 195, 0.05) 1px, transparent 1px),
+    radial-gradient(900px 420px at 78% -10%, rgba(232, 87, 195, 0.16), transparent 62%),
+    #0e0512;
+  background-size: 44px 44px, 44px 44px, auto, auto;
+}
+
+.hero-inner {
+  position: relative; z-index: 2;
+  width: min(1200px, 100% - 40px);
+  margin: 0 auto; padding: 22px 0 52px;
+}
+
+.topbar {
+  display: flex; justify-content: space-between; gap: 18px; align-items: center;
+  color: #d5c0d2; font-size: 13px;
+}
+.topbar span:first-child { color: #f2b8e3; }
+
+.hero-body { padding-top: clamp(48px, 9vh, 110px); max-width: 980px; }
+
+.kicker {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: #2b0726; background: var(--accent);
+  font-weight: 700; font-size: 12px; letter-spacing: 0.14em;
+  padding: 7px 14px; border-radius: 3px; margin-bottom: 18px;
+}
+
+.eyebrow {
+  font: 800 clamp(15px, 2vw, 21px) / 1 ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: 0.3em; color: #eda6dc; margin: 0 0 14px;
+  text-shadow: 0 0 24px var(--glow);
+}
+
+h1 {
+  font-size: clamp(28px, 4.4vw, 52px); line-height: 1.2;
+  margin: 0 0 18px; font-weight: 600; letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lead {
+  color: #d9c4d6; font-size: clamp(15px, 1.5vw, 17px);
+  margin: 0; line-height: 2; max-width: 920px;
+}
+.lead strong, p strong, li strong { color: var(--ink); font-weight: 600; }
+
+.hero-meta {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;
+}
+.hero-meta span {
+  border: 1px solid rgba(237, 166, 220, 0.4);
+  background: rgba(31, 11, 32, 0.55); color: #f7dcf1;
+  font-size: 12.5px; padding: 7px 14px; border-radius: 20px;
+}
+
+.shell {
+  width: min(1200px, 100% - 40px);
+  margin: 0 auto; padding-bottom: 70px;
+}
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 11px; margin: 28px 0 40px; position: relative; z-index: 5;
+}
+
+.stat-card {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(43, 14, 45, 0.94), rgba(25, 10, 27, 0.94));
+  padding: 16px 17px 14px; border-radius: 6px;
+  box-shadow: 0 18px 44px rgba(12, 4, 14, 0.55);
+}
+
+.stat-num {
+  font: 700 27px / 1.05 ui-monospace, SFMono-Regular, monospace;
+  color: var(--accent); letter-spacing: -0.01em;
+}
+.stat-num small { font-size: 14px; margin-left: 4px; font-weight: 600; }
+.stat-num.gold { color: var(--gold); }
+
+.stat-label {
+  color: var(--muted); font-size: 12px; margin-top: 7px; line-height: 1.6;
+}
+.stat-label b { color: var(--ink); font-weight: 600; display: block; margin-bottom: 2px; }
+
+.jump {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; gap: 7px; overflow-x: auto; padding: 11px 0; margin-bottom: 34px;
+  background: rgba(25, 10, 27, 0.92); backdrop-filter: blur(14px);
+  scrollbar-width: thin; border-bottom: 1px solid rgba(232, 87, 195, 0.14);
+}
+.jump a {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 13px; border: 1px solid var(--line);
+  border-radius: 19px; color: var(--muted); text-decoration: none;
+  font-size: 12px; white-space: nowrap;
+}
+.jump a b {
+  font: 700 11px / 1 ui-monospace, monospace; color: var(--accent);
+}
+.jump a.on, .jump a:hover, .jump a:focus-visible {
+  border-color: var(--accent); color: var(--ink);
+  background: rgba(232, 87, 195, 0.12); outline: none;
+}
+
+.slides { display: grid; gap: 52px; }
+section.slide { scroll-margin-top: 70px; min-width: 0; }
+
+.slide-head {
+  display: flex; gap: 18px; align-items: flex-start; margin-bottom: 16px;
+}
+.no {
+  flex: 0 0 auto;
+  font: 800 clamp(38px, 4.6vw, 58px) / 0.9 ui-monospace, SFMono-Regular, monospace;
+  color: transparent; -webkit-text-stroke: 1.5px rgba(232, 87, 195, 0.75);
+  letter-spacing: -0.03em; padding-top: 4px;
+}
+.slide-kicker {
+  color: var(--accent);
+  font: 700 11px / 1 ui-monospace, monospace;
+  letter-spacing: 0.22em; margin: 0 0 9px;
+}
+h2 {
+  font-size: clamp(21px, 2.7vw, 31px); line-height: 1.35;
+  margin: 0; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;
+}
+
+.shot {
+  margin: 0 0 10px; position: relative;
+  border: 1px solid rgba(232, 87, 195, 0.3); border-radius: 8px;
+  overflow: hidden; background: #120613;
+  box-shadow: 0 24px 70px rgba(30, 8, 30, 0.6), 0 0 0 1px rgba(19, 6, 21, 0.6);
+}
+.shot img {
+  width: 100%; height: auto; display: block; cursor: zoom-in; transition: opacity 0.25s;
+}
+.shot img:hover { opacity: 0.94; }
+.shot .zoom-badge {
+  position: absolute; right: 12px; bottom: 12px; pointer-events: none;
+  background: rgba(28, 10, 29, 0.78); border: 1px solid rgba(237, 166, 220, 0.4);
+  color: #f7dcf1; font-size: 11px; padding: 5px 11px; border-radius: 14px;
+  backdrop-filter: blur(4px);
+}
+.shot-caption {
+  color: var(--muted); font-size: 13.5px; line-height: 1.75;
+  margin: 0 0 22px; padding: 0 2px;
+}
+.shot-caption b {
+  color: var(--accent);
+  font: 700 11px / 1 ui-monospace, monospace;
+  letter-spacing: 0.12em; display: block; margin-bottom: 6px;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 16px; align-items: start;
+}
+.notes.single { grid-template-columns: minmax(0, 1fr); }
+.notes-main { min-width: 0; }
+
+p {
+  color: var(--muted); line-height: 1.95; margin: 0 0 12px; font-size: 15px;
+}
+ul {
+  margin: 0 0 12px; padding-left: 1.25em; color: var(--muted);
+  line-height: 1.9; font-size: 14.5px;
+}
+li { margin-bottom: 7px; }
+li::marker { color: var(--accent); }
+
+.sowhat {
+  border: 1px solid rgba(255, 201, 77, 0.45);
+  background: linear-gradient(180deg, rgba(255, 201, 77, 0.09), rgba(255, 201, 77, 0.04));
+  border-radius: 8px; padding: 16px 18px; position: sticky; top: 70px;
+}
+.sowhat .tag {
+  display: inline-block; color: #1a1403; background: var(--gold);
+  font: 800 10.5px / 1 ui-monospace, monospace;
+  letter-spacing: 0.18em; padding: 5px 10px; border-radius: 3px; margin-bottom: 11px;
+}
+.sowhat p { color: #e9e0c4; font-size: 13.8px; line-height: 1.85; margin: 0; }
+.sowhat p strong { color: #ffe6a8; }
+
+.quote {
+  border-left: 3px solid var(--accent);
+  background: rgba(232, 87, 195, 0.07);
+  padding: 14px 18px; margin: 14px 0; color: #f5dcef;
+  font-size: 14.5px; line-height: 1.9; font-style: italic; border-radius: 0 6px 6px 0;
+}
+.quote small {
+  display: block; margin-top: 8px; color: var(--muted);
+  font-style: normal; font-size: 12px;
+}
+
+.warn {
+  border-left: 3px solid var(--alert);
+  background: rgba(255, 143, 122, 0.07);
+  padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0;
+}
+.warn p { margin: 0; font-size: 13.8px; color: #f3d8d0; }
+.warn strong { color: #ffb3a3; }
+
+.grid-2 {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px; margin: 14px 0;
+}
+.grid-3 {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px; margin: 14px 0;
+}
+
+.vs-card {
+  border: 1px solid var(--line); background: var(--panel2);
+  border-radius: 8px; padding: 16px 18px;
+}
+.vs-card h4 { margin: 0 0 10px; font-size: 15px; color: var(--ink); }
+.vs-card h4 span {
+  display: block; font: 700 10.5px / 1 ui-monospace, monospace;
+  letter-spacing: 0.16em; margin-bottom: 7px; color: var(--muted);
+}
+.vs-card.now { border-color: rgba(232, 87, 195, 0.45); }
+.vs-card.now h4 span { color: var(--accent); }
+
+.checks {
+  list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 9px;
+}
+.checks li {
+  border: 1px solid var(--line); background: var(--panel2);
+  border-radius: 6px; padding: 12px 15px 12px 44px; position: relative;
+  font-size: 13.8px; color: var(--muted); line-height: 1.75; margin: 0;
+}
+.checks li::before {
+  content: "✓"; position: absolute; left: 15px; top: 11px;
+  color: var(--gold); font-weight: 800; font-size: 15px;
+}
+.checks b { color: var(--ink); }
+
+.keymap {
+  border: 1px solid var(--line); background: var(--panel2);
+  border-radius: 8px; padding: 18px 20px; margin: 16px 0;
+}
+.keymap h4 {
+  margin: 0 0 12px; font-size: 13px; letter-spacing: 0.12em;
+  color: var(--accent); font-family: ui-monospace, monospace;
+}
+.keymap ol { margin: 0; padding-left: 1.3em; color: var(--muted); font-size: 14px; line-height: 1.85; }
+.keymap li { margin-bottom: 6px; }
+.keymap b { color: var(--ink); }
+
+.final {
+  margin-top: 60px; padding: 28px 0 40px;
+  border-top: 1px solid var(--line); text-align: center; color: var(--muted); font-size: 13px;
+}
+.final a { color: var(--accent); text-decoration: none; }
+
+/* Lightbox */
+.lb { display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(8,2,10,0.92); align-items: center; justify-content: center;
+  cursor: zoom-out; }
+.lb.on { display: flex; }
+.lb img { max-width: 94vw; max-height: 90vh; border-radius: 6px; box-shadow: 0 0 80px rgba(232,87,195,0.25); }
+
+@media (max-width: 780px) {
+  .notes { grid-template-columns: 1fr; }
+  .sowhat { position: static; }
+}
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="topbar">
+        <span>AI Intelligence Hub · Day Slide</span>
+        <span>2026-08-09 · Grok Imagine Image 2.0</span>
+      </div>
+      <div class="hero-body">
+        <div class="kicker">今日の深掘り — 画像編集 / 実務アセット</div>
+        <p class="eyebrow">GROK IMAGINE IMAGE 2.0</p>
+        <h1>xAI Grok Imagine Image 2.0 がなぜ「実務編集の転換点」なのか</h1>
+        <p class="lead">
+          2026年8月7–8日、xAIは <strong>Imagine Image 2.0</strong> を Quality Mode として即時公開した。
+          Arena で text-to-image と image editing の双方で世界2位。
+          核心は「より綺麗な生成」ではなく、<strong>Magic Wand / Segmentation による精密リージョン編集</strong>と、実務で使える一貫性・テキスト品質への明確なシフトである。
+        </p>
+        <div class="hero-meta">
+          <span>Quality Mode 即日GA</span>
+          <span>Arena #2 (T2I + Edit)</span>
+          <span>Magic Wand / Segmentation</span>
+          <span>Multi-ref ×5</span>
+          <span>Video は 1.5 継続</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-num">#2</div>
+        <div class="stat-label"><b>Arena Ranking</b>Text-to-Image &amp; Image Edit 双方</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label"><b>Multi-Ref</b>同時参照画像の上限</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num gold">Magic</div>
+        <div class="stat-label"><b>Wand + Seg</b>領域指定で他は不変</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">9</div>
+        <div class="stat-label"><b>Smart Resize</b>任意アスペクト比に自然拡張</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">Live</div>
+        <div class="stat-label"><b>Quality Mode</b>grok.com/imagine + Apps</div>
+      </div>
+    </div>
+
+    <nav class="jump" aria-label="セクションジャンプ">
+      <a href="#s1"><b>01</b> Visual</a>
+      <a href="#s2"><b>02</b> What Shipped</a>
+      <a href="#s3"><b>03</b> Why Matters</a>
+      <a href="#s4"><b>04</b> Arena</a>
+      <a href="#s5"><b>05</b> Tools</a>
+      <a href="#s6"><b>06</b> Consistency</a>
+      <a href="#s7"><b>07</b> Caveats</a>
+      <a href="#s8"><b>08</b> Bottom Line</a>
+    </nav>
+
+    <div class="slides">
+
+      <!-- 01 VISUAL SUMMARY -->
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">VISUAL SUMMARY · GROK IMAGINE</p>
+            <h2>精密編集パラダイムの全体像</h2>
+          </div>
+        </div>
+        <p class="shot-caption">
+          <b>MAGIC WAND 精密編集</b>
+          ソール領域だけをネオングリーンに再着色。背景・アッパー・ライティングは100%不変。Segmentation Layers と Multi-Ref が同時に機能する UI 概念図。
+        </p>
+        <p class="shot-caption">
+          <b>BEFORE → AFTER 一貫性シフト</b>
+          左：フル再生成の混沌（顔・服装・テキストが毎回崩れる）。右：Image 2.0 で同一キャラクターを複数ポーズで完全ロック + シャープテキスト + 透明レイヤー。
+        </p>
+
+        <div class="keymap">
+          <h4>KEY MAP · 5 LAYERS OF IMAGE 2.0</h4>
+          <ol>
+            <li><b>LAYER 01 · Instruction Following</b> — 詳細指示を忠実に実行し、入力を編集間で保持</li>
+            <li><b>LAYER 02 · Precision Edit</b> — Magic Wand（指し示し領域） / Segmentation（精密選択） / BG Removal</li>
+            <li><b>LAYER 03 · Consistency Control</b> — Multi-ref 最大5枚でキャラ・スタイル・ワールドをロック</li>
+            <li><b>LAYER 04 · Real-work Tools</b> — Smart Resize（9比率） + 実務テンプレート群（product / headshot / ads / game assets）</li>
+            <li><b>LAYER 05 · Output Quality</b> — デザイナー級タイポグラフィ、シャープ小文字、事実性向上</li>
+          </ol>
+        </div>
+
+        <div class="notes">
+          <div class="notes-main">
+            <p>一行で言うと：Image 2.0 は「もっと大きなモデル」でも「もっと綺麗な絵」でもない。<strong>同じ生成基盤を、反復的な実務編集と一貫性のために鍛え直した</strong>ニュースである。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>「ここだけ直せ」が現実になった瞬間、画像生成は<strong>エージェントが扱えるツール</strong>に近づいた。フル再生成のコストと不安定さが消える。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 02 WHAT SHIPPED -->
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">WHAT SHIPPED</p>
+            <h2>2026年8月7–8日に実際に出たもの</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>xAIは <strong>Imagine Image 2.0</strong> を Quality Mode として <code>grok.com/imagine</code> と iOS/Android アプリに即時投入した。APIは「coming soon」。</p>
+            <ul>
+              <li><strong>Magic Wand</strong> — 指し示した領域だけを編集。残りは一切触らない</li>
+              <li><strong>Segmentation</strong> — 自動/手動で精密領域選択。個別レイヤーを透明PNGで書き出し可能</li>
+              <li><strong>Background Removal</strong> — 被写体を透明背景で切り出し</li>
+              <li><strong>Multi-ref</strong> — 最大5枚の参照画像を同時入力して一貫性をロック</li>
+              <li><strong>Smart Resize</strong> — 1:2 / 9:16 / 2:3 / 3:4 / 1:1 / 4:3 / 3:2 / 16:9 / 2:1 の9比率に自然拡張</li>
+              <li><strong>Crisp Text &amp; Layout</strong> — 小文字・密集タイポがデザイナー品質に。事実性も向上</li>
+              <li><strong>Templates</strong> — Product shots, Headshots, Ads, Game assets, Icons, Character Sprite, E-commerce, UGC など多数</li>
+            </ul>
+            <p>動画生成は既存の <strong>Imagine Video 1.5</strong> を継続利用。Image 2.0で作った一貫アセットをそのまま動画に流し込む設計。</p>
+            <div class="quote">
+              “Image 2.0 helps you make images for real work.”
+              <small>— xAI 公式発表 / @grok</small>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務ヒント</span>
+            <p>Speed Mode（旧モデル）も残っている。品質優先なら Quality、速度優先や旧スタイルが欲しいときは Speed に切り替え可能。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 03 WHY IT MATTERS -->
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">WHY IT MATTERS</p>
+            <h2>なぜこれが「サプライズ」で「転換点」なのか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>多くのモデルが「より綺麗・より高解像度・より創造的」の競争を続ける中で、xAIは明確に舵を切った。</p>
+            <ul class="checks">
+              <li><b>反復編集が現実的になった</b><br>フル再生成なしで「ここだけ直せ」。エージェントのツールコールに最適。</li>
+              <li><b>キャラクター / ワールド一貫性の強化</b><br>Multi-ref ×5 + 入力保持で、画像からストーリーボード→動画への橋渡しが実用域に。</li>
+              <li><b>テキストが実務品質に到達</b><br>インフォグラフィック、広告、UIモック、商品ポスターで致命的だった文字崩れが大幅改善。</li>
+              <li><b>「生成の美しさ」から「使える編集精度」へのシフト</b><br>デザインシステム起点の差分編集・量産が現実的になった。</li>
+              <li><b>エージェント連携の基盤</b><br>領域指定・一貫性・レイヤー出力は、自動化パイプラインで扱いやすいインターフェースになる。</li>
+            </ul>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>これは「きれいな画像モデルのアップデート」ではない。<strong>画像生成を実務アセット作成ツールへ再定義した</strong>動きである。エージェント時代の画像インフラ候補。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 04 ARENA -->
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">BENCHMARKS · ARENA</p>
+            <h2>世界2位の実力をどう読むか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Arena.ai の公開リーダーボード（2026-08-07時点）で、Grok Imagine Image 2.0 (low) は以下の位置。</p>
+            <ul>
+              <li><strong>Text-to-Image</strong>：#2（gpt-image-2 が #1）</li>
+              <li><strong>Image Edit</strong>：#2（同じく gpt-image-2 が #1）</li>
+            </ul>
+            <p>カテゴリ別では Text Rendering、Portraits、Art、Photorealistic &amp; Cinematic、Cartoon/Anime などで上位。特に「編集」と「テキスト」での強さが、実務シフトの主張を裏付ける。</p>
+            <p>注意点として、現在公開されているのは (low) バリアント。高品質版は未リリース。また API 経由の評価ではないため、ホスト版の実際の使用感が最終的な判断材料になる。</p>
+            <div class="warn">
+              <p><strong>正確な読み方：</strong>「世界最高」ではなく「OpenAIの最新に次ぐ編集・生成の総合力を、精密ツール付きで即日提供した」ことが重要。</p>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務ヒント</span>
+            <p>自社のユースケース（商品写真・キャラクター一貫・テキスト入り広告）で実際に Quality Mode を回し、Speed Mode と比較するのが最短の評価。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 05 TOOLS DEEP DIVE -->
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">TOOLS DEEP DIVE</p>
+            <h2>Magic Wand / Segmentation がなぜ決定的か</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>従来の画像編集は「プロンプトを変えて全部再生成 → 運が良ければ欲しい部分だけ良くなる」だった。Image 2.0 はこのループを壊した。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>Magic Wand</span>指し示し編集</h4>
+                <p style="margin:0;font-size:13.8px;color:var(--muted)">領域をポイントし、変更内容だけを記述。他のピクセルは完全に保持される。余分な腕・ずれた小物・色の微調整に最適。</p>
+              </div>
+              <div class="vs-card">
+                <h4><span>Segmentation</span>精密レイヤー</h4>
+                <p style="margin:0;font-size:13.8px;color:var(--muted)">自動セグメンテーションで領域を分離。個別に編集し、透明PNGとして書き出せる。後工程の合成に直結。</p>
+              </div>
+            </div>
+            <p>これに Multi-ref（最大5）と Smart Resize が組み合わさることで、「1枚の承認済み画像を起点に、差分だけでバリエーションを量産する」ワークフローが可能になる。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">エージェント視点</span>
+            <p>「この領域をこう変えろ」という指示は、LLMエージェントのツールコールとして非常に扱いやすい。画像編集がブラックボックスから透明な操作に近づく。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 06 CONSISTENCY & VIDEO -->
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">CONSISTENCY &amp; VIDEO BRIDGE</p>
+            <h2>画像一貫性強化が動画パイプラインを現実化する</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Image 2.0 自体は静止画専用。動画は Imagine Video 1.5 を継続利用する設計だ。</p>
+            <p>しかし Multi-ref と入力保持の強化により、「同じキャラクター・同じワールドの複数アセット」を高い一貫性で生成できるようになった。これがストーリーボード → 画像群 → Video 1.5 への延長を、以前よりはるかに現実的にする。</p>
+            <ul>
+              <li>キャラクターシート（正面・側面・アクション）を Multi-ref でロック</li>
+              <li>背景・小道具も別途一貫生成</li>
+              <li>必要な部分だけ Magic Wand で微調整</li>
+              <li>完成アセットを Video 1.5 に投入してモーションを追加</li>
+            </ul>
+            <p>エージェントが「画像編集ツール」として Image 2.0 を呼び、結果を動画モデルに渡すループが、精度面で回り始めた。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">次の実験</span>
+            <p>既存のデザインシステム画像をアップロード → Magic Wand で部分修正 + テキスト追加 → 一貫性を確認 → Video 1.5 に流す。旧モデルとの差分を定量的に見る。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 07 CAVEATS -->
+      <section class="slide" id="s7">
+        <div class="slide-head">
+          <span class="no">07</span>
+          <div>
+            <p class="slide-kicker">CAVEATS</p>
+            <h2>サプライズしすぎないための注釈</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>本物のジャンプだが、銀の弾丸ではない。</p>
+            <ul>
+              <li><strong>API 未公開</strong> — 現時点では Web/アプリの Quality Mode 限定。完全自動化や大量バッチはまだ不可。</li>
+              <li><strong>デジタル寄り / プラスチック感</strong> — 一部ユーザーから「旧モデルよりデジタル感が強い」とのフィードバックあり。自然な肌質が欲しい場合はプロンプト先頭に “natural matte finish, visible pores, microtexture, film grain” を入れるか、Speed Mode に切り替え。</li>
+              <li><strong>高負荷時のクォータ</strong> — SuperGrok でも共有週間プールがある。大量実験時は使用量を監視。</li>
+              <li><strong>レイヤー出力の限界</strong> — 個別透明PNGは可能だが、フル PSD エクスポートは未対応。</li>
+              <li><strong>Video は別モデル</strong> — 画像の一貫性が上がっても、動画側のキャラクター一貫性は Video 1.5 の能力に依存する。</li>
+            </ul>
+            <div class="warn">
+              <p><strong>正確な理解：</strong>サプライズは「人類最高の画像生成」ではなく、<strong>編集精度と一貫性を第一級にした実務ツールが、#2の実力で即日使えるようになった</strong>ことにある。</p>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務ヒント</span>
+            <p>明日やること候補：① 自社の主要ユースケースで Quality vs Speed を比較 ② Magic Wand の精度を実測 ③ Multi-ref でキャラクターシートを作り、Video 1.5 への接続を試す。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 08 BOTTOM LINE -->
+      <section class="slide" id="s8">
+        <div class="slide-head">
+          <span class="no">08</span>
+          <div>
+            <p class="slide-kicker">THE BOTTOM LINE</p>
+            <h2>一行で言うと、何が起きたのか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>Imagine Image 2.0 の本質は、画像生成の主戦場が <strong>「より綺麗な一発生成」</strong>から <strong>「精密な反復編集 × 一貫性 × 実務テンプレート × エージェント適合」</strong>へ移ったことを、xAIが自らのモデルで示した点にある。</p>
+            <div class="grid-3">
+              <div class="vs-card">
+                <h4><span>以前の常識</span>生成の美しさ競争</h4>
+                <p style="margin:0;font-size:13.5px">フル再生成で運を試す。一貫性は運任せ。</p>
+              </div>
+              <div class="vs-card now">
+                <h4><span>Image 2.0 の新常識</span>編集精度 × 一貫性</h4>
+                <p style="margin:0;font-size:13.5px">領域指定で「ここだけ」。Multi-refでロック。</p>
+              </div>
+              <div class="vs-card">
+                <h4><span>次の問い</span>実装側</h4>
+                <p style="margin:0;font-size:13.5px">自社のデザインシステムとエージェントにどう接続するか。</p>
+              </div>
+            </div>
+            <p style="margin-top:16px">だから 8/7–8/9 のエンジニア TL は「また画像モデルが強くなった」ではなく、<strong>「実務で使える精密編集ツールが、#2の実力で即日利用可能になった」</strong>と読むべきである。それが深い読みだ。</p>
+            <div class="quote">
+              これは「きれいな生成」から「実務で使える編集精度」へのシフトが明確になった瞬間である。一貫したキャラクター/ワールド制御が強化され、エージェント連携（画像→動画延長）が現実的になった。
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="final">
+      <p>2026-08-09 — AI Intelligence Hub / Day Slide · Grok Imagine Image 2.0 深掘り · スタンドアロンHTML</p>
+      <p style="margin-top:8px">
+        <a href="https://x.ai/news/grok-imagine-image-2" target="_blank" rel="noopener">公式発表</a> ·
+        <a href="https://grok.com/imagine" target="_blank" rel="noopener">試す</a> ·
+        <a href="https://arena.ai/leaderboard/text-to-image" target="_blank" rel="noopener">Arena T2I</a> ·
+        <a href="https://arena.ai/leaderboard/image-edit" target="_blank" rel="noopener">Arena Edit</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lb" id="lb" onclick="this.classList.remove('on')">
+    <img id="lb-img" alt="">
+  </div>
+
+  <script>
+    (function() {
+      var progress = document.getElementById('progress');
+      var sections = document.querySelectorAll('section.slide');
+      var jumps = document.querySelectorAll('.jump a');
+
+      function update() {
+        var h = document.documentElement.scrollHeight - innerHeight;
+        progress.style.width = (h > 0 ? (scrollY / h * 100) : 0) + '%';
+        var y = scrollY + 90, idx = -1;
+        for (var i = 0; i < sections.length; i++) if (sections[i].offsetTop <= y) idx = i;
+        jumps.forEach(function(a, i) { a.classList.toggle('on', i === idx); });
+      }
+      addEventListener('scroll', update, { passive: true });
+      update();
+
+      // Lightbox
+      document.querySelectorAll('.shot img').forEach(function(img) {
+        img.addEventListener('click', function() {
+          document.getElementById('lb-img').src = this.src;
+          document.getElementById('lb').classList.add('on');
+        });
+      });
+      document.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Escape') document.getElementById('lb').classList.remove('on');
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90, idx = -1;
+        for (var i = 0; i < sections.length; i++) if (sections[i].offsetTop <= y) idx = i;
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+
+  <!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_08.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_09.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-09.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
