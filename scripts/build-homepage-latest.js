@@ -61,6 +61,8 @@ function extractTitle(html, date) {
   return decodeEntities(raw)
     .replace(/\s*\|\s*\d{4}-\d{2}-\d{2}\s*·\s*AI Daily Briefing\s*$/i, '')
     .replace(/\s*[-|]\s*AI Daily Briefing\s*$/i, '')
+    .replace(/\s*\|\s*Day Slide\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
+    .replace(/\s*\|\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
     .trim() || `AI Daily Briefing ${date}`;
 }
 
@@ -116,8 +118,12 @@ function clamp(n, lo, hi) {
 }
 
 function dateLabel(date) {
-  const d = new Date(`${date}T00:00:00+09:00`);
-  const dow = Number.isFinite(d.getTime()) ? WEEKDAY_JP[d.getDay()] : '-';
+  // Use UTC noon for the calendar date so weekday is stable on UTC CI runners.
+  // (JST midnight is still the previous UTC day, so getDay() on a UTC host was off-by-one.)
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date || '');
+  if (!m) return `${date} · -`;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0));
+  const dow = WEEKDAY_JP[d.getUTCDay()] || '-';
   return `${date} · ${dow}`;
 }
 
@@ -282,7 +288,11 @@ function updateHomepage(data, slide, slideUrl) {
   const updateTime = generatedAt ? generatedAt.replace(/^\d{4}-\d{2}-\d{2}\s+/, '').replace(' JST', '') : '09:00';
   const rankingItems = collectRankingItems(data, slideUrl);
   const categoryItems = collectCategoryItems(data);
-  const heroTitle = data.highlight && data.highlight.title ? data.highlight.title : '最新スライドを公開しました';
+  const rawHeroTitle = data.highlight && data.highlight.title ? data.highlight.title : '最新スライドを公開しました';
+  const heroTitle = String(rawHeroTitle)
+    .replace(/\s*\|\s*Day Slide\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
+    .replace(/\s*\|\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
+    .trim() || rawHeroTitle;
   const heroMeta = [
     data.highlight && data.highlight.category,
     data.highlight && sourceName(data.highlight),
