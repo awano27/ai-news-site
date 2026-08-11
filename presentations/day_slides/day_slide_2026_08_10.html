@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meta Muse Glimmer：ローカルエージェントの転換点 — 30B Apache 2.0がコンシューマGPUで本気の自律を実現 | 2026-08-10</title>
+  <meta name="description" content="Meta Superintelligence Labsが2026年8月10日に公開した約29.6BのApache 2.0オープンウェイト・エージェント特化モデル。Muse Sparkから蒸留され、4-bit量子化で単一コンシューマGPUに常駐可能。ローカルエージェント時代の転換点を深掘り。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_10.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Meta Muse Glimmer：ローカルエージェントの転換点">
+  <meta property="og:description" content="クラウド依存からオフライン・プライバシー重視の本気エージェントへ。29.6B Apache 2.0モデルが単一GPUで動く意味を徹底解説。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_10.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0810/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0810/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Meta Muse Glimmer：ローカルエージェントの転換点",
+    "description": "Metaが公開した約30Bのエージェント特化オープンウェイトモデル。蒸留・量子化・失敗リカバリ設計がもたらすローカルエージェントの実用化を深掘り。",
+    "datePublished": "2026-08-10",
+    "dateModified": "2026-08-10",
+    "articleSection": "Local AI Agents & Open Weights"
+  }
+  </script>
+  <style>
+    :root {
+      --bg:#07070f; --panel:#0f1020; --panel2:rgba(18,18,38,.72);
+      --ink:#f2f2ff; --muted:#a3a3c4; --line:rgba(124,140,255,.20);
+      --accent:#7c8cff; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(124,140,255,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(124,140,255,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(124,140,255,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+      line-height:1.7;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#cfd3ff); z-index:60; transition:width .1s linear; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(124,140,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,140,255,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(124,140,255,.16), transparent 62%),
+      #07070f;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c9c9de; font-size:13px; }
+    .topbar a { color:#ccd2ff; text-decoration:none; border-bottom:1px solid rgba(204,210,255,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#0b1040; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#b6bdff; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(28px,4.6vw,52px); line-height:1.22; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#cbcbe2; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:1.95; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+    .hero-meta span { border:1px solid rgba(182,189,255,.4); background:rgba(9,9,26,.55); color:#d8dcff; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:11px; margin:28px 0 40px; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(24,24,50,.94), rgba(12,12,28,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(3,3,12,.55); }
+    .stat-num { font:700 26px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.55; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(7,7,15,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(124,140,255,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); }
+
+    .slide { margin-bottom:56px; }
+    .slide-head { display:flex; gap:16px; align-items:flex-start; margin-bottom:18px; }
+    .no { font:800 28px/1 ui-monospace,monospace; color:var(--accent); opacity:.85; min-width:42px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,30px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+
+    .notes { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:20px; align-items:start; }
+    /* grid items default to min-width:auto; without these the 560px table
+       widens the track and scrolls the whole page on mobile */
+    .notes-main { min-width:0; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    .notes.single { grid-template-columns:1fr; }
+    .notes-main p, .notes-main li { color:var(--muted); font-size:14.5px; line-height:1.85; }
+    .notes-main ul { padding-left:1.2em; margin:12px 0; }
+    .notes-main li { margin-bottom:6px; }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+
+    .quote { border-left:3px solid var(--accent); background:rgba(124,140,255,.07); padding:14px 18px; margin:14px 0; color:#dcdff5; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin:16px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(124,140,255,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin:0; padding-left:1.1em; color:var(--muted); }
+    .vs-card li { margin-bottom:5px; }
+
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:560px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(163,163,196,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; }
+    .st-mid { color:var(--gold); font-weight:600; }
+
+    .img-block { margin:20px 0; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:var(--panel); }
+    .img-block img { width:100%; height:auto; display:block; }
+    .img-caption { padding:12px 16px; font-size:13px; color:var(--muted); background:rgba(0,0,0,.25); }
+
+    .finale { margin-top:56px; border:1px solid rgba(124,140,255,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(124,140,255,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; color:var(--accent); font:700 12px/1 ui-monospace,monospace; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(18px,2.4vw,26px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; color:var(--muted); }
+
+    .sources { margin-top:40px; padding-top:24px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); }
+    .sources a { color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(124,140,255,.35); }
+    .sources ul { padding-left:1.2em; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="../day_slides_index.html">All day slides</a>
+        <span>2026-08-10 / Local AI Agents &amp; Open Weights</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — ローカルエージェント / オープンウェイト</span>
+        <p class="eyebrow">META MUSE GLIMMER</p>
+        <h1>ローカルエージェントの転換点 ——30B Apache 2.0がコンシューマGPUで本気の自律を実現した瞬間</h1>
+        <p class="lead">
+          Meta Superintelligence Labsが<strong>2026年8月10日</strong>に公開した約<strong>29.6B</strong>のApache 2.0オープンウェイトモデル。
+          Muse Sparkから蒸留され、4-bit量子化で言語モデル部分を20GB未満に圧縮。単一のコンシューマGPU（24/32GB）や高スペックMacで常駐可能。
+          マルチモーダル・ツール呼び出し・失敗時自動リトライ・131K+コンテキストを備え、ローカルでの自律エージェント・コーディング・LLM-as-a-judge用途に最適化されている。
+        </p>
+        <div class="hero-meta">
+          <span>公開：2026-08-10</span>
+          <span>パラメータ：~29.6B</span>
+          <span>ライセンス：Apache 2.0</span>
+          <span>対象：Local Agents</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card">
+        <div class="stat-num">~29.6B</div>
+        <div class="stat-label"><b>総パラメータ</b>Dense + ~1.8B Perception Encoder</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">&lt;20GB</div>
+        <div class="stat-label"><b>量子化後LM</b>4-bit K-Quantで24/32GB GPUに収まる</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num gold">75.5</div>
+        <div class="stat-label"><b>MCP Atlas</b>Gemma4-31B 54.2 / Qwen3.6-27B 62.5を上回る</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">131K+</div>
+        <div class="stat-label"><b>コンテキスト</b>長時間エージェントループに耐える</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3.1x</div>
+        <div class="stat-label"><b>DFlash加速</b>RTX 5090での推測デコーディング速度向上</div>
+      </div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b> SUMMARY</a>
+      <a href="#s2"><b>02</b> ARCH</a>
+      <a href="#s3"><b>03</b> AGENT</a>
+      <a href="#s4"><b>04</b> BENCH</a>
+      <a href="#s5"><b>05</b> DIFF</a>
+      <a href="#s6"><b>06</b> STRATEGY</a>
+      <a href="#s7"><b>07</b> LIMIT</a>
+    </nav>
+
+    <div class="slides">
+
+      <!-- 01 -->
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+            <h2>1枚で見る Muse Glimmer</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>Muse Glimmer</strong>は、Meta Superintelligence Labsが公開した<strong>エージェント特化のオープンウェイトモデル</strong>である。クローズドなfrontierモデル「Muse Spark」からlogit distillationで知識を移譲し、さらにエージェント寄りデータでmid/post-trainingを重ねた。結果として「失敗したら診断してリトライする」「画面を見てツールを呼ぶ」といったループが最初から組み込まれている。</p>
+            <ul>
+              <li><b>何が変わるか</b>：クラウド依存のエージェントが主流だった中で、「オフライン・プライバシー・ベンダーロックなし」で本気の自律エージェントがコンシューマハードウェアで動く現実が生まれた。</li>
+              <li><b>何が変わらないか</b>：平均的なノートPCでは動かない（24GB+VRAM/高スペックMacが必要）。frontier級の性能ではない。</li>
+              <li><b>なぜ今か</b>：Zuckerbergが同日に「個人向けスーパーインテリジェンスを広く分配する」エッセイを出し、オープン戦略を実務ツールとして着地させたタイミング。</li>
+            </ul>
+            <div class="img-block">
+              <img src="images/0810/fig1-oneboard.jpg" alt="Muse Glimmer ONE-BOARD SUMMARY infographic">
+              <div class="img-caption">ONE-BOARD SUMMARY — 主要指標と機能を1枚にまとめたインフォグラフィック（Grok Imagine Image 2.0）</div>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>大きい</strong>。ローカルエージェントの「実験段階」から「実務で使える床」を一気に引き上げた。プライバシー・コスト・オフライン要件を持つ開発者・個人にとって、今週中に試す価値のあるモデル。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">ARCHITECTURE &amp; DISTILLATION</p>
+            <h2>技術の核心：なぜローカルで本気になるのか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>Dense Causal Transformer（52層 / hidden 6656 / GQA 32Q-2KV）に、約1.8BのViT-G/14 Perception Encoderを統合。注意パターンは[Local×3, Global]のハイブリッドで、Sliding Window 2048を保ちつつ長コンテキストを実用的に扱う。</p>
+            <div class="grid-2">
+              <div class="vs-card now">
+                <h4><span>蒸留プロセス</span>3段階でエージェント能力を焼き付ける</h4>
+                <ul>
+                  <li>Pre：Muse Sparkの出力をlogit distillation</li>
+                  <li>Mid：長コンテキスト＋エージェント寄りデータ＋豊富な推論トレース</li>
+                  <li>Post：SFT + on-policy distillation + RL（エージェント領域含む）</li>
+                </ul>
+              </div>
+              <div class="vs-card">
+                <h4><span>量子化 &amp; 速度</span>24/32GBに収めるための共設計</h4>
+                <ul>
+                  <li>4-bit K-Quant：LM部分 &lt;20GB</li>
+                  <li>K-Quant-17GB（24GB向け / 劣化~1%）</li>
+                  <li>DFlash speculative decoding：最大3.1x加速</li>
+                </ul>
+              </div>
+            </div>
+            <div class="img-block">
+              <img src="images/0810/fig2-architecture.jpg" alt="Muse Glimmer 30B Architecture and Distillation diagram">
+              <div class="img-caption">アーキテクチャ詳細図 — Dense Causal Transformer + Perception Encoder / 蒸留フロー / 量子化・DFlash（Grok Imagine Image 2.0）</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">AGENTIC CAPABILITIES</p>
+            <h2>エージェントとして設計された機能群</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <ul class="checks">
+              <li><b>End-to-endタスク完遂</b>：DeepSearch QA / MCP-Atlas / τ-Bench / SWE-Benchなどで評価。スキャフォールド内でコード書き・デバッグ・複数ターンを最後までやり切る。</li>
+              <li><b>信頼できるツール呼び出し</b>：精密なスキーマ準拠を長時間ワークフローで維持。</li>
+              <li><b>失敗リカバリ</b>：ツールが失敗・予期しない結果を返した場合、診断してリトライする（止まるだけではない）。</li>
+              <li><b>マルチモーダル画面理解</b>：専用Perception Encoderでスクリーンショット・チャート・ドキュメントを自然に扱う。</li>
+              <li><b>Controllable Effort</b>：システムプロンプトで推論強度を調整可能。</li>
+            </ul>
+            <div class="img-block">
+              <img src="images/0810/fig3-benchmarks.jpg" alt="Agentic Benchmarks comparison Muse Glimmer vs peers">
+              <div class="img-caption">エージェント系ベンチマーク比較（MCP Atlas / DeepSearch QA / SWE-Bench Pro / Gaia2）— Muse Glimmerがリード（Grok Imagine Image 2.0）</div>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務視点</span>
+            <p>「画面を見て状況判断し、エラーが出ても自己修復しながらタスクを進める」設計が、これまでの汎用モデル＋スキャフォールドとの最大の違い。ファイル整理や簡易コーディングエージェントから試す価値が高い。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">BENCHMARKS</p>
+            <h2>同サイズ帯での位置づけ（Meta報告）</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <div class="scroll-x"><table class="cmp">
+              <thead>
+                <tr>
+                  <th>ベンチマーク</th>
+                  <th>Muse Glimmer</th>
+                  <th>Gemma4-31B</th>
+                  <th>Qwen3.6-27B</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>MCP Atlas (Public)</td>
+                  <td class="st-ok"><b>75.5</b></td>
+                  <td>54.2</td>
+                  <td>62.5</td>
+                </tr>
+                <tr>
+                  <td>DeepSearch QA</td>
+                  <td class="st-ok"><b>74.6</b></td>
+                  <td>61.7</td>
+                  <td>71.1</td>
+                </tr>
+                <tr>
+                  <td>SWE-Bench Pro</td>
+                  <td class="st-ok"><b>51.2</b></td>
+                  <td>36.9</td>
+                  <td>50.2</td>
+                </tr>
+                <tr>
+                  <td>SWE-Bench Verified</td>
+                  <td>76.0</td>
+                  <td>66.6</td>
+                  <td class="st-ok"><b>77.2</b></td>
+                </tr>
+                <tr>
+                  <td>OSWorld-Verified</td>
+                  <td>65.9</td>
+                  <td>58.5</td>
+                  <td class="st-ok"><b>75.6</b></td>
+                </tr>
+                <tr>
+                  <td>Gaia2</td>
+                  <td class="st-ok"><b>43.3</b></td>
+                  <td>36.4</td>
+                  <td>40.0</td>
+                </tr>
+              </tbody>
+            </table></div>
+            <p>エージェント系（ツール使用・end-to-end）で明確にリード。コンピュータ使用や一部コーディングではQwenが優位なケースあり。ベンダー報告のため独立評価の蓄積が今後重要。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">DIFFERENCES &amp; RECENCY</p>
+            <h2>既存類似製品との違い / 新規性</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>1. 既存の類似製品（Gemma4-31B / Qwen3.6-27Bなど）と何が違うか</strong></p>
+            <ul>
+              <li>汎用モデルを後からエージェント化するのではなく、<strong>蒸留＋エージェント特化mid/post-training</strong>で失敗リカバリ付きend-to-endループを最初から組み込んでいる。</li>
+              <li>Muse Sparkというクローズドfrontierからの知識移譲。</li>
+              <li>画面理解用の専用Perception Encoderをエージェント用途に統合。</li>
+              <li>量子化＋DFlashを「24/32GBで常駐可能」を目標にハードウェア共設計。</li>
+              <li>Apache 2.0のクリーンさと、公開当日のエコシステム対応の速さ。</li>
+            </ul>
+            <p><strong>2. 最近出た新しい製品か</strong></p>
+            <p><strong>はい。極めて新しい。</strong> 2026年8月10日（昨日）公開。知識カットオフは2026年1月4日頃。ローカルエージェント特化のオープンウェイトモデルとして現時点で最新。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">必須確認</span>
+            <p>スタイルガイド通り「違い」と「新規性」を明確に記載。価値の核心は「エージェント特化＋ハードウェア共設計＋オープン」の三点セットにある。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">STRATEGIC CONTEXT</p>
+            <h2>Zuckerbergのオープン戦略が「実務ツール」として着地した瞬間</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>同日にZuckerbergが約6500語のエッセイ「The Future is for Everyone」を公開。「個人向けスーパーインテリジェンスを広く分配する」立場を明確にした。クローズドなMuse Spark路線から、再びオープンウェイトを実務ツールとして出す転換でもある。Muse Spark 1.2のウェイト公開も「まもなく」と明言されている。</p>
+            <div class="quote">
+              Today we're also opening the weights for Muse Glimmer, a great 30B parameter dense model that can run locally. Soon we'll also release the weights for Muse Spark 1.2...
+              <small>— Mark Zuckerberg (@finkd) 2026-08-10</small>
+            </div>
+            <p>Ollama（特にMLX）・Hugging Face・transformers・llama.cpp・vLLMなどへの対応が公開当日〜翌日に始まっており、試せる状態が整っている。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section class="slide" id="s7">
+        <div class="slide-head">
+          <span class="no">07</span>
+          <div>
+            <p class="slide-kicker">LIMITATIONS &amp; NEXT</p>
+            <h2>限界と次の実験案</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <ul>
+              <li>ハードウェアの床は高い（24GB以上のVRAMまたは高スペックMacが必要。平均的なノートPCでは厳しい）。</li>
+              <li>ベンダーベンチ中心。独立検証はこれから。</li>
+              <li>長時間・新規シナリオでのマルチステップエラーはまだ起こり得る。不可逆操作には人間確認を推奨。</li>
+              <li>音声非対応。動画はフレーム処理のみ。</li>
+            </ul>
+            <p><strong>次の実験案</strong>：Hugging FaceまたはOllamaで量子化版を落として、ローカルで「ファイル整理＋簡単なコーディングエージェント」を走らせる。失敗リカバリの挙動を観察するのが最も価値の高い第一歩。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実践</span>
+            <p>Ollama（MLX優先）やUnsloth GGUFが既に出回っている。実際に動かして「手触り」を確かめるのが、このニュースの最大の価値の取り方。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="finale">
+      <p class="eyebrow">THE BOTTOM LINE</p>
+      <blockquote>
+        クラウド依存のエージェント時代に、<em>「オフライン・プライバシー・ベンダーロックなしで本気のエージェントが動く」</em>を現実にした点こそが、このリリースの本質だ。Zuckerbergのオープン戦略が「研究発表」から「使えるツール」に着地した瞬間。
+      </blockquote>
+      <p>高スペック環境を持つAIエンジニアにとって、今週中に試す価値のあるモデル。</p>
+    </section>
+
+    <div class="sources">
+      <p><strong>Sources</strong></p>
+      <ul>
+        <li>Meta AI Research公式ブログ「Introducing Muse Glimmer」2026-08-10</li>
+        <li>Hugging Face model card：meta-models/Muse-Glimmer-30B</li>
+        <li>Ollama / LM Studio / Unsloth 対応発表</li>
+        <li>VentureBeat, Business Insider, Mashable など即日報道</li>
+        <li>Mark Zuckerberg X投稿・エッセイ「The Future is for Everyone」</li>
+      </ul>
+      <p style="margin-top:18px; font-size:12px;">2026-08-10 — AI Intelligence Hub / Day Slide ・ Generated with Grok Imagine Image 2.0 visuals</p>
+    </div>
+  </main>
+
+  <script>
+    const progress = document.querySelector('.progress');
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+      progress.style.width = pct + '%';
+    });
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_09.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_10.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-10.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
