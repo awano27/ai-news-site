@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grok Bot：専用クラウドPCを持つ常時稼働AI同僚——チャットから「チーム」へ | 2026-08-12</title>
+  <meta name="description" content="xAI（SpaceXAI）が2026年8月11日にEarly beta公開したGrok Bot。Botごとに持続するクラウドPCを持ち、アプリやWebにログインして仕事を完遂する。複数Botの自律協調、デモからの学習、SuperGrok Heavy / Cursor Ultra向け提供までを深掘りする。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_12.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Grok Bot：専用クラウドPCを持つ常時稼働AI同僚">
+  <meta property="og:description" content="エージェントに「自分のコンピュータ」を与え、24/7で仕事を完遂させるGrok Bot。専用クラウドPC・Bot間協調・ルーチン学習の設計を読み解く。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_12.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0812/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0812/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Grok Bot：専用クラウドPCを持つ常時稼働AI同僚",
+    "description": "xAI（SpaceXAI）が2026年8月11日にEarly beta公開したGrok Bot。Botごとに持続するクラウドPCを持ち、アプリやWebにログインして仕事を完遂する。複数Botの自律協調、デモからの学習、SuperGrok Heavy / Cursor Ultra向け提供までを深掘りする。",
+    "datePublished": "2026-08-12",
+    "dateModified": "2026-08-12",
+    "articleSection": "AI Agents"
+  }
+  </script>
+<style>
+    :root {
+      --bg:#050d09; --panel:#0b1a12; --panel2:rgba(14,34,22,.72);
+      --ink:#eefaf3; --muted:#8fafa0; --line:rgba(61,255,154,.20);
+      --accent:#3dff9a; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(61,255,154,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(61,255,154,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(61,255,154,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b8ffe0); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero (light artwork goes below as summary board) ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(61,255,154,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(61,255,154,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(61,255,154,.16), transparent 62%),
+      #050d09;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#b8cfc0; font-size:13px; }
+    .topbar a { color:#b8ffe0; text-decoration:none; border-bottom:1px solid rgba(255,201,206,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#04140c; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9dffc9; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c5d9cc; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(255,179,187,.4); background:rgba(7,20,12,.55); color:#d7f5e6; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(18,44,28,.94), rgba(9,22,14,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(10,3,4,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(13,5,7,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(61,255,154,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(61,255,154,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(61,255,154,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(61,255,154,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(255,179,187,.4); color:#d7f5e6; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(61,255,154,.07); padding:14px 18px; margin:14px 0; color:#f5dade; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(61,255,154,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    /* RSI loop chain */
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(61,255,154,.35); background:rgba(61,255,154,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(61,255,154,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(61,255,154,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(255,179,187,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  </style>
+
+<body>
+  <div class="progress" id="progress"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="topbar">
+        <div>AI Intelligence Hub · Day Slide No.377</div>
+        <div><a href="../day_slides_list.html">日次スライド一覧</a> · <a href="/">TOP</a></div>
+      </div>
+      <div class="hero-body">
+        <span class="kicker">AGENT / PRODUCT · 2026.08.12 WED</span>
+        <p class="eyebrow">GROK BOT · EARLY BETA</p>
+        <h1>エージェントに「自分のコンピュータ」を与えた日——Grok Bot が開く常時稼働チーム</h1>
+        <p class="lead">
+          xAI（SpaceXAI）が <strong>2026年8月11日</strong> に Early beta 公開した <strong>Grok Bot</strong>。
+          Bot は持続するクラウド PC を持ち、メール・CRM・ブラウザまで人間と同じ場所で仕事を完遂する。
+          プロンプトの延長ではなく、<strong>「同僚に仕事を渡す」</strong>体験への転換点を整理する。
+        </p>
+        <div class="hero-meta">
+          <span>発表 2026-08-11</span>
+          <span>Early beta</span>
+          <span>SuperGrok Heavy / Cursor Ultra</span>
+          <span>専用クラウド PC</span>
+          <span>5 MIN READ</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num">24/7</div><div class="stat-label"><b>Always-on</b>席を外してもジョブは止まらない</div></div>
+      <div class="stat-card"><div class="stat-num">1</div><div class="stat-label"><b>Shared computer</b>全 Bot が同一アカウント PC を共有</div></div>
+      <div class="stat-card"><div class="stat-num gold">N</div><div class="stat-label"><b>Parallel teammates</b>専門 Bot を並列で走らせる</div></div>
+      <div class="stat-card"><div class="stat-num">β</div><div class="stat-label"><b>Access</b>Heavy / Cursor Ultra・Teams Premium</div></div>
+    </div>
+
+    <nav class="jump" aria-label="セクション移動">
+      <a href="#s1"><b>01</b> 要約</a>
+      <a href="#s2"><b>02</b> 何が新しい</a>
+      <a href="#s3"><b>03</b> 専用コンピュータ</a>
+      <a href="#s4"><b>04</b> チーム協調</a>
+      <a href="#s5"><b>05</b> 学習と信頼</a>
+      <a href="#s6"><b>06</b> 使いどころ</a>
+    </nav>
+
+    <section class="slide" id="s1">
+      <div class="slide-head">
+        <span class="no">01</span>
+        <div>
+          <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+          <h2>1枚で見る Grok Bot</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p><strong>Grok Bot</strong>は、チャットで指示する「アシスタント」ではなく、<strong>専用クラウド PC を持つ常時稼働の AI 同僚</strong>として設計されたプロダクトである。公式ブログ（2026-08-11）では Early beta として公開され、社内プロトタイプが営業・マーケ・運用・バグ修正まで広がった後に一般提供へ進んだ。</p>
+          <ul>
+            <li><strong>自分のコンピュータ</strong>：ブラウザ・ファイル・ターミナルを持つ持続 VM。API が無い Web アプリも computer use で操作</li>
+            <li><strong>同僚のようにメッセージ</strong>：ワークフロービルダー不要。タスクを渡すと承認が要る所まで進めて戻る</li>
+            <li><strong>複数 Bot の自律協調</strong>：スレッドやグループで互いに委譲し、人間がハブにならない</li>
+            <li><strong>デモから覚える</strong>：一度見せた手順をルーチン化し、次回から自律実行</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="tag">SO WHAT</p>
+          <p>「90% できて止まる AI」から、<strong>実際のツール上で 100% 完了する仕事</strong>へ。成果物の置き場がチャット下書きではなく、CRM・メール・チケットそのものになる。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s2">
+      <div class="slide-head">
+        <span class="no">02</span>
+        <div>
+          <p class="slide-kicker">WHAT'S NEW</p>
+          <h2>既存エージェントと何が違うか</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>コーディングエージェント（Claude Code / Codex / Grok Build）やチャット型エージェントとの差分は、<strong>実行環境の持続性</strong>と<strong>仕事の完遂境界</strong>にある。</p>
+          <ul>
+            <li><strong>チャット下書きで終わらない</strong>：ログイン済みセッションで、人間が仕事をする同じ画面に成果を置く</li>
+            <li><strong>セットアップ摩擦が低い</strong>：複雑な自動化の事前設計より、「同僚に頼む」一文から始まる</li>
+            <li><strong>Grok Build との役割分担</strong>：Build はターミナル上のコーディング・ハーネス。Bot はクラウド PC 上の業務同僚（営業・運用・跨ぎアプリ）</li>
+            <li><strong>提供面</strong>：デスクトップと iOS から同じ Bot に続きのスレッドでアクセス</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="tag">COMPARE</p>
+          <p>API/MCP がある所はコネクタ、無い所は computer use。接続の綺麗さで仕事を切り捨てないのが設計思想。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s3">
+      <div class="slide-head">
+        <span class="no">03</span>
+        <div>
+          <p class="slide-kicker">ARCHITECTURE</p>
+          <h2>専用コンピュータという設計</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>公式ドキュメントの核心は、<strong>Bot = 名前付きの持続エージェント</strong>であり、実行基盤は<strong>アカウント単位の共有クラウド PC</strong>だという点である。</p>
+          <ul>
+            <li>各 Bot はブラウザ・ファイルシステム・ターミナルを持つ持続 VM 上で動く</li>
+            <li><strong>全 Bot が同一コンピュータを共有</strong>：ログインやファイルはアカウント境界。Bot ごとには別スクリーンだが、セキュリティ境界は分離されない</li>
+            <li>だから handoff が簡単：別 Bot に渡しても「もう一度ログインして」が発生しにくい</li>
+            <li>裏を返すと、<strong>1 Bot に渡した認証情報は他 Bot からも見える</strong>前提で権限設計が必要</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="tag">RISK</p>
+          <p>便利さの裏に「共有 PC」リスク。機密システムへの権限は段階的に、承認フローを前提に渡すのが実務の基本。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s4">
+      <div class="slide-head">
+        <span class="no">04</span>
+        <div>
+          <p class="slide-kicker">MULTI-AGENT</p>
+          <h2>一人のハブをやめる：Bot 同士の協調</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>社内利用では「参謀 Bot + 専門 Bot」構成が典型例として語られる。人間がツール間の伝書鳩になる構造を、Bot 間メッセージで置き換える。</p>
+          <ul>
+            <li>並列実行：inbox / 経費 / 採用 / バグ修正などレーン別に Bot を分ける</li>
+            <li>スレッドとグループチャットで文脈共有・オーナーシップ委譲</li>
+            <li>判断が要る所だけ人間を呼ぶ（approval gate）</li>
+            <li>事例：営業 Bot が CRM 更新とフォロー下書き、ops Bot が入社セットアップと請求書処理、engineering Bot が UI 再現→チケット→デバッグ Bot へ</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="tag">SHIFT</p>
+          <p>評価軸は「賢い返答」から<strong>チームとしてのスループット</strong>へ。オーケストレーション自体をプロダクトが引き取る。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s5">
+      <div class="slide-head">
+        <span class="no">05</span>
+        <div>
+          <p class="slide-kicker">LEARNING LOOP</p>
+          <h2>見せて覚える、任せて鋭くなる</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>Grok Bot の差別化のもう一本は、<strong>ライブデモからのワークフロー学習</strong>と、<strong>時間とともに蓄積する好み・境界感</strong>である。</p>
+          <ul>
+            <li>一度一緒に手順を見せるとルーチンとして保存し、次回から自律実行</li>
+            <li>訂正を取り込み、声・例外・「いつ聞くか」を学習</li>
+            <li>止まった handoff の nudge、過去スレッドからの再開</li>
+            <li>最終的には「聞かれる前に動く」プロアクティブな同僚へ</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="tag">PRACTICE</p>
+          <p>最初の1週間は監視多めでもよい。信頼はタスク単位で段階的に広げ、ルーチン化できた所から手放す。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s6">
+      <div class="slide-head">
+        <span class="no">06</span>
+        <div>
+          <p class="slide-kicker">USE & ACCESS</p>
+          <h2>誰が使えるか、どこから試すか</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>公開時点のアクセスは <strong>SuperGrok Heavy、Cursor Ultra、Cursor Teams Premium</strong>（デスクトップ / iOS）。Enterprise は waitlist。</p>
+          <ul>
+            <li><strong>向く仕事</strong>：複数ツール横断・明確な成果物・翌朝までに欲しい調査/下書き/衛生タスク</li>
+            <li><strong>公式が示す一例</strong>：Salesforce の見込みリスト抽出→既存シーケンス除外→上位アカウント調査→LinkedIn/メール下書きを朝までに承認待ちで用意</li>
+            <li><strong>注意</strong>：共有 PC 上のログインは全 Bot 共通。セキュリティと承認設計を先に読む（docs: approvals / security / privacy）</li>
+            <li>一次情報：<a href="https://x.ai/news/introducing-grok-bot" target="_blank" rel="noopener">Introducing Grok Bot</a> · <a href="https://docs.x.ai/grok-bot/overview" target="_blank" rel="noopener">Docs overview</a></li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="tag">BOTTOM LINE</p>
+          <p>Grok Bot は「より賢いモデル」の発表ではなく、<strong>仕事が滞留しない実行環境付きチーム</strong>の発表である。エージェント競争の主戦場が、知能単体から運用スループットへ移った合図として読む。</p>
+        </aside>
+      </div>
+    </section>
+
+    <footer style="margin-top:48px;padding:22px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.8;">
+      <p>Sources: <a href="https://x.ai/news/introducing-grok-bot" style="color:var(--accent)">x.ai/news/introducing-grok-bot</a>（2026-08-11）、
+      <a href="https://docs.x.ai/grok-bot/overview" style="color:var(--accent)">docs.x.ai/grok-bot/overview</a>。
+      AI Intelligence Hub Day Slide · 2026-08-12 · No.377</p>
+    </footer>
+  </main>
+
+  <dialog id="zoom"><img alt=""></dialog>
+
+
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-18% 0px -72% 0px' });
+      var sections = Array.prototype.slice.call(document.querySelectorAll('section.slide'));
+      sections.forEach(function (s) { io.observe(s); });
+
+      // lightbox
+      var dlg = document.getElementById('zoom');
+      var dimg = dlg.querySelector('img');
+      document.querySelectorAll('.shot img').forEach(function (img) {
+        img.addEventListener('click', function () {
+          dimg.src = img.src; dimg.alt = img.alt;
+          dlg.showModal();
+        });
+      });
+      dlg.addEventListener('click', function () { dlg.close(); });
+
+      // ← / → section navigation
+      addEventListener('keydown', function (ev) {
+        if (dlg.open || ev.altKey || ev.metaKey || ev.ctrlKey) return;
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_11.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
