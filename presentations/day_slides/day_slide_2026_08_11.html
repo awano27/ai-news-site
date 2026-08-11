@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GPT-5.6-Cyber：防御側に渡す高度サイバー特化モデル——Daybreak Redと95%完了率 | 2026-08-11</title>
+  <meta name="description" content="OpenAIが2026年8月10日に発表したGPT-5.6-Cyber。GPT-5.6 Solをベースにゼロデイ発見・exploit chain開発向けに特化し、高度サイバーリクエストの完了率を95%まで引き上げたゲート付きモデル。Daybreak Blue/Redの2ティア、Astra遅延との関係、実世界のV8ゼロデイ発見までを深掘りする。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_11.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="GPT-5.6-Cyber：防御側に渡す高度サイバー特化モデル">
+  <meta property="og:description" content="拒否率を下げ、ゼロデイ発見・exploit開発を加速するDaybreak Red向けモデル。Astra遅延の直後に防御側へ先にツールを渡す戦略を読み解く。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_11.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0811/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0811/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "GPT-5.6-Cyber：防御側に渡す高度サイバー特化モデル",
+    "description": "OpenAIのGPT-5.6-CyberとDaybreak Blue/Red拡大の分析。95%完了率、V8ゼロデイ、Astra遅延との文脈、既存モデルとの違いを整理する。",
+    "datePublished": "2026-08-11",
+    "dateModified": "2026-08-11",
+    "articleSection": "AI Cybersecurity & Safety"
+  }
+  </script>
+  <style>
+    :root {
+      --bg:#0d0507; --panel:#1a0b0f; --panel2:rgba(34,14,17,.72);
+      --ink:#fff0f1; --muted:#bf9ba0; --line:rgba(242,85,95,.20);
+      --accent:#f2555f; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(242,85,95,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(242,85,95,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(242,85,95,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#ffcdd2); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero (light artwork goes below as summary board) ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(242,85,95,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,85,95,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(242,85,95,.16), transparent 62%),
+      #0d0507;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#dcc2c6; font-size:13px; }
+    .topbar a { color:#ffc9ce; text-decoration:none; border-bottom:1px solid rgba(255,201,206,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#2b0508; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#ffb3bb; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#dfc4c8; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(255,179,187,.4); background:rgba(20,7,9,.55); color:#f7d5d9; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(44,18,21,.94), rgba(22,9,11,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(10,3,4,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(13,5,7,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(242,85,95,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(242,85,95,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(242,85,95,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(242,85,95,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(255,179,187,.4); color:#f7d5d9; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(242,85,95,.07); padding:14px 18px; margin:14px 0; color:#f5dade; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(242,85,95,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    /* RSI loop chain */
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(242,85,95,.35); background:rgba(242,85,95,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(242,85,95,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(242,85,95,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(255,179,187,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="../day_slides_index.html">All day slides</a>
+        <span>2026-08-11 / AI Cybersecurity & Safety</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — AIサイバーセキュリティ / セーフティ</span>
+        <p class="eyebrow">OPENAI GPT-5.6-CYBER</p>
+        <h1>「防御の窓が狭まる前に」——OpenAIが認可防御側へ渡した高度サイバー特化モデル</h1>
+        <p class="lead">OpenAI Research の <strong>Eric Wallace</strong> が <strong>2026年8月10日</strong>に発表した <strong>GPT-5.6-Cyber</strong>。ベースは GPT-5.6 Sol。ゼロデイ発見・exploit chain 開発など高度なサイバータスク向けに<strong>能力を直接強化</strong>した初の大規模な試みであり、内部評価「Advanced Cybersecurity Completion Rate」では<strong>95%</strong>を達成した（通常 Sol 1.5%・前世代 Cyber 57.3%）。Daybreak を Blue / Red の2ティアに拡大し、<em>攻撃側が本格的に AI を使い始める前に、信頼された防御側へ先にツールを渡す</em>——それがこのリリースの戦略的意図である。</p>
+        <div class="hero-meta">
+          <span>📅 公式発表：2026-08-10（本スライド：2026-08-11）</span>
+          <span>🛡 アクセス：Daybreak Red（ゲート付き・非公開）</span>
+          <span>📈 能力評価：High（Critical 未満）</span>
+          <span>🔗 ベース：GPT-5.6 Sol 特化派生</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num gold">95<small>%</small></div><div class="stat-label"><b>高度サイバー完了率</b>Sol 1.5% / 前世代Cyber 57.3% を大幅上回る</div></div>
+      <div class="stat-card"><div class="stat-num">2<small>層</small></div><div class="stat-label"><b>Daybreak ティア</b>Blue（防御広め）/ Red（特化・厳格）</div></div>
+      <div class="stat-card"><div class="stat-num">CVE</div><div class="stat-label"><b>V8 ゼロデイ実績</b>CVE-2026-15903 ほか実発見・協調開示</div></div>
+      <div class="stat-card"><div class="stat-num">High</div><div class="stat-label"><b>Preparedness</b>Critical 未満（Astra は遅延対象）</div></div>
+      <div class="stat-card"><div class="stat-num">$12.5</div><div class="stat-label"><b>入力 / M tokens</b>出力 $75（報道ベース）／Sol より高額</div></div>
+      <div class="stat-card"><div class="stat-num gold">~1<small>日</small></div><div class="stat-label"><b>公開からの経過</b>2026-08-10 発表 → 本スライド 08-11</div></div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b>サマリー</a>
+      <a href="#s2"><b>02</b>既存との違い</a>
+      <a href="#s3"><b>03</b>新しさ</a>
+      <a href="#s4"><b>04</b>Daybreak</a>
+      <a href="#s5"><b>05</b>実戦結果</a>
+      <a href="#s6"><b>06</b>戦略文脈</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+            <h2>1枚で見る GPT-5.6-Cyber</h2>
+          </div>
+        </div>
+        <figure class="shot">
+          <img src="images/0811/fig1-oneboard.jpg" alt="GPT-5.6-Cyber ONE-BOARD SUMMARY。1 WHAT HAPPENED：GPT-5.6 Sol上の専門サイバーモデルを検証済み防御側へリリース。2 KEY METRIC：高度サイバー完了率95%（Sol 1.5% / GPT-5.5-Cyber 57.3%）。3 TWO TIERS：Daybreak Blue（防御向けSol）と Daybreak Red（GPT-5.6-Cyber・エクスプロイト研究）。4 REAL FINDS：V8 Chrome CVE-2026-15903、Mobile OS、Database、Kernel Privilege Escalations。5 CONTEXT：Cyber defense window narrows、Astra Delay Critical vs Cyber High。6 ACCESS：GATED, NOT PUBLIC。VisionHub AI Briefing Board。" loading="lazy" width="1600" height="900">
+          <span class="zoom-badge">🔍 クリックで拡大</span>
+        </figure>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>GPT-5.6-Cyber</strong>は、OpenAI が Daybreak Red 経由で認可された防御側にのみ提供する、<strong>サイバーセキュリティ特化のフロンティア派生モデル</strong>である。Eric Wallace 氏は「高度なサイバータスク（exploit 開発など）の能力を直接改善する初の大規模な試み」と位置づけた。</p>
+            <ul>
+              <li>対象は一般公開ではなく、<strong>認可された防御側・パートナー</strong>に限定</li>
+              <li>能力評価は Preparedness Framework 上 <strong>High</strong>（Critical 未満）。Critical 懸念で一部停止した Astra とは別物</li>
+              <li>内部利用で V8 など実ゼロデイを発見し、協調的開示（CVE-2026-15903 等）まで到達</li>
+            </ul>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>大きい（ただし対象は限定）</strong>。認可されたセキュリティ組織・レッドチーム・脆弱性研究者には実務インパクトが極めて高い。一般開発者・個人にはアクセス障壁が大きく、直接の利用価値は限定的。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">DIFFERENCES FROM EXISTING</p>
+            <h2>既存の類似製品と何が違うポイントか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>「サイバーができるフロンティアモデル」は既にある。違いは<strong>能力の直接強化</strong>と<strong>拒否率の設計</strong>、そして<strong>誰に渡すかの制度設計</strong>にある。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>従来・類似</span>一般フロンティア / 前世代 Cyber</h4>
+                <ul>
+                  <li>GPT-5.6 Sol：能力は高いがセーフガードが強く、高度デュアルユースはほぼ拒否（完了率 ~1.5%）</li>
+                  <li>GPT-5.5-Cyber：拒否低減は進んだが完了率 57.3% で研究者から不満</li>
+                  <li>Anthropic Mythos 等：ExploitBench で競合するが、アクセス方針・拒否設計が異なる</li>
+                  <li>自律ペンテスト製品：用途特化だが、フロンティア LLM 基盤そのものではない</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>GPT-5.6-Cyber</span>能力強化 × 拒否低減 × ゲート</h4>
+                <ul>
+                  <li>Sol 上に<strong>ゼロデイ発見・exploit chain 向け特化訓練</strong></li>
+                  <li>高度サイバー完了率 <strong>95%</strong>（前世代比 +37.7pt）</li>
+                  <li>ExploitGym で Sol・5.5-Cyber を上回る（公式）</li>
+                  <li>Daybreak Red 限定。身元確認・監視・法的同意・HWキー義務</li>
+                  <li>内部で実ゼロデイ発見 → 協調的開示の実績付き</li>
+                </ul>
+              </div>
+            </div>
+            <div class="scroll-x"><table class="cmp">
+              <thead><tr><th>観点</th><th>GPT-5.6 Sol（通常）</th><th>Daybreak Blue</th><th>GPT-5.6-Cyber（Red）</th></tr></thead>
+              <tbody>
+                <tr><td>高度サイバー完了率</td><td class="st-mid">1.5%</td><td class="st-mid">2.0%</td><td class="st-ok">95.0%</td></tr>
+                <tr><td>主用途</td><td>汎用フロンティア</td><td>防御（発見・レビュー・IR）</td><td>高度研究・exploit 検証</td></tr>
+                <tr><td>拒否設計</td><td>強ガード</td><td>防御向けに緩和</td><td>デュアルユース特化で大幅緩和</td></tr>
+                <tr><td>アクセス</td><td>一般 / 企業</td><td>認可防御側</td><td>厳格な認可防御側のみ</td></tr>
+              </tbody>
+            </table></div>
+            <p><strong>最大の差別化</strong>は「許可を緩めただけ」ではなく、<strong>exploit 開発そのものに大規模に能力を振り向けた初の試み</strong>である点と、実世界のゼロデイ発見実績が伴っている点だ。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>フロンティア競争が「何ができるか」から「<strong>誰に・どのガードで・何をさせるか</strong>」へ移った。能力とアクセス制度をセットで設計するのが、これからの標準になる可能性が高い。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">RECENCY</p>
+            <h2>最近出た新しい製品か？</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>はい。極めて新しい。</strong></p>
+            <ul class="checks">
+              <li><b>正式発表</b>：2026年8月10日（OpenAI 公式ブログ + Eric Wallace X 投稿）</li>
+              <li><b>本スライド日付</b>：2026年8月11日 — 発表から約1日</li>
+              <li><b>ベースモデル</b>：GPT-5.6 Sol（2026年6月頃の限定プレビュー→一般化）からの特化派生</li>
+              <li><b>前世代</b>：GPT-5.5-Cyber は Daybreak 初期で先行提供。拒否率へのフィードバックを受けた後継</li>
+              <li><b>関連イベント</b>：2026-08-07 前後に Astra の Critical サイバー懸念で開発一部停止 → その約3日後に本モデル</li>
+            </ul>
+            <p>公開当日に Axios / VentureBeat / The Decoder 等が速報。システムカードの詳細版は後日公開予定とされる。Daybreak パートナー（CrowdStrike、Cisco、Palo Alto Networks、Accenture、IBM 等）への組み込み拡大も同時に語られている。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">タイミング</span>
+            <p>「危険だから止める」と「防御側には先に渡す」が同じ週に並んだ。OpenAI のサイバー能力管理が、単一のセーフガードから<strong>ティア分けされた配布戦略</strong>へ進化したシグナル。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">DAYBREAK BLUE / RED</p>
+            <h2>2ティア構造：誰に何を渡すか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Daybreak は OpenAI の Trusted Access for Cyber プログラム。今回 <strong>Blue</strong> と <strong>Red</strong> に分割された。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>DAYBREAK BLUE</span>ほとんどの防御チームの出発点</h4>
+                <ul>
+                  <li>モデル：GPT-5.6 Sol（ガードを防御用途向けに調整）</li>
+                  <li>用途：脆弱性発見、セキュアコードレビュー、マルウェア解析、インシデント対応、パッチ検証</li>
+                  <li>高度デュアルユースはまだ拒否されやすい（完了率 ~2%）</li>
+                  <li>API alias 例：gpt-daybreak-blue → gpt-5.6-sol</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>DAYBREAK RED</span>高度研究・レッドチーム向け</h4>
+                <ul>
+                  <li>モデル：GPT-5.6-Cyber ほか目的特化モデル</li>
+                  <li>用途：認可された脆弱性研究、exploit 検証、セキュリティテスト</li>
+                  <li>拒否を大幅に下げ、exploit chain 等に対応</li>
+                  <li>API alias 例：gpt-daybreak-red → gpt-5.6-cyber</li>
+                  <li>別途の厳格な適格審査が必要</li>
+                </ul>
+              </div>
+            </div>
+            <div class="loop" role="img" aria-label="Daybreakアクセスの流れ">
+              <span class="step"><small>STEP 1</small>申請・KYB</span><span class="arr">→</span>
+              <span class="step"><small>STEP 2</small>身元・用途審査</span><span class="arr">→</span>
+              <span class="step"><small>STEP 3</small>Blue または Red</span><span class="arr">→</span>
+              <span class="step"><small>STEP 4</small>監視・HWキー</span><span class="arr">→</span>
+              <span class="step"><small>STEP 5</small>認可ワークフロー</span>
+            </div>
+            <p class="loop-note">個人アカウントは 2026年9月1日からハードウェアセキュリティキー義務。Codex では Auto-Review モードを推奨。</p>
+            <div class="warn"><p><strong>重要：</strong>これは「公開リリース」ではない。認可された防御側・パートナーに限られる。小規模チームや個人開発者は原則対象外に近い。</p></div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">制度設計</span>
+            <p>能力を上げつつ配布先を絞る——「モデルの賢さ」と「誰が使えるか」を分離したガバナンスが、サイバー領域の新標準になりつつある。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">REAL-WORLD RESULTS</p>
+            <h2>ベンチマークと実ゼロデイ発見</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>内部ベンチマーク（公式）</strong></p>
+            <ul>
+              <li><b>Advanced Cybersecurity Completion Rate</b>：95.0%（exploit chain・認証バイパス・権限昇格など）。Sol 1.5% / Blue 2.0% / 5.5-Cyber 57.3%。</li>
+              <li><b>ExploitGym</b>：既知脆弱性を動作する exploit に変える評価で、Sol および 5.5-Cyber を上回る。</li>
+              <li><b>ゼロデイ内部評価</b>：深刻度・影響・校正・PoC 品質で Sol（Blue）を上回る。</li>
+              <li>一方、脆弱性レポートの詳細さでは Sol が優れる場合あり。ExploitBench 標準 300 ターンでは Sol がトークン効率で優位なケースも。</li>
+            </ul>
+            <p><strong>実世界の成果（OpenAI 内部利用）</strong></p>
+            <ul class="checks">
+              <li><b>Chrome V8</b>：未知脆弱性 2 件。チェーンでメモリ破壊＋ヒープサンドボックス脱出。Google へ協調的開示 → <b>CVE-2026-15903</b></li>
+              <li><b>人気モバイル OS</b>：最低 5 件（非信頼アプリ → 管理者権限のチェーン含む）</li>
+              <li><b>人気データベース</b>：クリティカル 3 件（リモートコード実行パス含む）</li>
+              <li><b>人気 OS カーネル</b>：権限昇格系が 400 件超（開示進行中・名称非公開）</li>
+            </ul>
+            <div class="quote">GPT-5.6 Cyber is materially improving our specialist vulnerability-research workflows: it reasons more accurately about real exploit constraints, tracks complex state better, and has completed work in under a day that earlier models had not resolved after weeks of intermittent effort.<small>— Jared Atkinson, CTO, SpecterOps（公式ブログ引用）</small></div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務</span>
+            <p>ベンダーベンチだけでなく「数週間解けなかった作業が 1 日未満」という現場証言が、拒否低減＋能力強化の両方を裏付けている。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">STRATEGIC CONTEXT</p>
+            <h2>「防御の窓が狭まる」——Astra 遅延と同週の一手</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>公式ブログのタイトルは <em>Expanding Daybreak as the Cyber Defense Window Narrows</em>。脅威アクターが AI で攻撃を高速・大規模化（将来的には自律型を含む）する前提で、防御側に先にフロンティアを渡す。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>同週：ASTRA</span>Critical を否定できず一部停止</h4>
+                <ul>
+                  <li>2026-08-07 前後の発表</li>
+                  <li>内部評価で Critical サイバー能力を否定できない</li>
+                  <li>Critical＝人間なしで hardened 実システムへの全深刻度ゼロデイ、または高レベル目標からの E2E 攻撃</li>
+                  <li>開発の一部を停止・隔離強化</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>同週：GPT-5.6-CYBER</span>High をゲート付きで防御側へ</h4>
+                <ul>
+                  <li>2026-08-10 発表</li>
+                  <li>High 止まり（Critical 未満）</li>
+                  <li>Daybreak Red で認可防御側のみ</li>
+                  <li>拒否低減＋特化訓練で実務加速</li>
+                  <li>Hugging Face 関連事案には関与なしと明言</li>
+                </ul>
+              </div>
+            </div>
+            <p>同じ週に、「危険すぎるものは止める」と「防御側には拒否の少ない強力ツールを渡す」が並走している。これは矛盾ではなく、<strong>能力閾値に応じた配布・停止の二刀流</strong>として読める。</p>
+            <div class="warn"><p><strong>リスク：</strong>ゲートが破られればデュアルユース能力が漏れる。OpenAI は監視強化、Auto-Review、HWキー、サンドボックス推奨、用途制限で対応するが、完全な保証ではない。システムカードの詳細公開が次の検証ポイント。</p></div>
+            <p><strong>誰にとって価値があるか</strong>：企業レッドチーム、認可された脆弱性研究者、セキュリティベンダー（製品への組み込み）、大規模 OSS / インフラを守る防御チーム。一般アプリ開発者・個人の学習用途にはアクセス権がなく価値は限定的。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>AI サイバー競争の評価軸は「攻撃できるか」から「<strong>防御側をどれだけ先に武装させるか</strong>」へ広がっている。ラボの配布戦略そのものが競争優位になる。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="finale">
+      <p class="eyebrow">THE BOTTOM LINE</p>
+      <blockquote>これは「最強のハッキング AI が一般公開された」ニュースではない。AI ラボが、<em>攻撃側が本格化する前に信頼された防御側へ高度能力を先に渡す</em>配布戦略を制度化したニュースである。</blockquote>
+      <p>2026-08-11 — AI Intelligence Hub / Day Slide</p>
+    </div>
+  </main>
+
+  <dialog class="zoom" id="zoom" aria-label="スライド拡大表示">
+    <img alt="スライド拡大画像">
+    <p class="hint">画像クリック / Esc で閉じる</p>
+  </dialog>
+
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-18% 0px -72% 0px' });
+      var sections = Array.prototype.slice.call(document.querySelectorAll('section.slide'));
+      sections.forEach(function (s) { io.observe(s); });
+
+      // lightbox
+      var dlg = document.getElementById('zoom');
+      var dimg = dlg.querySelector('img');
+      document.querySelectorAll('.shot img').forEach(function (img) {
+        img.addEventListener('click', function () {
+          dimg.src = img.src; dimg.alt = img.alt;
+          dlg.showModal();
+        });
+      });
+      dlg.addEventListener('click', function () { dlg.close(); });
+
+      // ← / → section navigation
+      addEventListener('keydown', function (ev) {
+        if (dlg.open || ev.altKey || ev.metaKey || ev.ctrlKey) return;
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_10.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_11.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-11.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
