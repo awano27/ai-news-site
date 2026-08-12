@@ -17,13 +17,22 @@ DAY_DIR = ROOT / 'presentations' / 'day_slides'
 OUT = DAY_DIR / 'list.json'
 
 TITLE_RE = re.compile(r'<h2[^>]*class="slide-title"[^>]*>(.*?)</h2>', re.I|re.S)
+DOC_TITLE_RE = re.compile(r'<title[^>]*>(.*?)</title>', re.I|re.S)
 
 def extract_title(html: str) -> str|None:
     m = TITLE_RE.search(html)
+    if m:
+        # Strip tags if any inside
+        title = re.sub(r'<[^>]+>', '', m.group(1)).strip()
+        if title:
+            return title
+    # Fallback: document <title>, take text before " | " if present
+    m = DOC_TITLE_RE.search(html)
     if not m:
         return None
-    # Strip tags if any inside
     title = re.sub(r'<[^>]+>', '', m.group(1)).strip()
+    if ' | ' in title:
+        title = title.split(' | ', 1)[0].strip()
     return title or None
 
 def main() -> int:
