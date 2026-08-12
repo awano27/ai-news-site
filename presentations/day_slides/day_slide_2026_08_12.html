@@ -461,6 +461,52 @@
     }
     .ib-sowhat p strong { color: #1a1403; }
 
+
+    /* ---- infoboard diagrams (visual) ---- */
+    .ib-diagram { margin: 0 0 18px; }
+    .ib-dtitle {
+      margin: 0 0 10px; font: 800 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .18em; color: #0b1a12;
+    }
+    .ib-dtitle span {
+      display: inline-block; padding: 5px 10px; border-radius: 6px;
+      background: #0b1a12; color: #3dff9a;
+    }
+    .ib-svg {
+      width: 100%; height: auto; display: block;
+      border-radius: 12px; background: #fff;
+      border: 1px solid rgba(13,31,22,.10);
+      box-shadow: 0 8px 22px rgba(13,31,22,.06);
+    }
+    .ib-diagrams {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin: 0 0 16px;
+    }
+    .ib-diag-panel {
+      margin: 0; background: #fff;
+      border: 1px solid rgba(13,31,22,.12); border-radius: 12px;
+      padding: 12px 12px 10px;
+      box-shadow: 0 6px 16px rgba(13,31,22,.05);
+      min-width: 0;
+    }
+    .ib-diag-panel.before { border-top: 3px solid #c9a84a; background: #fffdf5; }
+    .ib-diag-panel.after { border-top: 3px solid #3dff9a; background: #f2fff7; }
+    .ib-diag-panel .ib-svg {
+      border: none; box-shadow: none; background: transparent; border-radius: 8px;
+    }
+    .ib-diag-panel figcaption {
+      margin: 8px 2px 0; font-size: 12.5px; line-height: 1.55; color: #3a5648; font-weight: 600;
+    }
+    .ib-diag-panel figcaption strong { color: #0d1f16; display: block; margin-bottom: 2px; font-size: 13px; }
+    .ib-card .ib-icon {
+      width: 40px; height: 40px; display: block; margin: 0 0 10px;
+    }
+    .ib-card .ib-icon svg { width: 100%; height: 100%; display: block; }
+    .ib-card .head-row {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    }
+    .ib-card .head-row .badge { margin-bottom: 0; }
+
     @media (max-width: 880px) {
       .ib-flow {
         grid-template-columns: 1fr;
@@ -471,6 +517,7 @@
       .ib-pillars { grid-template-columns: 1fr; }
       .ib-compare { grid-template-columns: 1fr; }
       .ib-cmp-arr { transform: rotate(90deg); }
+      .ib-diagrams { grid-template-columns: 1fr; }
     }
 
     @media (max-width:880px) {
@@ -580,62 +627,232 @@
         <div class="ib-body">
           <p class="ib-thesis">チャットAIではなく<strong>「専用クラウドPCを持つ常時稼働の同僚」</strong></p>
 
-          <div class="ib-flow" aria-label="仕事の流れ">
-            <div class="ib-step">
-              <span class="n">1</span>
-              <span class="t">あなたが頼む</span>
-            </div>
-            <div class="ib-chev" aria-hidden="true">›</div>
-            <div class="ib-step">
-              <span class="n">2</span>
-              <span class="t">Botが実行</span>
-            </div>
-            <div class="ib-chev" aria-hidden="true">›</div>
-            <div class="ib-step">
-              <span class="n">3</span>
-              <span class="t">共有クラウドPC</span>
-            </div>
-            <div class="ib-chev" aria-hidden="true">›</div>
-            <div class="ib-step">
-              <span class="n">4</span>
-              <span class="t">実際のアプリに成果を置く</span>
-              <div class="ex"><span>メール</span><span>CRM</span><span>ブラウザ</span><span>チケット</span></div>
-            </div>
+          <div class="ib-diagram" aria-label="どう動くか">
+            <p class="ib-dtitle"><span>どう動くか</span></p>
+            <svg class="ib-svg" viewBox="0 0 760 160" role="img" aria-label="あなた → Grok Bot → 共有クラウドPC → 実アプリ">
+              <defs>
+                <marker id="ibArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#0b1a12"/>
+                </marker>
+              </defs>
+              <!-- connectors -->
+              <line x1="118" y1="62" x2="168" y2="62" stroke="#0b1a12" stroke-width="2.5" marker-end="url(#ibArr)"/>
+              <line x1="288" y1="62" x2="338" y2="62" stroke="#0b1a12" stroke-width="2.5" marker-end="url(#ibArr)"/>
+              <line x1="468" y1="62" x2="518" y2="62" stroke="#0b1a12" stroke-width="2.5" marker-end="url(#ibArr)"/>
+
+              <!-- 1 あなた -->
+              <g transform="translate(28,18)">
+                <rect width="90" height="90" rx="16" fill="#0b1a12"/>
+                <circle cx="45" cy="34" r="14" fill="#3dff9a"/>
+                <path d="M22,72 C22,54 68,54 68,72 Z" fill="#3dff9a"/>
+                <text x="45" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0d1f16">あなた</text>
+              </g>
+
+              <!-- 2 Grok Bot -->
+              <g transform="translate(178,18)">
+                <rect width="110" height="90" rx="16" fill="#123322" stroke="#3dff9a" stroke-width="2"/>
+                <rect x="28" y="22" width="54" height="40" rx="10" fill="#3dff9a"/>
+                <circle cx="42" cy="38" r="4" fill="#0b1a12"/>
+                <circle cx="68" cy="38" r="4" fill="#0b1a12"/>
+                <rect x="44" y="48" width="22" height="4" rx="2" fill="#0b1a12"/>
+                <rect x="48" y="10" width="14" height="10" rx="3" fill="#9dffc9"/>
+                <text x="55" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#0d1f16">Grok Bot</text>
+              </g>
+
+              <!-- 3 共有クラウドPC -->
+              <g transform="translate(348,18)">
+                <rect width="120" height="90" rx="16" fill="#0b1a12"/>
+                <rect x="22" y="20" width="76" height="48" rx="6" fill="#3dff9a"/>
+                <rect x="28" y="26" width="64" height="32" rx="3" fill="#0b1a12"/>
+                <rect x="46" y="70" width="28" height="5" rx="2" fill="#3dff9a"/>
+                <rect x="38" y="76" width="44" height="4" rx="2" fill="#9dffc9"/>
+                <text x="60" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12.5" font-weight="700" fill="#0d1f16">共有クラウドPC</text>
+              </g>
+
+              <!-- 4 実アプリ + small icons -->
+              <g transform="translate(528,10)">
+                <rect width="210" height="106" rx="16" fill="#f2fff7" stroke="#3dff9a" stroke-width="2"/>
+                <text x="105" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#0b1a12">実アプリ</text>
+                <!-- mail -->
+                <g transform="translate(18,36)">
+                  <rect width="40" height="36" rx="7" fill="#0b1a12"/>
+                  <path d="M8,12 L20,20 L32,12" stroke="#3dff9a" stroke-width="2" fill="none"/>
+                  <rect x="8" y="12" width="24" height="16" rx="2" fill="none" stroke="#3dff9a" stroke-width="1.6"/>
+                  <text x="20" y="52" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1a3d2a">メール</text>
+                </g>
+                <!-- CRM -->
+                <g transform="translate(62,36)">
+                  <rect width="40" height="36" rx="7" fill="#0b1a12"/>
+                  <circle cx="20" cy="15" r="6" fill="#3dff9a"/>
+                  <rect x="10" y="23" width="20" height="6" rx="2" fill="#9dffc9"/>
+                  <text x="20" y="52" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1a3d2a">CRM</text>
+                </g>
+                <!-- browser -->
+                <g transform="translate(106,36)">
+                  <rect width="40" height="36" rx="7" fill="#0b1a12"/>
+                  <rect x="8" y="10" width="24" height="18" rx="3" fill="#3dff9a"/>
+                  <circle cx="12" cy="14" r="1.4" fill="#0b1a12"/>
+                  <circle cx="17" cy="14" r="1.4" fill="#0b1a12"/>
+                  <rect x="11" y="18" width="18" height="7" rx="1" fill="#0b1a12"/>
+                  <text x="20" y="52" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1a3d2a">ブラウザ</text>
+                </g>
+                <!-- ticket -->
+                <g transform="translate(150,36)">
+                  <rect width="40" height="36" rx="7" fill="#0b1a12"/>
+                  <rect x="10" y="10" width="20" height="18" rx="3" fill="#3dff9a"/>
+                  <path d="M10,16 H30 M10,21 H24" stroke="#0b1a12" stroke-width="1.5"/>
+                  <text x="20" y="52" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1a3d2a">チケット</text>
+                </g>
+              </g>
+            </svg>
           </div>
 
           <div class="ib-pillars" aria-label="4つの柱">
             <article class="ib-card">
-              <span class="badge">01</span>
+              <div class="head-row">
+                <span class="ib-icon" aria-hidden="true">
+                  <svg viewBox="0 0 40 40" role="presentation">
+                    <rect width="40" height="40" rx="10" fill="#0b1a12"/>
+                    <rect x="8" y="9" width="24" height="16" rx="3" fill="#3dff9a"/>
+                    <rect x="11" y="12" width="18" height="10" rx="1.5" fill="#0b1a12"/>
+                    <rect x="16" y="27" width="8" height="2.5" rx="1" fill="#3dff9a"/>
+                    <rect x="13" y="30.5" width="14" height="2" rx="1" fill="#9dffc9"/>
+                  </svg>
+                </span>
+                <span class="badge">01</span>
+              </div>
               <h4>自分のPC</h4>
               <p>持続VM・ブラウザ / ファイル / ターミナル</p>
             </article>
             <article class="ib-card">
-              <span class="badge">02</span>
+              <div class="head-row">
+                <span class="ib-icon" aria-hidden="true">
+                  <svg viewBox="0 0 40 40" role="presentation">
+                    <rect width="40" height="40" rx="10" fill="#0b1a12"/>
+                    <rect x="7" y="10" width="22" height="14" rx="6" fill="#3dff9a"/>
+                    <path d="M12,24 L9,30 L18,24" fill="#3dff9a"/>
+                    <circle cx="14" cy="17" r="1.6" fill="#0b1a12"/>
+                    <circle cx="18" cy="17" r="1.6" fill="#0b1a12"/>
+                    <circle cx="22" cy="17" r="1.6" fill="#0b1a12"/>
+                  </svg>
+                </span>
+                <span class="badge">02</span>
+              </div>
               <h4>同僚のように依頼</h4>
               <p>ワークフロー設計不要</p>
             </article>
             <article class="ib-card">
-              <span class="badge">03</span>
+              <div class="head-row">
+                <span class="ib-icon" aria-hidden="true">
+                  <svg viewBox="0 0 40 40" role="presentation">
+                    <rect width="40" height="40" rx="10" fill="#0b1a12"/>
+                    <circle cx="20" cy="12" r="4.5" fill="#3dff9a"/>
+                    <circle cx="10" cy="28" r="4" fill="#9dffc9"/>
+                    <circle cx="30" cy="28" r="4" fill="#9dffc9"/>
+                    <path d="M17,15 L12,24 M23,15 L28,24 M14,28 H26" stroke="#3dff9a" stroke-width="1.8" fill="none"/>
+                  </svg>
+                </span>
+                <span class="badge">03</span>
+              </div>
               <h4>複数Bot協調</h4>
               <p>参謀+専門、人間はハブにならない</p>
             </article>
             <article class="ib-card">
-              <span class="badge">04</span>
+              <div class="head-row">
+                <span class="ib-icon" aria-hidden="true">
+                  <svg viewBox="0 0 40 40" role="presentation">
+                    <rect width="40" height="40" rx="10" fill="#0b1a12"/>
+                    <path d="M20,8 L28,12 V20 C28,26 24,30 20,32 C16,30 12,26 12,20 V12 Z" fill="none" stroke="#3dff9a" stroke-width="2"/>
+                    <path d="M15,20 A5,5 0 1 0 20,15" fill="none" stroke="#9dffc9" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M20,12 L20,15 L17,15" fill="none" stroke="#9dffc9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="badge">04</span>
+              </div>
               <h4>見せて覚える</h4>
               <p>デモ → ルーチン → 自律</p>
             </article>
           </div>
 
-          <div class="ib-compare" aria-label="これまでとこれから">
-            <div class="ib-cmp before">
-              <span class="lbl">これまで</span>
-              <p class="txt">「下書きで止まる」</p>
-            </div>
-            <div class="ib-cmp-arr" aria-hidden="true">→</div>
-            <div class="ib-cmp after">
-              <span class="lbl">これから</span>
-              <p class="txt">「同じ画面で完了する」</p>
-            </div>
+          <div class="ib-diagrams" aria-label="これまでとこれから">
+            <figure class="ib-diag-panel before">
+              <svg class="ib-svg" viewBox="0 0 340 200" role="img" aria-label="これまで：人間が多くのツールのハブ">
+                <text x="170" y="22" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="11" font-weight="800" letter-spacing="2" fill="#7a6a3a">これまで</text>
+                <!-- spokes to tools -->
+                <g stroke="#c9a84a" stroke-width="1.6" opacity="0.85">
+                  <line x1="170" y1="110" x2="48" y2="48"/>
+                  <line x1="170" y1="110" x2="110" y2="42"/>
+                  <line x1="170" y1="110" x2="170" y2="40"/>
+                  <line x1="170" y1="110" x2="230" y2="42"/>
+                  <line x1="170" y1="110" x2="292" y2="48"/>
+                  <line x1="170" y1="110" x2="40" y2="150"/>
+                  <line x1="170" y1="110" x2="300" y2="150"/>
+                  <line x1="170" y1="110" x2="80" y2="178"/>
+                  <line x1="170" y1="110" x2="260" y2="178"/>
+                </g>
+                <!-- tool nodes -->
+                <g font-family="system-ui,sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">
+                  <g transform="translate(30,30)"><rect width="36" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="18" y="16" fill="#5a4a20">メール</text></g>
+                  <g transform="translate(92,24)"><rect width="36" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="18" y="16" fill="#5a4a20">CRM</text></g>
+                  <g transform="translate(152,22)"><rect width="36" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="18" y="16" fill="#5a4a20">表計算</text></g>
+                  <g transform="translate(212,24)"><rect width="36" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="18" y="16" fill="#5a4a20">Browser</text></g>
+                  <g transform="translate(274,30)"><rect width="40" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="20" y="16" fill="#5a4a20">チケット</text></g>
+                  <g transform="translate(18,138)"><rect width="44" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="22" y="16" fill="#5a4a20">カレンダー</text></g>
+                  <g transform="translate(278,138)"><rect width="40" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="20" y="16" fill="#5a4a20">Slack</text></g>
+                  <g transform="translate(58,168)"><rect width="44" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="22" y="16" fill="#5a4a20">請求書</text></g>
+                  <g transform="translate(238,168)"><rect width="44" height="24" rx="5" fill="#fff3d0" stroke="#c9a84a"/><text x="22" y="16" fill="#5a4a20">調査</text></g>
+                </g>
+                <!-- human hub (busy) -->
+                <circle cx="170" cy="110" r="28" fill="#0b1a12"/>
+                <circle cx="170" cy="100" r="9" fill="#ffc94d"/>
+                <path d="M154,124 C154,112 186,112 186,124 Z" fill="#ffc94d"/>
+                <text x="170" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#5a4a20">あなた＝ハブ</text>
+              </svg>
+              <figcaption><strong>これまで</strong>人間が全ツールをつなぐ伝書鳩。下書きで止まりやすい。</figcaption>
+            </figure>
+
+            <figure class="ib-diag-panel after">
+              <svg class="ib-svg" viewBox="0 0 340 200" role="img" aria-label="これから：人間はBotに任せ、Botがツールと共有PCへ">
+                <text x="170" y="22" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="11" font-weight="800" letter-spacing="2" fill="#1a8f55">これから</text>
+                <!-- human -->
+                <circle cx="56" cy="100" r="24" fill="#0b1a12"/>
+                <circle cx="56" cy="91" r="8" fill="#3dff9a"/>
+                <path d="M42,112 C42,102 70,102 70,112 Z" fill="#3dff9a"/>
+                <text x="56" y="140" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#0d1f16">あなた</text>
+                <!-- lines human -> bots -->
+                <line x1="80" y1="100" x2="128" y2="70" stroke="#0b1a12" stroke-width="2"/>
+                <line x1="80" y1="100" x2="128" y2="130" stroke="#0b1a12" stroke-width="2"/>
+                <!-- bots -->
+                <g transform="translate(130,48)">
+                  <rect width="70" height="40" rx="10" fill="#123322" stroke="#3dff9a" stroke-width="1.8"/>
+                  <text x="35" y="25" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#3dff9a">Bot</text>
+                </g>
+                <g transform="translate(130,112)">
+                  <rect width="70" height="40" rx="10" fill="#123322" stroke="#3dff9a" stroke-width="1.8"/>
+                  <text x="35" y="25" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#3dff9a">Bot</text>
+                </g>
+                <!-- bots -> shared PC -->
+                <line x1="200" y1="68" x2="236" y2="100" stroke="#0b1a12" stroke-width="2"/>
+                <line x1="200" y1="132" x2="236" y2="100" stroke="#0b1a12" stroke-width="2"/>
+                <!-- shared PC -->
+                <g transform="translate(238,74)">
+                  <rect width="86" height="52" rx="10" fill="#0b1a12"/>
+                  <rect x="12" y="10" width="62" height="28" rx="4" fill="#3dff9a"/>
+                  <rect x="16" y="14" width="54" height="18" rx="2" fill="#0b1a12"/>
+                  <text x="43" y="48" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="#9dffc9">共有PC</text>
+                </g>
+                <!-- tools under PC -->
+                <g font-family="system-ui,sans-serif" font-size="9" font-weight="700" text-anchor="middle" fill="#1a3d2a">
+                  <line x1="281" y1="126" x2="240" y2="158" stroke="#3dff9a" stroke-width="1.4"/>
+                  <line x1="281" y1="126" x2="281" y2="158" stroke="#3dff9a" stroke-width="1.4"/>
+                  <line x1="281" y1="126" x2="322" y2="158" stroke="#3dff9a" stroke-width="1.4"/>
+                  <g transform="translate(218,158)"><rect width="40" height="22" rx="5" fill="#e8fff2" stroke="#3dff9a"/><text x="20" y="15">メール</text></g>
+                  <g transform="translate(261,158)"><rect width="40" height="22" rx="5" fill="#e8fff2" stroke="#3dff9a"/><text x="20" y="15">CRM</text></g>
+                  <g transform="translate(304,158)"><rect width="30" height="22" rx="5" fill="#e8fff2" stroke="#3dff9a"/><text x="15" y="15">Apps</text></g>
+                </g>
+              </svg>
+              <figcaption><strong>これから</strong>あなたは数人のBotに依頼。Botが共有PC上の実アプリで完遂。</figcaption>
+            </figure>
           </div>
 
           <div class="ib-sowhat">
