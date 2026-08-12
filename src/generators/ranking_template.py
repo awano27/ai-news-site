@@ -20,6 +20,8 @@ def get_template_string() -> str:
     <meta property="og:title" content="{{ title }}" />
     <meta property="og:description" content="{{ title }}（{{ period_start }} 〜 {{ period_end }}）。" />
     <meta property="og:locale" content="ja_JP" />
+    <meta property="og:url" content="https://visionhub.jp/presentations/ai_ranking_report_latest.html" />
+    <link rel="canonical" href="https://visionhub.jp/presentations/ai_ranking_report_latest.html" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%23070F26'/><text x='50' y='66' text-anchor='middle' font-family='sans-serif' font-weight='700' font-size='38' fill='%23FFCC00'>AI</text></svg>" />
