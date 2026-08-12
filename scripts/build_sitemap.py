@@ -36,6 +36,7 @@ PRESENTATION_DIRS = [
     ("presentations/hubs", "weekly", 0.9),
     ("presentations/digests", "monthly", 0.8),
     ("presentations/day_slides", "monthly", 0.6),
+    ("presentations/recommended_tools", "monthly", 0.7),
     ("presentations/antigravity-guide", "monthly", 0.6),
     ("presentations/claude-code-guide", "monthly", 0.6),
     ("presentations/codex-guide", "monthly", 0.6),
@@ -69,6 +70,9 @@ DAY_SLIDE_LIMIT = 365
 
 def should_skip(name: str) -> bool:
     lower = name.lower()
+    # Redirect stub; canonical URL is /presentations/recommended_tools/
+    if lower == "recommended_tools.html":
+        return True
     return any(p.search(lower) for p in EXCLUDE_PATTERNS)
 
 
