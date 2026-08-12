@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Harvest tool candidates from Obsidian X-Bookmarks for recommended_tools.html.
+"""Harvest tool candidates from Obsidian X-Bookmarks for recommended_tools/index.html.
 
 Scans Obsidian X-Bookmarks markdown clips, extracts tweet body + URLs +
 frontmatter metadata, dedupes against existing tool cards on the
-recommended_tools.html page, and writes a curated candidate dossier
+recommended_tools/index.html page, and writes a curated candidate dossier
 to tmp/tool_candidates_YYYY-MM-DD.md so a human (or Claude) can review
 and selectively apply.
 
@@ -268,7 +268,7 @@ def render_markdown(candidates: list[Candidate], existing_names: list[str], cuto
     range_desc = f"clips dated since {cutoff}" if cutoff else "all clips"
     lines.append(f"_Source: Obsidian X-Bookmarks ({range_desc})._")
     lines.append("")
-    lines.append(f"- Existing tool cards on recommended_tools.html: **{len(existing_names)}**")
+    lines.append(f"- Existing tool cards on recommended_tools/index.html: **{len(existing_names)}**")
     lines.append(f"- 🆕 New candidates with tool signals: **{len(new_picks)}**")
     lines.append(f"- ♻️ Already on the page (duplicates): {len(dupes)}")
     lines.append(f"- 🤔 Low-signal (no tool keywords): {len(weak)}")
@@ -306,7 +306,7 @@ def render_markdown(candidates: list[Candidate], existing_names: list[str], cuto
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--vault", type=Path, default=DEFAULT_VAULT, help="X-Bookmarks directory")
-    ap.add_argument("--target-html", type=Path, default=DEFAULT_TARGET_HTML, help="recommended_tools.html for dedupe")
+    ap.add_argument("--target-html", type=Path, default=DEFAULT_TARGET_HTML, help="recommended_tools/index.html for dedupe")
     ap.add_argument("--days", type=int, default=30, help="Only include clips dated within last N days (0 = all)")
     ap.add_argument("--out", type=Path, default=None, help="Output markdown path (default: tmp/tool_candidates_YYYY-MM-DD.md)")
     ap.add_argument("--json", action="store_true", help="Also dump JSON next to the markdown")

@@ -14,7 +14,6 @@ Run locally or in CI (GitHub Actions). Safe to run repeatedly; only updates when
 from __future__ import annotations
 import re
 from pathlib import Path
-import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +40,13 @@ def newest_by_pattern(pattern: str) -> Path | None:
     cands.sort(key=lambda x: x[0])
     return cands[-1][1]
 
+
+def rewrite_alias_canonical(html: str, source_name: str, latest_name: str) -> str:
+    """Point canonical/og:url at the alias itself, not the dated source page."""
+    src = f'https://visionhub.jp/presentations/{source_name}'
+    dst = f'https://visionhub.jp/presentations/{latest_name}'
+    return html.replace(src, dst)
+
 def files_differ(a: Path, b: Path) -> bool:
     try:
         return a.read_bytes() != b.read_bytes()
@@ -59,8 +65,11 @@ def main() -> int:
             print(f'- skip: no match for {patt}')
             continue
         target = PRES / latest_name
-        if (not target.exists()) or files_differ(newest, target):
-            shutil.copy2(newest, target)
+        html = newest.read_text(encoding='utf-8', errors='ignore')
+        html = rewrite_alias_canonical(html, newest.name, latest_name)
+        need = (not target.exists()) or (target.read_text(encoding='utf-8', errors='ignore') != html)
+        if need:
+            target.write_text(html, encoding='utf-8')
             changed = True
             print(f'+ updated: {latest_name} -> {newest.name}')
         else:
