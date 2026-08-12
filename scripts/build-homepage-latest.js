@@ -9,6 +9,8 @@ const NEWS_DIR = path.join(ROOT, 'news');
 const LATEST_JSON = path.join(NEWS_DIR, 'latest.json');
 const INDEX_HTML = path.join(ROOT, 'index.html');
 const ARCHIVE_INDEX_JSON = path.join(ROOT, 'public-pages', 'news', 'archive_index.json');
+const DAY_SLIDES_LIST_JSON = path.join(ROOT, 'presentations', 'day_slides', 'list.json');
+const DAY_SLIDES_META_JSON = path.join(ROOT, 'presentations', 'day_slides', 'meta_index.json');
 const AUTO_DAILY_JSON = path.join(ROOT, 'public-pages', 'api', 'auto_daily_report', 'latest.json');
 const DAILY_LATEST_JSON = path.join(ROOT, 'public-pages', 'news', 'daily_latest.json'); // legacy fallback only
 
@@ -278,7 +280,15 @@ function updateHomepage(data, slide, slideUrl) {
   }
 
   const archiveEntries = readJson(ARCHIVE_INDEX_JSON, []);
-  const totalSlides = Array.isArray(archiveEntries) ? archiveEntries.length : 0;
+  // Slide count must come from day_slides list/meta — archive_index length is news-days.
+  const slideList = readJson(DAY_SLIDES_LIST_JSON, []);
+  const slideMeta = readJson(DAY_SLIDES_META_JSON, {});
+  const totalSlides = Array.isArray(slideList) && slideList.length
+    ? slideList.length
+    : (Number.isFinite(Number(slideMeta && slideMeta.generated_from))
+        ? Number(slideMeta.generated_from)
+        : 0);
+  // archiveEntries.length is news-days (not slides); used only for item totals below.
   const totalItems = Array.isArray(archiveEntries)
     ? archiveEntries.reduce((sum, entry) => sum + (Number(entry.count) || 0), 0)
     : 0;
@@ -394,8 +404,8 @@ function updateHomepage(data, slide, slideUrl) {
   );
   html = replaceFirst(
     html,
-    /<div class="archive-stat"><span class="archive-stat-num"><em(?: id="statUpdated")?>[\s\S]*?<\/em><\/span><span class="archive-stat-label">(?:Daily Update|Latest Update) \(JST\)<\/span><\/div>/,
-    `<div class="archive-stat"><span class="archive-stat-num"><em id="statUpdated">${escapeHtml(updateTime)}</em></span><span class="archive-stat-label">Latest Update (JST)</span></div>`,
+    /<div class="archive-stat"><span class="archive-stat-num"><em(?: id="statUpdated")?>[\s\S]*?<\/em><\/span><span class="archive-stat-label">(?:Daily Update|Latest Update|最終更新) \(JST\)<\/span><\/div>/,
+    `<div class="archive-stat"><span class="archive-stat-num"><em id="statUpdated">${escapeHtml(updateTime)}</em></span><span class="archive-stat-label">最終更新 (JST)</span></div>`,
     'update time stats'
   );
   html = replaceFirst(
