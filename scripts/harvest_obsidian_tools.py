@@ -29,7 +29,7 @@ import yaml  # PyYAML
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_VAULT = Path(r"C:\develop\obsidian\2026\00 Inbox\X-Bookmarks")
-DEFAULT_TARGET_HTML = PROJECT_ROOT / "presentations" / "recommended_tools.html"
+DEFAULT_TARGET_HTML = PROJECT_ROOT / "presentations" / "recommended_tools" / "index.html"
 DEFAULT_OUT_DIR = PROJECT_ROOT / "tmp"
 
 URL_RE = re.compile(r"https?://[^\s<>\"\)\]\}]+")

@@ -46,7 +46,7 @@ index.html / Hub / スライドに貼り付けできる、**404 リスクゼロ*
         <div class="res-desc">LLM × 外部ツールの標準プロトコル解説。</div>
       </div>
     </a>
-    <a class="res-card" href="/presentations/recommended_tools.html">
+    <a class="res-card" href="/presentations/recommended_tools/">
       <span class="res-num">04</span>
       <div class="res-body">
         <div class="res-title">おすすめAIツール厳選集</div>
