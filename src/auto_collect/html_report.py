@@ -35,9 +35,14 @@ PUBLIC_API_DIR = PROJECT_ROOT / "public-pages" / "api" / "auto_daily_report"
 DEFAULT_OG_IMAGE = "https://visionhub.jp/presentations/daily_reports/og/default.png"
 
 
-def generate_html(data: dict):
+def generate_html(data: dict, canonical_url: str | None = None):
     """Thin shim: delegates to html_report_renderer.generate_html."""
-    return _generate_html(data, archive_dir=ARCHIVE_DIR, default_og_image=DEFAULT_OG_IMAGE)
+    return _generate_html(
+        data,
+        archive_dir=ARCHIVE_DIR,
+        default_og_image=DEFAULT_OG_IMAGE,
+        canonical_url=canonical_url,
+    )
 
 
 def generate_html_report(txt_path: Path = None):
@@ -60,7 +65,8 @@ def generate_html_report(txt_path: Path = None):
 
     logger.info(f"[HTML] Generating report from {txt_path}")
     data = parse_daily_txt(txt_path)
-    html, report_data = generate_html(data)
+    latest_canonical = "https://visionhub.jp/presentations/auto_daily_report.html"
+    html, report_data = generate_html(data, canonical_url=latest_canonical)
 
     # Save latest HTML
     OUTPUT_PATH.write_text(html, encoding="utf-8")
@@ -80,7 +86,9 @@ def generate_html_report(txt_path: Path = None):
     archive_filename = f"auto_daily_report_{report_date.replace('-', '_')}.html"
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
     archive_path = ARCHIVE_DIR / archive_filename
-    archive_path.write_text(html, encoding="utf-8")
+    archive_canonical = f"https://visionhub.jp/presentations/daily_reports/{archive_filename}"
+    archive_html = html.replace(latest_canonical, archive_canonical)
+    archive_path.write_text(archive_html, encoding="utf-8")
     logger.info(f"[HTML] Archive saved: {archive_path}")
 
     # OGP image (best-effort — silently skipped if Pillow unavailable)

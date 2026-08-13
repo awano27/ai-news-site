@@ -43,8 +43,11 @@ class RankingReportGenerator:
 
         analysis = self.analyze_ranking_metrics(data)
 
+        output_name = f"ai_ranking_report_{datetime.now().strftime('%Y%m%d')}.html"
+        canonical_url = f"https://visionhub.jp/presentations/{output_name}"
         template_data = {
             "title": report_title or "AI技術トレンドランキング・レポート",
+            "canonical_url": canonical_url,
             "period_start": data["period_start"],
             "period_end": data["period_end"],
             "generation_timestamp": datetime.now().strftime("%Y年%m月%d日 %H:%M"),
@@ -67,7 +70,7 @@ class RankingReportGenerator:
             html_content = template.render(**template_data)
             html_content = sanitize_html(html_content)
 
-            output_file = self.output_dir / f"ai_ranking_report_{datetime.now().strftime('%Y%m%d')}.html"
+            output_file = self.output_dir / output_name
             with open(output_file, "w", encoding="utf-8") as f:
                 f.write(html_content)
 

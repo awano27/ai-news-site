@@ -30,9 +30,14 @@ def main() -> int:
     if not out:
         print('Failed to generate report')
         return 2
-    # Copy to latest alias
+    # Copy to latest alias with self-canonical (never keep dated canonical/og:url)
     latest = ROOT / 'presentations' / 'ai_ranking_report_latest.html'
-    latest.write_text(Path(out).read_text(encoding='utf-8'), encoding='utf-8')
+    html = Path(out).read_text(encoding='utf-8')
+    dated_name = Path(out).name
+    dated_url = f'https://visionhub.jp/presentations/{dated_name}'
+    latest_url = 'https://visionhub.jp/presentations/ai_ranking_report_latest.html'
+    html = html.replace(dated_url, latest_url)
+    latest.write_text(html, encoding='utf-8')
     print('Latest alias updated:', latest)
     return 0
 

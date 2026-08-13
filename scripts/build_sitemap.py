@@ -24,6 +24,7 @@ BASE_URL = "https://visionhub.jp"
 ROOT = Path(__file__).resolve().parent.parent
 
 ROOT_PAGES: list[tuple[str, str, float]] = [
+    # Canonical policy: single HTML pages keep .html (about.html is canonical; /about is GH Pages alias).
     ("index.html", "daily", 1.0),
     ("about.html", "monthly", 0.8),
     ("contact.html", "yearly", 0.5),

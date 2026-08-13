@@ -198,7 +198,7 @@ def _render_model_row(rank: int, item: Dict) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
-def generate_html(data: Dict, archive_dir: Path, default_og_image: str) -> tuple:
+def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonical_url: str | None = None) -> tuple:
     """Generate HTML from template + data.  Returns (html_str, report_data_dict)."""
     from .html_report_parser import build_report_data
 
@@ -290,6 +290,9 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str) -> tuple
 
     # Replace placeholders in template
     html = template
+    if not canonical_url:
+        canonical_url = "https://visionhub.jp/presentations/auto_daily_report.html"
+    html = html.replace("{{CANONICAL_URL}}", canonical_url)
     html = html.replace("{{REPORT_DATE}}", _esc(report_date))
     html = html.replace("{{TOTAL}}", str(total))
     html = html.replace("{{HIGH}}", str(high_score))
