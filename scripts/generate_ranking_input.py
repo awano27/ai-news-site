@@ -32,20 +32,231 @@ Source data shape (news/YYYY-MM-DD.json):
 """
 from __future__ import annotations
 
+import argparse
+import difflib
 import html as htmllib
 import json
 import re
-from collections import Counter, defaultdict
-from datetime import datetime, timedelta
+import sys
+from collections import Counter
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from src.auto_collect.dedup import _entity_jaccard, _norm_title
+
 NEWS_DIR = REPO_ROOT / "news"
 DAILY_REPORT_DIR = REPO_ROOT / "presentations" / "daily_reports"
 OUTPUT = REPO_ROOT / "presentations" / "ai_ranking_input_latest.txt"
 
 WINDOW_DAYS = 30
 TOP_N = 30
+
+# Short Latin tokens: not embedded in an English word. Allows 常時稼働AI同僚
+# and AIデータセンター, but rejects brain / retailers / email / available.
+_SHORT_AI_RE = re.compile(
+    r"(?<![A-Za-z])(?:AI|AIs|LLM|LLMs|GPT|AGI|NLP|MoE|HBM)(?![A-Za-z])",
+    re.IGNORECASE,
+)
+
+# Longer Latin / product names — substring, case-insensitive.
+_AI_NAME_RE = re.compile(
+    r"(?:ChatGPT|OpenAI|Anthropic|DeepSeek|Gemini|Claude|Grok|"
+    r"Cerebras|Taalas|Copilot|Midjourney|DeepMind|Gemma|"
+    r"Hugging\s*Face|HuggingFace|LLaMA|Llama|Qwen|Mistral|xAI)",
+    re.IGNORECASE,
+)
+
+_INFERENCE_RE = re.compile(r"(?<![A-Za-z])inference(?![A-Za-z])", re.IGNORECASE)
+
+# JP multi-char (and mixed) phrases as substring.
+_AI_JP_PHRASES = (
+    "人工知能",
+    "生成AI",
+    "機械学習",
+    "大規模言語",
+    "深層学習",
+    "言語モデル",
+    "生成モデル",
+    "ディープラーニング",
+    "推論",
+    "超知能",
+)
+
+# Title denylist — overrides a positive category (熊本 was mislabeled AI Model/95).
+_DENY_SUBSTRINGS = (
+    "地震",
+    "電力小売",
+    "eo光",
+    "DNA検査",
+    "東日本大震災",
+    "NFCキー",
+    "Writing by hand",
+    "海底光ファイバー",
+    "宇宙レーザー",
+)
+
+# Daily-report categories that are clearly AI. "tech" alone is not enough.
+_AI_CATEGORY_RE = re.compile(
+    r"(?:^|[\s/_])ai(?:\s|$|[\s/_])",
+    re.IGNORECASE,
+)
+
+def parse_output_date(value: str | None) -> date:
+    """Parse YYYYMMDD or YYYY-MM-DD. None → today (local clock)."""
+    if not value:
+        return datetime.now().date()
+    raw = value.strip()
+    for fmt in ("%Y%m%d", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(f"invalid --output-date: {value!r} (use YYYYMMDD)")
+
+
+def title_has_ai_signal(title: str) -> bool:
+    """True when the title itself is AI-relevant. Fail closed.
+
+    Short tokens use Latin lookaround (not raw substring ``ai``).
+    """
+    if not title:
+        return False
+    if _SHORT_AI_RE.search(title):
+        return True
+    if _AI_NAME_RE.search(title):
+        return True
+    if _INFERENCE_RE.search(title):
+        return True
+    for phrase in _AI_JP_PHRASES:
+        if phrase in title:
+            return True
+    return False
+
+
+def is_denied_title(title: str) -> bool:
+    """Denylist wins over category (and over a positive AI token)."""
+    t = title or ""
+    low = t.lower()
+    for needle in _DENY_SUBSTRINGS:
+        if needle.isascii():
+            if needle.lower() in low:
+                return True
+        elif needle in t:
+            return True
+    if re.search(r"Accel", t, re.IGNORECASE) and (
+        "インド" in t or re.search(r"\bIndia\b", t, re.IGNORECASE)
+    ):
+        return True
+    return False
+
+
+def category_is_clearly_ai(cat: str) -> bool:
+    """Daily-report cats like 'AI Model' / 'AI Technology' count as positive."""
+    c = (cat or "").strip()
+    if not c:
+        return False
+    return bool(_AI_CATEGORY_RE.search(c))
+
+
+def is_thin_blurb(title: str, blurb: str) -> bool:
+    """Empty, very short, or title-echo blurbs are thin."""
+    b = (blurb or "").strip()
+    if len(b) < 24:
+        return True
+    nt, nb = _norm_title(title or ""), _norm_title(b)
+    return bool(nt and nb and nt == nb)
+
+
+def is_ai_relevant_item(item: dict) -> bool:
+    """Fail-closed keep decision for one ranking candidate."""
+    title = item.get("title") or ""
+    blurb = item.get("blurb") or ""
+    if is_denied_title(title):
+        return False
+    if title_has_ai_signal(title):
+        return True
+    if is_thin_blurb(title, blurb):
+        return False
+    # Category may count only when the blurb also has an AI signal.
+    # Category-alone let 熊本-class mislabels through (denylist is the backstop).
+    raw = item.get("raw_category") or item.get("category") or ""
+    return category_is_clearly_ai(raw) and title_has_ai_signal(blurb)
+
+
+def _dedupe_priority(item: dict) -> tuple[int, int]:
+    return (int(item.get("stars") or 0), len(item.get("blurb") or ""))
+
+
+def _lead_katakana_company(title: str) -> str:
+    """First 4+ katakana run at the start of a headline (e.g. キオクシア)."""
+    t = (title or "").strip()
+    m = re.match(r"^[A-Za-z0-9]*[、,\s]*([ァ-ヶー]{4,})", t)
+    if m:
+        return m.group(1)
+    m = re.match(r"^([ァ-ヶー]{4,})", t)
+    return m.group(1) if m else ""
+
+
+def is_same_story(title_a: str, title_b: str) -> bool:
+    """Exact / fuzzy title match, entity-Jaccard, or lead-katakana collapse."""
+    a, b = (title_a or "").strip(), (title_b or "").strip()
+    if not a or not b:
+        return False
+    if a == b:
+        return True
+    na, nb = _norm_title(a), _norm_title(b)
+    if na and nb and na == nb:
+        return True
+    if na and nb and difflib.SequenceMatcher(None, na, nb).ratio() >= 0.78:
+        return True
+    ratio, shared = _entity_jaccard(a, b)
+    if shared >= 2 and ratio >= 0.40:
+        return True
+    # JP company at the start (キオクシア) + moderate overlap.
+    # English lead names (OpenAI / Anthropic / Google) are too common
+    # to use this way — they glue unrelated stories together.
+    ka, kb = _lead_katakana_company(a), _lead_katakana_company(b)
+    if ka and ka == kb and na and nb:
+        if difflib.SequenceMatcher(None, na, nb).ratio() >= 0.40:
+            return True
+    return False
+
+
+def fuzzy_dedupe_items(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Collapse near-duplicate stories. Keep highest stars, then longest blurb."""
+    if not items:
+        return [], []
+    ranked = sorted(items, key=_dedupe_priority, reverse=True)
+    survivors: list[dict] = []
+    dropped: list[dict] = []
+    for it in ranked:
+        title = it.get("title") or ""
+        hit = next((s for s in survivors if is_same_story(title, s.get("title") or "")), None)
+        if hit is None:
+            survivors.append(it)
+        else:
+            dropped.append({**it, "dropped_as": "duplicate", "kept_title": hit.get("title")})
+            hit["n_merged"] = int(hit.get("n_merged") or 0) + 1
+    return survivors, dropped
+
+
+def apply_quality_gate(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """AI filter then fuzzy dedupe. Returns (kept, dropped)."""
+    dropped: list[dict] = []
+    relevant: list[dict] = []
+    for it in items:
+        if is_ai_relevant_item(it):
+            relevant.append(it)
+        else:
+            reason = "denylist" if is_denied_title(it.get("title") or "") else "not_ai"
+            dropped.append({**it, "dropped_as": reason})
+    kept, dupes = fuzzy_dedupe_items(relevant)
+    dropped.extend(dupes)
+    return kept, dropped
 
 
 def _safe_text(s: str, max_len: int = 120) -> str:
@@ -85,6 +296,7 @@ def _category_jp(cat: str) -> str:
         "policy": "政策",
         "company": "企業",
         "posts": "投稿",
+        "hardware": "ハードウェア",
     }
     return table.get((cat or "").lower(), cat or "その他")
 
@@ -96,21 +308,28 @@ def _scores_for(stars: int, category: str) -> tuple[int, int]:
     """
     s = max(1, min(5, int(stars or 0)))
     c = (category or "").lower()
-    if c in {"tech", "research", "tool", "tools"}:
+    # hardware and clearly-AI daily cats use the same tech-leaning split
+    # so they are not dumped into the tied その他 bucket.
+    if (
+        c in {"tech", "research", "tool", "tools", "hardware"}
+        or c.startswith("ai")
+        or "ai " in c
+    ):
         eng = s
         biz = max(1, s - 1)
-    elif c in {"biz", "business", "company", "policy"}:
+    elif c in {"biz", "business", "company", "policy"} or c.startswith("business"):
         eng = max(1, s - 1)
         biz = s
     else:
+        # AI ranking default: tech-leaning, not a tied その他 dump.
         eng = s
-        biz = s
+        biz = max(1, s - 1)
     return eng, biz
 
 
-def _collect_archive_files() -> list[Path]:
+def _collect_archive_files(as_of: date | None = None) -> list[Path]:
     """Per day, prefer the legacy news JSON, else the daily report HTML."""
-    today = datetime.now().date()
+    today = as_of or datetime.now().date()
     files: list[Path] = []
     for delta in range(WINDOW_DAYS):
         d = today - timedelta(days=delta)
@@ -166,12 +385,14 @@ def _items_from_report_html(path: Path) -> list[dict]:
         if not title:
             continue
         score = int(m.group("score"))
-        cat = _strip_tags(m.group("cat")).lower()
+        raw_cat = _strip_tags(m.group("cat"))
+        cat = raw_cat.lower()
         items.append({
             "title": title,
             "blurb": _strip_tags(m.group("tldr")),
             "stars": max(1, min(5, int(score / 20 + 0.5))),
             "category": _CATEGORY_NORM.get(cat, cat),
+            "raw_category": raw_cat,
             "source": {"name": _strip_tags(m.group("src")) or "—"},
         })
     return items
@@ -191,11 +412,13 @@ def _load_items(files: list[Path]) -> list[dict]:
 
         hl = data.get("highlight") or {}
         if hl.get("title"):
+            raw_cat = hl.get("category") or "highlight"
             items.append({
                 "title": hl.get("title", ""),
                 "blurb": hl.get("summary") or hl.get("blurb") or "",
                 "stars": int(hl.get("stars") or 5),
-                "category": (hl.get("category") or "highlight").lower(),
+                "category": str(raw_cat).lower(),
+                "raw_category": raw_cat,
                 "source": (hl.get("sources") or [{}])[0],
             })
 
@@ -203,11 +426,13 @@ def _load_items(files: list[Path]) -> list[dict]:
             for raw in lst or []:
                 if not raw or not raw.get("title"):
                     continue
+                raw_cat = raw.get("category") or cat or ""
                 items.append({
                     "title": raw.get("title", ""),
                     "blurb": raw.get("blurb") or raw.get("summary") or "",
                     "stars": int(raw.get("stars") or 0),
-                    "category": (raw.get("category") or cat or "").lower(),
+                    "category": str(raw_cat).lower(),
+                    "raw_category": raw_cat,
                     "source": raw.get("source") or {},
                 })
     return items
@@ -231,7 +456,10 @@ def _build_ranking_section(items: list[dict]) -> tuple[str, list[dict]]:
         eng, biz = _scores_for(it["stars"], it["category"])
         enriched.append({**it, "eng_tool": eng, "biz_eff": biz, "total": eng + biz})
 
-    enriched.sort(key=lambda x: (x["total"], x["stars"]), reverse=True)
+    enriched.sort(
+        key=lambda x: (x["total"], x["stars"], int(x.get("n_merged") or 0), len(x.get("blurb") or "")),
+        reverse=True,
+    )
     top = enriched[:TOP_N]
 
     lines = ["**ランキング概要**"]
@@ -273,7 +501,7 @@ def _build_sectors(top: list[dict]) -> str:
         cat = it["category"]
         if any(k in title for k in ["gpt", "claude", "llm", "model", "gemini", "grok", "llama"]):
             return "モデル・LLM"
-        if cat in {"tool", "tools", "tech", "research"}:
+        if cat in {"tool", "tools", "tech", "research", "hardware"}:
             return "ツール・SDK"
         return "ビジネス活用"
 
@@ -295,8 +523,33 @@ def _build_sectors(top: list[dict]) -> str:
     return "\n".join(rows)
 
 
-def main() -> int:
-    files = _collect_archive_files()
+def _log_dropped(dropped: list[dict]) -> None:
+    if not dropped:
+        print("quality-gate: dropped 0 items")
+        return
+    print(f"quality-gate: dropped {len(dropped)} items")
+    for it in dropped:
+        reason = it.get("dropped_as") or "?"
+        extra = f" → kept {it['kept_title']}" if it.get("kept_title") else ""
+        print(f"  - [{reason}] {it.get('title', '')}{extra}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Generate ranking input from archives")
+    parser.add_argument(
+        "--output-date",
+        default=None,
+        help="Pin today as YYYYMMDD (keeps dated output on 20260813 across UTC midnight)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print kept/dropped and do not write the output file",
+    )
+    args = parser.parse_args(argv)
+
+    today = parse_output_date(args.output_date)
+    files = _collect_archive_files(today)
     if not files:
         print(f"No archives found under {NEWS_DIR} for the last {WINDOW_DAYS} days.")
         return 1
@@ -306,25 +559,41 @@ def main() -> int:
         print("No items collected from archives.")
         return 2
 
-    ranking_block, top = _build_ranking_section(items)
+    kept, dropped = apply_quality_gate(items)
+    _log_dropped(dropped)
+    if not kept:
+        print("No items survived the ranking quality gate.")
+        return 3
+
+    ranking_block, top = _build_ranking_section(kept)
     key_points = _build_key_points(top)
     sectors_block = _build_sectors(top)
 
-    today = datetime.now().date()
-    start = today - timedelta(days=WINDOW_DAYS - 1)
-    period = f"{start.year}年{start.month}月{start.day}日から{today.year}年{today.month}月{today.day}日"
+    start_d = today - timedelta(days=WINDOW_DAYS - 1)
+    period = (
+        f"{start_d.year}年{start_d.month}月{start_d.day}日から"
+        f"{today.year}年{today.month}月{today.day}日"
+    )
 
     out_lines = [
         f"直近1ヶ月（{period}）",
         "",
         "**キー points:**",
-        *(f"- {p}" for p in key_points),
+        *(f"- {kp}" for kp in key_points),
         "",
         ranking_block,
         "",
         sectors_block,
         "",
     ]
+
+    print(f"quality-gate: kept {len(kept)} (top {len(top)}), archives_scanned={len(files)}")
+    if args.dry_run:
+        print("--- kept titles ---")
+        for it in top:
+            print(f"  * {it.get('title')}")
+        print(f"dry-run: not writing {OUTPUT}")
+        return 0
 
     OUTPUT.write_text("\n".join(out_lines), encoding="utf-8")
     print(f"Wrote: {OUTPUT}  (items={len(top)}, archives_scanned={len(files)})")
