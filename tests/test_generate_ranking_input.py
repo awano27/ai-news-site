@@ -99,3 +99,22 @@ def test_grok_bot_kept():
     assert len(kept) == 1
     assert "Grok Bot" in kept[0]["title"]
     assert dropped == []
+
+
+def test_kioxia_earnings_dropped_even_with_ai_demand_token():
+    title = 'キオクシア、大幅増益 - AI需要拡大が牽引'
+    assert title_has_ai_signal(title)  # AI token would otherwise keep it
+    assert is_denied_title(title)
+    assert is_denied_title("Kioxia posts record profit as AI demand surges")
+    item = _item(
+        title,
+        blurb='キオクシアの業績が前年比4倍超で記録的大幅増益に。AIサーバ需要急増が主要因。',
+        stars=5,
+        category="biz",
+        raw_category="Business",
+    )
+    assert not is_ai_relevant_item(item)
+    kept, dropped = apply_quality_gate([item])
+    assert kept == []
+    assert dropped[0]["dropped_as"] == "denylist"
+
