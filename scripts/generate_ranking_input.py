@@ -86,7 +86,8 @@ _AI_JP_PHRASES = (
     "超知能",
 )
 
-# Title denylist — overrides a positive category (熊本 was mislabeled AI Model/95).
+# Title denylist — overrides a positive category (熊本 was mislabeled AI Model/95)
+# and a positive AI token (キオクシア earnings leaked via 「AI需要」).
 _DENY_SUBSTRINGS = (
     "地震",
     "電力小売",
@@ -97,6 +98,8 @@ _DENY_SUBSTRINGS = (
     "Writing by hand",
     "海底光ファイバー",
     "宇宙レーザー",
+    "キオクシア",
+    "Kioxia",
 )
 
 # Daily-report categories that are clearly AI. "tech" alone is not enough.
