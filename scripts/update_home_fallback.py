@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Update marked homepage fallback dates to the newest existing slide."""
+"""Update marked homepage fallback dates to the newest existing slide.
+
+Also refreshes the editorial sitrep strip (``<!-- fallback:sitrep -->``):
+slide href is always pointed at the newest day_slide. Copy fields
+(#sitrepUpdate / #sitrepDesk / #sitrepAction) stay as-is unless passed
+on the CLI — they are human/editorial, not derived from a watchlist.
+"""
 from __future__ import annotations
 
+import argparse
 import re
+import sys
 from datetime import date
 from html import escape, unescape
 from pathlib import Path
@@ -30,7 +38,46 @@ def extract_slide_title(slide_html: str) -> str | None:
     return None
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--sitrep-update", default=None, help="Editorial 更新 line")
+    parser.add_argument("--sitrep-desk", default=None, help="Editorial 日本デスク line")
+    parser.add_argument("--sitrep-action", default=None, help="今日動かすのは line")
+    parser.add_argument(
+        "--sitrep-action-from-title",
+        action="store_true",
+        help="If --sitrep-action is omitted, fill #sitrepAction from the slide title",
+    )
+    return parser.parse_args([] if argv is None else argv)
+
+
+def replace_marked_text(body: str, elem_id: str, text: str) -> str:
+    display = escape(text)
+    return re.sub(
+        rf'(<(?:span|em)\b[^>]*\bid="{elem_id}"[^>]*>).*?(</(?:span|em)>)',
+        lambda match: f"{match.group(1)}{display}{match.group(2)}",
+        body,
+        count=1,
+        flags=re.S,
+    )
+
+
+def refresh_sitrep(body: str, stamp: str, slide_title: str | None, args: argparse.Namespace) -> str:
+    body = re.sub(r"day_slide_\d{4}_\d{2}_\d{2}\.html", f"day_slide_{stamp}.html", body)
+    if args.sitrep_update:
+        body = replace_marked_text(body, "sitrepUpdate", args.sitrep_update)
+    if args.sitrep_desk:
+        body = replace_marked_text(body, "sitrepDesk", args.sitrep_desk)
+    action = args.sitrep_action
+    if action is None and args.sitrep_action_from_title and slide_title:
+        action = slide_title
+    if action:
+        body = replace_marked_text(body, "sitrepAction", action)
+    return body
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     newest = max(SLIDES.glob("day_slide_????_??_??.html"))
     match = DATE_RE.fullmatch(newest.name)
     assert match
@@ -48,7 +95,11 @@ def main() -> int:
             lines.append(line)
         old="".join(lines)
     def refresh(marker):
-        if marker.group("name") != "latest-slide":
+        name = marker.group("name")
+        if name == "sitrep":
+            body = refresh_sitrep(marker.group("body"), stamp, slide_title, args)
+            return f"<!-- fallback:{name} -->{body}<!-- fallback:end -->"
+        if name != "latest-slide":
             return marker.group(0)
         body = re.sub(r"day_slide_\d{4}_\d{2}_\d{2}\.html", f"day_slide_{stamp}.html", marker.group("body"))
         body = re.sub(r"\d{4}-\d{2}-\d{2}", iso, body)
@@ -95,4 +146,4 @@ def main() -> int:
     return 0
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

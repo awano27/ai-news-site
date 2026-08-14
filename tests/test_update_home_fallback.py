@@ -84,3 +84,57 @@ def test_main_preserves_existing_titles_when_extraction_fails(tmp_path, monkeypa
     updated = index.read_text(encoding="utf-8")
     assert "既存タイトル | 2026-07-09" in updated
     assert "既存ランキング | 2026-07-09" in updated
+
+
+SITREP_HTML = """<!-- fallback:sitrep -->
+<aside class="sitrep"><a id="sitrepLink" href="day_slide_2026_07_06.html">
+<span id="sitrepUpdate">古い更新</span>
+<span id="sitrepDesk">古いデスク</span>
+<span id="sitrepAction">古い一手</span>
+</a></aside>
+<!-- fallback:end -->
+"""
+
+
+def test_main_refreshes_sitrep_href_without_overwriting_copy(tmp_path, monkeypatch):
+    slides = tmp_path / "slides"
+    slides.mkdir()
+    (slides / "day_slide_2026_07_09.html").write_text(
+        "<title>新しい題名 | 2026-07-09</title>", encoding="utf-8"
+    )
+    index = tmp_path / "index.html"
+    index.write_text(SITREP_HTML, encoding="utf-8")
+    monkeypatch.setattr(subject, "SLIDES", slides)
+    monkeypatch.setattr(subject, "INDEX", index)
+
+    assert subject.main() == 0
+
+    updated = index.read_text(encoding="utf-8")
+    assert 'href="day_slide_2026_07_09.html"' in updated
+    assert '<span id="sitrepUpdate">古い更新</span>' in updated
+    assert '<span id="sitrepDesk">古いデスク</span>' in updated
+    assert '<span id="sitrepAction">古い一手</span>' in updated
+
+
+def test_main_applies_sitrep_cli_copy_and_title_fallback(tmp_path, monkeypatch):
+    slides = tmp_path / "slides"
+    slides.mkdir()
+    (slides / "day_slide_2026_07_09.html").write_text(
+        "<title>スライド題 | 2026-07-09</title>", encoding="utf-8"
+    )
+    index = tmp_path / "index.html"
+    index.write_text(SITREP_HTML, encoding="utf-8")
+    monkeypatch.setattr(subject, "SLIDES", slides)
+    monkeypatch.setattr(subject, "INDEX", index)
+
+    assert subject.main([
+        "--sitrep-update", "料金表",
+        "--sitrep-desk", "本番は見送る",
+        "--sitrep-action-from-title",
+    ]) == 0
+
+    updated = index.read_text(encoding="utf-8")
+    assert '<span id="sitrepUpdate">料金表</span>' in updated
+    assert '<span id="sitrepDesk">本番は見送る</span>' in updated
+    assert '<span id="sitrepAction">スライド題</span>' in updated
+    assert 'href="day_slide_2026_07_09.html"' in updated
