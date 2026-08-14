@@ -371,6 +371,10 @@ function updateHomepage(data, slide, slideUrl) {
     `<span id="todaySlideDate" class="main-card-date">${escapeHtml(slideDate)}</span>`,
     'today slide date'
   );
+  html = html.replace(
+    /(<a\b[^>]*\bid="sitrepLink"[^>]*\bhref=")[^"]*(")/,
+    `$1${slideUrl}$2`
+  );
 
   const rankingFallback = rankingItems.length
     ? rankingItems.map(rankingCardHtml).join('\n')

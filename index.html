@@ -528,6 +528,59 @@
       .hero-shortcuts { grid-template-columns: 1fr; max-width: 480px; }
     }
 
+    /* ==================== Sitrep — 今日の机 (editorial 5-second strip) ==================== */
+    .sitrep {
+      background: var(--navy-2);
+      border-top: 1px solid var(--navy-line);
+      border-bottom: 1px solid var(--navy-line);
+    }
+    .sitrep-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      padding: 12px 0;
+      min-height: 48px;
+    }
+    .sitrep-row:hover .sitrep-item.is-action,
+    .sitrep-row:focus-visible .sitrep-item.is-action { color: var(--yellow); }
+    .sitrep-row:focus-visible {
+      outline: 2px solid var(--yellow);
+      outline-offset: 3px;
+    }
+    .sitrep-kicker {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--yellow); color: var(--navy);
+      font-size: 11px; font-weight: 900; letter-spacing: 0.14em;
+      padding: 3px 8px; border-radius: 3px; line-height: 1.2;
+      flex: 0 0 auto;
+    }
+    .sitrep-name {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.18em;
+      color: var(--on-dark-mu);
+      flex: 0 0 auto;
+    }
+    .sitrep-item {
+      display: inline-flex; align-items: baseline; gap: 8px;
+      font-size: 13px; line-height: 1.5;
+      color: var(--on-dark);
+      min-width: 0;
+    }
+    .sitrep-item + .sitrep-item {
+      padding-left: 20px;
+      border-left: 1px solid var(--navy-line-2);
+    }
+    .sitrep-key {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      color: var(--on-dark-mu2);
+      flex: 0 0 auto;
+    }
+    .sitrep-item.is-action { flex: 1 1 220px; }
+    @media (max-width: 768px) {
+      .sitrep-row { padding: 14px 0; gap: 10px 14px; }
+      .sitrep-item + .sitrep-item { padding-left: 0; border-left: 0; }
+    }
+
     /* ==================== Section base ==================== */
     .section {
       padding-block: var(--sec-y);
@@ -1168,6 +1221,31 @@
         Portrait: Max Planck (1938) · Photo by Hugo Erfurth · <a href="credits.html">credits</a>
       </div>
     </section>
+
+    <!-- SITREP:start
+      Editorial 5-second desk ("今日の机"). Static news hub — no watchlist, no usable N/total.
+      Daily bot / human: replace these nodes (keep Japanese editorial copy):
+        #sitrepUpdate       update line
+        #sitrepDesk         Japan desk
+        #sitrepAction       today's move
+        #sitrepLink[href]   today's day_slide
+      scripts/update_home_fallback.py refreshes the slide href from the newest day_slide.
+      To set copy: python scripts/update_home_fallback.py --sitrep-update "..." --sitrep-desk "..." --sitrep-action "..."
+    -->
+    <!-- fallback:sitrep -->
+    <aside class="sitrep" aria-label="今日の机">
+      <div class="container">
+        <a id="sitrepLink" class="sitrep-row" href="presentations/day_slides/day_slide_2026_08_14.html">
+          <span class="sitrep-kicker">5秒</span>
+          <span class="sitrep-name">今日の机</span>
+          <span class="sitrep-item"><span class="sitrep-key">更新</span><span id="sitrepUpdate" data-sitrep="update">料金表（DeepSeek ピーク制）</span></span>
+          <span class="sitrep-item"><span class="sitrep-key">日本デスク</span><span id="sitrepDesk" data-sitrep="desk">本番は見送る</span></span>
+          <span class="sitrep-item is-action"><span class="sitrep-key">今日動かすのは</span><span id="sitrepAction" data-sitrep="action">DeepSeek — 実験は分ける。公式changelogを一次に。</span></span>
+        </a>
+      </div>
+    </aside>
+    <!-- fallback:end -->
+    <!-- SITREP:end -->
 
     <!-- =============== Featured reports — daily briefing hub =============== -->
     <style>
@@ -2424,6 +2502,8 @@
       if (slideBtn) slideBtn.href = slideUrl;
       var headerCta = document.getElementById('latestSlideHeroBtn');
       if (headerCta) headerCta.href = slideUrl;
+      var sitrepLink = document.getElementById('sitrepLink');
+      if (sitrepLink) sitrepLink.href = slideUrl;
 
       // Pick-up news box
       if (latest && latest.highlight) {
