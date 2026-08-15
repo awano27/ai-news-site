@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -114,6 +115,137 @@ def test_main_refreshes_sitrep_href_without_overwriting_copy(tmp_path, monkeypat
     assert '<span id="sitrepUpdate">古い更新</span>' in updated
     assert '<span id="sitrepDesk">古いデスク</span>' in updated
     assert '<span id="sitrepAction">古い一手</span>' in updated
+
+
+def test_extract_slide_twist_prefers_h1_and_does_not_truncate():
+    long_h1 = "あ" * 130
+    html = f"<title>短い題 | 2026-08-14</title><h1>{long_h1}</h1>"
+    assert subject.extract_slide_twist(html) == long_h1
+
+
+def test_extract_slide_twist_strips_inner_markup():
+    html = "<h1>サプライズは<span class=\"em\">モデルじゃない</span></h1>"
+    assert subject.extract_slide_twist(html) == "サプライズはモデルじゃない"
+
+
+def test_extract_slide_twist_returns_none_without_h1():
+    assert subject.extract_slide_twist("<title>題だけ | 2026-08-14</title>") is None
+
+
+def test_extract_open_loop_reads_meta_description():
+    html = (
+        '<meta name="description" content="盤面を動かしたのは知能ではなかった。">'
+        "<h1>サプライズはモデルじゃない</h1>"
+    )
+    assert subject.extract_open_loop(html) == "盤面を動かしたのは知能ではなかった。"
+
+
+def test_extract_open_loop_returns_none_when_missing():
+    assert subject.extract_open_loop("<h1>題</h1>") is None
+
+
+INDEX_HTML_SAMPLE = """
+<a class="feat-card" href="day_slides/day_slide_2026_08_14.html">
+  <h3 class="feat-title">サプライズはモデルじゃない</h3>
+</a>
+<a class="slide-card" href="day_slides/day_slide_2026_08_14.html"><span class="slide-date">08/14</span><span class="slide-title">長い本文タイトルは使わない</span></a>
+<a class="slide-card" href="day_slides/day_slide_2026_08_13.html"><span class="slide-date">08/13</span><span class="slide-title">日付じゃない</span></a>
+"""
+
+
+def test_titles_from_index_prefers_feat_title():
+    titles = subject.titles_from_index(INDEX_HTML_SAMPLE)
+    assert titles["2026-08-14"] == "サプライズはモデルじゃない"
+    assert titles["2026-08-13"] == "日付じゃない"
+
+
+def test_week_cards_link_only_days_with_titles():
+    html = subject.week_cards_html(
+        newest=date(2026, 8, 14),
+        titles={"2026-08-14": "サプライズはモデルじゃない", "2026-08-13": "日付じゃない"},
+    )
+    assert 'href="presentations/day_slides/day_slide_2026_08_14.html"' in html
+    assert "サプライズはモデルじゃない" in html
+    assert "日付じゃない" in html
+    assert 'href="presentations/day_slides/day_slide_2026_08_12.html"' not in html
+    assert html.count('class="week-card') >= 7
+    assert "is-empty" in html
+
+
+def test_main_writes_week_cards_from_slides_index(tmp_path, monkeypatch):
+    slides = tmp_path / "slides"
+    slides.mkdir()
+    (slides / "day_slide_2026_08_14.html").write_text("<h1>題</h1>", encoding="utf-8")
+    slides_index = tmp_path / "day_slides_index.html"
+    slides_index.write_text(INDEX_HTML_SAMPLE, encoding="utf-8")
+    index = tmp_path / "index.html"
+    index.write_text(
+        """<!-- fallback:this-week --><div id="weekGrid" class="week-grid">old</div><!-- fallback:end -->
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(subject, "SLIDES", slides)
+    monkeypatch.setattr(subject, "INDEX", index)
+    monkeypatch.setattr(subject, "SLIDES_INDEX", slides_index)
+
+    assert subject.main() == 0
+    updated = index.read_text(encoding="utf-8")
+    assert "サプライズはモデルじゃない" in updated
+    assert 'id="weekGrid"' in updated
+    assert "old" not in updated
+
+
+def test_main_writes_hero_twist_and_open_loop_from_slide(tmp_path, monkeypatch):
+    slides = tmp_path / "slides"
+    slides.mkdir()
+    (slides / "day_slide_2026_08_14.html").write_text(
+        """<meta name="description" content="盤面を動かしたのは知能ではなかった。">
+<title>別の短い題 | 2026-08-14</title>
+<h1>サプライズは<span class="em">モデルじゃない</span></h1>
+""",
+        encoding="utf-8",
+    )
+    index = tmp_path / "index.html"
+    index.write_text(
+        """<!-- fallback:latest-slide --><h1 id="heroTwist">古い標語</h1><!-- fallback:end -->
+<!-- fallback:latest-slide --><p id="heroWhy">古い要約</p><!-- fallback:end -->
+<!-- fallback:latest-slide --><span id="heroDate">2026-08-12 · 水</span><!-- fallback:end -->
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(subject, "SLIDES", slides)
+    monkeypatch.setattr(subject, "INDEX", index)
+
+    assert subject.main() == 0
+
+    updated = index.read_text(encoding="utf-8")
+    assert '<h1 id="heroTwist">サプライズはモデルじゃない</h1>' in updated
+    assert '<p id="heroWhy">盤面を動かしたのは知能ではなかった。</p>' in updated
+    assert "2026-08-14 · 金" in updated
+    assert "古い標語" not in updated
+
+
+def test_main_leaves_twist_and_why_when_h1_or_meta_missing(tmp_path, monkeypatch):
+    slides = tmp_path / "slides"
+    slides.mkdir()
+    (slides / "day_slide_2026_08_14.html").write_text(
+        "<title>題だけ | 2026-08-14</title>", encoding="utf-8"
+    )
+    index = tmp_path / "index.html"
+    index.write_text(
+        """<!-- fallback:latest-slide --><h1 id="heroTwist">残すtwist</h1><!-- fallback:end -->
+<!-- fallback:latest-slide --><p id="heroWhy">残すwhy</p><!-- fallback:end -->
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(subject, "SLIDES", slides)
+    monkeypatch.setattr(subject, "INDEX", index)
+
+    assert subject.main() == 0
+
+    updated = index.read_text(encoding="utf-8")
+    assert '<h1 id="heroTwist">残すtwist</h1>' in updated
+    assert '<p id="heroWhy">残すwhy</p>' in updated
 
 
 def test_main_applies_sitrep_cli_copy_and_title_fallback(tmp_path, monkeypatch):

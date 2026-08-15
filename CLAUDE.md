@@ -18,6 +18,9 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 デザインは2系統。既定は**画像なし Swiss Modernism エディトリアル**、「一新して」「Claudeっぽく」と言われたら **Claude-warm**（cream paper・clay accent・serif、06/05 Miso One 回がテンプレ）。
 
 1. **最新の `presentations/day_slides/day_slide_*.html` をテンプレに**、`--accent` 1色のみ変更して新規作成
+   - `h1` = 今日の twist（標語禁止。「今日のAIを5分で」や名詞句の説明は置かない）
+   - `meta name="description"` = 開ループ1文（理由・仕組みは書かない）
+   - `p.lead` = 回収（仕組み・だから何）。トップの h1 はスライド h1 をそのまま写す
 2. 更新は実質 **3ファイルのみ**:
    - `presentations/day_slides/day_slide_2026_MM_DD.html`（新規）
    - `presentations/day_slides_index.html`（月の件数 +1、リスト先頭に `<li>`。feat-title は**短い正式タイトルのみ**——本文貼付禁止）

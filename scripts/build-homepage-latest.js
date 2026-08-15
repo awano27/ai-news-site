@@ -220,10 +220,11 @@ function rankingCardHtml(item, index) {
   ].join('\n');
 }
 
-function collectCategoryItems(data) {
+function collectCategoryItems(data, excludeUrls) {
   const sections = data && data.sections ? data.sections : {};
   const preferred = ['tech', 'research', 'tools', 'business', 'company', 'sns', 'posts'];
   const keys = preferred.concat(Object.keys(sections).filter((k) => !preferred.includes(k)));
+  const blocked = new Set((excludeUrls || []).filter(Boolean));
   const seen = new Set();
   const items = [];
   for (const key of keys) {
@@ -231,7 +232,7 @@ function collectCategoryItems(data) {
     seen.add(key);
     const list = sections[key];
     if (!Array.isArray(list) || !list.length) continue;
-    const item = list.find((x) => x && x.title);
+    const item = list.find((x) => x && x.title && !blocked.has(sourceUrl(x)));
     if (!item) continue;
     items.push({
       label: CATEGORY_LABELS[key] || key.toUpperCase(),
@@ -297,18 +298,8 @@ function updateHomepage(data, slide, slideUrl) {
   const fallbackDate = data.news_date || slideDate;
   const updateTime = generatedAt ? generatedAt.replace(/^\d{4}-\d{2}-\d{2}\s+/, '').replace(' JST', '') : '09:00';
   const rankingItems = collectRankingItems(data, slideUrl);
-  const categoryItems = collectCategoryItems(data);
-  const rawHeroTitle = data.highlight && data.highlight.title ? data.highlight.title : '最新スライドを公開しました';
-  const heroTitle = String(rawHeroTitle)
-    .replace(/\s*\|\s*Day Slide\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
-    .replace(/\s*\|\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
-    .trim() || rawHeroTitle;
-  const heroMeta = [
-    data.highlight && data.highlight.category,
-    data.highlight && sourceName(data.highlight),
-    data.highlight && data.highlight.stars ? '★'.repeat(Math.min(data.highlight.stars, 5)) : '',
-  ].filter(Boolean).join(' · ');
-
+  const categoryItems = collectCategoryItems(data, rankingItems.map((item) => item.url));
+  const heroTitle = extractTitle(fs.readFileSync(slide.filePath, 'utf8'), slideDate);
   let html = fs.readFileSync(INDEX_HTML, 'utf8');
 
   html = html.replace(/<meta http-equiv="Content-Security-Policy"[\s\S]*?\/>\n\s*/i, '');
@@ -334,24 +325,6 @@ function updateHomepage(data, slide, slideUrl) {
   html = html.replace(
     /if \(el\) el\.textContent = y \+ '-' \+ m \+ '-' \+ d \+ ' .*? \+ w;/,
     "if (el && !el.textContent.trim()) el.textContent = y + '-' + m + '-' + d + ' · ' + w;"
-  );
-  html = replaceFirst(
-    html,
-    /\s*<p class="hero-summary">[\s\S]*?<\/p>/,
-    `\n          <p class="hero-summary">\n            毎日更新。最新データ: <span id="heroUpdatedAt">${escapeHtml(generatedAt || `${fallbackDate} 09:00 JST`)}</span>。<br/>\n            モデル・論文・プロダクトリリースをビジネス／研究／ツールに整理してお届けします。\n          </p>`,
-    'hero summary'
-  );
-  html = replaceFirst(
-    html,
-    /(?:<!-- fallback:latest-slide -->)?<span id="heroNewsTitle"[\s\S]*?<\/span>(?:<!-- fallback:end -->)?\s*<span class="hero-news-meta" id="heroNewsMeta">[\s\S]*?<\/span>/,
-    `<!-- fallback:latest-slide --><span id="heroNewsTitle">${escapeHtml(heroTitle)}</span><!-- fallback:end -->\n              <span class="hero-news-meta" id="heroNewsMeta">${escapeHtml(heroMeta)}</span>`,
-    'hero news title and meta'
-  );
-  html = replaceFirst(
-    html,
-    /<noscript>\s*(?:<!-- fallback:latest-slide -->)?<span>[\s\S]*?<\/span>(?:<!-- fallback:end -->)?\s*<\/noscript>/,
-    `<noscript>\n                <!-- fallback:latest-slide --><span>最新トピック: ${escapeHtml(heroTitle)}。<a href="${slideUrl}">今日のスライド</a>または<a href="presentations/news_archive.html">アーカイブ</a>からご覧ください。</span><!-- fallback:end -->\n              </noscript>`,
-    'hero noscript fallback'
   );
   html = replaceFirst(
     html,

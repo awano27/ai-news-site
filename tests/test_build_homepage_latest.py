@@ -35,6 +35,9 @@ def test_build_homepage_accepts_marked_latest_slide_fallbacks(tmp_path: Path) ->
 
     assert result.returncode == 0, result.stdout + result.stderr
     updated = (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert "<!-- fallback:latest-slide --><span id=\"heroNewsTitle\">" in updated
-    assert "</span><!-- fallback:end -->" in updated
-    assert "<noscript>\n                <!-- fallback:latest-slide --><span>" in updated
+    assert 'id="heroTwist"' in updated
+    assert 'id="heroWhy"' in updated
+    source = (ROOT / "index.html").read_text(encoding="utf-8")
+    src_twist = source.split('id="heroTwist"', 1)[1].split("</h1>", 1)[0]
+    out_twist = updated.split('id="heroTwist"', 1)[1].split("</h1>", 1)[0]
+    assert out_twist == src_twist
