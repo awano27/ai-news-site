@@ -89,7 +89,7 @@ def week_cards_html(newest: date, titles: dict[str, str]) -> str:
             href = f'presentations/day_slides/day_slide_{stamp}.html'
             tag_open = f'<a class="{classes}" href="{href}">'
             tag_close = "</a>"
-            go = "続きを読む →"
+            go = "スライドを読む →"
             title_html = escape(title)
         else:
             tag_open = f'<div class="{classes}">'
