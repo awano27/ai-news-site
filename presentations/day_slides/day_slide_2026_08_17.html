@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIが、自然にないファージの全ゲノムを書いて、動いた | 2026-08-17</title>
+  <meta name="description" content="タンパク質設計の話ではない。Science 8/6。Evo がバクテリオファージの全ゲノムを書き、16種が自己複製して宿主を溶かした。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_17.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="AIが、自然にないファージの全ゲノムを書いて、動いた">
+  <meta property="og:description" content="タンパク質設計の話ではない。見るべきは「ファージを作った」ではなく、自然にない設計図が動いたことだ。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_17.html">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "AIが、自然にないファージの全ゲノムを書いて、動いた",
+    "description": "タンパク質設計の話ではない。Science 8/6。Evo がバクテリオファージの全ゲノムを書き、16種が自己複製して宿主を溶かした。見るべきは、自然にない設計図が動いたことだ。",
+    "datePublished": "2026-08-17",
+    "dateModified": "2026-08-17",
+    "articleSection": "Genome Language Models"
+  }
+  </script>
+<style>
+    :root {
+      --bg:#050814; --panel:#0b1522; --panel2:rgba(14,34,22,.72);
+      --ink:#eefaf3; --muted:#8fafa0; --line:rgba(61,200,255,.20);
+      --accent:#3dc8ff; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(61,200,255,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(61,200,255,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(61,200,255,.06), transparent 55%),
+        var(--bg);
+      font-family:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI","Noto Sans JP",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b8f0ff); z-index:60; transition:width .1s linear; }
+
+    /* ---- cinematic split hero ---- */
+    .hero {
+      position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+      background:
+        linear-gradient(rgba(61,200,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61,200,255,.045) 1px, transparent 1px),
+        radial-gradient(900px 420px at 78% -10%, rgba(61,200,255,.16), transparent 62%),
+        radial-gradient(700px 380px at 12% 110%, rgba(61,200,255,.08), transparent 55%),
+        #050814;
+      background-size:44px 44px, 44px 44px, auto, auto, auto;
+    }
+    .hero::before {
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(105deg, rgba(5,13,9,.92) 0%, rgba(5,13,9,.78) 42%, rgba(5,13,9,.25) 70%, transparent 100%);
+      z-index:1;
+    }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 48px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#b8cfc0; font-size:13px; }
+    .topbar a { color:#b8f0ff; text-decoration:none; border-bottom:1px solid rgba(61,200,255,.35); padding-bottom:1px; }
+    .hero-split {
+      display:grid; grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr);
+      gap:clamp(22px,4vw,48px); align-items:center; padding-top:clamp(36px,7vh,78px);
+    }
+    .kicker {
+      display:inline-flex; align-items:center; gap:10px; color:#040c14; background:var(--accent);
+      font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px;
+    }
+    .kicker .live {
+      display:inline-flex; align-items:center; gap:6px; background:#040c14; color:var(--accent);
+      padding:3px 8px; border-radius:999px; font:800 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.16em;
+    }
+    .kicker .live::before {
+      content:""; width:7px; height:7px; border-radius:50%; background:var(--accent);
+      box-shadow:0 0 0 0 rgba(61,200,255,.7);
+      animation:pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow:0 0 0 0 rgba(61,200,255,.7); }
+      70% { box-shadow:0 0 0 10px rgba(61,200,255,0); }
+      100% { box-shadow:0 0 0 0 rgba(61,200,255,0); }
+    }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.3em; color:#9de8ff; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(28px,4vw,48px); line-height:1.28; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; word-break:keep-all; }
+    h1 .em { white-space:nowrap;
+      color:var(--accent); font-weight:700;
+      text-shadow:0 0 28px rgba(61,200,255,.35);
+      background:linear-gradient(180deg, #b8f0ff, var(--accent));
+      -webkit-background-clip:text; background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .lead { color:#c5d9cc; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:640px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span {
+      border:1px solid rgba(61,200,255,.35); background:rgba(7,20,12,.55);
+      color:#d7f5e6; font-size:12.5px; padding:7px 14px; border-radius:20px;
+    }
+
+    /* ---- desktop mock ---- */
+    .desk {
+      position:relative; border:1px solid rgba(61,200,255,.35);
+      border-radius:14px; background:linear-gradient(160deg, #0e1a28, #071018 55%, #050814);
+      box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(61,200,255,.08), inset 0 1px 0 rgba(61,200,255,.12);
+      overflow:hidden; min-height:340px;
+    }
+    .desk::after {
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(135deg, rgba(61,200,255,.08), transparent 40%, rgba(255,201,77,.04));
+    }
+    .desk-chrome {
+      display:flex; align-items:center; gap:8px; padding:11px 14px;
+      border-bottom:1px solid rgba(61,200,255,.16); background:rgba(4,16,11,.72);
+    }
+    .desk-dot { width:9px; height:9px; border-radius:50%; background:#3a5a48; }
+    .desk-dot.r { background:#ff7a7a; } .desk-dot.y { background:#ffc94d; } .desk-dot.g { background:var(--accent); }
+    .desk-title {
+      margin-left:6px; font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      color:#9de8ff; letter-spacing:.08em;
+    }
+    .desk-body { padding:14px; display:grid; gap:12px; }
+    .term {
+      border:1px solid rgba(61,200,255,.18); border-radius:8px; background:rgba(2,10,7,.85);
+      padding:12px 14px; font:12.5px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; color:#9de8ff;
+    }
+    .term .dim { color:#5f8773; }
+    .term .ok { color:var(--accent); }
+    .term .warn { color:var(--gold); }
+    .bots { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .bot {
+      border:1px solid rgba(61,200,255,.18); border-radius:8px; padding:11px 10px;
+      background:rgba(8,24,16,.8); min-height:92px;
+    }
+    .bot .row { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:8px; }
+    .bot .name { font:700 12px/1.2 system-ui,sans-serif; color:var(--ink); }
+    .bot .badge {
+      font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em;
+      padding:4px 7px; border-radius:999px;
+    }
+    .bot.live { border-color:rgba(61,200,255,.55); box-shadow:0 0 24px rgba(61,200,255,.12); }
+    .bot.live .badge { background:rgba(61,200,255,.16); color:var(--accent); }
+    .bot.idle .badge { background:rgba(143,175,160,.12); color:var(--muted); }
+    .bot .task { color:var(--muted); font-size:11.5px; line-height:1.55; }
+    .desk-foot {
+      display:flex; justify-content:space-between; gap:8px; padding:0 14px 14px;
+      color:#6f9582; font:11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.04em;
+    }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card {
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(18,44,28,.94), rgba(9,22,14,.94));
+      padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(0,0,0,.35);
+    }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump {
+      position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px;
+      background:rgba(5,13,9,.92); backdrop-filter:blur(14px); scrollbar-width:thin;
+      border-bottom:1px solid rgba(61,200,255,.14);
+    }
+    .jump a {
+      flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px;
+      border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap;
+    }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(61,200,255,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slides { display:grid; gap:56px; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no {
+      flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,Menlo,monospace;
+      color:transparent; -webkit-text-stroke:1.5px rgba(61,200,255,.75); letter-spacing:-.03em; padding-top:4px;
+    }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot {
+      margin:0 0 18px; position:relative; border:1px solid rgba(61,200,255,.30); border-radius:8px; overflow:hidden;
+      background:#0a1218; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6);
+    }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge {
+      position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78);
+      border:1px solid rgba(61,200,255,.4); color:#d7f5e6; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px);
+    }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    a.ext { color:#b8f0ff; text-decoration:none; border-bottom:1px solid rgba(61,200,255,.35); }
+    a.ext:hover { color:var(--accent); }
+
+    .sowhat {
+      border:1px solid rgba(255,201,77,.45);
+      background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04));
+      border-radius:8px; padding:16px 18px; position:sticky; top:70px;
+    }
+    .sowhat-label, .sowhat .tag {
+      display:inline-block; color:#1a1403; background:var(--gold);
+      font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em;
+      padding:5px 10px; border-radius:3px; margin:0 0 11px;
+    }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+
+    /* ---- feature mosaic ---- */
+    .mosaic { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0 4px; }
+    .m-card {
+      border:1px solid var(--line); border-radius:10px; padding:16px 17px;
+      background:linear-gradient(165deg, rgba(18,44,28,.7), rgba(8,20,13,.9));
+      min-height:132px; transition:border-color .2s, transform .2s;
+    }
+    .m-card:hover { border-color:rgba(61,200,255,.5); transform:translateY(-2px); }
+    .m-card .idx { font:800 11px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.18em; margin-bottom:8px; }
+    .m-card h3 { margin:0 0 8px; font-size:16px; color:var(--ink); font-weight:600; }
+    .m-card p { margin:0; font-size:13.5px; line-height:1.75; }
+
+    /* ---- BEFORE / NOW ---- */
+    .vs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:10px; padding:18px 18px 16px; }
+    .vs-card h4 { margin:0 0 10px; font-size:16px; color:var(--ink); }
+    .vs-card h4 span {
+      display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted);
+    }
+    .vs-card.before { border-color:rgba(143,175,160,.28); }
+    .vs-card.now { border-color:rgba(61,200,255,.5); box-shadow:0 0 0 1px rgba(61,200,255,.08), 0 18px 40px rgba(0,0,0,.25); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+
+    /* ---- architecture board ---- */
+    .arch {
+      margin:16px 0 8px; border:1px solid rgba(61,200,255,.28); border-radius:12px; overflow:hidden;
+      background:linear-gradient(180deg, rgba(10,28,18,.95), rgba(6,16,11,.98));
+    }
+    .arch-top {
+      display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+      padding:14px 16px; border-bottom:1px solid rgba(61,200,255,.16); background:rgba(61,200,255,.06);
+    }
+    .arch-top .label { font:800 11px/1 ui-monospace,monospace; letter-spacing:.18em; color:var(--accent); }
+    .arch-top .pc {
+      font:600 13px/1.3 system-ui,sans-serif; color:var(--ink);
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .arch-top .pc::before {
+      content:""; width:8px; height:8px; border-radius:50%; background:var(--accent);
+      box-shadow:0 0 12px var(--accent);
+    }
+    .arch-lanes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:14px; }
+    .lane {
+      border:1px dashed rgba(61,200,255,.28); border-radius:9px; padding:14px 12px;
+      background:rgba(4,14,10,.55); min-height:120px;
+    }
+    .lane h5 { margin:0 0 8px; font-size:13.5px; color:var(--ink); display:flex; justify-content:space-between; gap:8px; }
+    .lane h5 em { font:800 9.5px/1 ui-monospace,monospace; letter-spacing:.12em; color:var(--accent); font-style:normal; }
+    .lane p { margin:0; font-size:12.5px; line-height:1.65; color:var(--muted); }
+    .arch-note {
+      padding:0 16px 14px; color:#ffe6a8; font-size:12.5px; line-height:1.7;
+      display:flex; gap:8px; align-items:flex-start;
+    }
+    .arch-note::before { content:"⚠"; color:var(--gold); }
+
+    /* ---- learning loop chips ---- */
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step {
+      border:1px solid rgba(61,200,255,.35); background:rgba(61,200,255,.08);
+      color:var(--ink); font-size:13px; font-weight:600; padding:10px 14px; border-radius:20px; white-space:nowrap;
+    }
+    .loop .step small {
+      display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent);
+      letter-spacing:.14em; margin-bottom:4px;
+    }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note {
+      display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5);
+      color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px;
+    }
+
+    /* ---- finale ---- */
+    .finale {
+      margin-top:56px; border:1px solid rgba(61,200,255,.35); border-radius:12px;
+      padding:clamp(26px,4vw,46px); text-align:center;
+      background:radial-gradient(640px 300px at 50% -30%, rgba(61,200,255,.15), transparent 70%), var(--panel);
+    }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote {
+      margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7;
+      color:var(--ink); font-weight:600; text-wrap:balance;
+    }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom {
+      max-width:min(96vw,1560px); width:auto; border:1px solid rgba(61,200,255,.4);
+      border-radius:10px; background:#0a1114; padding:10px;
+    }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:980px) {
+      .hero-split { grid-template-columns:1fr; }
+      .desk { max-width:520px; }
+    }
+
+    /* ---- NotebookLM-style infoboard (s1) ---- */
+    .infoboard {
+      margin: 4px 0 8px;
+      border: 1px solid rgba(61,200,255,.45);
+      border-radius: 14px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #f7fafc 0%, #f4fbf6 55%, #eef4f8 100%);
+      color: #0d1622;
+      box-shadow: 0 28px 70px rgba(0,0,0,.35), 0 0 0 1px rgba(61,200,255,.12);
+    }
+    .infoboard * { box-sizing: border-box; }
+    .ib-strip {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 10px 18px; padding: 14px 18px;
+      background: linear-gradient(90deg, #0b1522, #122033 70%, #0b1522);
+      color: #eefaf3; border-bottom: 3px solid var(--accent);
+    }
+    .ib-strip h3 {
+      margin: 0; font-size: clamp(18px, 2.4vw, 24px); font-weight: 700;
+      letter-spacing: -.01em; color: #fff;
+    }
+    .ib-strip .meta {
+      font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .14em; color: #9de8ff;
+      border: 1px solid rgba(61,200,255,.45); padding: 7px 12px; border-radius: 999px;
+      background: rgba(61,200,255,.08);
+    }
+    .ib-body { padding: 18px 18px 16px; }
+    .ib-thesis {
+      margin: 0 0 16px; padding: 12px 14px;
+      border-left: 4px solid var(--accent);
+      background: rgba(61,200,255,.10);
+      border-radius: 0 8px 8px 0;
+      color: #0d1622; font-size: clamp(14px, 1.6vw, 16px); line-height: 1.7; font-weight: 600;
+    }
+    .ib-thesis strong { color: #061422; }
+    .ib-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      gap: 8px; align-items: stretch; margin: 0 0 18px;
+    }
+    .ib-step {
+      background: #fff;
+      border: 1px solid rgba(13,31,22,.12);
+      border-radius: 10px; padding: 12px 12px 11px;
+      box-shadow: 0 6px 16px rgba(13,31,22,.05);
+      min-width: 0;
+    }
+    .ib-step .n {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #0b1522; color: var(--accent);
+      font: 800 11px/1 ui-monospace, monospace; margin-bottom: 8px;
+    }
+    .ib-step .t {
+      display: block; font-size: 13.5px; font-weight: 700; color: #0d1622; line-height: 1.45;
+    }
+    .ib-step .ex {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+    }
+    .ib-step .ex span {
+      font-size: 10.5px; font-weight: 600; color: #1a3d2a;
+      background: rgba(61,200,255,.18); border: 1px solid rgba(61,200,255,.35);
+      padding: 3px 7px; border-radius: 999px;
+    }
+    .ib-chev {
+      display: flex; align-items: center; justify-content: center;
+      color: #1a6f8f; font-size: 20px; font-weight: 800; padding: 0 2px;
+      user-select: none;
+    }
+    .ib-pillars {
+      display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px; margin: 0 0 16px;
+    }
+    .ib-card {
+      background: #fff;
+      border: 1px solid rgba(13,31,22,.12);
+      border-top: 3px solid var(--accent);
+      border-radius: 10px; padding: 14px 14px 13px;
+      box-shadow: 0 6px 16px rgba(13,31,22,.05);
+      min-width: 0;
+    }
+    .ib-card .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 26px; height: 22px; padding: 0 7px; border-radius: 6px;
+      background: rgba(61,200,255,.18); color: #0b1522;
+      font: 800 11px/1 ui-monospace, monospace; letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+    .ib-card h4 {
+      margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #0d1622; line-height: 1.35;
+    }
+    .ib-card p {
+      margin: 0; font-size: 12.8px; line-height: 1.65; color: #3a5648;
+    }
+    .ib-compare {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      gap: 10px; align-items: center; margin: 0 0 12px;
+      padding: 12px; border-radius: 10px;
+      background: rgba(13,31,22,.04); border: 1px dashed rgba(13,31,22,.18);
+    }
+    .ib-cmp {
+      background: #fff; border-radius: 8px; padding: 11px 13px;
+      border: 1px solid rgba(13,31,22,.10);
+    }
+    .ib-cmp .lbl {
+      display: block; font: 800 10px/1 ui-monospace, monospace;
+      letter-spacing: .16em; margin-bottom: 6px;
+    }
+    .ib-cmp.before .lbl { color: #7a6a3a; }
+    .ib-cmp.after .lbl { color: #1a6f8f; }
+    .ib-cmp.before { border-color: rgba(255,201,77,.45); background: #fffdf5; }
+    .ib-cmp.after { border-color: rgba(61,200,255,.55); background: #f2f8ff; }
+    .ib-cmp .txt { font-size: 13.5px; font-weight: 700; color: #0d1622; line-height: 1.45; margin: 0; }
+    .ib-cmp-arr {
+      font-size: 22px; font-weight: 800; color: #1a6f8f; text-align: center;
+    }
+    .ib-sowhat {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 14px; border-radius: 8px;
+      background: linear-gradient(90deg, rgba(255,201,77,.22), rgba(255,201,77,.08));
+      border: 1px solid rgba(255,201,77,.55);
+    }
+    .ib-sowhat .tag {
+      flex: 0 0 auto; align-self: flex-start;
+      color: #1a1403; background: var(--gold);
+      font: 800 10px/1 ui-monospace, monospace; letter-spacing: .16em;
+      padding: 5px 8px; border-radius: 3px;
+    }
+    .ib-sowhat p {
+      margin: 0; font-size: 13px; line-height: 1.7; color: #3a2f12;
+    }
+    .ib-sowhat p strong { color: #1a1403; }
+
+
+    /* ---- infoboard diagrams (visual) ---- */
+    .ib-diagram { margin: 0 0 18px; }
+    .ib-dtitle {
+      margin: 0 0 10px; font: 800 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .18em; color: #0b1522;
+    }
+    .ib-dtitle span {
+      display: inline-block; padding: 5px 10px; border-radius: 6px;
+      background: #0b1522; color: #3dc8ff;
+    }
+    .ib-svg {
+      width: 100%; height: auto; display: block;
+      border-radius: 12px; background: #fff;
+      border: 1px solid rgba(13,31,22,.10);
+      box-shadow: 0 8px 22px rgba(13,31,22,.06);
+    }
+    .ib-diagrams {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin: 0 0 16px;
+    }
+    .ib-diag-panel {
+      margin: 0; background: #fff;
+      border: 1px solid rgba(13,31,22,.12); border-radius: 12px;
+      padding: 12px 12px 10px;
+      box-shadow: 0 6px 16px rgba(13,31,22,.05);
+      min-width: 0;
+    }
+    .ib-diag-panel.before { border-top: 3px solid #c9a84a; background: #fffdf5; }
+    .ib-diag-panel.after { border-top: 3px solid #3dc8ff; background: #f2f8ff; }
+    .ib-diag-panel .ib-svg {
+      border: none; box-shadow: none; background: transparent; border-radius: 8px;
+    }
+    .ib-diag-panel figcaption {
+      margin: 8px 2px 0; font-size: 12.5px; line-height: 1.55; color: #3a5648; font-weight: 600;
+    }
+    .ib-diag-panel figcaption strong { color: #0d1622; display: block; margin-bottom: 2px; font-size: 13px; }
+    .ib-card .ib-icon {
+      width: 40px; height: 40px; display: block; margin: 0 0 10px;
+    }
+    .ib-card .ib-icon svg { width: 100%; height: 100%; display: block; }
+    .ib-card .head-row {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    }
+    .ib-card .head-row .badge { margin-bottom: 0; }
+
+    @media (max-width: 880px) {
+      .ib-flow {
+        grid-template-columns: 1fr;
+      }
+      .ib-chev {
+        transform: rotate(90deg); padding: 2px 0; height: 18px;
+      }
+      .ib-pillars { grid-template-columns: 1fr; }
+      .ib-compare { grid-template-columns: 1fr; }
+      .ib-cmp-arr { transform: rotate(90deg); }
+      .ib-diagrams { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width:880px) {
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell, .hero-inner { width:min(1200px, 100% - 24px); }
+      .mosaic, .vs, .arch-lanes, .bots { grid-template-columns:1fr; }
+      .loop .arr { display:none; }
+    }
+  
+    /* ---- eval table (2026-08-13) ---- */
+    .eval-wrap {
+      overflow-x:auto; margin:14px 0 8px;
+      border:1px solid var(--line); border-radius:10px;
+      background:linear-gradient(180deg, rgba(14,34,22,.72), rgba(7,18,12,.94));
+    }
+    table.eval {
+      width:100%; border-collapse:collapse; font-size:13px; min-width:640px;
+    }
+    table.eval th, table.eval td {
+      padding:9px 12px; text-align:right; border-bottom:1px solid rgba(61,200,255,.12);
+      font-variant-numeric: tabular-nums; color:var(--muted);
+    }
+    table.eval th:first-child, table.eval td:first-child {
+      text-align:left; color:var(--ink); font-weight:600;
+    }
+    table.eval thead th {
+      font:700 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.08em; color:var(--accent); text-align:right;
+      background:rgba(61,200,255,.06);
+    }
+    table.eval thead th:first-child { text-align:left; }
+    table.eval tbody tr:hover { background:rgba(61,200,255,.05); }
+    table.eval .tie { color:var(--accent); font-weight:700; }
+    table.eval .lead { color:var(--gold); font-weight:700; }
+    table.eval .lag { color:var(--alert); }
+    table.eval .na { color:#5f8773; }
+    table.eval caption {
+      caption-side:bottom; text-align:left; color:var(--muted);
+      font-size:12px; padding:10px 12px 12px; line-height:1.7;
+    }
+    .spec-rows { display:grid; gap:8px; }
+    .spec-row {
+      display:flex; justify-content:space-between; gap:10px; align-items:baseline;
+      border:1px solid rgba(61,200,255,.18); border-radius:8px;
+      padding:10px 12px; background:rgba(8,24,16,.8);
+      font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    }
+    .spec-row .k { color:#5f8773; }
+    .spec-row .v { color:#9de8ff; font-weight:600; }
+  </style>
+</head>
+
+<body>
+  <div class="progress" id="progress"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="topbar">
+        <div>AI Intelligence Hub · Day Slide No.382</div>
+        <div><a href="../day_slides_list.html">日次スライド一覧</a> · <a href="/">TOP</a></div>
+      </div>
+      <div class="hero-split">
+        <div class="hero-copy">
+          <span class="kicker"><span class="live">LIVE</span> SCIENCE / EVO · 2026.08.17 MON</span>
+          <p class="eyebrow">EVO · GENOME LANGUAGE MODEL</p>
+          <h1>AIが、自然にないファージの全ゲノムを書いて、<span class="em">動いた</span></h1>
+          <p class="lead">
+            タンパク質設計の話ではない。<strong>Science 8/6</strong>。
+            Evo がバクテリオファージの全ゲノムを書き、<strong>16種</strong>が自己複製して宿主を溶かした。
+            見るべきは「ファージを作った」ではなく、<strong>自然にない設計図が動いた</strong>ことだ。
+          </p>
+          <div class="hero-meta">
+            <span>Science 2026-08-06</span>
+            <span>Evo 1・2</span>
+            <span>16種が機能</span>
+            <span>待つ</span>
+            <span>5 MIN READ</span>
+          </div>
+        </div>
+
+        <aside class="desk" aria-label="Evo genome desk">
+          <div class="desk-chrome">
+            <span class="desk-dot r"></span><span class="desk-dot y"></span><span class="desk-dot g"></span>
+            <span class="desk-title">EVO · genome written, then lived</span>
+          </div>
+          <div class="desk-body">
+            <div class="term">
+              <div><span class="dim">$</span> evo --genome write</div>
+              <div><span class="ok">●</span> Science 8/6 · 16 / ~300 worked</div>
+              <div>not protein design</div>
+              <div>desk · <span class="warn">待つ</span></div>
+              <div class="dim">not a product · not clinic</div>
+            </div>
+            <div class="spec-rows">
+              <div class="spec-row"><span class="k">焦点</span><span class="v">全ゲノムが動いた</span></div>
+              <div class="spec-row"><span class="k">一次</span><span class="v">Science 8/6</span></div>
+              <div class="spec-row"><span class="k">日本デスク</span><span class="v">待つ</span></div>
+            </div>
+          </div>
+          <div class="desk-foot">
+            <span>written, then lived</span>
+            <span>論文を一次に</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num gold">16種</div><div class="stat-label"><b>機能した</b>〜300候補のうち、自己複製して溶菌した</div></div>
+      <div class="stat-card"><div class="stat-num">5.6%</div><div class="stat-label"><b>成功率</b>16 / 〜300。短い配列設計の話ではない</div></div>
+      <div class="stat-card"><div class="stat-num">1977→2003→2026</div><div class="stat-label"><b>ΦX174</b>読む → 書く → 設計する</div></div>
+      <div class="stat-card"><div class="stat-num">待つ</div><div class="stat-label"><b>日本デスク</b>論文を読む。触らない。</div></div>
+    </div>
+
+    <nav class="jump" aria-label="セクション移動">
+      <a href="#s1"><b>01</b> 何が起きたか</a>
+      <a href="#s2"><b>02</b> 何が変わったか</a>
+      <a href="#s3"><b>03</b> そこで壊れる</a>
+      <a href="#s4"><b>04</b> 日本デスク</a>
+    </nav>
+
+    <div class="slides">
+    <section class="slide" id="s1">
+      <div class="slide-head">
+        <span class="no">01</span>
+        <div>
+          <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+          <h2>タンパク質は書けてもゲノムは書けない、が壊れた</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>Stanford / Arc Institute。Brian Hie、Samuel King。<strong>Evo 1 / Evo 2</strong>。Science 2026-08-06。ゲノム言語モデルがバクテリオファージの全ゲノムを書いた。11遺伝子、重なるORF、制御配列まで含めて。タンパク質や短い配列の設計（RFdiffusion / AlphaFold級）ではない。</p>
+          <div class="infoboard" aria-label="タンパク質から全ゲノムへ">
+            <div class="ib-strip">
+              <h3>タンパク質 → 全ゲノム</h3>
+              <span class="meta">BEFORE → NOW</span>
+            </div>
+            <div class="ib-body">
+              <p class="ib-thesis">壊れた前提はこれだ。<strong>AIはタンパク質は設計できても、自己複製する全ゲノムは書けない。生命の設計図は自然から取る。</strong></p>
+              <div class="ib-compare">
+                <div class="ib-cmp before">
+                  <span class="lbl">BEFORE</span>
+                  <p class="txt">自然から取る · タンパク質単位</p>
+                </div>
+                <div class="ib-cmp-arr">→</div>
+                <div class="ib-cmp after">
+                  <span class="lbl">NOW</span>
+                  <p class="txt">全ゲノムを書いて、実験で動く</p>
+                </div>
+              </div>
+              <div class="ib-sowhat">
+                <span class="tag">SO WHAT</span>
+                <p>見るべきは「ファージを作った」ではない。<strong>自然にない設計図が動いた</strong>ことだ。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="sowhat">
+          <p class="sowhat-label">SO WHAT</p>
+          <p>タンパク質設計の延長ではない。<strong>全ゲノムを書いて、動いた</strong>。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s2">
+      <div class="slide-head">
+        <span class="no">02</span>
+        <div>
+          <p class="slide-kicker">WHAT CHANGED</p>
+          <h2>ΦX174 の次の章は、読む → 書く → 設計する</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>ΦX174 は、1977 に Sanger が読み、2003 に Venter が化学合成し、2026 に AI が自然にない機能版を書いた。同じファージの、次の章だ。</p>
+          <div class="loop" aria-label="読む、書く、設計する">
+            <div class="step"><small>1977</small>読む</div>
+            <span class="arr">→</span>
+            <div class="step"><small>2003</small>書く</div>
+            <span class="arr">→</span>
+            <div class="step"><small>2026</small>設計する</div>
+          </div>
+          <ul>
+            <li><strong>11遺伝子。</strong>関連する自然ファージに対し 67–392 の新規変異。一部は約 93% 同一</li>
+            <li>〜285–300 候補を合成・試験し、<strong>16種が機能</strong>（約 5.6%）</li>
+            <li>一部は野生型より高い適応度。ひとつは遠い DNA パッケージングタンパク質を取った（cryo-EM）</li>
+            <li>自然の ΦX174 に耐性の大腸菌を、カクテルが溶菌した。自然ファージだけでは溶けなかった</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="sowhat-label">FRAME</p>
+          <p>読むことができた。書くことができた。今日は、<strong>設計して、動いた</strong>。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s3">
+      <div class="slide-head">
+        <span class="no">03</span>
+        <div>
+          <p class="slide-kicker">WHERE IT BREAKS</p>
+          <h2>成功したから載せられる、ではない</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <div class="mosaic">
+            <article class="m-card">
+              <div class="idx">POC</div>
+              <h3>製品ではない</h3>
+              <p>研究の証明だ。臨床にも、商用にも載せない。</p>
+            </article>
+            <article class="m-card">
+              <div class="idx">HOLD</div>
+              <h3>配列も作り方も出さない</h3>
+              <p>ここには書かない。一次は論文側にある。</p>
+            </article>
+            <article class="m-card">
+              <div class="idx">SCOPE</div>
+              <h3>真核を感染するウイルスは学習から外した</h3>
+              <p>論文側の安全注記。それ以上は、今日は踏まない。</p>
+            </article>
+            <article class="m-card">
+              <div class="idx">DESK</div>
+              <h3>デュアルユースは議論が一段上がった</h3>
+              <p>デスクは待つ。</p>
+            </article>
+          </div>
+        </div>
+        <aside class="sowhat">
+          <p class="sowhat-label">SCOPE</p>
+          <p>動いた事実は載せる。載せ方は、製品にも臨床にもしない。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide" id="s4">
+      <div class="slide-head">
+        <span class="no">04</span>
+        <div>
+          <p class="slide-kicker">ACTION / JP DESK</p>
+          <h2>待つ。論文を読む。触らない。</h2>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="notes-main">
+          <p>日本デスクの判断は、待つ、で止まる。</p>
+          <div class="loop" aria-label="待つ">
+            <div class="step"><small>待つ</small>今日は動かさない</div>
+            <span class="arr">/</span>
+            <div class="step"><small>読む</small>論文を一次にする</div>
+            <span class="arr">→</span>
+            <div class="step"><small>触らない</small>配列も作り方も出さない</div>
+          </div>
+          <ul>
+            <li><strong>待つ:</strong> 成功したから載せられる、ではない</li>
+            <li><strong>読む:</strong> Science 8/6 と Stanford の文面を一次にする</li>
+            <li><strong>触らない:</strong> 今日やることの外にある</li>
+          </ul>
+        </div>
+        <aside class="sowhat">
+          <p class="sowhat-label">STACK</p>
+          <p>デスクは待つ。論文を読む。触らない。</p>
+        </aside>
+      </div>
+    </section>
+    </div>
+
+    <section class="finale" aria-label="Takeaway">
+      <p class="eyebrow">TAKEAWAY</p>
+      <blockquote>
+        AIが、自然にないファージの全ゲノムを書いて、動いた。<em>タンパク質設計の延長ではない。</em><br>
+        デスクは待つ。
+      </blockquote>
+      <p>Day Slide No.382 · 2026-08-17 · AI Intelligence Hub</p>
+    </section>
+
+    <footer style="margin-top:48px;padding:22px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.8;">
+      <p>Sources:
+      <a href="https://www.science.org/doi/10.1126/science.aec2657" class="ext">Science · 10.1126/science.aec2657</a>（2026-08-06、一次）、
+      <a href="https://news.stanford.edu/stories/2026/08/evo-2-ai-tool-e-coli-killer-bacteriophages" class="ext">Stanford News</a>、
+      <a href="https://www.biorxiv.org/content/10.1101/2025.09.12.675911v1" class="ext">bioRxiv 10.1101/2025.09.12.675911</a>。
+      Stanford / Arc Institute。Brian Hie、Samuel King。Evo 1 / Evo 2。
+      製品ではない。研究の証明。臨床・商用ではない。
+      AI Intelligence Hub Day Slide · 2026-08-17 · No.382</p>
+    </footer>
+  </main>
+
+  <dialog class="zoom" id="zoom"><img alt=""><p class="hint">クリックまたは Esc で閉じる</p></dialog>
+
+<script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-18% 0px -72% 0px' });
+      var sections = Array.prototype.slice.call(document.querySelectorAll('section.slide'));
+      sections.forEach(function (s) { io.observe(s); });
+
+      var dlg = document.getElementById('zoom');
+      var dimg = dlg.querySelector('img');
+      document.querySelectorAll('.shot img').forEach(function (img) {
+        img.addEventListener('click', function () {
+          dimg.src = img.src; dimg.alt = img.alt;
+          dlg.showModal();
+        });
+      });
+      dlg.addEventListener('click', function () { dlg.close(); });
+
+      addEventListener('keydown', function (ev) {
+        if (dlg.open || ev.altKey || ev.metaKey || ev.ctrlKey) return;
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_16.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_17.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-17.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
