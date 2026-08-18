@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cursor Origin：エージェント時代の自社コードホスティング——GitHub同日障害とSpaceX買収直後の一手 | 2026-08-18</title>
+  <meta name="description" content="Cursorが2026年8月17日にearly beta公開した自社git forge「Origin」。AIエージェント向けに再設計され、リポジトリ・PR・レビュー・デプロイをエディタ内で完結できる。同日のGitHub大規模障害と、3日前のSpaceX約$60B買収クローズを重ねて読む。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_18.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Cursor Origin：エージェント時代の自社コードホスティング">
+  <meta property="og:description" content="GitHub代替ではなく、エージェントが住むリポジトリ層。有料プランearly beta、GitHub双方向同期、同日障害との重なりを深掘りする。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_18.html">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Cursor Origin：エージェント時代の自社コードホスティング",
+    "description": "CursorのOrigin early betaと、GitHub同期・エージェント統合・SpaceX買収・同日障害の文脈整理。",
+    "datePublished": "2026-08-18",
+    "dateModified": "2026-08-18",
+    "articleSection": "AI Coding Infrastructure"
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#08070a; --panel:#14110e; --panel2:rgba(36,24,16,.72);
+      --ink:#fff4ee; --muted:#c4a99a; --line:rgba(255,90,31,.20);
+      --accent:#ff5a1f; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(255,90,31,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; overflow-x:hidden; }
+    body {
+      margin:0; color:var(--ink); overflow-x:hidden;
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(255,90,31,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(255,90,31,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#ffd0b8); z-index:60; transition:width .1s linear; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(255,90,31,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,90,31,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(255,90,31,.16), transparent 62%),
+      #08070a;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#e2c8bc; font-size:13px; }
+    .topbar a { color:#ffc9b8; text-decoration:none; border-bottom:1px solid rgba(255,201,184,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#2b0d05; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#ffb39a; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#e8cfc4; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(255,179,154,.4); background:rgba(20,10,7,.55); color:#f7ddd3; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(44,26,18,.94), rgba(22,13,9,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(10,3,2,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-num small { font-size:15px; margin-left:2px; }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(8,7,10,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(255,90,31,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(255,90,31,.12); outline:none; }
+
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(255,90,31,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(255,90,31,.30); border-radius:8px; overflow:hidden; background:#111; box-shadow:0 24px 70px rgba(2,8,10,.6), 0 0 0 1px rgba(8,4,2,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(8,5,4,.78); border:1px solid rgba(255,179,154,.4); color:#f7ddd3; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(255,90,31,.07); padding:14px 18px; margin:14px 0; color:#f5e0d6; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(255,90,31,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(255,90,31,.35); background:rgba(255,90,31,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; min-width:0; -webkit-overflow-scrolling:touch; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(196,169,154,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+    .src { font-size:13px; }
+    .src a { color:#ffc9b8; text-decoration:underline; text-underline-offset:3px; }
+
+    .finale { margin-top:56px; border:1px solid rgba(255,90,31,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(255,90,31,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(255,179,154,.4); border-radius:10px; background:#0a0908; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(4,2,1,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+
+    .board { margin:0 0 18px; border:1px solid rgba(255,90,31,.30); border-radius:8px; overflow:hidden;
+      background:
+        linear-gradient(180deg, rgba(44,24,16,.55), transparent 42%),
+        linear-gradient(rgba(255,90,31,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,90,31,.05) 1px, transparent 1px),
+        #100b09;
+      background-size:auto, 28px 28px, 28px 28px, auto;
+      box-shadow:0 24px 70px rgba(2,8,10,.6), 0 0 0 1px rgba(8,4,2,.6);
+      padding:18px 18px 16px; }
+    .board-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .board-kicker { font:800 11px/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.2em; color:var(--accent); }
+    .board-title { font-size:14.5px; font-weight:700; color:var(--ink); }
+    .board-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .cell { border:1px solid rgba(255,90,31,.28); border-radius:6px; background:rgba(8,5,4,.55); padding:13px 14px; }
+    .cell.accent { border-color:rgba(255,90,31,.55); background:rgba(255,90,31,.12); }
+    .cell.gold { border-color:rgba(255,201,77,.45); background:rgba(255,201,77,.08); }
+    .cell .n { font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:7px; }
+    .cell.gold .n { color:var(--gold); }
+    .cell h3 { margin:0 0 6px; font-size:13.8px; color:var(--ink); font-weight:700; letter-spacing:.01em; }
+    .cell p { margin:0; font-size:12.6px; line-height:1.7; color:var(--muted); }
+    .flow { display:grid; grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr); gap:10px; align-items:stretch; margin-bottom:12px; }
+    .flow-arr { display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:800; font-size:26px; }
+    .pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .pair-note { font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; color:var(--muted); margin:2px 0 8px; }
+    @media (max-width:880px) {
+      .board-grid, .pair { grid-template-columns:1fr; }
+      .flow { grid-template-columns:1fr; }
+      .flow-arr { transform:rotate(90deg); height:22px; }
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="#s1">Day Slide · Origin</a>
+        <span>2026-08-18 / AI Coding Infrastructure</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — AIコーディング / 開発基盤</span>
+        <p class="eyebrow">CURSOR ORIGIN</p>
+        <h1>「コードはもう GitHub だけに置かない」——エージェント向け git forge を自前化した</h1>
+        <p class="lead">Cursor が <strong>2026年8月17日</strong>、自社コードホスティング <strong>Origin</strong> を有料プラン向け early beta としてロールアウトした。公式の定義は <strong>「a git forge built for agent scale」</strong>。リポジトリ・プルリクエスト・コード閲覧・GitHub 同期をエディタ内に閉じ、Cloud Agents が Origin remote に対して clone / branch / commit / PR できるようにした。<em>同日、GitHub は約8時間の大規模障害</em>。3日前には SpaceX による約 <strong>$60B</strong> 買収がクローズしている。依存先が Microsoft から SpaceX 側へシフトしうる、即効性の高い一手である。</p>
+        <div class="hero-meta">
+          <span>公式発表：2026-08-17（本スライド：2026-08-18）</span>
+          <span>アクセス：Pro / Teams / Enterprise（無料不可）</span>
+          <span>状態：early beta・段階ロールアウト</span>
+          <span>同期：GitHub 双方向 PR（秒単位）</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num gold">8/17</div><div class="stat-label"><b>early beta 公開</b>公式 changelog / @cursor_ai。本スライドは翌日</div></div>
+      <div class="stat-card"><div class="stat-num">2<small>種</small></div><div class="stat-label"><b>リポジトリ型</b>Origin-hosted と GitHub-synced</div></div>
+      <div class="stat-card"><div class="stat-num">Pro+</div><div class="stat-label"><b>利用条件</b>無料プラン対象外。Enterprise は opt-out 可</div></div>
+      <div class="stat-card"><div class="stat-num">秒</div><div class="stat-label"><b>PR 双方向同期</b>コメント・リアクションが GitHub と即時反映</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-label"><b>初期 Apps</b>Vercel / Depot / Buildkite。追加予定</div></div>
+      <div class="stat-card"><div class="stat-num gold">~1<small>日</small></div><div class="stat-label"><b>公開からの経過</b>2026-08-17 発表 → 本スライド 08-18</div></div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b>サマリー</a>
+      <a href="#s2"><b>02</b>既存との違い</a>
+      <a href="#s3"><b>03</b>新しさ</a>
+      <a href="#s4"><b>04</b>2つのrepo</a>
+      <a href="#s5"><b>05</b>エージェント</a>
+      <a href="#s6"><b>06</b>戦略文脈</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">ONE-BOARD SUMMARY</p>
+            <h2>1枚で見る Cursor Origin</h2>
+          </div>
+        </div>
+        <figure class="board" role="img" aria-label="Cursor Origin ONE-BOARD SUMMARY。1 WHAT HAPPENED：2026-08-17 に agent-scale git forge を early beta 公開。2 TWO REPO TYPES：Origin-hosted と GitHub-synced。3 IN THE EDITOR：PR・エージェント・Apps。4 TIMING：GitHub障害同日、SpaceX買収3日後。5 ACCESS：有料プランのみ。6 SO WHAT：エディタから基盤へ。">
+          <div class="board-head">
+            <span class="board-kicker">CURSOR ORIGIN · ONE-BOARD</span>
+            <span class="board-title">1枚で見る — 2026-08-17 early beta</span>
+          </div>
+          <div class="board-grid">
+            <div class="cell">
+              <div class="n">01 · WHAT HAPPENED</div>
+              <h3>agent-scale git forge</h3>
+              <p>2026-08-17、Cursor が自社ホスト Origin を early beta 公開。<strong>「Cursor can now host your code.」</strong></p>
+            </div>
+            <div class="cell">
+              <div class="n">02 · TWO REPO TYPES</div>
+              <h3>Origin-hosted / GitHub-synced</h3>
+              <p>同じ Codebase リストに並ぶ2型。同期側は GitHub が source of truth のまま。</p>
+            </div>
+            <div class="cell">
+              <div class="n">03 · IN THE EDITOR</div>
+              <h3>PR · エージェント · Apps</h3>
+              <p>diff / merge / Cloud Agents / Vercel · Depot · Buildkite を同じタブに。</p>
+            </div>
+            <div class="cell">
+              <div class="n">04 · TIMING</div>
+              <h3>障害同日 / 買収3日後</h3>
+              <p>GitHub 約8時間の広域障害と同日。SpaceX 約 $60B 買収クローズの3日後。</p>
+            </div>
+            <div class="cell">
+              <div class="n">05 · ACCESS</div>
+              <h3>有料プランのみ</h3>
+              <p>Pro / Teams / Enterprise。無料不可。段階ロールアウト。Enterprise は opt-out 可。</p>
+            </div>
+            <div class="cell gold">
+              <div class="n">06 · SO WHAT</div>
+              <h3>エディタから基盤へ</h3>
+              <p>競争軸が「エディタの賢さ」から「エージェントが住むインフラを誰が握るか」へ。</p>
+            </div>
+          </div>
+        </figure>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>Origin</strong> は、Cursor が自前でホストする git forge である。公式 changelog の一文は短い。<strong>「Cursor can now host your code.」</strong></p>
+            <ul>
+              <li>いま出せるのは essentials：<strong>repos / pull requests / コード閲覧 / GitHub sync</strong>。agent-native の本格機能は「soon」</li>
+              <li>対象は <strong>Pro / Teams / Enterprise</strong>。無料プラン不可。アクセスは段階開放で、Enterprise 管理者は opt-out できる</li>
+              <li>GitHub を捨てる必要はない。同期 repo では <strong>GitHub が source of truth</strong> のまま、Cursor 内で閲覧・レビューできる</li>
+            </ul>
+            <p class="src">一次情報：<a href="https://cursor.com/changelog/origin-code-hosting" target="_blank" rel="noopener">Origin changelog</a> / <a href="https://cursor.com/docs/origin" target="_blank" rel="noopener">Origin docs</a> / <a href="https://forum.cursor.com/t/origin-code-hosting/168670" target="_blank" rel="noopener">Forum 発表</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>大きい（しかも今日から試せる）</strong>。日常的に Cursor + GitHub を回しているチームには即効。ただし early beta であり、公開 OSS エコシステムや Issues / Actions の完全移行先ではない。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">DIFFERENCES FROM EXISTING</p>
+            <h2>既存の類似製品と何が違うポイントか</h2>
+          </div>
+        </div>
+        <figure class="board" role="img" aria-label="BEFORE：コードはGitHub、Cursorは接続するだけ。AFTER：コードがOriginに住み、エージェントが隣で branch / PR / deploy する。下段は Origin-native と GitHub mirror の対比。">
+          <div class="board-head">
+            <span class="board-kicker">BEFORE → AFTER</span>
+            <span class="board-title">ホスト層を自前化したあと、エージェントが隣に来る</span>
+          </div>
+          <div class="flow">
+            <div class="cell">
+              <div class="n">BEFORE</div>
+              <h3>コードは GitHub</h3>
+              <p>Cursor は接続するだけ。障害・API制限・レートがそのままエージェントの上限になる。</p>
+            </div>
+            <div class="flow-arr" aria-hidden="true">→</div>
+            <div class="cell accent">
+              <div class="n">AFTER</div>
+              <h3>コードが Origin に住む</h3>
+              <p>エージェントが隣で <strong>branch / PR / deploy</strong> する。clone して戻すゲストではなくなる。</p>
+            </div>
+          </div>
+          <p class="pair-note">ORIGIN-NATIVE  ×  GITHUB MIRROR</p>
+          <div class="pair">
+            <div class="cell accent">
+              <div class="n">ORIGIN-NATIVE</div>
+              <h3>原典は Origin</h3>
+              <p>remote は origin.cursor.com。PR は Origin に残る。GitHub へは出ない。early beta に正式資産を預ける判断が要る。</p>
+            </div>
+            <div class="cell">
+              <div class="n">GITHUB MIRROR</div>
+              <h3>原典は GitHub のまま</h3>
+              <p>履歴・branch・PR が同期。push は GitHub へ。コメントは双方向・秒単位。ほとんどのチームの出発点。</p>
+            </div>
+          </div>
+        </figure>
+        <div class="notes">
+          <div class="notes-main">
+            <p>「AIエディタが GitHub に繋がる」は既にある。違いは <strong>ホスト層そのものを自前化したこと</strong> と、<strong>エージェントを第一級市民として設計したこと</strong> にある。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>従来・類似</span>GitHub + Cursor 接続</h4>
+                <ul>
+                  <li>コードの原典は GitHub。障害・API制限・レートがそのままエージェントの上限になる</li>
+                  <li>人間前提の PR リズム（1日数 commit、順次レビュー）</li>
+                  <li>エージェントは「外から clone して戻す」ゲスト</li>
+                  <li>GitLab / Bitbucket も同じ人間ペースの forge</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>ORIGIN</span>エージェントの隣にコードを置く</h4>
+                <ul>
+                  <li>Cursor 内の Codebase タブが拠点。clone / push は標準 git または Origin CLI</li>
+                  <li>PR の diff・timeline・checks・コメント・merge をエディタ内で完結</li>
+                  <li>Cloud Agents が Origin remote に対して clone / branch / commit / PR</li>
+                  <li>GitHub を捨てずに mirror できる（移行の摩擦を最小化）</li>
+                </ul>
+              </div>
+            </div>
+            <div class="scroll-x"><table class="cmp">
+              <thead><tr><th>観点</th><th>GitHub（従来）</th><th>Origin + GitHub sync</th><th>Origin-hosted</th></tr></thead>
+              <tbody>
+                <tr><td>source of truth</td><td>GitHub</td><td class="st-mid">GitHub のまま</td><td class="st-ok">Origin</td></tr>
+                <tr><td>PR レビュー場所</td><td>github.com</td><td class="st-ok">両方（双方向・秒単位）</td><td class="st-ok">Cursor / Origin</td></tr>
+                <tr><td>エージェント</td><td>外部接続</td><td class="st-ok">同じ UI から操作</td><td class="st-ok">最も深い一体化</td></tr>
+                <tr><td>Issues / Actions</td><td class="st-ok">本家</td><td class="st-mid">当面 GitHub に残る</td><td class="st-mid">初期は薄い</td></tr>
+                <tr><td>障害耐性</td><td>GitHub 依存</td><td class="st-mid">閲覧・エージェントは Origin 側で継続しやすい</td><td class="st-ok">GitHub 非依存</td></tr>
+              </tbody>
+            </table></div>
+            <p><strong>最大の差別化</strong>は「もう一つの GitHub クローン」ではなく、<strong>エージェントが分単位で commit する前提で merge / CI / レビューを再設計する</strong>と宣言した点だ。6月 Compile のデモでは単一 repo で毎秒 22.6 commit、毎時約 29.6 万 clone、全球同期 <400ms を示した（本番 beta の公式ベンチではない）。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>競争軸が「エディタの賢さ」から「<strong>エージェントが住むインフラを誰が握るか</strong>」へ移った。GitHub を残した mirror は、乗り換えではなく包囲網の入り口である。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">RECENCY</p>
+            <h2>最近出た新しい製品か？</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>はい。発表から約2か月、一般に触れる形になって約1日。</strong></p>
+            <ul class="checks">
+              <li><b>2026-06-16</b>：Compile カンファレンスで Origin を発表。waitlist。「this fall」と案内。Graphite 出身チームが基盤に関与</li>
+              <li><b>2026-08-14 前後</b>：SpaceX による Anysphere（Cursor）約 $60B all-stock 買収がクローズ。SpaceXAI ユニットへ</li>
+              <li><b>2026-08-17</b>：changelog と公式 X で early beta 公開。同日 GitHub が約8時間の広域障害</li>
+              <li><b>2026-08-18</b>：本スライド。有料プランへ段階ロールアウト中。全員が即日見えるわけではない</li>
+              <li><b>これから</b>：agent-native 機能、Apps 追加、Issues / Actions 相当は未整備</li>
+            </ul>
+            <p>公開当日、公式スレッドは数万いいね規模。X 上では「GitHub が落ちたタイミングで出した」という実況が大量に出た。製品自体は6月から準備されており、障害待ちの一夜製品ではない。ただし<strong>出す日を障害日と重ねた事実は、メッセージとして極めて強い</strong>。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">タイミング</span>
+            <p>買収クローズ → 自前ホスト公開 → 競合インフラ障害。72時間に3つが重なった。<strong>「エディタ企業」から「開発基盤企業」への転換宣言</strong>として読むのが自然。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">TWO REPO TYPES</p>
+            <h2>誰が何をホストするか——試し方まで</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Origin には最初から <strong>2つの repo 型</strong>がある。アイコンで区別され、同じ Codebase リストに並ぶ。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>GITHUB MIRROR</span>ほとんどのチームの出発点</h4>
+                <ul>
+                  <li>GitHub app を接続し、org / repo を選んで同期</li>
+                  <li>履歴・branch・tag・PR が来る。更新はリアルタイム</li>
+                  <li><strong>push は GitHub へ</strong>。GitHub が原典</li>
+                  <li>PR コメント / リアクションは双方向、数秒で反映</li>
+                  <li>Issues・Actions・secrets は当面 GitHub に残る</li>
+                  <li>切断はいつでも可。GitHub admin 権限が必要</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>ORIGIN-NATIVE</span>コード資産を Origin に置く</h4>
+                <ul>
+                  <li>Codebase タブ → New。Internal / Private</li>
+                  <li>git remote 例：<code>https://origin.cursor.com/{owner}/{repo}.git</code></li>
+                  <li>標準 git または Origin CLI で push</li>
+                  <li>PR は Origin に残る（GitHub へは出ない）</li>
+                  <li>エージェントから repo 作成も可能</li>
+                  <li>early beta に正式資産を預ける判断が要る</li>
+                </ul>
+              </div>
+            </div>
+            <div class="loop" role="img" aria-label="Originを使い始める流れ">
+              <span class="step"><small>STEP 1</small>codebase 名を claim</span><span class="arr">→</span>
+              <span class="step"><small>STEP 2</small>GitHub を接続</span><span class="arr">→</span>
+              <span class="step"><small>STEP 3</small>小さい repo を sync</span><span class="arr">→</span>
+              <span class="step"><small>STEP 4</small>Cursor 内で PR 1本</span><span class="arr">→</span>
+              <span class="step"><small>STEP 5</small>Agent / Vercel を試す</span>
+            </div>
+            <p class="loop-note">最初の推奨は Mirror。正式な原典を GitHub に残したまま、エージェント同居だけ先に評価できる。</p>
+            <div class="warn"><p><strong>重要：</strong>これは GitHub の完成した代替ではない。公開リポジトリのネットワーク、企業向け保証、セキュリティ監査、Issues / Actions の厚みでは GitHub がまだ強い。Origin の面白さは「置き換え個数」より、<strong>AI が書いた変更を検証して正式状態へ上げる場所</strong>を Cursor が握ろうとしている点にある。</p></div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">使い方</span>
+            <p>Cursor 中心なら <strong>Mirror で今日試す</strong>。Codex / Claude Code 中心で GitHub から離れる理由がないなら維持。代替を探しているなら Origin CLI まで含めて小さく試す。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">AGENT SCALE</p>
+            <h2>エージェントと Apps が repo の隣に来る</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>公式が繰り返すのは「Hosting code for agents is a different problem」という前提だ。人間は1日数 commit、エージェントは分単位。その速度では <strong>merge conflict と CI が製品そのもの</strong>になる。</p>
+            <p><strong>いま公式にできること</strong></p>
+            <ul class="checks">
+              <li><b>閲覧中に聞く</b>：Codebase / Web UI 上のコードに対してエージェントが回答・編集・PR 更新・branch push</li>
+              <li><b>Cloud Agents</b>：隔離 VM 上の長期エージェントが Origin remote を clone / branch / commit / PR</li>
+              <li><b>ローカルエージェント</b>：Origin CLI で repo 作成、remote 設定、初回 push まで実行可能</li>
+              <li><b>Vercel</b>：PR ごとに preview。merge で production</li>
+              <li><b>Depot / Buildkite</b>：既存 GitHub Actions workflow を走らせられる。Buildkite は native pipeline も</li>
+            </ul>
+            <div class="quote">Cursor can now host your code. Origin begins rolling out today in early beta on all paid plans. We're starting with the essentials, designed for agent scale: repos, pull requests, code browsing, and GitHub sync. Agent-native features ship soon.<small>— Cursor Changelog, 2026-08-17</small></div>
+            <p>プライバシーは <strong>namespace owner の Privacy Mode に従う</strong>と docs に明記。SpaceX 傘下になった直後なので、企業法務はデータ取り扱いを別途確認した方がよい。一部報道は「ホストコードの data terms がまだ薄い」と指摘している。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務</span>
+            <p>今日の価値は「高速 clone の数字」より、<strong>コード・PR・エージェント・preview が同じタブに並ぶ</strong>こと。agent-native 本丸はこれから。今は導線と権限モデルを身体で覚えるフェーズ。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">STRATEGIC CONTEXT</p>
+            <h2>GitHub 障害と同日、SpaceX 傘下での初の大型更新</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Origin 単体の機能表より、置かれた週の方が雄弁である。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>同日：GITHUB</span>約8時間の広域障害</h4>
+                <ul>
+                  <li>2026-08-17、web / API で約 20% エラー</li>
+                  <li>archive / raw ダウンロードは約 50%</li>
+                  <li>Actions・PR・Webhooks・Copilot に波及</li>
+                  <li>8月中すでに複数回の障害が報告されていた</li>
+                  <li>エージェントワークフローは上流障害で止まった</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>同週：SPACEX × CURSOR</span>基盤を自前化する動機</h4>
+                <ul>
+                  <li>8/14 前後に約 $60B all-stock クローズ</li>
+                  <li>Origin はその直後の初の大型製品更新</li>
+                  <li>Microsoft（GitHub / Copilot）への依存を削る</li>
+                  <li>エージェント生成コードの「正式化の場所」を握る</li>
+                  <li>Colossus / xAI との垂直統合ストーリーと接続</li>
+                </ul>
+              </div>
+            </div>
+            <p>同じ日に、「依存先が落ちる」と「依存先を自前化する」が並んだ。これは偶然の演出としても、構造的必然としても読める。エージェントの commit 頻度が上がるほど、ホスト層のレイテンシ・権限・障害はエディタ UX より重要な製品になる。</p>
+            <div class="warn"><p><strong>リスク：</strong>early beta に正式コードを置く判断。GitHub エコシステム（Actions、Marketplace、公開ネットワーク、監査）からの離脱コスト。SpaceX / xAI 傘下でのデータガバナンス。agent-native 機能が「soon」のまま停滞する可能性。</p></div>
+            <p><strong>誰にとってサプライズか</strong>：日常的に Cursor + GitHub を使っている AI コーディングエンジニア。特に Cloud Agents / Automations を回しているチーム。GitHub 障害で手を止めた人。逆に、Codex や Claude Code 中心で GitHub をハブにしている人には、今日乗り換える理由はまだ弱い。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT?</span>
+            <p>評価軸は「GitHub を何個置換したか」ではない。<strong>AI が書いた変更を、誰の場所で正式状態に上げるか</strong>。Origin はその争奪戦の開戦宣言である。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="finale">
+      <p class="eyebrow">THE BOTTOM LINE</p>
+      <blockquote>これは「新しい GitHub クローンが出た」ニュースではない。Cursor が、<em>エージェント時代のリポジトリ層を自前で握る</em>と宣言し、GitHub 障害と同日に使い始められる形で出したニュースである。</blockquote>
+      <p>2026-08-18 — AI Intelligence Hub / Day Slide No.383</p>
+      <p class="src">Sources: <a href="https://cursor.com/changelog/origin-code-hosting" target="_blank" rel="noopener">cursor.com/changelog/origin-code-hosting</a> · <a href="https://cursor.com/docs/origin" target="_blank" rel="noopener">docs/origin</a> · <a href="https://forum.cursor.com/t/origin-code-hosting/168670" target="_blank" rel="noopener">forum</a> · <a href="https://x.com/cursor_ai/status/2089399057659596847" target="_blank" rel="noopener">@cursor_ai 2026-08-17</a> · GitHub Status 2026-08-17 incident</p>
+    </div>
+  </main>
+
+  <dialog class="zoom" id="zoom" aria-label="スライド拡大表示">
+    <img alt="スライド拡大画像">
+    <p class="hint">画像クリック / Esc で閉じる</p>
+  </dialog>
+
+  <script>
+    (function () {
+      var bar = document.querySelector('.progress');
+      addEventListener('scroll', function () {
+        var max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('on'); });
+            var a = byId[e.target.id];
+            if (a) a.classList.add('on');
+          }
+        });
+      }, { rootMargin: '-18% 0px -72% 0px' });
+      var sections = Array.prototype.slice.call(document.querySelectorAll('section.slide'));
+      sections.forEach(function (s) { io.observe(s); });
+
+      var dlg = document.getElementById('zoom');
+      var dimg = dlg.querySelector('img');
+      document.querySelectorAll('.shot img').forEach(function (img) {
+        img.addEventListener('click', function () {
+          dimg.src = img.src; dimg.alt = img.alt;
+          dlg.showModal();
+        });
+      });
+      dlg.addEventListener('click', function () { dlg.close(); });
+
+      addEventListener('keydown', function (ev) {
+        if (dlg.open || ev.altKey || ev.metaKey || ev.ctrlKey) return;
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_17.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="https://visionhub.jp/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="day_slide_2026_08_18.html" download style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,90,31,.65);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap;background:rgba(255,90,31,.2)">HTMLを保存</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
