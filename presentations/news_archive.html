@@ -27,6 +27,7 @@
     .result-card { padding:18px;background:var(--ntt-navy-2);border-left:3px solid var(--ntt-yellow); }
     .result-card a { color:var(--ntt-on-dark);font-weight:700;text-decoration:none; }
     .result-meta { margin-bottom:7px;color:var(--ntt-on-dark-mu);font-size:12px; }
+    .result-badge { display:inline-block;margin-left:8px;padding:1px 6px;font-size:10px;font-weight:700;letter-spacing:.12em;color:#0a1533;background:var(--ntt-yellow);border-radius:3px;vertical-align:middle; }
     .result-summary { margin:8px 0 0;color:var(--ntt-on-dark-mu);font-size:13px;line-height:1.7; }
     .load-more { display:none;min-height:44px;margin:20px auto 0;padding:10px 24px;border:1px solid var(--ntt-yellow);background:transparent;color:var(--ntt-yellow);border-radius:999px;cursor:pointer; }
     @media (max-width:720px) { .search-panel{padding:16px}.search-controls{grid-template-columns:1fr}.result-card{min-width:0}.result-card a{overflow-wrap:anywhere} }
@@ -131,10 +132,10 @@
     <div class="container">
       <section class="search-panel" aria-labelledby="searchHeading">
         <h2 id="searchHeading" class="feature-title">ニュースを検索</h2>
-        <p class="feature-desc">キーワード、カテゴリ、日付範囲を組み合わせて日次ニュースを検索できます。</p>
+        <p class="feature-desc">キーワード、カテゴリ、日付範囲を組み合わせて日次ニュースとスライドを検索できます。</p>
         <div class="search-controls">
           <input id="newsQuery" type="search" aria-label="ニュースのキーワード" placeholder="例: Claude">
-          <select id="newsCategory" aria-label="カテゴリ"><option value="">すべてのカテゴリ</option></select>
+          <select id="newsCategory" aria-label="カテゴリ"><option value="">すべてのカテゴリ</option><option value="__slide__">スライド</option></select>
           <input id="newsFrom" type="date" aria-label="開始日">
           <input id="newsTo" type="date" aria-label="終了日">
         </div>
@@ -216,9 +217,12 @@
     var all=[],filtered=[],shown=50;
     var q=document.getElementById('newsQuery'),cat=document.getElementById('newsCategory'),from=document.getElementById('newsFrom'),to=document.getElementById('newsTo'),results=document.getElementById('searchResults'),status=document.getElementById('searchStatus'),more=document.getElementById('loadMore');
     function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
-    function render(){var term=q.value.trim().toLowerCase();filtered=all.filter(function(x){return (!term||(x.title+' '+(x.summary||'')+' '+x.source).toLowerCase().indexOf(term)>=0)&&(!cat.value||x.category===cat.value)&&(!from.value||x.date>=from.value)&&(!to.value||x.date<=to.value)});var page=filtered.slice(0,shown);results.innerHTML=page.map(function(x){return '<article class="result-card"><div class="result-meta">'+esc(x.date)+' · '+esc(x.category)+' · '+esc(x.source)+'</div><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.title)+'</a>'+(x.summary?'<p class="result-summary">'+esc(x.summary)+'</p>':'')+'</article>'}).join('');status.textContent=filtered.length?filtered.length+'件中 '+page.length+'件を表示':'条件に一致するニュースはありません。';more.style.display=shown<filtered.length?'block':'none'}
+    function fmt(n){return Number(n).toLocaleString('ja-JP')}
+    function slideCount(){return all.filter(function(x){return x.type==='slide'}).length}
+    function corpusLabel(){return fmt(all.length)+'件（うちスライド'+fmt(slideCount())+'件）から検索'}
+    function render(){var term=q.value.trim().toLowerCase();filtered=all.filter(function(x){var catOk=!cat.value||(cat.value==='__slide__'?x.type==='slide':x.category===cat.value);return (!term||(x.title+' '+(x.summary||'')+' '+x.source).toLowerCase().indexOf(term)>=0)&&catOk&&(!from.value||x.date>=from.value)&&(!to.value||x.date<=to.value)});var page=filtered.slice(0,shown);results.innerHTML=page.map(function(x){var badge=x.type==='slide'?'<span class="result-badge">SLIDE</span>':'';return '<article class="result-card" data-type="'+(x.type==='slide'?'slide':'news')+'"><div class="result-meta">'+esc(x.date)+' · '+esc(x.category)+' · '+esc(x.source)+badge+'</div><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.title)+'</a>'+(x.summary?'<p class="result-summary">'+esc(x.summary)+'</p>':'')+'</article>'}).join('');status.textContent=filtered.length?filtered.length+'件中 '+page.length+'件を表示 · '+corpusLabel():'条件に一致するニュースはありません。'+corpusLabel();more.style.display=shown<filtered.length?'block':'none'}
     [q,cat,from,to].forEach(function(el){el.addEventListener('input',function(){shown=50;render()})});more.addEventListener('click',function(){shown+=50;render()});
-    fetch('../public-pages/news/search_index.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(data){all=data;Array.from(new Set(all.map(function(x){return x.category}).filter(Boolean))).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cat.appendChild(o)});render()}).catch(function(){status.textContent='検索データを読み込めませんでした。時間をおいて再度お試しください。'});
+    fetch('../public-pages/news/search_index.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(data){all=data;Array.from(new Set(all.filter(function(x){return x.type!=='slide'}).map(function(x){return x.category}).filter(Boolean))).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cat.appendChild(o)});render()}).catch(function(){status.textContent='検索データを読み込めませんでした。時間をおいて再度お試しください。'});
   })();
   </script>
 </body>
