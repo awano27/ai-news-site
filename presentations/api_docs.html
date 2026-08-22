@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON API / llms.txt - 機械可読データ</title>
+    <meta name="description" content="visionhub.jp の静的 JSON エンドポイント。latest.json・archive_index・search_index をエージェントから直接読むためのドキュメント。" />
+    <link rel="canonical" href="https://visionhub.jp/presentations/api_docs.html" />
+    <link rel="stylesheet" href="../assets/ntt-theme.css">
+    <style>
+        :root {
+            --bg-card: var(--ntt-navy-3);
+            --text-main: var(--ntt-on-dark);
+            --text-muted: var(--ntt-on-dark-mu);
+            --glass-border: var(--ntt-line);
+            --font-main: var(--ntt-sans);
+            --transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { line-height: 1.7; min-height: 100vh; overflow-x: hidden; padding-bottom: 0; }
+        .bg-blobs { display: none; }
+
+        .container { max-width: var(--ntt-maxw); margin: 0 auto; padding: 0 var(--ntt-pad-x); }
+
+        .category-section { margin-bottom: 4rem; }
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-left: 3px solid var(--ntt-yellow);
+            padding-left: 1.5rem;
+        }
+        .category-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.005em;
+            color: var(--ntt-on-dark);
+        }
+        .category-header .en-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--ntt-yellow);
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .endpoint {
+            background: var(--ntt-navy-3);
+            border: 1px solid var(--ntt-line);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .endpoint h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--ntt-on-dark);
+            margin-bottom: 0.6rem;
+        }
+        .endpoint p, .endpoint li {
+            font-size: 0.9rem;
+            color: var(--ntt-on-dark-mu);
+        }
+        .endpoint ul { margin: 0.4rem 0 0.8rem 1.2rem; }
+        .url {
+            display: inline-block;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.82rem;
+            color: var(--ntt-yellow);
+            word-break: break-all;
+            margin-bottom: 0.8rem;
+        }
+        pre {
+            background: #0b1228;
+            border: 1px solid var(--ntt-line);
+            border-radius: 4px;
+            padding: 1rem 1.2rem;
+            overflow-x: auto;
+            font-size: 0.78rem;
+            line-height: 1.55;
+            color: var(--ntt-on-dark);
+            margin: 0.6rem 0 0.2rem;
+        }
+        code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+        .note {
+            border: 1px solid var(--ntt-line);
+            border-radius: 6px;
+            padding: 1.2rem 1.5rem;
+            color: var(--ntt-on-dark-mu);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .category-header h2 { font-size: 1.25rem; }
+        }
+    </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+
+<body class="ntt-page">
+    <header class="ntt-header">
+      <div class="ntt-header-row">
+        <a class="ntt-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span class="ntt-brand-text">INTELLIGENCE HUB<small>DAILY AI INSIGHTS</small></span>
+        </a>
+        <nav class="ntt-nav">
+          <a href="/#this-week">最新スライド</a>
+          <a href="/#archive">アーカイブ</a>
+          <a href="/presentations/recommended_tools/">ツール</a>
+        <a href="/#resources" class="is-active">リソース</a>
+          <a class="ntt-cta" href="/presentations/day_slides_index.html">今日のスライド →</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="ntt-subhero">
+      <div class="ntt-subhero-inner">
+        <div class="ntt-subhero-eyebrow">Machine-readable</div>
+        <h1 class="ntt-subhero-title">JSON API / llms.txt</h1>
+        <p class="ntt-subhero-lead">
+          エージェントや Claude Code から直接叩ける静的 JSON。認証なし。まず <a href="/llms.txt" style="color: inherit;">/llms.txt</a> と <code>/news/latest.json</code> を読む。
+        </p>
+      </div>
+    </section>
+
+    <main style="padding: 64px 0 96px;">
+      <div class="container">
+
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">NOTES</span>
+                    <h2>利用上の注意</h2>
+                </div>
+            </div>
+            <div class="note">
+                データは静的 JSON である。認証不要。独自のレート制限はない。キャッシュ寿命は GitHub Pages 依存。書き込み API はない。
+            </div>
+        </section>
+
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">ENDPOINTS</span>
+                    <h2>エンドポイント</h2>
+                </div>
+            </div>
+
+            <article class="endpoint" id="latest">
+                <h3>当日スナップショット</h3>
+                <div class="url">https://visionhub.jp/news/latest.json</div>
+                <p>object。キー:</p>
+                <ul>
+                    <li><code>generated_at</code> — ISO 8601（JST オフセット付き）</li>
+                    <li><code>news_date</code> — 対象日 <code>YYYY-MM-DD</code></li>
+                    <li><code>highlight</code> — <code>category</code> / <code>stars</code> / <code>title</code> / <code>summary</code> / <code>sources</code>（各 <code>name</code> / <code>url</code>）</li>
+                    <li><code>sections</code> — dict。キーは <code>tech</code> / <code>tools</code> / <code>research</code> / <code>business</code> 等。値は <code>title</code> / <code>blurb</code> / <code>category</code> / <code>date</code> / <code>stars</code> / <code>source</code> の配列</li>
+                </ul>
+                <p>用途: 今日のハイライトとカテゴリ先頭を取る。</p>
+<pre><code>curl -s https://visionhub.jp/news/latest.json | jq '.highlight.title'</code></pre>
+            </article>
+
+            <article class="endpoint" id="day">
+                <h3>日別アーカイブ</h3>
+                <div class="url">https://visionhub.jp/news/YYYY-MM-DD.json</div>
+                <p>object。<code>highlight</code> と <code>sections</code> を持つ（latest.json と同系）。例: <code>/news/2026-06-14.json</code> は <code>generated_at</code> / <code>source</code> / <code>source_url</code> / <code>highlight</code> / <code>sections</code>。</p>
+                <p>用途: 特定日のセクションをまとめて読む。</p>
+<pre><code>curl -s https://visionhub.jp/news/2026-06-14.json | jq '.highlight.title'</code></pre>
+            </article>
+
+            <article class="endpoint" id="archive-index">
+                <h3>アーカイブ日付一覧</h3>
+                <div class="url">https://visionhub.jp/public-pages/news/archive_index.json</div>
+                <p>array。各要素:</p>
+                <ul>
+                    <li><code>date</code> — <code>YYYY-MM-DD</code></li>
+                    <li><code>file</code> — 日次ファイル名（例 <code>2026-08-22.json</code>。実体は <code>/public-pages/news/</code> 配下）</li>
+                    <li><code>count</code> — その日の件数</li>
+                </ul>
+                <p>用途: 存在する日付を列挙してから日次ファイルを取る。</p>
+<pre><code>curl -s https://visionhub.jp/public-pages/news/archive_index.json | jq '.[0]'</code></pre>
+            </article>
+
+            <article class="endpoint" id="search-index">
+                <h3>検索インデックス</h3>
+                <div class="url">https://visionhub.jp/public-pages/news/search_index.json</div>
+                <p>array。各要素:</p>
+                <ul>
+                    <li><code>date</code> / <code>title</code> / <code>category</code> / <code>source</code> / <code>url</code></li>
+                </ul>
+                <p>用途: タイトル横断検索。UI は <a href="news_archive.html" style="color: inherit;">ニュースアーカイブ</a>。</p>
+<pre><code>curl -s https://visionhub.jp/public-pages/news/search_index.json | jq '.[0].title'</code></pre>
+            </article>
+
+            <article class="endpoint" id="reports-index">
+                <h3>デイリーレポート一覧</h3>
+                <div class="url">https://visionhub.jp/presentations/daily_reports/index.json</div>
+                <p>object。キー:</p>
+                <ul>
+                    <li><code>generated</code> / <code>source</code> / <code>count</code></li>
+                    <li><code>reports</code> — 各 <code>{date, file}</code></li>
+                </ul>
+                <p>用途: HTML レポートの日付とファイル名を辿る。</p>
+<pre><code>curl -s https://visionhub.jp/presentations/daily_reports/index.json | jq '.reports[0]'</code></pre>
+            </article>
+
+            <article class="endpoint" id="sitemap">
+                <h3>サイトマップ</h3>
+                <div class="url">https://visionhub.jp/sitemap.xml</div>
+                <p>XML。公開 HTML の <code>loc</code> 一覧。</p>
+                <p>用途: ページ網羅の列挙。</p>
+<pre><code>curl -s https://visionhub.jp/sitemap.xml | head -n 20</code></pre>
+            </article>
+        </section>
+
+        <section class="category-section">
+            <div class="category-header">
+                <div>
+                    <span class="en-label">AGENTS</span>
+                    <h2>エージェントからの利用例</h2>
+                </div>
+            </div>
+            <article class="endpoint">
+                <h3>毎朝の要約プロンプト</h3>
+                <p>Claude Code や任意のエージェントに渡す断片:</p>
+<pre><code>https://visionhub.jp/news/latest.json を取得し、highlight.title と
+highlight.summary、sections 各カテゴリ先頭1件の title を日本語で
+5行以内に要約せよ。出典 URL があれば末尾に列挙する。</code></pre>
+            </article>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="ntt-footer">
+      <div class="ntt-footer-row">
+        <a class="ntt-footer-brand" href="/">
+          <span class="ntt-brand-mark">AI</span>
+          <span>INTELLIGENCE HUB</span>
+        </a>
+        <div class="ntt-footer-meta">
+          <a href="https://github.com/awano27">awano27</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/awano27/ai-news-site">GitHub</a>
+          &nbsp;·&nbsp;
+          © 2026
+        </div>
+      </div>
+    </footer>
+</body>
+
+</html>
