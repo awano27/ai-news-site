@@ -807,5 +807,53 @@
 <!-- slide-nav:start -->
 <nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2025_09_29.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="day_slide_2025_10_01.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">翌日 →</a></nav>
 <!-- slide-nav:end -->
+<!-- copy-btn:start -->
+<script>
+(function(){
+  if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') return;
+  var PREFIX = /^(npx|npm|pip|uv|git|curl|docker|python|node|claude|brew)(\s|$)/i;
+  function isCmd(text){
+    var t = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!t) return false;
+    if (PREFIX.test(t)) return true;
+    return t.length >= 8 && /\s/.test(t) && !/^https?:\/\//i.test(t);
+  }
+  var style = document.createElement('style');
+  style.textContent = '.copy-btn-wrap{display:inline-flex;align-items:center;gap:6px;max-width:100%;flex-wrap:wrap;vertical-align:middle;}'
+    + '.copy-btn{flex:0 0 auto;margin:0;padding:2px 8px;font:600 11px/1.2 sans-serif;letter-spacing:.02em;color:#111;background:rgba(255,255,255,.74);border:1px solid rgba(0,0,0,.16);border-radius:999px;cursor:pointer;opacity:.7;}'
+    + '.copy-btn:hover,.copy-btn[data-ok="1"]{opacity:1;}';
+  document.head.appendChild(style);
+  var nodes = document.querySelectorAll('code, .cmd');
+  for (var i = 0; i < nodes.length; i++) {
+    var el = nodes[i];
+    if (el.closest('.copy-btn-wrap')) continue;
+    var text = String(el.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!isCmd(text) || !el.parentNode) continue;
+    var wrap = document.createElement('span');
+    wrap.className = 'copy-btn-wrap';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-btn';
+    btn.textContent = 'コピー';
+    btn.setAttribute('aria-label', 'コマンドをコピー');
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      var b = ev.currentTarget;
+      var src = b.previousElementSibling;
+      var val = src ? String(src.textContent || '').replace(/\s+/g, ' ').trim() : '';
+      navigator.clipboard.writeText(val).then(function () {
+        var prev = b.textContent;
+        b.textContent = '\u2713';
+        b.setAttribute('data-ok', '1');
+        setTimeout(function () { b.textContent = prev; b.removeAttribute('data-ok'); }, 1500);
+      }).catch(function () {});
+    });
+    wrap.appendChild(btn);
+  }
+})();
+</script>
+<!-- copy-btn:end -->
 </body>
 </html>
