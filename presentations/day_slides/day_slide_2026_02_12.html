@@ -920,7 +920,11 @@
     var t = String(text || '').replace(/\s+/g, ' ').trim();
     if (!t) return false;
     if (PREFIX.test(t)) return true;
-    return t.length >= 8 && /\s/.test(t) && !/^https?:\/\//i.test(t);
+    if (t.length < 8) return false;
+    if (/^https?:\/\//i.test(t)) return false;
+    if (/[^\x00-\x7F]/.test(t)) return false;
+    if (/^[A-Za-z0-9.-]+\.[A-Za-z]{2,}(\/|$)/.test(t)) return false;
+    return true;
   }
   var style = document.createElement('style');
   style.textContent = '.copy-btn-wrap{display:inline-flex;align-items:center;gap:6px;max-width:100%;flex-wrap:wrap;vertical-align:middle;}'

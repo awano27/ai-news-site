@@ -13,6 +13,28 @@ BLOCK_RE = re.compile(re.escape(START) + r".*?" + re.escape(END), re.S)
 TARGET_RE = re.compile(r"<code\b|class=['\"]cmd['\"]", re.I)
 InjectionStatus = Literal["injected", "unchanged", "no-target"]
 
+PREFIX_RE = re.compile(r"^(npx|npm|pip|uv|git|curl|docker|python|node|claude|brew)(\s|$)", re.I)
+DOMAIN_RE = re.compile(r"^[A-Za-z0-9.-]+\.[A-Za-z]{2,}(/|$)")
+
+
+def is_cmd(text: str) -> bool:
+    """Prefix match, or 8+ char one-liner. URLs, domains, and non-ASCII labels are out."""
+    t = " ".join((text or "").split()).strip()
+    if not t:
+        return False
+    if PREFIX_RE.match(t):
+        return True
+    if len(t) < 8:
+        return False
+    if t.lower().startswith("http://") or t.lower().startswith("https://"):
+        return False
+    if any(ord(ch) > 127 for ch in t):
+        return False
+    if DOMAIN_RE.match(t):
+        return False
+    return True
+
+
 COPY_SCRIPT = r"""(function(){
   if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') return;
   var PREFIX = /^(npx|npm|pip|uv|git|curl|docker|python|node|claude|brew)(\s|$)/i;
@@ -20,7 +42,11 @@ COPY_SCRIPT = r"""(function(){
     var t = String(text || '').replace(/\s+/g, ' ').trim();
     if (!t) return false;
     if (PREFIX.test(t)) return true;
-    return t.length >= 8 && /\s/.test(t) && !/^https?:\/\//i.test(t);
+    if (t.length < 8) return false;
+    if (/^https?:\/\//i.test(t)) return false;
+    if (/[^\x00-\x7F]/.test(t)) return false;
+    if (/^[A-Za-z0-9.-]+\.[A-Za-z]{2,}(\/|$)/.test(t)) return false;
+    return true;
   }
   var style = document.createElement('style');
   style.textContent = '.copy-btn-wrap{display:inline-flex;align-items:center;gap:6px;max-width:100%;flex-wrap:wrap;vertical-align:middle;}'
