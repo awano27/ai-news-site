@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NVIDIA AVO — ARC-AGI-3公開セットで100%、「モデルよりハーネス」を完璧スコアで証明 | 2026-08-20</title>
+  <meta name="description" content="NVIDIAのAVOエージェントがClaude Opus 5を30%から100%に引き上げ、ARC-AGI-3公開セット全183レベルを完走。元々GPUカーネル最適化用だったアーキテクチャが、インタラクティブ推論にそのまま転用できた。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_20.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="NVIDIA AVO — ARC-AGI-3公開セットで100%、モデルよりハーネスを証明">
+  <meta property="og:description" content="Claude Opus 5単体約30%を、AVOハーネスで100.00 RHAEに。GPU最適化からARC-AGI-3への転用成功が示す「システム設計の力」。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_20.html">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "NVIDIA AVO — ARC-AGI-3公開セットで100%、「モデルよりハーネス」を完璧スコアで証明",
+    "description": "NVIDIAのAVOがClaude Opus 5を30%から100%に引き上げ、ARC-AGI-3公開セット全183レベルを完走した。",
+    "datePublished": "2026-08-20",
+    "dateModified": "2026-08-20",
+    "articleSection": "AI Agents / Long-Horizon Autonomy"
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#08070a; --panel:#14110e; --panel2:rgba(36,24,16,.72);
+      --ink:#fff4ee; --muted:#c4a99a; --line:rgba(255,90,31,.20);
+      --accent:#ff5a1f; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(255,90,31,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; overflow-x:hidden; }
+    body {
+      margin:0; color:var(--ink); overflow-x:hidden;
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(255,90,31,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(255,90,31,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#ffd0b8); z-index:60; transition:width .1s linear; }
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(255,90,31,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,90,31,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(255,90,31,.16), transparent 62%),
+      #08070a;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#e2c8bc; font-size:13px; }
+    .topbar a { color:#ffc9b8; text-decoration:none; border-bottom:1px solid rgba(255,201,184,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#2b0d05; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#ffb39a; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(28px,4.4vw,56px); line-height:1.22; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; overflow-wrap:anywhere; }
+    h1 .em { color:var(--accent); font-weight:700; }
+    .lead { color:#e8cfc4; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px 18px; margin-top:22px; font-size:13px; color:var(--muted); }
+    .hero-meta span { border:1px solid var(--line); padding:6px 12px; border-radius:4px; background:rgba(20,17,14,.6); }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding:28px 0 80px; }
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:28px; }
+    .stat-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:14px 16px; }
+    .stat-num { font:800 22px/1.1 ui-monospace,monospace; color:var(--ink); margin-bottom:6px; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { font-size:12.5px; line-height:1.55; color:var(--muted); }
+    .stat-label b { color:var(--ink); display:block; margin-bottom:2px; }
+
+    .jump { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:36px; }
+    .jump a { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid var(--line); border-radius:999px; font-size:13px; color:var(--muted); text-decoration:none; background:rgba(20,17,14,.5); }
+    .jump a b { color:var(--accent); font-family:ui-monospace,monospace; }
+    .jump a:hover { border-color:var(--accent); color:var(--ink); }
+
+    .slides { display:flex; flex-direction:column; gap:48px; }
+    .slide { scroll-margin-top:24px; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:18px; }
+    .slide-head .no { font:800 42px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:-.04em; min-width:56px; text-shadow:0 0 28px var(--glow); }
+    .slide-kicker { font:700 11px/1 ui-monospace,monospace; letter-spacing:.18em; color:var(--accent); margin:0 0 6px; }
+    .slide-head h2 { margin:0; font-size:clamp(20px,2.6vw,28px); font-weight:600; line-height:1.35; letter-spacing:-.01em; }
+
+    .notes { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:22px; align-items:start; }
+    .notes-main { font-size:15px; line-height:1.85; color:#e8cfc4; }
+    .notes-main p { margin:0 0 14px; }
+    .notes-main ul { margin:0 0 14px; padding-left:1.2em; }
+    .notes-main li { margin-bottom:6px; }
+    .notes-main .src { font-size:13.5px; color:var(--muted); }
+    .notes-main .src a { color:#ffc9b8; border-bottom:1px solid rgba(255,201,184,.35); text-decoration:none; }
+    .sowhat { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; position:sticky; top:24px; }
+    .sowhat .tag { display:inline-block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:8px; }
+    .sowhat p { margin:0; font-size:13.8px; line-height:1.7; color:var(--muted); }
+
+    .board { margin:0 0 18px; border:1px solid rgba(255,90,31,.30); border-radius:8px; overflow:hidden;
+      background:
+        linear-gradient(180deg, rgba(44,24,16,.55), transparent 42%),
+        linear-gradient(rgba(255,90,31,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,90,31,.05) 1px, transparent 1px),
+        #100b09;
+      background-size:auto, 28px 28px, 28px 28px, auto;
+      box-shadow:0 24px 70px rgba(2,8,10,.6), 0 0 0 1px rgba(8,4,2,.6);
+      padding:18px 18px 16px; }
+    .board-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .board-kicker { font:800 11px/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.2em; color:var(--accent); }
+    .board-title { font-size:14.5px; font-weight:700; color:var(--ink); }
+    .board-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .cell { border:1px solid rgba(255,90,31,.28); border-radius:6px; background:rgba(8,5,4,.55); padding:13px 14px; }
+    .cell.gold { border-color:rgba(255,201,77,.45); background:rgba(255,201,77,.08); }
+    .cell .n { font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:7px; }
+    .cell.gold .n { color:var(--gold); }
+    .cell h3 { margin:0 0 6px; font-size:13.8px; color:var(--ink); font-weight:700; letter-spacing:.01em; }
+    .cell p { margin:0; font-size:12.6px; line-height:1.7; color:var(--muted); }
+
+    ul.checks { list-style:none; padding-left:0; }
+    ul.checks li { position:relative; padding-left:1.4em; margin-bottom:8px; }
+    ul.checks li::before { content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700; }
+
+    .quote { margin:18px 0; padding:16px 18px; border-left:3px solid var(--accent); background:rgba(255,90,31,.08); font-size:14.5px; line-height:1.75; color:#e8cfc4; }
+    .quote small { display:block; margin-top:10px; font-size:12.5px; color:var(--muted); }
+
+    .scroll-x { overflow-x:auto; max-width:100%; min-width:0; -webkit-overflow-scrolling:touch; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:620px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(196,169,154,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+
+    .finale { margin-top:56px; padding:32px 0 20px; border-top:1px solid var(--line); text-align:center; }
+    .finale .eyebrow { font:800 13px/1 ui-monospace,monospace; letter-spacing:.28em; color:var(--accent); margin:0 0 16px; }
+    .finale blockquote { margin:0 auto 18px; max-width:820px; font-size:clamp(16px,2vw,20px); line-height:1.7; color:var(--ink); font-weight:500; }
+    .finale .src { font-size:12.5px; color:var(--muted); }
+    .finale .src a { color:#ffc9b8; border-bottom:1px solid rgba(255,201,184,.3); text-decoration:none; margin:0 4px; }
+
+    @media (max-width:880px) {
+      .board-grid { grid-template-columns:1fr; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+      .hero-body { padding-top:40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="#s1">Day Slide · NVIDIA AVO</a>
+        <span>2026-08-20 / AI Agents · Long-Horizon</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">NVIDIA Technical Blog · 2026年8月21日発表</span>
+        <p class="eyebrow">NVIDIA AVO</p>
+        <h1>NVIDIA AVOがARC-AGI-3公開セットで<br><span class="em">100%</span>を達成</h1>
+        <p class="lead">Claude Opus 5単体では約<strong>30%</strong>だったベンチを、AVO（持続メモリ＋ツール＋スーパーバイザー＋inspect→plan→implement→evaluateループ）を被せただけで<strong>100.00 RHAE</strong>に跳ね上げた。しかも元々はGPUカーネル最適化用に作られたアーキテクチャが、全く別のインタラクティブ推論タスクにそのまま転用できた。「モデルよりハーネス」を完璧スコアで証明したサプライズだ。</p>
+        <div class="hero-meta">
+          <span>公式発表：2026-08-21（本スライド：2026-08-20）</span>
+          <span>対象：ARC-AGI-3 公開セット 25環境・183レベル</span>
+          <span>モデル：Claude Opus 5</span>
+          <span>元用途：GPUカーネル自律最適化</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num gold">100%</div><div class="stat-label"><b>RHAEスコア</b>公開セット全183レベル完走</div></div>
+      <div class="stat-card"><div class="stat-num">30%→100%</div><div class="stat-label"><b>モデル単独</b>Claude Opus 5 からハーネスで跳ね上げ</div></div>
+      <div class="stat-card"><div class="stat-num">6,624</div><div class="stat-label"><b>アクション数</b>VISTA比 約12%少ない</div></div>
+      <div class="stat-card"><div class="stat-num gold">10.5%</div><div class="stat-label"><b>元実績</b>FlashAttention-4を最大で上回る</div></div>
+      <div class="stat-card"><div class="stat-num">7日</div><div class="stat-label"><b>連続稼働</b>GPUカーネル進化で無人運転</div></div>
+      <div class="stat-card"><div class="stat-num">No.385</div><div class="stat-label"><b>Day Slide</b>2026-08-20 AI Intelligence Hub</div></div>
+    </div>
+
+    <nav class="jump" aria-label="Slide navigation">
+      <a href="#s1"><b>01</b>何が起きたか</a>
+      <a href="#s2"><b>02</b>アーキテクチャ</a>
+      <a href="#s3"><b>03</b>数字</a>
+      <a href="#s4"><b>04</b>転用の意味</a>
+      <a href="#s5"><b>05</b>Caveats</a>
+      <a href="#s6"><b>06</b>エンジニアへの示唆</a>
+    </nav>
+
+    <div class="slides">
+
+      <!-- 01 -->
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">発表</p>
+            <h2>「モデルよりハーネス」を完璧スコアで証明した</h2>
+          </div>
+        </div>
+        <figure class="board" aria-label="AVO 要約">
+          <div class="board-head">
+            <span class="board-kicker">NVIDIA AVO</span>
+            <span class="board-title">2026-08-21 公式発表</span>
+          </div>
+          <div class="board-grid">
+            <div class="cell">
+              <div class="n">01 · 何が起きたか</div>
+              <h3>公開セットで100%</h3>
+              <p>25環境・183レベルすべてを完走。RHAE 100.00を記録。</p>
+            </div>
+            <div class="cell">
+              <div class="n">02 · ベース</div>
+              <h3>Claude Opus 5 ≈30%</h3>
+              <p>モデル単体では約30%。ハーネスで一気に100%へ。</p>
+            </div>
+            <div class="cell">
+              <div class="n">03 · 起源</div>
+              <h3>GPUカーネル最適化</h3>
+              <p>元々は進化的検索のVariation Operatorとして作られた。</p>
+            </div>
+            <div class="cell">
+              <div class="n">04 · 転用</div>
+              <h3>そのまま流用</h3>
+              <p>タスクインターフェースを差し替えただけでARC-AGI-3に対応。</p>
+            </div>
+            <div class="cell">
+              <div class="n">05 · 仕組み</div>
+              <h3>Memory + Supervisor</h3>
+              <p>持続メモリと停滞検知が長時間自律を支えた。</p>
+            </div>
+            <div class="cell gold">
+              <div class="n">06 · つまり</div>
+              <h3>システム設計が差を生む</h3>
+              <p>「もっと賢いモデルを待とう」という考えを根本から揺さぶる結果。</p>
+            </div>
+          </div>
+        </figure>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>AVO（Agentic Variation Operators）</strong>は、NVIDIAが開発した一般用途のコーディングエージェントシステムだ。従来の進化的検索で固定されていた変異・交叉を、自律的なコーディングエージェントそのものに置き換える。</p>
+            <p>2026年3月の論文でGPUカーネル最適化の実績を示し、今回その同じアーキテクチャをARC-AGI-3に向けた。結果、モデル評価とエージェント評価は別物であることを、数字で示した。</p>
+            <p class="src">まず読むもの：<a href="https://developer.nvidia.com/blog/nvidia-avo-reaches-100-on-arc-agi-3-demonstrating-a-frontier-level-general-purpose-architecture-for-long-horizon-autonomous-agents/" target="_blank" rel="noopener">NVIDIA公式ブログ</a> / <a href="https://arxiv.org/abs/2603.24517" target="_blank" rel="noopener">arXiv論文</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">実務</span>
+            <p>「モデル待ち」から「ハーネス設計」へ。エンジニアの次の優先順位を強制的に見直させる結果だ。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">アーキテクチャ</p>
+            <h2>持続メモリとスーパーバイザーが長時間自律を可能にした</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>AVOの核心は以下の3点に集約される。</p>
+            <ul class="checks">
+              <li><b>Persistent Memory</b>：過去の実装・評価結果・コンパイラ/プロファイラ出力・蓄積された推論をコンテキスト外でも保持。git lineageのようにバージョン管理し、再開可能にする。</li>
+              <li><b>Supervisor</b>：進捗が停滞したり同じ失敗パターンを繰り返したときに介入し、メインエージェントを別の探索方向にリダイレクトする。</li>
+              <li><b>Inspect → Plan → Implement → Evaluate ループ</b>：ツール実行フィードバックを織り交ぜ、仮説形成→実装→検証→修正を自律的に回し続ける。</li>
+            </ul>
+            <p>論文では「単一のVariation Stepが自律的なエージェントループそのもの」と定義されている。エージェントがlineageを参照し、知識ベースを引き、実装し、評価関数を呼び、修正を繰り返す。</p>
+            <div class="quote">Long-horizon capability is a property of the full system. Memory determines what survives, tools determine what actions are possible, feedback grounds progress, and recovery allows work to continue beyond a single model invocation.<small>— NVIDIA AVOチーム</small></div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">ポイント</span>
+            <p>ドメイン知識ではなく「reasoningとfeedbackを時間軸でcompoundさせるmachinery」が汎用性の源だった。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">数字</p>
+            <h2>30%から100%へ。そして元々のGPU実績も強い</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>ARC-AGI-3公開セット（25環境・183レベル）での結果と、元々のGPUカーネル最適化実績をまとめる。</p>
+            <div class="scroll-x">
+              <table class="cmp">
+                <thead>
+                  <tr>
+                    <th>項目</th>
+                    <th>結果</th>
+                    <th>備考</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>ARC-AGI-3 公開セット</b></td>
+                    <td>100.00 RHAE<br>183/183 levels</td>
+                    <td>6,624 actions（VISTA比約12%少ない）</td>
+                  </tr>
+                  <tr>
+                    <td><b>Claude Opus 5 単体</b></td>
+                    <td>約30.2%</td>
+                    <td>ARC Prize公式報告の高努力設定</td>
+                  </tr>
+                  <tr>
+                    <td><b>GPUカーネル最適化</b></td>
+                    <td>FlashAttention-4を最大10.5%上回る<br>cuDNNを最大3.5%上回る</td>
+                    <td>7日間連続自律稼働、500+方向探索、40バージョンコミット</td>
+                  </tr>
+                  <tr>
+                    <td><b>GQAへの適応</b></td>
+                    <td>約30分で追加適応</td>
+                    <td>進化したMHAカーネルをGrouped-Query Attentionへ転用</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>比較はcontrolled ablationではない（観測表現・メモリ・コンテキスト管理などが異なる）。それでも「同じモデルを異なるハーネスで動かしたときの差」は明確だ。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">注意</span>
+            <p>公開セットのみの結果。Private / Semi-privateでの性能は未公開。ARC Prizeは公式にpublic setスコアをリーダーボードに載せない方針。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">転用の意味</p>
+            <h2>GPU最適化からインタラクティブ推論へ、同じループが通用した</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>最も重要な発見は「同じエージェントアーキテクチャが、全く別のタスクに転用できた」ことだ。</p>
+            <ul>
+              <li>GPU側：コンパイラ・プロファイラ・ハードウェアカウンタからのフィードバック</li>
+              <li>ARC-AGI-3側：環境遷移とアクション結果からのフィードバック</li>
+            </ul>
+            <p>インターフェースは異なるが、ループは同じである。「仮説を立て、行動し、観察し、状態を更新し、続ける」というmachineryが、ドメイン知識を超えて機能した。</p>
+            <p>NVIDIAは明示的にこう述べている：「What transfers is not domain knowledge, but the machinery for sustained autonomous progress.」</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">本質</span>
+            <p>長時間自律能力はモデルの属性ではなく、フルシステムの属性である。メモリ・ツール・フィードバック・リカバリが揃って初めて持続する。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">Caveats</p>
+            <h2>公開セット限定。Privateでの性能は未知</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <ul class="checks">
+              <li><b>公開セットのみ</b>：25環境・183レベル。Semi-private / Privateセットでの結果は未公開。</li>
+              <li><b>リーダーボード非掲載</b>：ARC Prizeは「public setのスコアは公式リーダーボードに載せない」方針を明示している（過学習・ハーネス特化のリスクがあるため）。</li>
+              <li><b>直接比較ではない</b>：NVIDIA自身も「モデル貢献度の直接測定ではない」と注記している。</li>
+              <li><b>コード非公開</b>：完全な実装は公開されていない。論文とブログが主な情報源。</li>
+              <li><b>コストと安全性</b>：長時間自律エージェントは計算コストが高く、ツール実行権限の厳格な制限が必要。</li>
+            </ul>
+            <p>それでも「同じシステムが全く別ドメインで機能した」事実と、「モデル単体評価とエージェント評価は別物」という指摘は、実務的に価値が高い。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">現実</span>
+            <p>過信は禁物。しかし「ハーネス設計でここまで差が出る」という実証は、無視できない。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">示唆</p>
+            <h2>エンジニアが次に学ぶべきは「ハーネスの設計」だ</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>この結果がエンジニアに突きつけるのは、優先順位の書き換えである。</p>
+            <ul class="checks">
+              <li><b>既存エージェントの強化</b>：Cursor / Claude Code / Aider などに「外部永続メモリ」と「停滞検知Supervisor」を被せるだけで、長時間タスクの成功率が上がる可能性がある。</li>
+              <li><b>World Model as Code</b>：観察から得たルールをPythonで書き、実行して検証するループを強制する。ARC-AGI-3で特に効いたパターン。</li>
+              <li><b>適用優先ドメイン</b>：探索空間が広く評価が明確なタスク（性能最適化、大規模リファクタ、科学研究仮説検証ループ）に特に相性が良い。</li>
+              <li><b>参考実装</b>：NVIDIA-NeMo/labs-OO-Agents（NOOA）、Continual Harness、NACなど、長時間ハーネスのオープンソース例が複数出ている。</li>
+            </ul>
+            <p>「もっと賢いモデルを待とう」ではなく、「今のモデルに強いハーネスを被せよう」。この発想の転換が、AVOの最大の実務的価値だ。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">次の一手</span>
+            <p>自分のコード最適化や探索タスクで「簡易AVO風」を試し、メモリとSupervisorの効果を測ってみよう。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="finale">
+      <p class="eyebrow">まとめ</p>
+      <blockquote>NVIDIA AVOは、Claude Opus 5を30%から100%に引き上げた。<em>モデルは差し替えられる。差がつくのは、reasoningとfeedbackを時間軸でcompoundさせるハーネスの設計だ。</em></blockquote>
+      <p>2026-08-20 — AI Intelligence Hub / Day Slide No.385</p>
+      <p class="src">Sources:
+        <a href="https://developer.nvidia.com/blog/nvidia-avo-reaches-100-on-arc-agi-3-demonstrating-a-frontier-level-general-purpose-architecture-for-long-horizon-autonomous-agents/" target="_blank" rel="noopener">NVIDIA Technical Blog</a> ·
+        <a href="https://arxiv.org/abs/2603.24517" target="_blank" rel="noopener">arXiv:2603.24517</a> ·
+        <a href="https://x.com/NVIDIAAI/status/2090786258981466231" target="_blank" rel="noopener">NVIDIA AI on X</a>
+      </p>
+    </div>
+  </main>
+
+  <!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_19.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="https://visionhub.jp/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="day_slide_2026_08_20.html" download style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,90,31,.65);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap;background:rgba(255,90,31,.2)">HTMLを保存</a></nav>
+<!-- slide-nav:end -->
+
+  <script>
+    (function () {
+      var progress = document.querySelector('.progress');
+      var sections = Array.from(document.querySelectorAll('.slide, .finale'));
+      function update() {
+        var h = document.documentElement.scrollHeight - innerHeight;
+        progress.style.width = (h > 0 ? (scrollY / h * 100) : 0) + '%';
+      }
+      addEventListener('scroll', update, { passive: true });
+      update();
+
+      addEventListener('keydown', function (ev) {
+        if (ev.altKey || ev.metaKey || ev.ctrlKey) return;
+        if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+        var y = scrollY + 90;
+        var idx = -1;
+        for (var i = 0; i < sections.length; i++) { if (sections[i].offsetTop <= y) idx = i; }
+        var next = ev.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+        sections[next].scrollIntoView({ behavior: 'smooth' });
+        ev.preventDefault();
+      });
+    })();
+  </script>
+</body>
+</html>
