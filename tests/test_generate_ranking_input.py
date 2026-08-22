@@ -1,5 +1,6 @@
 from scripts.generate_ranking_input import (
     apply_quality_gate,
+    is_ai_relevant,
     is_ai_relevant_item,
     is_denied_title,
     title_has_ai_signal,
@@ -99,6 +100,24 @@ def test_grok_bot_kept():
     assert len(kept) == 1
     assert "Grok Bot" in kept[0]["title"]
     assert dropped == []
+
+
+def test_is_ai_relevant_required_cases():
+    assert is_ai_relevant("メラノーマ治療個別化ワクチン第III相臨床試験で良好な結果", "") is False
+    assert is_ai_relevant(
+        "モデルナとメルク、メラノーマ治療個別化ワクチン第III相臨床試験で良好な結果",
+        "mRNAワクチンと免疫チェックポイント阻害剤の併用",
+    ) is False
+    assert is_ai_relevant("砂糖入り飲料の摂取量と胃がんリスク", "") is False
+    assert is_ai_relevant("LFM2.5-DSparkで推論速度が最大3.2倍", "") is True
+    assert is_ai_relevant("ChatGPT Workを活用し生産時間を68%短縮", "") is True
+    assert is_ai_relevant("AIで創薬するがんワクチンの第III相", "医療ニュース") is True
+    assert is_ai_relevant("Writing by hand is good for your brain", "") is False
+    assert is_ai_relevant("Local retailers report strong weekend sales", "") is False
+    assert is_ai_relevant("NVIDIAが次世代GPUを発表", "") is True
+    assert is_ai_relevant("Claude Codeのエージェント機能", "") is True
+    assert is_ai_relevant("『装甲騎兵ボトムズ 灰色の魔女』完全新作、2026年8月公開決定", "サンライズが劇場公開") is False
+    assert is_ai_relevant("業務改善の話", "社内でRAGとMCPを試験導入した") is True
 
 
 def test_kioxia_earnings_dropped_even_with_ai_demand_token():

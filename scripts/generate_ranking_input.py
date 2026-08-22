@@ -55,10 +55,27 @@ OUTPUT = REPO_ROOT / "presentations" / "ai_ranking_input_latest.txt"
 WINDOW_DAYS = 30
 TOP_N = 30
 
+# Append-only keyword lists for is_ai_relevant(). Short Latin tokens use
+# lookaround so "brain" / "retailers" / "email" do not count as AI.
+AI_RELEVANT_SHORT_TOKENS = (
+    "AI", "AIs", "LLM", "LLMs", "GPT", "AGI", "NLP", "MoE", "HBM",
+    "GPU", "GPUs", "RAG", "MCP", "NVIDIA",
+)
+AI_RELEVANT_KEYWORDS = (
+    "ChatGPT", "OpenAI", "Anthropic", "DeepSeek", "Gemini", "Claude", "Grok",
+    "Cerebras", "Taalas", "Copilot", "Midjourney", "DeepMind", "Gemma",
+    "Hugging Face", "HuggingFace", "LLaMA", "Llama", "Qwen", "Mistral", "xAI",
+    "transformer",
+    "人工知能", "生成AI", "機械学習", "大規模言語", "深層学習", "言語モデル",
+    "生成モデル", "ディープラーニング", "推論", "超知能", "エージェント",
+    "プロンプト", "ファインチューニング", "ベンチマーク",
+    "データセンター", "半導体", "AIモデル", "基盤モデル", "オープンモデル",
+)
+
 # Short Latin tokens: not embedded in an English word. Allows 常時稼働AI同僚
 # and AIデータセンター, but rejects brain / retailers / email / available.
 _SHORT_AI_RE = re.compile(
-    r"(?<![A-Za-z])(?:AI|AIs|LLM|LLMs|GPT|AGI|NLP|MoE|HBM)(?![A-Za-z])",
+    r"(?<![A-Za-z])(?:" + "|".join(re.escape(t) for t in AI_RELEVANT_SHORT_TOKENS) + r")(?![A-Za-z])",
     re.IGNORECASE,
 )
 
@@ -66,24 +83,18 @@ _SHORT_AI_RE = re.compile(
 _AI_NAME_RE = re.compile(
     r"(?:ChatGPT|OpenAI|Anthropic|DeepSeek|Gemini|Claude|Grok|"
     r"Cerebras|Taalas|Copilot|Midjourney|DeepMind|Gemma|"
-    r"Hugging\s*Face|HuggingFace|LLaMA|Llama|Qwen|Mistral|xAI)",
+    r"Hugging\s*Face|HuggingFace|LLaMA|Llama|Qwen|Mistral|xAI|transformer)",
     re.IGNORECASE,
 )
 
 _INFERENCE_RE = re.compile(r"(?<![A-Za-z])inference(?![A-Za-z])", re.IGNORECASE)
+_AGENT_RE = re.compile(r"(?<![A-Za-z])agents?(?![A-Za-z])", re.IGNORECASE)
+# "モデル" but not Moderna (モデルナ).
+_MODEL_RE = re.compile(r"モデル(?!ナ)")
 
 # JP multi-char (and mixed) phrases as substring.
-_AI_JP_PHRASES = (
-    "人工知能",
-    "生成AI",
-    "機械学習",
-    "大規模言語",
-    "深層学習",
-    "言語モデル",
-    "生成モデル",
-    "ディープラーニング",
-    "推論",
-    "超知能",
+_AI_JP_PHRASES = tuple(
+    kw for kw in AI_RELEVANT_KEYWORDS if any(ord(ch) > 127 for ch in kw)
 )
 
 # Title denylist — overrides a positive category (熊本 was mislabeled AI Model/95)
@@ -121,23 +132,37 @@ def parse_output_date(value: str | None) -> date:
     raise ValueError(f"invalid --output-date: {value!r} (use YYYYMMDD)")
 
 
+def _text_has_ai_signal(text: str) -> bool:
+    """True when text contains at least one AI keyword. Fail closed on short Latin."""
+    if not text:
+        return False
+    if _SHORT_AI_RE.search(text):
+        return True
+    if _AI_NAME_RE.search(text):
+        return True
+    if _INFERENCE_RE.search(text):
+        return True
+    if _AGENT_RE.search(text):
+        return True
+    if _MODEL_RE.search(text):
+        return True
+    for phrase in _AI_JP_PHRASES:
+        if phrase in text:
+            return True
+    return False
+
+
 def title_has_ai_signal(title: str) -> bool:
     """True when the title itself is AI-relevant. Fail closed.
 
     Short tokens use Latin lookaround (not raw substring ``ai``).
     """
-    if not title:
-        return False
-    if _SHORT_AI_RE.search(title):
-        return True
-    if _AI_NAME_RE.search(title):
-        return True
-    if _INFERENCE_RE.search(title):
-        return True
-    for phrase in _AI_JP_PHRASES:
-        if phrase in title:
-            return True
-    return False
+    return _text_has_ai_signal(title)
+
+
+def is_ai_relevant(title: str, blurb: str) -> bool:
+    """Rule-based AI gate. True if title or blurb has at least one keyword."""
+    return _text_has_ai_signal(title) or _text_has_ai_signal(blurb)
 
 
 def is_denied_title(title: str) -> bool:
@@ -561,6 +586,10 @@ def main(argv: list[str] | None = None) -> int:
     if not items:
         print("No items collected from archives.")
         return 2
+
+    before = len(items)
+    items = [it for it in items if is_ai_relevant(it.get("title") or "", it.get("blurb") or "")]
+    print(f"[filter] excluded {before - len(items)} non-AI items")
 
     kept, dropped = apply_quality_gate(items)
     _log_dropped(dropped)

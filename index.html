@@ -2138,6 +2138,23 @@
       function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
       function scoreOf(it) { return clamp(+it.stars || 0, 0, 5); }
 
+      // Lightweight mirror of scripts/generate_ranking_input.py::is_ai_relevant.
+      // Short Latin tokens use lookaround so "brain" / "retailers" do not match.
+      var AI_RELEVANT_SHORT = /(?<![A-Za-z])(?:AI|AIs|LLM|LLMs|GPT|AGI|NLP|MoE|HBM|GPU|GPUs|RAG|MCP|NVIDIA)(?![A-Za-z])/i;
+      var AI_RELEVANT_NAME = /ChatGPT|OpenAI|Anthropic|DeepSeek|Gemini|Claude|Grok|Copilot|DeepMind|Gemma|Hugging\s*Face|Llama|Qwen|Mistral|xAI|transformer/i;
+      var AI_RELEVANT_AGENT = /(?<![A-Za-z])agents?(?![A-Za-z])/i;
+      var AI_RELEVANT_PHRASES = ['人工知能','生成AI','機械学習','深層学習','言語モデル','生成モデル','ディープラーニング','推論','超知能','エージェント','プロンプト','ファインチューニング','ベンチマーク','データセンター','半導体','AIモデル','基盤モデル','オープンモデル'];
+      var AI_RELEVANT_MODEL = /モデル(?!ナ)/;
+      function isAiRelevant(title, blurb) {
+        var text = String(title || '') + ' ' + String(blurb || '');
+        if (!text.trim()) return false;
+        if (AI_RELEVANT_SHORT.test(text) || AI_RELEVANT_NAME.test(text) || AI_RELEVANT_AGENT.test(text) || AI_RELEVANT_MODEL.test(text)) return true;
+        for (var i = 0; i < AI_RELEVANT_PHRASES.length; i++) {
+          if (text.indexOf(AI_RELEVANT_PHRASES[i]) !== -1) return true;
+        }
+        return false;
+      }
+
       function todaySlideItem() {
         var twist = document.getElementById('heroTwist');
         var btn = document.getElementById('heroSlideBtn');
@@ -2162,18 +2179,21 @@
           (sections[cat] || []).forEach(function (raw) {
             if (!raw || !raw.title || seen[raw.title]) return;
             if (raw.source && raw.source.url && String(raw.source.url).indexOf('day_slide_') !== -1) return;
+            if (!isAiRelevant(raw.title, raw.blurb || raw.summary || '')) return;
             seen[raw.title] = 1;
             pool.push({
               title: raw.title,
+              blurb: raw.blurb || raw.summary || '',
               stars: raw.stars || 0,
               source: raw.source || {},
               category: cat
             });
           });
         });
-        var rest = today ? pool.slice(1) : pool;
+        var pinned = today && pool[0] && pool[0].title === today.title ? [pool[0]] : [];
+        var rest = pool.slice(pinned.length);
         rest.sort(function (a, b) { return (b.stars || 0) - (a.stars || 0); });
-        return (today ? [today] : []).concat(rest).slice(0, 3);
+        return pinned.concat(rest).slice(0, 3);
       }
 
       function cardHtml(it, rank) {
