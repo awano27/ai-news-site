@@ -372,6 +372,20 @@
       box-shadow: 0 0 0 4px rgba(255,204,0,0.18);
     }
     .hero-eyebrow .sep { color: var(--on-dark-mu2); }
+    .hero-freshness-lag {
+      letter-spacing: 0.04em;
+      text-transform: none;
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--on-dark-mu2);
+    }
+    .hero-updated {
+      margin: -18px 0 20px;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: var(--on-dark-mu2);
+    }
     .hero-kicker {
       margin: 0 0 14px;
       font-size: 14px;
@@ -1204,6 +1218,7 @@
             <span class="hero-sitename">AI Intelligence Hub</span>
             <span class="sep">|</span>
             <!-- fallback:latest-slide --><span id="heroDate">2026-08-21 · 金</span><!-- fallback:end -->
+            <span id="heroFreshnessLag" class="hero-freshness-lag" hidden></span>
             <script>
               // 自動: 今日のJST日付をフォールバックとして即時表示（fetch成功時はJSが上書き）
               (function(){
@@ -1215,6 +1230,7 @@
               })();
             </script>
           </div>
+          <!-- fallback:latest-slide --><p class="hero-updated">最新データ: <span id="heroUpdatedAt">2026-08-21 09:00 JST</span></p><!-- fallback:end -->
           <p class="hero-kicker">今日のAIを5分で</p>
           <!-- fallback:latest-slide --><h1 id="heroTwist" class="hero-title">公式発表ゼロで突然現れた<br>1Mマルチモーダルstealth frontier</h1><!-- fallback:end -->
           <!-- fallback:latest-slide --><p id="heroWhy" class="hero-summary">OpenRouterにstealth/ox-alphaが突然登場。1Mコンテキスト＋テキスト・画像・動画入力、約1週間ほぼ無制限無料。</p><!-- fallback:end -->
@@ -2524,7 +2540,42 @@
       });
     }
 
-    function renderHero(date, latest) {
+    function formatGeneratedClock(iso) {
+      var m = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})/.exec(iso || '');
+      if (!m) return null;
+      return {
+        dateTime: m[1] + ' ' + m[2] + ':' + m[3] + ' JST',
+        time: m[2] + ':' + m[3]
+      };
+    }
+    function applyGeneratedAt(latest) {
+      var clock = formatGeneratedClock(latest && latest.generated_at);
+      if (!clock) return;
+      setText('heroUpdatedAt', clock.dateTime);
+      setText('statUpdated', clock.time);
+    }
+    function jstTodayIso() {
+      var j = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60000);
+      return j.getFullYear() + '-' +
+        String(j.getMonth() + 1).padStart(2, '0') + '-' +
+        String(j.getDate()).padStart(2, '0');
+    }
+    function renderFreshnessLag(slideDate) {
+      var el = document.getElementById('heroFreshnessLag');
+      if (!el) return;
+      var a = parseDate(slideDate);
+      var b = parseDate(jstTodayIso());
+      var n = (a && b) ? Math.round((b.getTime() - a.getTime()) / 86400000) : 0;
+      if (n >= 2) {
+        el.textContent = '（' + n + '日前）';
+        el.hidden = false;
+      } else {
+        el.textContent = '';
+        el.hidden = true;
+      }
+    }
+
+    function renderHero(date, latest, generatedSource) {
       if (!date) return;
       var d = parseDate(date);
       var slideUrl = slideForDate(date);
@@ -2535,6 +2586,7 @@
       if (headerCta) headerCta.href = slideUrl;
       var sitrepLink = document.getElementById('sitrepLink');
       if (sitrepLink) sitrepLink.href = slideUrl;
+      applyGeneratedAt(generatedSource || latest);
       // #heroTwist / #heroWhy are static fallback copy. Do not overwrite from latest.json.
     }
 
@@ -2674,7 +2726,7 @@
       if (html) grid.innerHTML = html;
     }
 
-    function renderStats(entries, slideCount) {
+    function renderStats(entries, slideCount, latest) {
       if (!entries || !entries.length) return;
       // entries = news-days (archive_index). Slide count comes from list.json / meta_index.
       var totalSlides = (typeof slideCount === 'number' && slideCount > 0) ? slideCount : 0;
@@ -2692,6 +2744,7 @@
       if (i) i.textContent = fmt(totalItems);
       var foot = document.getElementById('footerUpdated');
       if (foot && entries[0]) foot.textContent = 'UPDATED ' + entries[0].date;
+      applyGeneratedAt(latest);
     }
 
     function fetchJson(url) {
@@ -2746,7 +2799,8 @@
       var currentLatest = latestForDate(latest, todayDate);
 
       if (todayDate) {
-        renderHero(todayDate, currentLatest);
+        renderHero(todayDate, currentLatest, latest);
+        renderFreshnessLag(latestSlideDate || todayDate);
         renderCategories(currentLatest);
       } else {
         clearSkel(document.getElementById('heroDate'));
@@ -2764,7 +2818,8 @@
           .catch(function () {
             renderWeek(weekEntries, todayDate, {});
           });
-        if (archiveEntries.length) renderStats(archiveEntries, slideCount);
+        if (archiveEntries.length) renderStats(archiveEntries, slideCount, latest);
+        else applyGeneratedAt(latest);
       }
     });
   })();
