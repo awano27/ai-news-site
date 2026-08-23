@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Security + Mythos 5 — 最強サイバーモデルを「防御側だけ」に渡すEnterpriseスキャン | 2026-08-22</title>
+  <meta name="description" content="Anthropicが2026年8月21日に発表したClaude SecurityのMythos 5対応。フロンティア級サイバー能力を持つモデルをモデル自体を公開せず「結果だけ」防御側に提供する設計。CWE分類・深刻度・パッチ提案、$35MのDefender Advantage Fundを解説。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_22.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Claude Security + Mythos 5 — 最強サイバーモデルを「防御側だけ」に渡す">
+  <meta property="og:description" content="Mythos 5をClaude Securityに搭載。モデルは公開せず、CWE・深刻度・パッチ提案だけをEnterprise顧客に返す設計思想と$35M OSS基金。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_22.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Claude Security + Mythos 5 — 防御側だけに渡すフロンティアサイバースキャン">
+  <meta name="twitter:description" content="モデル自体を公開せず結果だけを防御側に。既存SASTを補完する深い推論能力とdual-use制御の設計。">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "Claude Security + Mythos 5 — 最強サイバーモデルを「防御側だけ」に渡すEnterpriseスキャン",
+    "description": "AnthropicのClaude Mythos 5をClaude Securityに搭載し、Enterprise顧客向けに防御限定で提供する動きの分析。既存SASTとの違い、設計思想、$35M Fundを整理する。",
+    "datePublished": "2026-08-22",
+    "dateModified": "2026-08-22",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_22.html",
+    "articleSection": "AI Cybersecurity & Safety"
+  }
+  </script>
+  <style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(47,198,178,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(47,198,178,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(90,220,200,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(157,242,226,.4); color:#d2f2ec; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(157,242,226,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="Breadcrumb">
+        <a href="../day_slides_index.html">All day slides</a>
+        <span>2026-08-22 / AI Cybersecurity & Safety</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — AIサイバーセキュリティ / セーフティ</span>
+        <p class="eyebrow">ANTHROPIC CLAUDE MYTHOS 5 × SECURITY</p>
+        <h1>最強サイバーモデルを「防御側だけ」に渡す——Claude SecurityがMythos 5を搭載</h1>
+        <p class="lead">Anthropicは<strong>2026年8月21日</strong>、フロンティア級のサイバー能力を持つ<strong>Claude Mythos 5</strong>を<strong>Claude Security</strong>に搭載し、Claude Enterprise顧客向けに公開した。モデル自体は公開せず、リポジトリスキャンの結果（CWE分類・深刻度・信頼度・パッチ提案）だけを防御側に返す設計。同時に<strong>$35MのDefender Advantage Fund</strong>を発表し、OSSの脆弱性パッチングを直接支援する。攻撃側に能力を渡さず、防御側の生産性を上げるための「結果だけ」戦略である。</p>
+        <div class="hero-meta">
+          <span>📅 公式発表：2026-08-21（本スライド：2026-08-22）</span>
+          <span>🛡 対象：Claude Enterprise（Public Beta）</span>
+          <span>🔒 設計：モデル非公開・結果のみ</span>
+          <span>💰 課金：通常トークンのみ（追加料金なし）</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num gold">Mythos 5</div><div class="stat-label"><b>バックエンド</b>以前はProject Glasswing限定の最強サイバーモデル</div></div>
+      <div class="stat-card"><div class="stat-num">CWE</div><div class="stat-label"><b>出力形式</b>カテゴリ + 深刻度 + 信頼度 + パッチ提案</div></div>
+      <div class="stat-card"><div class="stat-num">$35M</div><div class="stat-label"><b>Defender Fund</b>OSSパッチング・自動化向けクレジット</div></div>
+      <div class="stat-card"><div class="stat-num">Human</div><div class="stat-label"><b>レビュー必須</b>自動適用なし。必ず人間が承認</div></div>
+      <div class="stat-card"><div class="stat-num">GitHub</div><div class="stat-label"><b>対象リポジトリ</b>現時点でGitHubホストの自社所有コードのみ</div></div>
+      <div class="stat-card"><div class="stat-num">Token</div><div class="stat-label"><b>コスト</b>既存Enterpriseプランの標準トークン課金のみ</div></div>
+    </div>
+
+    <nav class="jump" aria-label="セクション移動">
+      <a href="#s1"><b>01</b>発表</a>
+      <a href="#s2"><b>02</b>できること</a>
+      <a href="#s3"><b>03</b>既存との違い</a>
+      <a href="#s4"><b>04</b>設計思想</a>
+      <a href="#s5"><b>05</b>$35M Fund</a>
+      <a href="#s6"><b>06</b>導入・注意</a>
+    </nav>
+
+    <div class="slides">
+
+      <!-- 01 -->
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">WHAT HAPPENED</p>
+            <h2>何が発表されたのか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Anthropicは公式ブログで、Claude Mythos 5をClaude SecurityのバックエンドとしてEnterprise顧客に開放したと発表した。Mythos 5はこれまで<strong>Project Glasswing</strong>の極めて限定的なパートナー（重要インフラ・大手テック・政府系）しか使えなかった、デュアルユースが特に強いフロンティアモデルである。</p>
+            <ul>
+              <li>Claude Security（パブリックベータ）がMythos 5で動くようになった</li>
+              <li>スキャン結果はCWEカテゴリ・信頼度・深刻度・推奨パッチとして返される</li>
+              <li>モデルへの直接アクセスやプロンプトは一切不可。結果物だけが届く</li>
+              <li>パッチ実装はClaude Code（Web）で行うが、そこでは組織が通常使えるモデルが使われる</li>
+              <li>同時に$35MのDefender Advantage Fund（0xDAF）を発表</li>
+            </ul>
+            <div class="quote">
+              「defenders can access the capabilities of Claude Mythos 5 without the model becoming accessible to those who might misuse it.」
+              <small>— Anthropic公式ブログ（2026-08-21）</small>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>大きい</strong>。以前はごく一部のパートナーしか使えなかったMythos級の推論能力を、Enterprise顧客が「安全に」使えるようになった点が実務インパクトが高い。単なる機能追加ではなく、dual-use制御の設計思想そのものが価値。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">CAPABILITIES</p>
+            <h2>なにができるのか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>Claude Enterpriseの管理者が有効化すると、ユーザーは <code>claude.ai/security</code> から自社所有のGitHubリポジトリを選択してスキャンを実行できる。</p>
+            <div class="loop">
+              <div class="step"><small>1</small>リポジトリ選択</div>
+              <span class="arr">→</span>
+              <div class="step"><small>2</small>Mythos 5 スキャン</div>
+              <span class="arr">→</span>
+              <div class="step"><small>3</small>Finding返却</div>
+              <span class="arr">→</span>
+              <div class="step"><small>4</small>人間レビュー</div>
+              <span class="arr">→</span>
+              <div class="step"><small>5</small>Claude Codeで実装</div>
+            </div>
+            <p style="margin-top:18px;">各Findingには以下が含まれる：</p>
+            <ul class="checks">
+              <li><b>CWEカテゴリ</b> — Common Weakness Enumerationによる分類</li>
+              <li><b>深刻度（Severity）</b> — HIGH / MEDIUM / LOW</li>
+              <li><b>信頼度（Confidence）</b> — モデル自身の確信度</li>
+              <li><b>推奨パッチ</b> — 具体的な修正案</li>
+              <li><b>再現手順・影響説明</b> — なぜ問題なのかの文脈</li>
+            </ul>
+            <p>Mythos 5はファイル横断のデータフロー追跡、ビジネスロジックの推論、到達可能性の評価を行う。従来のルールベースでは拾いにくい複雑なマルチコンポーネント脆弱性に強い。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">DIFFERENCES FROM EXISTING</p>
+            <h2>既存の類似製品と何が違うポイントか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>「AIでコードをスキャンする」ツールは既にある。違いは<strong>使うモデルの能力</strong>と<strong>能力の渡し方</strong>にある。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>従来・類似</span>SAST / SCA（CodeQL, Snyk, Semgrep など）</h4>
+                <ul>
+                  <li>ルール・パターン・データフロー解析が中心</li>
+                  <li>既知のCVEや定型CWEに強い</li>
+                  <li>複雑なビジネスロジックやゼロデイ寄りの深い推論には弱い</li>
+                  <li>CIに組み込みやすく、決定論的</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>今回</span>Claude Security × Mythos 5</h4>
+                <ul>
+                  <li>フロンティア級LLMによるセマンティック推論</li>
+                  <li>ファイル横断・文脈・到達可能性を深く読む</li>
+                  <li>「結果だけ」を返す設計でモデルを攻撃側に渡さない</li>
+                  <li>人間レビュー必須・自社コード限定というガードレールが最初から内蔵</li>
+                </ul>
+              </div>
+            </div>
+            <p style="margin-top:16px;">他のAIスキャナー（Codex Security系など）と比較しても、<strong>「デュアルユースが特に強いモデルを意図的に制限し、結果物だけを防御側に届ける」</strong>という制度設計をここまで徹底している例は少ない。Mythos 5は以前Glasswingパートナーしか使えなかったモデルであり、その能力をEnterprise向けに安全に開放した点が決定的に違う。</p>
+            <p><strong>結論：</strong>置き換えではなく<strong>補完</strong>。既存のCI SASTはそのまま残し、深いセマンティックレビュー用にMythosスキャンを追加するのが正しい使い方。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">必須観点1</span>
+            <p>既存類似との最大の違いは「モデルを渡さない結果だけ」設計と、Mythos級の推論能力。SASTのルール限界を補う位置づけ。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">DESIGN PHILOSOPHY</p>
+            <h2>何が新しいのか・何がすごいのか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>最大の新しさは<strong>モデル自体を公開しない</strong>という選択である。</p>
+            <ul>
+              <li>Mythos 5はサイバー能力が特に強く、攻撃的利用のリスクが高い</li>
+              <li>そこでAnthropicは「モデルへの直接アクセス」を拒否し、定義された防御タスク（スキャン・パッチ提案）の結果だけを返す</li>
+              <li>パートナーのセキュリティ製品にも同様に「バックグラウンドでMythosを動かし、成果物だけを届ける」形で統合を進める</li>
+              <li>パッチは必ず人間がレビュー・承認してから適用される。自動適用はない</li>
+              <li>スキャン対象は「自社が所有するコード」に限定。第三者OSSを直接スキャンする用途は禁止</li>
+            </ul>
+            <div class="quote">
+              「The riskiest behavior occurs when a user has direct access to a model, where a malicious actor can try to steer it toward harmful uses. But if users can only receive specific outputs, such as a patch for a vulnerability or a security alert, that risk is much lower.」
+              <small>— Anthropic</small>
+            </div>
+            <p>この「結果だけを渡す」設計は、OpenAIのDaybreak / GPT-5.6-Cyberとも通じる「防御側に先にツールを渡す」思想の、Anthropic版の具体化である。</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">必須観点2</span>
+            <p><strong>最近出た新しい製品か？</strong><br>はい。公式発表は2026年8月21日。Claude Security自体は以前からあったが、Mythos 5バックエンドへの置き換えと$35M基金が今回の核心。</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">ECOSYSTEM</p>
+            <h2>$35M Defender Advantage Fund</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>同時に発表されたのが<strong>Defender Advantage Fund（0xDAF）</strong>である。$35M相当のClaudeクレジットを、OSSの脆弱性パッチング・スキャン自動化・新しいセキュリティ手法の実験に充てる。</p>
+            <ul>
+              <li>Project Glasswingで発見された大量の脆弱性に対し、「発見は進むがパッチングが追いつかない」というボトルネックを直接解消する狙い</li>
+              <li>パイロットグラントから開始し、大規模組織への支援を優先</li>
+              <li>単なるモデル公開ではなく、エコシステム全体の防御能力を底上げする資金的コミットメント</li>
+            </ul>
+            <p>Glasswingの実績（重要ソフトウェアで多数のクリティカル脆弱性を発見）を踏まえ、発見だけでなく「直す側」にリソースを流す姿勢が明確である。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">ACTIONABLE</p>
+            <h2>即導入ポイント・コスト・注意点</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p><strong>導入手順（簡易）</strong></p>
+            <ol style="color:var(--muted); line-height:1.9; font-size:14.5px; padding-left:1.4em;">
+              <li>Claude Enterpriseの組織オーナーが Organization settings → Claude Security でトグルをON</li>
+              <li>GitHub Appをインストールし、Claude側でGitHubコネクタを接続</li>
+              <li><code>claude.ai/security</code> からスキャン対象リポジトリを選択して実行</li>
+              <li>結果を確認し、必要に応じてClaude Code（Web）でパッチ作業 → 人間が承認</li>
+            </ol>
+            <p style="margin-top:16px;"><strong>コスト</strong>：既存Claude Enterpriseプランの標準トークン課金のみ。追加のプラットフォーム料金なし。</p>
+            <p><strong>主な制限・注意点</strong></p>
+            <ul>
+              <li>現時点でスキャン対象はGitHubホストのリポジトリのみ</li>
+              <li>自社が所有するコードに限定（第三者OSSの直接スキャンは不可）</li>
+              <li>パブリックベータ。スキャンは確率的（毎回同じ結果になるとは限らない）</li>
+              <li>Zero Data Retentionは適用されない場合がある</li>
+              <li>既存のCI SAST（CodeQL / Semgrep / Snykなど）は併用を推奨。置き換えではない</li>
+            </ul>
+            <div class="warn">
+              <p><strong>エンジニアへの推奨：</strong>Claude Enterpriseを契約しているなら、重要リポジトリ（認証・決済・データアクセス周り）を1つ選んですぐに試す価値がある。既存の定型スキャンはCIに残し、Mythosは「深いロジックレビュー」用として使うのが現実的。</p>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">明日からの活用</span>
+            <p>セキュリティチームの生産性向上と、自社コードの脆弱性チェック強化。ビジネス側も「防御側にだけ強いツールを渡す」動きとして理解しておくと良い。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Finale -->
+    <section class="finale">
+      <p class="eyebrow">ONE-LINE TAKEAWAY</p>
+      <blockquote>
+        モデルを攻撃者に渡さず、<em>結果だけ</em>を防御側に届ける——AnthropicがMythos 5で示した「フロンティア能力の安全な広げ方」。
+      </blockquote>
+      <p>既存のSASTを置き換えるものではないが、複雑なロジック脆弱性の発見力を補強する有力な選択肢になる。Claude Enterprise環境であれば即日試せる状態。</p>
+    </section>
+
+    <footer style="margin-top:48px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; line-height:1.8;">
+      <p><strong>情報源</strong></p>
+      <ul style="margin:8px 0 16px; padding-left:1.2em;">
+        <li>公式発表：<a href="https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders" style="color:var(--accent);">Bringing the cybersecurity capabilities of Claude Mythos 5 to more defenders</a>（2026-08-21）</li>
+        <li>利用ガイド：<a href="https://support.claude.com/en/articles/14661296-use-claude-security" style="color:var(--accent);">Use Claude Security</a></li>
+        <li>本スライド作成日：2026-08-22 ｜ 確認時点の情報に基づく</li>
+      </ul>
+      <p style="font-size:12px; opacity:.8;">VisionHub Day Slide No.387 ｜ AI Cybersecurity & Safety</p>
+    </footer>
+  </main>
+
+  <!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_21.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_22.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-22.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_08_22.html" download style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">HTML保存</a></nav>
+<!-- slide-nav:end -->
+
+
+  <script>
+    // Progress bar
+    const progress = document.querySelector('.progress');
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+      progress.style.width = pct + '%';
+    });
+    // Jump active state
+    const sections = document.querySelectorAll('section.slide');
+    const jumpLinks = document.querySelectorAll('.jump a');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          jumpLinks.forEach(a => a.classList.remove('on'));
+          const id = e.target.id;
+          const link = document.querySelector(`.jump a[href="#${id}"]`);
+          if (link) link.classList.add('on');
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px' });
+    sections.forEach(s => io.observe(s));
+  </script>
+</body>
+</html>
