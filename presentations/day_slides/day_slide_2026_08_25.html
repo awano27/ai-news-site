@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い | 2026-08-25</title>
+  <meta name="description" content="Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_25.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い">
+  <meta property="og:description" content="Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_25.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い">
+  <meta name="twitter:description" content="Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い",
+    "description": "Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。",
+    "datePublished": "2026-08-25",
+    "dateModified": "2026-08-25",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_25.html",
+    "articleSection": "Model Compression"
+  }
+  </script>
+<style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(47,198,178,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(47,198,178,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(90,220,200,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(157,242,226,.4); color:#d2f2ec; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(157,242,226,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  
+    /* ---- labeled boards (no photos) ---- */
+    .board { border:1px solid rgba(90,220,200,.30); border-radius:8px; padding:18px 18px 16px; margin:14px 0 18px; background:linear-gradient(180deg, rgba(13,33,31,.55), rgba(6,17,16,.72)); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .board-label { display:inline-block; color:#06201b; background:var(--accent); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; padding:5px 10px; border-radius:3px; margin-bottom:12px; }
+    .board-title { margin:0 0 14px; font-size:16px; color:var(--ink); font-weight:600; line-height:1.5; }
+    .board-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch; }
+    .board-col { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .board-col.win { border-color:rgba(47,198,178,.5); }
+    .board-col.gold { border-color:rgba(255,201,77,.45); }
+    .board-col.alert { border-color:rgba(255,143,122,.45); }
+    .board-col h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    .board-col h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:6px; }
+    .board-col.gold h4 span { color:var(--gold); }
+    .board-col.alert h4 span { color:var(--alert); }
+    .board-col .big { font:700 28px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .board-col .big.gold { color:var(--gold); }
+    .board-col .sub { color:var(--muted); font-size:13px; margin:8px 0 0; line-height:1.75; }
+    .board-vs { display:flex; align-items:center; justify-content:center; color:var(--accent); font:800 13px/1 ui-monospace,monospace; letter-spacing:.14em; padding:0 4px; }
+    .board-foot { margin:14px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .xarr { color:var(--alert); font-weight:800; }
+
+    @media (max-width:880px) {
+      .board-row { grid-template-columns:minmax(0,1fr); }
+      .board-vs { padding:6px 0; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="パンくず">
+        <a href="../day_slides_index.html">全日スライド</a>
+        <span>2026-08-25 / Model Compression</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — 量子化と回復</span>
+        <p class="eyebrow">QUANTIZATION-AWARE HEALING</p>
+        <h1>半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い</h1>
+        <p class="lead">壊れている仮定はこれだ。<strong>「半分に潰して4bitにすれば、同じ設計の16bitより劣る」</strong>。Multiverse ComputingのQuantization-Aware Healing（QAH）は、GPT-OSS 120Bを圧縮した60B MXFP4学生を、<strong>回復済み60B bf16ではなく元の120B</strong>から蒸留する。その4bit学生は、自分のbf16を<strong>9指標中7</strong>で上回る。教師は回復済みではない。元モデルである。</p>
+        <div class="hero-meta">
+          <span>📅 HF掲載：2026-08-25</span>
+          <span>📄 arXiv：2608.20953</span>
+          <span>🏆 7/9 で自前 bf16 超え</span>
+          <span>🧪 教師：元 GPT-OSS 120B</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num gold">7/9</div><div class="stat-label"><b>QAH vs 自前 bf16</b>60B MXFP4 が勝ち</div></div>
+      <div class="stat-card"><div class="stat-num">42.7</div><div class="stat-label"><b>AA-LCR</b>bf16 35.3（+7.4）</div></div>
+      <div class="stat-card"><div class="stat-num">76.3</div><div class="stat-label"><b>AIME 2025</b>bf16 70.7（+5.6）</div></div>
+      <div class="stat-card"><div class="stat-num">54.9</div><div class="stat-label"><b>QAH ピーク</b>9B MXFP4・約100ステップ</div></div>
+      <div class="stat-card"><div class="stat-num">54.6</div><div class="stat-label"><b>QAT ピーク</b>約700ステップ、その後低下</div></div>
+      <div class="stat-card"><div class="stat-num">60B</div><div class="stat-label"><b>MXFP4 学生</b>教師は元 120B</div></div>
+      <div class="stat-card"><div class="stat-num">No.390</div><div class="stat-label"><b>Day Slide</b>2026-08-25 AI Intelligence Hub</div></div>
+    </div>
+
+    <nav class="jump" aria-label="セクション移動">
+      <a href="#s1"><b>01</b>発表</a>
+      <a href="#s2"><b>02</b>手法</a>
+      <a href="#s3"><b>03</b>9指標</a>
+      <a href="#s4"><b>04</b>既存との違い</a>
+      <a href="#s5"><b>05</b>新規性</a>
+      <a href="#s6"><b>06</b>エンジニア示唆</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">WHAT HAPPENED</p>
+            <h2>何が発表されたのか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>Multiverse Computingが2026年8月25日、Hugging Faceブログで<strong>Quantization-Aware Healing（QAH）</strong>を公開した。論文は arXiv 2608.20953。構造圧縮のあと4bitにしたモデルを、どう回復するか、の実務レシピ。</p>
+            <ul>
+              <li>教師は回復済み60B bf16ではなく、<strong>圧縮前の元モデル GPT-OSS 120B</strong></li>
+              <li>学生は60B MXFP4。自分のbf16を9指標中7で上回る</li>
+              <li>最大の伸びはAA-LCR 42.7対35.3（+7.4）、AIME 2025 76.3対70.7（+5.6）</li>
+              <li>LiveCodeBenchは66.5で、自前bf16の65.5だけでなく120B教師の66.0も超える</li>
+            </ul>
+            <div class="quote">
+              「The 4-bit model ends up smaller, cheaper to run, and more accurate than the checkpoint it was quantized from.」
+              <small>— Hugging Faceブログ / Multiverse Computing（2026-08-25）</small>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>大きい</strong>。壊れているのは「4bitは同じ設計の16bitより劣る」という前提だ。<strong>量子化を再蒸留の機会にする</strong>。compress-then-healの教師は元モデルにする。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">TECHNICAL SPECS</p>
+            <h2>手法：教師をどこに置くか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>一本の変更で天井が外れる。学生が見るのは回復済みbf16ではない。圧縮前の元モデルである。</p>
+            <ul class="checks">
+              <li><b>教師</b> — 元の GPT-OSS 120B（圧縮前）。回復済み60B bf16ではない</li>
+              <li><b>学生</b> — 構造圧縮した60BをMXFP4にした4bit</li>
+              <li><b>QAH</b> — 元教師の出力分布を、量子化学生へ蒸留する回復</li>
+              <li><b>対QAT（GPT-OSS 9B MXFP4）</b> — QAHは約100ステップでピーク54.9を付けて保持。QATは約700で54.6、ステップ1,200までに約19ポイント低下</li>
+            </ul>
+            <div class="board" aria-label="教師配置ボード">
+              <span class="board-label">HEALING BOARD</span>
+              <p class="board-title">教師は回復済み bf16 ではなく、元の 120B</p>
+              <div class="loop">
+                <div class="step"><small>TEACHER</small>GPT-OSS 120B（元モデル）</div>
+                <span class="arr">→</span>
+                <div class="step"><small>DISTILL</small>QAH</div>
+                <span class="arr">→</span>
+                <div class="step"><small>STUDENT</small>60B MXFP4</div>
+              </div>
+              <p class="loop-note"><span class="xarr">×</span> 回復済み 60B bf16 を教師にしない</p>
+              <p class="board-foot">4bit学生が、同じ設計の16bit（自前bf16）に<strong>7/9</strong>で勝つ。量子化は損失の後処理ではなく、元教師への再蒸留になる。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">LEADERBOARD</p>
+            <h2>9指標：4bit学生が7で勝ち、2で負ける</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>比較相手は同じ60B設計のbf16チェックポイント。数値が一次情報にあるものだけを置く。</p>
+            <div class="board" aria-label="7勝2敗の結果ボード">
+              <span class="board-label">RESULT BOARD</span>
+              <p class="board-title">60B MXFP4（QAH） vs 自前 60B bf16 — 7/9</p>
+              <div class="board-row">
+                <div class="board-col win">
+                  <h4><span>WINS 7</span>4bit が上</h4>
+                  <p class="sub">AA-LCR <strong>42.7</strong> vs 35.3（+7.4）<br>AIME 2025 <strong>76.3</strong> vs 70.7（+5.6）<br>Aider <strong>40.9</strong> vs 38.2<br>τ²-bench <strong>61.7</strong> vs 59.4<br>GPQA Diamond <strong>67.4</strong> vs 65.7<br>IFBench <strong>59.9</strong> vs 58.4<br>LiveCodeBench <strong>66.5</strong> vs 65.5（教師120Bは66.0）</p>
+                </div>
+                <div class="board-vs" aria-hidden="true">7/9</div>
+                <div class="board-col alert">
+                  <h4><span>TRAILS 2</span>bf16 が上</h4>
+                  <p class="sub">MMLU-Pro <strong>73.8</strong> vs 74.0（−0.2）<br>SciCode <strong>34.2</strong> vs 35.6（−1.4）</p>
+                </div>
+              </div>
+            </div>
+            <div class="scroll-x">
+              <table class="cmp">
+                <thead>
+                  <tr>
+                    <th>指標</th>
+                    <th>60B MXFP4（QAH）</th>
+                    <th>60B bf16</th>
+                    <th>一次情報の差</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>AA-LCR</td>
+                    <td><b>42.7</b></td>
+                    <td>35.3</td>
+                    <td class="st-ok">+7.4</td>
+                  </tr>
+                  <tr>
+                    <td>AIME 2025</td>
+                    <td><b>76.3</b></td>
+                    <td>70.7</td>
+                    <td class="st-ok">+5.6</td>
+                  </tr>
+                  <tr>
+                    <td>Aider</td>
+                    <td><b>40.9</b></td>
+                    <td>38.2</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>τ²-bench</td>
+                    <td><b>61.7</b></td>
+                    <td>59.4</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>GPQA Diamond</td>
+                    <td><b>67.4</b></td>
+                    <td>65.7</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>IFBench</td>
+                    <td><b>59.9</b></td>
+                    <td>58.4</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>LiveCodeBench</td>
+                    <td><b>66.5</b></td>
+                    <td>65.5</td>
+                    <td>教師120Bは66.0</td>
+                  </tr>
+                  <tr>
+                    <td>MMLU-Pro</td>
+                    <td>73.8</td>
+                    <td><b>74.0</b></td>
+                    <td class="st-mid">−0.2</td>
+                  </tr>
+                  <tr>
+                    <td>SciCode</td>
+                    <td>34.2</td>
+                    <td><b>35.6</b></td>
+                    <td class="st-mid">−1.4</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="margin-top:14px;font-size:13.5px;color:var(--muted);">差の列は、一次情報に明示されたものだけ。空欄は埋めない。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">DIFFERENCES FROM EXISTING</p>
+            <h2>既存の類似手法と何が違うポイントか</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>compress-then-heal自体は既にある。違いは、<strong>回復の教師をどこに置くか</strong>。</p>
+            <div class="grid-2">
+              <div class="vs-card">
+                <h4><span>従来・類似</span>QAT / 回復済み教師</h4>
+                <ul>
+                  <li>構造圧縮のあと量子化し、回復済みbf16を天井にしがち</li>
+                  <li>QATはタスク損失で低精度に耐えるよう再学習する</li>
+                  <li>GPT-OSS 9B MXFP4では、QATは約700ステップでピーク54.6、ステップ1,200までに約19ポイント低下</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>今回</span>QAH</h4>
+                <ul>
+                  <li>教師は元のGPT-OSS 120B。回復済み60B bf16ではない</li>
+                  <li>4bit学生が同じ設計の16bitを7/9で上回る</li>
+                  <li>同じ9B MXFP4条件で、QAHは約100ステップでピーク54.9を付けて保持</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">ポイント</span>
+            <p>量子化を「精度を払う税」にしない。<strong>元モデルへの再蒸留</strong>にする。回復済みbf16を教師に戻すと、その天井に縛られる。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">NEWNESS &amp; PRICING</p>
+            <h2>最近出た新しい手法か</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p><strong>はい。QAHの公開は新しい。</strong> Hugging Faceブログは2026年8月25日。論文は arXiv 2608.20953。価格表は一次情報に無いので置かない。</p>
+            <p>置くべきなのは手順の位置だけ。compress-then-healの教師を、回復済みではなく元モデルにする。9B MXFP4の対照では、QAHは約100ステップで54.9、QATは約700で54.6のあと低下する。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s6">
+        <div class="slide-head">
+          <span class="no">06</span>
+          <div>
+            <p class="slide-kicker">FOR ENGINEERS</p>
+            <h2>エンジニア向け示唆・どう切るか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <ul class="checks">
+              <li><b>量子化を再蒸留の機会にする</b> — 日本デスクの結論。4bit化を後処理の損失にしない</li>
+              <li><b>compress-then-heal の教師は元モデル</b> — 回復済みbf16を教師にしない。今回の教師はGPT-OSS 120B</li>
+              <li><b>勝ち負けを分ける</b> — 7勝はAA-LCR・AIME 2025・Aider・τ²-bench・GPQA Diamond・IFBench・LiveCodeBench。負けはMMLU-Pro −0.2、SciCode −1.4</li>
+              <li><b>LiveCodeBenchは教師も超える</b> — 学生66.5、自前bf16 65.5、120B教師66.0</li>
+              <li><b>QAT対照は9B MXFP4</b> — QAH 54.9（約100ステップで保持）、QAT 54.6（約700、その後ステップ1,200までに約19ポイント低下）</li>
+            </ul>
+            <div class="warn" style="margin-top:18px;">
+              <p><strong>注意：</strong> 9指標すべてで勝っているわけではない。MMLU-ProとSciCodeは自前bf16が上。QAT比較はGPT-OSS 9B MXFP4の条件。論文 arXiv 2608.20953 への追加の主張はしない。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="finale">
+      <p class="eyebrow">TAKEAWAY</p>
+      <blockquote>
+        半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い。<em>教師は回復済みbf16ではなく元モデル</em>。量子化を再蒸留の機会にする。
+      </blockquote>
+      <p>掲載：2026-08-25 ｜ 本スライド：2026-08-25 ｜ Day Slide No.390</p>
+    </section>
+
+    <footer style="margin-top:48px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.8;">
+      <p style="margin:0 0 8px;"><strong style="color:var(--ink);">情報源</strong></p>
+      <ul style="margin:0;padding-left:1.2em;font-size:12.5px;">
+        <li>Hugging Face「Quantization-Aware Healing」（2026-08-25）— <a href="https://huggingface.co/blog/MultiverseComputingCAI/quantization-aware-healing" style="color:var(--accent);">https://huggingface.co/blog/MultiverseComputingCAI/quantization-aware-healing</a></li>
+        <li>論文 arXiv 2608.20953 — <a href="https://arxiv.org/abs/2608.20953" style="color:var(--accent);">https://arxiv.org/abs/2608.20953</a></li>
+      </ul>
+      <p style="margin:18px 0 0;font-size:12px;">本スライドは公式ブログに基づき、エンジニアが5分で切れるよう整理したものです。数値は一次情報にあるものだけを使っています。Day Slide No.390 ｜ 2026-08-25</p>
+    </footer>
+  </main>
+
+  <!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_24.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_08_25.html" download style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">HTML保存</a></nav>
+<!-- slide-nav:end -->
+
+  <script>
+    // progress bar
+    const prog = document.querySelector('.progress');
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+      prog.style.width = (scrolled * 100) + '%';
+    }, {passive:true});
+
+    // jump nav active
+    const sections = document.querySelectorAll('.slide');
+    const links = document.querySelectorAll('.jump a');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + id));
+        }
+      });
+    }, {rootMargin:'-40% 0px -50% 0px', threshold:0});
+    sections.forEach(s => io.observe(s));
+  </script>
+</body>
+</html>
