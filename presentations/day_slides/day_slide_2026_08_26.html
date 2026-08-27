@@ -3,28 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い | 2026-08-25</title>
-  <meta name="description" content="Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。">
+  <title>速さと効率、どちらかを捨てる、が謎 | 2026-08-26</title>
+  <meta name="description" content="OpenAI初の自社推論チップJalapeño。公式InferenceXでピーク時ワットあたり1.5–1.9倍、端到端遅延1.7–3.6倍減。既存機のスループット対減延トレードオフを一本で切る。">
   <link rel="icon" href="data:,">
-  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_25.html">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_26.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Intelligence Hub">
-  <meta property="og:title" content="半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い">
-  <meta property="og:description" content="Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。">
-  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_25.html">
+  <meta property="og:title" content="速さと効率、どちらかを捨てる、が謎">
+  <meta property="og:description" content="OpenAI初の自社推論チップJalapeño。公式InferenceXでピーク時ワットあたり1.5–1.9倍、端到端遅延1.7–3.6倍減。既存機のスループット対減延トレードオフを一本で切る。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_08_26.html">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い">
-  <meta name="twitter:description" content="Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。">
+  <meta name="twitter:title" content="速さと効率、どちらかを捨てる、が謎">
+  <meta name="twitter:description" content="OpenAI初の自社推論チップJalapeño。公式InferenceXでピーク時ワットあたり1.5–1.9倍、端到端遅延1.7–3.6倍減。既存機のスループット対減延トレードオフを一本で切る。">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "PresentationDigitalDocument",
-    "headline": "半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い",
-    "description": "Multiverse Computing の QAH。GPT-OSS 120B を圧縮した 60B MXFP4 が、自分の bf16 を9指標中7で上回る。教師は回復済みではなく元モデル。",
-    "datePublished": "2026-08-25",
-    "dateModified": "2026-08-25",
-    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_25.html",
-    "articleSection": "Model Compression"
+    "headline": "速さと効率、どちらかを捨てる、が謎",
+    "description": "OpenAI初の自社推論チップJalapeño。公式InferenceXでピーク時ワットあたり1.5–1.9倍、端到端遅延1.7–3.6倍減。既存機のスループット対減延トレードオフを一本で切る。",
+    "datePublished": "2026-08-26",
+    "dateModified": "2026-08-26",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_08_26.html",
+    "articleSection": "Custom Inference Silicon"
   }
   </script>
 <style>
@@ -121,7 +121,7 @@
     .checks b { color:var(--ink); }
     .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
     .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
-    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; letter-spacing:.14em; margin-bottom:3px; }
     .loop .arr { color:var(--accent); font-weight:800; }
     .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
     .scroll-x { overflow-x:auto; max-width:100%; }
@@ -189,18 +189,18 @@
     <div class="hero-inner">
       <nav class="topbar" aria-label="パンくず">
         <a href="../day_slides_index.html">全日スライド</a>
-        <span>2026-08-25 / Model Compression</span>
+        <span>2026-08-26 / Custom Inference Silicon</span>
       </nav>
       <div class="hero-body">
-        <span class="kicker">今日の深掘り — 量子化と回復</span>
-        <p class="eyebrow">QUANTIZATION-AWARE HEALING</p>
-        <h1>半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い</h1>
-        <p class="lead">壊れている仮定はこれだ。<strong>「半分に潰して4bitにすれば、同じ設計の16bitより劣る」</strong>。Multiverse ComputingのQuantization-Aware Healing（QAH）は、GPT-OSS 120Bを圧縮した60B MXFP4学生を、<strong>回復済み60B bf16ではなく元の120B</strong>から蒸留する。その4bit学生は、自分のbf16を<strong>9指標中7</strong>で上回る。教師は回復済みではない。元モデルである。</p>
+        <span class="kicker">今日の深掘り — 推論チップ</span>
+        <p class="eyebrow">JALAPEÑO FIRST RESULTS</p>
+        <h1>速さと効率、どちらかを捨てる、が謎</h1>
+        <p class="lead">壊れている仮定はこれだ。<strong>「速さを取るなら効率を捨てる」</strong>。既存の推論機は、スループットを上げるか減延を下げるか、どちらかを選ばされがちだった。OpenAI初の自社推論チップ<strong>Jalapeño</strong>は、一本のアーキテクチャで両方を同時に上げる。公式の公開ベンチInferenceXで、3モデル横断のピーク時ワットあたり<strong>1.5–1.9倍</strong>、端到端遅延<strong>1.7–3.6倍減</strong>。チップあたりではなく、<strong>ワットあたり</strong>で切る。</p>
         <div class="hero-meta">
-          <span>📅 HF掲載：2026-08-25</span>
-          <span>📄 arXiv：2608.20953</span>
-          <span>🏆 7/9 で自前 bf16 超え</span>
-          <span>🧪 教師：元 GPT-OSS 120B</span>
+          <span>📅 公式掲載：2026-08-25</span>
+          <span>⚡ ワットあたり 1.5–1.9×</span>
+          <span>⏱ 端到端 1.7–3.6×減</span>
+          <span>🧪 InferenceX・3モデル</span>
         </div>
       </div>
     </div>
@@ -208,19 +208,19 @@
 
   <main class="shell">
     <div class="stats-bar" aria-label="キーメトリクス">
-      <div class="stat-card"><div class="stat-num gold">7/9</div><div class="stat-label"><b>QAH vs 自前 bf16</b>60B MXFP4 が勝ち</div></div>
-      <div class="stat-card"><div class="stat-num">42.7</div><div class="stat-label"><b>AA-LCR</b>bf16 35.3（+7.4）</div></div>
-      <div class="stat-card"><div class="stat-num">76.3</div><div class="stat-label"><b>AIME 2025</b>bf16 70.7（+5.6）</div></div>
-      <div class="stat-card"><div class="stat-num">54.9</div><div class="stat-label"><b>QAH ピーク</b>9B MXFP4・約100ステップ</div></div>
-      <div class="stat-card"><div class="stat-num">54.6</div><div class="stat-label"><b>QAT ピーク</b>約700ステップ、その後低下</div></div>
-      <div class="stat-card"><div class="stat-num">60B</div><div class="stat-label"><b>MXFP4 学生</b>教師は元 120B</div></div>
-      <div class="stat-card"><div class="stat-num">No.390</div><div class="stat-label"><b>Day Slide</b>2026-08-25 AI Intelligence Hub</div></div>
+      <div class="stat-card"><div class="stat-num gold">1.5–1.9×</div><div class="stat-label"><b>ピーク時ワットあたり</b>3モデル横断のAI仕事量</div></div>
+      <div class="stat-card"><div class="stat-num">1.7–3.6×</div><div class="stat-label"><b>端到端遅延</b>比較対象より低い</div></div>
+      <div class="stat-card"><div class="stat-num">2.1–4.1×</div><div class="stat-label"><b>高対話負荷</b>インタラクティブ性能</div></div>
+      <div class="stat-card"><div class="stat-num gold">≤550 W</div><div class="stat-label"><b>実測持続電力</b>定格 700 W</div></div>
+      <div class="stat-card"><div class="stat-num">1.5× / 3.4×</div><div class="stat-label"><b>Kimi K2.5 1T</b>最大公開モデル・ワット / 減延</div></div>
+      <div class="stat-card"><div class="stat-num">9か月</div><div class="stat-label"><b>設計→テープアウト</b>AIが設計と立ち上げを加速</div></div>
+      <div class="stat-card"><div class="stat-num">No.391</div><div class="stat-label"><b>Day Slide</b>2026-08-26 AI Intelligence Hub</div></div>
     </div>
 
     <nav class="jump" aria-label="セクション移動">
       <a href="#s1"><b>01</b>発表</a>
-      <a href="#s2"><b>02</b>手法</a>
-      <a href="#s3"><b>03</b>9指標</a>
+      <a href="#s2"><b>02</b>測り方</a>
+      <a href="#s3"><b>03</b>数字</a>
       <a href="#s4"><b>04</b>既存との違い</a>
       <a href="#s5"><b>05</b>新規性</a>
       <a href="#s6"><b>06</b>エンジニア示唆</a>
@@ -238,21 +238,22 @@
         </div>
         <div class="notes">
           <div class="notes-main">
-            <p>Multiverse Computingが2026年8月25日、Hugging Faceブログで<strong>Quantization-Aware Healing（QAH）</strong>を公開した。論文は arXiv 2608.20953。構造圧縮のあと4bitにしたモデルを、どう回復するか、の実務レシピ。</p>
+            <p>OpenAIが2026年8月25日、公式ブログで<strong>Jalapeñoの初測定結果</strong>を公開した。Jalapeñoは同社初の自社推論チップ。動いているファーストパーティ・シリコンで、測定済みの結果がある。複数世代プラットフォームの始まり、と書く。</p>
             <ul>
-              <li>教師は回復済み60B bf16ではなく、<strong>圧縮前の元モデル GPT-OSS 120B</strong></li>
-              <li>学生は60B MXFP4。自分のbf16を9指標中7で上回る</li>
-              <li>最大の伸びはAA-LCR 42.7対35.3（+7.4）、AIME 2025 76.3対70.7（+5.6）</li>
-              <li>LiveCodeBenchは66.5で、自前bf16の65.5だけでなく120B教師の66.0も超える</li>
+              <li>既存機は高スループットと低遅延をトレードオフしがち。Jalapeñoは<strong>一本のアーキテクチャで両方</strong></li>
+              <li>公開ベンチはSemiAnalysisの<strong>InferenceX</strong>。比較は「leading commercially available AI systems」</li>
+              <li>モデルは社内外：<strong>GPT-OSS 120B</strong>、<strong>DeepSeek R1 670B</strong>、<strong>Kimi K2.5 1T</strong></li>
+              <li>3モデル横断：ピーク時ワットあたり<strong>1.5–1.9倍</strong>のAI仕事、端到端遅延<strong>1.7–3.6倍減</strong></li>
+              <li>高対話負荷では<strong>2.1–4.1倍</strong>の性能</li>
             </ul>
             <div class="quote">
-              「The 4-bit model ends up smaller, cheaper to run, and more accurate than the checkpoint it was quantized from.」
-              <small>— Hugging Faceブログ / Multiverse Computing（2026-08-25）</small>
+              “Jalapeño delivers both higher throughput and lower latency with one architecture, where existing hardware systems often have to make a tradeoff between the two.”
+              <small>— OpenAI「Jalapeño’s first results」（2026-08-25）</small>
             </div>
           </div>
           <aside class="sowhat">
             <span class="tag">価値評価</span>
-            <p>価値は<strong>大きい</strong>。壊れているのは「4bitは同じ設計の16bitより劣る」という前提だ。<strong>量子化を再蒸留の機会にする</strong>。compress-then-healの教師は元モデルにする。</p>
+            <p>価値は<strong>大きい</strong>。壊れているのは「速さと効率はどちらかを捨てる」という前提だ。<strong>ワットあたりと減延を一緒に切る</strong>。トレードオフしないチップを見る。</p>
           </aside>
         </div>
       </section>
@@ -261,32 +262,30 @@
         <div class="slide-head">
           <span class="no">02</span>
           <div>
-            <p class="slide-kicker">TECHNICAL SPECS</p>
-            <h2>手法：教師をどこに置くか</h2>
+            <p class="slide-kicker">HOW THEY MEASURED</p>
+            <h2>測り方：チップあたりではなくワットあたり</h2>
           </div>
         </div>
         <div class="notes single">
           <div class="notes-main">
-            <p>一本の変更で天井が外れる。学生が見るのは回復済みbf16ではない。圧縮前の元モデルである。</p>
+            <p>公式の主張は「1チップが強い」ではない。<strong>単位電力あたりの有用なAI仕事</strong>が切る軸。エージェントは多段の逐次ステップを踏むので、遅延は積み上がる。</p>
             <ul class="checks">
-              <li><b>教師</b> — 元の GPT-OSS 120B（圧縮前）。回復済み60B bf16ではない</li>
-              <li><b>学生</b> — 構造圧縮した60BをMXFP4にした4bit</li>
-              <li><b>QAH</b> — 元教師の出力分布を、量子化学生へ蒸留する回復</li>
-              <li><b>対QAT（GPT-OSS 9B MXFP4）</b> — QAHは約100ステップでピーク54.9を付けて保持。QATは約700で54.6、ステップ1,200までに約19ポイント低下</li>
+              <li><b>InferenceX</b> — SemiAnalysisの公開ベンチ。リクエスト提供の全過程を測る</li>
+              <li><b>比較範囲</b> — 高スループット提供から、高対話・低遅延まで。比較対象は民間で入手できる先端システム</li>
+              <li><b>正規化</b> — 各アクセラレータの公表チップ電力定格で揃える。Jalapeño定格<strong>700 W</strong></li>
+              <li><b>実測持続</b> — 試験負荷で<strong>550 W以下</strong>。定格より低い</li>
+              <li><b>有用な標準</b> — チップあたりではなく、単位電力あたりの性能</li>
             </ul>
-            <div class="board" aria-label="教師配置ボード">
-              <span class="board-label">HEALING BOARD</span>
-              <p class="board-title">教師は回復済み bf16 ではなく、元の 120B</p>
-              <div class="loop">
-                <div class="step"><small>TEACHER</small>GPT-OSS 120B（元モデル）</div>
-                <span class="arr">→</span>
-                <div class="step"><small>DISTILL</small>QAH</div>
-                <span class="arr">→</span>
-                <div class="step"><small>STUDENT</small>60B MXFP4</div>
-              </div>
-              <p class="loop-note"><span class="xarr">×</span> 回復済み 60B bf16 を教師にしない</p>
-              <p class="board-foot">4bit学生が、同じ設計の16bit（自前bf16）に<strong>7/9</strong>で勝つ。量子化は損失の後処理ではなく、元教師への再蒸留になる。</p>
+            <div class="loop">
+              <div class="step"><small>UX</small>遅延を揃えて測る</div>
+              <span class="arr">→</span>
+              <div class="step"><small>POWER</small>公表定格で正規化</div>
+              <span class="arr">→</span>
+              <div class="step"><small>WORK</small>ワットあたりのAI仕事</div>
+              <span class="arr">→</span>
+              <div class="step"><small>AGENT</small>多段遅延が積む</div>
             </div>
+            <p class="loop-note">比較対象の定格：GB200 1,200 W ／ GB300 1,400 W（公式付録）</p>
           </div>
         </div>
       </section>
@@ -295,97 +294,74 @@
         <div class="slide-head">
           <span class="no">03</span>
           <div>
-            <p class="slide-kicker">LEADERBOARD</p>
-            <h2>9指標：4bit学生が7で勝ち、2で負ける</h2>
+            <p class="slide-kicker">NUMBERS</p>
+            <h2>スループット vs 減延のトレードオフが消える</h2>
           </div>
         </div>
         <div class="notes single">
           <div class="notes-main">
-            <p>比較相手は同じ60B設計のbf16チェックポイント。数値が一次情報にあるものだけを置く。</p>
-            <div class="board" aria-label="7勝2敗の結果ボード">
-              <span class="board-label">RESULT BOARD</span>
-              <p class="board-title">60B MXFP4（QAH） vs 自前 60B bf16 — 7/9</p>
+            <p>ヘッドラインは横断レンジだけ。左が既存機の二者択一、右がJalapeñoの両方向上。付録の行別数字は表に置く。</p>
+            <div class="board" aria-label="スループット対減延ボード">
+              <span class="board-label">TRADEOFF BOARD</span>
+              <p class="board-title">スループット vs 減延 のトレードオフが消える</p>
               <div class="board-row">
-                <div class="board-col win">
-                  <h4><span>WINS 7</span>4bit が上</h4>
-                  <p class="sub">AA-LCR <strong>42.7</strong> vs 35.3（+7.4）<br>AIME 2025 <strong>76.3</strong> vs 70.7（+5.6）<br>Aider <strong>40.9</strong> vs 38.2<br>τ²-bench <strong>61.7</strong> vs 59.4<br>GPQA Diamond <strong>67.4</strong> vs 65.7<br>IFBench <strong>59.9</strong> vs 58.4<br>LiveCodeBench <strong>66.5</strong> vs 65.5（教師120Bは66.0）</p>
-                </div>
-                <div class="board-vs" aria-hidden="true">7/9</div>
                 <div class="board-col alert">
-                  <h4><span>TRAILS 2</span>bf16 が上</h4>
-                  <p class="sub">MMLU-Pro <strong>73.8</strong> vs 74.0（−0.2）<br>SciCode <strong>34.2</strong> vs 35.6（−1.4）</p>
+                  <h4><span>EXISTING</span>既存機はどちらか</h4>
+                  <p class="sub">高スループットを取るか、<br>低遅延を取るか。<br><strong>一本では両立しにくい</strong>。</p>
+                  <p class="sub">チップあたりの数字で勝ち負けを語りやすい。<br>公式はそれを「あまり有用でない」と書く。</p>
+                </div>
+                <div class="board-vs" aria-hidden="true">→</div>
+                <div class="board-col win">
+                  <h4><span>JALAPEÑO</span>一本で両方向上</h4>
+                  <div class="big">1.5–1.9×</div>
+                  <p class="sub">ピーク時ワットあたりのAI仕事</p>
+                  <div class="big" style="margin-top:12px;">1.7–3.6×</div>
+                  <p class="sub">端到端遅延が低い</p>
                 </div>
               </div>
+              <p class="board-foot">高対話負荷は <strong>2.1–4.1×</strong>。ボードの主数字は横断レンジだけ。行別は下の付録。</p>
             </div>
             <div class="scroll-x">
               <table class="cmp">
                 <thead>
                   <tr>
-                    <th>指標</th>
-                    <th>60B MXFP4（QAH）</th>
-                    <th>60B bf16</th>
-                    <th>一次情報の差</th>
+                    <th>モデル</th>
+                    <th>比較対象</th>
+                    <th>ピーク mixed TPS/kW</th>
+                    <th>端到端遅延</th>
+                    <th>min TBT</th>
+                    <th>前TBTでのスループット</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>AA-LCR</td>
-                    <td><b>42.7</b></td>
-                    <td>35.3</td>
-                    <td class="st-ok">+7.4</td>
+                    <td>GPT-OSS 120B</td>
+                    <td>GB200 1,200 W</td>
+                    <td><b>≈1.9×</b><br>85,448 vs 44,960</td>
+                    <td class="st-ok">≈1.7×<br>1.03 s vs 1.80 s</td>
+                    <td>≈2.7×<br>0.69 vs 1.87 ms</td>
+                    <td>≈53.7×<br>22,935 vs 427 mixed/kW<br>（535.28 tok/s/user）</td>
                   </tr>
                   <tr>
-                    <td>AIME 2025</td>
-                    <td><b>76.3</b></td>
-                    <td>70.7</td>
-                    <td class="st-ok">+5.6</td>
+                    <td>DeepSeek R1 670B MXFP4</td>
+                    <td>GB300 1,400 W</td>
+                    <td><b>≈1.7×</b><br>19,641 vs 11,781</td>
+                    <td class="st-ok">≈3.6×<br>1.65 s vs 5.99 s</td>
+                    <td>≈4.1×<br>1.43 vs 5.90 ms</td>
+                    <td>≈104.3×<br>12,258 vs 118 mixed/kW<br>（169.41 tok/s/user）</td>
                   </tr>
                   <tr>
-                    <td>Aider</td>
-                    <td><b>40.9</b></td>
-                    <td>38.2</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>τ²-bench</td>
-                    <td><b>61.7</b></td>
-                    <td>59.4</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>GPQA Diamond</td>
-                    <td><b>67.4</b></td>
-                    <td>65.7</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>IFBench</td>
-                    <td><b>59.9</b></td>
-                    <td>58.4</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>LiveCodeBench</td>
-                    <td><b>66.5</b></td>
-                    <td>65.5</td>
-                    <td>教師120Bは66.0</td>
-                  </tr>
-                  <tr>
-                    <td>MMLU-Pro</td>
-                    <td>73.8</td>
-                    <td><b>74.0</b></td>
-                    <td class="st-mid">−0.2</td>
-                  </tr>
-                  <tr>
-                    <td>SciCode</td>
-                    <td>34.2</td>
-                    <td><b>35.6</b></td>
-                    <td class="st-mid">−1.4</td>
+                    <td>Kimi K2.5 1T MXFP4</td>
+                    <td>GB300 1,400 W</td>
+                    <td><b>≈1.5×</b><br>18,195 vs 11,862</td>
+                    <td class="st-ok">≈3.4×<br>1.56 s vs 5.31 s</td>
+                    <td>≈3.8×<br>1.44 vs 5.48 ms</td>
+                    <td>≈56.1×<br>6,744 vs 120 mixed/kW<br>（182.46 tok/s/user）</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p style="margin-top:14px;font-size:13.5px;color:var(--muted);">差の列は、一次情報に明示されたものだけ。空欄は埋めない。</p>
+            <p style="margin-top:14px;font-size:13.5px;color:var(--muted);">付録は公式ページのInferenceX表。正規化は各アクセラレータの公表チップ電力定格。Jalapeño定格700 W。Nvidiaを「破った」見出しにはしない。社内の最先端モデルでは差がさらに開いた、とページは書くが、その倍率は一次情報に無いので置かない。</p>
           </div>
         </div>
       </section>
@@ -400,29 +376,30 @@
         </div>
         <div class="notes">
           <div class="notes-main">
-            <p>compress-then-heal自体は既にある。違いは、<strong>回復の教師をどこに置くか</strong>。</p>
+            <p>推論アクセラレータ自体は既にある。違いは、<strong>スループットと減延を一本で両立させる</strong>と公式が言い切る点。</p>
             <div class="grid-2">
               <div class="vs-card">
-                <h4><span>従来・類似</span>QAT / 回復済み教師</h4>
+                <h4><span>従来・類似</span>既存の民間システム</h4>
                 <ul>
-                  <li>構造圧縮のあと量子化し、回復済みbf16を天井にしがち</li>
-                  <li>QATはタスク損失で低精度に耐えるよう再学習する</li>
-                  <li>GPT-OSS 9B MXFP4では、QATは約700ステップでピーク54.6、ステップ1,200までに約19ポイント低下</li>
+                  <li>高スループットと低遅延をトレードオフしがち</li>
+                  <li>性能をチップあたりで語りやすい</li>
+                  <li>比較対象の定格例：GB200 1,200 W、GB300 1,400 W</li>
                 </ul>
               </div>
               <div class="vs-card now">
-                <h4><span>今回</span>QAH</h4>
+                <h4><span>今回</span>Jalapeño</h4>
                 <ul>
-                  <li>教師は元のGPT-OSS 120B。回復済み60B bf16ではない</li>
-                  <li>4bit学生が同じ設計の16bitを7/9で上回る</li>
-                  <li>同じ9B MXFP4条件で、QAHは約100ステップでピーク54.9を付けて保持</li>
+                  <li>一本のアーキテクチャでスループットと減延を同時に上げる</li>
+                  <li>切る軸はワットあたり。定格700 W、実測持続は550 W以下</li>
+                  <li>社内外3モデル（120B / 670B / 1T）で同じ方向</li>
+                  <li>年の終わりまでに自社計算基盤へ配備を始める、と書く。NVIDIAほかパートナーのアクセラレータも引き続き広く使う</li>
                 </ul>
               </div>
             </div>
           </div>
           <aside class="sowhat">
             <span class="tag">ポイント</span>
-            <p>量子化を「精度を払う税」にしない。<strong>元モデルへの再蒸留</strong>にする。回復済みbf16を教師に戻すと、その天井に縛られる。</p>
+            <p>「Nvidiaを破った」は切らない。ページが置くのは<strong>ワットあたりと減延の同時改善</strong>。比較対象名は付録のGB200 / GB300まで。</p>
           </aside>
         </div>
       </section>
@@ -431,15 +408,29 @@
         <div class="slide-head">
           <span class="no">05</span>
           <div>
-            <p class="slide-kicker">NEWNESS &amp; PRICING</p>
+            <p class="slide-kicker">NEWNESS</p>
             <h2>最近出た新しい手法か</h2>
           </div>
         </div>
-        <div class="notes single">
+        <div class="notes">
           <div class="notes-main">
-            <p><strong>はい。QAHの公開は新しい。</strong> Hugging Faceブログは2026年8月25日。論文は arXiv 2608.20953。価格表は一次情報に無いので置かない。</p>
-            <p>置くべきなのは手順の位置だけ。compress-then-healの教師を、回復済みではなく元モデルにする。9B MXFP4の対照では、QAHは約100ステップで54.9、QATは約700で54.6のあと低下する。</p>
+            <p><strong>はい。初の自社推論チップの初測定である。</strong> 公式掲載は2026年8月25日。価格表は一次情報に無いので置かない。配備台数も置かない。</p>
+            <p>セクション見出しはこれだ。<strong>「We used AI to design the chip, and designed the chip so AI could program it」</strong>。初期世代が設計と立ち上げを助け、最新モデルが最適化とプログラミングを加速する。</p>
+            <ul class="checks">
+              <li><b>設計→テープアウト 9か月</b> — AIが実装探索、設計・測定・検証のループ短縮、モデル負荷の反復に使われた</li>
+              <li><b>Codex + GPT-Astra</b> — 当初の本番計画に無かったオープンウェイト3モデルを、2か月で高性能まで持っていった</li>
+              <li><b>選択ブロックのカーネル</b> — GPT-OSSの注意とMoEの選択ブロックで、AI生成実装が人手専門家比<strong>1.5–1.8倍速い</strong>。全モデルではなく、そのブロックだけの数字</li>
+              <li><b>先の道</b> — 年の終わりまでに自社計算基盤へ配備を始める。Gen 2は開発の深部、Gen 3は形になりつつある</li>
+            </ul>
+            <div class="quote">
+              “Jalapeño is working first-party silicon with measured results, and it is the beginning of a multigenerational platform.”
+              <small>— OpenAI「Jalapeño’s first results」（2026-08-25）</small>
+            </div>
           </div>
+          <aside class="sowhat">
+            <span class="tag">位置</span>
+            <p>動いているシリコンの初結果。複数世代の1世代目。<strong>台数も2027も、一次情報には無い。</strong></p>
+          </aside>
         </div>
       </section>
 
@@ -454,14 +445,15 @@
         <div class="notes single">
           <div class="notes-main">
             <ul class="checks">
-              <li><b>量子化を再蒸留の機会にする</b> — 日本デスクの結論。4bit化を後処理の損失にしない</li>
-              <li><b>compress-then-heal の教師は元モデル</b> — 回復済みbf16を教師にしない。今回の教師はGPT-OSS 120B</li>
-              <li><b>勝ち負けを分ける</b> — 7勝はAA-LCR・AIME 2025・Aider・τ²-bench・GPQA Diamond・IFBench・LiveCodeBench。負けはMMLU-Pro −0.2、SciCode −1.4</li>
-              <li><b>LiveCodeBenchは教師も超える</b> — 学生66.5、自前bf16 65.5、120B教師66.0</li>
-              <li><b>QAT対照は9B MXFP4</b> — QAH 54.9（約100ステップで保持）、QAT 54.6（約700、その後ステップ1,200までに約19ポイント低下）</li>
+              <li><b>ワットあたりと減延を一緒に切る</b> — 日本デスクの結論。トレードオフしないチップを見る。チップあたりの勝ち負けで買わない</li>
+              <li><b>横断レンジを先に置く</b> — ピーク時ワットあたり1.5–1.9×、端到端1.7–3.6×減、高対話2.1–4.1×。行別は付録</li>
+              <li><b>最大公開モデルはKimi</b> — ピーク時ワットあたり約1.5×、端到端約3.4×減（対GB300 1,400 W）</li>
+              <li><b>電力は定格と実測を分ける</b> — 定格700 W。試験負荷の持続は550 W以下。正規化は各社の公表定格</li>
+              <li><b>エージェントは遅延が積む</b> — 多段の逐次ステップ。遅延が低い側を、スループットと同時に見る</li>
+              <li><b>配備は「年の終わりから始める」まで</b> — NVIDIAほかパートナーも引き続き広く使う、と公式が書く。台数は置かない</li>
             </ul>
             <div class="warn" style="margin-top:18px;">
-              <p><strong>注意：</strong> 9指標すべてで勝っているわけではない。MMLU-ProとSciCodeは自前bf16が上。QAT比較はGPT-OSS 9B MXFP4の条件。論文 arXiv 2608.20953 への追加の主張はしない。</p>
+              <p><strong>注意：</strong> 「Nvidiaを破った」見出しは切らない。比較対象は公式付録のGB200 1,200 W / GB300 1,400 W。選択ブロックの1.5–1.8×は全モデルではない。配備台数と2027は一次情報に無い。</p>
             </div>
           </div>
         </div>
@@ -472,23 +464,22 @@
     <section class="finale">
       <p class="eyebrow">TAKEAWAY</p>
       <blockquote>
-        半分に潰して4bitにしたモデルが、同じ設計の16bitより賢い。<em>教師は回復済みbf16ではなく元モデル</em>。量子化を再蒸留の機会にする。
+        速さと効率、どちらかを捨てる、が謎。<em>ワットあたりと減延を一緒に切る</em>。トレードオフしないチップを見る。
       </blockquote>
-      <p>掲載：2026-08-25 ｜ 本スライド：2026-08-25 ｜ Day Slide No.390</p>
+      <p>公式掲載：2026-08-25 ｜ 本スライド：2026-08-26 ｜ Day Slide No.391</p>
     </section>
 
     <footer style="margin-top:48px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.8;">
       <p style="margin:0 0 8px;"><strong style="color:var(--ink);">情報源</strong></p>
       <ul style="margin:0;padding-left:1.2em;font-size:12.5px;">
-        <li>Hugging Face「Quantization-Aware Healing」（2026-08-25）— <a href="https://huggingface.co/blog/MultiverseComputingCAI/quantization-aware-healing" style="color:var(--accent);">https://huggingface.co/blog/MultiverseComputingCAI/quantization-aware-healing</a></li>
-        <li>論文 arXiv 2608.20953 — <a href="https://arxiv.org/abs/2608.20953" style="color:var(--accent);">https://arxiv.org/abs/2608.20953</a></li>
+        <li>OpenAI「Jalapeño’s first results show industry-leading speed and efficiency in AI inference」（2026-08-25）— <a href="https://openai.com/index/jalapeno-first-results/" style="color:var(--accent);">https://openai.com/index/jalapeno-first-results/</a></li>
       </ul>
-      <p style="margin:18px 0 0;font-size:12px;">本スライドは公式ブログに基づき、エンジニアが5分で切れるよう整理したものです。数値は一次情報にあるものだけを使っています。Day Slide No.390 ｜ 2026-08-25</p>
+      <p style="margin:18px 0 0;font-size:12px;">本スライドは公式ブログに基づき、エンジニアが5分で切れるよう整理したものです。数値は一次情報にあるものだけを使っています。Day Slide No.391 ｜ 2026-08-26</p>
     </footer>
   </main>
 
   <!-- slide-nav:start -->
-<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_24.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_08_26.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">翌日 →</a><a href="day_slide_2026_08_25.html" download style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">HTML保存</a></nav>
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_08_25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_08_26.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-08-26.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_08_26.html" download style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">HTML保存</a></nav>
 <!-- slide-nav:end -->
 
   <script>
