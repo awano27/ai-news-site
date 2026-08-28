@@ -2674,6 +2674,16 @@
       });
     }
 
+    function titlesFromList(slides) {
+      var titles = {};
+      (Array.isArray(slides) ? slides : []).forEach(function (s) {
+        if (!s || !s.date || !s.label) return;
+        var label = String(s.label).replace(/^\d{1,2}\/\d{1,2}\s*-\s*/, '').trim();
+        if (label) titles[s.date] = label;
+      });
+      return titles;
+    }
+
     function titlesFromIndex(html) {
       var titles = {};
       var slideRe = /href="(?:\.\.\/)?day_slides\/day_slide_(\d{4})_(\d{2})_(\d{2})\.html"[^>]*>[\s\S]*?<span class="slide-title">([\s\S]*?)<\/span>/gi;
@@ -2852,13 +2862,16 @@
       var archiveEntries = Array.isArray(entries) ? entries : [];
       if (todayDate || archiveEntries.length) {
         var weekEntries = buildWeekEntries(archiveEntries, todayDate);
+        var listTitles = titlesFromList(slidesData);
         fetch('presentations/day_slides_index.html', { cache: 'no-store' })
           .then(function (r) { return r.ok ? r.text() : ''; })
           .then(function (html) {
-            renderWeek(weekEntries, todayDate, titlesFromIndex(html));
+            var titles = titlesFromIndex(html);
+            Object.keys(listTitles).forEach(function (k) { titles[k] = listTitles[k]; });
+            renderWeek(weekEntries, todayDate, titles);
           })
           .catch(function () {
-            renderWeek(weekEntries, todayDate, {});
+            renderWeek(weekEntries, todayDate, listTitles);
           });
         if (archiveEntries.length) renderStats(archiveEntries, slideCount, latest);
         else applyGeneratedAt(latest);
