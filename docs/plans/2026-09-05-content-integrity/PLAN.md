@@ -16,3 +16,6 @@
 
 ## Push follow-up
 ユーザーのpush指示により、最新origin/main c33aafdeを基点にcodex/visionhub-content-integrity-20260905へ今回差分だけを移植。8既存ファイルの3-way適用は競合なし。元checkoutのdirtyとローカル固有コミットは含めない。専用worktreeで関連tests/checker/diffを再検証し、今回ファイルだけcommit/push。main merge/deployは行わない。初回監査は旧checkoutでの実行記録として保持する。
+
+## Production follow-up
+ユーザーが本番に見えるようmainへpushすることを明示承認。最新mainとの差分は今回1コミットのみ。Terraは9/5の実在141件データ内のCrusoeと実在派生出力だけを訂正し無関係記事/日付/件数を保持。主担当はchecker/関連検査/生成差分を確認しmainへfast-forward push、GitHub Pages成功と公開本文・訂正JSONを確認する。既存dirty checkoutは触らず、全アーカイブ生成/有料APIは実行しない。既存homepage test失敗は前ターンでbaseline再現済み、同条件なら再実行不要。
