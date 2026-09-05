@@ -7,12 +7,14 @@ Output structure:
   Section 4: HuggingFace注目モデル (trending models)
 """
 
+import json
 import logging
 from datetime import date
 from pathlib import Path
 from typing import List, Dict
 
 from .config import MAX_ARTICLES_IN_REPORT
+from .claim_evidence import require_valid_evidence
 
 logger = logging.getLogger(__name__)
 
@@ -99,9 +101,12 @@ class DayFileFormatter:
         summary = article.get("summary", "")
         points = article.get("points", [])
         url = article.get("url", "")
-        source = article.get("source", "")
+        source = article.get("source_attribution") or article.get("source", "")
         hn_score = article.get("hn_score")
         evidence = article.get("evidence", {})
+        claim_evidence = article.get("claim_evidence")
+        if claim_evidence is not None:
+            require_valid_evidence(claim_evidence, article)
 
         lines.append(f"■ {title}（{category} / スコア: {score}）")
 
@@ -119,6 +124,12 @@ class DayFileFormatter:
 
         if article.get("integrity_status"):
             lines.append(f"  ⚠ 整合性: {article['integrity_status']}")
+
+        if claim_evidence is not None:
+            lines.append(
+                "  🔎 Claim Evidence: "
+                + json.dumps(claim_evidence, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            )
 
         for point in points[:5]:
             p = point if point.startswith("・") else f"・{point}"

@@ -14,6 +14,8 @@ import re
 from typing import Any, Dict, Iterable, List, Tuple
 from urllib.parse import urlsplit, urlunsplit
 
+from .claim_evidence import require_valid_evidence
+
 
 class FinancialClaimError(ValueError):
     """Raised when one metric/event/currency is assigned two amounts."""
@@ -104,6 +106,90 @@ CRUSOE_2026_09_05_URL = (
     "crusoe-reportedly-raises-3b-at-a-30b-valuation"
 )
 
+# The source was reviewed as a TechCrunch article that attributes the report to
+# Bloomberg.  These are not claims of a direct Crusoe announcement.  The
+# literal seals below are filled once from this reviewed record and are never
+# regenerated during rendering.
+_CRUSOE_CLAIM_EVIDENCE: Dict[str, Any] = {
+    "version": 1,
+    "sources": [{
+        "id": "techcrunch-crusoe-20260903",
+        "publisher": "TechCrunch",
+        "title": "Crusoe reportedly raises $3B at a $30B valuation",
+        "url": CRUSOE_2026_09_05_URL,
+        "published_at": "2026-09-03",
+    }],
+    "claims": [
+        {
+            "id": "crusoe-valuation",
+            "label": "企業価値",
+            "statement": "Crusoeの企業価値は約300億米ドルと報じられた。",
+            "evidence_label": "Claim",
+            "basis": "reporting",
+            "status": "matched",
+            "source_refs": [{
+                "source_id": "techcrunch-crusoe-20260903",
+                "section": "リード段落",
+                "supports": "Bloomberg報道として、Crusoeの企業価値が約300億米ドルと記載されている。",
+            }],
+            "conditions": ["金額はTechCrunchがBloomberg報道として記した内容である。"],
+            "as_of": "2026-09-03",
+            "uncertainty": "Bloomberg原報を直接確認していない。Crusoe自身の公式発表もこの照合では確認していない。",
+            "verification": {
+                "checked_at": "2026-09-05",
+                "method": "ai_document_review",
+                "fingerprint": "b9ca46694a5ccf612f137f2b40a7f86f6287813b9c2a7329974a06c4cbe17677",
+                "note": "TechCrunch本文をAIで確認。Bloomberg報道への帰属を維持し、Crusoeの直接発表とは扱わない。",
+            },
+        },
+        {
+            "id": "crusoe-funding",
+            "label": "調達額",
+            "statement": "Crusoeが約30億米ドルを調達したと報じられた。",
+            "evidence_label": "Claim",
+            "basis": "reporting",
+            "status": "matched",
+            "source_refs": [{
+                "source_id": "techcrunch-crusoe-20260903",
+                "section": "リード段落",
+                "supports": "Bloomberg報道として、Crusoeが約30億米ドルを調達したと記載されている。",
+            }],
+            "conditions": ["金額はTechCrunchがBloomberg報道として記した内容である。"],
+            "as_of": "2026-09-03",
+            "uncertainty": "Bloomberg原報を直接確認していない。Crusoe自身の公式発表もこの照合では確認していない。",
+            "verification": {
+                "checked_at": "2026-09-05",
+                "method": "ai_document_review",
+                "fingerprint": "10f5a4f57489989cc5f4dc340f867315d1d1f8f33fc77204815750a440b3c017",
+                "note": "TechCrunch本文をAIで確認。Bloomberg報道への帰属を維持し、Crusoeの直接発表とは扱わない。",
+            },
+        },
+        {
+            "id": "crusoe-contract",
+            "label": "Jane Street契約",
+            "statement": "Jane StreetへのGPU・AIインフラ提供の5年契約は約130億米ドルと報じられた。",
+            "evidence_label": "Claim",
+            "basis": "reporting",
+            "status": "matched",
+            "source_refs": [{
+                "source_id": "techcrunch-crusoe-20260903",
+                "section": "Jane Street契約段落",
+                "supports": "Jane StreetへのGPU・AIインフラ提供の5年契約が約130億米ドルと記載されている。",
+            }],
+            "conditions": ["契約額と期間は資金調達・企業価値とは別の指標である。", "金額はTechCrunchがBloomberg報道として記した内容である。"],
+            "as_of": "2026-09-03",
+            "uncertainty": "Bloomberg原報を直接確認していない。Crusoe自身の公式発表もこの照合では確認していない。",
+            "verification": {
+                "checked_at": "2026-09-05",
+                "method": "ai_document_review",
+                "fingerprint": "c6292dee5d5206e48c4f8a943a2c853c97e54f709dd7e9a7754490b42a5ed90b",
+                "note": "TechCrunch本文をAIで確認。Bloomberg報道への帰属を維持し、Crusoeの直接発表とは扱わない。",
+            },
+        },
+    ],
+    "subject_fingerprint": "001df1d0715df1c5075aa744f7694896348297cff4bac7223895f7f8956bbe12",
+}
+
 ARTICLE_CORRECTIONS: Dict[str, Dict[str, Any]] = {
     CRUSOE_2026_09_05_URL: {
         "tldr": "TechCrunchはBloomberg報道として、Crusoeが約30億米ドルを調達し、企業価値が約300億米ドルになったと報じた。",
@@ -115,6 +201,7 @@ ARTICLE_CORRECTIONS: Dict[str, Dict[str, Any]] = {
         ),
         "source_attribution": "TechCrunch（Bloomberg報道）",
         "correction_note": "2026-09-05: 企業価値・調達額・契約額を別の指標として訂正。",
+        "claim_evidence": _CRUSOE_CLAIM_EVIDENCE,
         "financial_claims": [
             {"metric": "valuation", "currency": "USD", "amount": "30", "unit": "billion", "event_date": "unknown", "reported_at": "2026-09-03"},
             {"metric": "funding", "currency": "USD", "amount": "3", "unit": "billion", "event_date": "unknown", "reported_at": "2026-09-03"},
@@ -159,8 +246,10 @@ def apply_article_correction(article: Dict[str, Any]) -> Dict[str, Any]:
             "impact": "",
             "actionable": "",
             "competitors": [],
+            "claim_evidence": deepcopy(correction["claim_evidence"]),
         }
     )
+    require_valid_evidence(corrected["claim_evidence"], corrected)
     return corrected
 
 

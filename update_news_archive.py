@@ -26,9 +26,16 @@ def parse_date_from_filename(filename):
     """
     return filename_to_iso(filename)
 
+
+def _is_claim_evidence_metadata_line(line):
+    """Keep the optional dayfile transport record out of legacy article text."""
+    return line.strip().startswith("🔎 Claim Evidence:")
+
+
 def extract_news_content(text):
     """テキストからニュース内容を抽出（改良版）"""
-    lines = text.strip().split('\n')
+    lines = [line for line in text.strip().split('\n') if not _is_claim_evidence_metadata_line(line)]
+    text = "\n".join(lines)
     if not lines:
         return None
         

@@ -5,12 +5,14 @@ Extracted from html_report.py; the orchestrator imports from here.
 """
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import List, Dict
 
 from . import trend_tracker
 from .content_integrity import apply_financial_integrity
+from .claim_evidence import require_valid_evidence
 
 
 def parse_daily_txt(txt_path: Path) -> Dict:
@@ -86,6 +88,7 @@ def parse_daily_txt(txt_path: Path) -> Dict:
                 "hn_score": "",
                 "correction_note": "",
                 "integrity_status": "",
+                "claim_evidence": None,
             }
 
             match = re.match(r"■ (.+?)（(.+?) / スコア: (\d+)）", line)
@@ -130,6 +133,12 @@ def parse_daily_txt(txt_path: Path) -> Dict:
             current_item["correction_note"] = line_s.split("訂正:", 1)[-1].strip()
         elif line_s.startswith("⚠ 整合性:"):
             current_item["integrity_status"] = line_s.split("整合性:", 1)[-1].strip()
+        elif line_s.startswith("🔎 Claim Evidence:"):
+            encoded = line_s.split("Claim Evidence:", 1)[-1].strip()
+            try:
+                current_item["claim_evidence"] = json.loads(encoded)
+            except json.JSONDecodeError as error:
+                raise ValueError(f"invalid Claim Evidence JSON in {txt_path}") from error
         elif line_s.startswith("📄"):
             current_item["license"] = line_s[2:].strip()
         elif line_s.startswith("🏷"):
@@ -152,10 +161,13 @@ def parse_daily_txt(txt_path: Path) -> Dict:
     # Apply the same deterministic article-level guard so an HTML regeneration
     # cannot restore a corrected financial summary.
     for section in ("headlines", "funding", "github", "models"):
-        result[section] = [
-            apply_financial_integrity({**item, "date": result["date"]})
-            for item in result[section]
-        ]
+        checked_items = []
+        for item in result[section]:
+            checked = apply_financial_integrity({**item, "date": result["date"]})
+            if checked.get("claim_evidence") is not None:
+                require_valid_evidence(checked["claim_evidence"], checked)
+            checked_items.append(checked)
+        result[section] = checked_items
 
     return result
 

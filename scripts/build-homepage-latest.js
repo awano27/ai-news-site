@@ -457,6 +457,18 @@ function blurbFor(item) {
   return String(raw).replace(/\s+/g, ' ').trim().slice(0, 200);
 }
 
+// Preserve optional, reviewed records from the existing report. This consumer
+// neither assigns a verification state nor updates its dates or fingerprints.
+function claimEvidenceFor(item, reportDate) {
+  const bundle = item.claim_evidence;
+  if (!bundle || !Array.isArray(bundle.claims) || !bundle.claims.length) return {};
+  const firstId = bundle.claims[0].id;
+  const evidenceUrl = /^\d{4}-\d{2}-\d{2}$/.test(reportDate || '') && /^[A-Za-z][A-Za-z0-9_-]{0,99}$/.test(firstId || '')
+    ? `presentations/daily_reports/auto_daily_report_${reportDate.replace(/-/g, '_')}.html#evidence-${firstId}`
+    : null;
+  return { claim_evidence: bundle, ...(evidenceUrl ? { evidence_url: evidenceUrl } : {}) };
+}
+
 function pushItem(sections, bucket, record, perBucketLimit = 6) {
   if (!sections[bucket]) sections[bucket] = [];
   if (sections[bucket].length >= perBucketLimit) return;
@@ -512,6 +524,7 @@ function buildSectionsFromAutoDaily() {
       date: reportDate || '',
       stars: starsForScore(h.score, h.importance),
       source: normalizeSource(h, h.source),
+      ...claimEvidenceFor(h, reportDate),
     });
   }
 
@@ -524,6 +537,7 @@ function buildSectionsFromAutoDaily() {
       date: reportDate || '',
       stars: starsForScore(f.score, f.importance),
       source: normalizeSource(f, 'funding'),
+      ...claimEvidenceFor(f, reportDate),
     });
   }
 
