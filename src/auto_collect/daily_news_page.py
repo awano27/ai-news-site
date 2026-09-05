@@ -25,6 +25,7 @@ from typing import Dict, List, Optional
 
 from .config import PROJECT_ROOT
 from .content_integrity import apply_financial_integrity
+from .claim_evidence import render_evidence, require_valid_evidence
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,8 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
     for a in articles or []:
         # A final guard also covers direct callers that did not use LLMProcessor.
         a = apply_financial_integrity(a)
+        if a.get("claim_evidence") is not None:
+            require_valid_evidence(a["claim_evidence"], a)
         title = a.get("title") or a.get("name") or ""
         if not title:
             continue
@@ -98,7 +101,7 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
             "score": score,
             "category": cat,
             "category_raw": cat_raw,
-            "source": a.get("rss_source") or a.get("source") or "",
+            "source": a.get("source_attribution") or a.get("rss_source") or a.get("source") or "",
             "tag_group": tag,
             "date": a.get("date") or a.get("published_at") or a.get("updated_at") or "",
             "financial_claims": a.get("financial_claims") or [],
@@ -106,6 +109,7 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
             "correction_note": a.get("correction_note") or "",
             "integrity_status": a.get("integrity_status") or "",
             "integrity_warning": a.get("integrity_warning") or "",
+            "claim_evidence": a.get("claim_evidence"),
         })
     return out
 
@@ -142,6 +146,7 @@ def _render_news_card(item: Dict) -> str:
     score = item["score"]
     summary = _esc(_truncate(item.get("summary", ""), 240))
     correction_note = _esc(item.get("correction_note", ""))
+    claim_evidence_html = render_evidence(item.get("claim_evidence"), subject=item)
     tldr = _esc(_truncate(item.get("tldr", ""), 100))
     label = item.get("evidence_label", "")
     label_html = (
@@ -164,6 +169,7 @@ def _render_news_card(item: Dict) -> str:
   {f'<div class="card-tldr">{tldr}</div>' if tldr else ''}
   {f'<div class="card-body">{summary}</div>' if summary else ''}
   {f'<div class="card-correction">訂正: {correction_note}</div>' if correction_note else ''}
+  {claim_evidence_html}
   <div class="card-foot">
     {label_html}
     {open_link}
@@ -322,7 +328,7 @@ def generate_daily_news(
                 .replace("{{TAB_BUTTONS}}", _build_tab_buttons(category_counts))
                 .replace("{{TIMELINE_HTML}}", timeline_html)
                 .replace("{{GENERATED_AT}}", generated_at)
-                .replace("{{REPORT_DATA_JSON}}", json.dumps(report_data, ensure_ascii=False)))
+                .replace("{{REPORT_DATA_JSON}}", json.dumps(report_data, ensure_ascii=False).replace("<", "\\u003c")))
 
     out_path = DAILY_NEWS_DIR / "index.html"
     out_path.write_text(html_out, encoding="utf-8")

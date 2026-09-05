@@ -14,6 +14,7 @@ from typing import List, Dict
 from .ogp_generator import render as _ogp_render
 from . import trend_tracker
 from . import dedup as _dedup
+from .claim_evidence import render_evidence, require_valid_evidence
 
 TEMPLATE_PATH = Path(__file__).parent / "report_template.html"
 
@@ -128,6 +129,7 @@ def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
         f'<div class="d-correction">訂正: {_esc(correction_note)}</div>'
         if correction_note else ""
     )
+    claim_evidence_html = render_evidence(item.get("claim_evidence"), subject=item)
 
     ev_rows = ""
     has_ev = any(
@@ -165,6 +167,7 @@ def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
     <span class="row-arr">&#9660;</span>
   </div>
   {tldr_html}
+  {claim_evidence_html}
   <div class="row-detail">
     <div class="d-summary">{_esc(item.get("summary",""))}</div>
     {correction_html}
@@ -214,6 +217,11 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
     # Filter GitHub section to only include github.com URLs
     github = [g for g in data["github"] if "github.com" in g.get("url", "")]
     models = data["models"]
+
+    for items in (headlines, funding, github, models):
+        for item in items:
+            if item.get("claim_evidence") is not None:
+                require_valid_evidence(item["claim_evidence"], item)
 
     # Defensive cross-section dedup
     headlines, funding, models, github = _dedup.dedup_across_sections(

@@ -55,6 +55,13 @@ function extractFallbackTitle(content) {
   return lines[0] || 'タイトル不明';
 }
 
+function stripClaimEvidenceMetadataLines(content) {
+  // DayFileFormatter transports optional claim evidence on one JSON line.
+  // The legacy raw-text fallback is an article summary, so it must not expose
+  // that transport record or count its source URLs as article links.
+  return content.replace(/^[\t ]*🔎 Claim Evidence:.*(?:\r?\n|$)/gm, '');
+}
+
 function extractFallbackSummary(content, title) {
   const lines = content
     .split(/\r?\n/)
@@ -182,7 +189,7 @@ function loadDailySnapshots() {
  */
 function parseNewsFile(filePath, filename) {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = stripClaimEvidenceMetadataLines(fs.readFileSync(filePath, 'utf-8'));
 
     const date = inferDateFromFilename(filename);
     if (!date) return null;

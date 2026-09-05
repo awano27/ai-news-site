@@ -37,6 +37,11 @@ jobs:
         # No vendor fetches or model API calls run in this step.
         run: python scripts/check_coding_guide_integrity.py
 
+      - name: Check evidence records on migrated pages
+        # Offline structure/consistency check for the initial migration only.
+        # Legacy articles without metadata and external link outages are not gates.
+        run: python scripts/check_claim_evidence.py
+
       - name: Strip server-side / dev-only paths before deploy
         # Keep the artifact small + avoid leaking local helpers to the CDN.
         run: |
