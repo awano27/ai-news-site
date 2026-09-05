@@ -1,0 +1,46 @@
+Baseline HEAD c33aafde: files extracted directly via git show HEAD
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_build_homepage_accepts_marked_latest_slide_fallbacks __________
+
+tmp_path = WindowsPath('C:/Users/awano/AppData/Local/Temp/pytest-of-awano/pytest-891/test_build_homepage_accepts_ma0')
+
+    def test_build_homepage_accepts_marked_latest_slide_fallbacks(tmp_path: Path) -> None:
+        node = shutil.which("node")
+        if not node:
+            pytest.skip("node is required for the homepage build integration test")
+
+        script = tmp_path / "scripts" / "build-homepage-latest.js"
+        script.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "scripts" / "build-homepage-latest.js", script)
+        shutil.copy2(ROOT / "index.html", tmp_path / "index.html")
+
+        newest_slide = max((ROOT / "presentations" / "day_slides").glob("day_slide_????_??_??.html"))
+        slide_dir = tmp_path / "presentations" / "day_slides"
+        slide_dir.mkdir(parents=True)
+        shutil.copy2(newest_slide, slide_dir / newest_slide.name)
+
+        result = subprocess.run(
+            [node, str(script)],
+            cwd=tmp_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        assert result.returncode == 0, result.stdout + result.stderr
+        updated = (tmp_path / "index.html").read_text(encoding="utf-8")
+        assert 'id="heroTwist"' in updated
+        assert 'id="heroWhy"' in updated
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        src_twist = source.split('id="heroTwist"', 1)[1].split("</p>", 1)[0]
+        out_twist = updated.split('id="heroTwist"', 1)[1].split("</p>", 1)[0]
+>       assert 'id="heroIdentity"' in updated
+E       assert 'id="heroIdentity"' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+
+C:\Users\awano\AppData\Local\Temp\visionhub-push-baseline-bcefq0sk\tests\test_build_homepage_latest.py:43: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\Users\awano\AppData\Local\Temp\visionhub-push-baseline-bcefq0sk\tests\test_build_homepage_latest.py::test_build_homepage_accepts_marked_latest_slide_fallbacks
+1 failed in 2.35s
+
+exit=1

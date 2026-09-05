@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Optional
 
 from .llm_provider import LLMProvider, make_provider
+from .content_integrity import apply_financial_integrity
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class LLMProcessor:
             elif stars > 100:
                 score = 60
 
-            processed.append({
+            processed.append(apply_financial_integrity({
                 "title": repo["name"],
                 "title_en": repo["name"],
                 "summary": repo.get("tagline", ""),
@@ -118,7 +119,7 @@ class LLMProcessor:
                     "license": license_id,
                     "topics": topics[:5],
                 },
-            })
+            }))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return processed
@@ -138,7 +139,7 @@ class LLMProcessor:
             elif likes > 100:
                 score = 55
 
-            processed.append({
+            processed.append(apply_financial_integrity({
                 "title": item["name"],
                 "title_en": item["name"],
                 "summary": item.get("tagline", ""),
@@ -156,7 +157,7 @@ class LLMProcessor:
                     "impact_ja": f"HuggingFaceでトレンド中。{item.get('pipeline_tag', '')}タスク向け。",
                     "actionable": f"from transformers import AutoModel; model = AutoModel.from_pretrained('{item['name']}')",
                 },
-            })
+            }))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return processed
@@ -168,7 +169,7 @@ class LLMProcessor:
             amount = item.get("funding_amount", "")
             score = 70 if amount else 55
 
-            processed.append({
+            processed.append(apply_financial_integrity({
                 "title": item["name"],
                 "title_en": item["name"],
                 "summary": item.get("tagline", ""),
@@ -183,7 +184,7 @@ class LLMProcessor:
                     "impact_ja": "AI業界の資金動向。投資判断の参考に。",
                     "actionable": "",
                 },
-            })
+            }))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return processed
@@ -207,7 +208,7 @@ class LLMProcessor:
 
         parsed = self._extract_json(text)
         if parsed:
-            return {
+            return apply_financial_integrity({
                 "title": parsed.get("title_ja", title),
                 "title_en": title,
                 "tldr": parsed.get("tldr", "")[:80],
@@ -225,7 +226,7 @@ class LLMProcessor:
                     "actionable": parsed.get("actionable", ""),
                     "evidence_label": parsed.get("evidence_label", ""),
                 },
-            }
+            })
 
         logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'")
         return self._fallback_process(article)
@@ -280,7 +281,7 @@ class LLMProcessor:
                 category = cat
                 break
 
-        return {
+        return apply_financial_integrity({
             "title": title,
             "title_en": title,
             "tldr": tagline[:80],
@@ -298,7 +299,7 @@ class LLMProcessor:
                 "actionable": "",
                 "evidence_label": "",
             },
-        }
+        })
 
 
 # Backward-compatible alias for any external importer.

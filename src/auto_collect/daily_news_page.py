@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from .config import PROJECT_ROOT
+from .content_integrity import apply_financial_integrity
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,8 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
     """Map a processor-output article into the timeline item shape."""
     out = []
     for a in articles or []:
+        # A final guard also covers direct callers that did not use LLMProcessor.
+        a = apply_financial_integrity(a)
         title = a.get("title") or a.get("name") or ""
         if not title:
             continue
@@ -98,6 +101,11 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
             "source": a.get("rss_source") or a.get("source") or "",
             "tag_group": tag,
             "date": a.get("date") or a.get("published_at") or a.get("updated_at") or "",
+            "financial_claims": a.get("financial_claims") or [],
+            "source_attribution": a.get("source_attribution") or "",
+            "correction_note": a.get("correction_note") or "",
+            "integrity_status": a.get("integrity_status") or "",
+            "integrity_warning": a.get("integrity_warning") or "",
         })
     return out
 
@@ -133,6 +141,7 @@ def _render_news_card(item: Dict) -> str:
     source = _esc(item["source"])
     score = item["score"]
     summary = _esc(_truncate(item.get("summary", ""), 240))
+    correction_note = _esc(item.get("correction_note", ""))
     tldr = _esc(_truncate(item.get("tldr", ""), 100))
     label = item.get("evidence_label", "")
     label_html = (
@@ -154,6 +163,7 @@ def _render_news_card(item: Dict) -> str:
   <h2 class="card-title">{title_html}</h2>
   {f'<div class="card-tldr">{tldr}</div>' if tldr else ''}
   {f'<div class="card-body">{summary}</div>' if summary else ''}
+  {f'<div class="card-correction">訂正: {correction_note}</div>' if correction_note else ''}
   <div class="card-foot">
     {label_html}
     {open_link}

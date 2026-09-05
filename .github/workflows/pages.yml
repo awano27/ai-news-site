@@ -32,6 +32,11 @@ jobs:
       - name: Checkout (full tree)
         uses: actions/checkout@v4
 
+      - name: Check corrected technical claims before packaging
+        # Static guard only: warnings still need editorial source review.
+        # No vendor fetches or model API calls run in this step.
+        run: python scripts/check_coding_guide_integrity.py
+
       - name: Strip server-side / dev-only paths before deploy
         # Keep the artifact small + avoid leaking local helpers to the CDN.
         run: |

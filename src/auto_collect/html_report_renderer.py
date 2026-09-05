@@ -123,6 +123,11 @@ def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
         m = re.split(r"[。！？.!?]\s*", s, maxsplit=1)
         tldr = (m[0] if m else s).strip()[:90]
     tldr_html = f'<div class="row-tldr">{_esc(tldr)}</div>' if tldr else ""
+    correction_note = item.get("correction_note", "")
+    correction_html = (
+        f'<div class="d-correction">訂正: {_esc(correction_note)}</div>'
+        if correction_note else ""
+    )
 
     ev_rows = ""
     has_ev = any(
@@ -162,6 +167,7 @@ def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
   {tldr_html}
   <div class="row-detail">
     <div class="d-summary">{_esc(item.get("summary",""))}</div>
+    {correction_html}
     {points_html}
     {f'<div class="d-ev">{ev_rows}</div>' if ev_rows else ""}
     {url_html}

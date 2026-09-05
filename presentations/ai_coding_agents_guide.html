@@ -811,7 +811,7 @@
               <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">2026-06-01</span>
             </div>
             <h3 style="font-size:15px; font-weight:700; color:var(--text-heading); line-height:1.5; margin-bottom:8px;">GitHub Copilot が従量課金（GitHub AIクレジット）へ移行 &mdash; 6/1開始</h3>
-            <p style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:10px;">6/1に全プランが従量課金へ。Premium Request Unit を廃止し「GitHub AIクレジット」(1クレジット=$0.01)に置換。基本価格は据え置き（Pro $10 / Pro+ $39 / Business $19 / Enterprise $39、Copilot 専用の$100階層は存在しない）。既存契約には8/31までの移行促進クレジット（Business +$30・Enterprise +$70/人）を付与。コード補完・Next Edit Suggestions は無料・クレジット非消費。</p>
+            <p style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:10px;">6/1に全プランが従量課金へ。Premium Request Unit を廃止し「GitHub AIクレジット」(1クレジット=$0.01)に置換。基本価格は据え置き（Pro $10 / Pro+ $39 / Business $19 / Enterprise $39）。既存契約には8/31までの移行促進クレジット（Business +$30・Enterprise +$70/人）を付与。コード補完・Next Edit Suggestions は無料・クレジット非消費。</p>
             <a href="https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/" target="_blank" rel="noopener" style="font-size:12px; color:var(--accent-blue); font-family:'JetBrains Mono',monospace;">出典: github.blog &rarr;</a>
           </article>
 
@@ -968,17 +968,17 @@
               </tr>
               <tr>
                 <td>実行環境</td>
-                <td>ローカルマシン上で直接実行。ファイルシステムに完全アクセス</td>
-                <td>ローカル or クラウドサンドボックス。ネットワーク隔離</td>
-                <td>IDE内 / GitHub Cloud VM / ターミナル。3環境を横断</td>
-                <td>専用IDE内蔵。Editor View + Agent Managerの2画面構成</td>
+                <td>ローカルでの利用形態。Bash の隔離と承認は別設定です。</td>
+                <td>利用形態・隔離の有無は選ぶクライアント、プラン、設定で確認します。</td>
+                <td>IDE、Copilot CLI、Cloud Agent で権限と実行環境が異なります。</td>
+                <td>本ガイドでは、この項目を確認済みの仕様として比較していません。</td>
               </tr>
               <tr>
                 <td>サンドボックス</td>
-                <td>なし（ユーザー承認制で安全性を確保）</td>
-                <td>OS別ネイティブ実装（macOS: Seatbelt、Linux/WSL2: bubblewrap、Windows: ネイティブサンドボックス）</td>
-                <td>Cloud Agent用GitHub VM。IDE内はローカル実行</td>
-                <td>Docker/Firecracker VM。セキュアコンテナ内で実行</td>
+                <td>任意有効化の Bash sandbox。macOS・Linux・WSL2 で利用でき、ネイティブ Windows は未対応です。</td>
+                <td>この表では、OS・設定別の隔離仕様を一次資料で再確認してから判断します。</td>
+                <td>Cloud Agent は一時的な Linux sandbox。Copilot CLI のローカル sandbox は別途有効化・設定します。</td>
+                <td>確認済みの一次資料をこの表に記録できるまで、隔離方式を断定しません。</td>
               </tr>
               <tr>
                 <td>並列実行</td>
@@ -989,10 +989,10 @@
               </tr>
               <tr>
                 <td>拡張システム</td>
-                <td>Hooks（25種以上のイベント）+ Skills + MCP + Plugins（公式200+）</td>
-                <td>Skills + Automations + MCP</td>
-                <td>VS Code拡張 + MCP + カスタムエージェント</td>
-                <td>Agent Skills + MCP + Extensions</td>
+                <td>Hooks、Skills、MCP など。Hooks のイベントと適用範囲は公式仕様で確認します。</td>
+                <td>利用するクライアントと設定で異なります。個別の公式仕様を確認します。</td>
+                <td>Hooks は Copilot CLI と Cloud Agent で利用でき、実行環境ごとに制限があります。</td>
+                <td>確認済みの一次資料をこの表に記録できるまで、機構の有無を断定しません。</td>
               </tr>
               <tr>
                 <td>コンテキスト窓</td>
@@ -1005,14 +1005,14 @@
                 <td>自律性レベル</td>
                 <td>3段階: allowlist / ask毎回承認 / yolo全自動</td>
                 <td>3段階: suggest / auto-edit / full-auto</td>
-                <td>IDE: 手動承認 / Coding Agent: 完全自律（PR作成まで）</td>
+                <td>CLI と Cloud Agent では承認条件が異なります。Cloud Agent は非対話で動作します。</td>
                 <td>3段階: Assisted / Review / Autopilot</td>
               </tr>
               <tr>
                 <td>Git統合</td>
                 <td>直接gitコマンド実行。コミット・PR作成支援</td>
                 <td>Worktree自動管理。ブランチ切り替え・マージ自動化</td>
-                <td>GitHub完全統合。Issue→PR→Review→Mergeの全自動化</td>
+                <td>Issue・PR に関わる連携は、利用する機能とリポジトリの権限・運用設定を分けて確認します。</td>
                 <td>Git基本操作。ブランチ作成・コミット・プッシュ</td>
               </tr>
               <tr>
@@ -1039,7 +1039,14 @@
             </tbody>
           </table>
         </div>
-        <p style="font-size:11px; color:var(--text-muted); margin-top:10px; line-height:1.6;">* 各社公称のベンチマーク値で、測定ハーネスが異なり横並び比較はできません。独立系 swebench.com の検証済みリーダーボードは最高79.2%（2026年2月時点）にとどまり、88%超の値はいずれもベンダー自己申告（第三者未検証）。GPT-5.5 は SWE-bench Verified を公表せず Terminal-Bench 2.0 82.7% を提示、Gemini 3.5 Flash は SWE-bench Pro 55.1%。</p>
+        <p style="font-size:11px; color:var(--text-muted); margin-top:10px; line-height:1.6;">* モデル名、実行面、隔離、承認、Hooks、料金、性能は別の比較軸です。異なるベンチマーク、ハーネス、実行設定の数値を順位に変換しません。</p>
+        <div style="margin-top:18px; padding:16px; border-left:3px solid var(--accent-blue); background:rgba(88,166,255,0.06); border-radius:8px; font-size:13px; color:var(--text-muted); line-height:1.75;">
+          <strong style="color:var(--text-heading);">2026-09-05確認: 承認・隔離・Hooks を分けて読む</strong><br>
+          Claude Code の Bash sandbox は、<a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener" style="color:var(--accent-blue);">公式 sandboxing docs</a> によると、Bash とその子プロセスを OS レベルで制限します。<code>/sandbox</code> から有効化・状態確認を行い、macOS・Linux・WSL2 で利用できます（ネイティブ Windows は未対応）。既定では作業ディレクトリ、セッション一時ディレクトリ、追加許可ディレクトリに書き込める一方、読取りは明示的な deny 設定がなければ広い範囲に及びます。ネットワークは許可ドメインで制限します。通常の権限フローとは別であり、互換性や未許可ホストで失敗したコマンドをサンドボックス外で再試行する <code>allowUnsandboxedCommands</code> 設定もあります。したがって Claude Code 全体や他のツールが常に隔離されるわけではありません。<br>
+          Hooks も製品・実行環境ごとに比較します。<a href="https://code.claude.com/docs/en/hooks" target="_blank" rel="noopener" style="color:var(--accent-blue);">Claude Code hooks docs</a> は Claude Code のイベントを、<a href="https://docs.github.com/en/copilot/concepts/agents/hooks" target="_blank" rel="noopener" style="color:var(--accent-blue);">GitHub Copilot hooks docs</a> と <a href="https://docs.github.com/en/copilot/reference/hooks-reference" target="_blank" rel="noopener" style="color:var(--accent-blue);">hooks reference</a> は Copilot CLI / Cloud Agent の sessionStart、preToolUse、postToolUse などのイベント、設定範囲、許可・拒否の扱いを説明しています。Copilot の preToolUse は allow / deny / ask を返せますが、Cloud Agent には対話ユーザーがいないため ask は deny として扱われます。さらに Cloud Agent の policy hooks は非対応で、command hook と HTTP hook は失敗時の扱いも異なります。ログだけか、実行判断に介入できるか、失敗時に止められるかは各仕様と設定を確認してください。
+          <p>設定の適用範囲: Claude Code は <code>~/.claude/settings.json</code>（個人の全プロジェクト）、<code>.claude/settings.json</code>（プロジェクト）、管理ポリシーなどで Hooks を設定します。Web セッションは手元の個人設定を読みません。<code>PreToolUse</code> はツール実行前の許可・拒否・承認要求に介入でき、実行後のログ取得とは役割が異なります。Copilot CLI は個人・リポジトリ・管理ポリシーなどを読み、Cloud Agent はクローンしたリポジトリの <code>.github/hooks/*.json</code> を読みます。Cloud Agent のコマンドフックは Bash が対象で、PowerShell 設定は適用されません。これらの Hooks の説明を、すべての IDE 拡張へそのまま一般化しないでください。</p>
+          <p>訂正履歴（2026-09-05）: Claude Code の sandbox 不在、Hooks の唯一性、根拠のない製品順位を訂正しました。この注記に挙げた制御仕様の確認日であり、ページ内の全仕様・料金の最新性を保証するものではありません。</p>
+        </div>
       </div>
     </section>
 
@@ -1047,31 +1054,31 @@
     <section class="section diff-section" style="border-top: 1px solid rgba(255,255,255,0.06);">
       <div class="container">
         <p class="section-label" style="color: var(--accent-purple);">DEEP DIVE</p>
-        <h2 class="section-title">ツール別 差別化ポイント詳細</h2>
-        <p class="section-subtitle">各ツールが「他にはない」決定的な違い</p>
+        <h2 class="section-title">実行・制御を比較する時の確認点</h2>
+        <p class="section-subtitle">優劣ではなく、実行環境、権限、隔離、Hooks の条件を確認します。</p>
 
         <!-- Claude Code vs Others -->
         <div style="margin-bottom:48px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
             <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-orange), #ea580c);">C</div>
-            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Claude Code の独自優位性</h3>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Claude Code: Bash sandbox と Hooks</h3>
           </div>
           <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
             <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F9E0; 深い推論力（Effort制御）</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Claude Opus 4.8（2026/5/28 GA、SWE-bench Verified 公称88.6%）の推論能力により、大規模リファクタリングや複雑なバグ修正で他ツールを凌駕。Effort制御（high標準／extra=xhigh／max）で「考える深さ」を調整でき、なぜその変更が必要かを段階的に説明。CodexはGPT-5.3-Codex（速度重視）とGPT-5.5（深い推論）を切替可能だがツール思考の連続性で劣り、CopilotはGPT系で推論深度に限界あり。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F6E1;&#xFE0F; Bash sandbox は任意設定</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Claude Code の sandbox は承認機構そのものではありません。Bash とその子プロセスに、OS レベルのファイルシステムとネットワーク制限を適用します。macOS・Linux・WSL2 が対象で、ネイティブ Windows は未対応です。既定の読取範囲、書込許可、追加ディレクトリ、許可ドメイン、サンドボックス外の再試行可否を、利用時の設定で確認します。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1FA9D; Hooks — 唯一の自動介入システム</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">SessionStart・UserPromptSubmit・PreToolUse・PostToolUse・SubagentStart/Stop・TaskCreated/Completed・PreCompact・Stop など25種類以上のフックイベントでエージェントの行動をプログラム的に制御。「git push前に必ずテスト実行」「ファイル書込み前にlint」等をシェルスクリプトで定義可能。Codex/Copilot/Antigravityにはこのレベルの行動制御機構が存在しない。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1FA9D; Hooks はイベントと設定範囲を確認</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Claude Code は Hooks で所定のイベントに処理を追加できます。ただし、Hooks は Claude Code 固有の唯一の制御方式ではありません。たとえば GitHub Copilot も Copilot CLI と Cloud Agent で Hooks を提供し、preToolUse で allow / deny / ask の実行判断を返せます。どのイベントが実行されるか、設定がリポジトリ・個人・管理ポリシーのどこに適用されるか、失敗時に止まるかは製品と実行環境ごとに確認します。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F4E6; プラグインエコシステム（200+）</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">公式マーケットプレイス（anthropics/claude-plugins-official）に200以上、コミュニティ全体では1,000以上のプラグインが利用可能。Skills・Agents・Hooks・Commandsを1パッケージで配布。Codexはスキル定義のみ、Copilotは VS Code拡張依存、Antigravityは Agent Skillsのみ。Claude Codeだけが「プラグイン」という統合パッケージ形式を持つ。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F4DD; モデルと製品機能を分ける</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">モデルの能力、公称ベンチマーク、クライアントの操作性、拡張機構は別の主張です。モデルを選べる製品を単一モデルで評価せず、モデル名・版・プラン・評価ハーネス・実行設定を併記できる場合だけ比較します。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F310; 最多プラットフォーム対応</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">ターミナルCLI・VS Code・JetBrains・デスクトップApp・Web（claude.ai/code）の5形態。Codexは3形態（CLI/App/VS Code）、Copilotは多IDE対応だがCLIは別ツール、Antigravityは専用IDEのみ。開発者の好みの環境を選べる自由度が最も高い。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-orange); margin-bottom:8px;">&#x1F50E; 導入時の確認手順</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">導入前に、使用する OS、クライアント、プラン、組織ポリシーを決め、同じ組合せの公式仕様を確認します。承認を有効にしても OS レベルの隔離を自動的に意味するわけではなく、隔離を有効にしても対象外のツールやサンドボックス外実行がないかを確認します。</p>
             </div>
           </div>
         </div>
@@ -1080,24 +1087,24 @@
         <div style="margin-bottom:48px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
             <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-green), #16a34a);">X</div>
-            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Codex の独自優位性</h3>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Codex: 比較時に条件をそろえる</h3>
           </div>
           <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
             <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F6E1;&#xFE0F; ネイティブサンドボックス</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">OS別に最適化されたサンドボックス（macOS: Seatbelt、Linux/WSL2: bubblewrap、Windows: ネイティブ実装）を搭載。ネットワークアクセスを完全遮断した状態でコード実行が可能。Claude Codeはサンドボックスなし（承認制）、Copilotはクラウドのみ、Antigravityはコンテナ依存。プロダクション環境の安全性で最も優位。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F6E1;&#xFE0F; 隔離と承認を同一視しない</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">比較対象の安全性を順位付けするには、同じ OS、クライアント、設定、許可パス、ネットワーク方針、対象ツールで確認した根拠が必要です。このガイドはそれらをそろえた測定を保有していないため、製品間の安全性の順位を示しません。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F5A5;&#xFE0F; デスクトップApp — 非エンジニア向けGUI</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">ターミナル不要のGUIアプリで、プロジェクトマネージャーやデザイナーもコード変更を依頼可能。Claude Codeは基本CLI（デスクトップAppもあるが機能限定）、CopilotはIDE必須、Antigravityは専用IDE。「コードを書かない人」が使えるのはCodexが最も優れている。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F5A5;&#xFE0F; 利用者体験は実機で確認</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">CLI、IDE 拡張、デスクトップアプリ、クラウド実行は、同じ製品名でも提供機能と操作が変わります。利用者の役割に対する使いやすさは、対象の版と権限で試用して判断します。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x2601;&#xFE0F; Cloud Tasks — サーバーサイド並列</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">クラウド上で複数タスクを同時並列実行。ローカルマシンのリソースを消費せず、大規模リポジトリでの一括修正が可能。Claude Codeのworktreeは手動分離、Copilotの Coding Agentは逐次処理、AntigravityはGUI内5並列のみ。スケーラビリティで最も優位。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x2601;&#xFE0F; 並列性は実行面で測る</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">並列実行の可否や上限は、ローカル、クラウド、組織設定、リポジトリ状態で変わります。上限値やスケーラビリティの比較には、同一条件の実測または各社の直接仕様を添えます。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(63,185,80,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F4CB; TOML設定 — 宣言的で明確</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">設定ファイルがTOML形式で、承認ルール・モデル選択・サンドボックスポリシーを宣言的に記述。JSON（Claude Code/Copilot）やYAML（Antigravity）と比べてコメントが書きやすく、設定の意図が伝わりやすい。チーム開発での設定共有に最適。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-green); margin-bottom:8px;">&#x1F4CB; 設定形式だけで評価しない</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">設定形式は可読性の一要素です。権限やポリシーを共有する時は、どの設定層が優先され、管理者が上書きできるか、実行時にどう適用されたかを確認します。</p>
             </div>
           </div>
         </div>
@@ -1106,24 +1113,24 @@
         <div style="margin-bottom:48px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
             <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-blue), #2563eb);">G</div>
-            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">GitHub Copilot の独自優位性</h3>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">GitHub Copilot: Hooks の適用範囲</h3>
           </div>
           <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
             <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F3DB; Agent HQ — マルチツール司令塔</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Claude Code・Codex・Copilot自身を含む複数エージェントを1つのダッシュボードで統合管理。タスクの割り振り・進捗監視・結果のマージを一元化。他3ツールにはこの「メタ管理」機能がない。異なるAIツールを併用する開発チームにとって唯一無二の価値。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F916; Hooks は CLI と Cloud Agent で利用</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">GitHub の公式仕様では、Hooks は Copilot CLI と GitHub 上の Copilot Cloud Agent で利用できます。sessionStart、preToolUse、postToolUse などのイベントでコマンドを実行でき、preToolUse は allow / deny / ask を返せます。Cloud Agent では対話できず、ask は deny として扱われます。ログ用か実行判断用かは、イベント、hook 種別、失敗時の動作を確認して決めます。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F916; Coding Agent — Issue→PR完全自動</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">GitHubのIssueにラベルを付けるだけで、クラウドVM上でブランチ作成→コード変更→テスト→PR作成まで完全自動化。VS Code・JetBrains・Visual Studio・CLI・Mobile に対応し、Agentic Code Review（CodeQL/ESLint統合）も追加。2026/6/1 に全プランが GitHub AIクレジット（1クレジット=$0.01）の従量課金へ移行した。Claude Codeは手動トリガー、Codexは個別タスク、Antigravityはローカル限定。「人間が寝ている間にPRが上がっている」体験はCopilotだけ。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F3DB; Cloud Agent の制約</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Cloud Agent の Hooks は一時的な Linux sandbox で実行されます。ネットワーク、保存されないローカル出力、実行できる hook の種類に制限があります。Copilot CLI 向けの policy hooks は Cloud Agent では使えません。ローカル CLI、IDE、Cloud Agent を同じ機能・同じ安全性として扱いません。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F500; マルチモデル自由選択</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">同一プロジェクト内でClaude Opus 4.8・GPT-5.5・Gemini 3.5 Flash などを自由に切り替え可能（Grok は2026/5に廃止）。タスクの性質に応じて最適なモデルを選べる。Claude Opus 4.8 は2026/5/28に Pro+/Business/Enterprise でGAとなった。Claude CodeはClaude専用、CodexはOpenAI専用。Antigravityもマルチモデルだが、Copilotは最も早く・最も多くのモデルをサポートしてきた実績がある。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F500; モデル選択は提供面ごとに確認</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">選べるモデル、利用料金、利用可能なエージェント面はプランと提供地域で変わり得ます。特定モデルのベンチマークを製品全体の性能として扱わず、実際に選択するモデルと実行面を記録して比較します。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(88,166,255,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F30D; Copilot Spaces — ナレッジベース統合</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">コードリポジトリ + ドキュメント + Webページを1つの「Space」にまとめ、エージェントがプロジェクト全体の文脈を理解した上で回答。Claude Codeのメモリは会話ベース、Codexはセッション限定、AntigravityはGEMINI.md限定。組織のナレッジ活用で最も強力。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-blue); margin-bottom:8px;">&#x1F4C4; 設定の適用範囲を記録する</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Copilot Hooks はリポジトリの設定、個人の設定、プラグイン、管理ポリシーなどから読み込まれます。運用設計では、誰が設定を変更できるかと、どの実行面に適用されるかを確認します。</p>
             </div>
           </div>
         </div>
@@ -1132,24 +1139,24 @@
         <div style="margin-bottom:24px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
             <div style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg, var(--accent-red), #dc2626);">A</div>
-            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Google Antigravity の独自優位性</h3>
+            <h3 style="font-size:20px; font-weight:700; color:var(--text-heading);">Google Antigravity: 一次資料を確認してから比較</h3>
           </div>
           <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
             <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F4B0; 無料でClaude Opus利用可能</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Antigravityのプレビュー期間中はClaude Opus 4.6・Gemini 3.5 Flash・Gemini 3.1 Pro・GPT-OSS 120B がすべて無料で利用可能。I/O 2026で最上位プランが$250→$200に値下げ、新設のAI Ultra $100は20倍ではなく5倍枠ながら個人開発者向けの最適解。Claude Codeは$20〜（API課金別）、Copilotは$10〜、Codexも従量課金。「コスト」が障壁の開発者にとって最も参入しやすい選択肢。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F4B0; 料金・モデルはプラン単位で確認</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">料金、無料枠、利用可能モデルは変更頻度が高く、地域・プラン・プレビュー提供で異なります。比較表では、確認日と直接の公式料金・モデル資料を添えられない数値を採用しません。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F3AE; Agent Manager — GUI並列制御</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">最大5つのエージェントをGUI上でリアルタイム監視・操作。各エージェントの進捗バー・ログ・結果を一画面で確認可能。Claude Codeの並列はターミナル分割、Codexはバックグラウンド実行、CopilotのAgent HQはWeb別画面。「視覚的な並列管理」で最も直感的。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F3AE; 並列数と監視機能は実行面ごとに確認</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">並列数、進捗表示、ログの保存、失敗時の回復はクライアントと設定に依存します。数字を掲載する場合は、対象の実行面と公式仕様を同じ箇所に記録します。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x26A1; Gemini 3.5 Flash — 高速・低コストの主力</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">Antigravity 2.0と共同最適化されたGemini 3.5 Flash（コンテキスト1M／最大出力64k）を主力に、速度とコスト効率を両立。Gemini 3.1 Pro・Claude Opus 4.6・GPT-OSS 120Bへワンクリックで切替でき、軽量タスクは安価なFlashで高速処理できる。2.0直後に多発した429（レート制限）対策として6月に「Gemini 3.5 Flash (Low)」（トークン消費 約45%減）を追加、Gemini のレート上限もリセットされた。コンテキスト窓はClaude Code（1M）と同等水準で、かつてうたわれた2Mは現行モデルには存在しない点に注意。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x26A1; 性能値は同一条件で読む</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">コンテキスト長、出力上限、レート制限、速度、コストは別の指標です。異なるモデルやベンチマークの数値から、製品の順位や性能差を導きません。</p>
             </div>
             <div style="background:var(--bg-card); border:1px solid rgba(248,81,73,0.15); border-radius:12px; padding:20px;">
-              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F3A8; エージェント・ファーストIDE</div>
-              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">VS Code forkだが、最初からAIエージェント運用を前提に設計。Editor View（コーディング）とAgent Manager View（タスク管理）が統合されたネイティブ体験。Antigravity 2.0（I/O 2026, 2026/5/19）では独立したデスクトップApp・CLI・SDKが追加され、カスタムサブエージェント定義・スケジュール実行・音声コマンドにも対応。Claude Code/Codexはエディタ外ツール、CopilotはIDEの追加機能。「AIファースト」な開発体験で最もシームレス。</p>
+              <div style="font-size:15px; font-weight:700; color:var(--accent-red); margin-bottom:8px;">&#x1F3A8; 製品の提供形態を特定する</div>
+              <p style="font-size:13px; color:var(--text-muted); line-height:1.7;">IDE、デスクトップアプリ、CLI、SDK、クラウド実行を区別します。対応を断定する前に、公式の製品資料で正式提供かプレビューか、対象 OS と有効化条件を確認します。</p>
             </div>
           </div>
         </div>

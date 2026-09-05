@@ -1,0 +1,16 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____ test_processor_shape_without_event_date_does_not_hold_valid_amount ______
+
+    def test_processor_shape_without_event_date_does_not_hold_valid_amount():
+        # LLMProcessor currently emits no date field; that is not a conflict.
+        result = apply_financial_integrity({"summary": "企業価値は$30B。"})
+>       assert result.get("integrity_status") != "pending_fact_check"
+E       AssertionError: assert 'pending_fact_check' != 'pending_fact_check'
+E        +  where 'pending_fact_check' = <built-in method get of dict object at 0x000002025BBEE3C0>('integrity_status')
+E        +    where <built-in method get of dict object at 0x000002025BBEE3C0> = {'summary': '数値の整合性を確認中のため、金額を含む要約の掲載を保留しています。', 'title': '数値整合性を確認中', 'integrity_status': 'pending_fact_check', 'integrity_warning': 'financial claims need metric, currency, event_date, and a supported unit', ...}.get
+
+tests\test_content_integrity_outputs.py:97: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_content_integrity_outputs.py::test_processor_shape_without_event_date_does_not_hold_valid_amount
+1 failed in 0.46s

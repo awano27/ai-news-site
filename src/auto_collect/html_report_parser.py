@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List, Dict
 
 from . import trend_tracker
+from .content_integrity import apply_financial_integrity
 
 
 def parse_daily_txt(txt_path: Path) -> Dict:
@@ -83,6 +84,8 @@ def parse_daily_txt(txt_path: Path) -> Dict:
                 "evidence_label": "",
                 "url": "",
                 "hn_score": "",
+                "correction_note": "",
+                "integrity_status": "",
             }
 
             match = re.match(r"■ (.+?)（(.+?) / スコア: (\d+)）", line)
@@ -123,6 +126,10 @@ def parse_daily_txt(txt_path: Path) -> Dict:
             current_item["url"] = line_s[4:].strip()
         elif line_s.startswith("HN Score:"):
             current_item["hn_score"] = line_s[9:].strip()
+        elif line_s.startswith("🛠 訂正:"):
+            current_item["correction_note"] = line_s.split("訂正:", 1)[-1].strip()
+        elif line_s.startswith("⚠ 整合性:"):
+            current_item["integrity_status"] = line_s.split("整合性:", 1)[-1].strip()
         elif line_s.startswith("📄"):
             current_item["license"] = line_s[2:].strip()
         elif line_s.startswith("🏷"):
@@ -140,6 +147,15 @@ def parse_daily_txt(txt_path: Path) -> Dict:
     # Save last item
     if current_item:
         result[current_section].append(current_item)
+
+    # The Top 15 report reads this day file separately from the live timeline.
+    # Apply the same deterministic article-level guard so an HTML regeneration
+    # cannot restore a corrected financial summary.
+    for section in ("headlines", "funding", "github", "models"):
+        result[section] = [
+            apply_financial_integrity({**item, "date": result["date"]})
+            for item in result[section]
+        ]
 
     return result
 

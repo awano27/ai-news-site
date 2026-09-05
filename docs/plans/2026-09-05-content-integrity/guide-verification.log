@@ -1,0 +1,27 @@
+2026-09-05 Asia/Tokyo - comparison-guide verification
+
+RED (before HTML corrections)
+Command: python -m unittest tests/test_coding_guide_integrity.py
+Result: FAIL (expected)
+Evidence: 1 failing test. The checker reported missing direct primary-source links,
+the false "Claude Codeはサンドボックスなし" claim, the Hooks uniqueness claim,
+and missing sandbox conditions. The initial test harness encoding issue was corrected
+before this intentional RED run; it was not an assertion result.
+
+GREEN (after HTML corrections)
+Command: python -m unittest tests/test_coding_guide_integrity.py
+Result: PASS - Ran 2 tests, OK
+
+Command: python scripts/check_coding_guide_integrity.py presentations/ai_coding_agents_guide.html
+Result: PASS - known comparison-guide regressions are absent; primary-source review remains required.
+
+Command: python -m py_compile scripts/check_coding_guide_integrity.py tests/test_coding_guide_integrity.py
+Result: PASS
+
+Command: rg -n -i 'サンドボックスなし|唯一の自動介入|他製品.*存在しない|他3ツールには|他を凌駕|最も優位|最も優れている|唯一無二|完全自動|最適解|完全アクセス|必ずテスト' presentations/ai_coding_agents_guide.html presentations/copilot-guide/cli.html
+Result: PASS: no target regressions found.
+
+Command: git diff --check
+Result: BLOCKED for whole worktree by pre-existing unrelated trailing whitespace in input/day/0809.txt and input/day/0811.txt. Target-file diff has no reported whitespace error.
+
+NOT_RUN: production deployment, push, merge, commit, full-site regeneration, and browser rendering. These are outside this worker's ownership; the parent task owns final UI/CI verification.

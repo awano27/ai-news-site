@@ -1,0 +1,36 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________ test_corrected_dayfile_reaches_homepage_and_legacy_api ____________
+
+tmp_path = WindowsPath('C:/Users/awano/AppData/Local/Temp/pytest-of-awano/pytest-874/test_corrected_dayfile_reaches0')
+
+    def test_corrected_dayfile_reaches_homepage_and_legacy_api(tmp_path):
+        node = shutil.which("node")
+        if not node:
+            pytest.skip("Node is needed for the existing JSON/homepage generators")
+        article = apply_financial_integrity({
+            "title": "Crusoe、企業価値$30億との報道",
+            "url": CRUSOE_2026_09_05_URL,
+            "date": "2026-09-05", "source": "TechCrunch", "score": 85,
+            "category": "Business", "tldr": "$30Bの評価で$3B調達",
+            "summary": "企業価値は$30億。", "points": ["企業価値$30億"],
+            "evidence": {"metrics": ["企業価値$30億"], "impact_ja": "企業価値$30億へ拡大"},
+        })
+        dayfile = tmp_path / "0905.txt"
+        DayFileFormatter().write([article], dayfile, date(2026, 9, 5))
+        content = dayfile.read_text(encoding="utf-8")
+>       assert "$30億" not in content
+E       AssertionError: assert '$30億' not in '2026年09月05日...-valuation\n'
+E
+E         '$30億' is contained here:
+E           る。
+E             ・企業価値$30億
+E         ?        ++++
+E             📊 数値: 企業価値$30億
+E             🇯🇵 影響: 企業価値$30億へ拡大
+E             URL: https://techcrunch.com/2026/09/03/crusoe-reportedly-raises-3b-at-a-30b-valuation
+
+tests\test_content_integrity_outputs.py:34: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_content_integrity_outputs.py::test_corrected_dayfile_reaches_homepage_and_legacy_api
+1 failed in 0.48s

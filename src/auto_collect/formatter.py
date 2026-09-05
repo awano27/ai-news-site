@@ -114,12 +114,18 @@ class DayFileFormatter:
         if summary:
             lines.append(f"  {summary}")
 
+        if article.get("correction_note"):
+            lines.append(f"  🛠 訂正: {article['correction_note']}")
+
+        if article.get("integrity_status"):
+            lines.append(f"  ⚠ 整合性: {article['integrity_status']}")
+
         for point in points[:5]:
             p = point if point.startswith("・") else f"・{point}"
             lines.append(f"  {p}")
 
         # Evidence layer
-        metrics = [m for m in evidence.get("metrics", []) if m]
+        metrics = [m for m in article.get("metrics", evidence.get("metrics", [])) if m]
         if metrics:
             lines.append(f"  📊 数値: {' / '.join(metrics)}")
 

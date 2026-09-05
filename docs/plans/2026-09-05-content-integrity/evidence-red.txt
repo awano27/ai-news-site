@@ -1,0 +1,24 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+______________ test_old_dayfile_evidence_is_not_upgraded_to_fact ______________
+
+tmp_path = WindowsPath('C:/Users/awano/AppData/Local/Temp/pytest-of-awano/pytest-886/test_old_dayfile_evidence_is_n0')
+
+    def test_old_dayfile_evidence_is_not_upgraded_to_fact(tmp_path):
+        path = tmp_path / "0905.txt"
+        path.write_text(
+            "2026年09月05日 AIニュース\nヘッドライン速報\n"
+            "■ Crusoe（Business / スコア: 85）\n"
+            "企業価値$30億\n🇯🇵 影響: 企業価値$30億\n⚡ 今すぐ: 企業価値$30億\n"
+            "🏷️ Label: Fact\nURL: " + CRUSOE_2026_09_05_URL + "\n", encoding="utf-8")
+        parsed = parse_daily_txt(path)
+>       assert parsed["headlines"][0]["evidence_label"] == "Claim"
+E       AssertionError: assert 'Fact' == 'Claim'
+E
+E         - Claim
+E         + Fact
+
+tests\test_content_integrity_outputs.py:109: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_content_integrity_outputs.py::test_old_dayfile_evidence_is_not_upgraded_to_fact
+1 failed in 0.48s
