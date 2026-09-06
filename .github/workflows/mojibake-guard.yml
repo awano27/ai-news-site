@@ -56,9 +56,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Run large-files regression tests
+        run: python tests/test_check_large_files.py -v
       - name: Reject newly added files over 5 MiB (push)
         if: github.event_name == 'push'
-        run: python scripts/check_large_files.py --range "${{ github.event.before }}..${{ github.sha }}"
+        run: python scripts/check_large_files.py --event-path "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME"
       - name: Reject newly added files over 5 MiB (pull request)
         if: github.event_name == 'pull_request'
-        run: python scripts/check_large_files.py --range "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+        run: python scripts/check_large_files.py --event-path "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME"
