@@ -140,7 +140,7 @@ def main() -> int:
     if errors:
         return 1
     print("PASS: migrated claim bindings, source records, review dates and derivatives are consistent.")
-    print("Scope: three static pages and the fixed Crusoe article; no source fetch or site-wide truth guarantee.")
+    print(f"Scope: {len(DEFAULT_PAGES)} registered static pages and the fixed Crusoe article; no source fetch or site-wide truth guarantee.")
     return 0
 
 

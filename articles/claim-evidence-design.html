@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI記事の「確認済み」をどう管理するか — 静的サイトに根拠レコードと変更検知を実装した | VisionHub</title>
+  <meta name="description" content="VisionHubの公開コードを題材に、主張と出典の対応、fingerprintによる変更検知、静的HTMLとニュース生成の違いを解説。Python標準ライブラリだけで正常・拒否・限界の例を再現します。">
+  <link rel="canonical" href="https://visionhub.jp/articles/claim-evidence-design.html">
+  <link rel="stylesheet" href="/assets/claim-evidence.css">
+  <style>
+    :root{color-scheme:light;--ink:#162642;--muted:#4e6076;--line:#d8dfe8;--navy:#101d3d;--paper:#fff;--soft:#f3f6f9;--accent:#ead94d}
+    *{box-sizing:border-box}html{scroll-padding-top:1.5rem}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Yu Gothic",Meiryo,sans-serif;font-size:17px;line-height:1.95}
+    a{color:#175a9d;text-underline-offset:.2em}a:hover{text-decoration-thickness:2px}a:focus-visible,summary:focus-visible,[tabindex="0"]:focus-visible{outline:3px solid #246fb1;outline-offset:5px}
+    .skip{position:absolute;left:1rem;top:-5rem;background:#fff;padding:.4rem 1rem;z-index:2}.skip:focus{top:1rem}
+    .site-bar{background:var(--navy);color:#fff;border-bottom:3px solid var(--accent)}.bar-inner{max-width:1100px;margin:auto;padding:1rem 1.5rem;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:center}.site-bar a{color:#fff;text-decoration:none;font-size:.9rem}.brand{font-size:1.2rem!important;font-weight:750;letter-spacing:.03em}.bar-inner nav{margin-left:auto;display:flex;gap:1.2rem}
+    main{max-width:920px;padding:3.4rem 2rem 4rem;margin:auto}.eyebrow{font-size:.78rem;letter-spacing:.14em;color:var(--muted);font-weight:700;margin:0 0 1.1rem}h1{font-size:clamp(1.9rem,4.3vw,2.8rem);line-height:1.45;letter-spacing:.015em;margin:0 0 1.1rem}h1 span{display:block;font-size:.57em;font-weight:550;margin-top:1rem;line-height:1.7}h2{font-size:1.5rem;line-height:1.55;margin:3.4rem 0 1.1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)}h3{font-size:1.1rem;line-height:1.6;margin:1.8rem 0 .7rem}p{margin:1rem 0}li{margin:.4rem 0}ul,ol{padding-left:1.5rem}strong{font-weight:700}
+    .meta,.caption,figcaption{font-size:.85rem;color:var(--muted);line-height:1.8}.version{overflow-wrap:anywhere}.intro{font-size:1.1rem}.entry{background:var(--soft);border-left:3px solid var(--ink);padding:.5rem 1.2rem;margin:1.6rem 0}.entry ul{margin:.6rem 0}.toc{border-block:1px solid var(--line);padding:.8rem 0;margin:2rem 0}.toc summary{cursor:pointer;font-weight:600}.toc ol{columns:2;column-gap:2rem;font-size:.92rem}.toc li{break-inside:avoid}
+    code{font-family:Consolas,"SFMono-Regular",monospace;font-size:.89em;overflow-wrap:anywhere}p code,li code,td code{background:#edf1f5;padding:.1em .2em;border-radius:2px}pre{background:#14233d;color:#f0f5ff;padding:1.2rem 1.3rem;overflow:auto;font-size:.86rem;line-height:1.7;tab-size:2;white-space:pre;border-radius:4px}pre code{font-size:inherit;overflow-wrap:normal}.code-label{font-size:.8rem;letter-spacing:.04em;font-weight:650;margin:1rem 0 .3rem}.table-wrap{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--line)}table{border-collapse:collapse;width:100%;min-width:560px;font-size:.9rem;line-height:1.75}th,td{padding:.85rem 1rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:var(--soft);font-weight:650}tr:last-child td{border-bottom:0}th:first-child{width:25%}.case-table th:first-child{width:30%}
+    figure{margin:1.5rem 0}.flow{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.flow>div{background:var(--soft);border-top:3px solid var(--ink);padding:.8rem 1rem}.flow h3{margin:0 0 .7rem}.flow ol{font-size:.9rem;padding-left:1.2rem}.flow li{padding:.3rem 0}.note{border-left:3px solid #8a7833;padding:.2rem 1.1rem;background:#fcfaf1}.claim-evidence{font-size:.82rem;margin:1rem 0 1.5rem}.sources{font-size:.91rem}.sources li{margin:.8rem 0}footer{border-top:1px solid var(--line);font-size:.87rem;color:var(--muted);padding-top:1.5rem;margin-top:3rem}
+    @media(max-width:600px){body{font-size:16px;line-height:1.95}main{padding:2.2rem 1.25rem 3rem}.bar-inner{padding:.85rem 1.25rem;gap:.5rem}.bar-inner nav{gap:.8rem}h2{font-size:1.3rem;margin-top:2.8rem}.toc ol{columns:1}.flow{grid-template-columns:1fr}pre{padding:1rem;font-size:.8rem}.entry{padding:.4rem .9rem}.claim-evidence{font-size:.82rem}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#article">本文へ移動</a>
+  <header class="site-bar"><div class="bar-inner"><a class="brand" href="/">VisionHub</a><nav aria-label="サイト内"><a href="/#resources">リソース一覧</a><a href="/about.html">About</a></nav></div></header>
+  <main id="article">
+    <article>
+      <header>
+        <p class="eyebrow">ENGINEERING NOTE · STATIC SITE</p>
+        <h1>AI記事の「確認済み」をどう管理するか<span>静的サイトに根拠レコードと変更検知を実装した</span></h1>
+        <p class="meta">記述・検証日 <time datetime="2026-09-05">2026-09-05</time> · 対象: 技術ブログ、AIコンテンツ、社内ナレッジを扱うエンジニア</p>
+        <p class="meta version">説明対象: <a href="https://github.com/awano27/ai-news-site/tree/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708"><code>0b9ad2b115fdcb83291cf7f3f928ff7edba1a708</code></a> / <a href="https://github.com/awano27/ai-news-site/pull/71">PR #71</a>。記事制作開始時のmainも同じSHA。以後のmainとは切り離して読むため、コードへのリンクを固定した。</p>
+      </header>
+      <p class="intro" data-prose>出典リンクが付いた記事でも、その資料がどの文を、どの条件で支えるのかは分からない。さらに本文を書き換えると、以前の「確認済み」だけが残ることがある。VisionHubでは、主張・出典・条件・照合記録を結び付け、古い記録をそのまま使う編集ミスを検出する仕組みを静的サイトへ加えた。</p>
+      <p data-prose>この仕組みが調べるのは、登録した記録の形式と対応関係だ。出典を読んで真偽を自動判定するものではない。本稿では、小さなPythonサンプルで「変更を検出できた」と「内容が正しい」を分けて観察する。読み終えたら、自分のシステムで何を記録し、どこで検査するかを判断できることを目指す。</p>
+      <aside class="entry" aria-label="読む前の入口"><ul><li><a href="#reproduce">実行手順と今回の結果へ</a></li><li><a href="../examples/claim-evidence/README.md">再現サンプルのREADME</a> · <a href="../examples/claim-evidence/reproduce.py" download>Pythonスクリプト</a> · <a href="../examples/claim-evidence/fixtures.json" download>フィクスチャJSON</a></li><li><a href="#limits">先に保証の限界を読む</a></li></ul><p class="caption">説明対象の実装は <code>0b9ad2b115fdcb83291cf7f3f928ff7edba1a708</code>。<a href="https://github.com/awano27/ai-news-site/tree/3d5b903b06dca4bf92e951c5ba6cd5b486de25ab/examples/claim-evidence">サンプル本体・データの固定版</a>は <code>3d5b903b06dca4bf92e951c5ba6cd5b486de25ab</code>。この記事とREADMEはその後続の配信版に含まれる。取得・実行はREADMEを参照。</p></aside>
+      <nav class="toc" aria-label="この記事の目次"><details><summary>目次を開く</summary><ol><li><a href="#problem">出典だけでは足りなかった</a></li><li><a href="#flow">二つの生成経路</a></li><li><a href="#record">根拠レコードの形</a></li><li><a href="#fingerprints">二つのfingerprint</a></li><li><a href="#validation">検査と表示の責任</a></li><li><a href="#tradeoffs">設計のトレードオフ</a></li><li><a href="#reproduce">手元で再現する</a></li><li><a href="#limits">検査を通っても残る限界</a></li><li><a href="#adaptation">別のシステムへ持ち込むなら</a></li></ol></details></nav>
+
+      <section id="problem">
+        <h2>1. 出典だけでは足りなかった</h2>
+        <p data-prose>具体例は、Crusoeの資金調達を扱った記事の訂正だ。保存済みHTMLでは見出しに「300億ドル評価」とある一方、本文に企業価値「30億」と書かれていた。訂正後は、企業価値約300億米ドル、調達額約30億米ドル、別件の契約額約130億米ドルを分け、TechCrunchがBloomberg報道として伝えた内容だと明記した。これは訂正差分と現在の訂正定義から確認できる経緯であり、誤りを生んだ原因まで断定するものではない。</p>
+        <p class="caption"><a href="https://github.com/awano27/ai-news-site/commit/d7b87de716e042c9d2b51cf74f0de230dad24e25">HTMLへの訂正反映の差分</a> / <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/content_integrity.py#L190-L214">固定した訂正定義</a> / <a href="/daily-news/archive/2026-09-05.html#evidence-crusoe-valuation">表示の実例</a></p>
+        <p data-prose>同じ記事中の数字でも、測っている指標が違えば別の主張になる。「公式仕様で可能」「ベンダーが測定した」「運営者が試した」も同じ強さの説明ではない。読者に必要なのはリンクの本数ではなく、主張に対応する資料の箇所と、その資料で分からない範囲だ。そこで記事全体へ一つの合格印を付けず、必要な文に安定したIDを与えた。</p>
+      </section>
+
+      <section id="flow">
+        <h2>2. 二つの生成経路を、一つの表示契約につなぐ</h2>
+        <p data-prose data-claim-id="ART-FLOW">静的ページは埋め込みJSONと本文要素を照合して根拠表示の区画だけを更新し、ニュースは既存の訂正・整形・解析・出力経路で同じ根拠レコードを引き継ぐ。</p>
+        <div data-evidence-for="ART-FLOW"><aside class="claim-evidence" id="evidence-ART-FLOW" data-evidence-id="ART-FLOW"><p class="claim-evidence-line"><strong>二つの生成経路</strong> <span>公式仕様・公式発表</span> · <span class="claim-evidence-status">資料との照合済み</span> · <span>照合 <time datetime="2026-09-05">2026-09-05</time>（AIによる資料照合）</span></p><p class="claim-evidence-limits">適用・制限: 説明対象は公開コード 0b9ad2b1 の記載。 / ニュース全記事の入力形式や、将来の版への一般化はしていない。</p><details><summary>二つの生成経路の出典と照合範囲</summary><p class="claim-evidence-statement">照合対象: 静的ページは埋め込みJSONと本文要素を照合して根拠表示の区画だけを更新し、ニュースは既存の訂正・整形・解析・出力経路で同じ根拠レコードを引き継ぐ。</p><p>情報区分: Fact-A</p><ul class="claim-evidence-sources"><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/scripts/render_claim_evidence.py#L113-L187" target="_blank" rel="noopener noreferrer">render_claim_evidence.py — 本文と表示区画の対応</a></span><span class="claim-evidence-support">該当箇所: render_static_page。裏付ける内容: 静的HTMLの本文を検査し、表示区画だけを更新 / 出典公開日 2026-09-05</span></li><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/formatter.py#L107-L132" target="_blank" rel="noopener noreferrer">formatter.py — 日次テキストへの根拠保存</a></span><span class="claim-evidence-support">該当箇所: _format_article。裏付ける内容: 専用行へ根拠JSONを保存 / 出典公開日 2026-09-05</span></li><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/html_report_parser.py#L136-L168" target="_blank" rel="noopener noreferrer">html_report_parser.py — 根拠JSONの復元と検査</a></span><span class="claim-evidence-support">該当箇所: parse_daily_txt。裏付ける内容: JSONを復元して検査 / 出典公開日 2026-09-05</span></li><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence_news.py#L77-L147" target="_blank" rel="noopener noreferrer">test_claim_evidence_news.py — ニュース経路の検証</a></span><span class="claim-evidence-support">該当箇所: ニュースの往復・タイムラインのテスト。裏付ける内容: 既存経路で同一bundleを保持 / 出典公開日 2026-09-05</span></li></ul><p>対象時点: 2026-09-05</p><p>照合範囲: AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。</p><p class="claim-evidence-caveat">この表示は資料と主張の対応状況を示します。全環境での動作や独立した実証を保証しません。</p></details></aside></div>
+        <p data-prose>静的ページには、本文の<code>data-claim-id</code>、表示先の<code>data-evidence-for</code>、レコードを持つ<code>script#claim-evidence-data</code>を置く。ヘルパーは本文の可視テキストとstatementを比較し、各IDに本文と表示先が一つずつあるか検査する。ページ全体の生成器ではなく、手で保守するHTMLの一部分を共通表示へ合わせる道具である。</p>
+        <p data-prose>ニュースでは、URLに対応する既存の訂正定義に根拠を置いた。整形時は日次テキストの専用行へJSONを保存し、解析時に復元する。Top15とDaily Newsはそれぞれの出力経路で共通レンダラーを呼び、派生JSONにも記録を残す。ホーム用JSONは同じレコードと日付固定の詳細リンクを引き継ぐ。統一DBや全記事共通の新しい生成基盤を導入したわけではない。</p>
+        <figure><div class="flow"><div><h3>手で保守する静的HTML</h3><ol><li>本文ID + 埋め込み根拠JSON</li><li><code>render_static_page</code>で本文との対応を検査</li><li><code>render_evidence</code>で指定区画を更新</li></ol></div><div><h3>既存のニュース生成</h3><ol><li>訂正レコード → 日次テキスト → 解析 → Top15のHTML・JSON</li><li>記事レコード → Daily NewsのHTML・JSON</li><li>Top15側のJSON → ホーム用JSONへの引継ぎ</li></ol></div></div><figcaption>両経路は検査・表示関数を共有する。公開前検査は登録対象のHTML・JSONを照合する。矢印はデータの受け渡しを示し、出典の真偽判定は含まない。</figcaption></figure>
+      </section>
+
+      <section id="record">
+        <h2>3. 主張と根拠を別の軸で記録する</h2>
+        <p data-prose><code>statement</code>は照合した文、<code>basis</code>は根拠の種類、<code>status</code>は資料との対応状態を表す。例えばベンダー公称値が資料に書かれていると確認できても、第三者実測に変わるわけではない。既存のFactやClaimという情報区分も残し、それだけで信頼性を保証しないよう役割を分けた。</p>
+        <p data-prose><code>source_refs</code>には資料IDだけでなく、該当する節と、その箇所が支える内容を書く。<code>conditions</code>は対象OSや評価条件、<code>uncertainty</code>は未確認範囲だ。<code>as_of</code>は話題の対象時点、出典の公開日はsources側、実際に資料を照合した日はverification側に置く。三つの日付とサイトの生成日は、同じ時計ではない。</p>
+        <p class="code-label">架空の説明用データ · 完全な入力はサンプルに同梱</p>
+        <pre tabindex="0" aria-label="根拠レコードのJSON例"><code id="schema-example">{
+  &quot;version&quot;: 1,
+  &quot;sources&quot;: [
+    {
+      &quot;id&quot;: &quot;fictional-vendor-doc&quot;,
+      &quot;publisher&quot;: &quot;架空ベンダー&quot;,
+      &quot;title&quot;: &quot;架空の固定条件レポート&quot;,
+      &quot;url&quot;: &quot;https://example.com/fictional-report&quot;,
+      &quot;published_at&quot;: &quot;2026-09-03&quot;
+    }
+  ],
+  &quot;claims&quot;: [
+    {
+      &quot;id&quot;: &quot;fictional-rate&quot;,
+      &quot;label&quot;: &quot;架空の公表値&quot;,
+      &quot;statement&quot;: &quot;架空ベンダーは固定条件で達成率72.6%と公表した。&quot;,
+      &quot;evidence_label&quot;: &quot;Claim&quot;,
+      &quot;basis&quot;: &quot;vendor_claim&quot;,
+      &quot;status&quot;: &quot;matched&quot;,
+      &quot;source_refs&quot;: [
+        {
+          &quot;source_id&quot;: &quot;fictional-vendor-doc&quot;,
+          &quot;section&quot;: &quot;結果&quot;,
+          &quot;supports&quot;: &quot;架空ベンダーが達成率を公表したという主張&quot;
+        }
+      ],
+      &quot;conditions&quot;: [
+        &quot;架空の固定ベンチマーク&quot;,
+        &quot;対象は説明用データのみ&quot;
+      ],
+      &quot;as_of&quot;: &quot;2026-09-03&quot;,
+      &quot;uncertainty&quot;: &quot;独立した再測定は未実施&quot;,
+      &quot;verification&quot;: {
+        &quot;checked_at&quot;: &quot;2026-09-05&quot;,
+        &quot;method&quot;: &quot;ai_document_review&quot;,
+        &quot;fingerprint&quot;: &quot;bdcd18d508044eb8cbbd0149fa9c575f46befc71e7c6d4b40f32c7a115b537ea&quot;,
+        &quot;note&quot;: &quot;架空資料の表と記録をAIが照合した設定。人による確認記録はありません。&quot;
+      }
+    }
+  ]
+}</code></pre>
+        <p class="caption">上の数値・団体・資料は説明用の架空データ。<code>example.com</code>へのアクセスは行わない。実行用フィクスチャでは省略なしのfingerprintを保持する。構造の仕様は<a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/docs/plans/2026-09-05-claim-evidence/SCHEMA.md">SCHEMA.md</a>を参照。</p>
+        <p data-prose>照合済み、一部裏付け、不一致を記録するには、参照資料と有効な日付・方法・fingerprintが必要になる。一方、出典のない未確認レコードも表現できる。空欄を今日の日付で埋めるより、「何をまだ記録できていないか」を見える状態に保つことを選んだ。</p>
+      </section>
+
+      <section id="fingerprints">
+        <h2>4. fingerprintが結び付ける範囲を限定する</h2>
+        <p data-prose data-claim-id="ART-FINGERPRINT">claim_fingerprintは主張・条件・参照資料を、article_fingerprintはtitle・tldr・summaryをハッシュ化する。照合状態やverification内の日付・方法は、前者のハッシュ対象に含まれない。</p>
+        <div data-evidence-for="ART-FINGERPRINT"><aside class="claim-evidence" id="evidence-ART-FINGERPRINT" data-evidence-id="ART-FINGERPRINT"><p class="claim-evidence-line"><strong>ハッシュの対象範囲</strong> <span>公式仕様・公式発表</span> · <span class="claim-evidence-status">資料との照合済み</span> · <span>照合 <time datetime="2026-09-05">2026-09-05</time>（AIによる資料照合）</span></p><p class="claim-evidence-limits">適用・制限: 説明対象は公開コード 0b9ad2b1 の記載。 / 確認者・確認日・照合状態の改変まで防ぐ仕組みではない。</p><details><summary>ハッシュの対象範囲の出典と照合範囲</summary><p class="claim-evidence-statement">照合対象: claim_fingerprintは主張・条件・参照資料を、article_fingerprintはtitle・tldr・summaryをハッシュ化する。照合状態やverification内の日付・方法は、前者のハッシュ対象に含まれない。</p><p>情報区分: Fact-A</p><ul class="claim-evidence-sources"><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/claim_evidence.py#L1-L269" target="_blank" rel="noopener noreferrer">claim_evidence.py — ハッシュ・検査・表示</a></span><span class="claim-evidence-support">該当箇所: article_fingerprint / claim_fingerprint（82〜98行）。裏付ける内容: 対象フィールドと、verification・status等が対象外であること / 出典公開日 2026-09-05</span></li></ul><p>対象時点: 2026-09-05</p><p>照合範囲: AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。</p><p class="claim-evidence-caveat">この表示は資料と主張の対応状況を示します。全環境での動作や独立した実証を保証しません。</p></details></aside></div>
+        <p data-prose>主張側はstatement、evidence_label、basis、conditions、as_of、uncertainty、measurementを対象にし、参照ごとのsource_refs全体と、参照先のsourceレコード全体を加える。JSONのキーを並べ替えて一定の形式へ直し、UTF-8のバイト列からSHA-256を計算する。statement中の連続した空白は正規化するが、条件の配列などをすべて意味的に正規化する処理ではない。</p>
+        <div class="table-wrap" tabindex="0" aria-label="fingerprintの対象比較。横にスクロールできます"><table><thead><tr><th>関数</th><th>含むもの</th><th>含まないもの</th></tr></thead><tbody><tr><td><code>claim_fingerprint</code></td><td>主張、情報区分、根拠の種類、条件、対象時点、未確認範囲、実測情報、参照と参照先レコード</td><td>claimのid・label・status、verification全体、未参照のsource、出典Webページの本文</td></tr><tr><td><code>article_fingerprint</code></td><td>空白を正規化したtitle・tldr・summary</td><td>URL、ランキング点数、記事のその他のフィールド、HTML全体</td></tr></tbody></table></div>
+        <p data-prose>記事側のfingerprintは、ニュースの見出しや要約だけが変わっても以前の記録を使い回さないためのものだ。subjectを渡して検査する場合は、明示した根拠情報にsubject_fingerprintが必要になる。静的HTMLでは、この代わりに本文要素とstatementの一致をヘルパーが調べる。ページ内の全文章を自動で探して監査する機能ではない。</p>
+        <p data-prose>通常のビルドは保存済みの値と再計算した値を比較する。そこで保存値まで更新してしまうと、本文変更と再照合を区別できなくなる。このため生成と照合記録の作成を分けている。ただし日付・方法・statusはハッシュ対象外であり、有効な値へ手で変更しても主張のハッシュでは検出できない。ニュースの派生データは正本との比較でも検査するが、静的ページの確認者の履歴まで保護する仕組みではない。</p>
+      </section>
+
+      <section id="validation">
+        <h2>5. 検査で止めることと、表示を保つこと</h2>
+        <p data-prose data-claim-id="ART-VALIDATION">validate_bundleはエラー一覧を返し、require_valid_evidenceは不整合で例外を出す。render_evidenceは無効なbundleの照合状態を未確認として表示し、根拠情報のない旧データには表示を加えない。</p>
+        <div data-evidence-for="ART-VALIDATION"><aside class="claim-evidence" id="evidence-ART-VALIDATION" data-evidence-id="ART-VALIDATION"><p class="claim-evidence-line"><strong>検査と表示の違い</strong> <span>公式仕様・公式発表</span> · <span class="claim-evidence-status">資料との照合済み</span> · <span>照合 <time datetime="2026-09-05">2026-09-05</time>（AIによる資料照合）</span></p><p class="claim-evidence-limits">適用・制限: 説明対象は公開コード 0b9ad2b1 の記載。 / bundle内の不整合は、そのbundle全体の表示状態へ影響する。</p><details><summary>検査と表示の違いの出典と照合範囲</summary><p class="claim-evidence-statement">照合対象: validate_bundleはエラー一覧を返し、require_valid_evidenceは不整合で例外を出す。render_evidenceは無効なbundleの照合状態を未確認として表示し、根拠情報のない旧データには表示を加えない。</p><p>情報区分: Fact-A</p><ul class="claim-evidence-sources"><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/claim_evidence.py#L1-L269" target="_blank" rel="noopener noreferrer">claim_evidence.py — ハッシュ・検査・表示</a></span><span class="claim-evidence-support">該当箇所: validate_bundle / require_valid_evidence / render_evidence。裏付ける内容: エラー一覧・例外・未確認表示の違い / 出典公開日 2026-09-05</span></li><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence.py#L20-L138" target="_blank" rel="noopener noreferrer">test_claim_evidence.py — 型・変更・表示の既存テスト</a></span><span class="claim-evidence-support">該当箇所: legacy / changed_claim / malformed のテスト。裏付ける内容: 旧データと不整合の表示挙動 / 出典公開日 2026-09-05</span></li></ul><p>対象時点: 2026-09-05</p><p>照合範囲: AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。</p><p class="claim-evidence-caveat">この表示は資料と主張の対応状況を示します。全環境での動作や独立した実証を保証しません。</p></details></aside></div>
+        <p data-prose>検査では不明な分類、参照先の欠落、実在しない日付、本文と保存済みハッシュの不一致などを扱う。表示側は、bundleのどこかにエラーがあると、そのbundleの主張を未確認に下げ、警告を付ける。壊れたデータに強い合格表示を残さないためだ。これは入力を書き換えて修復する処理でも、正常に公開できたという意味でもない。</p>
+        <p data-prose>静的ヘルパーは本文と記録の不一致があれば書き出さず、表示区画だけが古い場合は通常の検査でエラーにする。レビュー後の<code>--write</code>で区画を更新すると整合する。公開前スクリプトは登録したページとCrusoe記事の派生物を検査する。説明対象の版では静的3ページが対象で、この記事を追加した版では記事を1ページ追加した。未登録の記事を合格扱いで集計しない。</p>
+      </section>
+
+      <section id="tradeoffs">
+        <h2>6. 全面移行しない設計の利点と負担</h2>
+        <p data-prose>既存記事の<code>claim_evidence</code>は任意項目にした。Noneや空オブジェクトなら検査はエラーを返さず、根拠欄も作らない。古い記事へ架空の照合日を補う必要がなく、段階的に導入できる。その代わり、根拠のない記事がサイト上に残る。「表示なし」と「確認済み」を取り違えない編集方針が必要だ。</p>
+        <p data-prose>後から方式を比較すると、すべてをCMSへ移す案は承認履歴を一元化しやすいが、既存の生成経路を作り替える範囲が広い。各HTMLに自由文だけを追記する案は導入が軽い一方、派生出力や変更前の記録との対応を機械で検査しづらい。ここでの比較は本稿での考察であり、過去にこれらの案を正式検討して却下したという記録ではない。</p>
+        <p data-prose>採用した形にも保守の負担はある。本文とJSONを対応させて編集し、出典を読み直したら対象と方法を記録し、派生出力を再生成する必要がある。HTTP 200を確認しても資料の中身を読んだことにはならない。小さい共通関数へ検査と表示を集めることで、形式の修正を各ページで別々に実装する負担を抑えたが、意味を確かめる作業は残る。</p>
+      </section>
+
+      <section id="reproduce">
+        <h2>7. 手元で正常・拒否・限界を再現する</h2>
+        <p data-prose>再現用のスクリプトは、既存のclaim_evidenceと静的HTMLヘルパーを呼ぶだけの小さな利用例だ。各ケースは初期フィクスチャの複製から始め、本文や条件を変更するケースでは保存済みfingerprintを維持する。不正入力が拒否されたら、そのケースは成功である。値を再計算してエラーを消す操作は行わない。</p>
+        <div class="entry"><p><strong>対象環境:</strong> Windows（OS build 26200）、PowerShell 7.6.5、Python 3.11.15、Git 2.55.0.windows.2。サンプルはPython標準ライブラリのみ。Nodeやpytest、APIキー、有料APIは不要。</p><p>まず<a href="../examples/claim-evidence/README.md">READMEの準備手順</a>に従って、固定SHAのコードとこの記事のサンプルを同じ作業ディレクトリへ置く。</p><pre tabindex="0" aria-label="サンプル実行コマンド"><code>python -B -S examples/claim-evidence/reproduce.py</code></pre><p class="caption">取得時のGit通信と、検証の実行は別。サンプル実行時は出典URLへアクセスせず、外部パッケージの導入もない。Linux/macOSでの実行は未確認。</p></div>
+        <div id="reproduction-results"><p class="caption">2026-09-05に固定SHAの新規クリーンチェックアウトで実行。<code>-S</code>で外部パッケージを読み込まず、<strong>12/12 PASS・終了コード0</strong>を確認した。12件には版の確認1件を含む。意図した不正入力の拒否は、期待する挙動として成功に数える。</p>
+        <div class="table-wrap" tabindex="0" aria-label="再現ケースの結果。横にスクロールできます"><table class="case-table"><thead><tr><th>入力・ケース</th><th>期待と実際の結果</th></tr></thead><tbody>
+        <tr><td>01 コードの版</td><td>HEADとコア2ファイルのLF正規化ハッシュが一致。</td></tr>
+        <tr><td>02 正常な架空記録</td><td>エラーなし。ベンダー公称値・資料との照合済みを表示。</td></tr>
+        <tr><td>03・04 主張／条件を変更</td><td>保存済み値を変えずに検査し、fingerprint不一致で拒否。</td></tr>
+        <tr><td>05・06 参照ID欠落／出典タイトル変更</td><td>missing referenced source／fingerprint不一致を検出。</td></tr>
+        <tr><td>07 根拠のない旧データ</td><td>Noneと空オブジェクトの表示は空。合格印を生成しない。</td></tr>
+        <tr><td>08 区分を維持</td><td>公称値とAI照合を、第三者測定や人の照合へ自動変換しない。</td></tr>
+        <tr><td>09 確認日・方法だけを手で変更</td><td>有効な値なら検査を通る。確認者情報を認証しないという限界を確認。</td></tr>
+        <tr><td>10 同じ入力の再生成</td><td>HTML・照合日・出典が不変。既存の静的チェッカーも成功。</td></tr>
+        <tr><td>11 不自然な架空主張</td><td>「月面の全利用者が一秒で宇宙船を組み立てた」でも形式上は成功。真偽判定はしない。</td></tr>
+        <tr><td>12 記事要約／HTML本文の変更</td><td>subject fingerprint／本文要素との不一致で拒否。</td></tr>
+        </tbody></table></div>
+        <p class="code-label">今回の実行結果（末尾）</p><pre tabindex="0" aria-label="実際の再現結果"><code>PASS 12 subject_and_body_changes_rejected
+RESULT 12/12 checks passed; expected rejections were observed.</code></pre></div>
+        <p data-prose>同じ入力から二度レンダリングして、HTMLと照合日と根拠が変わらないことも比較する。これは日付を固定して新しい照合を装う処理ではなく、入力の保存値を保持する確認だ。HTMLは一時ディレクトリに作成し、静的検査を終えると削除する。本番記事のデータは変更しない。作成物と後片付けの詳細もREADMEに記載した。</p>
+      </section>
+
+      <section id="limits">
+        <h2>8. 検査を通っても残る限界</h2>
+        <p data-prose data-claim-id="ART-LIMITS">この検査は出典Webページの本文を取得・保存・比較せず、入力した主張の真偽も判定しない。fingerprintは電子署名や第三者認証ではなく、編集権限を持つ人の再計算を防がない。</p>
+        <div data-evidence-for="ART-LIMITS"><aside class="claim-evidence" id="evidence-ART-LIMITS" data-evidence-id="ART-LIMITS"><p class="claim-evidence-line"><strong>真偽判定と認証の限界</strong> <span>公式仕様・公式発表</span> · <span class="claim-evidence-status">資料との照合済み</span> · <span>照合 <time datetime="2026-09-05">2026-09-05</time>（AIによる資料照合）</span></p><p class="claim-evidence-limits">適用・制限: 説明対象は公開コード 0b9ad2b1 の記載。 / 参照資料の意味と現在の有効性は別途確認が必要。</p><details><summary>真偽判定と認証の限界の出典と照合範囲</summary><p class="claim-evidence-statement">照合対象: この検査は出典Webページの本文を取得・保存・比較せず、入力した主張の真偽も判定しない。fingerprintは電子署名や第三者認証ではなく、編集権限を持つ人の再計算を防がない。</p><p>情報区分: Fact-A</p><ul class="claim-evidence-sources"><li><span>VisionHub / awano27 — <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/claim_evidence.py#L1-L269" target="_blank" rel="noopener noreferrer">claim_evidence.py — ハッシュ・検査・表示</a></span><span class="claim-evidence-support">該当箇所: モジュールのimportと全関数。裏付ける内容: 入力データの検査とHTML生成のみで、出典本文の取得・真偽判定・署名処理を持たない / 出典公開日 2026-09-05</span></li></ul><p>対象時点: 2026-09-05</p><p>照合範囲: AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。</p><p class="claim-evidence-caveat">この表示は資料と主張の対応状況を示します。全環境での動作や独立した実証を保証しません。</p></details></aside></div>
+        <p data-prose>架空の不自然な数値でも、構造と保存済みハッシュを整えれば検査は通る。したがって、この仕組みは自動ファクトチェックの完成形ではない。資料の該当箇所が本当に主張を支えるか、条件が本文に十分反映されているかは別途確認が必要だ。参照先が同じURLのまま書き換わっても、保存したsourceレコードが変わらなければ検出できない。</p>
+        <p data-prose>記録された確認日は、現在も情報が有効である保証ではない。未確認は虚偽を意味せず、資料との照合済みは全環境での実証を意味しない。対象外の記事まで品質を保証するものでもない。照合状態の件数を正答率に読み替えたり、不一致の少なさを誤情報の少なさとみなしたりする根拠はない。誤情報やレビュー時間をどれだけ削減したかも、本稿では測定していない。</p>
+      </section>
+
+      <section id="adaptation">
+        <h2>9. 別のシステムへ持ち込むなら</h2>
+        <p data-prose>技術ブログへの応用なら、価格や動作条件など更新で意味が変わる文を選び、対応する資料の版と照合対象を記録するとよい。仕様管理なら、要件IDに対応する契約や決定記録を結び付ける設計が考えられる。ただし「誰が承認できるか」と「どの変更を再確認するか」は、そのシステムの運用に合わせて決める必要がある。</p>
+        <p data-prose>RAGの回答へ応用する場合も、検索で見つかった文書と、回答中の各主張を結び付けるところから始まる。文書の版、取得した箇所、回答生成後の編集、検索できなかった範囲を別々に管理する必要があるだろう。これは設計案であり、この実装でRAG連携を動作確認したわけではない。保存期間、更新検知、承認履歴をどう扱うかは追加の検討事項になる。</p>
+        <p data-prose>他の場面に持ち込めるのは、ハッシュを付ければ安心という考え方ではない。照合した対象を具体的に固定し、変更時の機械的な検査と、資料を読んで判断する作業を分けることだ。導入先でも、検査が成功した理由と、成功しても分からないことを同じ画面や手順で伝えたい。</p>
+      </section>
+
+      <section id="references">
+        <h2>コード・検証・制作について</h2>
+        <ul class="sources"><li><a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence.py">共通モジュールの既存テスト</a> — 旧データ、変更検知、区分保持、安全なURL、日付と再生成。</li><li><a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_static_claim_evidence.py">静的HTMLの既存テスト</a> — 本文の実要素、重複ID、表示の再生成。</li><li><a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence_news.py">ニュース経路の既存テスト</a> / <a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence_preflight.py">派生出力の検査テスト</a> — 値と照合情報の引継ぎ、正本との比較。</li><li><a href="https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/.github/workflows/pages.yml#L39-L44">公開前の検査呼出し</a> — CIへの組込み。CI成功は内容の真偽判定ではない。</li></ul>
+        <p class="caption">PR #71に記載された関連94テストPASSは、その公開候補での過去の結果。本稿のサンプル実行件数とは別であり、合算しない。heroIdentityの旧期待値と新規ブランチpush時のゼロSHA処理は既知の別課題で、本記事では変更していない。</p>
+        <p data-prose>実装・資料照合・記事の文章化と再現確認にはAIを使用している。運営者が依頼範囲や公開可否を判断したことと、全コードを手作業で書いたこと、すべての主張を人が確認したことは同じではない。本稿は後者を作業実績として主張しない。</p>
+        <p class="caption">再利用条件: 対象SHAのリポジトリで、全体に適用するLICENSE/COPYINGとsetup.pyのライセンス指定は確認できなかった。公開されていることだけを理由に、任意の再配布ライセンスを宣言しない。導入・転載時は適用条件を確認する。</p>
+      </section>
+      <footer><p><a href="/#resources">リソース・ガイド一覧へ</a> · <a href="/about.html">根拠表示の読み方と編集方針</a></p><p>VisionHub Engineering Note · 説明対象の版と検証環境を固定して記録。</p></footer>
+    </article>
+  </main>
+  <script type="application/json" id="claim-evidence-data">{
+  "version": 1,
+  "sources": [
+    {
+      "id": "core",
+      "publisher": "VisionHub / awano27",
+      "title": "claim_evidence.py — ハッシュ・検査・表示",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/claim_evidence.py#L1-L269",
+      "published_at": "2026-09-05"
+    },
+    {
+      "id": "static",
+      "publisher": "VisionHub / awano27",
+      "title": "render_claim_evidence.py — 本文と表示区画の対応",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/scripts/render_claim_evidence.py#L113-L187",
+      "published_at": "2026-09-05"
+    },
+    {
+      "id": "format",
+      "publisher": "VisionHub / awano27",
+      "title": "formatter.py — 日次テキストへの根拠保存",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/formatter.py#L107-L132",
+      "published_at": "2026-09-05"
+    },
+    {
+      "id": "parse",
+      "publisher": "VisionHub / awano27",
+      "title": "html_report_parser.py — 根拠JSONの復元と検査",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/src/auto_collect/html_report_parser.py#L136-L168",
+      "published_at": "2026-09-05"
+    },
+    {
+      "id": "news",
+      "publisher": "VisionHub / awano27",
+      "title": "test_claim_evidence_news.py — ニュース経路の検証",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence_news.py#L77-L147",
+      "published_at": "2026-09-05"
+    },
+    {
+      "id": "preflight",
+      "publisher": "VisionHub / awano27",
+      "title": "check_claim_evidence.py — 登録対象と派生物の比較",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/scripts/check_claim_evidence.py#L50-L143",
+      "published_at": "2026-09-05"
+    },
+    {
+      "id": "tests",
+      "publisher": "VisionHub / awano27",
+      "title": "test_claim_evidence.py — 型・変更・表示の既存テスト",
+      "url": "https://github.com/awano27/ai-news-site/blob/0b9ad2b115fdcb83291cf7f3f928ff7edba1a708/tests/test_claim_evidence.py#L20-L138",
+      "published_at": "2026-09-05"
+    }
+  ],
+  "claims": [
+    {
+      "id": "ART-FLOW",
+      "label": "二つの生成経路",
+      "statement": "静的ページは埋め込みJSONと本文要素を照合して根拠表示の区画だけを更新し、ニュースは既存の訂正・整形・解析・出力経路で同じ根拠レコードを引き継ぐ。",
+      "evidence_label": "Fact-A",
+      "basis": "official_spec",
+      "status": "matched",
+      "source_refs": [
+        {
+          "source_id": "static",
+          "section": "render_static_page",
+          "supports": "静的HTMLの本文を検査し、表示区画だけを更新"
+        },
+        {
+          "source_id": "format",
+          "section": "_format_article",
+          "supports": "専用行へ根拠JSONを保存"
+        },
+        {
+          "source_id": "parse",
+          "section": "parse_daily_txt",
+          "supports": "JSONを復元して検査"
+        },
+        {
+          "source_id": "news",
+          "section": "ニュースの往復・タイムラインのテスト",
+          "supports": "既存経路で同一bundleを保持"
+        }
+      ],
+      "conditions": [
+        "説明対象は公開コード 0b9ad2b1 の記載。"
+      ],
+      "as_of": "2026-09-05",
+      "uncertainty": "ニュース全記事の入力形式や、将来の版への一般化はしていない。",
+      "verification": {
+        "checked_at": "2026-09-05",
+        "method": "ai_document_review",
+        "fingerprint": "57509096ecac493bafdc32145c7e7967ff2958a987385a6b36ece4a332f2a6f7",
+        "note": "AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。"
+      }
+    },
+    {
+      "id": "ART-FINGERPRINT",
+      "label": "ハッシュの対象範囲",
+      "statement": "claim_fingerprintは主張・条件・参照資料を、article_fingerprintはtitle・tldr・summaryをハッシュ化する。照合状態やverification内の日付・方法は、前者のハッシュ対象に含まれない。",
+      "evidence_label": "Fact-A",
+      "basis": "official_spec",
+      "status": "matched",
+      "source_refs": [
+        {
+          "source_id": "core",
+          "section": "article_fingerprint / claim_fingerprint（82〜98行）",
+          "supports": "対象フィールドと、verification・status等が対象外であること"
+        }
+      ],
+      "conditions": [
+        "説明対象は公開コード 0b9ad2b1 の記載。"
+      ],
+      "as_of": "2026-09-05",
+      "uncertainty": "確認者・確認日・照合状態の改変まで防ぐ仕組みではない。",
+      "verification": {
+        "checked_at": "2026-09-05",
+        "method": "ai_document_review",
+        "fingerprint": "a0b956c6716900e2413605bd498ee4e9713e00e54839b586dd3e36215b395a05",
+        "note": "AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。"
+      }
+    },
+    {
+      "id": "ART-VALIDATION",
+      "label": "検査と表示の違い",
+      "statement": "validate_bundleはエラー一覧を返し、require_valid_evidenceは不整合で例外を出す。render_evidenceは無効なbundleの照合状態を未確認として表示し、根拠情報のない旧データには表示を加えない。",
+      "evidence_label": "Fact-A",
+      "basis": "official_spec",
+      "status": "matched",
+      "source_refs": [
+        {
+          "source_id": "core",
+          "section": "validate_bundle / require_valid_evidence / render_evidence",
+          "supports": "エラー一覧・例外・未確認表示の違い"
+        },
+        {
+          "source_id": "tests",
+          "section": "legacy / changed_claim / malformed のテスト",
+          "supports": "旧データと不整合の表示挙動"
+        }
+      ],
+      "conditions": [
+        "説明対象は公開コード 0b9ad2b1 の記載。"
+      ],
+      "as_of": "2026-09-05",
+      "uncertainty": "bundle内の不整合は、そのbundle全体の表示状態へ影響する。",
+      "verification": {
+        "checked_at": "2026-09-05",
+        "method": "ai_document_review",
+        "fingerprint": "cb34a2fc82c38cac8a12927bb86e3f5fa7b81fb1c47c00ced12af5c743c58ead",
+        "note": "AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。"
+      }
+    },
+    {
+      "id": "ART-LIMITS",
+      "label": "真偽判定と認証の限界",
+      "statement": "この検査は出典Webページの本文を取得・保存・比較せず、入力した主張の真偽も判定しない。fingerprintは電子署名や第三者認証ではなく、編集権限を持つ人の再計算を防がない。",
+      "evidence_label": "Fact-A",
+      "basis": "official_spec",
+      "status": "matched",
+      "source_refs": [
+        {
+          "source_id": "core",
+          "section": "モジュールのimportと全関数",
+          "supports": "入力データの検査とHTML生成のみで、出典本文の取得・真偽判定・署名処理を持たない"
+        }
+      ],
+      "conditions": [
+        "説明対象は公開コード 0b9ad2b1 の記載。"
+      ],
+      "as_of": "2026-09-05",
+      "uncertainty": "参照資料の意味と現在の有効性は別途確認が必要。",
+      "verification": {
+        "checked_at": "2026-09-05",
+        "method": "ai_document_review",
+        "fingerprint": "2f9785cd7d819c07a5578e1fa6834a8723eec8efda2127163dfdc0f84e4f63f1",
+        "note": "AIが対象コードと関連テストを読んで照合した。人による全件レビューの記録ではない。"
+      }
+    }
+  ]
+}</script>
+</body>
+</html>

@@ -14,13 +14,14 @@ Linux/macOSでは未実行。PythonとGitのインストール自体は今回の
 
 ## 準備（Git取得は通信する）
 
-まず公開記事と同じ配信版の3ファイルを、新しいディレクトリへ取得する。
-以下はPowerShellで実行する。サンプル自体の固定版は記事に記載する。
+まず固定版のサンプル本体とフィクスチャを、新しいディレクトリへ取得する。
+以下はPowerShellで実行する。サンプル版は `3d5b903b06dca4bf92e951c5ba6cd5b486de25ab`。
+このREADMEは記事の配信版に含まれ、実行コードとデータをこの先行コミットへ固定する。
 
 ```powershell
 New-Item -ItemType Directory -Path sample-download | Out-Null
-$sampleBase = 'https://visionhub.jp/examples/claim-evidence'
-foreach ($name in @('fixtures.json', 'reproduce.py', 'README.md')) {
+$sampleBase = 'https://raw.githubusercontent.com/awano27/ai-news-site/3d5b903b06dca4bf92e951c5ba6cd5b486de25ab/examples/claim-evidence'
+foreach ($name in @('fixtures.json', 'reproduce.py')) {
     Invoke-WebRequest "$sampleBase/$name" -OutFile "sample-download/$name"
 }
 ```

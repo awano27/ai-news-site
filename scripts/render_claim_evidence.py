@@ -23,6 +23,7 @@ DEFAULT_PAGES = (
     "presentations/ai_coding_agents_guide.html",
     "presentations/day_slides/day_slide_2026_09_04.html",
     "about.html",
+    "articles/claim-evidence-design.html",
 )
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 
