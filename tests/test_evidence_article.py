@@ -19,12 +19,13 @@ def test_article_is_in_preflight_and_changed_body_is_rejected():
     assert any("body text differs" in error for error in render_static_page(changed)[1])
 
 
-def test_resource_entry_survives_existing_homepage_generation(tmp_path):
+def test_article_entries_survive_existing_homepage_generation(tmp_path):
     node = shutil.which("node")
     assert node, "Node is required to verify the existing homepage generator"
     index = (ROOT / "index.html").read_text(encoding="utf-8")
     about = (ROOT / "about.html").read_text(encoding="utf-8")
-    assert index.count(f'href="{ARTICLE}"') == 1
+    for entry_id in ("heroArticleBtn", "implementationCard"):
+        assert re.search(rf'<a id="{entry_id}"[^>]+href="{ARTICLE}"', index)
     assert about.count(f'href="/{ARTICLE}"') == 1
     resources = re.search(r'<section id="resources".*?</section>', index, re.S).group()
     scripts = tmp_path / "scripts"

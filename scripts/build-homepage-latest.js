@@ -41,6 +41,7 @@ function decodeEntities(value) {
 }
 
 function newestSlide() {
+  if (!fs.existsSync(SLIDES_DIR)) return null;
   const slides = fs.readdirSync(SLIDES_DIR)
     .map((name) => {
       const match = name.match(/^day_slide_(\d{4})_(\d{2})_(\d{2})\.html$/);
@@ -66,6 +67,23 @@ function extractTitle(html, date) {
     .replace(/\s*\|\s*Day Slide\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
     .replace(/\s*\|\s*\d{4}-\d{2}-\d{2}\s*$/i, '')
     .trim() || `AI Daily Briefing ${date}`;
+}
+
+function extractHeroTwist(html, fallbackTitle) {
+  const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (!h1Match) return fallbackTitle;
+  const heading = h1Match[1].replace(/<span\b[^>]*class=["'][^"']*hero-subtitle[^"']*["'][^>]*>[\s\S]*?<\/span>/gi, '');
+  const text = decodeEntities(heading.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ''))
+    .replace(/\s*(?:\|\s*)?\d{4}-\d{2}-\d{2}\s*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text || fallbackTitle;
+}
+
+function extractHeroWhy(html, title) {
+  const metaMatch = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i);
+  if (metaMatch) return decodeEntities(metaMatch[1]).replace(/\s+/g, ' ').trim();
+  return extractSummary(html, title);
 }
 
 function extractSummary(html, title) {
@@ -264,6 +282,90 @@ function replaceFirst(html, pattern, replacement, label) {
   return html.replace(pattern, replacement);
 }
 
+function replaceHrefById(html, id, href, label, required = true) {
+  const idPattern = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const openingTag = new RegExp(`<a\\b(?=[^>]*\\bid=["']${idPattern}["'])[^>]*>`, 'i');
+  const match = html.match(openingTag);
+  if (!match) {
+    if (required) throw new Error(`Failed to update ${label} in index.html`);
+    return html;
+  }
+  const hrefPattern = /\bhref=(['"])[^'"]*\1/i;
+  if (!hrefPattern.test(match[0])) {
+    if (required) throw new Error(`Missing href for ${label} in index.html`);
+    return html;
+  }
+  const updated = match[0].replace(hrefPattern, `href="${escapeHtml(href)}"`);
+  return html.replace(match[0], updated);
+}
+
+function replaceElementText(html, id, text, label, required = false) {
+  const idPattern = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const elementPattern = new RegExp(
+    `(<([a-z][a-z0-9]*)\\b[^>]*\\bid=["']${idPattern}["'][^>]*>)[\\s\\S]*?(</\\2>)`,
+    'i'
+  );
+  if (!elementPattern.test(html)) {
+    if (required) throw new Error(`Failed to update ${label} in index.html`);
+    return html;
+  }
+  return html.replace(elementPattern, (_, opening, _tag, closing) => (
+    `${opening}${escapeHtml(text)}${closing}`
+  ));
+}
+
+function replaceAnchorLabel(html, id, label) {
+  const anchorPattern = new RegExp(
+    `(<a\\b(?=[^>]*\\bid=["']${id}["'])[^>]*>)([\\s\\S]*?)(</a>)`, 'i'
+  );
+  return html.replace(anchorPattern, (_, opening, body, closing) => {
+    const markers = (body.match(/<!--[\s\S]*?-->/g) || []).join('');
+    return `${opening}${markers}${escapeHtml(label)}${closing}`;
+  });
+}
+
+function replaceWeekGridWithEmptyState(html) {
+  const marker = /(<!-- fallback:this-week -->)[\s\S]*?(<!-- fallback:end -->)/i;
+  if (!marker.test(html)) return html;
+  return html.replace(
+    marker,
+    '$1<div id="weekGrid" class="week-grid"><div class="week-card is-empty">' +
+      '<span class="week-day">公開スライドなし</span>' +
+      '<div class="week-title">公開スライドはまだありません</div>' +
+      '<span class="week-go">スライド一覧で確認</span></div></div>$2'
+  );
+}
+
+function preserveHomepageWithoutSlides() {
+  if (!fs.existsSync(INDEX_HTML)) return;
+  let html = fs.readFileSync(INDEX_HTML, 'utf8');
+  const listUrl = 'presentations/day_slides_index.html';
+  html = replaceHrefById(html, 'latestSlideHeroBtn', listUrl, 'header slide index', false);
+  html = replaceHrefById(html, 'heroSlideBtn', listUrl, 'slide index CTA', false);
+  html = replaceHrefById(html, 'todaySlideCard', listUrl, 'legacy slide card', false);
+  html = replaceHrefById(html, 'sitrepLink', listUrl, 'sitrep slide index', false);
+  html = html.replace(
+    /(\bhref=["'])presentations\/day_slides\/day_slide_\d{4}_\d{2}_\d{2}\.html(["'])/gi,
+    `$1${listUrl}$2`
+  );
+  if (!html.includes('data-slides-unavailable="true"')) {
+    html = html.replace('<html ', '<html data-slides-unavailable="true" ');
+  }
+  html = replaceAnchorLabel(html, 'latestSlideHeroBtn', 'スライド一覧');
+  html = replaceAnchorLabel(html, 'heroSlideBtn', 'スライド一覧');
+  html = replaceWeekGridWithEmptyState(html);
+  html = replaceElementText(html, 'heroDate', '公開スライドなし');
+  html = replaceElementText(html, 'todaySlideDate', '公開スライドなし');
+  html = replaceElementText(html, 'heroTwist', '公開スライドはまだありません');
+  html = replaceElementText(
+    html,
+    'heroWhy',
+    '日次スライドが公開されると、ここに見出しと要点を表示します。'
+  );
+  fs.writeFileSync(INDEX_HTML, html, 'utf8');
+  console.warn('[build-homepage-latest] no slide fallback written to index.html');
+}
+
 function replaceGrid(html, id, replacement) {
   const start = html.indexOf(`<div id="${id}"`);
   if (start === -1) throw new Error(`Missing #${id} in index.html`);
@@ -297,9 +399,12 @@ function updateHomepage(data, slide, slideUrl) {
   const slideDate = slide.date;
   const fallbackDate = data.news_date || slideDate;
   const updateTime = generatedAt ? generatedAt.replace(/^\d{4}-\d{2}-\d{2}\s+/, '').replace(' JST', '') : '09:00';
+  const slideHtml = fs.readFileSync(slide.filePath, 'utf8');
+  const heroTitle = extractTitle(slideHtml, slideDate);
+  const heroTwist = extractHeroTwist(slideHtml, heroTitle);
+  const heroWhy = extractHeroWhy(slideHtml, heroTitle);
   const rankingItems = collectRankingItems(data, slideUrl);
   const categoryItems = collectCategoryItems(data, rankingItems.map((item) => item.url));
-  const heroTitle = extractTitle(fs.readFileSync(slide.filePath, 'utf8'), slideDate);
   let html = fs.readFileSync(INDEX_HTML, 'utf8');
 
   html = html.replace(/<meta http-equiv="Content-Security-Policy"[\s\S]*?\/>\n\s*/i, '');
@@ -310,12 +415,7 @@ function updateHomepage(data, slide, slideUrl) {
     'CSP meta'
   );
 
-  html = replaceFirst(
-    html,
-    /<a class="cta" id="latestSlideHeroBtn" href="[^"]*">/,
-    `<a class="cta" id="latestSlideHeroBtn" href="${slideUrl}">`,
-    'header latest slide CTA'
-  );
+  html = replaceHrefById(html, 'latestSlideHeroBtn', slideUrl, 'header latest slide CTA');
   html = replaceFirst(
     html,
     /<span id="heroDate"[^>]*>[\s\S]*?<\/span>/,
@@ -326,28 +426,22 @@ function updateHomepage(data, slide, slideUrl) {
     /if \(el\) el\.textContent = y \+ '-' \+ m \+ '-' \+ d \+ ' .*? \+ w;/,
     "if (el && !el.textContent.trim()) el.textContent = y + '-' + m + '-' + d + ' · ' + w;"
   );
-  html = replaceFirst(
-    html,
-    /<a id="heroSlideBtn" class="btn btn-primary" href="[^"]*">/,
-    `<a id="heroSlideBtn" class="btn btn-primary" href="${slideUrl}">`,
-    'hero slide button'
-  );
-  html = replaceFirst(
-    html,
-    /<a id="todaySlideCard" class="main-card is-primary" href="[^"]*">/,
-    `<a id="todaySlideCard" class="main-card is-primary" href="${slideUrl}">`,
-    'today slide card'
-  );
-  html = replaceFirst(
-    html,
-    /<span id="todaySlideDate" class="main-card-date">[\s\S]*?<\/span>/,
-    `<span id="todaySlideDate" class="main-card-date">${escapeHtml(slideDate)}</span>`,
-    'today slide date'
-  );
-  html = html.replace(
-    /(<a\b[^>]*\bid="sitrepLink"[^>]*\bhref=")[^"]*(")/,
-    `$1${slideUrl}$2`
-  );
+  const wasEmpty = html.includes('data-slides-unavailable="true"');
+  html = html.replace(/ data-slides-unavailable="true"/g, '');
+  if (wasEmpty) {
+    html = replaceAnchorLabel(html, 'latestSlideHeroBtn', '最新スライド →');
+    html = replaceAnchorLabel(html, 'heroSlideBtn', '最新スライドを読む →');
+    html = html.replace(/(<!-- fallback:this-week -->)[\s\S]*?(<!-- fallback:end -->)/i,
+      `$1<div id="weekGrid" class="week-grid"><a class="week-card is-today" href="${slideUrl}"><span class="today-flag">LATEST</span><span class="week-day">${slideDate}</span><div class="week-title">${escapeHtml(heroTitle)}</div><span class="week-go">スライドを読む →</span></a></div>$2`);
+  }
+  html = replaceHrefById(html, 'heroSlideBtn', slideUrl, 'hero slide button');
+  // todaySlideCard was the old wrapper ID. Keep compatibility while allowing
+  // the new trends card to own the slide link directly.
+  html = replaceHrefById(html, 'todaySlideCard', slideUrl, 'today slide card', false);
+  html = replaceElementText(html, 'todaySlideDate', slideDate, 'today slide date', false);
+  html = replaceHrefById(html, 'sitrepLink', slideUrl, 'sitrep link', false);
+  html = replaceElementText(html, 'heroTwist', heroTwist, 'hero twist', false);
+  html = replaceElementText(html, 'heroWhy', heroWhy, 'hero explanation', false);
 
   const rankingFallback = rankingItems.length
     ? rankingItems.map(rankingCardHtml).join('\n')
@@ -580,7 +674,9 @@ function buildSections() {
 function main() {
   const slide = newestSlide();
   if (!slide) {
-    throw new Error(`No day slides found in ${SLIDES_DIR}`);
+    console.warn(`[build-homepage-latest] no day slides found in ${SLIDES_DIR}; preserving news JSON and writing honest homepage empty state`);
+    preserveHomepageWithoutSlides();
+    return;
   }
 
   const html = fs.readFileSync(slide.filePath, 'utf8');
