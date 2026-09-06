@@ -58,7 +58,9 @@ def extract_slide_twist(slide_html: str) -> str | None:
     match = re.search(r"<h1\b[^>]*>(.*?)</h1>", slide_html, re.I | re.S)
     if not match:
         return None
-    text = re.sub(r"\s*(?:\|\s*)?\d{4}-\d{2}-\d{2}\s*$", "", _plain_text(match.group(1))).strip()
+    heading = re.sub(r'<span\b[^>]*class=["\'][^"\']*hero-subtitle[^"\']*["\'][^>]*>.*?</span>', "", match.group(1), flags=re.I | re.S)
+    heading = re.sub(r"<br\s*/?>", " ", heading, flags=re.I)
+    text = re.sub(r"\s*(?:\|\s*)?\d{4}-\d{2}-\d{2}\s*$", "", _plain_text(heading)).strip()
     return text or None
 
 
@@ -140,7 +142,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def replace_marked_text(body: str, elem_id: str, text: str) -> str:
     display = escape(text)
     return re.sub(
-        rf'(<(?:span|em|h1|p)\b[^>]*\bid="{elem_id}"[^>]*>).*?(</(?:span|em|h1|p)>)',
+        rf'(<(?:span|em|h1|h2|h3|p)\b[^>]*\bid="{elem_id}"[^>]*>).*?(</(?:span|em|h1|h2|h3|p)>)',
         lambda match: f"{match.group(1)}{display}{match.group(2)}",
         body,
         count=1,
@@ -148,7 +150,69 @@ def replace_marked_text(body: str, elem_id: str, text: str) -> str:
     )
 
 
+def replace_element_text(body: str, elem_id: str, text: str) -> str:
+    """Replace a dynamic element even when it is outside a fallback marker."""
+    return replace_marked_text(body, elem_id, text)
+
+
+def replace_href_by_id(body: str, elem_id: str, href: str) -> str:
+    escaped_id = re.escape(elem_id)
+    pattern = re.compile(
+        rf'(<a\b(?=[^>]*\bid="{escaped_id}")[^>]*\bhref=")[^"]*(")',
+        re.I,
+    )
+    return pattern.sub(rf'\g<1>{href}\g<2>', body, count=1)
+
+
+def replace_anchor_label(body: str, elem_id: str, label: str) -> str:
+    pattern = re.compile(
+        rf'(<a\b(?=[^>]*\bid="{re.escape(elem_id)}")[^>]*>)(.*?)(</a>)', re.I | re.S)
+    def replace(match):
+        markers = "".join(re.findall(r"<!--[\s\S]*?-->", match.group(2)))
+        return f"{match.group(1)}{markers}{escape(label)}{match.group(3)}"
+    return pattern.sub(replace, body, count=1)
+
+
+def empty_homepage_state(body: str) -> str:
+    """Point every static slide entry at the list and expose an honest empty state."""
+    if 'data-slides-unavailable="true"' not in body:
+        body = body.replace('<html ', '<html data-slides-unavailable="true" ')
+    list_url = "presentations/day_slides_index.html"
+    body = replace_href_by_id(body, "latestSlideHeroBtn", list_url)
+    body = replace_href_by_id(body, "heroSlideBtn", list_url)
+    body = replace_href_by_id(body, "todaySlideCard", list_url)
+    body = replace_href_by_id(body, "sitrepLink", list_url)
+    body = re.sub(
+        r'(\bhref=")presentations/day_slides/day_slide_\d{4}_\d{2}_\d{2}\.html(")',
+        rf'\g<1>{list_url}\g<2>',
+        body,
+        flags=re.I,
+    )
+    body = replace_anchor_label(body, "latestSlideHeroBtn", "スライド一覧")
+    body = replace_anchor_label(body, "heroSlideBtn", "スライド一覧")
+    body = replace_element_text(body, "heroDate", "公開スライドなし")
+    body = replace_element_text(body, "todaySlideDate", "公開スライドなし")
+    body = replace_element_text(body, "heroTwist", "公開スライドはまだありません")
+    body = replace_element_text(
+        body,
+        "heroWhy",
+        "日次スライドが公開されると、ここに見出しと要点を表示します。",
+    )
+    body = re.sub(
+        r'(<!-- fallback:this-week -->).*?(<!-- fallback:end -->)',
+        r'\g<1><div id="weekGrid" class="week-grid"><div class="week-card is-empty">'
+        r'<span class="week-day">公開スライドなし</span>'
+        r'<div class="week-title">公開スライドはまだありません</div>'
+        r'<span class="week-go">スライド一覧で確認</span></div></div>\g<2>',
+        body,
+        count=1,
+        flags=re.I | re.S,
+    )
+    return body
+
+
 def refresh_sitrep(body: str, stamp: str, slide_title: str | None, args: argparse.Namespace) -> str:
+    body = body.replace("presentations/day_slides_index.html", f"presentations/day_slides/day_slide_{stamp}.html")
     body = re.sub(r"day_slide_\d{4}_\d{2}_\d{2}\.html", f"day_slide_{stamp}.html", body)
     if args.sitrep_update:
         body = replace_marked_text(body, "sitrepUpdate", args.sitrep_update)
@@ -164,7 +228,13 @@ def refresh_sitrep(body: str, stamp: str, slide_title: str | None, args: argpars
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    newest = max(SLIDES.glob("day_slide_????_??_??.html"))
+    slides = sorted(SLIDES.glob("day_slide_????_??_??.html"))
+    if not slides:
+        if INDEX.is_file():
+            INDEX.write_text(empty_homepage_state(INDEX.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
+        print(f"[update_home_fallback] no day slides found at {SLIDES}; wrote honest homepage empty state", file=sys.stderr)
+        return 0
+    newest = slides[-1]
     match = DATE_RE.fullmatch(newest.name)
     assert match
     old = INDEX.read_text(encoding="utf-8")
@@ -177,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
     newest_day = date(*map(int, match.groups()))
     weekday = WEEKDAYS_JP[newest_day.weekday()]
     week_titles = titles_from_index(SLIDES_INDEX.read_text(encoding="utf-8")) if SLIDES_INDEX.is_file() else {}
+    if slide_title:
+        week_titles.setdefault(iso, slide_title)
     if "<!-- fallback:" not in old:
         lines=[]
         for line in old.splitlines(keepends=True):
@@ -198,7 +270,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         if name != "latest-slide":
             return marker.group(0)
-        body = re.sub(r"day_slide_\d{4}_\d{2}_\d{2}\.html", f"day_slide_{stamp}.html", marker.group("body"))
+        body = marker.group("body").replace(
+            "presentations/day_slides_index.html",
+            f"presentations/day_slides/day_slide_{stamp}.html",
+        )
+        body = re.sub(r"day_slide_\d{4}_\d{2}_\d{2}\.html", f"day_slide_{stamp}.html", body)
         body = re.sub(r"\d{4}-\d{2}-\d{2}", iso, body)
         if 'id="heroDate"' in body:
             body = re.sub(r"(?<= · )[月火水木金土日]", weekday, body)
@@ -242,6 +318,20 @@ def main(argv: list[str] | None = None) -> int:
                 )
         return f'<!-- fallback:{marker.group("name")} -->{body}<!-- fallback:end -->'
     updated = MARKER_RE.sub(refresh, old)
+    if 'data-slides-unavailable="true"' in updated:
+        updated = updated.replace(' data-slides-unavailable="true"', '')
+        updated = replace_anchor_label(updated, "latestSlideHeroBtn", "最新スライド →")
+        updated = replace_anchor_label(updated, "heroSlideBtn", "最新スライドを読む →")
+        for elem_id in ("latestSlideHeroBtn", "heroSlideBtn", "sitrepLink"):
+            updated = replace_href_by_id(updated, elem_id, f"presentations/day_slides/{newest.name}")
+        updated = replace_element_text(updated, "heroDate", f"{iso} · {weekday}")
+        updated = replace_element_text(updated, "todaySlideDate", iso)
+    # The new trends card keeps these IDs in its own markup. Update them by ID
+    # as a narrow fallback even if the surrounding card is not marker-wrapped.
+    if slide_twist:
+        updated = replace_element_text(updated, "heroTwist", slide_twist)
+    if open_loop:
+        updated = replace_element_text(updated, "heroWhy", open_loop)
     INDEX.write_text(updated, encoding="utf-8", newline="\n")
     print(f"[update_home_fallback] latest={iso}, markers={len(MARKER_RE.findall(updated))}, legacy_tokens={old_dates}")
     return 0

@@ -20,7 +20,7 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 1. **最新の `presentations/day_slides/day_slide_*.html` をテンプレに**、`--accent` 1色のみ変更して新規作成
    - `h1` = 今日の twist（標語禁止。「今日のAIを5分で」や名詞句の説明は置かない）
    - `meta name="description"` = 開ループ1文（理由・仕組みは書かない）
-   - `p.lead` = 回収（仕組み・だから何）。トップの h1 はスライド h1（#heroTwist）。標語「今日のAIを5分で」は `.hero-kicker`。サイト名はヘッダーに残す
+   - `p.lead` = 回収（仕組み・だから何）。トップの h1（#heroIdentity）はサイトの価値説明として固定。スライド h1 は目的別の動向カード（h3#heroTwist）、説明は #heroWhy へ反映する。主要なニュース・設計記事の入口は保持し、サイト名はヘッダーに残す
 2. 更新は実質 **3ファイルのみ**:
    - `presentations/day_slides/day_slide_2026_MM_DD.html`（新規）
    - `presentations/day_slides_index.html`（月の件数 +1、リスト先頭に `<li>`。feat-title は**短い正式タイトルのみ**——本文貼付禁止）
