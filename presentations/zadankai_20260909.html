@@ -30,80 +30,96 @@
       background: linear-gradient(90deg, var(--cyan), var(--gold));
       z-index: 20;
     }
-    .page {
-      max-width: 1120px;
+    .page { padding: 20px 0 80px; }
+    .mast, .inner {
+      max-width: 1680px;
       margin: 0 auto;
-      padding: 28px 16px 96px;
+      padding: 0 16px;
     }
     .mast {
       display: flex; justify-content: space-between; align-items: baseline;
-      gap: 16px; margin-bottom: 22px;
+      gap: 16px; margin-bottom: 16px;
       font-family: Outfit, sans-serif;
       font-size: 12px; letter-spacing: 0.16em;
       color: var(--mute); text-transform: uppercase;
     }
     .mast b { color: var(--cyan); font-weight: 700; }
-    figure {
-      margin: 0 0 28px;
-    }
+    figure { margin: 0 0 20px; }
     figure img {
       width: 100%; height: auto; display: block;
-      border: 1px solid rgba(62, 203, 255, 0.18);
     }
-    .block {
-      margin: 0 0 28px;
-      border: 1px solid var(--line);
-      background:
-        radial-gradient(700px 280px at 90% 0%, rgba(62,203,255,0.12), transparent 55%),
-        var(--panel);
-      padding: 22px 22px 26px;
+    .cinema {
+      width: 100%;
+      background: #000;
+      margin: 8px 0 28px;
     }
-    .kicker {
+    .cinema .kicker {
+      max-width: 1680px; margin: 0 auto;
+      padding: 14px 16px 8px;
       font-family: Outfit, sans-serif;
-      font-size: 12px; letter-spacing: 0.18em;
+      font-size: 13px; letter-spacing: 0.16em;
       color: var(--gold); text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-    .video-wrap {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 18px;
-    }
-    @media (max-width: 800px) {
-      .video-wrap { grid-template-columns: 1fr; }
     }
     .frame {
       position: relative;
+      width: 100%;
       aspect-ratio: 16 / 9;
+      max-height: 68vh;
+      margin: 0 auto;
       background: #000;
       overflow: hidden;
     }
-    .frame iframe, .poster, .poster img {
+    .frame iframe, #yt, .poster, .poster img {
       position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
     }
-    .poster { cursor: pointer; padding: 0; background: #000; }
+    .poster { cursor: pointer; padding: 0; background: #000; z-index: 2; }
     .poster img { object-fit: cover; }
     .poster .play {
       position: absolute; left: 50%; top: 50%;
       transform: translate(-50%, -50%);
-      width: 72px; height: 72px; border-radius: 50%;
+      width: 88px; height: 88px; border-radius: 50%;
       background: var(--cyan); color: #041018;
-      font-size: 26px; display: grid; place-items: center;
-      box-shadow: 0 0 0 12px rgba(62,203,255,0.18);
+      font-size: 32px; display: grid; place-items: center;
+      box-shadow: 0 0 0 16px rgba(62,203,255,0.18);
     }
     .poster.hidden { display: none; }
-    .listen { display: flex; flex-direction: column; justify-content: center; }
-    .listen ol { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-    .listen li {
-      border-left: 2px solid var(--cyan);
-      padding-left: 12px;
-      color: var(--mute);
-      font-size: 15px; line-height: 1.6;
+    .captions {
+      min-height: 22vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 10px;
+      padding: 20px 24px 32px;
+      background: #000;
+      text-align: center;
     }
-    .listen li strong { display: block; color: var(--ink); margin-bottom: 2px; }
-    .note { margin-top: 12px; color: var(--mute); font-size: 13px; }
+    .captions .who {
+      font-family: Outfit, sans-serif;
+      letter-spacing: 0.18em;
+      font-size: clamp(14px, 1.3vw, 18px);
+      color: var(--gold);
+      min-height: 1.2em;
+    }
+    .captions .ja {
+      font-size: clamp(28px, 3.6vw, 54px);
+      font-weight: 700;
+      line-height: 1.4;
+      max-width: 18em;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.65);
+    }
+    .captions .idle { color: var(--mute); font-weight: 500; font-size: clamp(18px, 2vw, 28px); }
+    .block {
+      max-width: 1680px;
+      margin: 0 auto 24px;
+      padding: 22px 16px 28px;
+    }
+    .block .kicker {
+      font-family: Outfit, sans-serif;
+      font-size: 12px; letter-spacing: 0.18em;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 12px;
+    }
     .close h2 {
-      font-size: clamp(22px, 3.2vw, 34px);
+      font-size: clamp(22px, 3vw, 36px);
       margin: 4px 0 18px;
     }
     .close h2 span { color: var(--cyan); }
@@ -114,10 +130,11 @@
     }
     @media (max-width: 800px) {
       .cols { grid-template-columns: 1fr; }
+      .captions .ja { font-size: 22px; }
     }
     .col {
       border: 1px solid var(--line);
-      background: rgba(4, 7, 14, 0.55);
+      background: var(--panel);
       padding: 18px 18px 22px;
     }
     .col.hi { border-color: var(--cyan); background: rgba(62, 203, 255, 0.1); }
@@ -131,46 +148,38 @@
 <body>
   <div class="progress" id="progress"></div>
   <main class="page">
-    <div class="mast"><b>課内座談会</b><span>2026.09.09</span></div>
+    <div class="mast inner"><b>課内座談会</b><span>2026.09.09</span></div>
 
-    <figure><img src="zadankai_20260909/01.jpg" alt="未来の特異点"></figure>
+    <figure class="inner"><img src="zadankai_20260909/01.jpg" alt="未来の特異点"></figure>
+    <figure class="inner"><img src="zadankai_20260909/02.jpg" alt="知能の爆発"></figure>
+    <figure class="inner"><img src="zadankai_20260909/03.jpg" alt="デジタルから物理へ"></figure>
+    <figure class="inner"><img src="zadankai_20260909/04.jpg" alt="安全性のパラドックス"></figure>
+    <figure class="inner"><img src="zadankai_20260909/05.jpg" alt="地政学の最前線"></figure>
+    <figure class="inner"><img src="zadankai_20260909/06.jpg" alt="社会契約の再定義"></figure>
+    <figure class="inner"><img src="zadankai_20260909/07.jpg" alt="指導者としての影響力"></figure>
+    <figure class="inner"><img src="zadankai_20260909/08.jpg" alt="結論 2036年への航路"></figure>
 
-    <section class="block" id="clip">
-      <div class="kicker">最初の1分 · 29:42–30:49</div>
-      <div class="video-wrap">
-        <div class="frame">
-          <iframe id="yt" title="Elon Musk on software engineering" src=""
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
-          <button type="button" class="poster" id="poster" aria-label="映像を再生">
-            <img src="https://i.ytimg.com/vi/XuoqKYxDHVc/hqdefault.jpg" alt="The Economist インタビュー">
-            <span class="play" aria-hidden="true">▶</span>
-          </button>
-        </div>
-        <aside class="listen">
-          <ol>
-            <li><strong>何と比べているか</strong>コードを書くことか、仕事全体か。</li>
-            <li><strong>90 → 99 → Stockfish</strong>次に来る数字を、彼はどう置いているか。</li>
-            <li><strong>課の仕事に落とす</strong>自分の作業のどこが「書く」で、どこが判断か。</li>
-          </ol>
-        </aside>
+    <section class="cinema" id="clip">
+      <div class="kicker">31:20 – 36:48　·　家庭菜園からデフレまで　·　約5分半</div>
+      <div class="frame">
+        <div id="yt"></div>
+        <button type="button" class="poster" id="poster" aria-label="映像を再生">
+          <img src="https://i.ytimg.com/vi/XuoqKYxDHVc/hqdefault.jpg" alt="The Economist インタビュー">
+          <span class="play" aria-hidden="true">▶</span>
+        </button>
       </div>
-      <p class="note">The Economist「The full-length interview with Elon Musk」　再生はクリック。</p>
+      <div class="captions" aria-live="polite">
+        <div class="who" id="who"></div>
+        <div class="ja idle" id="ja">再生すると、ここに大きな日本語字幕が出ます。</div>
+      </div>
     </section>
 
-    <figure><img src="zadankai_20260909/02.jpg" alt="知能の爆発"></figure>
-    <figure><img src="zadankai_20260909/03.jpg" alt="デジタルから物理へ"></figure>
-    <figure><img src="zadankai_20260909/04.jpg" alt="安全性のパラドックス"></figure>
-    <figure><img src="zadankai_20260909/05.jpg" alt="地政学の最前線"></figure>
-    <figure><img src="zadankai_20260909/06.jpg" alt="社会契約の再定義"></figure>
-    <figure><img src="zadankai_20260909/07.jpg" alt="指導者としての影響力"></figure>
-    <figure><img src="zadankai_20260909/08.jpg" alt="結論 2036年への航路"></figure>
-    <figure><img src="zadankai_20260909/09.jpg" alt="お金が意味を失う世界"></figure>
-    <figure><img src="zadankai_20260909/10.jpg" alt="4:40の一言をどう読むか"></figure>
-    <figure><img src="zadankai_20260909/11.jpg" alt="デフレ論のロジック"></figure>
-    <figure><img src="zadankai_20260909/12.jpg" alt="インフレとデフレの違い"></figure>
-    <figure><img src="zadankai_20260909/13.jpg" alt="現代の日本経済におけるデフレの現状"></figure>
-    <figure><img src="zadankai_20260909/14.jpg" alt="座談会で使える結論"></figure>
+    <figure class="inner"><img src="zadankai_20260909/09.jpg" alt="お金が意味を失う世界"></figure>
+    <figure class="inner"><img src="zadankai_20260909/10.jpg" alt="4:40の一言をどう読むか"></figure>
+    <figure class="inner"><img src="zadankai_20260909/11.jpg" alt="デフレ論のロジック"></figure>
+    <figure class="inner"><img src="zadankai_20260909/12.jpg" alt="インフレとデフレの違い"></figure>
+    <figure class="inner"><img src="zadankai_20260909/13.jpg" alt="現代の日本経済におけるデフレの現状"></figure>
+    <figure class="inner"><img src="zadankai_20260909/14.jpg" alt="座談会で使える結論"></figure>
 
     <section class="block close">
       <div class="kicker">課として決めたいこと</div>
@@ -199,14 +208,112 @@
     </section>
   </main>
   <script>
-    const CLIP = "https://www.youtube-nocookie.com/embed/XuoqKYxDHVc?start=1782&end=1849&rel=0&modestbranding=1&autoplay=1";
-    const yt = document.getElementById("yt");
+    const START = 1880;
+    const END = 2208;
+    const CAPS = [
+      { t: 1880, who: "マスク", ja: "仕事は任意になる。" },
+      { t: 1894, who: "マスク", ja: "家庭菜園に近い。店で野菜は買えるから、庭で作らなくてもいい。" },
+      { t: 1916, who: "マスク", ja: "庭のトマトは店ほど完璧ではない。でも友人の家で出ると、それは素敵なことだ。" },
+      { t: 1938, who: "編集長", ja: "それが、これからの仕事の姿になる、と。" },
+      { t: 1950, who: "編集長", ja: "10年以内に、ほぼすべての仕事を知能の方が上手くやる世界ですか。" },
+      { t: 1964, who: "マスク", ja: "はい。" },
+      { t: 1968, who: "編集長", ja: "職を失った人はどう生きるのか。" },
+      { t: 1980, who: "マスク", ja: "ユニバーサル・ハイ・インカムだ。" },
+      { t: 1990, who: "編集長", ja: "政治は反発している。革命の方が近いのでは。" },
+      { t: 2006, who: "マスク", ja: "平坦な道ではない。" },
+      { t: 2018, who: "マスク", ja: "かつての「コンピュータ」は、計算する人の仕事だった。" },
+      { t: 2036, who: "マスク", ja: "利息の計算を、ビルいっぱいの人が手でやっていた。" },
+      { t: 2054, who: "マスク", ja: "違うのは速度だ。変化が極端に速い。" },
+      { t: 2070, who: "マスク", ja: "今、利息計算の仕事に戻りたい人はほとんどいない。" },
+      { t: 2088, who: "編集長", ja: "失職した人への再分配は必要か。税金を上げて所得保障を賄うのか。" },
+      { t: 2108, who: "マスク", ja: "財務省が小切手を配ればいい。" },
+      { t: 2120, who: "編集長", ja: "お金を刷ればインフレになる。" },
+      { t: 2132, who: "マスク", ja: "それは過去の話だ。これから先は違う。" },
+      { t: 2146, who: "マスク", ja: "インフレは、お金と財・サービスの比率だ。" },
+      { t: 2160, who: "マスク", ja: "供給が桁で増えれば、お金を増やしてもデフレになる。" },
+      { t: 2178, who: "マスク", ja: "予測する。問題はインフレではなくデフレだ。" },
+      { t: 2194, who: "マスク", ja: "供給がマネーサプライより速く増えれば、デフレになる。" },
+      { t: 2206, who: "編集長", ja: "それはあり得ると思う。" }
+    ];
+
     const poster = document.getElementById("poster");
+    const whoEl = document.getElementById("who");
+    const jaEl = document.getElementById("ja");
     const bar = document.getElementById("progress");
-    poster.addEventListener("click", () => {
+    let player = null;
+    let timer = null;
+
+    function showCap(time) {
+      let cur = null;
+      for (const c of CAPS) {
+        if (time >= c.t) cur = c;
+      }
+      if (!cur || time < START || time >= END + 1) {
+        whoEl.textContent = "";
+        jaEl.textContent = "再生すると、ここに大きな日本語字幕が出ます。";
+        jaEl.classList.add("idle");
+        return;
+      }
+      whoEl.textContent = cur.who;
+      jaEl.textContent = cur.ja;
+      jaEl.classList.remove("idle");
+    }
+
+    function tick() {
+      if (!player || typeof player.getCurrentTime !== "function") return;
+      const t = player.getCurrentTime();
+      if (t >= END) {
+        player.pauseVideo();
+        whoEl.textContent = "";
+        jaEl.textContent = "ここまで。家庭菜園からデフレまで。";
+        jaEl.classList.remove("idle");
+        return;
+      }
+      showCap(t);
+    }
+
+    function startPlayer() {
       poster.classList.add("hidden");
-      yt.src = CLIP;
+      player = new YT.Player("yt", {
+        videoId: "XuoqKYxDHVc",
+        playerVars: {
+          start: START,
+          end: END,
+          autoplay: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          cc_load_policy: 0
+        },
+        events: {
+          onReady: (e) => {
+            e.target.seekTo(START, true);
+            e.target.playVideo();
+            timer = setInterval(tick, 200);
+          },
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.ENDED) {
+              clearInterval(timer);
+              showCap(END);
+            }
+          }
+        }
+      });
+    }
+
+    poster.addEventListener("click", () => {
+      if (window.YT && YT.Player) startPlayer();
+      else window._pendingPlay = true;
     });
+
+    window.onYouTubeIframeAPIReady = () => {
+      if (window._pendingPlay) startPlayer();
+    };
+
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
