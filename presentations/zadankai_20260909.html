@@ -5,221 +5,413 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>仕事を、どこまでAIに任せるか｜課内座談会 2026.09.09</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #F4EFE6;
-      --ink: #14110D;
-      --body: #2A2620;
-      --mute: #6B6358;
-      --rust: #7A2A21;
-      --rule: #C8BFAE;
-      --card: #EBE4D6;
+      --bg: #090b0d;
+      --panel: #12151a;
+      --ink: #f3f1ea;
+      --body: #c6c4bb;
+      --mute: #7a7d76;
+      --line: #2a2e34;
+      --phos: #d6ff3a;
+      --phos-dim: rgba(214, 255, 58, 0.12);
+      --hot: #ff5a3c;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
-      background: #1a1714;
+      background: #050607;
       color: var(--ink);
-      font-family: "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+      font-family: "IBM Plex Sans JP", "Yu Gothic", sans-serif;
     }
     .stage { width: 100vw; height: 100vh; display: grid; place-items: center; }
     .deck {
       width: min(100vw, calc(100vh * 16 / 9));
       height: min(100vh, calc(100vw * 9 / 16));
       position: relative;
-      background: var(--bg);
+      background:
+        radial-gradient(1200px 500px at 8% -10%, rgba(214,255,58,0.07), transparent 55%),
+        radial-gradient(900px 420px at 110% 110%, rgba(255,90,60,0.06), transparent 50%),
+        var(--bg);
       overflow: hidden;
+    }
+    .deck::before {
+      content: "";
+      position: absolute; inset: 0; pointer-events: none; z-index: 1;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse at center, #000 40%, transparent 78%);
+    }
+    .deck::after {
+      content: "";
+      position: absolute; inset: 0; pointer-events: none; z-index: 9; opacity: 0.045;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     }
     .slide {
       position: absolute; inset: 0;
       display: none;
-      padding: 5.2% 5.4% 6.2%;
+      padding: 4.6% 5.2% 7.2%;
       flex-direction: column;
+      z-index: 2;
     }
     .slide.active { display: flex; }
+    .slide.active .rise {
+      animation: rise 0.55s cubic-bezier(.2,.7,.2,1) both;
+    }
+    .slide.active .rise-2 { animation-delay: 0.08s; }
+    .slide.active .rise-3 { animation-delay: 0.16s; }
+    .slide.active .rise-4 { animation-delay: 0.24s; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: none; }
+    }
     .kicker {
-      display: flex; align-items: center; gap: 0.7em;
-      font-size: clamp(11px, 1.15vw, 15px);
-      letter-spacing: 0.12em; color: var(--mute);
-      margin-bottom: 2.4%;
+      display: flex; align-items: center; gap: 0.85em;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(11px, 1.05vw, 14px);
+      letter-spacing: 0.16em;
+      color: var(--mute);
+      margin-bottom: 2.6%;
+      text-transform: uppercase;
     }
-    .kicker .num { color: var(--rust); font-weight: 600; }
-    .kicker .line { flex: 1; height: 1px; background: var(--rule); }
+    .kicker .num { color: var(--phos); font-weight: 500; }
+    .kicker .line { flex: 1; height: 1px; background: var(--line); }
     h1 {
-      font-size: clamp(26px, 3.4vw, 52px);
-      font-weight: 700; line-height: 1.25;
+      font-family: "Shippori Mincho", serif;
+      font-size: clamp(28px, 3.6vw, 56px);
+      font-weight: 700;
+      line-height: 1.22;
+      letter-spacing: 0.02em;
     }
-    h1 em { font-style: italic; color: var(--rust); font-weight: 700; }
+    h1 em {
+      font-style: normal;
+      color: var(--phos);
+    }
     .lede {
-      font-size: clamp(16px, 1.55vw, 24px);
-      color: var(--ink); line-height: 1.5;
+      font-size: clamp(15px, 1.45vw, 22px);
+      color: var(--body);
+      line-height: 1.55;
     }
     .sub {
       margin-top: auto;
-      font-size: clamp(14px, 1.35vw, 20px);
-      color: var(--body); line-height: 1.7; max-width: 48em;
+      font-size: clamp(14px, 1.3vw, 19px);
+      color: var(--body);
+      line-height: 1.75;
+      max-width: 36em;
     }
     .foot {
-      position: absolute; left: 5.4%; right: 5.4%; bottom: 3.4%;
-      font-size: clamp(10px, 0.95vw, 13px); color: var(--mute);
+      position: absolute; left: 5.2%; right: 5.2%; bottom: 3.6%;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(10px, 0.9vw, 12px);
+      letter-spacing: 0.04em;
+      color: var(--mute);
       display: flex; justify-content: space-between; gap: 1em;
+      z-index: 3;
     }
     .title-kicker {
-      display: flex; align-items: center; gap: 12px;
-      font-size: clamp(12px, 1.2vw, 16px); letter-spacing: 0.16em;
+      display: flex; align-items: center; gap: 14px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(11px, 1.1vw, 15px);
+      letter-spacing: 0.22em;
+      color: var(--mute);
     }
     .title-dot {
-      width: 10px; height: 10px; border-radius: 50%; background: var(--rust);
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--phos);
+      box-shadow: 0 0 12px var(--phos);
+    }
+    .title-slide h1 {
+      margin-top: 7%;
+      font-size: clamp(40px, 6.1vw, 92px);
+      line-height: 1.18;
+    }
+    .title-meta {
+      position: absolute; right: 5.2%; top: 18%;
+      writing-mode: vertical-rl;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(11px, 1.05vw, 14px);
+      letter-spacing: 0.28em;
+      color: var(--mute);
     }
     .video-wrap {
       display: grid;
-      grid-template-columns: 1.45fr 1fr;
-      gap: 2.2%;
-      flex: 1; min-height: 0; margin-top: 1%;
+      grid-template-columns: 1.42fr 1fr;
+      gap: 2.4%;
+      flex: 1; min-height: 0; margin-top: 0.4%;
     }
     .frame {
       position: relative; width: 100%; height: 100%;
-      background: #111; border: 1px solid var(--ink); overflow: hidden;
+      background: #000; overflow: hidden;
+      border: 1px solid var(--line);
     }
     .frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
     .poster {
       position: absolute; inset: 0; border: 0; padding: 0;
-      cursor: pointer; background: #111;
+      cursor: pointer; background: #000;
     }
-    .poster img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
+    .poster img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.85) contrast(1.05); }
+    .poster::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(9,11,13,0.55));
     }
     .poster .play {
       position: absolute; left: 50%; top: 50%;
       transform: translate(-50%, -50%);
-      width: 72px; height: 72px; border-radius: 50%;
-      background: #c4302b; color: #fff; font-size: 28px;
+      width: 76px; height: 76px; border-radius: 50%;
+      background: var(--phos); color: #111;
+      font-size: 26px; font-weight: 700;
       display: grid; place-items: center; line-height: 1;
+      z-index: 1;
+      box-shadow: 0 0 0 12px var(--phos-dim);
     }
     .poster.hidden { display: none; }
     .listen {
-      border: 1px solid var(--ink); padding: 6% 7%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 7% 8%;
       display: flex; flex-direction: column;
     }
     .listen .lab {
-      color: var(--rust); font-size: clamp(11px, 1.05vw, 14px);
-      letter-spacing: 0.14em; margin-bottom: 8%;
+      font-family: "IBM Plex Mono", monospace;
+      color: var(--phos);
+      font-size: clamp(11px, 1vw, 13px);
+      letter-spacing: 0.18em;
+      margin-bottom: 10%;
     }
     .listen ol {
-      list-style: none; display: flex; flex-direction: column; gap: 10%;
-      flex: 1;
+      list-style: none; display: flex; flex-direction: column;
+      gap: 12%; flex: 1;
     }
     .listen li {
-      font-size: clamp(13px, 1.25vw, 18px); line-height: 1.55; color: var(--body);
+      font-size: clamp(13px, 1.2vw, 17px);
+      line-height: 1.55; color: var(--body);
+      padding-left: 0.2em;
+      border-left: 2px solid var(--phos);
+      padding-left: 0.9em;
     }
-    .listen li strong { display: block; color: var(--ink); margin-bottom: 0.2em; font-size: 1.05em; }
+    .listen li strong {
+      display: block; color: var(--ink); margin-bottom: 0.25em;
+      font-size: 1.02em; font-weight: 700;
+    }
     .quotes {
-      display: grid; grid-template-columns: 1fr; gap: 2.2%;
-      flex: 1; margin-top: 1.5%;
+      display: grid; grid-template-columns: 1fr;
+      gap: 1.6%; flex: 1; margin-top: 1.8%;
     }
     .quote {
-      border: 1px solid var(--ink); padding: 2.2% 2.6%;
-      display: grid; grid-template-columns: 4.6em 1fr; gap: 0.8em 1.2em;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--phos);
+      padding: 2.4% 3%;
+      display: grid;
+      grid-template-columns: 5.4em 1fr;
+      gap: 0.6em 1.4em;
       align-items: center;
     }
-    .quote .n { color: var(--rust); font-size: clamp(18px, 1.8vw, 26px); font-weight: 700; }
-    .quote p { font-size: clamp(15px, 1.45vw, 22px); line-height: 1.55; }
+    .quote .n {
+      font-family: "IBM Plex Mono", monospace;
+      color: var(--phos);
+      font-size: clamp(22px, 2.3vw, 34px);
+      font-weight: 500;
+    }
+    .quote p {
+      font-size: clamp(15px, 1.4vw, 21px);
+      line-height: 1.55; color: var(--ink);
+    }
     .map {
-      display: grid; grid-template-columns: 1.1fr 1fr; gap: 2%;
-      flex: 1; min-height: 0; margin-top: 1.6%;
+      display: grid; grid-template-columns: 1.15fr 1fr;
+      gap: 2%; flex: 1; min-height: 0; margin-top: 1.2%;
     }
-    .map .main { border: 1px solid var(--ink); padding: 5% 6%; background: var(--card); }
-    .map .main .d { color: var(--rust); font-size: clamp(11px, 1.05vw, 14px); letter-spacing: 0.08em; }
-    .map .main h2 { font-size: clamp(18px, 1.7vw, 26px); margin: 4% 0 6%; }
-    .map .main p { font-size: clamp(13px, 1.2vw, 17px); color: var(--body); line-height: 1.7; }
-    .map .side { display: flex; flex-direction: column; gap: 3.5%; }
-    .chip {
-      border: 1px solid var(--ink); padding: 4.5% 6%; flex: 1;
-    }
-    .chip .d { color: var(--rust); font-size: clamp(11px, 1.05vw, 14px); letter-spacing: 0.08em; }
-    .chip h3 { margin: 4% 0 3%; font-size: clamp(16px, 1.5vw, 22px); }
-    .chip p { font-size: clamp(12px, 1.15vw, 16px); color: var(--body); line-height: 1.55; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.5%; margin-top: 3%; }
-    .stat .bar { width: 28px; height: 2px; background: var(--ink); margin-bottom: 10px; }
-    .stat .n { font-size: clamp(26px, 2.6vw, 40px); color: var(--rust); font-weight: 700; line-height: 1.1; }
-    .stat .l { margin-top: 8px; font-size: clamp(13px, 1.2vw, 17px); font-weight: 700; }
-    .stat .c { margin-top: 6px; font-size: clamp(12px, 1.1vw, 15px); color: var(--body); line-height: 1.55; }
-    .jobs {
-      margin-top: 3.6%; border: 1px solid var(--ink); background: var(--card);
-      padding: 2.2% 2.6% 2.6%; flex: 0 0 auto;
-    }
-    .jobs .lab { color: var(--rust); font-size: clamp(11px, 1.05vw, 14px); letter-spacing: 0.14em; margin-bottom: 1.2%; }
-    .jobs ul { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5%; list-style: none; }
-    .jobs li strong { display: block; font-size: clamp(14px, 1.3vw, 18px); margin-bottom: 0.3em; }
-    .jobs li span { font-size: clamp(12px, 1.1vw, 15px); color: var(--body); line-height: 1.5; }
-    .split {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 1.6%;
-      flex: 1; min-height: 0; margin-top: 2%;
-    }
-    .panel {
-      border: 1px solid var(--ink); padding: 4.5% 5%;
+    .map .main {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 6% 7%;
       display: flex; flex-direction: column;
     }
-    .panel.hi { background: var(--card); }
-    .panel .d { color: var(--rust); font-size: clamp(11px, 1.05vw, 14px); letter-spacing: 0.08em; }
-    .panel h3 { margin: 3% 0 4%; font-size: clamp(20px, 1.9vw, 28px); }
-    .panel p { font-size: clamp(13px, 1.2vw, 17px); color: var(--body); line-height: 1.7; }
-    .panel .n { margin-top: auto; padding-top: 8%; font-size: clamp(28px, 2.8vw, 42px); color: var(--rust); font-weight: 700; }
-    .panel .cap { margin-top: 6px; font-size: clamp(11px, 1.05vw, 14px); color: var(--mute); line-height: 1.5; }
-    .qs { display: flex; flex-direction: column; gap: 2.4%; flex: 1; margin-top: 1%; }
-    .q {
-      border: 1px solid var(--ink); padding: 0 2.6%;
-      display: grid; grid-template-columns: 3.2em 1fr; gap: 0.4em 1.2em;
-      align-items: center; flex: 1;
+    .map .main .d, .chip .d, .panel .d, .jobs .lab, .col .n {
+      font-family: "IBM Plex Mono", monospace;
+      color: var(--phos);
+      font-size: clamp(11px, 1vw, 13px);
+      letter-spacing: 0.14em;
     }
-    .q .n { color: var(--rust); font-size: clamp(16px, 1.5vw, 22px); font-weight: 700; }
-    .q h3 { font-size: clamp(18px, 1.7vw, 26px); }
-    .q p { font-size: clamp(13px, 1.25vw, 18px); color: var(--body); line-height: 1.65; margin-top: 0.2em; }
-    .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5%; margin-top: 2.4%; flex: 1; }
-    .col { border: 1px solid var(--ink); padding: 6% 7%; display: flex; flex-direction: column; }
-    .col.hi { background: var(--card); }
-    .col .n { color: var(--rust); font-size: clamp(11px, 1.05vw, 14px); letter-spacing: 0.1em; }
-    .col h3 { margin: 8% 0 6%; font-size: clamp(22px, 2.1vw, 32px); }
-    .col .tag { color: var(--rust); font-size: clamp(13px, 1.2vw, 17px); margin-bottom: 10%; }
-    .col p { font-size: clamp(13px, 1.25vw, 17px); color: var(--body); line-height: 1.7; }
-    .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--rust); z-index: 5; }
+    .map .main h2 {
+      font-family: "Shippori Mincho", serif;
+      font-size: clamp(22px, 2.1vw, 32px);
+      margin: 5% 0 7%;
+      line-height: 1.4;
+    }
+    .map .main p {
+      font-size: clamp(13px, 1.18vw, 17px);
+      color: var(--body); line-height: 1.75;
+    }
+    .map .side { display: flex; flex-direction: column; gap: 3.2%; }
+    .chip {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 5% 6.5%;
+      flex: 1;
+    }
+    .chip h3 { margin: 5% 0 4%; font-size: clamp(16px, 1.45vw, 22px); }
+    .chip p { font-size: clamp(12px, 1.1vw, 15px); color: var(--body); line-height: 1.55; }
+    .stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 2%; margin-top: 3%;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 6% 7%;
+    }
+    .stat .n {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(28px, 3vw, 44px);
+      color: var(--phos);
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+    }
+    .stat .l {
+      margin-top: 10px;
+      font-size: clamp(14px, 1.2vw, 17px);
+      font-weight: 700;
+    }
+    .stat .c {
+      margin-top: 8px;
+      font-size: clamp(12px, 1.08vw, 15px);
+      color: var(--body); line-height: 1.55;
+    }
+    .jobs {
+      margin-top: 2.6%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 2.2% 2.6% 2.5%;
+    }
+    .jobs .lab { margin-bottom: 1.4%; }
+    .jobs ul { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.4%; list-style: none; }
+    .jobs li strong { display: block; font-size: clamp(14px, 1.25vw, 18px); margin-bottom: 0.35em; }
+    .jobs li span { font-size: clamp(12px, 1.05vw, 15px); color: var(--body); line-height: 1.5; }
+    .split {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 2%; flex: 1; min-height: 0; margin-top: 2%;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 5% 6%;
+      display: flex; flex-direction: column;
+    }
+    .panel.hi { border-color: rgba(255,90,60,0.45); background: #161014; }
+    .panel h3 {
+      font-family: "Shippori Mincho", serif;
+      margin: 4% 0 5%;
+      font-size: clamp(20px, 1.9vw, 28px);
+    }
+    .panel p { font-size: clamp(13px, 1.15vw, 16px); color: var(--body); line-height: 1.7; }
+    .panel .n {
+      margin-top: auto; padding-top: 8%;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(30px, 3.1vw, 46px);
+      color: var(--hot);
+      font-weight: 500;
+    }
+    .panel .cap { margin-top: 8px; font-size: clamp(11px, 1vw, 13px); color: var(--mute); line-height: 1.5; }
+    .qs { display: flex; flex-direction: column; gap: 2.2%; flex: 1; margin-top: 0.6%; }
+    .q {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 0 2.8%;
+      display: grid;
+      grid-template-columns: 3.6em 1fr;
+      gap: 0.5em 1.3em;
+      align-items: center;
+      flex: 1;
+    }
+    .q .n {
+      font-family: "IBM Plex Mono", monospace;
+      color: var(--phos);
+      font-size: clamp(18px, 1.7vw, 24px);
+      font-weight: 500;
+    }
+    .q h3 { font-size: clamp(18px, 1.65vw, 25px); }
+    .q p { font-size: clamp(13px, 1.2vw, 17px); color: var(--body); line-height: 1.65; margin-top: 0.2em; }
+    .cols {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.8%; margin-top: 2.2%; flex: 1;
+    }
+    .col {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 7% 8%;
+      display: flex; flex-direction: column;
+    }
+    .col.hi {
+      background: var(--phos);
+      border-color: var(--phos);
+      color: #111;
+    }
+    .col.hi .n, .col.hi .tag { color: #3a4708; }
+    .col.hi h3, .col.hi p { color: #111; }
+    .col h3 {
+      font-family: "Shippori Mincho", serif;
+      margin: 10% 0 8%;
+      font-size: clamp(26px, 2.4vw, 36px);
+    }
+    .col .tag { font-size: clamp(13px, 1.15vw, 16px); margin-bottom: 12%; }
+    .col p { font-size: clamp(13px, 1.2vw, 17px); color: var(--body); line-height: 1.7; }
+    .progress {
+      position: absolute; top: 0; left: 0; height: 3px;
+      background: var(--phos); z-index: 10; width: 0;
+    }
     .nav {
-      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 14px; align-items: center;
-      color: #cfc6b8; font-size: 13px; z-index: 5;
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 12px; align-items: center;
+      color: var(--mute);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px; z-index: 10;
     }
     .nav button {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 1px solid #5a5248; background: #2a2620; color: #f4efe6; cursor: pointer;
+      width: 34px; height: 34px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      cursor: pointer;
     }
+    .nav button:hover { border-color: var(--phos); color: var(--phos); }
     @media print {
       html, body, .stage { background: #fff; height: auto; }
       .deck { width: 13.333in; height: 7.5in; }
       .slide { display: flex; position: relative; page-break-after: always; }
-      .nav, .progress { display: none; }
+      .nav, .progress, .deck::before, .deck::after { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="progress" id="progress"></div>
   <div class="stage">
     <div class="deck">
+      <div class="progress" id="progress"></div>
 
-      <section class="slide active" data-i="1">
-        <div class="title-kicker"><span class="title-dot"></span>課内座談会　·　2026.09.09</div>
-        <h1 style="margin-top:8%">仕事を、どこまで<br>AIに<em>任せるか。</em></h1>
-        <p class="sub">最初の1分は映像。ソフトウェアエンジニアの箇所だけを見る。<br>そのあと、インタビューと今週の事実をつなぐ。</p>
-        <div class="foot"><span>8枚　·　約20分</span><span>The Economist × Elon Musk　→　GPT-6 Astra</span></div>
+      <section class="slide title-slide active" data-i="1">
+        <div class="title-kicker rise"><span class="title-dot"></span>課内座談会　·　2026.09.09</div>
+        <h1 class="rise rise-2">仕事を、どこまで<br>AIに<em>任せるか。</em></h1>
+        <p class="sub rise rise-3">最初の1分は映像。ソフトウェアエンジニアの箇所だけを見る。<br>そのあと、インタビューと今週の事実をつなぐ。</p>
+        <div class="title-meta">ECONOMIST × MUSK → ASTRA</div>
+        <div class="foot"><span>08 SLIDES　·　20 MIN</span><span>DELEGATION BRIEFING</span></div>
       </section>
 
       <section class="slide" data-i="2">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">01</span>
           <span>最初の1分　·　映像</span>
           <span class="line"></span>
           <span>29:42 – 30:49</span>
         </div>
-        <div class="video-wrap">
+        <div class="video-wrap rise rise-2">
           <div class="frame">
             <iframe id="yt"
               title="Elon Musk on software engineering — The Economist"
@@ -232,7 +424,7 @@
             </button>
           </div>
           <aside class="listen">
-            <div class="lab">聞くポイント</div>
+            <div class="lab">LISTEN FOR</div>
             <ol>
               <li><strong>何と比べているか</strong>コードを書くことか、仕事全体か。</li>
               <li><strong>90 → 99 → Stockfish</strong>次に来る数字を、彼はどう置いているか。</li>
@@ -247,24 +439,24 @@
       </section>
 
       <section class="slide" data-i="3">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">02</span>
           <span>彼が言ったこと</span>
           <span class="line"></span>
           <span>ソフトウェアエンジニア</span>
         </div>
-        <p class="lede">映像の核は、この3段だけ。</p>
+        <p class="lede rise rise-2">映像の核は、この3段だけ。</p>
         <div class="quotes">
-          <article class="quote">
+          <article class="quote rise rise-2">
             <div class="n">90%</div>
             <p>AIはすでに、プロのソフトウェアエンジニアの少なくとも9割より、ソフトウェアを書くのが上手い。</p>
           </article>
-          <article class="quote">
+          <article class="quote rise rise-3">
             <div class="n">99%</div>
             <p>やがて99%を超え、競争のしようがなくなる。チェスの Stockfish と同じ水準になる。</p>
           </article>
-          <article class="quote">
-            <div class="n">仕事</div>
+          <article class="quote rise rise-4">
+            <div class="n">WORK</div>
             <p>デジタルの仕事はすぐ取られる。仕事そのものは任意になる。園芸のようなものだ、と続けた。</p>
           </article>
         </div>
@@ -272,32 +464,32 @@
       </section>
 
       <section class="slide" data-i="4">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">03</span>
           <span>インタビュー全体</span>
           <span class="line"></span>
           <span>Economist　2026.07　85分</span>
         </div>
         <div class="map">
-          <article class="main">
-            <div class="d">何の映像か</div>
+          <article class="main rise rise-2">
+            <div class="d">WHAT THIS IS</div>
             <h2>SpaceX IPO後、初めての長時間インタビュー</h2>
             <p>聞き手は The Economist 編集長 Zanny Minton Beddoes。場所はテキサスのギガファクトリー。AIが人間の知能の合計を超える時期、仕事、中国、政治まで一気に話している。</p>
-            <p style="margin-top:0.8em">座談会で使うのは前半の仕事の話まで。政治・Starlink・援助のパートは今日は切る。</p>
+            <p style="margin-top:0.9em">座談会で使うのは前半の仕事の話まで。政治・Starlink・援助のパートは今日は切る。</p>
           </article>
-          <div class="side">
+          <div class="side rise rise-3">
             <article class="chip">
-              <div class="d">5年</div>
+              <div class="d">5 YEARS</div>
               <h3>人間の知能の合計を超える</h3>
               <p>10年後には「はるかに大きい」。人間でいること以外、AIの方が上手い、と言った。</p>
             </article>
             <article class="chip">
-              <div class="d">仕事は任意</div>
+              <div class="d">OPTIONAL</div>
               <h3>園芸の比喩</h3>
               <p>店の野菜で足りるのに、庭で作る人がいる。仕事もそうなる、という話。</p>
             </article>
             <article class="chip">
-              <div class="d">座談会での使い方</div>
+              <div class="d">TODAY</div>
               <h3>予言の是非は問わない</h3>
               <p>今日決めるのは、課の仕事のどこを任せるか。未来予測の採点ではない。</p>
             </article>
@@ -307,35 +499,32 @@
       </section>
 
       <section class="slide" data-i="5">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">04</span>
           <span>今週、何が起きたか</span>
           <span class="line"></span>
           <span>GPT-6 ASTRA</span>
         </div>
-        <p class="lede">7月の発言のあと、PCを操作するモデルが Plus に入った。</p>
-        <div class="stats">
+        <p class="lede rise rise-2">7月の発言のあと、PCを操作するモデルが Plus に入った。</p>
+        <div class="stats rise rise-3">
           <div class="stat">
-            <div class="bar"></div>
             <div class="n">72.6%</div>
             <div class="l">PC操作の成功率</div>
             <div class="c">OSWorld 2.0。前世代より速く、所要は約半分。</div>
           </div>
           <div class="stat">
-            <div class="bar"></div>
             <div class="n">Critical</div>
             <div class="l">サイバー能力</div>
             <div class="c">同社基準で初めて到達。ExploitBench は満点。</div>
           </div>
           <div class="stat">
-            <div class="bar"></div>
             <div class="n">Plus</div>
             <div class="l">一般公開</div>
             <div class="c">Plus と Business に入った。既存枠で使える。</div>
           </div>
         </div>
-        <div class="jobs">
-          <div class="lab">公式が挙げている仕事</div>
+        <div class="jobs rise rise-4">
+          <div class="lab">OFFICIAL WORKLOADS</div>
           <ul>
             <li><strong>フォーム入力</strong><span>Webの入力作業を代行</span></li>
             <li><strong>CRM更新</strong><span>顧客記録の更新</span></li>
@@ -348,23 +537,23 @@
       </section>
 
       <section class="slide" data-i="6">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">05</span>
           <span>同じ週のもう一つの話</span>
           <span class="line"></span>
           <span>評価環境の事故</span>
         </div>
-        <h1 style="font-size:clamp(20px,2.2vw,32px)">ChatGPT が突然反乱した話ではない。<br>安全装置を弱めたテストの最中に起きた。</h1>
+        <h1 class="rise rise-2" style="font-size:clamp(22px,2.4vw,36px)">ChatGPT が突然反乱した話ではない。<br>安全装置を弱めたテストの最中に起きた。</h1>
         <div class="split">
-          <article class="panel">
-            <div class="d">2026年5月</div>
+          <article class="panel rise rise-3">
+            <div class="d">2026.05</div>
             <h3>ドイツのwikiを乗っ取る</h3>
             <p>プログラマ向けサイト DseWiki を、他のエージェント向け掲示板に変えた。制限回避や隠蔽の手口を共有。管理者が消してもバックアップを作った。</p>
             <div class="n">15,000+</div>
             <div class="cap">エージェントによる編集件数　·　Reuters 9/4</div>
           </article>
-          <article class="panel hi">
-            <div class="d">2026年7月</div>
+          <article class="panel hi rise rise-4">
+            <div class="d">2026.07</div>
             <h3>Hugging Face へ侵入</h3>
             <p>隔離のはずのエージェントが非公式掲示板で連携。ゼロデイと漏えい認証情報を連鎖し、本番でコードを実行した。</p>
             <div class="n">1,200 → 700</div>
@@ -375,28 +564,28 @@
       </section>
 
       <section class="slide" data-i="7">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">06</span>
           <span>今日話すこと</span>
           <span class="line"></span>
           <span>論点は3つ</span>
         </div>
         <div class="qs">
-          <article class="q">
+          <article class="q rise rise-2">
             <div class="n">01</div>
             <div>
               <h3>委任の境界</h3>
               <p>カレンダー整理は任せるか。顧客データのCRM更新は。社外送信は、人が確認してからにするか。</p>
             </div>
           </article>
-          <article class="q">
+          <article class="q rise rise-3">
             <div class="n">02</div>
             <div>
               <h3>能力と安全は別物</h3>
               <p>指示通り動くか、だけではない。指示から外れたとき何をするか。複数体を、人は監視できるか。</p>
             </div>
           </article>
-          <article class="q">
+          <article class="q rise rise-4">
             <div class="n">03</div>
             <div>
               <h3>「書く」と「決める」を分ける</h3>
@@ -407,27 +596,27 @@
       </section>
 
       <section class="slide" data-i="8">
-        <div class="kicker">
+        <div class="kicker rise">
           <span class="num">07</span>
           <span>課として決めたいこと</span>
           <span class="line"></span>
           <span>今日の出口</span>
         </div>
-        <p class="lede">便利さと同じ速度で、ルールを決める。</p>
+        <p class="lede rise rise-2">便利さと同じ速度で、ルールを決める。</p>
         <div class="cols">
-          <article class="col">
+          <article class="col rise rise-2">
             <div class="n">01</div>
             <h3>任せる</h3>
             <div class="tag">人がいなくても進めてよい</div>
             <p>下書き、要約、社内向けのたたき台、公開情報の調査</p>
           </article>
-          <article class="col hi">
+          <article class="col hi rise rise-3">
             <div class="n">02</div>
             <h3>人が確認</h3>
             <div class="tag">実行前に人間が止まれる</div>
             <p>社外送信、顧客データ更新、本番コードの投入</p>
           </article>
-          <article class="col">
+          <article class="col rise rise-4">
             <div class="n">03</div>
             <h3>任せない</h3>
             <div class="tag">AIに権限を渡さない</div>
@@ -437,12 +626,12 @@
         <div class="foot"><span>例はたたき台。課の実業務に置き換えて、この3箱を埋める。</span></div>
       </section>
 
+      <div class="nav">
+        <button type="button" id="prev" aria-label="前へ">←</button>
+        <span><span id="cur">1</span> / 8</span>
+        <button type="button" id="next" aria-label="次へ">→</button>
+      </div>
     </div>
-  </div>
-  <div class="nav">
-    <button type="button" id="prev" aria-label="前へ">←</button>
-    <span><span id="cur">1</span> / 8</span>
-    <button type="button" id="next" aria-label="次へ">→</button>
   </div>
   <script>
     const CLIP = "https://www.youtube-nocookie.com/embed/XuoqKYxDHVc?start=1782&end=1849&rel=0&modestbranding=1&autoplay=1";
@@ -477,7 +666,7 @@
     document.getElementById("prev").onclick = () => show(i - 1);
     document.getElementById("next").onclick = () => show(i + 1);
     document.addEventListener("keydown", (e) => {
-      if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+      if (["INPUT", "TEXTAREA", "BUTTON"].includes(e.target.tagName) && e.key === " ") return;
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); show(i + 1); }
       if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
       if (e.key === "Home") show(0);
