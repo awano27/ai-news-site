@@ -19,62 +19,64 @@
       --line: rgba(62, 203, 255, 0.35);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%;
-      background: #000;
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
       color: var(--ink);
       font-family: "IBM Plex Sans JP", "Yu Gothic", sans-serif;
     }
-    .stage { width: 100vw; height: 100vh; display: grid; place-items: center; }
-    .deck {
-      width: min(100vw, calc(100vh * 16 / 9));
-      height: min(100vh, calc(100vw * 9 / 16));
-      position: relative;
-      background: var(--bg);
-      overflow: hidden;
+    .progress {
+      position: fixed; top: 0; left: 0; height: 3px; width: 0;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      z-index: 20;
     }
-    .slide {
-      position: absolute; inset: 0;
-      display: none;
-      z-index: 1;
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 16px 96px;
     }
-    .slide.active { display: block; }
-    .slide.img .art {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      background: #04070e;
-      display: block;
+    .mast {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 16px; margin-bottom: 22px;
+      font-family: Outfit, sans-serif;
+      font-size: 12px; letter-spacing: 0.16em;
+      color: var(--mute); text-transform: uppercase;
     }
-    .html-slide {
-      position: absolute; inset: 0;
-      padding: 4.6% 5.2% 7%;
-      display: flex; flex-direction: column;
+    .mast b { color: var(--cyan); font-weight: 700; }
+    figure {
+      margin: 0 0 28px;
+    }
+    figure img {
+      width: 100%; height: auto; display: block;
+      border: 1px solid rgba(62, 203, 255, 0.18);
+    }
+    .block {
+      margin: 0 0 28px;
+      border: 1px solid var(--line);
       background:
-        radial-gradient(900px 420px at 80% 20%, rgba(62,203,255,0.12), transparent 55%),
-        radial-gradient(700px 380px at 10% 90%, rgba(240,180,41,0.08), transparent 50%),
-        #04070e;
+        radial-gradient(700px 280px at 90% 0%, rgba(62,203,255,0.12), transparent 55%),
+        var(--panel);
+      padding: 22px 22px 26px;
     }
     .kicker {
-      display: flex; align-items: center; gap: 0.8em;
       font-family: Outfit, sans-serif;
-      font-size: clamp(11px, 1.05vw, 14px);
-      letter-spacing: 0.18em;
-      color: var(--mute);
-      text-transform: uppercase;
-      margin-bottom: 2.2%;
+      font-size: 12px; letter-spacing: 0.18em;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 14px;
     }
-    .kicker .num { color: var(--cyan); }
-    .kicker .line { flex: 1; height: 1px; background: var(--line); }
     .video-wrap {
       display: grid;
-      grid-template-columns: 1.45fr 1fr;
-      gap: 2.2%;
-      flex: 1; min-height: 0;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 800px) {
+      .video-wrap { grid-template-columns: 1fr; }
     }
     .frame {
-      position: relative; overflow: hidden;
-      border: 1px solid var(--line);
+      position: relative;
+      aspect-ratio: 16 / 9;
       background: #000;
+      overflow: hidden;
     }
     .frame iframe, .poster, .poster img {
       position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
@@ -84,209 +86,133 @@
     .poster .play {
       position: absolute; left: 50%; top: 50%;
       transform: translate(-50%, -50%);
-      width: 78px; height: 78px; border-radius: 50%;
+      width: 72px; height: 72px; border-radius: 50%;
       background: var(--cyan); color: #041018;
-      font-size: 28px; display: grid; place-items: center;
-      box-shadow: 0 0 0 14px rgba(62,203,255,0.18);
+      font-size: 26px; display: grid; place-items: center;
+      box-shadow: 0 0 0 12px rgba(62,203,255,0.18);
     }
     .poster.hidden { display: none; }
-    .listen {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      padding: 7% 8%;
-      backdrop-filter: blur(12px);
-      display: flex; flex-direction: column;
-    }
-    .listen .lab {
-      color: var(--gold);
-      font-family: Outfit, sans-serif;
-      letter-spacing: 0.2em;
-      font-size: clamp(11px, 1vw, 13px);
-      margin-bottom: 10%;
-    }
-    .listen ol { list-style: none; display: flex; flex-direction: column; gap: 12%; flex: 1; }
+    .listen { display: flex; flex-direction: column; justify-content: center; }
+    .listen ol { list-style: none; display: flex; flex-direction: column; gap: 16px; }
     .listen li {
       border-left: 2px solid var(--cyan);
-      padding-left: 0.9em;
+      padding-left: 12px;
       color: var(--mute);
-      font-size: clamp(13px, 1.2vw, 17px);
-      line-height: 1.55;
+      font-size: 15px; line-height: 1.6;
     }
-    .listen li strong { display: block; color: var(--ink); margin-bottom: 0.2em; }
-    .close h1 {
-      font-size: clamp(26px, 2.8vw, 42px);
-      font-weight: 700;
-      margin: 0.4em 0 1em;
+    .listen li strong { display: block; color: var(--ink); margin-bottom: 2px; }
+    .note { margin-top: 12px; color: var(--mute); font-size: 13px; }
+    .close h2 {
+      font-size: clamp(22px, 3.2vw, 34px);
+      margin: 4px 0 18px;
     }
-    .close h1 span { color: var(--cyan); }
+    .close h2 span { color: var(--cyan); }
     .cols {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1.8%; flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 800px) {
+      .cols { grid-template-columns: 1fr; }
     }
     .col {
       border: 1px solid var(--line);
-      background: var(--panel);
-      padding: 7% 8%;
-      display: flex; flex-direction: column;
+      background: rgba(4, 7, 14, 0.55);
+      padding: 18px 18px 22px;
     }
-    .col.hi {
-      background: linear-gradient(180deg, rgba(62,203,255,0.18), rgba(8,16,32,0.9));
-      border-color: var(--cyan);
-    }
-    .col .n { color: var(--gold); font-family: Outfit, sans-serif; letter-spacing: 0.16em; font-size: 13px; }
-    .col h3 { font-size: clamp(24px, 2.3vw, 34px); margin: 10% 0 8%; }
-    .col .tag { color: var(--cyan); margin-bottom: 12%; font-size: clamp(13px, 1.15vw, 16px); }
-    .col p { color: var(--mute); line-height: 1.7; font-size: clamp(13px, 1.2vw, 17px); }
-    .foot {
-      position: absolute; left: 5.2%; right: 5.2%; bottom: 3.4%;
-      font-size: 12px; color: var(--mute);
-      display: flex; justify-content: space-between;
-      z-index: 3;
-    }
-    .progress {
-      position: absolute; top: 0; left: 0; height: 3px;
-      background: linear-gradient(90deg, var(--cyan), var(--gold));
-      z-index: 5; width: 0;
-    }
-    .nav {
-      position: absolute; bottom: 16px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 12px; align-items: center;
-      z-index: 5; color: var(--mute); font-size: 12px;
-      font-family: Outfit, sans-serif;
-    }
-    .nav button {
-      width: 34px; height: 34px;
-      border: 1px solid var(--line);
-      background: rgba(4,7,14,0.7);
-      color: var(--ink); cursor: pointer;
-    }
-    .nav button:hover { border-color: var(--cyan); color: var(--cyan); }
+    .col.hi { border-color: var(--cyan); background: rgba(62, 203, 255, 0.1); }
+    .col .n { color: var(--gold); font-family: Outfit, sans-serif; letter-spacing: 0.16em; font-size: 12px; }
+    .col h3 { font-size: 22px; margin: 10px 0 8px; }
+    .col .tag { color: var(--cyan); margin-bottom: 12px; font-size: 14px; }
+    .col p { color: var(--mute); line-height: 1.7; font-size: 14px; }
+    .endnote { margin-top: 14px; color: var(--mute); font-size: 13px; }
   </style>
 </head>
 <body>
-  <div class="stage">
-    <div class="deck">
-      <div class="progress" id="progress"></div>
+  <div class="progress" id="progress"></div>
+  <main class="page">
+    <div class="mast"><b>課内座談会</b><span>2026.09.09</span></div>
 
-      <section class="slide img active" data-i="1">
-        <img class="art" src="zadankai_20260909/01.jpg" alt="未来の特異点">
-      </section>
+    <figure><img src="zadankai_20260909/01.jpg" alt="未来の特異点"></figure>
 
-      <section class="slide" data-i="2">
-        <div class="html-slide">
-          <div class="kicker">
-            <span class="num">00</span>
-            <span>最初の1分 · 映像</span>
-            <span class="line"></span>
-            <span>29:42 – 30:49</span>
-          </div>
-          <div class="video-wrap">
-            <div class="frame">
-              <iframe id="yt" title="Elon Musk on software engineering" src=""
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
-              <button type="button" class="poster" id="poster" aria-label="映像を再生">
-                <img src="https://i.ytimg.com/vi/XuoqKYxDHVc/hqdefault.jpg" alt="The Economist インタビュー">
-                <span class="play" aria-hidden="true">▶</span>
-              </button>
-            </div>
-            <aside class="listen">
-              <div class="lab">LISTEN FOR</div>
-              <ol>
-                <li><strong>何と比べているか</strong>コードを書くことか、仕事全体か。</li>
-                <li><strong>90 → 99 → Stockfish</strong>次に来る数字を、彼はどう置いているか。</li>
-                <li><strong>課の仕事に落とす</strong>自分の作業のどこが「書く」で、どこが判断か。</li>
-              </ol>
-            </aside>
-          </div>
-          <div class="foot">
-            <span>The Economist「The full-length interview with Elon Musk」</span>
-            <span>再生はクリック。終わったら次へ。</span>
-          </div>
+    <section class="block" id="clip">
+      <div class="kicker">最初の1分 · 29:42–30:49</div>
+      <div class="video-wrap">
+        <div class="frame">
+          <iframe id="yt" title="Elon Musk on software engineering" src=""
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+          <button type="button" class="poster" id="poster" aria-label="映像を再生">
+            <img src="https://i.ytimg.com/vi/XuoqKYxDHVc/hqdefault.jpg" alt="The Economist インタビュー">
+            <span class="play" aria-hidden="true">▶</span>
+          </button>
         </div>
-      </section>
-
-      <section class="slide img" data-i="3"><img class="art" src="zadankai_20260909/02.jpg" alt="知能の爆発"></section>
-      <section class="slide img" data-i="4"><img class="art" src="zadankai_20260909/03.jpg" alt="デジタルから物理へ"></section>
-      <section class="slide img" data-i="5"><img class="art" src="zadankai_20260909/04.jpg" alt="安全性のパラドックス"></section>
-      <section class="slide img" data-i="6"><img class="art" src="zadankai_20260909/05.jpg" alt="地政学の最前線"></section>
-      <section class="slide img" data-i="7"><img class="art" src="zadankai_20260909/06.jpg" alt="社会契約の再定義"></section>
-      <section class="slide img" data-i="8"><img class="art" src="zadankai_20260909/07.jpg" alt="指導者としての影響力"></section>
-      <section class="slide img" data-i="9"><img class="art" src="zadankai_20260909/08.jpg" alt="結論 2036年への航路"></section>
-
-      <section class="slide" data-i="10">
-        <div class="html-slide close">
-          <div class="kicker">
-            <span class="num">OUT</span>
-            <span>課として決めたいこと</span>
-            <span class="line"></span>
-            <span>今日の出口</span>
-          </div>
-          <h1>便利さと同じ速度で、<span>ルールを決める。</span></h1>
-          <div class="cols">
-            <article class="col">
-              <div class="n">01</div>
-              <h3>任せる</h3>
-              <div class="tag">人がいなくても進めてよい</div>
-              <p>下書き、要約、社内向けのたたき台、公開情報の調査</p>
-            </article>
-            <article class="col hi">
-              <div class="n">02</div>
-              <h3>人が確認</h3>
-              <div class="tag">実行前に人間が止まれる</div>
-              <p>社外送信、顧客データ更新、本番コードの投入</p>
-            </article>
-            <article class="col">
-              <div class="n">03</div>
-              <h3>任せない</h3>
-              <div class="tag">AIに権限を渡さない</div>
-              <p>認証情報、決裁、個人情報の持ち出し、対外発表の最終文</p>
-            </article>
-          </div>
-          <div class="foot"><span>例はたたき台。課の実業務に置き換えて、この3箱を埋める。</span></div>
-        </div>
-      </section>
-
-      <div class="nav">
-        <button type="button" id="prev" aria-label="前へ">←</button>
-        <span><span id="cur">1</span> / 10</span>
-        <button type="button" id="next" aria-label="次へ">→</button>
+        <aside class="listen">
+          <ol>
+            <li><strong>何と比べているか</strong>コードを書くことか、仕事全体か。</li>
+            <li><strong>90 → 99 → Stockfish</strong>次に来る数字を、彼はどう置いているか。</li>
+            <li><strong>課の仕事に落とす</strong>自分の作業のどこが「書く」で、どこが判断か。</li>
+          </ol>
+        </aside>
       </div>
-    </div>
-  </div>
+      <p class="note">The Economist「The full-length interview with Elon Musk」　再生はクリック。</p>
+    </section>
+
+    <figure><img src="zadankai_20260909/02.jpg" alt="知能の爆発"></figure>
+    <figure><img src="zadankai_20260909/03.jpg" alt="デジタルから物理へ"></figure>
+    <figure><img src="zadankai_20260909/04.jpg" alt="安全性のパラドックス"></figure>
+    <figure><img src="zadankai_20260909/05.jpg" alt="地政学の最前線"></figure>
+    <figure><img src="zadankai_20260909/06.jpg" alt="社会契約の再定義"></figure>
+    <figure><img src="zadankai_20260909/07.jpg" alt="指導者としての影響力"></figure>
+    <figure><img src="zadankai_20260909/08.jpg" alt="結論 2036年への航路"></figure>
+    <figure><img src="zadankai_20260909/09.jpg" alt="お金が意味を失う世界"></figure>
+    <figure><img src="zadankai_20260909/10.jpg" alt="4:40の一言をどう読むか"></figure>
+    <figure><img src="zadankai_20260909/11.jpg" alt="デフレ論のロジック"></figure>
+    <figure><img src="zadankai_20260909/12.jpg" alt="インフレとデフレの違い"></figure>
+    <figure><img src="zadankai_20260909/13.jpg" alt="現代の日本経済におけるデフレの現状"></figure>
+    <figure><img src="zadankai_20260909/14.jpg" alt="座談会で使える結論"></figure>
+
+    <section class="block close">
+      <div class="kicker">課として決めたいこと</div>
+      <h2>便利さと同じ速度で、<span>ルールを決める。</span></h2>
+      <div class="cols">
+        <article class="col">
+          <div class="n">01</div>
+          <h3>任せる</h3>
+          <div class="tag">人がいなくても進めてよい</div>
+          <p>下書き、要約、社内向けのたたき台、公開情報の調査</p>
+        </article>
+        <article class="col hi">
+          <div class="n">02</div>
+          <h3>人が確認</h3>
+          <div class="tag">実行前に人間が止まれる</div>
+          <p>社外送信、顧客データ更新、本番コードの投入</p>
+        </article>
+        <article class="col">
+          <div class="n">03</div>
+          <h3>任せない</h3>
+          <div class="tag">AIに権限を渡さない</div>
+          <p>認証情報、決裁、個人情報の持ち出し、対外発表の最終文</p>
+        </article>
+      </div>
+      <p class="endnote">例はたたき台。課の実業務に置き換えて、この3箱を埋める。</p>
+    </section>
+  </main>
   <script>
     const CLIP = "https://www.youtube-nocookie.com/embed/XuoqKYxDHVc?start=1782&end=1849&rel=0&modestbranding=1&autoplay=1";
-    const slides = [...document.querySelectorAll(".slide")];
     const yt = document.getElementById("yt");
     const poster = document.getElementById("poster");
-    let i = 0;
-
-    const pauseClip = () => { yt.src = ""; poster.classList.remove("hidden"); };
-    const playClip = () => { poster.classList.add("hidden"); yt.src = CLIP; };
-    poster.addEventListener("click", (e) => { e.stopPropagation(); playClip(); });
-
-    const show = (n) => {
-      i = Math.max(0, Math.min(slides.length - 1, n));
-      slides.forEach((s, k) => s.classList.toggle("active", k === i));
-      document.getElementById("cur").textContent = String(i + 1);
-      document.getElementById("progress").style.width = ((i + 1) / slides.length * 100) + "%";
-      history.replaceState(null, "", "#" + (i + 1));
-      if (i !== 1) pauseClip();
-    };
-
-    document.getElementById("prev").onclick = () => show(i - 1);
-    document.getElementById("next").onclick = () => show(i + 1);
-    document.addEventListener("keydown", (e) => {
-      if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
-      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); show(i + 1); }
-      if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
-      if (e.key === "Home") show(0);
-      if (e.key === "End") show(slides.length - 1);
+    const bar = document.getElementById("progress");
+    poster.addEventListener("click", () => {
+      poster.classList.add("hidden");
+      yt.src = CLIP;
     });
-
-    const hash = parseInt(location.hash.replace("#", ""), 10);
-    show(Number.isFinite(hash) && hash >= 1 ? hash - 1 : 0);
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
   </script>
 </body>
 </html>
