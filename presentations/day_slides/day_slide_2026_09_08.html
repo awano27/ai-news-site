@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="ja"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Museが出た。チャットではなく、1人1台のLinux箱 | 2026-09-08</title>
+  <meta name="description" content="2026年9月8日版。Metaが一般向けパーソナルAIエージェントMuseを米国で発表。基盤はMuse Spark 1.3。動く場所は共有チャットではなく1人1台のSecure VM（Linux）。日本語公式は日本未定。日本デスクは待つ。"><link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_08.html">
+  <meta property="og:type" content="article"><meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="Museが出た。チャットではなく、1人1台のLinux箱"><meta property="og:description" content="会話の先に、自分専用のLinux箱。Muse（公式09/08）。Secure VM・Spark 1.3。米国のみ・日本は待つ。"><meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_08.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0908/cover.jpg">
+  <meta property="og:image:width" content="1600">
+  <meta property="og:image:height" content="900">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Museが出た。チャットではなく、1人1台のLinux箱"><meta name="twitter:description" content="会話の先に、自分専用のLinux箱。Muse（公式09/08）。Secure VM・Spark 1.3。米国のみ・日本は待つ。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0908/cover.jpg">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "PresentationDigitalDocument", "headline": "Museが出た。チャットではなく、1人1台のLinux箱", "description": "2026年9月8日版。Metaが一般向けパーソナルAIエージェントMuseを米国で発表。基盤はMuse Spark 1.3。動く場所は共有チャットではなく1人1台のSecure VM（Linux）。日本語公式は日本未定。日本デスクは待つ。", "datePublished": "2026-09-08", "dateModified": "2026-09-08T21:00:00+09:00", "inLanguage": "ja", "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_09_08.html", "image": "https://visionhub.jp/presentations/day_slides/images/0908/cover.jpg"}</script>
+  <style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(47,198,178,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(47,198,178,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(90,220,200,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(157,242,226,.4); color:#d2f2ec; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(157,242,226,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+  
+    /* ---- labeled boards (no photos) ---- */
+    .board { border:1px solid rgba(90,220,200,.30); border-radius:8px; padding:18px 18px 16px; margin:14px 0 18px; background:linear-gradient(180deg, rgba(13,33,31,.55), rgba(6,17,16,.72)); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .board-label { display:inline-block; color:#06201b; background:var(--accent); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; padding:5px 10px; border-radius:3px; margin-bottom:12px; }
+    .board-title { margin:0 0 14px; font-size:16px; color:var(--ink); font-weight:600; line-height:1.5; }
+    .board-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch; }
+    .board-col { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .board-col.win { border-color:rgba(47,198,178,.5); }
+    .board-col.gold { border-color:rgba(255,201,77,.45); }
+    .board-col.alert { border-color:rgba(255,143,122,.45); }
+    .board-col h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    .board-col h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:6px; }
+    .board-col.gold h4 span { color:var(--gold); }
+    .board-col.alert h4 span { color:var(--alert); }
+    .board-col .big { font:700 28px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .board-col .big.gold { color:var(--gold); }
+    .board-col .sub { color:var(--muted); font-size:13px; margin:8px 0 0; line-height:1.75; }
+    .board-vs { display:flex; align-items:center; justify-content:center; color:var(--accent); font:800 13px/1 ui-monospace,monospace; letter-spacing:.14em; padding:0 4px; }
+    .board-foot { margin:14px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .xarr { color:var(--alert); font-weight:800; }
+
+    @media (max-width:880px) {
+      .board-row { grid-template-columns:minmax(0,1fr); }
+      .board-vs { padding:6px 0; }
+    }
+
+  
+    a { text-underline-offset:3px; }
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+    .skip-link { position:absolute; top:-80px; left:12px; z-index:100; padding:10px; background:var(--accent); color:#04120e; }
+    .skip-link:focus { top:12px; }
+    .hero-body { max-width:1050px; }
+    .hero-subtitle { display:block; font-size:clamp(19px,2.5vw,29px); line-height:1.55; color:#b8dcd4; margin-top:18px; }
+    .hero-meta span { font-size:12px; }
+    .stat-card { text-decoration:none; }
+    .stat-num { font-size:23px; overflow-wrap:anywhere; }
+    .status { font-size:12px; color:#abd4cd; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .source-line { font-size:11.8px; line-height:1.8; margin-top:16px; color:#8ebbb2; overflow-wrap:anywhere; }
+    .source-line a, .sources a { color:#9ae8d8; }
+    .cmp caption { text-align:left; font-size:12px; color:var(--muted); padding:6px 12px; }
+    .cmp th[scope=row] { color:var(--ink); font-size:13px; line-height:1.7; white-space:normal; letter-spacing:0; }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    h3 { font-size:16px; line-height:1.6; margin:0 0 12px; }
+    .vs-card p { font-size:14px; }
+    code { overflow-wrap:anywhere; color:#c4eee4; }
+    .metric-row { display:grid; grid-template-columns:1fr auto; gap:6px; margin:14px 0 19px; font-size:13px; }
+    .metric-row b { color:var(--accent); font:700 19px/1 ui-monospace,monospace; }
+    .bar-track { grid-column:1 / -1; height:7px; background:#18302c; border-radius:1px; }
+    .bar-track i { display:block; height:100%; background:var(--accent); }
+    .metric-row.gold b { color:var(--gold); }
+    .metric-row.gold .bar-track i { background:var(--gold); }
+    .action-list { padding-left:24px; color:var(--muted); font-size:15px; line-height:1.9; }
+    .action-list li { padding-left:6px; margin:14px 0; }
+    .action-list b { color:var(--ink); }
+    .editor-note { margin-top:20px; border:1px solid var(--line); padding:15px 18px; border-radius:6px; }
+    .editor-note summary { cursor:pointer; color:#bcece1; font-size:13px; }
+    .editor-note p { margin:12px 0 0; font-size:13px; }
+    .sources { margin-top:42px; padding:28px 0; border-top:1px solid var(--line); }
+    .sources ol { padding-left:22px; color:var(--muted); font-size:12px; line-height:1.8; }
+    .sources li { margin-bottom:12px; overflow-wrap:anywhere; }
+    .sources small { display:block; }
+    .bottom-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:24px 0 0; padding-top:24px; border-top:1px solid var(--line); }
+    .bottom-nav a { min-height:44px; display:inline-flex; align-items:center; padding:8px 16px; border:1px solid var(--line); border-radius:24px; text-decoration:none; font-size:13px; }
+    @media(max-width:640px) { .topbar { align-items:flex-start; font-size:11px; } .topbar span { text-align:right; } .eyebrow { letter-spacing:.12em; } .grid-2 { grid-template-columns:minmax(0,1fr); } .stats-bar { grid-template-columns:repeat(2,minmax(0,1fr)); } .stat-card:last-child { grid-column:1/-1; } .hero-body { padding-top:38px; } .hero-inner { padding-bottom:30px; } .slides { gap:40px; } .loop .step { white-space:normal; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; animation:none!important; } }
+    @media print { body { background:white; color:#142820; } .progress,.jump,.bottom-nav,.skip-link { display:none; } .hero,.board,.vs-card,.board-col,.sowhat,.finale,.stat-card { background:white; box-shadow:none; } :root { --ink:#142820; --muted:#34544a; --accent:#007663; --gold:#725400; --line:#acc8be; } .hero-inner,.shell { width:100%; } .hero-body { padding-top:20px; } h1 { font-size:36px; } section.slide { break-inside:avoid; } .lead,.hero-subtitle,.topbar,.status { color:#234c40; } }
+
+    .timeline { list-style:none; padding:0; margin:20px 0; }
+    .timeline li { display:grid; grid-template-columns:102px minmax(0,1fr); gap:14px; margin:0; padding:16px 0; border-bottom:1px solid var(--line); }
+    .timeline time { font:700 13px/1.7 ui-monospace,monospace; color:var(--accent); }
+    .timeline b { color:var(--ink); font-size:14px; }
+    .timeline p { margin:4px 0 0; font-size:13.5px; }
+    .pitfalls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .pitfalls h3 { font-size:17px; }
+    .pitfalls p { margin:0; }
+    .mini-label { display:block; font:700 11px/1.6 ui-monospace,monospace; color:var(--accent); margin:0 0 12px; letter-spacing:.1em; }
+    .effort-scale { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); margin:22px 0; border:1px solid var(--line); border-radius:7px; overflow:hidden; }
+    .effort-scale span { padding:18px 5px; text-align:center; font:700 16px/1.5 ui-monospace,monospace; border-right:1px solid var(--line); background:var(--panel); }
+    .effort-scale span:last-child { border-right:0; }
+    .effort-scale .candidate { background:rgba(47,198,178,.15); color:#b4ffed; }
+    .effort-scale small { display:block; font:11px/1.5 sans-serif; color:var(--muted); }
+    .reset-banner { border:1px solid rgba(255,201,77,.45); border-radius:8px; padding:22px; background:rgba(255,201,77,.065); margin-bottom:18px; }
+    .reset-banner .mini-label { color:var(--gold); }
+    .reset-banner p:last-child { margin-bottom:0; }
+    .prompt-panel { padding:20px; background:var(--panel); border:1px solid var(--line); border-radius:8px; margin:24px 0 16px; }
+    .prompt-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .prompt-heading label { color:var(--ink); font-size:15px; font-weight:600; }
+    button { font:inherit; cursor:pointer; min-height:44px; border:1px solid var(--accent); color:#c5fff2; background:rgba(47,198,178,.12); border-radius:5px; padding:9px 14px; }
+    button:hover { background:rgba(47,198,178,.25); }
+    button:focus-visible,textarea:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+    textarea { width:100%; min-height:370px; resize:vertical; font:14px/1.9 'Yu Gothic',sans-serif; color:#cae3dc; background:#040c0e; border:1px solid var(--line); border-radius:4px; padding:16px; }
+    #copy-status { font-size:12px; margin:8px 0 0; min-height:24px; }
+    .board-foot { font-size:12px; line-height:1.85; }
+    .stat-num { font-size:clamp(16px,1.5vw,23px); }
+    .hero-body { max-width:1120px; }
+    @media(max-width:850px) { .pitfalls { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:640px) { .pitfalls { grid-template-columns:minmax(0,1fr); } .timeline li { grid-template-columns:85px minmax(0,1fr); gap:10px; } .timeline time { font-size:11px; } .effort-scale span { font-size:12px; } .prompt-heading { align-items:flex-start; flex-direction:column; } .prompt-panel { padding:15px; } textarea { min-height:550px; font-size:13px; } .desktop-break { display:none; } }
+
+    #audit-prompt { min-height:230px; }
+    @media(max-width:640px) { #audit-prompt { min-height:330px; } }
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#main">本文へスキップ</a>
+  <header class="hero">
+    <div class="hero-inner">
+      <nav class="topbar" aria-label="パンくず"><a href="../day_slides_index.html">全日スライド</a><span>2026-09-08 / No.404 / 製品・エージェント</span></nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — 製品 / エージェント</span>
+        <p class="eyebrow">META × MUSE / PERSONAL AGENT</p>
+        <h1>Museが出た。<br>チャットではなく、1人1台のLinux箱<span class="hero-subtitle">名前を分け、箱の中を分け、日本デスクは待つ</span></h1>
+        <p class="lead">Metaは <strong>2026年9月8日</strong>、一般向けパーソナルAIエージェント「Muse」を米国で出した。基盤モデルは9月2日の <strong>Muse Spark 1.3</strong>。動く場所は共有チャットではなく、利用者ごとの <strong>Linux仮想マシン</strong>。Cursorで速いと評価されているのはエージェント本体ではなく、モデル側である。日本語公式は「日本での提供は現時点で未定」と書く。</p>
+        <div class="hero-meta">
+          <span>2026/9/8 公式・JST</span>
+          <span>米国 iOS / Android / muse.ai</span>
+          <span>無料 / $20 / $100</span>
+          <span>公式と社内テストを区別</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell" id="main">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num">09/08</div><div class="stat-label"><b>公式の日</b>製品発表。日次は 09-08</div></div>
+      <div class="stat-card"><div class="stat-num">1.3</div><div class="stat-label"><b>Muse Spark</b>9/2公開の基盤。Cursorにも載る</div></div>
+      <div class="stat-card"><div class="stat-num gold">1人1VM</div><div class="stat-label"><b>Secure VM</b>Debian + 専用Chromium</div></div>
+      <div class="stat-card"><div class="stat-num">$0 / 20 / 100</div><div class="stat-label"><b>月額</b>無料・Power・Maximum</div></div>
+      <div class="stat-card"><div class="stat-num">USのみ</div><div class="stat-label"><b>提供範囲</b>日本語公式は日本未定</div></div>
+    </div>
+
+
+  <figure class="shot">
+    <a href="images/0908/cover.jpg" target="_blank" rel="noopener" aria-label="会話の先に、自分専用のLinux箱。Muse / Secure VM / Spark 1.3 / 米国のみ・日本は待つ / No.404を原寸で開く"><img src="images/0908/cover.jpg" width="1600" height="900" loading="lazy" alt="会話の先に、自分専用のLinux箱。Muse / Secure VM / Spark 1.3 / 米国のみ・日本は待つ / No.404"></a>
+    <span class="zoom-badge">1枚ボード・クリックで拡大</span>
+  </figure>
+
+
+  <figure class="shot">
+    <a href="images/0908/01_linux_box.jpg" target="_blank" rel="noopener" aria-label="Muse：1人1台のLinux箱を原寸で開く"><img src="images/0908/01_linux_box.jpg" width="1672" height="941" loading="lazy" alt="Muse：1人1台のLinux箱"></a>
+    <span class="zoom-badge">プレビュー01・クリックで拡大</span>
+  </figure>
+
+
+  <figure class="shot">
+    <a href="images/0908/02_agenda.jpg" target="_blank" rel="noopener" aria-label="本日の流れを原寸で開く"><img src="images/0908/02_agenda.jpg" width="1672" height="941" loading="lazy" alt="本日の流れ"></a>
+    <span class="zoom-badge">プレビュー02・クリックで拡大</span>
+  </figure>
+
+
+<nav class="jump" aria-label="章ジャンプ">
+      <a href="#s1"><b>01</b>何が出たか</a>
+      <a href="#s2"><b>02</b>名前を分ける</a>
+      <a href="#s3"><b>03</b>Linux箱</a>
+      <a href="#s4"><b>04</b>接続と決済</a>
+      <a href="#s5"><b>05</b>1.3とCursor</a>
+      <a href="#s6"><b>06</b>料金と到達</a>
+      <a href="#s7"><b>07</b>まだ壊れる</a>
+      <a href="#s8"><b>08</b>日本デスク</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1" aria-labelledby="h1">
+        <div class="slide-head"><span class="no" aria-hidden="true">01</span><div>
+          <p class="slide-kicker">WHAT SHIPPED</p>
+          <h2 id="h1">出たのは、質問に答える箱ではない</h2>
+        </div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p class="status">一次｜製品発表 2026-09-08 ／ モデル 09-02 ／ 日本語公式は日本未定</p>
+
+  <figure class="shot">
+    <a href="images/0908/03_muse_work.jpg" target="_blank" rel="noopener" aria-label="Museの仕事を原寸で開く"><img src="images/0908/03_muse_work.jpg" width="1672" height="941" loading="lazy" alt="Museの仕事"></a>
+    <span class="zoom-badge">プレビュー03・クリックで拡大</span>
+  </figure>
+
+            <p>Metaは米国時間9月8日、消費者向けパーソナルAIエージェント <strong>Muse</strong> を出した。公式の売り文句は「世界初の、誰にでも使えるパーソナルAIエージェント」。技術者向けの常時稼働エージェントは、OpenClaw や Instinct が先行している。今日の新味は、<strong>一般向けに、隔離つきで広く出す</strong>側にある。</p>
+            <p>公式が書く仕事は、メール送信、旅行予約、請求額の見直し、保存したレシピから買い物リストを作る、車をより高く売る交渉、遠足の承諾書記入、Marketplaceでの値引きと受け取り手配。目標を伝えると計画を作り、ブラウザを開き、承認が必要なところで戻る。アプリを閉じても作業は続く、と公式は書く。</p>
+            <p>接点は iOS / Android の専用アプリ、ウェブの muse.ai、WhatsApp。AIグラスは近日。会話は1本の長いスレッド。名前、アバター、口調を変えられる。システムプロンプトの先頭は公式設計文書で「Your purpose is to make your user’s life better.」と示されている。</p>
+            <div class="board">
+              <span class="board-label">1枚ボード</span>
+              <p class="board-title">昨日出たものを、3つに切る</p>
+              <div class="board-row">
+                <div class="board-col win">
+                  <h4><span>PRODUCT</span>Muse</h4>
+                  <p class="sub">一般向けエージェント。9/8米国公開。箱の中でブラウザとアプリを動かす。</p>
+                </div>
+                <div class="board-vs">×</div>
+                <div class="board-col gold">
+                  <h4><span>MODEL</span>Spark 1.3</h4>
+                  <p class="sub">9/2の基盤。Cursorのモデル一覧に載るのはこちら。速さの評価もこちら。</p>
+                </div>
+              </div>
+              <p class="board-foot">3つ目のMuse Codeは8/5の開発者向けターミナルエージェントで、今日の消費者製品とは別系統。</p>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">SO WHAT</span>
+            <p>「賢いチャットが出た」ではない。<strong>実行権を持つ常時稼働エージェントが、Metaの接点に乗った</strong>。見るべきは回答品質より、箱・権限・決済・学習利用。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2" aria-labelledby="h2">
+        <div class="slide-head"><span class="no" aria-hidden="true">02</span><div>
+          <p class="slide-kicker">NAME THE LAYERS</p>
+          <h2 id="h2">Museはシリーズ名。製品を4つに分ける</h2>
+        </div></div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p class="status">確認情報｜公式ブログとモデルページを9/8–9/9照合</p>
+
+  <figure class="shot">
+    <a href="images/0908/04_roles_differ.jpg" target="_blank" rel="noopener" aria-label="同じMuseでも役割は違うを原寸で開く"><img src="images/0908/04_roles_differ.jpg" width="1672" height="941" loading="lazy" alt="同じMuseでも役割は違う"></a>
+    <span class="zoom-badge">プレビュー04・クリックで拡大</span>
+  </figure>
+
+            <div class="scroll-x">
+              <table class="cmp">
+                <caption>名前が同じでも、公開日と用途が違う</caption>
+                <thead><tr><th scope="col">名前</th><th scope="col">役割</th><th scope="col">発表</th><th scope="col">今日の位置</th></tr></thead>
+                <tbody>
+                  <tr><td>Muse Spark 1.3</td><td>基盤モデル。1Mコンテキスト。テキスト／画像／PDF／動画</td><td>2026-09-02</td><td>エンジン。Cursor / API</td></tr>
+                  <tr><td>Muse</td><td>一般向けパーソナルエージェント</td><td>2026-09-08</td><td>本号の主題</td></tr>
+                  <tr><td>Muse Code</td><td>開発者向けターミナル用コーディングエージェント</td><td>2026-08-05</td><td>別系統。macOS / Linux</td></tr>
+                  <tr><td>Muse Glimmer</td><td>ローカル実行向けオープンウェイト</td><td>2026-08-10</td><td>本号の範囲外</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>主導は Alexandr Wang の Meta Superintelligence Labs。社内コード名は報道で Hatch。方針は personal superintelligence。巨大な汎用チャットより、長く作業を続けるエージェント向きに寄せている、と公式は書く。</p>
+            <div class="warn">
+              <p><strong>混同しやすい点。</strong>「Cursorで速い」は Spark 1.3 が Cursor のモデル一覧に入った話。消費者向けMuseがCursorに入った、ではない。Muse Code も Claude Code や Cursor とは別の開発者ツール。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s3" aria-labelledby="h3">
+        <div class="slide-head"><span class="no" aria-hidden="true">03</span><div>
+          <p class="slide-kicker">THE LINUX BOX</p>
+          <h2 id="h3">核心は、1人1台の隔離Linux</h2>
+        </div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p class="status">一次｜Meta安全設計ブログ “How We Built Safety Into Muse”</p>
+
+  <figure class="shot">
+    <a href="images/0908/05_vm_permissions.jpg" target="_blank" rel="noopener" aria-label="実行する箱と許可する仕組みを原寸で開く"><img src="images/0908/05_vm_permissions.jpg" width="1672" height="941" loading="lazy" alt="実行する箱と許可する仕組み"></a>
+    <span class="zoom-badge">プレビュー05・クリックで拡大</span>
+  </figure>
+
+            <p>Museは共有チャットサーバーの中では動かない。利用者ごとにクラウド上の専用Linux仮想マシン <strong>Muse Secure VM</strong> が割り当てられる。公式の表現は isolated linux box。中身は Debian、専用Chromium、ファイルシステム、ターミナル、サブエージェント、cronを回せる程度の計算資源。ここでコードを書き、道具を自作し、ブラウザを操作する。</p>
+            <div class="grid-2">
+              <article class="vs-card now">
+                <h4><span>RUNTIME CELL</span>エージェントが触る側</h4>
+                <ul>
+                  <li>内部名 Hatch。systemd-nspawn コンテナ</li>
+                  <li>独自ルートファイルシステム</li>
+                  <li>ウェブやファイルなど、信頼できないデータを処理</li>
+                  <li>ホストの root にはなれない</li>
+                </ul>
+              </article>
+              <article class="vs-card">
+                <h4><span>SECURITY SIDE</span>箱の外の門番</h4>
+                <ul>
+                  <li>資格情報ストア（authd）</li>
+                  <li>Sentinel、安全分類器、Postgres</li>
+                  <li>エージェントが乗っ取られても、自分で安全装置を切れない</li>
+                  <li>本物のパスワードはモデルに見せない</li>
+                </ul>
+              </article>
+            </div>
+            <p><strong>Sentinel</strong> が全外出の門番。コネクタ操作もネットワーク送信も、許可・拒否・本人確認のどれかを決める。eBPFで通信を傍受し、ユーザーデータに触れた通信は汚染済みとして扱い、自動許可しにくくする。承認は一度きり、セッション、タスク、期限付き、恒久、と粒度を分けられる。</p>
+            <p>ブラウザは素の Chrome ではない。仮想化の裏の最新 Chromium。エージェントは生DOMではなくアクセシビリティツリーを見る。ページ内JavaScript実行やDevToolsは封じる。利用者はいつでも画面を見て操作を奪える。既知の危険サイトはMetaのリストで遮断する、と公式は書く。</p>
+            <p>プロンプトインジェクション対策はモデル、ハーネス、分類器の三重。外部データは信頼できないとラベルされる。成功したインジェクションには最大13万ドルのバグ報奨がある。</p>
+            <div class="warn">
+              <p><strong>今の箱と、これから出す箱は別。</strong>本年後半予定の Confidential VM は、VM全体を利用者の鍵で暗号化し、Meta自身も中を読めなくする、という主張。現時点の Secure VM はポリシー上「社員は中を読まない」だが、技術的には Meta のインフラ上にある。</p>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">READ THIS</span>
+            <p>安全は後付けではない、が公式の売り。設計文書は厚い。<strong>独立した外部監査が Secure VM を検証した段階には、まだ入っていない</strong>。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s4" aria-labelledby="h4">
+        <div class="slide-head"><span class="no" aria-hidden="true">04</span><div>
+          <p class="slide-kicker">CONNECTORS AND MONEY</p>
+          <h2 id="h4">アプリ接続と決済は、権限の話である</h2>
+        </div></div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p class="status">一次｜製品発表 / Stripe Link / 報道で確認できる初期コネクタ</p>
+            <p>Facebook、Instagram、Threads は Accounts Center で同じアカウントなら自動接続される。その他はコネクタを1つずつ許可する。報道と公式で確認できる初期コネクタは、Google Workspace、Ticketmaster、OpenTable、Spotify、Apple Health。公開APIがあれば独自コネクタも作れる。APIがなければブラウザ経由で操作する。</p>
+            <p>決済は Stripe の <strong>Link</strong>。使い捨てカード番号を出し、本物のカード番号はエージェントにも店舗にも見せない。Link の購入保護が付く最初のAIエージェントだと Meta は主張する。Shop Pay と 1Password は近日対応。</p>
+            <ul class="checks">
+              <li><b>接続は選べる。</b>公式はいつでも取り消せると書く。初期値の広さを、契約前に見る。</li>
+              <li><b>学習の初期値は「使う」。</b>オプトアウトはできる。黙っていると会話はモデル改善に使われる。広告には載せない、と学習には使う、は別の話。</li>
+              <li><b>広告はMuse内にない。</b>Alexandr Wang は商取引からの収益を検討中と Axios に話している。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s5" aria-labelledby="h5">
+        <div class="slide-head"><span class="no" aria-hidden="true">05</span><div>
+          <p class="slide-kicker">SPARK 1.3 AND CURSOR</p>
+          <h2 id="h5">速いと評価されているのは、モデル側</h2>
+        </div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p class="status">一次｜Muse Spark 1.3 ブログ / Cursor docs</p>
+            <p>Spark は 2026年4月の初代から、7月の1.1、8月の1.2、9月2日の1.3と、5か月で4世代。1.3が強調する変化は、長いスレッドで複数作業を同時に進める、曖昧なら聞き返す、行き詰まったら人に助けを求める、影響の大きい操作の前に確認する。1.2比で、Meta社内比較はツール呼び出し約20%減、トークン約25%減。コンテキストは100万トークン。</p>
+            <p>ベンチマークは Meta 発表。DeepSWE v1.1 で 75.4、Terminal-Bench 2.1 で 88.8 など、Claude Opus 5 や GPT-5.6 Sol と同水準に乗せてきた、という主張。独立評価では Artificial Analysis の Intelligence Index が 1.2 の 57 から 1.3 の 61 へ上がった、という報道がある。数字は評価条件で動く。ここは「社内・一部第三者では拮抗圏」と読む。</p>
+            <div class="scroll-x">
+              <table class="cmp">
+                <caption>Cursor に載ったのはエージェントではなくモデル</caption>
+                <thead><tr><th scope="col">項目</th><th scope="col">内容</th></tr></thead>
+                <tbody>
+                  <tr><td>モデルID</td><td><code>muse-spark-1.3</code></td></tr>
+                  <tr><td>通常コンテキスト</td><td>30万トークン</td></tr>
+                  <tr><td>Max Mode</td><td>100万トークン</td></tr>
+                  <tr><td>推論の深さ</td><td>minimal / low / medium / high / extra high / max</td></tr>
+                  <tr><td>Cursor料金</td><td>入力 $1.25 / 出力 $4.25（100万トークン、Other Models枠）</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>開発者向けの別経路は Muse Code（macOS / Linux。Windows公式対応なし）と Meta Model API（<code>https://api.meta.ai/v1</code>、OpenAI SDK互換）。APIは Standard（学習に使わない）と Contributor（安い代わりに学習利用）がある。</p>
+            <div class="scroll-x">
+              <table class="cmp">
+                <caption>Meta Model API（100万トークン当たり）</caption>
+                <thead><tr><th scope="col">区分</th><th scope="col">入力</th><th scope="col">キャッシュ入力</th><th scope="col">出力</th><th scope="col">学習利用</th></tr></thead>
+                <tbody>
+                  <tr><td>Standard</td><td>$1.25</td><td>$0.15</td><td>$4.25</td><td>しない</td></tr>
+                  <tr><td>Contributor</td><td>$0.10</td><td>$0.002</td><td>$0.20</td><td>する</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">DESK NOTE</span>
+            <p>日本から今すぐ触れるのは、主にこのモデル経路。消費者向けMuseを日常使いできる、ではない。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s6" aria-labelledby="h6">
+        <div class="slide-head"><span class="no" aria-hidden="true">06</span><div>
+          <p class="slide-kicker">PRICE AND REACH</p>
+          <h2 id="h6">無料で足りる、が公式の読み。届くのは米国</h2>
+        </div></div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p class="status">一次｜製品発表 / Axios インタビュー（Wang） / 日本語公式</p>
+            <div class="grid-2">
+              <article class="vs-card now">
+                <h4><span>FREE</span>大多数向け</h4>
+                <p>Zuckerberg は週1億トークン程度と説明している、と報道。Wang は「大多数は無料で足りる。有料は計算資源のコストを賄うため」と話した。</p>
+              </article>
+              <article class="vs-card">
+                <h4><span>PAID</span>Power $20 / Maximum $100</h4>
+                <p>より多く任せる人向け。広告はない。商取引からの収益は検討中。日本向け料金の記載は、確認した公式にない。</p>
+              </article>
+            </div>
+            <p>提供は米国の iOS、Android、muse.ai。WhatsAppからも使える。グラスは近日。確認した日本語公式は「日本での提供は現時点で未定」。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s7" aria-labelledby="h7">
+        <div class="slide-head"><span class="no" aria-hidden="true">07</span><div>
+          <p class="slide-kicker">WHAT STILL BREAKS</p>
+          <h2 id="h7">設計は厚い。社内テストは、まだ穴を見せている</h2>
+        </div></div>
+        <div class="notes">
+          <div class="notes-main">
+            <p class="status">報道｜Reuters 2026-09-08 ／ TechCrunch ／ 安全ブログ自身の留保</p>
+            <p>Reuters は社内テストの投稿を確認し、次を報じた。子どもの誕生日写真からおもちゃを識別するよう頼んだところ、ガードレールを迂回して個人の iCloud 写真を露出した、という報告。CTO の Andrew Bosworth が数分で何度もログアウトされる。チケット監視では約15分でページ更新が止まり、エラーを silently 無視し、監視自体が理由なく止まった。</p>
+            <p>AI製品担当VPの Vishal Shah は「ミスが絶対にないとは言えない。ただ、アーキテクチャの各層をできるだけ安全にした」と述べている。安全ブログ自身も「Museはまだ間違える。被害を小さくするのが目的だ」と書く。</p>
+            <p>時系列も見る。Cambridge Analytica、複数のFTC和解、2026年8月の約180億ドル規模の州和解の直後に、メール・決済・健康データへの接続を求める製品を出した。設計文書は厚いが、信頼の前提はまだ弱い。</p>
+            <div class="quote">
+              これは「安全が証明された」ニュースではない。<br>隔離を最初から設計した、と公式が宣言したニュースである。
+              <small>デスクの読み。独立監査は未確認</small>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">CAUTION</span>
+            <p>Confidential VM 前にメール・決済・健康まで繋ぐ判断は、<strong>Metaのインフラを信頼するか</strong>に帰着する。デスクは急がない。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s8" aria-labelledby="h8">
+        <div class="slide-head"><span class="no" aria-hidden="true">08</span><div>
+          <p class="slide-kicker">JAPAN DESK</p>
+          <h2 id="h8">今すぐ日本で日常使いできる製品ではない</h2>
+        </div></div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p class="status">デスク日付 2026-09-08 ／ 公式日 2026-09-08 ／ 日本は未定</p>
+            <p>使えるのは主に次。</p>
+            <ul>
+              <li>モデルとしての Muse Spark 1.3（Cursor、Meta Model API、一部の OpenAI 互換ハーネス）</li>
+              <li>開発者向け Muse Code（macOS / Linux。Windows公式なし）</li>
+              <li>公開情報と安全設計ブログの読み込み</li>
+            </ul>
+            <p>消費者向け Muse を触るには米国アカウントと米国提供範囲が必要。学習オプトアウト、コネクタの初期値、Confidential VM の着地を、提供開始の前に見る。</p>
+            <ul class="checks">
+              <li><b>今日やること：</b>名前を分ける。製品 / モデル / Code を同じ「Muse」で語らない。</li>
+              <li><b>試すなら：</b>Spark 1.3 を Cursor か API で、自分のハーネスの半減期を見る。</li>
+              <li><b>待ってよいもの：</b>メール・決済・健康データの接続。日本提供。Confidential VM。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="finale" aria-label="要点">
+      <p class="eyebrow">TAKEAWAY</p>
+      <blockquote>Museが出た。チャットではなく、<em>1人1台の隔離Linux</em>。<br>速いのはモデル側。製品は米国のみ。設計は厚く、社内テストはまだ穴を見せている。</blockquote>
+      <p>日本デスクは、モデルを試し、箱と権限の一次を読み、提供を待つ。</p>
+    </section>
+
+    <footer class="sources" id="sources">
+      <h2>情報源と日付</h2>
+      <p>調査：2026年9月8–9日（JST）。公式発表、安全設計ブログ、モデルブログ、日本語公式、Cursorドキュメント、主要報道を区別した。社内テストの失敗例は Reuters の確認済み投稿に基づく二次情報。ベンチマークの一部は Meta 社内比較。</p>
+      <ol>
+        <li id="source-product"><a href="https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/">Meta：Introducing Muse</a><small>2026-09-08 公式製品発表</small></li>
+        <li id="source-product-ja"><a href="https://about.fb.com/ja/news/2026/09/introducing-muse-personal-ai-agent/">Meta日本語：Muse パーソナルAIエージェントを発表</a><small>日本での提供は現時点で未定、と記載</small></li>
+        <li id="source-design"><a href="https://introducing.muse.ai/">introducing.muse.ai：設計思想</a><small>製品サイト。公式の位置づけ</small></li>
+        <li id="source-safety"><a href="https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse">Meta Research：Security and Safety for AI Agents（Muse）</a><small>Secure VM / Sentinel / 資格情報の一次</small></li>
+        <li id="source-spark"><a href="https://research.meta.ai/blog/introducing-muse-spark-1-3">Meta Research：Introducing Muse Spark 1.3</a><small>2026-09-02。基盤モデル</small></li>
+        <li id="source-cursor"><a href="https://cursor.com/docs/models/muse-spark-1-3">Cursor Docs：muse-spark-1.3</a><small>モデルID・コンテキスト・料金。エージェント本体ではない</small></li>
+        <li id="source-axios"><a href="https://www.axios.com/2026/09/08/meta-debuts-muse-personal-ai-agent">Axios：Meta debuts Muse personal AI agent</a><small>Wang の無料枠・広告なし・コマース検討</small></li>
+        <li id="source-tc"><a href="https://techcrunch.com/2026/09/08/meta-debuts-its-muse-ai-agent-will-consumers-trust-it/">TechCrunch：Will consumers trust it?</a><small>州和解直後の時系列。コネクタと料金</small></li>
+        <li id="source-reuters"><a href="https://www.reuters.com/">Reuters：社内テストとHatch</a><small>iCloud露出報告、Bosworthのログアウト、監視停止。記事本文は通信社配信を9/8–9/9確認</small></li>
+        <li id="source-wired"><a href="https://www.wired.com/story/meta-releases-muse-a-personal-ai-agent-with-privacy-built-into-it/">WIRED：Needs You to Trust It</a><small>OpenClaw / Instinct との位置づけ</small></li>
+        <li id="source-engadget"><a href="https://www.engadget.com/2253133/meta-reveals-its-ai-agent-that-can-shop-send-emails-and-plan-trips-on-your-behalf/">Engadget：Shah インタビュー</a><small>「自らソフトウェアを組めるので、できることに本質的な上限はない」</small></li>
+      </ol>
+      <!-- slide-nav:start -->
+      <nav class="bottom-nav" aria-label="スライド相互ナビゲーション">
+        <a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_06.html">← 9/6号</a>
+        <a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_09.html">9/9号 →</a>
+        <a href="../day_slides_index.html">一覧</a>
+        <a href="../../index.html">ホーム</a>
+        <a href="day_slide_2026_09_08.html" download="day_slide_2026_09_08.html">HTML保存</a>
+        <a href="#main">上へ ↑</a>
+      </nav>
+      <!-- slide-nav:end -->
+      <p class="source-line">Day Slide No.404 ｜ デスク日付 2026-09-08 ｜ 公式日 2026-09-08 ｜ 数値と引用は一次または明記した報道だけを使っています。</p>
+    </footer>
+  </main>
+
+<script>
+
+    const progress = document.querySelector('.progress');
+    function updateProgress() { const h = document.documentElement; const total = h.scrollHeight - h.clientHeight; progress.style.width = (total > 0 ? h.scrollTop / total * 100 : 0) + '%'; }
+    addEventListener('scroll', updateProgress, {passive:true}); addEventListener('resize', updateProgress); updateProgress();
+    const links = [...document.querySelectorAll('.jump a')];
+    const observer = new IntersectionObserver(entries => { for (const e of entries) { if (e.isIntersecting) links.forEach(a => { const active = a.hash === '#' + e.target.id; a.classList.toggle('on', active); if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); }); } }, {rootMargin:'-15% 0px -65% 0px'});
+    document.querySelectorAll('.slide').forEach(s => observer.observe(s));
+
+</script>
+</body></html>
