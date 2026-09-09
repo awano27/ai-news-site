@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="ja"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoopX 1.0。長時間エージェントの状態を、セッションの外に出した | 2026-09-07</title>
+  <meta name="description" content="2026年9月7日版。LoopX 1.0がPersonal Workspaceを完成させた。Codex / Claude Codeなどの既存ハーネス上で、Goal・ToDo・証拠・クォータをセッションをまたいで保持するオープンな制御面を、公式リリースとドキュメントから整理する。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_07.html">
+  <meta property="og:type" content="article"><meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="LoopX 1.0。長時間エージェントの状態を、セッションの外に出した">
+  <meta property="og:description" content="2026年9月7日版。LoopX 1.0がPersonal Workspaceを完成させた。既存ハーネス上のプロバイダ非依存な制御面を、公式リリースから整理する。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_07.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0907/cover.jpg">
+  <meta property="og:image:width" content="1600">
+  <meta property="og:image:height" content="900">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0907/cover.jpg">
+  <meta name="twitter:title" content="LoopX 1.0。長時間エージェントの状態を、セッションの外に出した">
+  <meta name="twitter:description" content="2026年9月7日版。LoopX 1.0がPersonal Workspaceを完成させた。既存ハーネス上のプロバイダ非依存な制御面を、公式リリースから整理する。">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"PresentationDigitalDocument","headline":"LoopX 1.0。長時間エージェントの状態を、セッションの外に出した","description":"2026年9月7日版。LoopX 1.0がPersonal Workspaceを完成させた。既存ハーネス上のプロバイダ非依存な制御面を、公式リリースから整理する。","datePublished":"2026-09-07","dateModified":"2026-09-07T21:00:00+09:00","inLanguage":"ja","mainEntityOfPage":"https://visionhub.jp/presentations/day_slides/day_slide_2026_09_07.html","image":"https://visionhub.jp/presentations/day_slides/images/0907/cover.jpg"}</script>
+  <style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,180,220,.20);
+      --accent:#4aa8e8; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(74,168,232,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(74,168,232,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(74,168,232,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; text-underline-offset:3px; }
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7e4ff); z-index:60; transition:width .1s linear; }
+    .skip-link { position:absolute; top:-80px; left:12px; z-index:100; padding:10px; background:var(--accent); color:#04120e; }
+    .skip-link:focus { top:12px; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,180,220,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,180,220,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(74,168,232,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bfe4f2; text-decoration:none; border-bottom:1px solid rgba(191,228,242,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:1050px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9dd8f2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .hero-subtitle { display:block; font-size:clamp(19px,2.5vw,29px); line-height:1.55; color:#b8d4dc; margin-top:18px; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,216,242,.4); background:rgba(4,16,14,.55); color:#d2ecf2; font-size:12px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); text-decoration:none; }
+    .stat-num { font:700 23px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; overflow-wrap:anywhere; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,180,220,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(74,168,232,.12); outline:none; }
+
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(90,180,220,.30); border-radius:8px; overflow:hidden; background:#f7f3ea; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(157,216,242,.4); color:#d2ecf2; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(74,168,232,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    h3 { font-size:16px; line-height:1.6; margin:0 0 12px; }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(74,168,232,.07); padding:14px 18px; margin:14px 0; color:#d6e9ef; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(74,168,232,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .vs-card p { font-size:14px; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,180,220,.35); background:rgba(74,168,232,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    code { overflow-wrap:anywhere; color:#c4e4ee; font-size:13px; }
+
+    .finale { margin-top:56px; border:1px solid rgba(74,168,232,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(74,168,232,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    .board { border:1px solid rgba(90,180,220,.30); border-radius:8px; padding:18px 18px 16px; margin:14px 0 18px; background:linear-gradient(180deg, rgba(13,33,31,.55), rgba(6,17,16,.72)); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .board-label { display:inline-block; color:#06201b; background:var(--accent); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; padding:5px 10px; border-radius:3px; margin-bottom:12px; }
+    .board-title { margin:0 0 14px; font-size:16px; color:var(--ink); font-weight:600; line-height:1.5; }
+    .board-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch; }
+    .board-col { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .board-col.win { border-color:rgba(74,168,232,.5); }
+    .board-col.gold { border-color:rgba(255,201,77,.45); }
+    .board-col.alert { border-color:rgba(255,143,122,.45); }
+    .board-col h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    .board-col h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:6px; }
+    .board-col.gold h4 span { color:var(--gold); }
+    .board-col.alert h4 span { color:var(--alert); }
+    .board-col .big { font:700 28px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .board-col .big.gold { color:var(--gold); }
+    .board-col .sub { color:var(--muted); font-size:13px; margin:8px 0 0; line-height:1.75; }
+    .board-vs { display:flex; align-items:center; justify-content:center; color:var(--accent); font:800 13px/1 ui-monospace,monospace; letter-spacing:.14em; padding:0 4px; }
+    .board-foot { margin:14px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .status { font-size:12px; color:#abd4cd; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .source-line { font-size:11.8px; line-height:1.8; margin-top:16px; color:#8ebbb2; overflow-wrap:anywhere; }
+    .source-line a, .sources a { color:#9ad4e8; }
+    .editor-note { margin-top:20px; border:1px solid var(--line); padding:15px 18px; border-radius:6px; }
+    .editor-note summary { cursor:pointer; color:#bce4ec; font-size:13px; }
+    .editor-note p { margin:12px 0 0; font-size:13px; }
+    .sources { margin-top:42px; padding:28px 0; border-top:1px solid var(--line); }
+    .sources ol { padding-left:22px; color:var(--muted); font-size:12px; line-height:1.8; }
+    .sources li { margin-bottom:12px; overflow-wrap:anywhere; }
+    .sources small { display:block; }
+    .bottom-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:24px 0 0; padding-top:24px; border-top:1px solid var(--line); }
+    .bottom-nav a { border:1px solid var(--line); border-radius:19px; padding:8px 14px; text-decoration:none; font-size:13px; color:#c4dedb; }
+    .bottom-nav a:hover { border-color:var(--accent); color:var(--ink); }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+      .board-row { grid-template-columns:minmax(0,1fr); }
+      .board-vs { padding:6px 0; }
+      .grid-2 { grid-template-columns:minmax(0,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へスキップ</a>
+  <div class="progress" aria-hidden="true"></div>
+  <header class="hero"><div class="hero-inner">
+    <nav class="topbar" aria-label="パンくず"><a href="../day_slides_index.html">全日スライド</a><span>2026-09-07 / No.405 / 製品・制御面</span></nav>
+    <div class="hero-body">
+      <span class="kicker">今日の深掘り — エージェント制御面</span>
+      <p class="eyebrow">LOOPX 1.0 × PERSONAL WORKSPACE</p>
+      <h1>LoopX 1.0。<br>長時間エージェントの状態を、セッションの外に出した<span class="hero-subtitle">ハーネスは替えない。Goal・ToDo・証拠・クォータだけを残す</span></h1>
+      <p class="lead">黄瑞騰（<code>huangruiteng</code>）の開源プロジェクト <strong>LoopX</strong> が、<strong>2026年9月6日</strong>に v1.0.0 を出した。1.0の意味は新モデルではない。<strong>Personal Workspace</strong> の完成である。Codex / Claude Code / Cursor の上に乗る、プロバイダ非依存のローカル制御面。日本デスクの日次は <strong>2026-09-07</strong>。公式の日は 09-06 である。</p>
+      <div class="hero-meta">
+        <span>📅 公式公開：09/06</span>
+        <span>Personal Workspace 完成</span>
+        <span>provider-neutral</span>
+        <span>local-first</span>
+        <span>壁時計 200h+</span>
+        <span>runtime ではない</span>
+      </div>
+    </div>
+  </div></header>
+
+  <main class="shell" id="main">
+    <div class="stats-bar" aria-label="この号の注目点">
+      <a class="stat-card" href="#s1"><div class="stat-num gold">09/06</div><div class="stat-label"><b>公式の日</b>GitHub Releases v1.0.0。デスクは 09-07</div></a>
+      <a class="stat-card" href="#s5"><div class="stat-num">Workspace</div><div class="stat-label"><b>1.0の中身</b>状態と操作パスを一つの画面へ</div></a>
+      <a class="stat-card" href="#s2"><div class="stat-num">非依存</div><div class="stat-label"><b>ハーネスの上</b>Codex / Claude Code / Cursor</div></a>
+      <a class="stat-card" href="#s2"><div class="stat-num gold">200h+</div><div class="stat-label"><b>wall-clock</b>連続推論でも無人自治でもない</div></a>
+      <a class="stat-card" href="#s8"><div class="stat-num">No.405</div><div class="stat-label"><b>Day Slide</b>2026-09-07 AI Intelligence Hub</div></a>
+    </div>
+
+    <figure class="shot" id="board">
+      <a href="images/0907/cover.jpg" target="_blank" rel="noopener" aria-label="9/7の要約ボードを原寸で開く"><img src="images/0907/cover.jpg" width="1600" height="900" loading="lazy" alt="LoopX 1.0の1枚ボード。セッションを閉じても仕事は残る。公式09/06、デスク09/07、Personal Workspace、provider-neutral、wall-clock 200時間超。"></a>
+      <span class="zoom-badge">1枚ボード・クリックで拡大</span>
+    </figure>
+
+    <div class="board" aria-label="1枚ボードの内訳">
+      <span class="board-label">1枚ボード・クリックで拡大</span>
+      <p class="board-title">壊れている仮定はこれだ。<strong>「長い仕事は、長いチャットで持つ」</strong></p>
+      <div class="board-row">
+        <div class="board-col alert">
+          <h4><span>BEFORE</span>セッションの中</h4>
+          <p class="big" style="color:var(--alert)">消える</p>
+          <p class="sub">目標変更、承認待ち、モデル切替、窓を閉じた瞬間に、次に何をすべきかが文脈へ戻る。</p>
+        </div>
+        <div class="board-vs">→</div>
+        <div class="board-col gold">
+          <h4><span>1.0</span>永続ワークスペース</h4>
+          <p class="big gold">外に置く</p>
+          <p class="sub">Goal / ToDo / 証拠 / クォータを Kernel が持つ。ハーネスは有界な1ターンだけを実行する。</p>
+        </div>
+        <div class="board-vs">→</div>
+        <div class="board-col win">
+          <h4><span>NOW</span>現場の先手</h4>
+          <p class="big">4泳道</p>
+          <p class="sub">需要你 / 実行中 / 観察中 / 已安排。確認待ちだけ人に戻し、あとは quota should-run で止める。</p>
+        </div>
+      </div>
+      <p class="board-foot">上の図が1枚ボード。200+時間は公式 README の wall-clock。1.0は Workspace 完成であり、runtime や本番の無人コントローラではない。</p>
+    </div>
+
+    <nav class="jump" aria-label="セクション移動">
+      <a href="#board"><b>00</b>1枚ボード</a>
+      <a href="#s1"><b>01</b>何が出たか</a>
+      <a href="#s2"><b>02</b>なぜ今か</a>
+      <a href="#s3"><b>03</b>5つの問い</a>
+      <a href="#s4"><b>04</b>4本柱</a>
+      <a href="#s5"><b>05</b>Workspace</a>
+      <a href="#s6"><b>06</b>IMとデスクトップ</a>
+      <a href="#s7"><b>07</b>ハーネス</a>
+      <a href="#s8"><b>08</b>実験と限界</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1" aria-labelledby="h1">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">01</span>
+          <div>
+            <p class="slide-kicker">WHAT LANDED</p>
+            <h2 id="h1">1.0は新実行器ではない。Personal Workspaceの完成である</h2>
+          </div>
+        </div>
+        <p class="status">一次｜GitHub Release v1.0.0 2026-09-06 ／ tag v1.0.0 ／ commit 14c5f87</p>
+        <div class="notes">
+          <div class="notes-main">
+            <p>一次は <a href="https://github.com/huangruiteng/loopx/releases/tag/v1.0.0">GitHub 公式リリース「LoopX 1.0 — a workspace for long-running agents」</a>。リポジトリは Apache-2.0。言語は Python 中心に TypeScript を添える。作者は黄瑞騰。ByteDance AML、OpenViking 貢献者。</p>
+            <p>公式の自己規定は短い。</p>
+            <div class="quote">LoopX 1.0 is a usable local control plane for long-running agent work… It is not a full agent platform, an agent runtime, or an autonomous production controller.<small>README / Current Status</small></div>
+            <ul>
+              <li><strong>ハーネス</strong>が有界な1ターンを実行する。Codex、Claude Code、Cursor、OpenCode、KunlunCode、DeepSeek Harness、shell。</li>
+              <li><strong>LoopX</strong>が Goal、gate、todo、evidence、quota、handoff をターンの外側で保持する。</li>
+              <li>Workspace 自体は v0.5.4 より前からあった。1.0は状態と操作パスを一つの永続制御面に束ねた。</li>
+              <li>破壊的変更なし。staged な権限バックエンドの全面昇格ではない、とリリース自身が書く。</li>
+              <li>09-07 に v1.0.1（Goal Channel の安定化）。本号のデスク日と同日の最新パッチ。</li>
+            </ul>
+            <div class="warn"><p>置かないもの：連続推論200時間、無人の本番自治、ブラウザを権威ある事実源とすること、「全テナントの権限が昇格した」という読み。</p></div>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/releases/tag/v1.0.0">v1.0.0 Release</a> ／ <a href="https://github.com/huangruiteng/loopx">huangruiteng/loopx</a> ／ <a href="https://github.com/huangruiteng/loopx/blob/main/README.zh-CN.md">README.zh-CN</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>1.0ラベルは<strong>Workspace milestone</strong>。新しいエージェントを配った日ではない。既存ハーネスの上に、人が見て止めて再開できる操作面が乗った日である。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2" aria-labelledby="h2">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">02</span>
+          <div>
+            <p class="slide-kicker">WHY NOW</p>
+            <h2 id="h2">長時間エージェントは、モデルではなく状態で死ぬ</h2>
+          </div>
+        </div>
+        <p class="status">一次｜README「Why LoopX」／作者Xの 220.7h / 272.9h 軌跡（wall-clock）</p>
+        <div class="notes">
+          <div class="notes-main">
+            <p>1セッションなら、今のハーネスは仕事を終えられる。壊れるのは仕事がセッションより長くなったときだ。</p>
+            <ul>
+              <li>目標が途中で変わるが、変更理由が残らない。</li>
+              <li>人の判断が必要になるが、要求がチャットの一文に消える。</li>
+              <li>CI待ち・夜間・承認待ちのあいだに文脈が失われる。</li>
+              <li>複数エージェントが同じ仕事を掴み合う。</li>
+              <li>「もう進まない」のにスケジューラだけが消費を続ける。</li>
+            </ul>
+            <p>公式が示す公開軌跡は、OpenViking の issue 修正列と、所有者実行の AutoML showcase。いずれも <strong>wall-clock 200時間超</strong>（作者発表では 220.7時間と 272.9時間）。待機、人間判断、writeback、再開を含む経過時間である。連続推論時間ではない。</p>
+            <div class="grid-2">
+              <article class="vs-card">
+                <h4><span>8月の公開</span>耐久</h4>
+                <p>単体エージェントが、状態ドリフトせずに日をまたげるか。</p>
+              </article>
+              <article class="vs-card now">
+                <h4><span>1.0</span>統治</h4>
+                <p>散らばった複数ハーネスの仕事を、一つのワークスペースで見える化し、止めて、再開できるか。</p>
+              </article>
+            </div>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/blob/main/README.md">README Why LoopX / Evidence</a> ／ <a href="https://x.com/huangruiteng/status/2084218106365304942">作者X：220.7 / 272.9 hour trajectories</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>サプライズは「より賢いモデル」ではない。<strong>プロバイダ非依存で、この層を製品化した</strong>こと。8月は走れた。1.0は放置して回す画面が揃った。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s3" aria-labelledby="h3">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">03</span>
+          <div>
+            <p class="slide-kicker">CONTROL PLANE</p>
+            <h2 id="h3">制御面が毎回答える、5つの問い</h2>
+          </div>
+        </div>
+        <p class="status">一次｜docs/architecture.md ／ README.zh-CN の5問</p>
+        <div class="notes">
+          <div class="notes-main">
+            <p>実行パスは <code>Agent → Capability → Provider</code>。制御結果は <code>Provider readback → Capability transition → Kernel</code>。観測は遷移ではない。レシートも、Capability が検証し Kernel がコミットするまで「進んだ」ことにはならない。</p>
+            <ul class="checks">
+              <li><b>今の目標は何か。</b> active goal、scope、authority。</li>
+              <li><b>次に何をするか。</b> 順序付き user / agent ToDo、ownership、claim、lease。</li>
+              <li><b>どこで人が判断すべきか。</b> 具体的な user gate。曖昧な「待つ」ではない。</li>
+              <li><b>証拠は何が変わったか。</b> run history、検証、blocker、受理済み writeback。</li>
+              <li><b>この Loop を続行してよいか。</b> quota、capability、安全側路、scheduler hint、停止条件。</li>
+            </ul>
+            <p>登録エージェントは互いに平級。リーダーエージェントは不要。次の実行者は claim / lease / 能力ゲートで決まる。複数エージェントが同じ Goal を分担できるが、それは同じチャットルームで雑談する方式ではない。</p>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/blob/main/docs/architecture.md">docs/architecture.md</a> ／ <a href="https://huangruiteng.github.io/loopx/docs/">LoopX Docs</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>ブラウザは投影。権威ある事実源は常に <strong>LoopX state</strong>。ダッシュボードが正しく見えても、迷ったら <code>loopx status</code> に戻る。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s4" aria-labelledby="h4">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">04</span>
+          <div>
+            <p class="slide-kicker">FOUR PILLARS</p>
+            <h2 id="h4">Goal / ToDo+Gate / 証拠 / クォータ。閉じても戻れるのが本丸</h2>
+          </div>
+        </div>
+        <p class="status">一次｜quota-allocation.md ／ architecture の Goal・Todo・Lease・Gate</p>
+        <div class="notes">
+          <div class="notes-main">
+            <div class="scroll-x">
+              <table class="cmp">
+                <thead><tr><th>柱</th><th>持つもの</th><th>持たないもの</th></tr></thead>
+                <tbody>
+                  <tr><td>Goal</td><td>寿命のある意図。<code>goal_id</code> を境界にレジストリ・状態・履歴を持つ</td><td>無限の自律権。実行できるのは次の有界遷移だけ</td></tr>
+                  <tr><td>ToDo / Gate</td><td>身元、所有者、claim、lease。人の判断点を一等オブジェクト化</td><td>チャットの一文に埋もれた「待って」</td></tr>
+                  <tr><td>Evidence</td><td>実行履歴、検証、blocker、受理済み writeback</td><td>未検証 run を成功と呼ぶこと</td></tr>
+                  <tr><td>Quota</td><td><code>should-run</code>。duty cycle。検証後にだけ消費</td><td>空回りの監視ポーリングへの課金</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>クォータは許可ではない。自動計算の配分である。<code>compute=1.0</code> で全日稼働相当、<code>0.5</code> で半分、<code>0</code> で Goal 単位の硬停止。判定順は健全性 → オペレータゲート → 証拠待ち → フォーカス待ち → 計算クォータ。</p>
+            <p>Handoff が1.0の見えにくい価値である。セッションを閉じる、モデルを替える、Codex から Claude Code へ渡す。Goal 状態と証拠は残る。stop は自動ターンを止め、resume するまで戻さない。quota を 0 にした停止とは、復帰の鍵が違う。</p>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/blob/main/docs/quota-allocation.md">docs/quota-allocation.md</a> ／ Personal Workspace User Guide</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>「放置して回す」は無限ループを許すことではない。<strong>進めてよいときだけ進み、止めるべきときは止まる</strong>契約である。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s5" aria-labelledby="h5">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">05</span>
+          <div>
+            <p class="slide-kicker">PERSONAL WORKSPACE</p>
+            <h2 id="h5">4泳道で、今だれが動くかを一目にする</h2>
+          </div>
+        </div>
+        <p class="status">一次｜Personal Workspace User Guide ／ <code>loopx dashboard</code> → 127.0.0.1:8767/chat/</p>
+        <div class="notes">
+          <div class="notes-main">
+            <p>正式な起動は <code>loopx dashboard</code>。既定 URL は <code>http://127.0.0.1:8767/chat/</code>。ブラウザ / PWA とデスクトップ殻は、同じ loopback サービスと Goal 状態を共有する。手元の全エージェントを勝手に吸い上げない。登録した Goal と Agent だけが見える。</p>
+            <div class="grid-2">
+              <article class="vs-card now">
+                <h4><span>管家</span>4泳道</h4>
+                <ul>
+                  <li><strong>需要你</strong> — 承認・確認・入力待ち</li>
+                  <li><strong>実行中</strong> — 今進んでいる ToDo / Goal</li>
+                  <li><strong>観察中</strong> — 監視と定期点検</li>
+                  <li><strong>已安排</strong> — まだ始まっていない周期計画</li>
+                </ul>
+              </article>
+              <article class="vs-card">
+                <h4><span>Goal</span>Chat / Tasks / Files</h4>
+                <ul>
+                  <li>左に Goal 一覧、中にチャンネル、右に詳細ドロワー</li>
+                  <li>「あなたがいない間」サマリ（完了・異常・確認待ち）</li>
+                  <li>遅い履歴を待たず、軽いディレクトリが先に出る</li>
+                </ul>
+              </article>
+            </div>
+            <p>安全モデルは「先にプレビュー、あとで確認」。状態を書く操作は Typed Action のプレビューになり、確認後に receipt が残る。Capability 設定は機械の既定値と Goal 上書きを区別する。</p>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/blob/main/docs/guides/personal-workspace-user-guide.md">personal-workspace-user-guide.md</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>1.0で人が得たのは新しいモデルではなく、<strong>席を外しても状況が残る画面</strong>である。Agent が裏で状態を書き換えない、というのが約束。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s6" aria-labelledby="h6">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">06</span>
+          <div>
+            <p class="slide-kicker">IM / DESKTOP</p>
+            <h2 id="h6">飛書は操作面。署名更新は macOS。Windows は dashboard が本線</h2>
+          </div>
+        </div>
+        <p class="status">一次｜v1.0.0 Highlights ／ Desktop Control Plane README</p>
+        <div class="notes">
+          <div class="notes-main">
+            <p>IM は既存の Lark Goal Topic を再接続する。3つの入り方がある。</p>
+            <ul>
+              <li><strong>live steering</strong> — 今動いている Turn に直接入れる</li>
+              <li><strong>session queuing</strong> — 同じセッションの FIFO に積む</li>
+              <li><strong>async inbox</strong> — ローカル私有の受信箱に置き、明示的に drain する</li>
+            </ul>
+            <p>キャプチャ範囲を広げても、エージェント権限は広がらない。返信先も元 Topic に閉じる。IM は便利な操作面であって、権限のバイパスではない。</p>
+            <p>macOS（Apple Silicon）は App と runtime をペアで更新する。stable / main、repair、rollback。署名は ad-hoc で、公証（notarize）はされていない。Windows プレビューは手動更新。古いデスクトップ殻は一度手動で入れ替える。ロールバックはインストールを戻すものであり、任意の状態スキーマ移行を戻すものではない。</p>
+            <div class="warn"><p>Windows 11 で使うなら、本線は <code>loopx dashboard</code>（ブラウザ / PWA）。署名付き自動更新を期待しない。</p></div>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/releases/tag/v1.0.0">v1.0.0 Highlights</a> ／ README.zh-CN「Windows 预览版目前手动更新」</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>1.0で揃ったのは画面と更新経路である。最初の実験に飛書は要らない。ローカル dashboard で状態が見えることを先に確かめる。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s7" aria-labelledby="h7">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">07</span>
+          <div>
+            <p class="slide-kicker">HARNESS</p>
+            <h2 id="h7">既存の Codex セッションに Goal を紐付ける。Claude Code は /loop</h2>
+          </div>
+        </div>
+        <p class="status">一次｜Getting Started ／ claude_goal_mode README</p>
+        <div class="notes">
+          <div class="notes-main">
+            <p>要件は Python 3.11+。ダッシュボードを使うなら Node 22.6+。Windows は <code>py -3.11 -m pip install --upgrade loopx</code>。<code>.loopx/</code>、<code>.codex/goals/</code>、<code>.local/</code> は gitignore する。</p>
+            <div class="loop">
+              <span class="step"><small>01</small>pip + doctor</span><span class="arr">→</span>
+              <span class="step"><small>02</small>connect</span><span class="arr">→</span>
+              <span class="step"><small>03</small>start-goal</span><span class="arr">→</span>
+              <span class="step"><small>04</small>dashboard</span><span class="arr">→</span>
+              <span class="step"><small>05</small>既存セッションへ紐付け</span>
+            </div>
+            <div class="grid-2">
+              <article class="vs-card now">
+                <h4><span>CODEX</span>本号の主実験</h4>
+                <p><code>loopx start-goal --guided --project . --host-surface codex-cli-tui</code></p>
+                <p>TUI では <code>$loopx <タスク></code>、または skills。既存セッションに Goal を載せる。</p>
+              </article>
+              <article class="vs-card">
+                <h4><span>CLAUDE CODE</span>併記</h4>
+                <p><code>/loopx <タスク></code> はセットアップだけ。実行はネイティブ <code>/loop</code>。</p>
+                <p><code>/goal</code> は使わない。トランスクリプト完了判定が <code>should_run</code> と衝突する。アダプタは opt-in。</p>
+              </article>
+            </div>
+            <p class="source-line">出典：<a href="https://github.com/huangruiteng/loopx/blob/main/docs/guides/getting-started.md">getting-started.md</a> ／ <a href="https://github.com/huangruiteng/loopx/blob/main/loopx/claude_goal_mode/README.md">claude_goal_mode/README.md</a></p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>LoopX は決定論的な制御面。実行ループは各ハーネスのネイティブ機構に残す。同じ Goal を claim / lease でリレーできる。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s8" aria-labelledby="h8">
+        <div class="slide-head">
+          <span class="no" aria-hidden="true">08</span>
+          <div>
+            <p class="slide-kicker">TRY IT + LIMITS</p>
+            <h2 id="h8">確かめるのは新エージェントではない。閉じても状態が残ること</h2>
+          </div>
+        </div>
+        <p class="status">運用提案｜本号の実験パス。公式が自ら置く限界を先に読む</p>
+        <div class="notes">
+          <div class="notes-main">
+            <ul class="checks">
+              <li><b>入れる。</b> <code>python3 -m pip install --upgrade loopx</code> → <code>loopx workflow-skills --install</code> → <code>loopx doctor</code></li>
+              <li><b>既存リポジトリを接続する。</b> <code>loopx connect</code> のあと <code>loopx start-goal --guided</code></li>
+              <li><b>画面を開く。</b> <code>loopx dashboard</code>。4泳道に Goal が見えるか</li>
+              <li><b>既存 Codex セッションへ紐付ける。</b> <code>$loopx</code> または bootstrap message</li>
+              <li><b>切断して再開する。</b> <code>loopx status</code> と証拠が残るか。<code>quota should-run</code> を見る</li>
+            </ul>
+            <div class="warn">
+              <p><strong>公式が置く限界。</strong> 1.0は Workspace の完成であり staged 権限の全面昇格ではない。200時間超は経過時間。資格情報を自動取得しない。危険な権限・本番書き込み・公開判断は人が持つ。未検証 run を成功証拠にしない。App rollback はインストールを戻す。</p>
+            </div>
+            <details class="editor-note">
+              <summary>デスク注記 — 09-07 時点のパッチ（v1.0.1）</summary>
+              <p>本号のデスク日は 2026-09-07。公式 1.0.0 は 09-06。同日に v1.0.1（Goal Channel の安定化）が出ており、本号時点の最新パッチはこちら。v1.0.2（Todo 単一オーナー、表示自動回復、大規模 Workspace 高速化）は 09-09 着地のため、本号の主数字にはしていない。新規導入するなら、発行後の最新パッチを <code>loopx update check</code> で確認する。</p>
+            </details>
+            <p class="source-line">出典：Getting Started ／ v1.0.0 Breaking changes: No ／ README Current Status</p>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">読み方</span>
+            <p>飛書もデスクトップも後回しでよい。先にローカルで、<strong>セッションを閉じても Goal が残るか</strong>を見る。それが1.0の実験である。</p>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="finale" aria-label="要点">
+      <p class="eyebrow">TAKEAWAY</p>
+      <blockquote>ハーネスは替えない。<br>替えるのは、<em>状態の置き場</em>である。<br>LoopX 1.0は、長時間仕事の制御状態をセッションの外に出した。</blockquote>
+      <p>進めてよいときだけ進み、判断は人に残す。200時間は壁時計であり、無人の本番自治ではない。</p>
+    </section>
+
+    <footer class="sources" id="sources">
+      <h2>情報源と日付</h2>
+      <p>調査：2026年9月7日（JST）。公式リリースは 2026-09-06。v1.0.1 は 09-07。主数字は公式リリースと README / Docs。200時間超は公式が wall-clock と注記した経過時間であり、連続推論時間ではない。本号での独自実験ではない。</p>
+      <ol>
+        <li id="source-rel"><a href="https://github.com/huangruiteng/loopx/releases/tag/v1.0.0">GitHub Release：LoopX 1.0 — a workspace for long-running agents</a><small>2026-09-06 ／ tag v1.0.0 ／ commit 14c5f87</small></li>
+        <li id="source-repo"><a href="https://github.com/huangruiteng/loopx">huangruiteng/loopx</a><small>Apache-2.0 ／ local-first control plane</small></li>
+        <li id="source-readme-zh"><a href="https://github.com/huangruiteng/loopx/blob/main/README.zh-CN.md">README.zh-CN</a><small>Personal Workspace 1.0 と「何ではないか」</small></li>
+        <li id="source-docs"><a href="https://huangruiteng.github.io/loopx/docs/">LoopX Docs</a><small>制御面の公開ドキュメント</small></li>
+        <li id="source-arch"><a href="https://github.com/huangruiteng/loopx/blob/main/docs/architecture.md">docs/architecture.md</a><small>Kernel / Capability / Provider と6層</small></li>
+        <li id="source-ws"><a href="https://github.com/huangruiteng/loopx/blob/main/docs/guides/personal-workspace-user-guide.md">Personal Workspace User Guide</a><small>4泳道、プレビュー確認、dashboard</small></li>
+        <li id="source-start"><a href="https://github.com/huangruiteng/loopx/blob/main/docs/guides/getting-started.md">Getting Started</a><small>install / connect / host surfaces</small></li>
+        <li id="source-quota"><a href="https://github.com/huangruiteng/loopx/blob/main/docs/quota-allocation.md">docs/quota-allocation.md</a><small>should-run / spend / scheduler_hint</small></li>
+        <li id="source-claude"><a href="https://github.com/huangruiteng/loopx/blob/main/loopx/claude_goal_mode/README.md">claude_goal_mode/README.md</a><small>/loopx はセットアップ、実行は /loop</small></li>
+        <li id="source-101"><a href="https://github.com/huangruiteng/loopx/releases/tag/v1.0.1">GitHub Release：LoopX 1.0.1</a><small>2026-09-07 ／ Goal Channel 安定化</small></li>
+      </ol>
+      <p class="source-line">フォーマット参照：<a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_05.html">9/5号 No.401</a>。本文は9/8向けに新規執筆。1枚ボードは本号に掲載。掲載した比較は公開資料に基づき、本号での独自実験ではない。日本向けの公式告知は確認した一次にない。</p>
+      <!-- slide-nav:start -->
+      <!-- slide-nav:start -->
+      <!-- slide-nav:start -->
+      <nav class="bottom-nav" aria-label="スライド相互ナビゲーション">
+        <a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_06.html">← 9/6号</a>
+        <a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_08.html">9/8号 →</a>
+        <a href="../day_slides_index.html">一覧</a>
+        <a href="../../index.html">ホーム</a>
+        <a href="day_slide_2026_09_07.html" download="day_slide_2026_09_07.html">HTML保存</a>
+        <a href="#main">上へ ↑</a>
+      </nav>
+      <!-- slide-nav:end -->
+      <!-- slide-nav:end -->
+      <!-- slide-nav:end -->
+    </footer>
+  </main>
+  <script>
+    const progress = document.querySelector('.progress');
+    function updateProgress() { const h = document.documentElement; const total = h.scrollHeight - h.clientHeight; progress.style.width = (total > 0 ? h.scrollTop / total * 100 : 0) + '%'; }
+    addEventListener('scroll', updateProgress, {passive:true}); addEventListener('resize', updateProgress); updateProgress();
+    const links = [...document.querySelectorAll('.jump a')];
+    const observer = new IntersectionObserver(entries => { for (const e of entries) { if (e.isIntersecting) links.forEach(a => { const active = a.hash === '#' + e.target.id; a.classList.toggle('on', active); if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); }); } }, {rootMargin:'-15% 0px -65% 0px'});
+    document.querySelectorAll('.slide').forEach(s => observer.observe(s));
+  </script>
+</body></html>
