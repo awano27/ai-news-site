@@ -652,8 +652,14 @@ def main() -> int:
     if args.dry_run:
         for path in git_files(plan):
             print(f"[dry-run] would write {path}")
-        return 0
+        from finalize_day_slide import finalize as finalize_slide
+        return finalize_slide(plan.mmdd, plan.day.year, dry_run=True, indexnow=False, checks=False)
     write_outputs(plan)
+    from finalize_day_slide import finalize as finalize_slide
+    fin_rc = finalize_slide(plan.mmdd, plan.day.year, dry_run=False, indexnow=False, checks=False)
+    if fin_rc:
+        print("[publish] finalize_day_slide failed", file=sys.stderr)
+        return fin_rc
     errors = validate(plan)
     if errors:
         print("[publish] validation failed:", file=sys.stderr)

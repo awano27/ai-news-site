@@ -50,3 +50,21 @@
 - [x] Console and fallback behavior
 - [x] UTF-8 BOMなし
 - [x] Gitの変更操作/remote操作なし
+
+---
+
+# 2026-09-14 P0 計測を動かす
+
+## Goal
+
+GA4 計測の準備、日次スライド出荷への SEO/JSON-LD/analytics 注入連結、既存スライドのバックフィル、SEO ガード、IndexNow 準備、イベント拡充。
+
+## Scope
+
+- Create: `scripts/check_analytics_config.py`, `scripts/check_slide_seo.py`, `scripts/finalize_day_slide.py`, `scripts/indexnow_ping.py`, `scripts/slide_seo_limits.py`, `ops/search-console-setup.md`, `config/indexnow.json`
+- Modify: injectors, `check_site_freshness.py`, `check_analytics_coverage.py`, `publish_image2_day_slide.py`, `analytics.js`, `index.html`, `freshness-guard.yml`, `CLAUDE.md`
+- Do not: commit/push, GA4 プロパティ作成、daily-news 生成物への注入、P1 以降
+
+## Acceptance
+
+P0 AC0-1..7. 測定 ID は運営者投入。placeholder のまま no-op。

@@ -28,21 +28,28 @@ SITE_NAME = "AI Intelligence Hub"
 PUBLISHER = {
     "@type": "Organization",
     "name": SITE_NAME,
-    "url": f"{BASE_URL}/",
     "logo": {
         "@type": "ImageObject",
-        "url": f"{BASE_URL}/assets/og/default.png",
-        "width": 1200,
-        "height": 630,
+        "url": f"{BASE_URL}/assets/og-image.png",
     },
 }
 
 AUTHOR = {
     "@type": "Person",
     "name": "awano27",
-    "alternateName": "Claudian",
     "url": f"{BASE_URL}/about.html",
 }
+
+OG_IMAGE_CONTENT_RE = re.compile(
+    r'<meta\s+[^>]*property=["\']og:image["\'][^>]*content=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+OG_TITLE_CONTENT_RE = re.compile(
+    r'<meta\s+[^>]*property=["\']og:title["\'][^>]*content=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+TRAILING_DATE_RE = re.compile(r"\s*(?:\|\s*)?\d{4}-\d{2}-\d{2}\s*$")
+H1_RE = re.compile(r"<h1\b[^>]*>(.*?)</h1>", re.IGNORECASE | re.DOTALL)
 
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 DAY_SLIDE_DATE_RE = re.compile(r"day_slide_(\d{4})_(\d{2})_(\d{2})\.html$")
@@ -62,34 +69,70 @@ def canonical_for(path: Path) -> str:
     return f"{BASE_URL}/{path.relative_to(ROOT).as_posix()}"
 
 
-def image_for(path: Path) -> str:
+def image_for(path: Path, text: str = "") -> str:
+    og = OG_IMAGE_CONTENT_RE.search(text or "")
+    if og:
+        return html.unescape(og.group(1)).strip()
     m = DAY_SLIDE_DATE_RE.search(path.name)
     if m:
+        mmdd = m.group(2) + m.group(3)
+        for name in ("cover.jpg", "cover.jpeg", "cover.png", "cover.webp"):
+            rel = Path("presentations") / "day_slides" / "images" / mmdd / name
+            if (ROOT / rel).is_file():
+                return f"{BASE_URL}/{rel.as_posix()}"
         return f"{BASE_URL}/assets/og/day_slide_{m.group(1)}_{m.group(2)}_{m.group(3)}.png"
-    return f"{BASE_URL}/assets/og/default.png"
+    default_png = ROOT / "assets" / "og" / "default.png"
+    if default_png.is_file():
+        return f"{BASE_URL}/assets/og/default.png"
+    return f"{BASE_URL}/assets/og-image.png"
+
+
+def headline_for(text: str, fallback: str) -> str:
+    og = OG_TITLE_CONTENT_RE.search(text or "")
+    if og:
+        t = html.unescape(og.group(1)).strip()
+        t = TRAILING_DATE_RE.sub("", t).strip()
+        if t:
+            return t
+    h1 = H1_RE.search(text or "")
+    if h1:
+        inner = h1.group(1)
+        inner = re.sub(
+            r'<span\b[^>]*class=["\'][^"\']*(?:eyebrow|kicker|name|hero-subtitle)[^"\']*["\'][^>]*>.*?</span>',
+            " ",
+            inner,
+            flags=re.I | re.S,
+        )
+        t = TRAILING_DATE_RE.sub("", get_title(f"<title>{inner}</title>", fallback)).strip()
+        if t:
+            return t
+    return TRAILING_DATE_RE.sub("", get_title(text, fallback)).strip() or fallback
 
 
 def build_payload(path: Path, text: str) -> dict | None:
     name = path.name
     title = get_title(text, fallback=SITE_NAME)
     url = canonical_for(path)
-    img = image_for(path)
+    img = image_for(path, text)
 
     m = DAY_SLIDE_DATE_RE.search(name)
     if m:
         date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+        published = f"{date}T07:00:00+09:00"
+        headline = headline_for(text, title)[:110]
         return {
             "@context": "https://schema.org",
             "@type": "NewsArticle",
-            "headline": title[:110],
-            "datePublished": date,
-            "dateModified": date,
+            "headline": headline,
+            "datePublished": published,
+            "dateModified": published,
             "author": AUTHOR,
             "publisher": PUBLISHER,
-            "image": [img],
+            "image": img,
             "mainEntityOfPage": url,
             "url": url,
             "inLanguage": "ja",
+            "isAccessibleForFree": True,
             "articleSection": "AI News",
         }
 
@@ -147,6 +190,12 @@ class JsonLdInjector(Injector):
     ]
 
     def build_block(self, path: Path, text: str) -> str | None:
+        if re.search(
+            r'<script\b[^>]*type=["\']application/ld\+json["\'][^>]*>[^<]*NewsArticle',
+            text,
+            re.I | re.S,
+        ):
+            return None
         payload = build_payload(path, text)
         if not payload:
             return None

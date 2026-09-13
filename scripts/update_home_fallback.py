@@ -136,6 +136,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="If --sitrep-action is omitted, fill #sitrepAction from the slide title",
     )
+    parser.add_argument("--dry-run", action="store_true", help="Do not write index.html")
     return parser.parse_args([] if argv is None else argv)
 
 
@@ -332,6 +333,9 @@ def main(argv: list[str] | None = None) -> int:
         updated = replace_element_text(updated, "heroTwist", slide_twist)
     if open_loop:
         updated = replace_element_text(updated, "heroWhy", open_loop)
+    if args.dry_run:
+        print(f"[update_home_fallback] dry-run latest={iso} changed={updated != old}")
+        return 0
     INDEX.write_text(updated, encoding="utf-8", newline="\n")
     print(f"[update_home_fallback] latest={iso}, markers={len(MARKER_RE.findall(updated))}, legacy_tokens={old_dates}")
     return 0

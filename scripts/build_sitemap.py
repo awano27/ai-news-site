@@ -215,11 +215,11 @@ def build_xml(urls: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="Print to stdout instead of writing")
     ap.add_argument("--out", default=str(ROOT / "sitemap.xml"), help="Output file path")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     urls = collect_urls()
     xml = build_xml(urls)

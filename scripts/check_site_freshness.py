@@ -159,7 +159,21 @@ def _gap_check(expected: str, idx: str, sm: str, gap_days: int) -> dict:
     }
 
 
-def run(max_lag: int, gap_days: int = 14) -> dict:
+def _analytics_config_item() -> dict:
+    try:
+        from check_analytics_config import load_measurement_id
+    except ImportError:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from check_analytics_config import load_measurement_id
+    ok, detail = load_measurement_id()
+    return {
+        "name": "analytics_config",
+        "ok": ok,
+        "detail": detail if ok else f"placeholder or invalid: {detail}",
+    }
+
+
+def run(max_lag: int, gap_days: int = 14, strict_analytics: bool = False) -> dict:
     expected = _newest_slide_date()
     report: dict = {"expected_latest_slide": expected, "critical": [], "warn": []}
 
@@ -232,6 +246,17 @@ def run(max_lag: int, gap_days: int = 14) -> dict:
             "detail": f"newest={d} (lag {lag}d vs slide {expected})",
         })
 
+    analytics_item = _analytics_config_item()
+    if strict_analytics:
+        report["critical"].append(analytics_item)
+    else:
+        report["warn"].append({
+            **analytics_item,
+            "stale": not analytics_item["ok"],
+            "latest": None,
+            "lag_days": None,
+        })
+
     report["ok"] = all(c["ok"] for c in report["critical"])
     return report
 
@@ -244,9 +269,14 @@ def main() -> int:
                     help="calendar window (ending at newest slide) that must have a slide "
                          "every day, in the index and sitemap. 0 disables (default 14)")
     ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    ap.add_argument(
+        "--strict-analytics",
+        action="store_true",
+        help="treat a placeholder GA4 measurement_id as a CRITICAL failure",
+    )
     args = ap.parse_args()
 
-    rep = run(args.max_lag, args.gap_days)
+    rep = run(args.max_lag, args.gap_days, strict_analytics=args.strict_analytics)
 
     if args.json:
         print(json.dumps(rep, ensure_ascii=False, indent=2))

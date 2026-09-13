@@ -28,8 +28,8 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 3. `presentations/index.html`・`day_slides_list.html`・ルート `index.html` は day_slides_index.html / archive_index.json から**自動描画＝更新不要**
 4. ヒーロー見出しは `clamp(34px, 5.2vw, 66px)` + `text-wrap: balance`（旧 clamp(42,7.4vw,96px) は日本語見出しが破綻）
 5. index の統計件数はドリフトするので実カード数で是正
-6. push 前に `python scripts/inject_slide_nav.py` と `python scripts/update_home_fallback.py` を実行（build_sitemap.py と同列・冪等）。2026-07-11 UX改善で全 day_slide に前日/翌日ナビが `<!-- slide-nav:start/end -->` マーカーで注入されるため、テンプレコピーで混入した古いナビの是正と、前日側スライドの「翌日→」リンク更新の両方をこれが行う
-7. sitemap は `python build_sitemap.py`（day-slide コミットでは自動再生成されない）
+6. push 前に `python scripts/finalize_day_slide.py MMDD` を実行（旧 `inject_slide_nav.py` + `update_home_fallback.py` に加え SEO/JSON-LD/analytics 注入、`build_feed.py`、`scripts/build_sitemap.py` を含む。冪等）
+7. sitemap は finalize に含まれる。単独なら `python scripts/build_sitemap.py`
 8. 3ファイル + ナビ/フォールバック更新分 + sitemap を同一コミットで push
 
 ## 規約

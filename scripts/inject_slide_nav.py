@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import Literal
 
@@ -37,7 +38,7 @@ def build_block(path: Path, previous: Path | None, following: Path | None) -> st
     return f'{START}\n<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden">{anchors}</nav>\n{END}'
 
 
-def inject(path: Path, block: str) -> InjectionStatus:
+def inject(path: Path, block: str, dry_run: bool = False) -> InjectionStatus:
     text = path.read_text(encoding="utf-8")
     if not re.search(r"</body>", text, flags=re.I):
         return "skipped-no-body"
@@ -47,11 +48,15 @@ def inject(path: Path, block: str) -> InjectionStatus:
         updated = re.sub(r"</body>", block + "\n</body>", text, count=1, flags=re.I)
     if updated == text:
         return "unchanged"
+    if dry_run:
+        return "changed"
     path.write_text(updated, encoding="utf-8", newline="\n")
     return "changed"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = argv if argv is not None else sys.argv[1:]
+    dry_run = "--dry-run" in args
     slides = sorted(SLIDES.glob("day_slide_????_??_??.html"))
     changed = 0
     skipped = 0
@@ -63,6 +68,7 @@ def main() -> int:
                 slides[i - 1] if i else None,
                 slides[i + 1] if i + 1 < len(slides) else None,
             ),
+            dry_run=dry_run,
         )
         if status == "changed":
             changed += 1

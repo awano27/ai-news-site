@@ -147,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="Print to stdout instead of writing")
     parser.add_argument("--out", default=str(OUTPUT), help="Output file path")
-    args = parser.parse_args([] if argv is None else argv)
+    args = parser.parse_args(argv)
 
     if not SLIDES.is_dir():
         print(f"[build_feed] slides dir missing: {SLIDES}", file=sys.stderr)

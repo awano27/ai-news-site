@@ -76,3 +76,15 @@ https://analytics.google.com/ を開いてログイン（Search Console と同�
 - **データ保持期間**: 管理 → データの設定 → データ保持 → **14ヶ月** に変更（デフォルト2ヶ月だと分析が浅くなる）
 - **Google シグナル**: 管理 → データの収集と変更 → Google シグナル → 有効化（デモグラ分析が取れる）
 - **Search Console 連携**: 管理 → プロダクトのリンク → Search Console → visionhub.jp と紐付け（検索クエリ分析が統合される）
+
+---
+
+## 投入後の確認
+
+`config/analytics.json` の `measurement_id` を実値にしたら:
+
+```
+py -3 scripts/check_analytics_config.py
+```
+
+exit 0 なら形式は正しい。placeholder（`REPLACE` / `XXXX`）や `G-` 以外の値なら exit 1。
