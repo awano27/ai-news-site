@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>27Bを5.9GBにした。性能は98%残った。 | 2026-09-17</title>
+  <meta name="description" content="2026年9月17日号。PrismMLのTernary Bonsai 2 27B。Qwen3.8 27Bをternary圧縮し5.9GBへ。公式スイート総合83.9/85.4で98.2%保持。Apache 2.0、262K。">
+  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_17.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Intelligence Hub">
+  <meta property="og:title" content="27Bを5.9GBにした。性能は98%残った。">
+  <meta property="og:description" content="PrismML Ternary Bonsai 2 27B。Qwen3.8 27Bを5.9GBへternary圧縮。公式スイートで98.2%保持。Apache 2.0、262K。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_09_17.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/0917/cover.jpg">
+  <meta property="og:image:width" content="1536">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="27Bを5.9GBにした。性能は98%残った。 — PrismML Ternary Bonsai 2 27B">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="27Bを5.9GBにした。性能は98%残った。">
+  <meta name="twitter:description" content="PrismML Ternary Bonsai 2 27B。Qwen3.8 27Bを5.9GBへternary圧縮。公式スイートで98.2%保持。Apache 2.0、262K。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/0917/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PresentationDigitalDocument",
+    "headline": "27Bを5.9GBにした。性能は98%残った。",
+    "description": "2026年9月17日号。PrismMLのTernary Bonsai 2 27B。Qwen3.8 27Bをternary圧縮し5.9GBへ。公式スイート総合83.9/85.4で98.2%保持。Apache 2.0、262K。",
+    "datePublished": "2026-09-17",
+    "dateModified": "2026-09-17",
+    "image": "https://visionhub.jp/presentations/day_slides/images/0917/cover.jpg",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_09_17.html",
+    "articleSection": "Models / Open Source",
+    "isPartOf": {
+      "@type": "CreativeWorkSeries",
+      "name": "VisionHub Day Slides",
+      "position": 414
+    }
+  }
+  </script>
+<style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(47,198,178,.12); outline:none; }
+
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(47,198,178,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+
+    .board { border:1px solid rgba(90,220,200,.30); border-radius:8px; padding:18px 18px 16px; margin:14px 0 18px; background:linear-gradient(180deg, rgba(13,33,31,.55), rgba(6,17,16,.72)); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .board-label { display:inline-block; color:#06201b; background:var(--accent); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; padding:5px 10px; border-radius:3px; margin-bottom:12px; }
+    .board-title { margin:0 0 14px; font-size:16px; color:var(--ink); font-weight:600; line-height:1.5; }
+    .board-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch; }
+    .board-col { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .board-col.win { border-color:rgba(47,198,178,.5); }
+    .board-col.gold { border-color:rgba(255,201,77,.45); }
+    .board-col.alert { border-color:rgba(255,143,122,.45); }
+    .board-col h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    .board-col h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:6px; }
+    .board-col.gold h4 span { color:var(--gold); }
+    .board-col.alert h4 span { color:var(--alert); }
+    .board-col .big { font:700 28px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .board-col .big.gold { color:var(--gold); }
+    .board-col .sub { color:var(--muted); font-size:13px; margin:8px 0 0; line-height:1.75; }
+    .board-vs { display:flex; align-items:center; justify-content:center; color:var(--accent); font:800 13px/1 ui-monospace,monospace; letter-spacing:.14em; padding:0 4px; }
+    .board-foot { margin:14px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .xarr { color:var(--alert); font-weight:800; }
+
+    @media (max-width:880px) {
+      .board-row { grid-template-columns:minmax(0,1fr); }
+      .board-vs { padding:6px 0; }
+    }
+
+    .vh-brandbar { display:flex; justify-content:space-between; gap:14px; align-items:center; margin-bottom:14px; color:#c4dedb; font-size:13px; letter-spacing:.06em; }
+    .vh-brandbar a.brand { color:#fff; text-decoration:none; font-weight:760; font-size:16px; border:0; padding:0; }
+    .vh-brandbar a.brand em { font-style:normal; color:var(--accent); }
+    .vh-brandbar .issue { color:#9df2e2; white-space:nowrap; }
+    .cover-board { margin:22px 0 8px; border:1px solid rgba(90,220,200,.30); border-radius:10px; overflow:hidden; background:rgba(4,16,14,.55); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .cover-board img { display:block; width:100%; height:auto; }
+    .cover-board figcaption { padding:12px 16px 14px; color:var(--muted); font-size:12px; line-height:1.7; }
+    .site-footer-nav { box-sizing:border-box; width:min(100% - 24px,1100px); margin:24px auto 40px; padding:14px 16px; background:rgba(5,12,25,.88); border:1px solid rgba(255,255,255,.22); border-radius:14px; display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+    .site-footer-nav a, .site-footer-nav span.nav-pill { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:8px 14px; border:1px solid rgba(255,255,255,.35); border-radius:999px; color:#fff; text-decoration:none; font:600 14px/1.2 sans-serif; white-space:nowrap; }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="vh-brandbar">
+        <a class="brand" href="https://visionhub.jp/" target="_blank" rel="noopener noreferrer">VisionHub <em>AI NEWS</em></a>
+        <span class="issue">2026.09.17 ／ No.414 ／ モデル ／ BACKFILL</span>
+      </div>
+      <nav class="topbar" aria-label="パンくず">
+        <a href="../day_slides_index.html">全日スライド</a>
+        <span>2026-09-17 / No.414 / モデル / Open Source</span>
+      </nav>
+      <div class="hero-body">
+        <span class="kicker">今日の深掘り — モデル</span>
+        <p class="eyebrow">BONSAI 2 27B</p>
+        <h1>27Bを5.9GBにした。性能は98%残った。</h1>
+        <p class="lead">壊れている仮定はこれだ。<strong>「小さくすると、仕事ができる知能は残らない」</strong>。一次は PrismML 公式（2026-09-17）。題は <strong>Introducing Bonsai 2 27B: Near-Lossless Compression in a 9x Smaller Footprint</strong>。ベースは Alibaba のオープンウェイト <strong>Qwen3.8 27B</strong>。重みを {−1, 0, +1} に落とし、実効 <strong>1.76 bit</strong>、フットプリント <strong>5.9GB</strong>。公式の20本スイートでは総合 <strong>83.9 / 85.4</strong>。保持率は <strong>98.2%</strong>。初代 Bonsai の 95% から穴を埋めた。新しいフロンティアではない。27B級を、手元の常設エージェントに置ける密度にした日である。</p>
+        <div class="hero-meta">
+          <span>📅 公式発表：09/17</span>
+          <span>Ternary Bonsai 2 27B</span>
+          <span>5.9GB / 1.76bit</span>
+          <span>98.2% 保持</span>
+          <span>262K / Apache 2.0</span>
+          <span>モデル</span>
+        </div>
+        <figure class="cover-board">
+          <img src="images/0917/cover.jpg" width="1536" height="1024" fetchpriority="high" decoding="async" alt="VisionHub編集の概念図。タイトルは「27Bを5.9GBにした。性能は98%残った。」PrismML Ternary Bonsai 2 27B。Qwen3.8 27B→5.9GB、98.2%保持（83.9/85.4）、1.76bit、143 tok/s、Apache 2.0、262K。">
+          <figcaption>編集用の一枚ボード（NotebookLM風）。公式画像ではありません。数値は PrismML 公式ブログ（2026-09-17）に基づきます。</figcaption>
+        </figure>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="stats-bar" aria-label="キーメトリクス">
+      <div class="stat-card"><div class="stat-num gold">5.9GB</div><div class="stat-label"><b>フットプリント</b>公式。16bit約56GBの9倍以上小さい</div></div>
+      <div class="stat-card"><div class="stat-num">98.2%</div><div class="stat-label"><b>保持率</b>83.9 / 85.4。公式20本スイート</div></div>
+      <div class="stat-card"><div class="stat-num gold">1.76bit</div><div class="stat-label"><b>実効ビット</b>ternary {−1,0,+1} + FP16 group scale</div></div>
+      <div class="stat-card"><div class="stat-num">143</div><div class="stat-label"><b>tok/s</b>公式。RTX 5090。M5 Max は 46.8</div></div>
+      <div class="stat-card"><div class="stat-num">No.414</div><div class="stat-label"><b>Day Slide</b>2026-09-17 AI Intelligence Hub</div></div>
+    </div>
+
+    <nav class="jump" aria-label="セクション移動">
+      <a href="#s1"><b>01</b>着地</a>
+      <a href="#s2"><b>02</b>壊れた仮定</a>
+      <a href="#s3"><b>03</b>公式数字</a>
+      <a href="#s4"><b>04</b>限界</a>
+      <a href="#s5"><b>05</b>切る</a>
+    </nav>
+
+    <div class="slides">
+
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <span class="no">01</span>
+          <div>
+            <p class="slide-kicker">WHAT HAPPENED</p>
+            <h2>圧縮が、配置の解禁になった</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>一次は <strong><a href="https://prismml.com/news/bonsai-2-27b" style="color:var(--accent);">PrismML 公式ブログ</a></strong>。日付は <strong>2026-09-17</strong>。同日のプレス稿は <strong>PASADENA, Calif. — September 17, 2026</strong>。対象は新アーキテクチャの発明ではない。既にある 27B を、手元で回せる大きさにした。</p>
+            <div class="board" aria-label="公式公開の日付ボード">
+              <span class="board-label">DATE BOARD</span>
+              <p class="board-title">09/17の一次は公式。小さくしたのは重み。残したのは仕事の形</p>
+              <div class="board-row">
+                <div class="board-col">
+                  <h4><span>ベース</span>Qwen3.8 27B</h4>
+                  <p class="sub">Alibaba のオープンウェイト。テキストと画像。262K。<br>フル精度は公式の対比で約56GB。<br>Bonsai 2 はこれを ternary で切る。</p>
+                </div>
+                <div class="board-vs" aria-hidden="true">→</div>
+                <div class="board-col win">
+                  <h4><span>結果</span>5.9GB に落ちた</h4>
+                  <div class="big gold">5.9GB</div>
+                  <p class="sub">重みは {−1, 0, +1}。FP16 のグループスケール。<br>実効 1.76 bit。言語モデル側を端から端まで低ビットにした、と公式は書く。<br>ライセンスは Apache 2.0。</p>
+                </div>
+              </div>
+              <div class="loop">
+                <div class="step"><small>BASE</small>Qwen3.8 27B</div>
+                <span class="arr">→</span>
+                <div class="step"><small>TERNARY</small>{−1, 0, +1}</div>
+                <span class="arr">→</span>
+                <div class="step"><small>SCALE</small>FP16 group</div>
+                <span class="arr">→</span>
+                <div class="step"><small>RUN</small>CUDA / MLX</div>
+              </div>
+              <p class="board-foot">CUDA は NVIDIA GPU。MLX は Mac / iPhone / iPad。公式はカスタム低ビットカーネルを使う、と書く。1-bit 版は 3.9GB で iPhone 17 Pro を例に出している。今日の本命は ternary の 5.9GB 側である。</p>
+            </div>
+            <ul>
+              <li>会社は Caltech 系。seed は公式・TechCrunch とも <strong>$22.25M</strong>。出資に Khosla Ventures、Cerberus、Google、Samsung</li>
+              <li>CEO は圧縮研究者 <strong>Babak Hassibi</strong>。TechCrunch は Apple との協議観測に触れ、本人はコメントを拒んだ、と書く</li>
+              <li>初代 Bonsai 27B は 2026-07。保持率 95%。公式は「今回で 95% から 98%超へ穴を埋めた」と書く</li>
+            </ul>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">価値評価</span>
+            <p>価値は<strong>大きい</strong>。崩れたのは「27Bはクラウドか、大きな箱だけ」という前提。一次は公式。<strong>密度が、配置先を増やした日</strong>である。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <span class="no">02</span>
+          <div>
+            <p class="slide-kicker">BROKEN ASSUMPTION</p>
+            <h2>「量子化は、必ず仕事を捨てる」ではない</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <p>混ざるな。表はメモリが9分の1になった。裏は、コーディングとツール呼び出しがほぼ残った、という公式の主張である。新しい天才モデルではない。同じ表の知能を、より多くの機械に載せた。</p>
+            <div class="board" aria-label="表と裏のボード">
+              <span class="board-label">PROMISE BOARD</span>
+              <p class="board-title">小さくなった ≠ 弱くなった。公式が先に「配置の解禁」と書いている</p>
+              <div class="board-row">
+                <div class="board-col win">
+                  <h4><span>表</span>フットプリント</h4>
+                  <p class="sub">5.9GB。RTX 級で 143 tok/s。<br>M5 Max で 46.8 tok/s。<br>4090 で 0.714 mWh/token。<br>全精度8Bより約40%省エネ、と公式は書く。</p>
+                </div>
+                <div class="board-vs" aria-hidden="true">→</div>
+                <div class="board-col gold">
+                  <h4><span>裏</span>仕事の形</h4>
+                  <div class="big gold">98.2%</div>
+                  <p class="sub">公式スイート総合。Coding 81.58 vs 82.17。<br>Agentic 77.57 vs 79.74。<br>Math 96.57 vs 97.06。<br>落ちているのは知識と視覚。</p>
+                </div>
+              </div>
+              <p class="loop-note"><span class="xarr">×</span> 「フロンティアを超えた」とは書くな</p>
+              <p class="board-foot">公式自身が先に置く欠落はこれだ。低ビットの多くは、コーディング・視覚・エージェントのツール呼び出しを捨てて初めて置ける。Bonsai 2 は「そこを残した」と主張する。残した相手は Qwen3.8 27B であって、GPT-6 Astra や Fable 5.1 ではない。</p>
+            </div>
+            <div class="quote">
+              Compression becomes a deployment unlock: nearly the same capability, in a footprint that can run in far more places.
+              <small>— PrismML「Introducing Bonsai 2 27B」（2026-09-17）</small>
+            </div>
+            <div class="quote">
+              The new Ternary Bonsai 2 27B has closed the retention gap between the full precision model from 95% to over 98%. This is a significant improvement that makes the current release practically “lossless”.
+              <small>— 同ページ。lossless は公式の言い方。独立点ではない</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <span class="no">03</span>
+          <div>
+            <p class="slide-kicker">OFFICIAL NUMBERS</p>
+            <h2>公式が出した差。足さない</h2>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="notes-main">
+            <p>置ける数字は公式ブログにあるものだけ。星の数もダウンロード数も、09/17ブログには無い。ここには置かない。ベンチは公式の20本スイートである。</p>
+            <div class="scroll-x">
+              <table class="cmp">
+                <thead>
+                  <tr><th>能力</th><th>Bonsai 2 27B</th><th>Qwen3.8 27B</th><th>読み</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>総合</td><td><b>83.9</b></td><td>85.4</td><td>保持率 98.2%。公式の言い方</td></tr>
+                  <tr><td>Coding</td><td><b>81.58</b></td><td>82.17</td><td>HumanEval+ / LiveCodeBench v6 / MBPP+ / BigCodeBench</td></tr>
+                  <tr><td>Agentic &amp; Tool</td><td><b>77.57</b></td><td>79.74</td><td>τ²-bench / BFCLv3。約2点落ち</td></tr>
+                  <tr><td>Math</td><td><b>96.57</b></td><td>97.06</td><td>AIME 2026 / 2025 / GSM8K / MATH-500</td></tr>
+                  <tr><td>Instruction</td><td><b>82.66</b></td><td>81.25</td><td>IFBench / IFEval。圧縮側が上回る</td></tr>
+                  <tr><td>Knowledge</td><td><b>83.95</b></td><td>86.66</td><td>MMLU-Redux / GPQA Diamond / AA-LCR。落ちる側</td></tr>
+                  <tr><td>Vision</td><td><b>78.59</b></td><td>81.64</td><td>CharXiv ほか。一番はっきり落ちる</td></tr>
+                  <tr><td>文脈</td><td colspan="2"><b>262K</b></td><td>テキスト＋画像入力</td></tr>
+                  <tr><td>速度</td><td colspan="2">5090 <b>143</b> / M5 Max <b>46.8</b> tok/s</td><td>公式実測。独立点ではない</td></tr>
+                  <tr><td>電力</td><td colspan="2">4090 <b>0.714 mWh/token</b></td><td>全精度8Bより約40%省エネ、と公式</td></tr>
+                  <tr><td>ライセンス</td><td colspan="2"><b>Apache 2.0</b></td><td>重み公開。CUDA と MLX</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ul>
+              <li>Qwen3.6 27B の公式総合は 83.6。Bonsai 2 の 83.9 は、ひとつ前の世代のフル精度を総合で超える、という対比である</li>
+              <li>詳細の個別ベンチは公式がホワイトペーパーに送っている。この表は公開ページの集計だけを残す</li>
+              <li>重みの入口は Hugging Face の <strong>prism-ml / Bonsai-2</strong> コレクション。GGUF と MLX が並ぶ</li>
+            </ul>
+            <div class="warn">
+              <p><strong>置かない：</strong> 初代の累計ダウンロード、Xのview、Appleとの協議、他社フロンティアとの勝敗、Artificial Analysis の未出独立点、「lossless」を検証済みのように書くこと。</p>
+            </div>
+          </div>
+          <aside class="sowhat">
+            <span class="tag">差</span>
+            <p>残っているのは Coding と Math。落ちているのは Knowledge と Vision。総合98%は、<strong>仕事の種類で割って読め</strong>。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <span class="no">04</span>
+          <div>
+            <p class="slide-kicker">LIMITS / NEXT-DAY</p>
+            <h2>公式が自分で置いた限界。翌日の動きは3つ</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <div class="board" aria-label="公式が置いた限界ボード">
+              <span class="board-label">LIMIT BOARD</span>
+              <p class="board-title">5.9GBは新しい知能ではない。新しい配置先である</p>
+              <div class="board-row">
+                <div class="board-col alert">
+                  <h4><span>測っていない</span>独立点は未出</h4>
+                  <p class="sub">数字は公式の20本スイート。<br>Artificial Analysis の公開点は、この原稿の時点で無い。<br>エージェントハーネスで崩れた、という現場の声は公式ページに無い。二次として分ける。</p>
+                </div>
+                <div class="board-vs" aria-hidden="true">→</div>
+                <div class="board-col gold">
+                  <h4><span>残る緊張</span>相手は27B</h4>
+                  <p class="sub">保持率の分母は Qwen3.8 27B。<br>クラウドの最前線を置き換える話ではない。<br>ローカルの常設ループに、27B級を載せる話である。</p>
+                </div>
+              </div>
+              <p class="board-foot">公式は「 practically lossless 」と書く。総合の比である。Vision は 78.59 vs 81.64。Agentic は 77.57 vs 79.74。捨てていない、と「全く同じ」は別物である。</p>
+            </div>
+            <div class="grid-2">
+              <div class="vs-card now">
+                <h4><span>新規</span>同じ箱で、同じ質問を</h4>
+                <ul>
+                  <li>MLX は stock で試せる。GGUF は <strong>PrismML-Eng/llama.cpp</strong>（prism-b10658 以降）が必要、とドキュメント側</li>
+                  <li>手元のコーディング質問を、量子化 Qwen3.8 と比較する</li>
+                  <li>公式の 98% が、自分のタスクで残るかだけ見る</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>既存</span>クラウドを全部やめない</h4>
+                <ul>
+                  <li>毎回出す判断を Bonsai に寄せる</li>
+                  <li>難しいときだけ Frontier に上げる</li>
+                  <li>レイテンシと月額を、置き換え率と一緒に測る</li>
+                </ul>
+              </div>
+              <div class="vs-card now">
+                <h4><span>運用</span>視覚と知識を先に疑う</h4>
+                <ul>
+                  <li>図表・OCR・長文事実は落ちる側</li>
+                  <li>そこを本務にするなら、5.9GBの話ではない</li>
+                  <li>コーディングとツール呼び出しから試す</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <span class="no">05</span>
+          <div>
+            <p class="slide-kicker">FOR ENGINEERS</p>
+            <h2>エンジニア向け示唆・どう切るか</h2>
+          </div>
+        </div>
+        <div class="notes single">
+          <div class="notes-main">
+            <ul class="checks">
+              <li><b>一次は公式ブログ</b> — 2026-09-17。題は Introducing Bonsai 2 27B。二次要約のダウンロード数は使わない</li>
+              <li><b>表は 5.9GB</b> — ternary 1.76bit。CUDA と MLX。Apache 2.0。262K</li>
+              <li><b>裏は 98.2%</b> — 分母は Qwen3.8 27B。Coding と Math はほぼ残る。Vision と Knowledge は落ちる</li>
+              <li><b>速度は 143 / 46.8 tok/s</b> — 5090 と M5 Max。公式実測。独立点ではない</li>
+              <li><b>初代からの差は 95% → 98.2%</b> — 公式が先に置いた対比。今回の本題は品質の穴埋め</li>
+              <li><b>次に試すなら1本の小さい仕事</b> — 同じプロンプト比較、ルーティング、視覚タスクは後回し。3つを混ぜない</li>
+            </ul>
+            <div class="warn" style="margin-top:18px;">
+              <p><strong>注意：</strong> 「27Bがフロンティアを超えた」とは書かない。公式は Qwen3.8 27B との比だけを出している。出したものは、同じ表の知能を、手元の常設エージェントに置ける密度である。lossless は公式の宣伝語。GGUF を stock llama.cpp の Q2_0 として読むな。ドキュメントは PrismML の fork を先に置く。検証は使う側の仕事である。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="finale">
+      <p class="eyebrow">TAKEAWAY</p>
+      <blockquote>
+        27Bを5.9GBにした。<em>性能は98%残った</em>。新しい知能ではない。新しい配置先である。
+      </blockquote>
+      <p>一次：PrismML “Introducing Bonsai 2 27B”（2026-09-17）｜Day Slide No.414</p>
+    </section>
+
+    <footer style="margin-top:48px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.8;">
+      <p style="margin:0 0 8px;"><strong style="color:var(--ink);">情報源</strong></p>
+      <ul style="margin:0;padding-left:1.2em;font-size:12.5px;">
+        <li>一次：PrismML「Introducing Bonsai 2 27B: Near-Lossless Compression in a 9x Smaller Footprint」（2026-09-17）— <a href="https://prismml.com/news/bonsai-2-27b" style="color:var(--accent);">https://prismml.com/news/bonsai-2-27b</a></li>
+        <li>公式プレス：PrismML「PrismML Launches Bonsai 2 27B」（2026-09-17）— <a href="https://prismml.com/news/prismml-launches-bonsai-2-27b" style="color:var(--accent);">https://prismml.com/news/prismml-launches-bonsai-2-27b</a></li>
+        <li>二次：TechCrunch「PrismML hopes its tiny LLM will change how we all use AI」（2026-09-17 15:34 PDT / Julie Bort）— <a href="https://techcrunch.com/2026/09/17/prismml-hopes-its-tiny-llm-could-change-how-we-all-use-ai/" style="color:var(--accent);">techcrunch.com</a></li>
+        <li>重み：Hugging Face prism-ml / Bonsai-2 — <a href="https://huggingface.co/collections/prism-ml/bonsai-2" style="color:var(--accent);">https://huggingface.co/collections/prism-ml/bonsai-2</a></li>
+        <li>ランタイム：PrismML-Eng / llama.cpp（ドキュメントが先に置く fork）— <a href="https://github.com/PrismML-Eng/llama.cpp" style="color:var(--accent);">https://github.com/PrismML-Eng/llama.cpp</a></li>
+      </ul>
+      <p style="margin:18px 0 0;font-size:12px;">本スライドは PrismML 公式ブログに基づき、エンジニアが5分で切れるよう整理したものです。数値と引用は一次情報にあるものだけを使っています。保持率は公式20本スイート。Day Slide No.414 ｜ 2026-09-17</p>
+    </footer>
+  </main>
+
+    <nav class="site-footer-nav" aria-label="スライド相互ナビゲーション">
+    <a href="day_slide_2026_09_16.html">← 9/16号</a>
+    <a href="day_slide_2026_09_18.html">9/18号 →</a>
+    <a href="../day_slides_index.html">一覧</a>
+    <a href="../../index.html">ホーム</a>
+    <a href="day_slide_2026_09_17.html" download="day_slide_2026_09_17.html">HTML保存</a>
+  </nav>
+
+  <script>
+    const prog = document.querySelector('.progress');
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+      prog.style.width = (scrolled * 100) + '%';
+    }, {passive:true});
+
+    const sections = document.querySelectorAll('.slide');
+    const links = document.querySelectorAll('.jump a');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + id));
+        }
+      });
+    }, {rootMargin:'-40% 0px -50% 0px', threshold:0});
+    sections.forEach(s => io.observe(s));
+  </script>
+</body>
+</html>
