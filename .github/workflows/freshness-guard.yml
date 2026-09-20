@@ -16,6 +16,7 @@ on:
       - 'presentations/day_slides/**'
       - 'presentations/day_slides_index.html'
       - 'sitemap.xml'
+      - 'feed.xml'
 
 jobs:
   check:
@@ -43,3 +44,8 @@ jobs:
       - name: Verify slide SEO
         if: always()
         run: python scripts/check_slide_seo.py
+      # feed.xml is rebuilt only by finalize_day_slide.py; a slide shipped without
+      # finalize leaves RSS readers on a stale feed (it sat at 2026-08-21 for a month).
+      - name: Verify feed.xml carries the newest day slide
+        if: always()
+        run: python scripts/check_feed_freshness.py

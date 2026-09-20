@@ -373,6 +373,8 @@ def render(data: dict) -> str:
       .month-head .m { font-size: 22px; }
     }
   </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
 </head>
 """
 

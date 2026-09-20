@@ -340,6 +340,8 @@ def get_template_string() -> str:
             .brand-text { display: none; }
         }
     </style>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
 </head>
 <body>
     <header class="site-header">
