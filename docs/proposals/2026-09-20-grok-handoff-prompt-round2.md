@@ -22,7 +22,7 @@
 
 ## 1. 第 1 ラウンドからの状況更新
 
-- P0 のうち finalize バックフィル（09/12・09/14〜09/18）、CI ガード追加、計測タグ注入は Claude Code 側で適用中。今回は扱わない
+- P0 のうち finalize バックフィル（09/12・09/14〜09/18）、CI ガード追加、計測タグ注入は別環境（Claude Code）で対応する予定。今回は扱わない
 - GA4 の実 ID 投入と Search Console 登録は運営者作業。今回は扱わない
 - 旧ドメイン https://awano27.github.io/ai-news-site/ は 301 で visionhub.jp に転送されることを確認済み。優先度を下げ、今回は扱わない
 - `daily-news/index.html` は別リポジトリ awano27/daily-ai-news から毎日上書き配置される。このリポジトリでの修正対象外
