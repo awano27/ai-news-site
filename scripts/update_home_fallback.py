@@ -183,6 +183,7 @@ def empty_homepage_state(body: str) -> str:
     body = replace_href_by_id(body, "heroSlideBtn", list_url)
     body = replace_href_by_id(body, "todaySlideCard", list_url)
     body = replace_href_by_id(body, "sitrepLink", list_url)
+    body = replace_href_by_id(body, "heroTodayBtn", list_url)
     body = re.sub(
         r'(\bhref=")presentations/day_slides/day_slide_\d{4}_\d{2}_\d{2}\.html(")',
         rf'\g<1>{list_url}\g<2>',
@@ -191,6 +192,7 @@ def empty_homepage_state(body: str) -> str:
     )
     body = replace_anchor_label(body, "latestSlideHeroBtn", "スライド一覧")
     body = replace_anchor_label(body, "heroSlideBtn", "スライド一覧")
+    body = replace_anchor_label(body, "heroTodayBtn", "今日のスライドはありません")
     body = replace_element_text(body, "heroDate", "公開スライドなし")
     body = replace_element_text(body, "todaySlideDate", "公開スライドなし")
     body = replace_element_text(body, "heroTwist", "公開スライドはまだありません")
@@ -323,7 +325,8 @@ def main(argv: list[str] | None = None) -> int:
         updated = updated.replace(' data-slides-unavailable="true"', '')
         updated = replace_anchor_label(updated, "latestSlideHeroBtn", "最新スライド →")
         updated = replace_anchor_label(updated, "heroSlideBtn", "最新スライドを読む →")
-        for elem_id in ("latestSlideHeroBtn", "heroSlideBtn", "sitrepLink"):
+        updated = replace_anchor_label(updated, "heroTodayBtn", "今日のスライドを読む →")
+        for elem_id in ("latestSlideHeroBtn", "heroSlideBtn", "sitrepLink", "heroTodayBtn"):
             updated = replace_href_by_id(updated, elem_id, f"presentations/day_slides/{newest.name}")
         updated = replace_element_text(updated, "heroDate", f"{iso} · {weekday}")
         updated = replace_element_text(updated, "todaySlideDate", iso)

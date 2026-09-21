@@ -210,7 +210,7 @@ def test_main_writes_hero_twist_and_open_loop_from_slide(tmp_path, monkeypatch):
         """<h1 id="heroIdentity">固定入口</h1>
 <p id="heroDescription">固定説明</p>
 <a id="heroNewsBtn" href="daily-news/">ニュース</a>
-<a id="heroArticleBtn" href="articles/claim-evidence-design.html">記事</a>
+<!-- fallback:latest-slide --><a id="heroTodayBtn" href="presentations/day_slides/day_slide_2026_08_12.html">今日</a><!-- fallback:end -->
 <a id="comparisonCard" href="presentations/ai_coding_agents_guide.html">比較</a>
 <a id="implementationCard" href="articles/claim-evidence-design.html">実装</a>
 <h3 id="heroTwist">古い標語</h3>
@@ -232,7 +232,7 @@ def test_main_writes_hero_twist_and_open_loop_from_slide(tmp_path, monkeypatch):
     assert "古い標語" not in updated
     assert updated.count("<h1 ") == 1
     assert 'id="heroNewsBtn" href="daily-news/"' in updated
-    assert 'id="heroArticleBtn" href="articles/claim-evidence-design.html"' in updated
+    assert 'id="heroTodayBtn" href="presentations/day_slides/day_slide_2026_08_14.html"' in updated
     assert 'id="comparisonCard" href="presentations/ai_coding_agents_guide.html"' in updated
     assert 'id="implementationCard" href="articles/claim-evidence-design.html"' in updated
 
@@ -322,6 +322,7 @@ def test_real_homepage_recovers_from_empty_slides(tmp_path, monkeypatch):
     assert subject.main() == 0
     empty = index.read_text(encoding="utf-8")
     assert 'data-slides-unavailable="true"' in empty
+    assert "今日のスライドはありません" in empty
     assert subject.main() == 0
     assert index.read_text(encoding="utf-8") == empty
     (slides / "day_slide_2026_09_05.html").write_text(
@@ -333,7 +334,8 @@ def test_real_homepage_recovers_from_empty_slides(tmp_path, monkeypatch):
     assert 'href="presentations/day_slides/day_slide_2026_09_05.html"' in restored
     assert "最新スライドを読む" in restored
     assert "復帰した見出し</h3>" in restored
-    assert 'id="heroArticleBtn"' in restored
+    assert 'id="heroTodayBtn" class="btn btn-primary" href="presentations/day_slides/day_slide_2026_09_05.html"' in restored
+    assert "今日のスライドを読む" in restored
 
 
 def test_trends_heading_keeps_inline_emphasis_but_separates_subtitle():

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポート・日次スライド生成、GitHub Pages 公開。
-最終改訂: 2026-07-11（日次手順にスライドナビ注入・home fallback 更新を追加。2025年版の旧手動ワークフローは git 履歴参照）
+最終改訂: 2026-09-21（ヒーロー主 CTA を今日のスライド #heroTodayBtn に変更、feed 鮮度ガード追加。2026-07-11: 日次手順にスライドナビ注入・home fallback 更新を追加。2025年版の旧手動ワークフローは git 履歴参照）
 
 ## アーキテクチャ（2026-07 現在）
 
@@ -20,7 +20,7 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 1. **最新の `presentations/day_slides/day_slide_*.html` をテンプレに**、`--accent` 1色のみ変更して新規作成
    - `h1` = 今日の twist（標語禁止。「今日のAIを5分で」や名詞句の説明は置かない）
    - `meta name="description"` = 開ループ1文（理由・仕組みは書かない）
-   - `p.lead` = 回収（仕組み・だから何）。トップの h1（#heroIdentity）はサイトの価値説明として固定。スライド h1 は目的別の動向カード（h3#heroTwist）、説明は #heroWhy へ反映する。主要なニュース・設計記事の入口は保持し、サイト名はヘッダーに残す
+   - `p.lead` = 回収（仕組み・だから何）。トップの h1（#heroIdentity）はサイトの価値説明として固定。ヒーローの主 CTA は今日の日次スライド（#heroTodayBtn、fallback marker 内）。ニュース入口（#heroNewsBtn）は副 CTA。設計記事の入口はカード 03（#implementationCard）と About とフッターに置き、ヒーローには出さない。スライド h1 は目的別の動向カード（h3#heroTwist）、説明は #heroWhy へ反映する。サイト名はヘッダーに残す
 2. 更新は実質 **3ファイルのみ**:
    - `presentations/day_slides/day_slide_2026_MM_DD.html`（新規）
    - `presentations/day_slides_index.html`（月の件数 +1、リスト先頭に `<li>`。feat-title は**短い正式タイトルのみ**——本文貼付禁止）
