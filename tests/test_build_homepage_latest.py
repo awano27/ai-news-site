@@ -174,7 +174,9 @@ def test_build_homepage_recovers_empty_state_when_a_slide_returns(tmp_path: Path
     assert "復帰後の要点です。</p>" in updated
     assert "公開スライドなし" not in updated
     assert "最新スライドを読む" in updated
-    assert "今日のスライドを読む" in updated
+    # 2026-09-05 is older than the real clock, so the CTA must say 最新 rather than 今日.
+    assert "最新のスライドを読む" in updated
+    assert "今日のスライドを読む" not in updated
     assert 'href="presentations/day_slides/day_slide_2026_09_05.html"' in updated
     assert 'href="daily-news/"' in updated
     assert 'href="articles/claim-evidence-design.html"' in updated

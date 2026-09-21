@@ -210,7 +210,7 @@ def test_main_writes_hero_twist_and_open_loop_from_slide(tmp_path, monkeypatch):
         """<h1 id="heroIdentity">固定入口</h1>
 <p id="heroDescription">固定説明</p>
 <a id="heroNewsBtn" href="daily-news/">ニュース</a>
-<!-- fallback:latest-slide --><a id="heroTodayBtn" href="presentations/day_slides/day_slide_2026_08_12.html">今日</a><!-- fallback:end -->
+<!-- fallback:latest-slide --><a id="heroTodayBtn" href="presentations/day_slides/day_slide_2026_08_12.html"><span id="heroTodayLabel">古いラベル</span></a><!-- fallback:end -->
 <a id="comparisonCard" href="presentations/ai_coding_agents_guide.html">比較</a>
 <a id="implementationCard" href="articles/claim-evidence-design.html">実装</a>
 <h3 id="heroTwist">古い標語</h3>
@@ -221,11 +221,13 @@ def test_main_writes_hero_twist_and_open_loop_from_slide(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(subject, "SLIDES", slides)
     monkeypatch.setattr(subject, "INDEX", index)
+    monkeypatch.setattr(subject, "today_jst", lambda: date(2026, 8, 14))
 
     assert subject.main() == 0
 
     updated = index.read_text(encoding="utf-8")
     assert '<h1 id="heroIdentity">固定入口</h1>' in updated
+    assert '<span id="heroTodayLabel">今日のスライドを読む</span>' in updated
     assert '<h3 id="heroTwist">サプライズはモデルじゃない</h3>' in updated
     assert '<p id="heroWhy">盤面を動かしたのは知能ではなかった。</p>' in updated
     assert "2026-08-14 · 金" in updated
@@ -335,7 +337,15 @@ def test_real_homepage_recovers_from_empty_slides(tmp_path, monkeypatch):
     assert "最新スライドを読む" in restored
     assert "復帰した見出し</h3>" in restored
     assert 'id="heroTodayBtn" class="btn btn-primary" href="presentations/day_slides/day_slide_2026_09_05.html"' in restored
-    assert "今日のスライドを読む" in restored
+    # The restored slide (2026-09-05) is older than the real clock, so the CTA must not claim "今日".
+    assert '<span id="heroTodayLabel">最新のスライドを読む</span>' in restored
+    assert "今日のスライドを読む" not in restored
+
+
+def test_hero_today_label_only_claims_today_for_todays_slide(monkeypatch):
+    monkeypatch.setattr(subject, "today_jst", lambda: date(2026, 9, 21))
+    assert subject.hero_today_label(date(2026, 9, 21)) == "今日のスライドを読む"
+    assert subject.hero_today_label(date(2026, 9, 20)) == "最新のスライドを読む"
 
 
 def test_trends_heading_keeps_inline_emphasis_but_separates_subtitle():

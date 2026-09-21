@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from html import escape, unescape
 from pathlib import Path
 
@@ -32,8 +32,25 @@ SLIDE_TITLE_RE = re.compile(
     re.S,
 )
 MAX_TITLE_LENGTH = 120
+JST = timezone(timedelta(hours=9))
+HERO_TODAY_LABEL = "今日のスライドを読む"
+HERO_LATEST_LABEL = "最新のスライドを読む"
+HERO_EMPTY_LABEL = "今日のスライドはありません"
 WEEKDAYS_JP = "月火水木金土日"
 MONTH_EN = ("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
+
+
+def today_jst() -> date:
+    """Calendar date in Asia/Tokyo (patched in tests)."""
+    return datetime.now(JST).date()
+
+
+def hero_today_label(newest_day: date) -> str:
+    """"今日の" only when the newest slide is dated today (JST); otherwise "最新の".
+
+    A delayed or missed daily publication must not advertise yesterday\'s slide as today\'s.
+    """
+    return HERO_TODAY_LABEL if newest_day == today_jst() else HERO_LATEST_LABEL
 
 
 def _plain_text(html_fragment: str) -> str:
@@ -192,7 +209,7 @@ def empty_homepage_state(body: str) -> str:
     )
     body = replace_anchor_label(body, "latestSlideHeroBtn", "スライド一覧")
     body = replace_anchor_label(body, "heroSlideBtn", "スライド一覧")
-    body = replace_anchor_label(body, "heroTodayBtn", "今日のスライドはありません")
+    body = replace_element_text(body, "heroTodayLabel", HERO_EMPTY_LABEL)
     body = replace_element_text(body, "heroDate", "公開スライドなし")
     body = replace_element_text(body, "todaySlideDate", "公開スライドなし")
     body = replace_element_text(body, "heroTwist", "公開スライドはまだありません")
@@ -325,11 +342,12 @@ def main(argv: list[str] | None = None) -> int:
         updated = updated.replace(' data-slides-unavailable="true"', '')
         updated = replace_anchor_label(updated, "latestSlideHeroBtn", "最新スライド →")
         updated = replace_anchor_label(updated, "heroSlideBtn", "最新スライドを読む →")
-        updated = replace_anchor_label(updated, "heroTodayBtn", "今日のスライドを読む →")
         for elem_id in ("latestSlideHeroBtn", "heroSlideBtn", "sitrepLink", "heroTodayBtn"):
             updated = replace_href_by_id(updated, elem_id, f"presentations/day_slides/{newest.name}")
         updated = replace_element_text(updated, "heroDate", f"{iso} · {weekday}")
         updated = replace_element_text(updated, "todaySlideDate", iso)
+    # Primary CTA label: "今日の" only when the newest slide is today\'s (JST).
+    updated = replace_element_text(updated, "heroTodayLabel", hero_today_label(newest_day))
     # The new trends card keeps these IDs in its own markup. Update them by ID
     # as a narrow fallback even if the surrounding card is not marker-wrapped.
     if slide_twist:

@@ -20,7 +20,7 @@ ai-news-site (visionhub.jp) — AIニュースの自動収集・日次レポー�
 1. **最新の `presentations/day_slides/day_slide_*.html` をテンプレに**、`--accent` 1色のみ変更して新規作成
    - `h1` = 今日の twist（標語禁止。「今日のAIを5分で」や名詞句の説明は置かない）
    - `meta name="description"` = 開ループ1文（理由・仕組みは書かない）
-   - `p.lead` = 回収（仕組み・だから何）。トップの h1（#heroIdentity）はサイトの価値説明として固定。ヒーローの主 CTA は今日の日次スライド（#heroTodayBtn、fallback marker 内）。ニュース入口（#heroNewsBtn）は副 CTA。設計記事の入口はカード 03（#implementationCard）と About とフッターに置き、ヒーローには出さない。スライド h1 は目的別の動向カード（h3#heroTwist）、説明は #heroWhy へ反映する。サイト名はヘッダーに残す
+   - `p.lead` = 回収（仕組み・だから何）。トップの h1（#heroIdentity）はサイトの価値説明として固定。ヒーローの主 CTA は今日の日次スライド（#heroTodayBtn、fallback marker 内。ラベル #heroTodayLabel は日次スクリプトが判定し、最新スライドが当日なら「今日のスライドを読む」、未出荷なら「最新のスライドを読む」）。ニュース入口（#heroNewsBtn）は副 CTA。設計記事の入口はカード 03（#implementationCard）と About とフッターに置き、ヒーローには出さない。スライド h1 は目的別の動向カード（h3#heroTwist）、説明は #heroWhy へ反映する。サイト名はヘッダーに残す
 2. 更新は実質 **3ファイルのみ**:
    - `presentations/day_slides/day_slide_2026_MM_DD.html`（新規）
    - `presentations/day_slides_index.html`（月の件数 +1、リスト先頭に `<li>`。feat-title は**短い正式タイトルのみ**——本文貼付禁止）
