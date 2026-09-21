@@ -34,17 +34,20 @@ def assert_entry_contract(html):
     assert page.by_id("heroDescription")[0] == "p"
     for elem_id, destination in {
         "heroNewsBtn": "daily-news/",
-        "heroArticleBtn": "articles/claim-evidence-design.html",
         "comparisonCard": "presentations/ai_coding_agents_guide.html",
         "implementationCard": "articles/claim-evidence-design.html",
     }.items():
         tag, attrs = page.by_id(elem_id)
         assert tag == "a"
         assert attrs.get("href") == destination
-    assert "btn-primary" in page.by_id("heroArticleBtn")[1].get("class", "").split()
+    today_tag, today_attrs = page.by_id("heroTodayBtn")
+    assert today_tag == "a"
+    assert today_attrs.get("href", "").startswith("presentations/day_slides/day_slide_")
+    assert "btn-primary" in today_attrs.get("class", "").split()
+    assert not [a for t, a in page.elements if a.get("id") == "heroArticleBtn"]
     assert "btn-ghost" in page.by_id("heroNewsBtn")[1].get("class", "").split()
     ids = [attrs.get("id") for tag, attrs in page.elements if tag == "a"]
-    assert ids.index("heroArticleBtn") < ids.index("heroNewsBtn")
+    assert ids.index("heroTodayBtn") < ids.index("heroNewsBtn")
     assert page.by_id("heroTwist")[0] == "h3"
     assert page.by_id("heroWhy")[0] == "p"
     return page
@@ -136,6 +139,7 @@ def test_build_homepage_does_not_fabricate_output_without_a_slide(tmp_path: Path
     assert "公開スライドはまだありません" in updated
     assert "公開スライドなし" in updated
     assert "スライド一覧" in updated
+    assert "今日のスライドはありません" in updated
     assert (news / "latest.json").read_text(encoding="utf-8") == stale
 
 
@@ -170,6 +174,9 @@ def test_build_homepage_recovers_empty_state_when_a_slide_returns(tmp_path: Path
     assert "復帰後の要点です。</p>" in updated
     assert "公開スライドなし" not in updated
     assert "最新スライドを読む" in updated
+    # 2026-09-05 is older than the real clock, so the CTA must say 最新 rather than 今日.
+    assert "最新のスライドを読む" in updated
+    assert "今日のスライドを読む" not in updated
     assert 'href="presentations/day_slides/day_slide_2026_09_05.html"' in updated
     assert 'href="daily-news/"' in updated
     assert 'href="articles/claim-evidence-design.html"' in updated
@@ -177,8 +184,8 @@ def test_build_homepage_recovers_empty_state_when_a_slide_returns(tmp_path: Path
 
 @pytest.mark.parametrize("old,new", [
     ('id="heroIdentity"', 'id="missingIdentity"'),
-    ('href="daily-news/"', 'href="#resources"'),
-    ('href="articles/claim-evidence-design.html"', 'href="#resources"'),
+    ('id="heroNewsBtn" class="btn btn-ghost" href="daily-news/"', 'id="heroNewsBtn" class="btn btn-ghost" href="#resources"'),
+    ('id="heroTodayBtn"', 'id="missingTodayBtn"'),
 ])
 def test_entry_contract_rejects_broken_heading_or_primary_link(old, new):
     html = (ROOT / "index.html").read_text(encoding="utf-8")

@@ -109,6 +109,17 @@ function extractSummary(html, title) {
   return `${title} の要点を1枚のスライドで整理しました。`;
 }
 
+function todayJstIso(now = Date.now()) {
+  // Calendar date in Asia/Tokyo: shift the instant by +9h and read the UTC date.
+  return new Date(now + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function heroTodayLabel(slideDate) {
+  // "今日の" only when the newest slide is dated today (JST); a delayed daily
+  // publication must not advertise yesterday's slide as today's.
+  return slideDate === todayJstIso() ? '今日のスライドを読む' : '最新のスライドを読む';
+}
+
 function toJstIso(date) {
   return `${date}T09:00:00.000000+09:00`;
 }
@@ -344,6 +355,7 @@ function preserveHomepageWithoutSlides() {
   html = replaceHrefById(html, 'heroSlideBtn', listUrl, 'slide index CTA', false);
   html = replaceHrefById(html, 'todaySlideCard', listUrl, 'legacy slide card', false);
   html = replaceHrefById(html, 'sitrepLink', listUrl, 'sitrep slide index', false);
+  html = replaceHrefById(html, 'heroTodayBtn', listUrl, 'hero today CTA', false);
   html = html.replace(
     /(\bhref=["'])presentations\/day_slides\/day_slide_\d{4}_\d{2}_\d{2}\.html(["'])/gi,
     `$1${listUrl}$2`
@@ -353,6 +365,7 @@ function preserveHomepageWithoutSlides() {
   }
   html = replaceAnchorLabel(html, 'latestSlideHeroBtn', 'スライド一覧');
   html = replaceAnchorLabel(html, 'heroSlideBtn', 'スライド一覧');
+  html = replaceElementText(html, 'heroTodayLabel', '今日のスライドはありません', 'hero today label', false);
   html = replaceWeekGridWithEmptyState(html);
   html = replaceElementText(html, 'heroDate', '公開スライドなし');
   html = replaceElementText(html, 'todaySlideDate', '公開スライドなし');
@@ -440,6 +453,8 @@ function updateHomepage(data, slide, slideUrl) {
   html = replaceHrefById(html, 'todaySlideCard', slideUrl, 'today slide card', false);
   html = replaceElementText(html, 'todaySlideDate', slideDate, 'today slide date', false);
   html = replaceHrefById(html, 'sitrepLink', slideUrl, 'sitrep link', false);
+  html = replaceHrefById(html, 'heroTodayBtn', slideUrl, 'hero today CTA', false);
+  html = replaceElementText(html, 'heroTodayLabel', heroTodayLabel(slideDate), 'hero today label', false);
   html = replaceElementText(html, 'heroTwist', heroTwist, 'hero twist', false);
   html = replaceElementText(html, 'heroWhy', heroWhy, 'hero explanation', false);
 

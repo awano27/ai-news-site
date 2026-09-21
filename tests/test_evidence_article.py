@@ -24,8 +24,10 @@ def test_article_entries_survive_existing_homepage_generation(tmp_path):
     assert node, "Node is required to verify the existing homepage generator"
     index = (ROOT / "index.html").read_text(encoding="utf-8")
     about = (ROOT / "about.html").read_text(encoding="utf-8")
-    for entry_id in ("heroArticleBtn", "implementationCard"):
+    for entry_id in ("implementationCard",):
         assert re.search(rf'<a id="{entry_id}"[^>]+href="{ARTICLE}"', index)
+    assert 'id="heroArticleBtn"' not in index
+    assert re.search(rf'<a href="{ARTICLE}" data-cta="footer-article">', index)
     assert about.count(f'href="/{ARTICLE}"') == 1
     resources = re.search(r'<section id="resources".*?</section>', index, re.S).group()
     scripts = tmp_path / "scripts"
