@@ -41,6 +41,9 @@ def create_repo(tmp_path: Path, *, include_optional: bool = False) -> tuple[Path
         path = repo / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(f"baseline {relative_path}\n", encoding="utf-8")
+    (repo / "daily-news/data.json").write_text(
+        json.dumps({"date": REPORT_DATE.isoformat(), "items": []}), encoding="utf-8"
+    )
     if include_optional:
         for relative_path in manifest.optional:
             if "*" in relative_path:  # a glob names no single file to create
@@ -267,6 +270,7 @@ def test_rebase_retry_revalidates_a_tightened_remote_manifest(tmp_path: Path) ->
     result = run_publisher(repo, push=True)
 
     assert result.returncode != 0
+    assert "post-rebase publication rejected" in result.stderr
     remote_subject = git(
         tmp_path,
         "--git-dir",

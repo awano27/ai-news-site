@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from .config import PROJECT_ROOT
+from .publication_priority import prefer_existing
 from .content_integrity import apply_financial_integrity
 from .claim_evidence import render_evidence, require_valid_evidence
 
@@ -315,6 +316,14 @@ def generate_daily_news(
         "sources": top_sources,
         "items": timeline,
     }
+
+    existing_path = DAILY_NEWS_DIR / "data.json"
+    if existing_path.exists():
+        # Invalid existing data must fail closed rather than erase curated posts.
+        existing = json.loads(existing_path.read_text(encoding="utf-8"))
+        if prefer_existing(existing, report_data):
+            logger.info("[daily-news] preserving newer or richer X publication")
+            return DAILY_NEWS_DIR / "index.html"
 
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     timeline_html = _render_timeline(timeline) or '<div class="empty">本日の項目はまだありません</div>'

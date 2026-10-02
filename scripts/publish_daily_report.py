@@ -11,6 +11,9 @@ from datetime import date
 from pathlib import Path
 from typing import Sequence
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.auto_collect.publication_priority import prefer_existing
+
 
 MANIFEST_PATH = Path(__file__).with_name("daily_report_paths.json")
 MANIFEST_REPO_PATH = "scripts/daily_report_paths.json"
@@ -86,6 +89,7 @@ def _git(repo: Path, args: Sequence[str], *, check: bool = True) -> subprocess.C
         cwd=repo,
         check=check,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -190,15 +194,32 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
     if fetch.returncode != 0:
         print(fetch.stderr.strip() or "git fetch origin main failed", file=sys.stderr)
         return 1
-    # The replayed commit is the override itself, so it must win over the cloud run
-    # that landed on origin/main while the pipeline was running. In a rebase "theirs"
-    # is the commit being replayed; the manifest already constrains its paths to
-    # generated daily-report artifacts, and validation below re-checks the result.
+    # Compare complete bundles before replay: rebase's "theirs" alone would
+    # allow a delayed cloud run to erase a local publication's curated X posts.
+    protected_paths = []
+    try:
+        remote_data = _git(repo, ("show", "origin/main:daily-news/data.json"), check=False)
+        local_data = _git(repo, ("show", "HEAD:daily-news/data.json"), check=False)
+        if remote_data.returncode == 0 and local_data.returncode == 0:
+            existing = json.loads(remote_data.stdout)
+            candidate = json.loads(local_data.stdout)
+            if prefer_existing(existing, candidate):
+                protected_paths = ["daily-news/index.html", "daily-news/data.json"]
+                # Preserve the matching archive too when replay touches that date.
+                archive = f"daily-news/archive/{existing['date']}.html"
+                if archive in _head_commit_paths(repo):
+                    protected_paths.append(archive)
+    except (KeyError, TypeError, ValueError) as error:
+        print(f"daily-news priority validation failed: {error}", file=sys.stderr)
+        return 1
     rebase = _git(repo, ("rebase", "-X", "theirs", "origin/main"), check=False)
     if rebase.returncode != 0:
         _git(repo, ("rebase", "--abort"), check=False)
         print(rebase.stderr.strip() or "git rebase origin/main failed", file=sys.stderr)
         return 1
+    if protected_paths:
+        _git(repo, ("restore", "--source=origin/main", "--staged", "--worktree", "--", *protected_paths))
+        _git(repo, ("commit", "--amend", "--no-edit", "--allow-empty"))
     try:
         rebased_manifest = _load_manifest_from_head(repo, report_date)
         rebased_paths = _head_commit_paths(repo)
@@ -207,6 +228,9 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
         print(f"post-rebase publication validation failed: {error}", file=sys.stderr)
         return 1
     if not rebased_paths:
+        if protected_paths:
+            print("daily-news publication already superseded by remote priority bundle")
+            return 0
         print("post-rebase publication commit has no changed paths", file=sys.stderr)
         return 1
     if errors:
