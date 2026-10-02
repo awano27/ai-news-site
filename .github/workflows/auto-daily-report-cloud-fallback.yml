@@ -28,13 +28,16 @@ permissions:
   contents: write
 
 concurrency:
-  group: repo-push
+  group: auto-daily-report-publish
   cancel-in-progress: false
 
 jobs:
   primary:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+      generated_ref: ${{ steps.commit.outputs.sha }}
     env:
       TZ: Asia/Tokyo
     steps:
@@ -58,9 +61,12 @@ jobs:
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         run: |
-          python -m src.auto_collect.main --provider nvidia --force
+          RUN_ID="$(python -c 'import uuid; print(uuid.uuid4().hex)')"
+          echo "RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
+          python -m src.auto_collect.main --provider nvidia --force --run-id "$RUN_ID"
 
       - name: Commit & push
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -68,8 +74,11 @@ jobs:
           python scripts/publish_daily_report.py \
             --repo . \
             --date "$REPORT_DATE" \
+            --run-id "$RUN_ID" \
             --message "chore(report): cloud primary run $REPORT_DATE" \
             --push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Warn if local override missing for 2+ days
         # Detects silent failure of the local 08:00 JST override (X bookmarks)
@@ -83,3 +92,14 @@ jobs:
           else
             echo "Local override healthy: $recent commit(s) in last 2 days"
           fi
+
+  publish:
+    needs: primary
+    if: needs.primary.outputs.changed == 'true'
+    uses: ./.github/workflows/publish-generated-content.yml
+    with:
+      ref: ${{ needs.primary.outputs.generated_ref }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

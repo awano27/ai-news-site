@@ -182,13 +182,30 @@ function scoreOf(item) {
   return clamp(Number(item && item.stars) || 0, 0, 5);
 }
 
+      var AI_RELEVANT_SHORT = /(?<![A-Za-z])(?:AI|AIs|LLM|LLMs|GPT|AGI|NLP|MoE|HBM|GPU|GPUs|RAG|MCP|NVIDIA)(?![A-Za-z])/i;
+      var AI_RELEVANT_NAME = /ChatGPT|OpenAI|Anthropic|DeepSeek|Gemini|Claude|Grok|Copilot|DeepMind|Gemma|Hugging\s*Face|Llama|Qwen|Mistral|xAI|transformer/i;
+      var AI_RELEVANT_AGENT = /(?<![A-Za-z])agents?(?![A-Za-z])/i;
+      var AI_RELEVANT_PHRASES = ['人工知能','生成AI','機械学習','深層学習','言語モデル','生成モデル','ディープラーニング','推論','超知能','エージェント','プロンプト','ファインチューニング','ベンチマーク','データセンター','半導体','AIモデル','基盤モデル','オープンモデル'];
+      var AI_RELEVANT_MODEL = /モデル(?!ナ)/;
+      function isAiRelevant(title, blurb) {
+        var text = String(title || '') + ' ' + String(blurb || '');
+        if (!text.trim()) return false;
+        if (AI_RELEVANT_SHORT.test(text) || AI_RELEVANT_NAME.test(text) || AI_RELEVANT_AGENT.test(text) || AI_RELEVANT_MODEL.test(text)) return true;
+        for (var i = 0; i < AI_RELEVANT_PHRASES.length; i++) {
+          if (text.indexOf(AI_RELEVANT_PHRASES[i]) !== -1) return true;
+        }
+        return false;
+      }
+
+
 function collectRankingItems(data, slideUrl) {
   const pool = [];
   if (data && data.highlight && data.highlight.title) {
     pool.push({
       title: data.highlight.title,
       category: data.highlight.category || '本日のスライド',
-      stars: data.highlight.stars || 5,
+      stars: 0,
+      editorial: true,
       source: sourceName(data.highlight),
       url: sourceUrl(data.highlight, slideUrl),
     });
@@ -198,7 +215,7 @@ function collectRankingItems(data, slideUrl) {
   for (const [category, items] of Object.entries(sections)) {
     if (!Array.isArray(items)) continue;
     for (const item of items) {
-      if (!item || !item.title) continue;
+      if (!item || !item.title || !isAiRelevant(item.title, item.blurb || item.summary || '')) continue;
       pool.push({
         title: item.title,
         category: item.category || category,
@@ -209,9 +226,12 @@ function collectRankingItems(data, slideUrl) {
     }
   }
 
-  return pool
-    .sort((a, b) => scoreOf(b) - scoreOf(a))
-    .slice(0, 3);
+  const pinned = pool.filter((item) => item.editorial);
+  const seen = new Set(pinned.map((item) => item.title));
+  const rest = pool.filter((item) => !item.editorial && !seen.has(item.title) && !item.url.includes('day_slide_'))
+    .filter((item) => { if (seen.has(item.title)) return false; seen.add(item.title); return true; })
+    .sort((a, b) => scoreOf(b) - scoreOf(a));
+  return pinned.concat(rest).slice(0, 3);
 }
 
 function rankingCardHtml(item, index) {
@@ -223,15 +243,15 @@ function rankingCardHtml(item, index) {
   const title = escapeHtml(item.title || '最新ランキングを開く');
   const source = escapeHtml(item.source || 'AI Intelligence Hub');
   return [
-    `          <a class="ranking-card" href="${href}"${rel} aria-label="${escapeHtml(index + 1)}位: ${title}">`,
+    `          <a class="ranking-card" href="${href}"${rel} aria-label="注目 ${escapeHtml(index + 1)}: ${title}">`,
     `            <div class="rc-rank">${String(index + 1).padStart(2, '0')}</div>`,
     '            <div class="rc-body">',
     `              <span class="rc-tag">${category}</span>`,
     `              <h3 class="rc-title">${title}</h3>`,
     `              <span class="rc-source">${source}</span>`,
     '              <div class="rc-foot">',
-    `                <div class="rc-bar"><div class="rc-fill" style="width:${pct}%"></div></div>`,
-    `                <span class="rc-score">${score.toFixed(1)} / 5</span>`,
+    item.editorial ? '' : `                <div class="rc-bar"><div class="rc-fill" style="width:${pct}%"></div></div>`,
+    `                <span class="rc-score">${item.editorial ? '編集推薦' : score.toFixed(1) + ' / 5'}</span>`,
     '              </div>',
     '            </div>',
     '          </a>',

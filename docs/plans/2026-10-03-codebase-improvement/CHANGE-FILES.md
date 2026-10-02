@@ -1,0 +1,79 @@
+# 今回の変更一覧
+
+既存dirtyのCLAUDE.mdとSKILL.mdは除外。stage/commitなし。
+
+## 追跡済みファイルの修正
+
+- `.github/workflows/ai-news.yml`
+- `.github/workflows/auto-daily-report-cloud-fallback.yml`
+- `.github/workflows/build-ranking-preview.yml`
+- `.github/workflows/daily-archive.yml`
+- `.github/workflows/freshness-guard.yml`
+- `.github/workflows/generate-daily-news-json.yml`
+- `.github/workflows/ingest.yml`
+- `.github/workflows/pages-heal.yml`
+- `.github/workflows/pages.yml`
+- `.github/workflows/presentations-daily.yml`
+- `.github/workflows/update-news.yml`
+- `.gitignore`
+- `articles/claim-evidence-design.html`
+- `index.html`
+- `script/build_day_slides_list.py`
+- `scripts/build-homepage-latest.js`
+- `scripts/check_analytics_coverage.py`
+- `scripts/check_site_freshness.py`
+- `scripts/daily_report_paths.json`
+- `scripts/generate-daily-news-json.js`
+- `scripts/inject_analytics.py`
+- `scripts/publish_daily_report.py`
+- `scripts/publish_image2_day_slide.py`
+- `scripts/run_daily_override.ps1`
+- `src/auto_collect/claim_evidence.py`
+- `src/auto_collect/collectors/hn_collector.py`
+- `src/auto_collect/daily_news_page.py`
+- `src/auto_collect/formatter.py`
+- `src/auto_collect/html_report_parser.py`
+- `src/auto_collect/html_report_renderer.py`
+- `src/auto_collect/main.py`
+- `src/auto_collect/processor.py`
+- `src/generators/ranking_data_parser.py`
+- `src/generators/ranking_report_generator.py`
+- `src/generators/ranking_template.py`
+- `src/generators/slide_generator.py`
+- `src/utils/sanitize.py`
+- `templates/daily_slide.html`
+- `templates/daily_slide_index.html`
+- `templates/day_news_slide.html`
+- `templates/day_slides_index.html`
+- `templates/index.html`
+- `templates/monthly_report.html`
+- `tests/test_auto_collect_main.py`
+- `tests/test_build_homepage_latest.py`
+- `tests/test_claim_evidence_news.py`
+- `tests/test_daily_override_automation.py`
+- `tests/test_publish_daily_report.py`
+- `update_news_archive.py`
+
+## 追加・配布予定のコードと依存設定
+
+- `.github/workflows/publish-generated-content.yml`
+- `requirements-ingest.txt`
+- `sources.yaml`
+- `script/pages_heal.py`
+- `scripts/config.py`
+- `scripts/ingest.py`
+- `scripts/validate.py`
+- `scripts/collectors/producthunt.py`
+- `scripts/collectors/github.py`
+- `scripts/public_html.py`
+- `src/auto_collect/output_validation.py`
+- `src/generators/detail_analysis_generator.py`
+- `tests/test_distribution_workflows.py`
+- `tests/test_render_safety.py`
+- `tests/test_site_freshness.py`
+- `tests/test_analytics_contract.py`
+- `tests/test_article_contract.py`
+- `tests/test_publish_image2_day_slide.py`
+- `tests/verify_analytics_events.cjs`
+
+作業記録・fixture・ログ・スクリーンショット: `docs/plans/2026-10-03-codebase-improvement/`。新規配布予定には以前から存在したignore済みの非秘密ファイルも含む。

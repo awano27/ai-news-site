@@ -46,6 +46,26 @@ def normalized_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
+def information_label(item: Any) -> str:
+    """Read a validated information-kind label from either supported shape.
+
+    Processed articles historically stored the label under ``evidence`` while
+    parsed day files expose it at the top level.  This helper keeps both forms
+    compatible without treating a model classification as a source-review
+    status.  Invalid or missing labels remain explicitly unclassified.
+    """
+    if not isinstance(item, dict):
+        return ""
+    nested = item.get("evidence")
+    candidates = [item.get("evidence_label")]
+    if isinstance(nested, dict):
+        candidates.append(nested.get("evidence_label"))
+    for value in candidates:
+        if isinstance(value, str) and value and value in INFORMATION_LABELS:
+            return value
+    return ""
+
+
 def safe_http_url(value: Any) -> str:
     """Accept direct HTTP(S) URLs only; never create an executable link."""
     if not isinstance(value, str) or not value or any(ord(c) <= 32 or ord(c) == 127 for c in value):
@@ -199,6 +219,25 @@ def require_valid_evidence(bundle: Any, subject: dict | None = None) -> None:
     errors = validate_bundle(bundle, subject)
     if errors:
         raise ValueError("; ".join(errors))
+
+
+def evidence_review_pending(item: Any) -> bool:
+    """Return whether the visible item lacks a fully recorded review state.
+
+    A model-supplied information label is only a classification.  It cannot
+    turn an absent, malformed, or explicitly unverified evidence bundle into a
+    reviewed claim.
+    """
+    if not isinstance(item, dict):
+        return True
+    bundle = item.get("claim_evidence")
+    if bundle is None or bundle == {} or validate_bundle(bundle, item):
+        return True
+    claims = bundle.get("claims") if isinstance(bundle, dict) else None
+    return not isinstance(claims, list) or not claims or any(
+        not isinstance(claim, dict) or claim.get("status") == "unverified"
+        for claim in claims
+    )
 
 
 def _esc(value: Any) -> str:

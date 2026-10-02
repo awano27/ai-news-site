@@ -13,8 +13,27 @@ from typing import List, Dict, Optional
 
 from .llm_provider import LLMProvider, make_provider
 from .content_integrity import apply_financial_integrity
+from .claim_evidence import INFORMATION_LABELS
 
 logger = logging.getLogger(__name__)
+
+TEMPORAL_FIELDS = (
+    "published_at", "collected_at", "target_date", "date",
+    "updated_at", "first_seen_at", "bookmark_date",
+)
+
+
+def _preserve_article_metadata(output: Dict, source: Dict) -> Dict:
+    """Preserve known temporal provenance without inferring missing dates."""
+    for key in TEMPORAL_FIELDS:
+        if key in source:
+            output[key] = source[key]
+    return output
+
+
+def _model_information_label(value: object) -> str:
+    """Validate model classification; it never creates review metadata."""
+    return value if isinstance(value, str) and value in INFORMATION_LABELS else ""
 
 SUMMARIZE_PROMPT = """以下のAIニュース記事を日本語で要約し、エビデンス情報を抽出してください。
 
@@ -102,7 +121,7 @@ class LLMProcessor:
             elif stars > 100:
                 score = 60
 
-            processed.append(apply_financial_integrity({
+            processed.append(apply_financial_integrity(_preserve_article_metadata({
                 "title": repo["name"],
                 "title_en": repo["name"],
                 "summary": repo.get("tagline", ""),
@@ -119,7 +138,7 @@ class LLMProcessor:
                     "license": license_id,
                     "topics": topics[:5],
                 },
-            }))
+            }, repo)))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return processed
@@ -139,7 +158,7 @@ class LLMProcessor:
             elif likes > 100:
                 score = 55
 
-            processed.append(apply_financial_integrity({
+            processed.append(apply_financial_integrity(_preserve_article_metadata({
                 "title": item["name"],
                 "title_en": item["name"],
                 "summary": item.get("tagline", ""),
@@ -157,7 +176,7 @@ class LLMProcessor:
                     "impact_ja": f"HuggingFaceでトレンド中。{item.get('pipeline_tag', '')}タスク向け。",
                     "actionable": f"from transformers import AutoModel; model = AutoModel.from_pretrained('{item['name']}')",
                 },
-            }))
+            }, item)))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return processed
@@ -169,7 +188,7 @@ class LLMProcessor:
             amount = item.get("funding_amount", "")
             score = 70 if amount else 55
 
-            processed.append(apply_financial_integrity({
+            processed.append(apply_financial_integrity(_preserve_article_metadata({
                 "title": item["name"],
                 "title_en": item["name"],
                 "summary": item.get("tagline", ""),
@@ -184,7 +203,7 @@ class LLMProcessor:
                     "impact_ja": "AI業界の資金動向。投資判断の参考に。",
                     "actionable": "",
                 },
-            }))
+            }, item)))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return processed
@@ -208,7 +227,7 @@ class LLMProcessor:
 
         parsed = self._extract_json(text)
         if parsed:
-            return apply_financial_integrity({
+            return apply_financial_integrity(_preserve_article_metadata({
                 "title": parsed.get("title_ja", title),
                 "title_en": title,
                 "tldr": parsed.get("tldr", "")[:80],
@@ -224,9 +243,9 @@ class LLMProcessor:
                     "competitors": parsed.get("competitors", []),
                     "impact_ja": parsed.get("impact_ja", ""),
                     "actionable": parsed.get("actionable", ""),
-                    "evidence_label": parsed.get("evidence_label", ""),
+                    "evidence_label": _model_information_label(parsed.get("evidence_label")),
                 },
-            })
+            }, article))
 
         logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'")
         return self._fallback_process(article)
@@ -281,7 +300,7 @@ class LLMProcessor:
                 category = cat
                 break
 
-        return apply_financial_integrity({
+        return apply_financial_integrity(_preserve_article_metadata({
             "title": title,
             "title_en": title,
             "tldr": tagline[:80],
@@ -299,7 +318,7 @@ class LLMProcessor:
                 "actionable": "",
                 "evidence_label": "",
             },
-        })
+        }, article))
 
 
 # Backward-compatible alias for any external importer.

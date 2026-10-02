@@ -162,12 +162,12 @@ def prepare_ranking_chart_data(data: Dict, analysis: Dict) -> Dict:
     ]
 
     return {
-        "score_labels": json.dumps(list(score_ranges.keys())),
-        "score_values": json.dumps(list(score_ranges.values())),
-        "category_labels": json.dumps(list(category_data.keys())),
-        "category_values": json.dumps(list(category_data.values())),
-        "comparison_labels": json.dumps(item_names),
-        "eng_scores": json.dumps(eng_scores),
-        "biz_scores": json.dumps(biz_scores),
+        "score_labels": list(score_ranges.keys()),
+        "score_values": list(score_ranges.values()),
+        "category_labels": list(category_data.keys()),
+        "category_values": list(category_data.values()),
+        "comparison_labels": item_names,
+        "eng_scores": eng_scores,
+        "biz_scores": biz_scores,
         "avg_total_score": analysis.get("score_stats", {}).get("avg_total_score", 0),
     }

@@ -39,6 +39,16 @@ def _legacy_dayfile(include_claim_evidence: bool) -> str:
     )
 
 
+def test_legacy_archive_extractor_ignores_article_time_metadata_line() -> None:
+    plain = _legacy_dayfile(False)
+    with_metadata = plain.replace(
+        "URL: https://example.test/article\n",
+        '🕒 Article Time: {"published_at":"2026-09-05T00:00:00+09:00"}\n'
+        "URL: https://example.test/article\n",
+    )
+    assert extract_news_content(with_metadata) == extract_news_content(plain)
+
+
 def test_legacy_archive_extractor_ignores_claim_evidence_metadata_line() -> None:
     """A new metadata line must not alter the existing text archive shape."""
     without_metadata = extract_news_content(_legacy_dayfile(False))
@@ -56,8 +66,17 @@ def test_raw_fallback_strips_claim_evidence_metadata_line(tmp_path: Path) -> Non
         pytest.skip("node is required for the raw fallback fixture")
     plain = tmp_path / "plain.txt"
     metadata = tmp_path / "metadata.txt"
+    temporal = tmp_path / "temporal.txt"
     plain.write_text(_legacy_dayfile(False), encoding="utf-8")
     metadata.write_text(_legacy_dayfile(True), encoding="utf-8")
+    temporal.write_text(
+        _legacy_dayfile(False).replace(
+            "URL: https://example.test/article\n",
+            '🕒 Article Time: {"published_at":"2026-09-05T00:00:00+09:00"}\n'
+            "URL: https://example.test/article\n",
+        ),
+        encoding="utf-8",
+    )
     expression = (
         "const {parseNewsFile}=require(process.argv[1]);"
         "console.log(JSON.stringify(parseNewsFile(process.argv[2], '0905.txt')));"
@@ -72,6 +91,7 @@ def test_raw_fallback_strips_claim_evidence_metadata_line(tmp_path: Path) -> Non
         return json.loads(result.stdout)
 
     assert parse(metadata) == parse(plain)
+    assert parse(temporal) == parse(plain)
 
 
 def test_crusoe_evidence_survives_correction_dayfile_and_parser(tmp_path) -> None:
@@ -132,6 +152,9 @@ def test_timeline_keeps_claim_evidence_in_json_and_renders_it(monkeypatch, tmp_p
             "category": "Business",
             "source": "TechCrunch",
             "score": 85,
+            "published_at": "2026-09-05T00:00:00+09:00",
+            "collected_at": "2026-09-05T07:00:00+09:00",
+            "target_date": "2026-09-05",
         }
     )
 
@@ -144,4 +167,9 @@ def test_timeline_keeps_claim_evidence_in_json_and_renders_it(monkeypatch, tmp_p
     assert "ai_document_review" in payload
     assert "claim-evidence" in page
     assert "Bloomberg報道" in page
+    assert "照合未確認" not in page
     assert item["source"] == "TechCrunch（Bloomberg報道）"
+    assert item["published_at"] == "2026-09-05T00:00:00+09:00"
+    assert item["collected_at"] == "2026-09-05T07:00:00+09:00"
+    assert item["target_date"] == "2026-09-05"
+    assert '<script src="/assets/js/analytics.js" defer></script>' in page

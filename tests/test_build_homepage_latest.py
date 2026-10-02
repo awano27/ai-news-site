@@ -103,6 +103,17 @@ def test_build_homepage_accepts_marked_latest_slide_fallbacks(tmp_path: Path) ->
     generated = json.loads((tmp_path / "news" / "latest.json").read_text(encoding="utf-8"))
     assert generated["generated_at"].startswith(newest_slide.stem.removeprefix("day_slide_").replace("_", "-"))
     assert generated["highlight"]["sources"][0]["url"].endswith(newest_slide.name)
+    assert "今日の注目 3 本" in updated
+    assert "30日間の TOP 30" in updated
+    first_card = updated.split('id="rankingGrid"', 1)[1].split('</a>', 1)[0]
+    assert '編集推薦' in first_card
+    assert '5.0 / 5' not in first_card
+    # Same input regeneration must be stable; dates derive from the fixture slide.
+    repeated = subprocess.run([node, str(script)], cwd=tmp_path, text=True,
+                              capture_output=True, check=False)
+    assert repeated.returncode == 0, repeated.stdout + repeated.stderr
+    assert (tmp_path / 'index.html').read_text(encoding='utf-8') == updated
+    assert json.loads((tmp_path / 'news/latest.json').read_text(encoding='utf-8')) == generated
 
 
 def test_build_homepage_does_not_fabricate_output_without_a_slide(tmp_path: Path) -> None:

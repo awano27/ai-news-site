@@ -14,9 +14,11 @@ from pathlib import Path
 from typing import List, Dict
 
 from .config import MAX_ARTICLES_IN_REPORT
-from .claim_evidence import require_valid_evidence
+from .claim_evidence import information_label, require_valid_evidence
 
 logger = logging.getLogger(__name__)
+
+TEMPORAL_FIELDS = ("published_at", "collected_at", "target_date")
 
 
 class DayFileFormatter:
@@ -131,6 +133,10 @@ class DayFileFormatter:
                 + json.dumps(claim_evidence, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             )
 
+        metadata_line = self._format_temporal_metadata(article)
+        if metadata_line:
+            lines.append(metadata_line)
+
         for point in points[:5]:
             p = point if point.startswith("・") else f"・{point}"
             lines.append(f"  {p}")
@@ -152,7 +158,7 @@ class DayFileFormatter:
         if actionable:
             lines.append(f"  ⚡ 今すぐ: {actionable}")
 
-        evidence_label = evidence.get("evidence_label", "")
+        evidence_label = information_label(article)
         if evidence_label:
             lines.append(f"  🏷️ Label: {evidence_label}")
 
@@ -196,8 +202,22 @@ class DayFileFormatter:
         if url:
             lines.append(f"  URL: {url}")
 
+        metadata_line = self._format_temporal_metadata(repo)
+        if metadata_line:
+            lines.append(metadata_line)
+
         lines.append("")
         return lines
+
+    @staticmethod
+    def _format_temporal_metadata(item: Dict) -> str:
+        metadata = {key: item[key] for key in TEMPORAL_FIELDS if key in item}
+        if not metadata:
+            return ""
+        return (
+            "  🕒 Article Time: "
+            + json.dumps(metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        )
 
     def _format_model(self, model: Dict) -> List[str]:
         """Format a HuggingFace trending model."""
@@ -223,6 +243,10 @@ class DayFileFormatter:
 
         if url:
             lines.append(f"  URL: {url}")
+
+        metadata_line = self._format_temporal_metadata(model)
+        if metadata_line:
+            lines.append(metadata_line)
 
         lines.append("")
         return lines

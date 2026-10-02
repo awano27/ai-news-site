@@ -2,18 +2,27 @@ from __future__ import annotations
 
 import argparse
 import functools
+import hashlib
 import json
 import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Sequence
+
+SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPT_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_REPO_ROOT))
+
+from src.auto_collect.output_validation import validate_output_artifacts
 
 
 MANIFEST_PATH = Path(__file__).with_name("daily_report_paths.json")
 MANIFEST_REPO_PATH = "scripts/daily_report_paths.json"
+RUN_RESULT_TEMPLATE = "public-pages/api/auto_daily_report/run/{YYYY-MM-DD}.json"
+REQUIRED_RUN_PHASES = ("report_text", "archive", "html_report", "daily_news")
 
 
 @functools.lru_cache(maxsize=None)
@@ -78,6 +87,159 @@ def _manifest_from_data(data: object, report_date: date) -> PublicationManifest:
 
 def load_manifest(path: Path, report_date: date) -> PublicationManifest:
     return _manifest_from_data(json.loads(path.read_text(encoding="utf-8")), report_date)
+
+
+def _run_result_path(report_date: date) -> str:
+    return _expand_path(RUN_RESULT_TEMPLATE, report_date)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_run_result(
+    repo: Path,
+    manifest: PublicationManifest,
+    report_date: date,
+    run_id: str,
+) -> list[str]:
+    errors: list[str] = []
+    relative_result_path = _run_result_path(report_date)
+    if relative_result_path not in manifest.required:
+        return [f"publication manifest is missing run result: {relative_result_path}"]
+    result_path = repo / relative_result_path
+    try:
+        data = json.loads(result_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"could not read run result {relative_result_path}: {error}"]
+    if not isinstance(data, dict):
+        return ["run result must be a JSON object"]
+    if data.get("schema_version") != 1:
+        errors.append("run result schema_version must be 1")
+    if data.get("date") != report_date.isoformat():
+        errors.append("run result date does not match requested publication date")
+    if data.get("run_id") != run_id:
+        errors.append("run result run_id does not match requested run_id")
+    if data.get("publication_ready") is not True:
+        errors.append("run result is not publication-ready")
+
+    timestamps: list[datetime] = []
+    for field in ("started_at", "completed_at"):
+        value = data.get(field)
+        try:
+            parsed = datetime.fromisoformat(value) if isinstance(value, str) else None
+        except ValueError:
+            parsed = None
+        if parsed is None or parsed.tzinfo is None:
+            errors.append(f"run result {field} must be a timezone-aware ISO timestamp")
+        else:
+            timestamps.append(parsed)
+    if len(timestamps) == 2 and timestamps[1] < timestamps[0]:
+        errors.append("run result completed_at precedes started_at")
+
+    phases = data.get("phases")
+    required_phase_failures = 0
+    total_phase_failures = 0
+    if not isinstance(phases, dict):
+        errors.append("run result phases must be an object")
+        required_phase_failures = len(REQUIRED_RUN_PHASES)
+        total_phase_failures = len(REQUIRED_RUN_PHASES)
+    else:
+        for name in REQUIRED_RUN_PHASES:
+            phase = phases.get(name)
+            if not isinstance(phase, dict):
+                errors.append(f"run result is missing required phase: {name}")
+                required_phase_failures += 1
+                total_phase_failures += 1
+                continue
+            if phase.get("required") is not True:
+                errors.append(f"run result phase is not marked required: {name}")
+            if phase.get("success") is not True:
+                errors.append(f"required run phase failed: {name}")
+                required_phase_failures += 1
+                total_phase_failures += 1
+        for name, phase in phases.items():
+            if name in REQUIRED_RUN_PHASES:
+                continue
+            if not isinstance(phase, dict):
+                errors.append(f"run result phase is invalid: {name}")
+            elif phase.get("required") is True:
+                errors.append(f"run result contains unknown required phase: {name}")
+            elif phase.get("success") is not True:
+                total_phase_failures += 1
+
+    failure_count = data.get("failure_count")
+    if not isinstance(failure_count, int) or isinstance(failure_count, bool):
+        errors.append("run result failure_count must be an integer")
+    elif failure_count != total_phase_failures:
+        errors.append(
+            "run result failure_count does not match failed phases"
+        )
+    required_failure_count = data.get("required_failure_count")
+    if not isinstance(required_failure_count, int) or isinstance(required_failure_count, bool):
+        errors.append("run result required_failure_count must be an integer")
+    elif required_failure_count != required_phase_failures:
+        errors.append(
+            "run result required_failure_count does not match failed required phases"
+        )
+    if data.get("publication_ready") is True and required_phase_failures:
+        errors.append("publication-ready run result contains failed required phases")
+
+    artifacts = data.get("artifacts")
+    if not isinstance(artifacts, list):
+        errors.append("run result artifacts must be a list")
+        return errors
+    by_path: dict[str, dict] = {}
+    for artifact in artifacts:
+        if not isinstance(artifact, dict) or not isinstance(artifact.get("path"), str):
+            errors.append("run result contains an invalid artifact record")
+            continue
+        relative_path = artifact["path"]
+        relative = Path(relative_path)
+        if (
+            relative.is_absolute()
+            or ".." in relative.parts
+            or relative_path != relative.as_posix()
+            or not manifest.matches(relative_path)
+        ):
+            errors.append(f"run result artifact is outside the publication manifest: {relative_path}")
+            continue
+        if relative_path in by_path:
+            errors.append(f"run result contains a duplicate artifact: {relative_path}")
+            continue
+        by_path[relative_path] = artifact
+
+    expected = set(manifest.required) - {relative_result_path}
+    for relative_path in sorted(expected):
+        artifact = by_path.get(relative_path)
+        if artifact is None:
+            errors.append(f"run result is missing required artifact: {relative_path}")
+            continue
+        if artifact.get("required") is not True:
+            errors.append(f"run result artifact is not marked required: {relative_path}")
+        if artifact.get("valid") is not True:
+            errors.append(f"run result artifact is not marked valid: {relative_path}")
+        if artifact.get("exists") is not True or artifact.get("fresh") is not True:
+            errors.append(f"run result artifact is not a fresh current-run output: {relative_path}")
+        path = repo / relative_path
+        if not path.is_file():
+            errors.append(f"run result artifact is missing: {relative_path}")
+            continue
+        expected_size = artifact.get("size")
+        if not isinstance(expected_size, int) or path.stat().st_size != expected_size:
+            errors.append(f"run result artifact size mismatch: {relative_path}")
+        expected_mtime = artifact.get("mtime_ns")
+        if not isinstance(expected_mtime, int) or path.stat().st_mtime_ns != expected_mtime:
+            errors.append(f"run result artifact mtime mismatch: {relative_path}")
+        expected_hash = artifact.get("sha256")
+        if not isinstance(expected_hash, str) or _sha256(path) != expected_hash:
+            errors.append(f"run result artifact hash mismatch: {relative_path}")
+    errors.extend(validate_output_artifacts(repo, sorted(expected), report_date))
+    return errors
 
 
 def _git(repo: Path, args: Sequence[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -182,7 +344,7 @@ def _head_commit_paths(repo: Path) -> tuple[str, ...]:
     return tuple(path for path in result.stdout.split("\0") if path)
 
 
-def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
+def _push_with_one_rebase_retry(repo: Path, report_date: date, run_id: str) -> int:
     initial_push = _git(repo, ("push", "origin", "HEAD:main"), check=False)
     if initial_push.returncode == 0:
         return 0
@@ -203,6 +365,7 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
         rebased_manifest = _load_manifest_from_head(repo, report_date)
         rebased_paths = _head_commit_paths(repo)
         errors = validate_changes(repo, rebased_manifest, changed_paths=rebased_paths)
+        errors.extend(validate_run_result(repo, rebased_manifest, report_date, run_id))
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f"post-rebase publication validation failed: {error}", file=sys.stderr)
         return 1
@@ -219,11 +382,19 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
     return 0
 
 
-def publish(repo: Path, report_date: date, message: str, *, push: bool = False) -> int:
+def publish(
+    repo: Path,
+    report_date: date,
+    run_id: str,
+    message: str,
+    *,
+    push: bool = False,
+) -> int:
     try:
         manifest = _load_manifest_from_head(repo, report_date)
         changed_paths = _changed_paths(repo, manifest)
         errors = validate_changes(repo, manifest, changed_paths=changed_paths)
+        errors.extend(validate_run_result(repo, manifest, report_date, run_id))
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(str(error), file=sys.stderr)
         return 1
@@ -247,13 +418,14 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
     except subprocess.CalledProcessError as error:
         print(error.stderr.strip() or "git commit failed", file=sys.stderr)
         return 1
-    return _push_with_one_rebase_retry(repo, report_date) if push else 0
+    return _push_with_one_rebase_retry(repo, report_date, run_id) if push else 0
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Publish a daily report from an explicit manifest.")
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--date", type=date.fromisoformat, required=True)
+    parser.add_argument("--run-id", required=True)
     parser.add_argument("--message", required=True)
     parser.add_argument("--push", action="store_true")
     return parser.parse_args(argv)
@@ -261,7 +433,9 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
-    return publish(args.repo.resolve(), args.date, args.message, push=args.push)
+    return publish(
+        args.repo.resolve(), args.date, args.run_id, args.message, push=args.push
+    )
 
 
 if __name__ == "__main__":

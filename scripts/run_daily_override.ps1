@@ -167,8 +167,9 @@ try {
     if ($env:NVIDIA_API_KEY -and $env:NVIDIA_API_KEY.StartsWith("nvapi-", [System.StringComparison]::OrdinalIgnoreCase)) {
         $provider = "nvidia"
     }
-    Write-RunnerLog "Running pipeline with provider=$provider."
-    $pipelineCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @("-m", "src.auto_collect.main", "--provider", $provider, "--force") -Label "pipeline"
+    $runId = [guid]::NewGuid().ToString("N")
+    Write-RunnerLog "Running pipeline with provider=$provider run_id=$runId."
+    $pipelineCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @("-m", "src.auto_collect.main", "--provider", $provider, "--force", "--run-id", $runId) -Label "pipeline"
     if ($pipelineCode -ne 0) {
         throw "Daily report pipeline failed."
     }
@@ -176,7 +177,7 @@ try {
     $reportDate = (Get-Date).ToString("yyyy-MM-dd")
     $message = "chore(report): local override $reportDate"
     $publisher = Join-Path $repo "scripts\publish_daily_report.py"
-    $publishCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @($publisher, "--repo", $repo, "--date", $reportDate, "--message", $message, "--push") -Label "publisher"
+    $publishCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @($publisher, "--repo", $repo, "--date", $reportDate, "--run-id", $runId, "--message", $message, "--push") -Label "publisher"
     if ($publishCode -ne 0) {
         throw "Reviewed publication CLI failed."
     }

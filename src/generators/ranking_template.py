@@ -340,6 +340,7 @@ def get_template_string() -> str:
             .brand-text { display: none; }
         }
     </style>
+<script src="/assets/js/analytics.js" defer></script>
 </head>
 <body>
     <header class="site-header">
@@ -743,9 +744,9 @@ def get_template_string() -> str:
         new Chart(scoreCtx, {
             type: 'doughnut',
             data: {
-                labels: {{ chart_data.score_labels|safe }},
+                labels: {{ chart_data.score_labels|tojson }},
                 datasets: [{
-                    data: {{ chart_data.score_values|safe }},
+                    data: {{ chart_data.score_values|tojson }},
                     backgroundColor: ['#FFCC00', '#0d6efd', '#1f9d57', '#94a3b8']
                 }]
             },
@@ -764,14 +765,14 @@ def get_template_string() -> str:
         new Chart(comparisonCtx, {
             type: 'bar',
             data: {
-                labels: {{ chart_data.comparison_labels|safe }},
+                labels: {{ chart_data.comparison_labels|tojson }},
                 datasets: [{
                     label: 'エンジニア活用度',
-                    data: {{ chart_data.eng_scores|safe }},
+                    data: {{ chart_data.eng_scores|tojson }},
                     backgroundColor: '#0d6efd'
                 }, {
                     label: 'ビジネス効率化',
-                    data: {{ chart_data.biz_scores|safe }},
+                    data: {{ chart_data.biz_scores|tojson }},
                     backgroundColor: '#FFCC00'
                 }]
             },
@@ -792,9 +793,9 @@ def get_template_string() -> str:
         new Chart(categoryCtx, {
             type: 'pie',
             data: {
-                labels: {{ chart_data.category_labels|safe }},
+                labels: {{ chart_data.category_labels|tojson }},
                 datasets: [{
-                    data: {{ chart_data.category_values|safe }},
+                    data: {{ chart_data.category_values|tojson }},
                     backgroundColor: ['#0d6efd', '#FFCC00', '#1f9d57', '#8b5cf6']
                 }]
             },

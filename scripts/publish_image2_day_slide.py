@@ -617,22 +617,164 @@ def run_git(repo: Path, args: Iterable[str]) -> None:
     subprocess.run(["git", *args], cwd=repo, check=True)
 
 
+def ensure_clean_index(repo: Path) -> None:
+    result = subprocess.run(
+        ["git", "diff", "--cached", "--quiet"],
+        cwd=repo,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if result.returncode == 1:
+        raise SystemExit(
+            "Refusing to publish while pre-existing staged changes are present."
+        )
+    if result.returncode != 0:
+        raise SystemExit(result.stderr.strip() or "Could not inspect the Git index.")
+
+
 def git_files(plan: PublishPlan) -> list[Path]:
-    return [
+    repo = plan.index_path.parent.parent
+    paths = [
         plan.page_path,
         plan.pptx_path,
         *plan.image_paths,
         plan.index_path,
         plan.list_path,
         plan.sitemap_path,
+        repo / "presentations" / "day_slides" / "meta_index.json",
     ]
+    return list(dict.fromkeys(paths))
+
+
+def transaction_files(plan: PublishPlan) -> list[Path]:
+    repo = plan.index_path.parent.parent
+    paths = [
+        *git_files(plan),
+        repo / "index.html",
+        repo / "feed.xml",
+        *sorted(
+            (repo / "presentations" / "day_slides").glob(
+                "day_slide_????_??_??.html"
+            )
+        ),
+    ]
+    return list(dict.fromkeys(paths))
+
+
+def snapshot_outputs(plan: PublishPlan) -> dict[Path, bytes | None]:
+    return {
+        path: path.read_bytes() if path.is_file() else None
+        for path in transaction_files(plan)
+    }
+
+
+def restore_outputs(snapshot: dict[Path, bytes | None]) -> None:
+    for path, content in snapshot.items():
+        if content is None:
+            if path.is_file():
+                path.unlink()
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+
+
+def ensure_clean_outputs(repo: Path, paths: Iterable[Path]) -> None:
+    relative_paths = [path.resolve().relative_to(repo).as_posix() for path in paths]
+    status = subprocess.run(
+        [
+            "git",
+            "status",
+            "--porcelain=v1",
+            "-z",
+            "--untracked-files=all",
+            "--",
+            *relative_paths,
+        ],
+        cwd=repo,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    ignored = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--others",
+            "--ignored",
+            "--exclude-standard",
+            "-z",
+            "--",
+            *relative_paths,
+        ],
+        cwd=repo,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if status.stdout or ignored.stdout:
+        raise SystemExit(
+            "Refusing to publish because a generated output already has local changes."
+        )
+
+
+def run_finalize(plan: PublishPlan, *, dry_run: bool) -> int:
+    repo = plan.index_path.parent.parent
+    helper = repo / "scripts" / "finalize_day_slide.py"
+    if not helper.is_file():
+        raise SystemExit(f"Missing target-repository helper: {helper}")
+    code = (
+        "import sys; "
+        "sys.path.insert(0, sys.argv[1]); "
+        "from finalize_day_slide import finalize; "
+        "raise SystemExit(finalize(sys.argv[2], int(sys.argv[3]), "
+        "dry_run=sys.argv[4] == '1', indexnow=False, checks=False))"
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            code,
+            str(helper.parent),
+            plan.mmdd,
+            str(plan.day.year),
+            "1" if dry_run else "0",
+        ],
+        cwd=repo,
+        check=False,
+    )
+    return result.returncode
 
 
 def maybe_git(args: argparse.Namespace, plan: PublishPlan) -> None:
     if not (args.stage or args.commit or args.push):
         return
     repo = args.repo_root.resolve()
-    rel_files = [str(p.resolve().relative_to(repo)) for p in git_files(plan)]
+    direct = git_files(plan)
+    direct_set = set(direct)
+    direct_files = [path for path in direct if path.exists()]
+    secondary_files = [
+        path for path in transaction_files(plan) if path not in direct_set
+    ]
+    secondary_rel = [path.resolve().relative_to(repo).as_posix() for path in secondary_files]
+    changed_secondary: list[str] = []
+    if secondary_rel:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "-z", "--", *secondary_rel],
+            cwd=repo,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        changed_secondary = [path for path in result.stdout.split("\0") if path]
+    rel_files = [
+        *[path.resolve().relative_to(repo).as_posix() for path in direct_files],
+        *changed_secondary,
+    ]
     run_git(repo, ["add", "-f", *rel_files])
     if args.commit or args.push:
         run_git(repo, ["diff", "--cached", "--check"])
@@ -652,16 +794,24 @@ def main() -> int:
     if args.dry_run:
         for path in git_files(plan):
             print(f"[dry-run] would write {path}")
-        from finalize_day_slide import finalize as finalize_slide
-        return finalize_slide(plan.mmdd, plan.day.year, dry_run=True, indexnow=False, checks=False)
-    write_outputs(plan)
-    from finalize_day_slide import finalize as finalize_slide
-    fin_rc = finalize_slide(plan.mmdd, plan.day.year, dry_run=False, indexnow=False, checks=False)
+        return run_finalize(plan, dry_run=True)
+    ensure_clean_index(args.repo_root)
+    if args.stage or args.commit or args.push:
+        ensure_clean_outputs(args.repo_root, transaction_files(plan))
+    output_snapshot = snapshot_outputs(plan)
+    try:
+        write_outputs(plan)
+        fin_rc = run_finalize(plan, dry_run=False)
+    except BaseException:
+        restore_outputs(output_snapshot)
+        raise
     if fin_rc:
+        restore_outputs(output_snapshot)
         print("[publish] finalize_day_slide failed", file=sys.stderr)
         return fin_rc
     errors = validate(plan)
     if errors:
+        restore_outputs(output_snapshot)
         print("[publish] validation failed:", file=sys.stderr)
         for error in errors:
             print(f"  - {error}", file=sys.stderr)

@@ -91,11 +91,13 @@ convert_pdf_images.py
 
 # ── Python / package manifests (not needed for static site) ─
 requirements*.txt
+!requirements-ingest.txt
 package.json
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
 sources.yaml
+!sources.yaml
 
 # ── Docs / planning / status (keep local) ─────────────────
 BUG_FIX_REPORT.md
@@ -113,6 +115,7 @@ script/*
 !script/build_day_slides_list.py
 !script/build_news.py
 !script/build_ranking_from_preview.py
+!script/pages_heal.py
 !script/fix_day_slides_mojibake.py
 !script/update_presentations_latest.py
 # scripts/ holds permanent SEO/build automation; whitelist the ones we want tracked.
@@ -150,10 +153,16 @@ scripts/collectors/*
 !scripts/collectors/base.py
 !scripts/collectors/rss.py
 !scripts/collectors/hn.py
+!scripts/collectors/producthunt.py
+!scripts/collectors/github.py
 !scripts/daily_report_paths.json
 !scripts/publish_daily_report.py
 !scripts/run_daily_override.ps1
 !scripts/register_daily_override_task.ps1
+!scripts/config.py
+!scripts/ingest.py
+!scripts/validate.py
+!scripts/public_html.py
 
 # OG-image cache is machine-local (rebuilt from slide titles on demand).
 assets/og/.og-cache.json
@@ -175,6 +184,7 @@ src/generators/*
 !src/generators/__init__.py
 !src/generators/slide_generator.py
 !src/generators/ranking_report_generator.py
+!src/generators/detail_analysis_generator.py
 # 2026-06 refactor: god-file split modules (imported by ranking_report_generator.py)
 !src/generators/ranking_data_parser.py
 !src/generators/ranking_template.py
@@ -192,8 +202,15 @@ tests/
 tests/*
 !tests/test_auto_collect_main.py
 !tests/test_publish_daily_report.py
+!tests/test_publish_image2_day_slide.py
 !tests/test_daily_override_automation.py
 !tests/test_html_report_parser.py
+!tests/test_distribution_workflows.py
+!tests/test_render_safety.py
+!tests/test_site_freshness.py
+!tests/test_analytics_contract.py
+!tests/test_article_contract.py
+!tests/verify_analytics_events.cjs
 data/
 # config/ only tracks analytics.json (GA4 ID is public-safe).
 config/*
@@ -237,6 +254,11 @@ recommended_tools_precise.html
 .playwright-mcp/
 .windsurf/
 .github/
+!.github/
+.github/*
+!.github/workflows/
+.github/workflows/*
+!.github/workflows/publish-generated-content.yml
 .gemini_key_tmp
 *.bak
 *.bak.*
@@ -284,3 +306,5 @@ docs/plans/2026-09-05-content-integrity/*
 !docs/plans/2026-09-05-claim-evidence/
 docs/plans/2026-09-05-claim-evidence/*
 !docs/plans/2026-09-05-claim-evidence/SCHEMA.md
+!docs/plans/2026-10-03-codebase-improvement/
+!docs/plans/2026-10-03-codebase-improvement/**

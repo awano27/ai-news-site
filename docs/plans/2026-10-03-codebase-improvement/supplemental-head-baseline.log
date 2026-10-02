@@ -1,0 +1,939 @@
+FFFFFFFF..FFFF...FFFFFF.FFFFFF                     [100%]
+================================== FAILURES ===================================
+_ DaySlidesLatestContractTest.test_extractor_sorts_decodes_and_rejects_invalid_cards _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_extractor_sorts_decodes_and_rejects_invalid_cards>
+
+    def test_extractor_sorts_decodes_and_rejects_invalid_cards(self) -> None:
+>       entries = publisher.extract_archive_slides(fixture_html())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'extract_archive_slides'
+
+tests\test_day_slides_latest_contract.py:47: AttributeError
+_ DaySlidesLatestContractTest.test_extractor_tracks_nested_nonspan_and_duplicate_title_elements _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_extractor_tracks_nested_nonspan_and_duplicate_title_elements>
+
+    def test_extractor_tracks_nested_nonspan_and_duplicate_title_elements(self) -> None:
+        nested = '<a class="slide-card" href="day_slides/day_slide_2026_07_26.html"><span class="slide-title">Second <span>and</span> tail</span><span>ignored</span></a>'
+        nonspan = '<a class="slide-card" href="day_slides/day_slide_2026_07_26.html"><div class="slide-title">Second</div><span>trailing card text</span></a>'
+>       self.assertEqual(publisher.extract_archive_slides(nested)[0].title, "Second and tail")
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'extract_archive_slides'
+
+tests\test_day_slides_latest_contract.py:148: AttributeError
+_ DaySlidesLatestContractTest.test_freshness_guard_rejects_recent_badge_and_latest_in_title _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_freshness_guard_rejects_recent_badge_and_latest_in_title>
+
+    def test_freshness_guard_rejects_recent_badge_and_latest_in_title(self) -> None:
+>       synced = publisher.sync_day_slides_index(fixture_html())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:110: AttributeError
+_ DaySlidesLatestContractTest.test_freshness_guard_rejects_stale_cta_and_double_latest_tag _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_freshness_guard_rejects_stale_cta_and_double_latest_tag>
+
+    def test_freshness_guard_rejects_stale_cta_and_double_latest_tag(self) -> None:
+>       synced = publisher.sync_day_slides_index(fixture_html())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:100: AttributeError
+_ DaySlidesLatestContractTest.test_freshness_guard_supports_fewer_than_three_slides _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_freshness_guard_supports_fewer_than_three_slides>
+
+    def test_freshness_guard_supports_fewer_than_three_slides(self) -> None:
+        dates = ["2026-07-26", "2026-07-25"]
+        for count in (1, 2):
+            expected = dates[:count]
+            cards = "".join(
+                (
+                    f'<a class="feat-card" href="day_slides/day_slide_{value.replace("-", "_")}.html">'
+                    + ('<div class="feat-tag">LATEST</div>' if index == 0 else "")
+                    + "</a>"
+                )
+                for index, value in enumerate(expected)
+            )
+            html = (
+                '<div class="header-actions">'
+                f'<a class="cta" href="day_slides/day_slide_{expected[0].replace("-", "_")}.html">最新スライド</a>'
+                "</div>"
+                f'<div class="featured-grid">{cards}</div>'
+                f'<div class="stat-num">{expected[0].replace("-", "/")}</div>'
+                '<span class="stat-label">Latest Update</span>'
+            )
+>           checks = freshness.check_index_latest_contract(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                html, expected[0], expected
+            )
+E           AttributeError: module 'scripts.check_site_freshness' has no attribute 'check_index_latest_contract'
+
+tests\test_day_slides_latest_contract.py:139: AttributeError
+_ DaySlidesLatestContractTest.test_past_backfill_and_featured_only_href_insert_into_month_archive _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_past_backfill_and_featured_only_href_insert_into_month_archive>
+
+    def test_past_backfill_and_featured_only_href_insert_into_month_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_temp:
+            temp_dir = Path(raw_temp)
+            index_path = temp_dir / "day_slides_index.html"
+            feature_only = fixture_html().replace('day_slide_2026_06_20.html', 'day_slide_2026_06_19.html', 2)
+            index_path.write_text(feature_only, encoding="utf-8")
+            plan = publisher.PublishPlan(
+                mmdd="0619", day=date(2026, 6, 19), title="過去の &amp; \"引用\" '単引用'", summary="fixture",
+                section="AI", slug="fixture", workspace=temp_dir, image_sources=[], pptx_source=temp_dir / "source.pptx",
+                page_path=temp_dir / "page.html", pptx_path=temp_dir / "deck.pptx", image_dir=temp_dir / "images", image_paths=[],
+                index_path=index_path, list_path=temp_dir / "list.html", sitemap_path=temp_dir / "sitemap.xml",
+            )
+>           publisher.update_index(plan)
+
+tests\test_day_slides_latest_contract.py:181:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\publish_image2_day_slide.py:502: in update_index
+    text = update_featured(text, plan)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+text = '<!doctype html><html><body>\n<header><div class="header-actions"><a class="cta" href="day_slides/day_slide_2026_06_19...s: rebuild RECENT from archive cards while preserving static fallback.\n(function () {\n})();\n</script></body></html>'
+plan = PublishPlan(mmdd='0619', day=datetime.date(2026, 6, 19), title='過去の &amp; "引用" \'単引用\'', summary='fixture', section='A...al/Temp/tmpnnsia09b/list.html'), sitemap_path=WindowsPath('C:/Users/awano/AppData/Local/Temp/tmpnnsia09b/sitemap.xml'))
+
+    def update_featured(text: str, plan: PublishPlan) -> str:
+        existing_titles = [
+            strip_tags(title)
+            for href, title in re.findall(
+                r'<a class="feat-card" href="([^"]+)">.*?<h3 class="feat-title">(.*?)</h3>.*?</a>',
+                text,
+                flags=re.S,
+            )
+            if href != plan.rel_page_href
+        ]
+        sub_titles = [compact(plan.title.split(" / ")[0], 28)]
+        sub_titles.extend(compact(t.split(" / ")[0], 28) for t in existing_titles[:2])
+        section_sub = "直近のスライドをハイライト。" + "、".join(sub_titles[:3]) + "など。"
+        text = re.sub(
+            r'<p class="section-sub">.*?</p>',
+            f'<p class="section-sub">{escape(section_sub)}</p>',
+            text,
+            count=1,
+            flags=re.S,
+        )
+        current_card = re.compile(
+            rf'\n\s*<a class="feat-card" href="{re.escape(plan.rel_page_href)}">.*?</a>\s*',
+            re.S,
+        )
+        text = current_card.sub("\n", text)
+        text = re.sub(
+            r'\n\s*<div class="feat-tag"><span class="dot"></span>LATEST</div>',
+            "",
+            text,
+            count=1,
+        )
+        marker = '        <div class="featured-grid">\n'
+        if marker not in text:
+>           raise SystemExit("Could not find featured-grid in day_slides_index.html")
+E           SystemExit: Could not find featured-grid in day_slides_index.html
+
+scripts\publish_image2_day_slide.py:450: SystemExit
+_ DaySlidesLatestContractTest.test_sync_only_unchanged_does_not_write_other_files _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_sync_only_unchanged_does_not_write_other_files>
+
+    def test_sync_only_unchanged_does_not_write_other_files(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_temp:
+            repo = Path(raw_temp)
+            index_path = repo / "presentations" / "day_slides_index.html"
+            index_path.parent.mkdir(parents=True)
+>           index_path.write_text(publisher.sync_day_slides_index(fixture_html()), encoding="utf-8")
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:228: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_normalizes_many_old_featured_cards_and_badges _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_normalizes_many_old_featured_cards_and_badges>
+
+    def test_synchronizer_normalizes_many_old_featured_cards_and_badges(self) -> None:
+        old_cards = ''.join(
+            f'<a class="feat-card" href="day_slides/day_slide_2026_06_20.html"><div class="feat-tag">RECENT</div><h3 class="feat-title">old {number}</h3></a>'
+            for number in range(4)
+        )
+        source = fixture_html().replace('<a class="feat-card" href="day_slides/day_slide_2026_06_20.html"><div class="feat-tag">LATEST</div></a>', old_cards)
+>       synced = publisher.sync_day_slides_index(source)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:165: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='header CTA', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='header CTA', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='Latest Update', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='Latest Update', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='Total Slides', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='Total Slides', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='Months Covered', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='Months Covered', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='featured grid', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='featured grid', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='featured description', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='featured description', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='archive range', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='archive range', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='filter count', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='filter count', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='filter total', case='missing') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(missing(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:83: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_each_required_target_when_missing_or_duplicate (target='filter total', case='duplicate') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_each_required_target_when_missing_or_duplicate>
+
+    def test_synchronizer_rejects_each_required_target_when_missing_or_duplicate(self) -> None:
+        source = fixture_html()
+        mutations = {
+            "header CTA": (lambda text: text.replace('class="cta"', 'class="missing-cta"', 1), lambda text: text.replace('</a></div></header>', '</a><a class="cta" href="x">duplicate</a></div></header>', 1)),
+            "Latest Update": (lambda text: text.replace('Latest Update', 'Missing Update', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Latest Update</span></div></section>', 1)),
+            "Total Slides": (lambda text: text.replace('Total Slides', 'Missing Total', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Total Slides</span></div></section>', 1)),
+            "Months Covered": (lambda text: text.replace('Months Covered', 'Missing Months', 1), lambda text: text.replace('</section>', '<div class="stat-card"><div class="stat-num">x</div><span class="stat-label">Months Covered</span></div></section>', 1)),
+            "featured grid": (lambda text: text.replace('class="featured-grid"', 'class="missing-grid"', 1), lambda text: text.replace('</div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', '</div><div class="featured-grid"></div></section>\n<section><p class="section-sub"><span id="archiveDateRange"', 1)),
+            "featured description": (lambda text: text.replace('<p class="section-sub">old</p>', '<p class="missing-sub">old</p>', 1), lambda text: text.replace('<p class="section-sub">old</p>', '<p class="section-sub">old</p><p class="section-sub">duplicate</p>', 1)),
+            "archive range": (lambda text: text.replace('id="archiveDateRange"', 'id="missingRange"', 1), lambda text: text.replace('</span></p><strong id="filterCount"', '</span><span id="archiveDateRange">duplicate</span></p><strong id="filterCount"', 1)),
+            "filter count": (lambda text: text.replace('id="filterCount"', 'id="missingCount"', 1), lambda text: text.replace('</strong><span id="filterTotal"', '</strong><strong id="filterCount">duplicate</strong><span id="filterTotal"', 1)),
+            "filter total": (lambda text: text.replace('id="filterTotal"', 'id="missingTotal"', 1), lambda text: text.replace('</span><div id="archiveList"', '</span><span id="filterTotal">duplicate</span><div id="archiveList"', 1)),
+        }
+        for name, (missing, duplicate) in mutations.items():
+            with self.subTest(target=name, case="missing"), self.assertRaises(ValueError):
+                publisher.sync_day_slides_index(missing(source))
+            with self.subTest(target=name, case="duplicate"), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(duplicate(source))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:85: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_invalid_month_group_matrix (case='duplicate month') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_invalid_month_group_matrix>
+
+    def test_synchronizer_rejects_invalid_month_group_matrix(self) -> None:
+        source = fixture_html()
+        cases = {
+            "duplicate month": source.replace('data-month="2026-06"', 'data-month="2026-07"'),
+            "empty group": source.replace('<a class="slide-card" href="day_slides/day_slide_2026_06_20.html"><span class="slide-title">Older</span></a>', ''),
+            "card in wrong month": source.replace('day_slide_2026_06_20.html', 'day_slide_2026_07_20.html'),
+            "duplicate month count": source.replace('<span class="month-count">99 件</span>', '<span class="month-count">99 件</span><span class="month-count">99 件</span>', 1),
+        }
+        for name, broken in cases.items():
+            with self.subTest(case=name), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(broken)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:97: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_invalid_month_group_matrix (case='empty group') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_invalid_month_group_matrix>
+
+    def test_synchronizer_rejects_invalid_month_group_matrix(self) -> None:
+        source = fixture_html()
+        cases = {
+            "duplicate month": source.replace('data-month="2026-06"', 'data-month="2026-07"'),
+            "empty group": source.replace('<a class="slide-card" href="day_slides/day_slide_2026_06_20.html"><span class="slide-title">Older</span></a>', ''),
+            "card in wrong month": source.replace('day_slide_2026_06_20.html', 'day_slide_2026_07_20.html'),
+            "duplicate month count": source.replace('<span class="month-count">99 件</span>', '<span class="month-count">99 件</span><span class="month-count">99 件</span>', 1),
+        }
+        for name, broken in cases.items():
+            with self.subTest(case=name), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(broken)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:97: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_invalid_month_group_matrix (case='card in wrong month') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_invalid_month_group_matrix>
+
+    def test_synchronizer_rejects_invalid_month_group_matrix(self) -> None:
+        source = fixture_html()
+        cases = {
+            "duplicate month": source.replace('data-month="2026-06"', 'data-month="2026-07"'),
+            "empty group": source.replace('<a class="slide-card" href="day_slides/day_slide_2026_06_20.html"><span class="slide-title">Older</span></a>', ''),
+            "card in wrong month": source.replace('day_slide_2026_06_20.html', 'day_slide_2026_07_20.html'),
+            "duplicate month count": source.replace('<span class="month-count">99 件</span>', '<span class="month-count">99 件</span><span class="month-count">99 件</span>', 1),
+        }
+        for name, broken in cases.items():
+            with self.subTest(case=name), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(broken)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:97: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_invalid_month_group_matrix (case='duplicate month count') _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_invalid_month_group_matrix>
+
+    def test_synchronizer_rejects_invalid_month_group_matrix(self) -> None:
+        source = fixture_html()
+        cases = {
+            "duplicate month": source.replace('data-month="2026-06"', 'data-month="2026-07"'),
+            "empty group": source.replace('<a class="slide-card" href="day_slides/day_slide_2026_06_20.html"><span class="slide-title">Older</span></a>', ''),
+            "card in wrong month": source.replace('day_slide_2026_06_20.html', 'day_slide_2026_07_20.html'),
+            "duplicate month count": source.replace('<span class="month-count">99 件</span>', '<span class="month-count">99 件</span><span class="month-count">99 件</span>', 1),
+        }
+        for name, broken in cases.items():
+            with self.subTest(case=name), self.assertRaises(ValueError):
+>               publisher.sync_day_slides_index(broken)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:97: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_rejects_slide_card_outside_archive_groups _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_rejects_slide_card_outside_archive_groups>
+
+    def test_synchronizer_rejects_slide_card_outside_archive_groups(self) -> None:
+        outside = fixture_html().replace('</body>', '<a class="slide-card" href="day_slides/day_slide_2026_08_01.html"><span class="slide-title">Outside</span></a></body>')
+        with self.assertRaises(ValueError):
+>           publisher.sync_day_slides_index(outside)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:157: AttributeError
+_ DaySlidesLatestContractTest.test_synchronizer_repairs_stale_cta_that_also_exists_in_archive _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_synchronizer_repairs_stale_cta_that_also_exists_in_archive>
+
+    def test_synchronizer_repairs_stale_cta_that_also_exists_in_archive(self) -> None:
+>       synced = publisher.sync_day_slides_index(fixture_html())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:59: AttributeError
+_ DaySlidesLatestContractTest.test_validate_reports_stale_cta_and_fourth_featured_card _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_validate_reports_stale_cta_and_fourth_featured_card>
+
+    def test_validate_reports_stale_cta_and_fourth_featured_card(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_temp:
+            temp_dir = Path(raw_temp)
+            index_path = temp_dir / "index.html"
+>           stale = publisher.sync_day_slides_index(fixture_html()).replace('day_slide_2026_07_26.html', 'day_slide_2026_06_20.html', 1)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'scripts.publish_image2_day_slide' has no attribute 'sync_day_slides_index'
+
+tests\test_day_slides_latest_contract.py:191: AttributeError
+_ DaySlidesLatestContractTest.test_write_outputs_keeps_update_index_as_final_index_writer _
+
+self = <test_day_slides_latest_contract.DaySlidesLatestContractTest testMethod=test_write_outputs_keeps_update_index_as_final_index_writer>
+
+    def test_write_outputs_keeps_update_index_as_final_index_writer(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_temp:
+            temp_dir = Path(raw_temp)
+            index_path = temp_dir / "presentations" / "day_slides_index.html"
+            index_path.parent.mkdir(parents=True)
+            index_path.write_text(fixture_html(), encoding="utf-8")
+            plan = plan_for(temp_dir, index_path)
+            calls: list[str] = []
+            def builder_rewrite(_: publisher.PublishPlan) -> None:
+                calls.append("builder")
+                index_path.write_text(fixture_html(), encoding="utf-8")
+
+            def final_index_writer(value: publisher.PublishPlan) -> None:
+                calls.append("index")
+                index_path.write_text("final index writer", encoding="utf-8")
+
+            with patch.object(publisher, "read_slide_titles", return_value=[]), patch.object(publisher, "convert_images"), patch.object(publisher, "copy_pptx"), patch.object(publisher, "render_html", return_value="page"), patch.object(publisher, "update_list", side_effect=builder_rewrite), patch.object(publisher, "update_index", side_effect=final_index_writer), patch.object(publisher, "update_sitemap"):
+                publisher.write_outputs(plan)
+
+>           self.assertEqual(calls, ["builder", "index"])
+E           AssertionError: Lists differ: ['index', 'builder'] != ['builder', 'index']
+E
+E           First differing element 0:
+E           'index'
+E           'builder'
+E
+E           - ['index', 'builder']
+E           + ['builder', 'index']
+
+tests\test_day_slides_latest_contract.py:220: AssertionError
+__________________________ test_ranking_title_has_id __________________________
+
+    def test_ranking_title_has_id():
+>       assert 'id="rankingTitle"' in _html()
+E       assert 'id="rankingTitle"' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:29: AssertionError
+__________________________ test_ranking_note_has_id ___________________________
+
+    def test_ranking_note_has_id():
+>       assert 'id="rankingNote"' in _html()
+E       assert 'id="rankingNote"' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:32: AssertionError
+__________________ test_ranking_title_no_unconditional_today __________________
+
+    def test_ranking_title_no_unconditional_today():
+        m = re.search(r'id="rankingTitle">([^<]+)</h2>', _html())
+>       assert m, "rankingTitle not found"
+E       AssertionError: rankingTitle not found
+E       assert None
+
+tests\test_ux_improvements.py:36: AssertionError
+________________________ test_cat_note_no_hardcoded_4 _________________________
+
+    def test_cat_note_no_hardcoded_4():
+>       assert "注目4カテゴリ" not in _html()
+E       assert '注目4カテゴリ' not in '<!DOCTYPE h...>\n</html>\n'
+E
+E         '注目4カテゴリ' is contained here:
+E           ion-note">注目4カテゴリのトップニュース。研究・SNS・解説など全カテゴリは<a href="presentations/news_archive.html">アーカイブ</a>から。</p>
+E         ?           +++++++
+E                     </div>
+E                     <a class="section-link" href="presentations/news_archive.html">アーカイブで全件を見る <span aria-hidden="true">→</span></a>
+E                   </div>...
+E
+E         ...Full output truncated (596 lines hidden), use '-vv' to show
+
+tests\test_ux_improvements.py:45: AssertionError
+____________________________ test_cat_note_has_id _____________________________
+
+    def test_cat_note_has_id():
+>       assert 'id="catNote"' in _html()
+E       assert 'id="catNote"' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:48: AssertionError
+__________________________ test_rc_blurb_css_present __________________________
+
+    def test_rc_blurb_css_present():
+>       assert ".rc-blurb" in _html()
+E       assert '.rc-blurb' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:51: AssertionError
+_________________________ test_slide_card_desc_has_id _________________________
+
+    def test_slide_card_desc_has_id():
+>       assert 'id="slideCardDesc"' in _html()
+E       assert 'id="slideCardDesc"' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:57: AssertionError
+_____________________________ test_nav_js_is_1024 _____________________________
+
+    def test_nav_js_is_1024():
+>       assert "innerWidth > 1024" in _html()
+E       assert 'innerWidth > 1024' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:60: AssertionError
+_____________________________ test_nav_js_not_880 _____________________________
+
+    def test_nav_js_not_880():
+>       assert "innerWidth > 880" not in _html()
+E       AssertionError: assert 'innerWidth > 880' not in '<!DOCTYPE h...>\n</html>\n'
+E
+E         'innerWidth > 880' is contained here:
+E           f (window.innerWidth > 880 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);
+E         ?           ++++++++++++++++
+E               });
+E             })();
+E             </script>
+E           </body>
+E           </html>
+
+tests\test_ux_improvements.py:63: AssertionError
+____________________________ test_nav_css_is_1024 _____________________________
+
+    def test_nav_css_is_1024():
+>       assert "@media (max-width: 1024px)" in _html()
+E       assert '@media (max-width: 1024px)' in "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n"
+E        +  where "<!DOCTYPE html>\n<!--\n  ============================================================\n  AI Intelligence Hub — Home (...80 && btn.getAttribute('aria-expanded') === 'true') setOpen(false);\n    });\n  })();\n  </script>\n</body>\n</html>\n" = _html()
+
+tests\test_ux_improvements.py:66: AssertionError
+____________________ test_build_script_ranking_card_blurb _____________________
+
+tmp_path = WindowsPath('C:/Users/awano/AppData/Local/Temp/pytest-of-awano/pytest-61/test_build_script_ranking_card0')
+
+    def test_build_script_ranking_card_blurb(tmp_path):
+        n = shutil.which("node")
+        if not n: pytest.skip("node required")
+        s = tmp_path / "scripts" / "build-homepage-latest.js"
+        s.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "scripts" / "build-homepage-latest.js", s)
+>       newest = max((ROOT / "presentations" / "day_slides").glob("day_slide_????_??_??.html"))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: max() arg is an empty sequence
+
+tests\test_ux_improvements.py:74: ValueError
+_________________________ test_slide_card_desc_filled _________________________
+
+tmp_path = WindowsPath('C:/Users/awano/AppData/Local/Temp/pytest-of-awano/pytest-61/test_slide_card_desc_filled0')
+
+    def test_slide_card_desc_filled(tmp_path):
+        n = shutil.which("node")
+        if not n: pytest.skip("node required")
+        s = tmp_path / "scripts" / "build-homepage-latest.js"
+        s.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "scripts" / "build-homepage-latest.js", s)
+>       newest = max((ROOT / "presentations" / "day_slides").glob("day_slide_????_??_??.html"))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: max() arg is an empty sequence
+
+tests\test_ux_improvements.py:93: ValueError
+=========================== short test summary info ===========================
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_extractor_sorts_decodes_and_rejects_invalid_cards
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_extractor_tracks_nested_nonspan_and_duplicate_title_elements
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_freshness_guard_rejects_recent_badge_and_latest_in_title
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_freshness_guard_rejects_stale_cta_and_double_latest_tag
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_freshness_guard_supports_fewer_than_three_slides
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_past_backfill_and_featured_only_href_insert_into_month_archive
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_sync_only_unchanged_does_not_write_other_files
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_normalizes_many_old_featured_cards_and_badges
+SUBFAILED(target='header CTA', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='header CTA', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='Latest Update', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='Latest Update', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='Total Slides', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='Total Slides', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='Months Covered', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='Months Covered', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='featured grid', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='featured grid', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='featured description', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='featured description', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='archive range', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='archive range', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='filter count', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='filter count', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='filter total', case='missing') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(target='filter total', case='duplicate') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_each_required_target_when_missing_or_duplicate
+SUBFAILED(case='duplicate month') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_invalid_month_group_matrix
+SUBFAILED(case='empty group') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_invalid_month_group_matrix
+SUBFAILED(case='card in wrong month') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_invalid_month_group_matrix
+SUBFAILED(case='duplicate month count') tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_invalid_month_group_matrix
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_rejects_slide_card_outside_archive_groups
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_synchronizer_repairs_stale_cta_that_also_exists_in_archive
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_validate_reports_stale_cta_and_fourth_featured_card
+FAILED tests/test_day_slides_latest_contract.py::DaySlidesLatestContractTest::test_write_outputs_keeps_update_index_as_final_index_writer
+FAILED tests/test_ux_improvements.py::test_ranking_title_has_id - assert 'id=...
+FAILED tests/test_ux_improvements.py::test_ranking_note_has_id - assert 'id="...
+FAILED tests/test_ux_improvements.py::test_ranking_title_no_unconditional_today
+FAILED tests/test_ux_improvements.py::test_cat_note_no_hardcoded_4 - assert '...
+FAILED tests/test_ux_improvements.py::test_cat_note_has_id - assert 'id="catN...
+FAILED tests/test_ux_improvements.py::test_rc_blurb_css_present - assert '.rc...
+FAILED tests/test_ux_improvements.py::test_slide_card_desc_has_id - assert 'i...
+FAILED tests/test_ux_improvements.py::test_nav_js_is_1024 - assert 'innerWidt...
+FAILED tests/test_ux_improvements.py::test_nav_js_not_880 - AssertionError: a...
+FAILED tests/test_ux_improvements.py::test_nav_css_is_1024 - assert '@media (...
+FAILED tests/test_ux_improvements.py::test_build_script_ranking_card_blurb - ...
+FAILED tests/test_ux_improvements.py::test_slide_card_desc_filled - ValueErro...
+46 failed, 6 passed in 3.34s

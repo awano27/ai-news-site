@@ -10,12 +10,16 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Checkout workflow helpers
+        uses: actions/checkout@v4
+
       - name: Probe critical URLs
         id: probe
         run: |
@@ -45,10 +49,87 @@ jobs:
           echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Trigger Pages rebuild if any failure
+      - name: Request an exact-revision Pages rebuild
+        id: dispatch
+        continue-on-error: true
         if: steps.probe.outputs.failed != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "::warning::${{ steps.probe.outputs.failed }} URL(s) failed — triggering Pages rebuild"
-          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+          TARGET_SHA=$(gh api "repos/${{ github.repository }}/commits/${DEFAULT_BRANCH}" --jq .sha)
+          BEFORE_ID=$(gh run list --repo "${{ github.repository }}" --workflow pages.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')
+          echo "::warning::${{ steps.probe.outputs.failed }} URL(s) failed — dispatching Pages for ${TARGET_SHA}"
+          gh workflow run pages.yml --repo "${{ github.repository }}" --ref "$DEFAULT_BRANCH" -f ref="$TARGET_SHA"
+          echo "accepted=true" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
+
+          RUN_ID=""
+          for attempt in $(seq 1 12); do
+            RUN_ID=$(gh run list --repo "${{ github.repository }}" --workflow pages.yml --event workflow_dispatch --limit 20 \
+              --json databaseId,displayTitle \
+              --jq ".[] | select(.databaseId > ${BEFORE_ID} and .displayTitle == \"Deploy Pages @ ${TARGET_SHA}\") | .databaseId" | head -n 1)
+            if [ -n "$RUN_ID" ]; then
+              break
+            fi
+            sleep 5
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::Pages dispatch was accepted but its workflow run was not found"
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for dispatched Pages workflow
+        id: wait
+        continue-on-error: true
+        if: steps.dispatch.outputs.accepted == 'true' && steps.dispatch.outputs.run_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh run watch "${{ steps.dispatch.outputs.run_id }}" --repo "${{ github.repository }}" --exit-status
+
+      - name: Probe critical URLs after rebuild
+        id: recovery
+        if: steps.wait.outcome == 'success'
+        run: |
+          URLS=(
+            "https://visionhub.jp/"
+            "https://visionhub.jp/about.html"
+            "https://visionhub.jp/contact.html"
+            "https://visionhub.jp/privacy-policy.html"
+            "https://visionhub.jp/credits.html"
+            "https://visionhub.jp/404.html"
+            "https://visionhub.jp/ads.txt"
+            "https://visionhub.jp/robots.txt"
+            "https://visionhub.jp/sitemap.xml"
+            "https://visionhub.jp/assets/js/analytics.js"
+            "https://visionhub.jp/assets/hero-planck.jpg"
+            "https://visionhub.jp/assets/og/default.png"
+          )
+          FAILED=0
+          for u in "${URLS[@]}"; do
+            CODE=$(curl -sS -o /dev/null -w "%{http_code}" -H "Cache-Control: no-cache" "$u" || true)
+            echo "$CODE  $u"
+            if [ "$CODE" != "200" ]; then
+              FAILED=$((FAILED + 1))
+            fi
+          done
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+
+      - name: Classify self-heal result
+        if: always()
+        env:
+          INITIAL_FAILED: ${{ steps.probe.outputs.failed }}
+          DISPATCH_ACCEPTED: ${{ steps.dispatch.outputs.accepted }}
+          RECOVERY_FAILED: ${{ steps.recovery.outputs.failed }}
+        run: |
+          args=(--initial-failures "${INITIAL_FAILED:-0}")
+          if [ "$DISPATCH_ACCEPTED" = "true" ]; then
+            args+=(--dispatch-succeeded true)
+          elif [ "${INITIAL_FAILED:-0}" != "0" ]; then
+            args+=(--dispatch-succeeded false)
+          fi
+          if [ -n "$RECOVERY_FAILED" ]; then
+            args+=(--recovery-failures "$RECOVERY_FAILED")
+          fi
+          python script/pages_heal.py "${args[@]}"

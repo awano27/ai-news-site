@@ -14,7 +14,7 @@ from collections import Counter, defaultdict
 import calendar
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from src.utils.sanitize import sanitize_html
+from src.utils.sanitize import sanitize_html, normalize_template_data
 from src.utils import read_json, write_text, NEWS_DIR, TEMPLATES_DIR
 
 
@@ -123,18 +123,18 @@ class SlideGenerator:
             'trends': trends,
             'generation_date': datetime.now().strftime('%Y年%m月%d日'),
             'chart_data': {
-                'categories': json.dumps(list(trends['categories'].keys())),
-                'category_counts': json.dumps(list(trends['categories'].values())),
-                'daily_labels': json.dumps(sorted(trends['daily_counts'].keys())),
-                'daily_values': json.dumps([trends['daily_counts'].get(date, 0) 
-                                          for date in sorted(trends['daily_counts'].keys())])
+                'categories': list(trends['categories'].keys()),
+                'category_counts': list(trends['categories'].values()),
+                'daily_labels': sorted(trends['daily_counts'].keys()),
+                'daily_values': [trends['daily_counts'].get(date, 0)
+                                          for date in sorted(trends['daily_counts'].keys())]
             }
         }
         
         # テンプレートの読み込みとレンダリング
         try:
             template = self.jinja_env.get_template('monthly_report.html')
-            html_content = template.render(**template_data)
+            html_content = template.render(**normalize_template_data(template_data))
             html_content = sanitize_html(html_content)
             
             # ファイル出力
@@ -173,7 +173,7 @@ class SlideGenerator:
             }
             
             template = self.jinja_env.get_template('daily_slide.html')
-            html_content = template.render(**template_data)
+            html_content = template.render(**normalize_template_data(template_data))
             html_content = sanitize_html(html_content)
             
             output_file = self.output_dir / f"daily_slide_{date}.html"
@@ -228,7 +228,7 @@ class SlideGenerator:
         
         try:
             template = self.jinja_env.get_template('index.html')
-            html_content = template.render(presentations=presentations)
+            html_content = template.render(presentations=normalize_template_data(presentations))
             html_content = sanitize_html(html_content)
             
             index_file = self.output_dir / "index.html"

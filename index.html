@@ -2037,25 +2037,24 @@
         <div class="section-head">
           <div>
             <div class="section-eyebrow">AI Ranking</div>
-            <h2 class="section-title">今日のスコア上位 3 本</h2>
-            <p class="section-note">毎日のAIニュースを重要度スコアで自動ランキング。今日特に重要な3本を抽出しています。</p>
+            <h2 class="section-title">今日の注目 3 本</h2>
+            <p class="section-note">編集推薦の日次スライドを先頭に、AI関連ニュースをスコア順で最大3本紹介します。</p>
           </div>
-          <a class="section-link" href="presentations/ai_ranking_report_latest.html">TOP 10 をすべて見る <span aria-hidden="true">→</span></a>
+          <a class="section-link" href="presentations/ai_ranking_report_latest.html">30日間の TOP 30 を見る <span aria-hidden="true">→</span></a>
         </div>
         <div id="rankingGrid" class="ranking-grid">
-          <a class="ranking-card" href="presentations/day_slides/day_slide_2026_09_13.html" aria-label="1位: AI開発を、安全確認が追いつく速さに。">
+          <a class="ranking-card" href="presentations/day_slides/day_slide_2026_09_13.html" aria-label="注目 1: AI開発を、安全確認が追いつく速さに。">
             <div class="rc-rank">01</div>
             <div class="rc-body">
               <span class="rc-tag">本日のスライド</span>
               <h3 class="rc-title">AI開発を、安全確認が追いつく速さに。</h3>
               <span class="rc-source">AI Intelligence Hub</span>
               <div class="rc-foot">
-                <div class="rc-bar"><div class="rc-fill" style="width:100%"></div></div>
-                <span class="rc-score">5.0 / 5</span>
+                <span class="rc-score">編集推薦</span>
               </div>
             </div>
           </a>
-          <a class="ranking-card" href="https://gigazine.net/news/20260912-spotify-cut-claude-code-token-usage" target="_blank" rel="noopener noreferrer" aria-label="2位: SpotifyがClaude Codeのトークン消費を90%削減">
+          <a class="ranking-card" href="https://gigazine.net/news/20260912-spotify-cut-claude-code-token-usage" target="_blank" rel="noopener noreferrer" aria-label="注目 2: SpotifyがClaude Codeのトークン消費を90%削減">
             <div class="rc-rank">02</div>
             <div class="rc-body">
               <span class="rc-tag">tech</span>
@@ -2067,7 +2066,7 @@
               </div>
             </div>
           </a>
-          <a class="ranking-card" href="https://gigazine.net/news/20260912-goose" target="_blank" rel="noopener noreferrer" aria-label="3位: オープンソースAIエージェント「goose」が公開、多様な利用環境に対応">
+          <a class="ranking-card" href="https://gigazine.net/news/20260912-goose" target="_blank" rel="noopener noreferrer" aria-label="注目 3: オープンソースAIエージェント「goose」が公開、多様な利用環境に対応">
             <div class="rc-rank">03</div>
             <div class="rc-body">
               <span class="rc-tag">tech</span>
@@ -2083,7 +2082,7 @@
       </div>
     </section>
     <script>
-    /* Populate "今日のスコア上位 3 本" cards from /news/latest.json (same source as ranking page). */
+    /* Populate "今日の注目 3 本" cards from /news/latest.json (editorial slide first, then scored news). */
     (function () {
       'use strict';
       var LATEST = 'news/latest.json';
@@ -2123,7 +2122,8 @@
         if (!title || !/day_slide_\d{4}_\d{2}_\d{2}\.html$/.test(href)) return null;
         return {
           title: title,
-          stars: 5,
+          stars: 0,
+          editorial: true,
           source: { name: 'AI Intelligence Hub', url: href },
           category: '本日のスライド'
         };
@@ -2165,7 +2165,7 @@
         var isExternal = /^https?:\/\//i.test(href);
         var attrs = 'href="' + escapeHtml(href) + '"' +
           (isExternal ? ' target="_blank" rel="noopener noreferrer"' : '') +
-          ' aria-label="' + escapeHtml(rank + '位: ' + (it.title || '')) + '"';
+          ' aria-label="' + escapeHtml('注目 ' + rank + ': ' + (it.title || '')) + '"';
         return '<a class="ranking-card" ' + attrs + '>' +
           '<div class="rc-rank">' + String(rank).padStart(2, '0') + '</div>' +
           '<div class="rc-body">' +
@@ -2173,8 +2173,8 @@
             '<h3 class="rc-title">' + escapeHtml(it.title) + '</h3>' +
             (srcText ? '<span class="rc-source">' + srcText + '</span>' : '<span class="rc-source"></span>') +
             '<div class="rc-foot">' +
-              '<div class="rc-bar"><div class="rc-fill" style="width:' + pct + '%"></div></div>' +
-              '<span class="rc-score">' + s.toFixed(1) + ' / 5</span>' +
+              (it.editorial ? '' : '<div class="rc-bar"><div class="rc-fill" style="width:' + pct + '%"></div></div>') +
+              '<span class="rc-score">' + (it.editorial ? '編集推薦' : s.toFixed(1) + ' / 5') + '</span>' +
             '</div>' +
           '</div>' +
         '</a>';

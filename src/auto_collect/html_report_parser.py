@@ -12,7 +12,9 @@ from typing import List, Dict
 
 from . import trend_tracker
 from .content_integrity import apply_financial_integrity
-from .claim_evidence import require_valid_evidence
+from .claim_evidence import information_label, require_valid_evidence
+
+TEMPORAL_FIELDS = ("published_at", "collected_at", "target_date")
 
 
 def parse_daily_txt(txt_path: Path) -> Dict:
@@ -89,6 +91,9 @@ def parse_daily_txt(txt_path: Path) -> Dict:
                 "correction_note": "",
                 "integrity_status": "",
                 "claim_evidence": None,
+                "published_at": None,
+                "collected_at": None,
+                "target_date": None,
             }
 
             match = re.match(r"■ (.+?)（(.+?) / スコア: (\d+)）", line)
@@ -139,6 +144,17 @@ def parse_daily_txt(txt_path: Path) -> Dict:
                 current_item["claim_evidence"] = json.loads(encoded)
             except json.JSONDecodeError as error:
                 raise ValueError(f"invalid Claim Evidence JSON in {txt_path}") from error
+        elif line_s.startswith("🕒 Article Time:"):
+            encoded = line_s.split("Article Time:", 1)[-1].strip()
+            try:
+                temporal = json.loads(encoded)
+            except json.JSONDecodeError as error:
+                raise ValueError(f"invalid Article Time JSON in {txt_path}") from error
+            if not isinstance(temporal, dict):
+                raise ValueError(f"invalid Article Time object in {txt_path}")
+            for key in TEMPORAL_FIELDS:
+                if key in temporal:
+                    current_item[key] = temporal[key]
         elif line_s.startswith("📄"):
             current_item["license"] = line_s[2:].strip()
         elif line_s.startswith("🏷"):
@@ -164,6 +180,7 @@ def parse_daily_txt(txt_path: Path) -> Dict:
         checked_items = []
         for item in result[section]:
             checked = apply_financial_integrity({**item, "date": result["date"]})
+            checked["evidence_label"] = information_label(checked)
             if checked.get("claim_evidence") is not None:
                 require_valid_evidence(checked["claim_evidence"], checked)
             checked_items.append(checked)

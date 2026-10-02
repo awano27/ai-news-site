@@ -14,7 +14,12 @@ from typing import List, Dict
 from .ogp_generator import render as _ogp_render
 from . import trend_tracker
 from . import dedup as _dedup
-from .claim_evidence import render_evidence, require_valid_evidence
+from .claim_evidence import (
+    evidence_review_pending,
+    information_label,
+    render_evidence,
+    require_valid_evidence,
+)
 
 TEMPLATE_PATH = Path(__file__).parent / "report_template.html"
 
@@ -105,12 +110,11 @@ def _render_top3(headlines: List[Dict]) -> str:
 def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
     score = item.get("score", 0)
     cat = item.get("category", "")
-    label = item.get("evidence_label") or (item.get("evidence", {}) or {}).get("evidence_label", "")
-    label_html = ""
-    if label:
-        cls = _label_class(label)
-        if cls:
-            label_html = f'<span class="row-label {cls}">{_esc(label[:6])}</span>'
+    label = information_label(item)
+    classification = label or "情報区分未確認"
+    label_html = f'<span class="row-label {_label_class(label)}">{_esc(classification)}</span>'
+    if evidence_review_pending(item):
+        label_html += '<span class="row-label lbl-unverified">照合未確認</span>'
 
     trend_html = ""
     if trend == "new":

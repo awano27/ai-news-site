@@ -11,6 +11,12 @@ on:
   schedule:
     - cron: '35 0 * * *'
   workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      ref:
+        description: Exact commit SHA to validate before publication
+        required: true
+        type: string
   push:
     paths:
       - 'presentations/day_slides/**'
@@ -23,6 +29,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -34,11 +43,17 @@ jobs:
           python scripts/check_orphaned_slide_branches.py
       # 09:35 JST, an hour after the local override that is the only source of X
       # bookmarks. always() so a slide problem above cannot mask an X outage.
+      # Keep this operational alert on its scheduled/push runs. The 06:00 cloud
+      # publisher intentionally has no X vault access, so it must not block an
+      # otherwise valid exact-SHA publication call.
       - name: Verify daily-news is still shipping X posts
-        if: always()
+        if: always() && inputs.ref == ''
         run: python scripts/check_x_freshness.py
       - name: Verify analytics coverage
-        if: always()
+        # Reusable publication calls inject analytics into their temporary Pages
+        # artifact and validate coverage there. Scheduled/push runs keep reporting
+        # drift in the tracked source pages.
+        if: always() && inputs.ref == ''
         run: python scripts/check_analytics_coverage.py
       - name: Verify slide SEO
         if: always()

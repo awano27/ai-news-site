@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 from inject._framework import ROOT, Injector
+from public_html import public_html_files, exclusion_reason
 
 SNIPPET = (
     "<!-- GA4_INJECTED v1 -->"
@@ -28,11 +29,7 @@ class AnalyticsInjector(Injector):
     MARKER = "<!-- GA4_INJECTED v1 -->"
     DESCRIPTION = "Inject GA4 analytics loader into every HTML page."
     TAG = "inject_analytics"
-    DEFAULT_TARGETS = [
-        *ROOT.glob("*.html"),
-        ROOT / "presentations",
-        ROOT / "daily-news",
-    ]
+    DEFAULT_TARGETS = public_html_files(ROOT)
     EXCLUSION_PATTERNS = (
         re.compile(r"og-image-generator", re.IGNORECASE),
         re.compile(r"^test_", re.IGNORECASE),
@@ -41,7 +38,7 @@ class AnalyticsInjector(Injector):
     )
 
     def build_block(self, path: Path, text: str) -> str | None:
-        if re.search(r'<meta\s+[^>]*http-equiv=["\']refresh["\']', text, re.IGNORECASE):
+        if exclusion_reason(path, text):
             return None
         return SNIPPET
 

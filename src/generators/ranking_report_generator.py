@@ -10,7 +10,7 @@ from pathlib import Path
 
 from jinja2 import Template, select_autoescape
 
-from src.utils.sanitize import sanitize_html
+from src.utils.sanitize import sanitize_html, normalize_template_data
 
 # Re-export public symbols so existing callers are unaffected
 from .ranking_data_parser import (
@@ -37,7 +37,7 @@ class RankingReportGenerator:
 
     def generate_ranking_report(self, data_file: str, report_title: str = None) -> str:
         """improved-requirements-doc.htmlスタイルのランキングレポート生成"""
-        data = self.parse_ranking_data(data_file)
+        data = normalize_template_data(self.parse_ranking_data(data_file))
         if not data:
             return ""
 
@@ -46,7 +46,7 @@ class RankingReportGenerator:
         output_name = f"ai_ranking_report_{datetime.now().strftime('%Y%m%d')}.html"
         canonical_url = f"https://visionhub.jp/presentations/{output_name}"
         template_data = {
-            "title": report_title or "AI技術トレンドランキング・レポート",
+            "title": normalize_template_data(report_title or "AI技術トレンドランキング・レポート"),
             "canonical_url": canonical_url,
             "period_start": data["period_start"],
             "period_end": data["period_end"],

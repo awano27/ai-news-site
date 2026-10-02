@@ -65,6 +65,7 @@
             color: #007acc;
         }
     </style>
+<script src="/assets/js/analytics.js" defer></script>
 </head>
 <body>
     <div class="reveal">
@@ -113,7 +114,7 @@
                 <div class="highlight-box">
                     <h3>主要トレンド</h3>
                     <ul>
-                        {% for category, count in trends.categories.items()[:3] %}
+                        {% for category, count in (trends.categories.items()|list)[:3] %}
                         <li><strong>{{ category }}:</strong> {{ count }}件 ({{ "%.1f"|format(count/trends.total_articles*100) }}%)</li>
                         {% endfor %}
                     </ul>
@@ -154,7 +155,7 @@
                     <div>
                         <h3>主要情報源</h3>
                         <ul>
-                            {% for source, count in trends.sources.items()[:8] %}
+                            {% for source, count in (trends.sources.items()|list)[:8] %}
                             <li>{{ source }}: {{ count }}件</li>
                             {% endfor %}
                         </ul>
@@ -209,9 +210,9 @@
         new Chart(categoryCtx, {
             type: 'doughnut',
             data: {
-                labels: {{ chart_data.categories|safe }},
+                labels: {{ chart_data.categories|tojson }},
                 datasets: [{
-                    data: {{ chart_data.category_counts|safe }},
+                    data: {{ chart_data.category_counts|tojson }},
                     backgroundColor: [
                         '#007acc', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'
                     ]
@@ -233,10 +234,10 @@
         new Chart(timelineCtx, {
             type: 'line',
             data: {
-                labels: {{ chart_data.daily_labels|safe }},
+                labels: {{ chart_data.daily_labels|tojson }},
                 datasets: [{
                     label: '記事数',
-                    data: {{ chart_data.daily_values|safe }},
+                    data: {{ chart_data.daily_values|tojson }},
                     borderColor: '#007acc',
                     backgroundColor: 'rgba(0, 122, 204, 0.1)',
                     tension: 0.1,

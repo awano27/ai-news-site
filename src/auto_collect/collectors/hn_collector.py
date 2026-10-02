@@ -1,13 +1,15 @@
 """Hacker News AI-filtered auto-collector."""
 
 import logging
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import List, Dict, Optional
 
 from scripts.collectors.hn import HackerNewsCollector, HN_API_BASE, ITEM_URL, TOP_STORIES_URL
 from ..config import HN_MIN_SCORE, HN_MAX_STORIES, HN_AI_KEYWORDS
 
 logger = logging.getLogger(__name__)
+
+JST = timezone(timedelta(hours=9))
 
 
 class HNAutoCollector(HackerNewsCollector):
@@ -21,14 +23,14 @@ class HNAutoCollector(HackerNewsCollector):
         if target_date is None:
             target_date = date.today()
 
-        # Wider date range (28 hours back)
-        start_ts = datetime.combine(
-            target_date - __import__('datetime').timedelta(hours=4),
-            datetime.min.time()
-        ).replace(tzinfo=timezone.utc).timestamp()
-        end_ts = datetime.combine(
-            target_date, datetime.max.time()
-        ).replace(tzinfo=timezone.utc).timestamp()
+        # The daily edition intentionally accepts both the JST target day and
+        # the previous JST day.  Express the half-open window in UTC epochs so
+        # an item at 00:00 JST is classified consistently at the UTC boundary.
+        start_at = datetime.combine(target_date - timedelta(days=1), time.min, JST)
+        end_at = datetime.combine(target_date + timedelta(days=1), time.min, JST)
+        start_ts = start_at.timestamp()
+        end_ts = end_at.timestamp()
+        collected_at = datetime.now(timezone.utc).isoformat()
 
         logger.info(f"[HN] Collecting AI stories for {target_date}")
 
@@ -66,6 +68,12 @@ class HNAutoCollector(HackerNewsCollector):
                         continue
                     if not url:
                         continue
+                    try:
+                        item_ts = float(item_time)
+                    except (TypeError, ValueError):
+                        continue
+                    if not start_ts <= item_ts < end_ts:
+                        continue
 
                     hn_url = f"https://news.ycombinator.com/item?id={story_id}"
 
@@ -79,6 +87,11 @@ class HNAutoCollector(HackerNewsCollector):
                         extra_links={"hn": hn_url}
                     )
                     tool["hn_score"] = score
+                    tool["published_at"] = datetime.fromtimestamp(
+                        item_ts, tz=timezone.utc
+                    ).isoformat()
+                    tool["collected_at"] = collected_at
+                    tool["target_date"] = target_date.isoformat()
                     tools.append(tool)
 
                 except Exception as e:

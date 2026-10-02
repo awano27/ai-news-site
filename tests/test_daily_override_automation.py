@@ -214,7 +214,10 @@ def test_runner_fast_forwards_behind_only_checkout_and_does_not_abort_without_ol
 
     assert result.returncode == 0, result.stderr
     assert (runtime / "cloud.txt").read_text(encoding="utf-8") == "cloud\n"
-    assert json.loads((runtime / "pipeline_args.json").read_text(encoding="utf-8")) == ["--provider", "ollama", "--force"]
+    pipeline_args = json.loads((runtime / "pipeline_args.json").read_text(encoding="utf-8"))
+    assert pipeline_args[:3] == ["--provider", "ollama", "--force"]
+    assert pipeline_args[3] == "--run-id"
+    assert re.fullmatch(r"[0-9a-f]{32}", pipeline_args[4])
 
 
 def test_runner_invokes_the_reviewed_publisher_with_exact_arguments(tmp_path: Path) -> None:
@@ -224,11 +227,19 @@ def test_runner_invokes_the_reviewed_publisher_with_exact_arguments(tmp_path: Pa
     result = run_runner(runtime, tmp_path / "runner.log")
 
     assert result.returncode == 0, result.stderr
-    assert json.loads((runtime / "publisher_args.json").read_text(encoding="utf-8")) == [
+    publisher_args = json.loads((runtime / "publisher_args.json").read_text(encoding="utf-8"))
+    assert publisher_args[:4] == [
         "--repo",
         str(runtime.resolve()),
         "--date",
         report_date,
+    ]
+    assert publisher_args[4] == "--run-id"
+    assert re.fullmatch(r"[0-9a-f]{32}", publisher_args[5])
+    assert publisher_args[5] == json.loads(
+        (runtime / "pipeline_args.json").read_text(encoding="utf-8")
+    )[4]
+    assert publisher_args[6:] == [
         "--message",
         f"chore(report): local override {report_date}",
         "--push",
@@ -307,7 +318,8 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
     assert "concurrency:\n  group: auto-daily-report-publish\n  cancel-in-progress: false" in workflow
     assert "primary:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30" in workflow
     assert "env:\n      TZ: Asia/Tokyo" in workflow
-    assert "python -m src.auto_collect.main --provider nvidia --force" in workflow
+    assert 'RUN_ID="$(python -c \'import uuid; print(uuid.uuid4().hex)\')"' in workflow
+    assert "python -m src.auto_collect.main --provider nvidia --force --run-id \"$RUN_ID\"" in workflow
     assert 'git config user.name "github-actions[bot]"' in workflow
     assert 'git config user.email "41898282+github-actions[bot]@users.noreply.github.com"' in workflow
     assert "REPORT_DATE=\"$(date +%F)\"" in workflow
@@ -316,6 +328,7 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
             "python scripts/publish_daily_report.py \\",
             "            --repo . \\",
             '            --date "$REPORT_DATE" \\',
+            '            --run-id "$RUN_ID" \\',
             '            --message "chore(report): cloud primary run $REPORT_DATE" \\',
             "            --push",
         )

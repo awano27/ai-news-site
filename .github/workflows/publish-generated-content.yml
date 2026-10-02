@@ -1,0 +1,38 @@
+name: Validate and publish generated content
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Exact generated commit SHA to validate and deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: generated-pages-${{ inputs.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate generated commit
+    uses: ./.github/workflows/freshness-guard.yml
+    with:
+      ref: ${{ inputs.ref }}
+    permissions:
+      contents: read
+
+  deploy:
+    name: Deploy validated commit
+    needs: validate
+    uses: ./.github/workflows/pages.yml
+    with:
+      ref: ${{ inputs.ref }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

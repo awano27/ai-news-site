@@ -1,7 +1,7 @@
 """
 Sanitization helpers for generators and repair tools.
 
-- Decode HTML/numeric entities (including double-encoded like &amp;#NNN;)
+- Decode HTML/numeric entities in plain input fields only
 - Repair typical mojibake (UTF-8/Shift_JIS mix) seen in this repo
 - Fix broken closing tags like "E/h3>" => "</h3>"
 """
@@ -41,7 +41,7 @@ def _fix_date_mojibake(s: str) -> str:
 
 
 def sanitize_text(text: str | None) -> str:
-    """Return a safe, normalized string for titles and headings."""
+    """Normalize plain text; callers must escape for the output context."""
     if not text:
         return ''
     s = str(text)
@@ -58,14 +58,16 @@ def sanitize_text(text: str | None) -> str:
 
 
 def sanitize_html(html: str) -> str:
+    """Repair document encoding only; never decode rendered HTML entities.
+
+    Plain source fields must be normalized before template autoescaping.
+    """
     if not html:
         return html
     out = html
     # Fix broken closing tags like E/span>, E/div>, E/p>, E/button>
     for tag in ('span', 'div', 'p', 'button', 'a', 'li', 'ul', 'ol', 'section', 'strong', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
         out = re.sub(fr'E\/{tag}>', f'</{tag}>', out)
-    # Decode entities
-    out = _decode_numeric_entities(out)
     # Fix date mojibake
     out = _fix_date_mojibake(out)
     # Remove replacement characters and stray 'E' between multibyte chars
@@ -75,3 +77,14 @@ def sanitize_html(html: str) -> str:
     if '<meta charset="' not in out:
         out = out.replace('<head>', '<head>\n    <meta charset="utf-8"/>', 1)
     return out
+
+
+def normalize_template_data(value):
+    """Normalize plain data recursively before HTML/JSON serialization."""
+    if isinstance(value, str):
+        return sanitize_text(value)
+    if isinstance(value, dict):
+        return {key: normalize_template_data(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [normalize_template_data(item) for item in value]
+    return value

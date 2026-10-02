@@ -19,15 +19,22 @@ import json
 import logging
 import re
 from collections import Counter
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from .config import PROJECT_ROOT
 from .content_integrity import apply_financial_integrity
-from .claim_evidence import render_evidence, require_valid_evidence
+from .claim_evidence import (
+    evidence_review_pending,
+    information_label,
+    render_evidence,
+    require_valid_evidence,
+)
 
 logger = logging.getLogger(__name__)
+
+JST = timezone(timedelta(hours=9))
 
 DAILY_NEWS_DIR = PROJECT_ROOT / "daily-news"
 ARCHIVE_DIR = DAILY_NEWS_DIR / "archive"
@@ -91,26 +98,30 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
         cat_raw = a.get("category") or a.get("rss_source") or tag
         cat = _normalize_category(cat_raw)
         score = int(a.get("score", 0) or 0)
-        out.append({
+        flattened = {
             "type": "news",
             "title": title,
             "url": url,
             "summary": a.get("summary") or a.get("description") or a.get("tagline") or "",
             "tldr": a.get("tldr") or "",
-            "evidence_label": a.get("evidence_label") or "",
+            "evidence_label": information_label(a),
             "score": score,
             "category": cat,
             "category_raw": cat_raw,
             "source": a.get("source_attribution") or a.get("rss_source") or a.get("source") or "",
             "tag_group": tag,
-            "date": a.get("date") or a.get("published_at") or a.get("updated_at") or "",
+            "date": a.get("date") or a.get("published_at") or "",
             "financial_claims": a.get("financial_claims") or [],
             "source_attribution": a.get("source_attribution") or "",
             "correction_note": a.get("correction_note") or "",
             "integrity_status": a.get("integrity_status") or "",
             "integrity_warning": a.get("integrity_warning") or "",
             "claim_evidence": a.get("claim_evidence"),
-        })
+        }
+        for key in ("published_at", "collected_at", "target_date"):
+            if key in a:
+                flattened[key] = a[key]
+        out.append(flattened)
     return out
 
 
@@ -148,11 +159,13 @@ def _render_news_card(item: Dict) -> str:
     correction_note = _esc(item.get("correction_note", ""))
     claim_evidence_html = render_evidence(item.get("claim_evidence"), subject=item)
     tldr = _esc(_truncate(item.get("tldr", ""), 100))
-    label = item.get("evidence_label", "")
+    label = information_label(item)
+    classification = label or "情報区分未確認"
     label_html = (
-        f'<span class="label-pill {_label_class(label)}">{_esc(label)}</span>'
-        if label else ""
+        f'<span class="label-pill {_label_class(label)}">{_esc(classification)}</span>'
     )
+    if evidence_review_pending(item):
+        label_html += '<span class="label-pill label-unverified">照合未確認</span>'
     high_class = " high" if score >= 80 else ""
     score_class = " s" if score >= 80 else ""
     title_html = f'<a href="{url}" target="_blank" rel="noopener">{title}</a>' if url else title
@@ -241,21 +254,39 @@ def _render_timeline(items: List[Dict]) -> str:
 
 
 def _is_recent(item: Dict, today: date) -> bool:
-    """Allow items from today or yesterday; block items 2+ days old. No-date items pass through.
+    """Allow items whose JST publication calendar day is today or yesterday.
 
     The 7:00 JST daily job collects articles published the previous day,
-    so yesterday's date is intentional content — only older dates are stale.
+    so yesterday's date is intentional content.  A timestamp later on the same
+    ``today`` calendar date remains in-window because this predicate receives a
+    date, not a wall-clock instant.  Unknown, malformed and later-calendar-day
+    dates are not inferred to be fresh; collection time is not publication time.
     """
     cutoff = today - timedelta(days=1)
-    for key in ("bookmark_date", "date"):
+    keys = ["bookmark_date"] if "bookmark_date" in item else []
+    if "published_at" in item:
+        keys.append("published_at")
+    elif "target_date" not in item:
+        # Legacy records used `date` as their publication date. A record that
+        # carries only target_date has collection context, not publication time.
+        keys.append("date")
+    for key in keys:
         val = item.get(key, "")
         if not val:
-            continue
+            return False
         try:
-            return date.fromisoformat(str(val)[:10]) >= cutoff
-        except ValueError:
-            continue
-    return True
+            text = str(val).strip()
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+                published_date = date.fromisoformat(text)
+            else:
+                parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=JST)
+                published_date = parsed.astimezone(JST).date()
+        except (TypeError, ValueError):
+            return False
+        return cutoff <= published_date <= today
+    return False
 
 
 def generate_daily_news(

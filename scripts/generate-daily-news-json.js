@@ -56,10 +56,10 @@ function extractFallbackTitle(content) {
 }
 
 function stripClaimEvidenceMetadataLines(content) {
-  // DayFileFormatter transports optional claim evidence on one JSON line.
+  // DayFileFormatter transports optional structured metadata on JSON lines.
   // The legacy raw-text fallback is an article summary, so it must not expose
   // that transport record or count its source URLs as article links.
-  return content.replace(/^[\t ]*🔎 Claim Evidence:.*(?:\r?\n|$)/gm, '');
+  return content.replace(/^[\t ]*(?:🔎 Claim Evidence|🕒 Article Time):.*(?:\r?\n|$)/gm, '');
 }
 
 function extractFallbackSummary(content, title) {

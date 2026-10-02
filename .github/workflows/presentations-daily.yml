@@ -18,6 +18,9 @@ concurrency:
 
 jobs:
   update:
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+      generated_ref: ${{ steps.commit.outputs.sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -53,6 +56,7 @@ jobs:
           python script/update_presentations_latest.py
 
       - name: Commit changes
+        id: commit
         run: |
           if [ -n "$(git status --porcelain presentations)" ]; then
             git config user.name "github-actions[bot]"
@@ -60,6 +64,20 @@ jobs:
             git add presentations/*.html presentations/day_slides/list.json presentations/day_slides/meta_index.json || true
             git commit -m "chore(presentations): refresh latest report aliases"
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "No changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    uses: ./.github/workflows/publish-generated-content.yml
+    with:
+      ref: ${{ needs.update.outputs.generated_ref }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

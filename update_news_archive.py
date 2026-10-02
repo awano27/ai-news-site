@@ -29,7 +29,8 @@ def parse_date_from_filename(filename):
 
 def _is_claim_evidence_metadata_line(line):
     """Keep the optional dayfile transport record out of legacy article text."""
-    return line.strip().startswith("🔎 Claim Evidence:")
+    stripped = line.strip()
+    return stripped.startswith("🔎 Claim Evidence:") or stripped.startswith("🕒 Article Time:")
 
 
 def extract_news_content(text):

@@ -46,6 +46,9 @@ import json
 import os
 import re
 import sys
+from html.parser import HTMLParser
+from urllib.parse import urlsplit, unquote
+import xml.etree.ElementTree as ET
 from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,6 +56,49 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SLUG_RE = re.compile(r"day_slide_(\d{4})_(\d{2})_(\d{2})")
 DASH_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
 UNDERSCORE_RE = re.compile(r"(\d{4})_(\d{2})_(\d{2})")
+
+
+class _Cards(HTMLParser):
+    def __init__(self, text):
+        super().__init__()
+        self.links = {"feat-card": [], "slide-card": []}
+        self.feed(text)
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag != "a":
+            return
+        for kind in self.links:
+            if kind in attrs.get("class", "").split():
+                self.links[kind].append(attrs.get("href", ""))
+
+
+def _card_file(href):
+    url = urlsplit(href)
+    if url.scheme not in ("", "https") or url.netloc not in ("", "visionhub.jp"):
+        return None
+    from pathlib import Path
+    base = Path(_p("presentations"))
+    path = unquote(url.path)
+    file = (Path(ROOT) / path.lstrip("/")) if path.startswith("/") else base / path
+    file = file.resolve()
+    if file.parent != (base / "day_slides").resolve():
+        return None
+    return file if re.fullmatch(r"day_slide_\d{4}_\d{2}_\d{2}\.html", file.name) else None
+
+
+def _card_slugs(text, kind):
+    return {file.stem for href in _Cards(text).links[kind]
+            if (file := _card_file(href)) is not None and file.is_file()}
+
+
+def _sitemap_slugs(text):
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError:
+        return set()
+    return {file.stem for elem in root.iter() if elem.tag.split("}")[-1] == "loc"
+            if (file := _card_file(elem.text or "")) is not None and file.is_file()}
 
 
 def _p(*parts: str) -> str:
@@ -133,6 +179,8 @@ def _gap_check(expected: str, idx: str, sm: str, gap_days: int) -> dict:
     y, m, d = (int(x) for x in expected.split("-"))
     end = date(y, m, d)
     missing_file, missing_index, missing_sitemap = [], [], []
+    index_slugs = _card_slugs(idx, "slide-card")
+    sitemap_slugs = _sitemap_slugs(sm)
     for i in range(gap_days):
         day = end - timedelta(days=i)
         slug = f"day_slide_{day.year:04d}_{day.month:02d}_{day.day:02d}"
@@ -140,9 +188,9 @@ def _gap_check(expected: str, idx: str, sm: str, gap_days: int) -> dict:
         if not os.path.exists(_p("presentations", "day_slides", slug + ".html")):
             missing_file.append(iso)
             continue
-        if slug not in idx:
+        if slug not in index_slugs:
             missing_index.append(iso)
-        if slug not in sm:
+        if slug not in sitemap_slugs:
             missing_sitemap.append(iso)
     problems = []
     if missing_file:
@@ -191,29 +239,21 @@ def run(max_lag: int, gap_days: int = 14, strict_analytics: bool = False) -> dic
     idx_path = _p("presentations", "day_slides_index.html")
     idx = _read(idx_path) if os.path.exists(idx_path) else ""
 
-    feat_dates = sorted(
-        {"-".join(SLUG_RE.search(h).groups())
-         for h in re.findall(r'class="feat-card"[^>]*href="[^"]*?(day_slide_\d{4}_\d{2}_\d{2})',
-                             idx.replace("\n", " "))},
-        reverse=True,
-    )
-    # Fallback: parse any feat-card hrefs regardless of attribute order.
-    if not feat_dates:
-        feat_block = idx
-        feat_dates = sorted({"-".join(m) for m in SLUG_RE.findall(feat_block)}, reverse=True)
-
-    has_slug = slug in idx
-    report["critical"].append({
-        "name": "day_slides_index.html contains newest slide",
-        "ok": has_slug,
-        "detail": f"{slug} {'present' if has_slug else 'MISSING'} "
-                  f"(index newest={feat_dates[0] if feat_dates else 'none'})",
-    })
+    cards = _Cards(idx)
+    for kind in ("feat-card", "slide-card"):
+        has_slug = slug in _card_slugs(idx, kind)
+        broken = [href for href in cards.links[kind]
+                  if (file := _card_file(href)) is None or not file.is_file()]
+        report["critical"].append({
+            "name": f"day_slides_index.html {kind} links newest slide",
+            "ok": has_slug and not broken,
+            "detail": f"{slug} {'present' if has_slug else 'MISSING'}; invalid_links={len(broken)}",
+        })
 
     # ---- CRITICAL: sitemap must list the newest slide ----
     sm_path = _p("sitemap.xml")
     sm = _read(sm_path) if os.path.exists(sm_path) else ""
-    sm_ok = slug in sm
+    sm_ok = slug in _sitemap_slugs(sm)
     report["critical"].append({
         "name": "sitemap.xml lists newest slide",
         "ok": sm_ok,
