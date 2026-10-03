@@ -699,6 +699,23 @@ function main() {
   const summary = extractSummary(html, title);
   const slideUrl = `presentations/day_slides/${slide.name}`;
   const latestNews = buildSections();
+  // A slide refresh must not replace a complete same-day news publication with
+  // the smaller report preview. The news pipeline owns these sections.
+  const publishedNews = readJson(LATEST_JSON);
+  // build_news.py emits generated_at without news_date. Keep its calendar date
+  // in the producer's timezone; an explicit news_date always takes precedence.
+  const generatedAt = publishedNews && publishedNews.generated_at;
+  const publishedDate = publishedNews && (publishedNews.news_date ??
+    (typeof generatedAt === 'string' && Number.isFinite(Date.parse(generatedAt))
+      ? generatedAt.slice(0, 10) : null));
+  if (publishedNews && latestNews.dailyDate &&
+      publishedDate === latestNews.dailyDate &&
+      dataAgeDays(latestNews.dailyDate) <= MAX_DATA_AGE_DAYS_HARD &&
+      publishedNews.sections && !Array.isArray(publishedNews.sections) &&
+      Object.values(publishedNews.sections).every(Array.isArray) &&
+      Object.values(publishedNews.sections).some((items) => items.length > 0)) {
+    latestNews.sections = publishedNews.sections;
+  }
 
   const data = {
     generated_at: toJstIso(slide.date),
