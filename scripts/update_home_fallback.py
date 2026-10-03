@@ -23,12 +23,12 @@ MARKER_RE = re.compile(r"<!-- fallback:(?P<name>[\w-]+) -->(?P<body>.*?)<!-- fal
 DATE_RE = re.compile(r"day_slide_(\d{4})_(\d{2})_(\d{2})\.html")
 FEAT_TITLE_RE = re.compile(
     r'href="(?:\.\./)?day_slides/day_slide_(\d{4})_(\d{2})_(\d{2})\.html"[^>]*>'
-    r'.*?<h3 class="feat-title">(.*?)</h3>',
+    r'(?:(?!</a>).)*?<h3 class="feat-title">(.*?)</h3>',
     re.S,
 )
 SLIDE_TITLE_RE = re.compile(
     r'href="(?:\.\./)?day_slides/day_slide_(\d{4})_(\d{2})_(\d{2})\.html"[^>]*>'
-    r'.*?<span class="slide-title">(.*?)</span>',
+    r'(?:(?!</a>).)*?<span class="slide-title">(.*?)</span>',
     re.S,
 )
 MAX_TITLE_LENGTH = 120

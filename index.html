@@ -2620,17 +2620,20 @@
 
     function titlesFromIndex(html) {
       var titles = {};
-      var slideRe = /href="(?:\.\.\/)?day_slides\/day_slide_(\d{4})_(\d{2})_(\d{2})\.html"[^>]*>[\s\S]*?<span class="slide-title">([\s\S]*?)<\/span>/gi;
-      var featRe = /href="(?:\.\.\/)?day_slides\/day_slide_(\d{4})_(\d{2})_(\d{2})\.html"[^>]*>[\s\S]*?<h3 class="feat-title">([\s\S]*?)<\/h3>/gi;
-      function absorb(re) {
-        var m;
-        while ((m = re.exec(html))) {
-          var text = m[4].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
-          if (text) titles[m[1] + '-' + m[2] + '-' + m[3]] = text;
-        }
+      // Match each complete card before reading its title. Navigation links have
+      // no title and must never consume a later card's heading.
+      var cardRe = /<a\b[^>]*href="(?:\.\.\/)?day_slides\/day_slide_(\d{4})_(\d{2})_(\d{2})\.html"[^>]*>((?:(?!<\/a>)[\s\S])*?)<\/a>/gi;
+      var featured = {};
+      var m;
+      while ((m = cardRe.exec(html))) {
+        var heading = /<(?:span|h3)\b[^>]*class="(?:slide-title|feat-title)"[^>]*>([\s\S]*?)<\/(?:span|h3)>/i.exec(m[4]);
+        if (!heading) continue;
+        var text = heading[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+        var date = m[1] + '-' + m[2] + '-' + m[3];
+        var isFeatured = /class="feat-title"/i.test(heading[0]);
+        if (text && (!featured[date] || isFeatured)) titles[date] = text;
+        if (text && isFeatured) featured[date] = true;
       }
-      absorb(slideRe);
-      absorb(featRe);
       return titles;
     }
 
@@ -2751,6 +2754,19 @@
     var generatedSlide = document.getElementById('heroSlideBtn');
     var generatedMatch = /day_slide_(\d{4})_(\d{2})_(\d{2})\.html$/.exec(generatedSlide && generatedSlide.getAttribute('href') || '');
     var generatedSlideDate = generatedMatch ? generatedMatch.slice(1).join('-') : null;
+    // Keep build-time titles when the optional indexes are stale or unavailable.
+    var generatedWeekTitles = {};
+    document.querySelectorAll('#weekGrid a.week-card[href]').forEach(function (card) {
+      var match = /day_slide_(\d{4})_(\d{2})_(\d{2})\.html$/.exec(card.getAttribute('href'));
+      var title = card.querySelector('.week-title');
+      if (match && title && title.textContent.trim()) {
+        generatedWeekTitles[match.slice(1).join('-')] = title.textContent.trim();
+      }
+    });
+    var generatedTitle = document.getElementById('heroTwist');
+    if (generatedSlideDate && generatedTitle && generatedTitle.textContent.trim()) {
+      generatedWeekTitles[generatedSlideDate] = generatedTitle.textContent.trim();
+    }
 
     Promise.all([latestPromise, archivePromise, slidesPromise]).then(function (results) {
       var latest = results[0];
@@ -2777,6 +2793,7 @@
       if (todayDate) {
         var weekEntries = buildWeekEntries(archiveEntries, todayDate);
         var listTitles = titlesFromList(slidesData);
+        Object.keys(generatedWeekTitles).forEach(function (k) { listTitles[k] = generatedWeekTitles[k]; });
         fetch('presentations/day_slides_index.html', { cache: 'no-store' })
           .then(function (r) { return r.ok ? r.text() : ''; })
           .then(function (html) {
