@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>78Bを自社で動かす。独英特化のKolibri | 2026-10-04</title><meta name="description" content="2026年10月4日号。10月3日公開のKolibri-1を公式資料から読む。78B全体と3.46B稼働、約78GBのFP8重み、最大100万と実務推奨26万トークンを区別し、自社で評価する条件を整理。"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="icon" href="data:,">
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_04.html">
+<meta property="og:type" content="article"><meta property="og:site_name" content="AI Intelligence Hub"><meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="78Bを自社で動かす。独英特化のKolibri"><meta property="og:description" content="2026年10月4日号。10月3日公開のKolibri-1を公式資料から読む。78B全体と3.46B稼働、約78GBのFP8重み、最大100万と実務推奨26万トークンを区別し、自社で評価する条件を整理。"><meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_04.html"><meta property="og:image" content="https://visionhub.jp/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="78Bを自社で動かす。独英特化のKolibri"><meta name="twitter:description" content="2026年10月4日号。10月3日公開のKolibri-1を公式資料から読む。78B全体と3.46B稼働、約78GBのFP8重み、最大100万と実務推奨26万トークンを区別し、自社で評価する条件を整理。"><meta name="twitter:image" content="https://visionhub.jp/assets/og-image.png">
+<style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(47,198,178,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(47,198,178,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(90,220,200,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(157,242,226,.4); color:#d2f2ec; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(157,242,226,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+
+    /* ---- labeled boards (no photos) ---- */
+    .board { border:1px solid rgba(90,220,200,.30); border-radius:8px; padding:18px 18px 16px; margin:14px 0 18px; background:linear-gradient(180deg, rgba(13,33,31,.55), rgba(6,17,16,.72)); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .board-label { display:inline-block; color:#06201b; background:var(--accent); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; padding:5px 10px; border-radius:3px; margin-bottom:12px; }
+    .board-title { margin:0 0 14px; font-size:16px; color:var(--ink); font-weight:600; line-height:1.5; }
+    .board-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch; }
+    .board-col { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .board-col.win { border-color:rgba(47,198,178,.5); }
+    .board-col.gold { border-color:rgba(255,201,77,.45); }
+    .board-col.alert { border-color:rgba(255,143,122,.45); }
+    .board-col h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    .board-col h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:6px; }
+    .board-col.gold h4 span { color:var(--gold); }
+    .board-col.alert h4 span { color:var(--alert); }
+    .board-col .big { font:700 28px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .board-col .big.gold { color:var(--gold); }
+    .board-col .sub { color:var(--muted); font-size:13px; margin:8px 0 0; line-height:1.75; }
+    .board-vs { display:flex; align-items:center; justify-content:center; color:var(--accent); font:800 13px/1 ui-monospace,monospace; letter-spacing:.14em; padding:0 4px; }
+    .board-foot { margin:14px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .xarr { color:var(--alert); font-weight:800; }
+
+    @media (max-width:880px) {
+      .board-row { grid-template-columns:minmax(0,1fr); }
+      .board-vs { padding:6px 0; }
+    }
+
+
+    a { text-underline-offset:3px; }
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+    .skip-link { position:absolute; top:-80px; left:12px; z-index:100; padding:10px; background:var(--accent); color:#04120e; }
+    .skip-link:focus { top:12px; }
+    .hero-body { max-width:1050px; }
+    .hero-subtitle { display:block; font-size:clamp(19px,2.5vw,29px); line-height:1.55; color:#b8dcd4; margin-top:18px; }
+    .hero-meta span { font-size:12px; }
+    .stat-card { text-decoration:none; }
+    .stat-num { font-size:23px; overflow-wrap:anywhere; }
+    .status { font-size:12px; color:#abd4cd; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .source-line { font-size:11.8px; line-height:1.8; margin-top:16px; color:#8ebbb2; overflow-wrap:anywhere; }
+    .source-line a, .sources a { color:#9ae8d8; }
+    .cmp caption { text-align:left; font-size:12px; color:var(--muted); padding:6px 12px; }
+    .cmp th[scope=row] { color:var(--ink); font-size:13px; line-height:1.7; white-space:normal; letter-spacing:0; }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    h3 { font-size:16px; line-height:1.6; margin:0 0 12px; }
+    .vs-card p { font-size:14px; }
+    code { overflow-wrap:anywhere; color:#c4eee4; }
+    .metric-row { display:grid; grid-template-columns:1fr auto; gap:6px; margin:14px 0 19px; font-size:13px; }
+    .metric-row b { color:var(--accent); font:700 19px/1 ui-monospace,monospace; }
+    .bar-track { grid-column:1 / -1; height:7px; background:#18302c; border-radius:1px; }
+    .bar-track i { display:block; height:100%; background:var(--accent); }
+    .metric-row.gold b { color:var(--gold); }
+    .metric-row.gold .bar-track i { background:var(--gold); }
+    .action-list { padding-left:24px; color:var(--muted); font-size:15px; line-height:1.9; }
+    .action-list li { padding-left:6px; margin:14px 0; }
+    .action-list b { color:var(--ink); }
+    .editor-note { margin-top:20px; border:1px solid var(--line); padding:15px 18px; border-radius:6px; }
+    .editor-note summary { cursor:pointer; color:#bcece1; font-size:13px; }
+    .editor-note p { margin:12px 0 0; font-size:13px; }
+    .sources { margin-top:42px; padding:28px 0; border-top:1px solid var(--line); }
+    .sources ol { padding-left:22px; color:var(--muted); font-size:12px; line-height:1.8; }
+    .sources li { margin-bottom:12px; overflow-wrap:anywhere; }
+    .sources small { display:block; }
+    .bottom-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:24px 0 0; padding-top:24px; border-top:1px solid var(--line); }
+    .bottom-nav a { min-height:44px; display:inline-flex; align-items:center; padding:8px 16px; border:1px solid var(--line); border-radius:24px; text-decoration:none; font-size:13px; }
+    @media(max-width:640px) { .topbar { align-items:flex-start; font-size:11px; } .topbar span { text-align:right; } .eyebrow { letter-spacing:.12em; } .grid-2 { grid-template-columns:minmax(0,1fr); } .stats-bar { grid-template-columns:repeat(2,minmax(0,1fr)); } .stat-card:last-child { grid-column:1/-1; } .hero-body { padding-top:38px; } .hero-inner { padding-bottom:30px; } .slides { gap:40px; } .loop .step { white-space:normal; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; animation:none!important; } }
+    @media print { body { background:white; color:#142820; } .progress,.jump,.bottom-nav,.skip-link { display:none; } .hero,.board,.vs-card,.board-col,.sowhat,.finale,.stat-card { background:white; box-shadow:none; } :root { --ink:#142820; --muted:#34544a; --accent:#007663; --gold:#725400; --line:#acc8be; } .hero-inner,.shell { width:100%; } .hero-body { padding-top:20px; } h1 { font-size:36px; } section.slide { break-inside:avoid; } .lead,.hero-subtitle,.topbar,.status { color:#234c40; } }
+
+    .timeline { list-style:none; padding:0; margin:20px 0; }
+    .timeline li { display:grid; grid-template-columns:102px minmax(0,1fr); gap:14px; margin:0; padding:16px 0; border-bottom:1px solid var(--line); }
+    .timeline time { font:700 13px/1.7 ui-monospace,monospace; color:var(--accent); }
+    .timeline b { color:var(--ink); font-size:14px; }
+    .timeline p { margin:4px 0 0; font-size:13.5px; }
+    .pitfalls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .pitfalls h3 { font-size:17px; }
+    .pitfalls p { margin:0; }
+    .mini-label { display:block; font:700 11px/1.6 ui-monospace,monospace; color:var(--accent); margin:0 0 12px; letter-spacing:.1em; }
+    .effort-scale { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); margin:22px 0; border:1px solid var(--line); border-radius:7px; overflow:hidden; }
+    .effort-scale span { padding:18px 5px; text-align:center; font:700 16px/1.5 ui-monospace,monospace; border-right:1px solid var(--line); background:var(--panel); }
+    .effort-scale span:last-child { border-right:0; }
+    .effort-scale .candidate { background:rgba(47,198,178,.15); color:#b4ffed; }
+    .effort-scale small { display:block; font:11px/1.5 sans-serif; color:var(--muted); }
+    .reset-banner { border:1px solid rgba(255,201,77,.45); border-radius:8px; padding:22px; background:rgba(255,201,77,.065); margin-bottom:18px; }
+    .reset-banner .mini-label { color:var(--gold); }
+    .reset-banner p:last-child { margin-bottom:0; }
+    .prompt-panel { padding:20px; background:var(--panel); border:1px solid var(--line); border-radius:8px; margin:24px 0 16px; }
+    .prompt-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .prompt-heading label { color:var(--ink); font-size:15px; font-weight:600; }
+    button { font:inherit; cursor:pointer; min-height:44px; border:1px solid var(--accent); color:#c5fff2; background:rgba(47,198,178,.12); border-radius:5px; padding:9px 14px; }
+    button:hover { background:rgba(47,198,178,.25); }
+    button:focus-visible,textarea:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+    textarea { width:100%; min-height:370px; resize:vertical; font:14px/1.9 'Yu Gothic',sans-serif; color:#cae3dc; background:#040c0e; border:1px solid var(--line); border-radius:4px; padding:16px; }
+    #copy-status { font-size:12px; margin:8px 0 0; min-height:24px; }
+    .board-foot { font-size:12px; line-height:1.85; }
+    .stat-num { font-size:clamp(16px,1.5vw,23px); }
+    .hero-body { max-width:1120px; }
+    @media(max-width:850px) { .pitfalls { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:640px) { .pitfalls { grid-template-columns:minmax(0,1fr); } .timeline li { grid-template-columns:85px minmax(0,1fr); gap:10px; } .timeline time { font-size:11px; } .effort-scale span { font-size:12px; } .prompt-heading { align-items:flex-start; flex-direction:column; } .prompt-panel { padding:15px; } textarea { min-height:550px; font-size:13px; } .desktop-break { display:none; } }
+
+    #audit-prompt { min-height:230px; }
+    @media(max-width:640px) { #audit-prompt { min-height:330px; } }
+
+  .topbar { flex-wrap:wrap; }
+  .source-line a, .source-list a, code { overflow-wrap:anywhere; }
+  .workflow-stack { display:grid; gap:12px; margin:20px 0; }
+  .workflow { display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; padding:20px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
+  .workflow-name { grid-row:span 2; } .workflow-name b { display:block; color:var(--accent); font:700 23px/1.3 ui-monospace,monospace; }
+  .workflow-name span { color:var(--muted); font-size:12px; }
+  .workflow p { font-size:13px; margin:0; }
+  .flow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .flow span { padding:10px 13px; border:1px solid var(--line); border-radius:5px; font-size:13px; color:var(--ink); }
+  .flow b { color:var(--accent); } .flow .result { border-color:rgba(255,201,77,.5); color:#ffe6a8; }
+  .shot { background:#f5f6f0; } .shot button { display:block; width:100%; padding:0; border:0; border-radius:0; background:none; min-height:0; cursor:zoom-in; }
+  .shot button:focus-visible { outline:3px solid var(--gold); outline-offset:-4px; }
+  .shot figcaption { background:#06120f; color:#b8d7cf; padding:10px 15px; font-size:12px; }
+  dialog.zoom { width:min(96vw,1640px); }
+  dialog.zoom .dialog-tools { display:flex; justify-content:space-between; align-items:center; gap:10px; color:#d2f2ec; font-size:13px; margin-bottom:8px; }
+  dialog.zoom .image-scroll { max-height:79vh; overflow:auto; }
+  dialog.zoom img { max-height:none; min-width:100%; cursor:default; }
+  dialog.zoom.enlarged img { max-width:none; width:1600px; }
+  .source-list { color:var(--muted); line-height:1.8; padding-left:1.3em; }
+  .source-list small { display:block; font-size:12px; }
+  .cmp td { min-width:130px; } code { font:13px/1.8 ui-monospace,monospace; color:#b2f8e8; }
+  @media(max-width:640px) { .eyebrow { letter-spacing:.12em; } .stats-bar { grid-template-columns:repeat(2,minmax(0,1fr)); } .workflow { grid-template-columns:minmax(0,1fr); padding:16px; gap:12px; } .workflow-name { grid-row:auto; } .workflow p { grid-column:1; } .stat-card { padding:14px 12px; } .stat-num { font-size:17px; } .grid-2 { grid-template-columns:minmax(0,1fr); } .topbar { font-size:11px; } }
+  @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *, *::before, *::after { transition:none!important; } }
+@media(max-width:640px) { h1 { font-size:clamp(28px,8.2vw,34px); line-height:1.28; } }
+
+.notes-main pre {white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;line-height:1.8} .notes-main p:last-child {margin-bottom:0} dialog.zoom.enlarged img {width:1672px}
+
+/* Responsive editorial SVG and interaction styling. */
+.board-figure{margin:22px 0 42px;border:1px solid #31685e;border-radius:12px;overflow:hidden;box-shadow:0 24px 70px #01171580;background:#031115}
+.board-open{display:block;width:100%;padding:0;border:0;border-radius:0;background:none;cursor:zoom-in;min-height:0;text-align:left}
+.board-open:hover{background:none}.board-svg{display:block;width:100%;height:auto}.board-mobile{display:none}
+.board-figure figcaption{padding:12px 18px;color:#abcac2;font-size:12px;line-height:1.85;border-top:1px solid var(--line)}
+.board-caption-top{display:flex;justify-content:space-between;gap:16px;color:#c8eee1}
+.board-caption-top b{font-weight:600}.board-caption-top span{color:var(--gold);white-space:nowrap}
+.sources p{max-width:100%}.bottom-nav{margin-bottom:32px}.notes-main{overflow-wrap:anywhere}.jump a{max-width:95vw;overflow:hidden;text-overflow:ellipsis}
+.zoom .image-scroll{overflow:auto;max-height:78vh}.zoom svg{width:100%;height:auto;display:block}.zoom.enlarged svg{width:1672px;max-width:none}
+.zoom .dialog-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#d2f2ec;margin-bottom:10px}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}.prompt-panel textarea{min-height:390px}
+.metric-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.board-desktop{display:none}.board-mobile{display:block}.board-figure{margin:18px 0 32px}.board-caption-top{display:block}.board-caption-top span{display:block;margin-top:4px}.board-figure figcaption{padding:12px;font-size:11px}.stat-num{font-size:clamp(17px,4.8vw,23px)}.stats-bar .stat-card:last-child{grid-column:auto}.sowhat{padding:14px}.prompt-panel textarea{min-height:600px}.zoom{padding:7px}.zoom .dialog-tools{font-size:12px}}
+@media print{.review-state,.board-open span,.prompt-heading button,dialog{display:none}.board-figure{break-inside:avoid;box-shadow:none}.board-desktop{display:block}.board-mobile{display:none}.board-caption-top span{display:none}.prompt-panel textarea{min-height:380px;color:#142820;background:#fff}a{color:#165f51}.source-line{color:#234c40}}
+</style><!-- JSONLD_INJECTED v1 --><script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "78Bを自社で動かす。独英特化のKolibri", "description": "2026年10月4日号。10月3日公開のKolibri-1を公式資料から読む。78B全体と3.46B稼働、約78GBのFP8重み、最大100万と実務推奨26万トークンを区別し、自社で評価する条件を整理。", "datePublished": "2026-10-04", "dateModified": "2026-10-05", "temporalCoverage": "2026-10-04", "inLanguage": "ja", "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_04.html", "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_04.html", "image": "https://visionhub.jp/assets/og-image.png", "articleSection": "Sovereign AI", "isAccessibleForFree": true, "author": {"@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html"}, "publisher": {"@type": "Organization", "name": "AI Intelligence Hub", "logo": {"@type": "ImageObject", "url": "https://visionhub.jp/assets/og-image.png"}}}</script>
+<!-- GA4_INJECTED v1 --><script src="/assets/js/analytics.js" defer></script></head><body>
+<a class="skip-link" href="#main">本文へスキップ</a><div class="progress" aria-hidden="true"></div>
+<header class="hero"><div class="hero-inner"><nav class="topbar" aria-label="ページ案内"><a href="https://visionhub.jp/presentations/day_slides_index.html">全日スライド</a><span>2026-10-04 / No.430 / Sovereign AI</span></nav>
+<div class="hero-body"><span class="kicker">今日の深掘り — 自社で動かす独英の文書AI</span><p class="eyebrow">ALEPH ALPHA / KOLIBRI—1</p><h1>78Bを自社で動かす。<br>独英特化のKolibri<span class="hero-subtitle">3.46B稼働でも、重みは約78GB。計算量とメモリを分けて読む</span></h1>
+<p class="lead">Aleph Alphaは10/3、Kolibri-1を公開した。独語・英語を中心に、推論とツール利用を備えるMoEモデルだ。<strong>78Bの全体から、トークンごとに3.46Bを動かす。</strong>稼働範囲が小さくても、全体の重みは保持する。公式資料の数値と、本号の導入評価案を分け、8章で読む。</p>
+<div class="hero-meta"><span>対象ニュース日：2026-10-04 JST</span><span>公式公開：2026-10-03</span><span>一次情報確認・制作：2026-10-05</span></div></div></div></header>
+<main class="shell" id="main"><div class="stats-bar">
+<a class="stat-card" href="#s3"><div class="stat-num">78B</div><div class="stat-label"><b>全体のパラメータ</b>モデル全体の容量</div></a>
+<a class="stat-card" href="#s3"><div class="stat-num">3.46B</div><div class="stat-label"><b>稼働／トークン</b>保持する全体とは別</div></a>
+<a class="stat-card" href="#s6"><div class="stat-num gold">≈78 GB</div><div class="stat-label"><b>FP8の重み容量</b>実行時の追加領域は別</div></a>
+<a class="stat-card" href="#s4"><div class="stat-num">262,144</div><div class="stat-label"><b>複雑業務などの推奨上限</b>最大1,048,576と区別</div></a></div>
+<nav class="jump" aria-label="章を選ぶ"><a href="#s1"><b>01</b>独英の文書を、自社で動かす選択肢</a><a href="#s2"><b>02</b>公開重みと、運用の責任を分ける</a><a href="#s3"><b>03</b>78Bの全体から、3.46Bをトークンごとに動かす</a><a href="#s4"><b>04</b>最大100万と、実務推奨26万を区別する</a><a href="#s5"><b>05</b>検索・文書処理・ツール利用は、人の確認と組み合わせる</a><a href="#s6"><b>06</b>約78GBは重みだけ。運用全体の予算ではない</a><a href="#s7"><b>07</b>日本語性能と、実業務の品質は未検証</a><a href="#s8"><b>08</b>実文書・根拠・速度をそろえて、小さく評価する</a><a href="#sources">出典</a></nav>
+<section aria-labelledby="brief-title"><p class="slide-kicker">ONE-PAGE BRIEF</p><h2 id="brief-title">この1枚で、3つの数字を分ける</h2><p>緑の領域はトークンごとの稼働範囲。メモリ容量の割合を示す図ではありません。</p><figure class="board-figure"><button id="open-board" type="button" class="board-open" aria-label="Kolibriの要点図を拡大" aria-haspopup="dialog"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 941" role="img" aria-labelledby="d-title d-desc" class="board-svg board-desktop"><title id="d-title">Kolibri-1：計算する部分と、保持する全体を分ける</title><desc id="d-desc">全体78Bのうち1トークンで稼働するのは3.46B、約4.4パーセント。稼働範囲が小さくてもFP8の重み容量は約78GBで、運用には追加メモリが必要。最大コンテキスト1,048,576トークンに対し、複雑業務と配信効率の推奨は262,144以下。編集部が公式モデルカードから作成した模式図。</desc><defs><linearGradient id="d-bg" x2="1" y2="1"><stop stop-color="#082b2a"/><stop offset=".6" stop-color="#06191d"/><stop offset="1" stop-color="#020b11"/></linearGradient><linearGradient id="d-active" x2="1" y2="1"><stop stop-color="#b8ffbd"/><stop offset=".6" stop-color="#54efd1"/><stop offset="1" stop-color="#17bba2"/></linearGradient><linearGradient id="d-line"><stop stop-color="#58f4d4"/><stop offset="1" stop-color="#58f4d4" stop-opacity="0"/></linearGradient><pattern id="d-grid" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M22 0H0V22" fill="none" stroke="#4bf1d0" stroke-opacity=".2" stroke-width="1"/></pattern></defs><rect width="1672" height="941" rx="16" fill="url(#d-bg)"/><g font-family="Noto Sans JP,Hiragino Sans,Yu Gothic,sans-serif" fill="#ecfffa"><path d="M80 65H1592" stroke="#54efd1" stroke-opacity=".28"/><text x="80" y="112" font-family="monospace" font-size="20" letter-spacing="4" fill="#72e8d2">VISIONHUB / 2026.10.04</text><text x="1592" y="112" text-anchor="end" font-family="monospace" font-size="20" fill="#a3c7c2">KOLIBRI—1 / MoE</text><text x="80" y="188" font-size="48" font-weight="600">計算する部分と、保持する全体。</text><text x="80" y="230" font-size="22" fill="#a3c7c2">78Bを抱えたまま、トークンごとに一部を動かす。</text>
+<text x="80" y="303" font-family="monospace" font-size="16" letter-spacing="3" fill="#72e8d2">01 / MODEL CAPACITY</text><text x="80" y="392" font-family="monospace" font-size="88" font-weight="700">78B<tspan font-size="27" fill="#a3c7c2"> 全体のパラメータ</tspan></text>
+<rect x="80" y="427" width="830" height="170" rx="4" fill="#10342f" stroke="#3b8b7e"/><rect x="80" y="427" width="830" height="170" rx="4" fill="url(#d-grid)"/><rect x="80" y="427" width="36.744" height="170" fill="url(#d-active)"/>
+<text x="869" y="511" text-anchor="end" font-family="monospace" font-size="20" fill="#a3c7c2">全体を保持</text><text x="869" y="546" text-anchor="end" font-size="17" fill="#a3c7c2">図の面積はパラメータの割合</text>
+<path d="M98 597V626H145" fill="none" stroke="#7ef4c8" stroke-width="2"/><circle cx="98" cy="597" r="4" fill="#afffd2"/><text x="163" y="660" font-family="monospace" font-size="57" font-weight="700" fill="#86ffcd">3.46B</text><text x="418" y="659" font-size="23" fill="#c1e7dc">1トークンで稼働 ≈ 4.4%</text>
+<path d="M972 290V690" stroke="#3a746d" stroke-opacity=".7"/>
+<text x="1030" y="303" font-family="monospace" font-size="16" letter-spacing="3" fill="#ffdc89">02 / WEIGHT MEMORY</text><text x="1030" y="392" font-family="monospace" font-size="77" font-weight="700" fill="#ffdc89">≈78<tspan font-size="43"> GB</tspan></text><text x="1030" y="432" font-size="23" fill="#e7ddba">FP8の重み容量</text>
+<path d="M1030 461H1590" stroke="#ffdc89" stroke-opacity=".3"/><text x="1030" y="512" font-size="25">3.46B稼働でも、</text><text x="1030" y="552" font-size="25">小さなメモリで済むとは限らない。</text><text x="1030" y="609" font-size="20" fill="#a3c7c2">KVキャッシュ・実行時領域などは別。</text><text x="1030" y="647" font-size="20" fill="#a3c7c2">78GBは運用全体の必要容量ではない。</text>
+<rect x="80" y="733" width="1512" height="138" rx="8" fill="#041313" stroke="#387c70"/><text x="110" y="774" font-family="monospace" font-size="15" letter-spacing="2" fill="#72e8d2">03 / CONTEXT</text><text x="110" y="819" font-family="monospace" font-size="29" font-weight="700">262,144<tspan font-family="sans-serif" font-size="18" fill="#a3c7c2"> 以下を推奨</tspan></text><text x="770" y="777" font-size="18" fill="#a3c7c2">複雑業務・配信効率の推奨</text><rect x="770" y="796" width="790" height="11" rx="5" fill="#183b36"/><rect x="770" y="796" width="197.5" height="11" rx="5" fill="#66e4bd"/><text x="1560" y="841" text-anchor="end" font-family="monospace" font-size="19" fill="#a3c7c2">MAX 1,048,576 tokens</text><text x="80" y="909" font-size="15" fill="#8eadac">出典：Aleph Alpha公式モデルカード（2026-10-05確認）／編集部の模式図・性能実測ではありません</text></g></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 1160" role="img" aria-labelledby="m-title m-desc" class="board-svg board-mobile"><title id="m-title">Kolibri-1：計算する部分と、保持する全体を分ける</title><desc id="m-desc">全体78Bのうち1トークンで稼働するのは3.46B、約4.4パーセント。稼働範囲が小さくてもFP8の重み容量は約78GBで、運用には追加メモリが必要。最大コンテキスト1,048,576トークンに対し、複雑業務と配信効率の推奨は262,144以下。編集部が公式モデルカードから作成した模式図。</desc><defs><linearGradient id="m-bg" x2="1" y2="1"><stop stop-color="#082b2a"/><stop offset=".6" stop-color="#06191d"/><stop offset="1" stop-color="#020b11"/></linearGradient><linearGradient id="m-active" x2="1" y2="1"><stop stop-color="#b8ffbd"/><stop offset=".6" stop-color="#54efd1"/><stop offset="1" stop-color="#17bba2"/></linearGradient><linearGradient id="m-line"><stop stop-color="#58f4d4"/><stop offset="1" stop-color="#58f4d4" stop-opacity="0"/></linearGradient><pattern id="m-grid" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M22 0H0V22" fill="none" stroke="#4bf1d0" stroke-opacity=".2" stroke-width="1"/></pattern></defs><rect width="760" height="1160" rx="16" fill="url(#m-bg)"/><g font-family="Noto Sans JP,Hiragino Sans,Yu Gothic,sans-serif" fill="#ecfffa"><path d="M44 40H716" stroke="#54efd1" stroke-opacity=".3"/><text x="44" y="78" font-family="monospace" font-size="18" letter-spacing="2" fill="#72e8d2">VISIONHUB / 2026.10.04</text><text x="44" y="139" font-size="38" font-weight="600">計算する部分と、</text><text x="44" y="192" font-size="38" font-weight="600">保持する全体。</text><text x="44" y="230" font-family="monospace" font-size="19" fill="#a3c7c2">KOLIBRI—1 / Mixture of Experts</text>
+<text x="44" y="287" font-family="monospace" font-size="16" letter-spacing="2" fill="#72e8d2">01 / MODEL CAPACITY</text><text x="44" y="361" font-family="monospace" font-size="74" font-weight="700">78B<tspan font-size="28" fill="#a3c7c2"> 全体のパラメータ</tspan></text><rect x="44" y="391" width="672" height="158" rx="4" fill="#10342f" stroke="#3b8b7e"/><rect x="44" y="391" width="672" height="158" fill="url(#m-grid)"/><rect x="44" y="391" width="29.749" height="158" fill="url(#m-active)"/><text x="684" y="468" text-anchor="end" font-size="28" fill="#a3c7c2">全体を保持</text><text x="684" y="507" text-anchor="end" font-size="19" fill="#a3c7c2">面積＝パラメータの割合</text><path d="M60 549V573H100" fill="none" stroke="#7ef4c8" stroke-width="2"/><text x="117" y="601" font-family="monospace" font-size="49" font-weight="700" fill="#86ffcd">3.46B</text><text x="359" y="599" font-size="28" fill="#c1e7dc">稼働 ≈4.4%</text><text x="117" y="638" font-size="21" fill="#a3c7c2">1トークンで動かす部分</text>
+<path d="M44 682H716" stroke="#387c70"/><text x="44" y="725" font-family="monospace" font-size="16" letter-spacing="2" fill="#ffdc89">02 / WEIGHT MEMORY</text><text x="44" y="799" font-family="monospace" font-size="65" font-weight="700" fill="#ffdc89">≈78 GB<tspan font-family="sans-serif" font-size="28" fill="#e7ddba"> FP8重み</tspan></text><text x="44" y="844" font-size="28">稼働が小さくても、全体は保持する。</text><text x="44" y="884" font-size="28" fill="#a3c7c2">KVキャッシュ等の追加メモリは別。</text>
+<rect x="44" y="927" width="672" height="145" rx="6" fill="#041313" stroke="#387c70"/><text x="67" y="966" font-family="monospace" font-size="15" letter-spacing="2" fill="#72e8d2">03 / CONTEXT</text><text x="67" y="1007" font-family="monospace" font-size="28" font-weight="700">262,144<tspan font-family="sans-serif" font-size="20" fill="#a3c7c2"> 以下を推奨</tspan></text><rect x="67" y="1026" width="625" height="8" rx="4" fill="#183b36"/><rect x="67" y="1026" width="156.25" height="8" rx="4" fill="#66e4bd"/><text x="692" y="1058" text-anchor="end" font-family="monospace" font-size="17" fill="#a3c7c2">MAX 1,048,576 tokens</text><text x="44" y="1110" font-size="17" fill="#8eadac">公式モデルカード／2026-10-05確認</text><text x="44" y="1138" font-size="16" fill="#8eadac">編集部の模式図。性能実測ではありません。</text></g></svg></button><figcaption><div class="board-caption-top"><b>全体を保持し、一部を計算する。</b><span>押して拡大 ↗</span></div>公式モデルカードを基に編集部が作成した模式図。画面のスクリーンショットではありません。数値の条件は下の各章をご覧ください。</figcaption></figure></section>
+<div class="slides"><section class="slide" id="s1" aria-labelledby="h1"><div class="slide-head"><span class="no" aria-hidden="true">01</span><div><p class="slide-kicker">THE TAKEAWAY</p><h2 id="h1">独英の文書を、自社で動かす選択肢</h2></div></div><div class="notes"><div class="notes-main"><p>Aleph Alphaは<strong>2026年10月3日</strong>、独語・英語に重点を置くMoEモデルKolibri-1を公開した。推論モードとツール呼び出しを備え、自社でホストする文書処理や業務支援の選択肢として読む。</p><p>本号は<strong>10月4日号</strong>として公式発表を取り上げる。導入を考えるときは、稼働パラメータ、保持する重み、使う文書の長さを別々に確認する。</p><p class="source-line">出典・位置付け：<a href="https://aleph-alpha.com/en/blog/kolibri-has-landed-a-sovereign-open-weight-model/">公式発表・モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>小さな稼働範囲は、計算を節約する設計。<strong>運用の軽さや自社での性能を保証する数値ではない。</strong></p></aside></div></section>
+<section class="slide" id="s2" aria-labelledby="h2"><div class="slide-head"><span class="no" aria-hidden="true">02</span><div><p class="slide-kicker">WHAT IS OPEN</p><h2 id="h2">公開重みと、運用の責任を分ける</h2></div></div><div class="notes"><div class="notes-main"><p>モデルカードのライセンス表記は<strong>Apache 2.0</strong>。公開された重みと構成を利用する条件として確認する。学習コードや学習データのすべてが公開されている、という意味ではない。</p><p>自社ホストは配置とアクセスを設計できる選択肢。一方、データの取扱い、出力の確認、権限、ログ、保守は導入側の仕事として残る。「sovereign」という位置付けを法令適合の保証として扱わない。</p><p class="source-line">出典・位置付け：<a href="https://huggingface.co/Aleph-Alpha/Kolibri-1">公式モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>ライセンスと配置の自由度を読む。<strong>安全な運用は、実際のシステムと業務の設計で確かめる。</strong></p></aside></div></section>
+<section class="slide" id="s3" aria-labelledby="h3"><div class="slide-head"><span class="no" aria-hidden="true">03</span><div><p class="slide-kicker">ACTIVE ≠ TOTAL</p><h2 id="h3">78Bの全体から、3.46Bをトークンごとに動かす</h2></div></div><div class="notes"><div class="notes-main"><p>総パラメータは<strong>78,103,074,560</strong>。1トークン当たりの稼働パラメータは<strong>3,457,573,120</strong>で、全体の約4.4%に相当する（本号による比率計算）。</p><div class="scroll-x" tabindex="0" role="region" aria-label="2つのパラメータ数が表すもの。狭い画面では横にスクロール"><table class="cmp"><caption>2つのパラメータ数が表すもの</caption><thead><tr><th scope="col">数値</th><th scope="col">意味</th></tr></thead><tbody><tr><th scope="row">78B 全体</th><td>モデル全体の容量。稼働していない部分も保持する。</td></tr><tr><th scope="row">3.46B 稼働／token</th><td>そのトークンの処理に動かす部分。メモリ容量の表記ではない。</td></tr></tbody></table></div><p class="source-line">出典・位置付け：<a href="https://huggingface.co/Aleph-Alpha/Kolibri-1">公式モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>計算量と保持容量は別の軸。<strong>3.46Bモデルと同じメモリで動く、と読み替えない。</strong></p></aside></div></section>
+<section class="slide" id="s4" aria-labelledby="h4"><div class="slide-head"><span class="no" aria-hidden="true">04</span><div><p class="slide-kicker">CONTEXT IN PRACTICE</p><h2 id="h4">最大100万と、実務推奨26万を区別する</h2></div></div><div class="notes"><div class="notes-main"><p>最大コンテキストは<strong>1,048,576トークン</strong>。一方、複雑なタスクや配信効率を重視する場合、公式は<strong>262,144トークン以下</strong>を推奨する。後者がネイティブのコンテキスト長だ。</p><p>最大値は、すべての文書で品質や応答速度を保証する数字ではない。長い文書を一括投入する前に、根拠を拾えるか、待ち時間と同時実行の条件を満たすかを実文書で確かめる。</p><p class="source-line">出典・位置付け：<a href="https://aleph-alpha.com/downloads/tech-report.pdf">モデルカード・技術報告</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>文書の長さと、仕事を完了できる長さを分ける。<strong>最大値まで詰めることを導入目標にしない。</strong></p></aside></div></section>
+<section class="slide" id="s5" aria-labelledby="h5"><div class="slide-head"><span class="no" aria-hidden="true">05</span><div><p class="slide-kicker">HUMAN IN THE LOOP</p><h2 id="h5">検索・文書処理・ツール利用は、人の確認と組み合わせる</h2></div></div><div class="notes"><div class="notes-main"><p>公式が想定する用途には、独英のアシスタント、文書処理、検索拡張生成（RAG）、コーディング、ツールを使う業務が含まれる。出力を人が確認してから実行する構成が前提だ。</p><p>推論の強さは<code>none / low / medium / high</code>から設定できる。ツール呼び出しはAPIや検索への接続を可能にするが、呼び出しの妥当性と結果の検証は組み込み側で行う。</p><p class="source-line">出典・位置付け：<a href="https://huggingface.co/Aleph-Alpha/Kolibri-1">公式モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>推論モードは調整の手段。<strong>正解の保証や、確認不要の自律運用の許可ではない。</strong></p></aside></div></section>
+<section class="slide" id="s6" aria-labelledby="h6"><div class="slide-head"><span class="no" aria-hidden="true">06</span><div><p class="slide-kicker">THE MEMORY BUDGET</p><h2 id="h6">約78GBは重みだけ。運用全体の予算ではない</h2></div></div><div class="notes"><div class="notes-main"><p>公式モデルカードは<strong>FP8の重み容量を約78GB</strong>と示す。稼働パラメータが少なくても、モデル全体の重みをメモリに保持する必要がある。</p><p>実行時にはKVキャッシュなどの領域も必要になる。必要なGPU構成は文書長、同時実行、実装に左右されるため、重みの78GBだけを機器選定や費用見積もりの根拠にしない。</p><p class="source-line">出典・位置付け：<a href="https://huggingface.co/Aleph-Alpha/Kolibri-1">公式モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p><strong>重み＋実行時領域＋余裕</strong>を見積もる。GPUを選ぶ前に、要求する文書長と同時実行数をそろえる。</p></aside></div></section>
+<section class="slide" id="s7" aria-labelledby="h7"><div class="slide-head"><span class="no" aria-hidden="true">07</span><div><p class="slide-kicker">WHAT WE HAVE NOT TESTED</p><h2 id="h7">日本語性能と、実業務の品質は未検証</h2></div></div><div class="notes"><div class="notes-main"><p>Kolibriは独語・英語を中心に設計されている。本号では<strong>日本語の精度、実業務の速度、運用費用を実測していない</strong>。独英での設計意図から、日本語でも同じ結果が得られるとは推定しない。</p><p>公開資料の評価は開発元による評価として読む。学習データの言語比率やベンチマーク値には資料間の違いが見られるため、本号では順位付けや数値比較に使わない。</p><p class="source-line">出典・位置付け：<a href="https://aleph-alpha.com/en/blog/kolibri-has-landed-a-sovereign-open-weight-model/">公式ブログ・モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>自社資料での適合性は別途確認する。<strong>公式評価・第三者評価・自社の実測を混ぜない。</strong></p></aside></div></section>
+<section class="slide" id="s8" aria-labelledby="h8"><div class="slide-head"><span class="no" aria-hidden="true">08</span><div><p class="slide-kicker">TEST YOUR OWN DOCUMENTS</p><h2 id="h8">実文書・根拠・速度をそろえて、小さく評価する</h2></div></div><div class="notes"><div class="notes-main"><p><strong>ここからは本号の編集部提案。</strong>導入候補にする場合は、代表的な独英文書と人が確認した答えを用意し、利用条件を固定して評価する。</p><div class="scroll-x" tabindex="0" role="region" aria-label="導入前にそろえる評価条件。狭い画面では横にスクロール"><table class="cmp"><caption>導入前にそろえる評価条件</caption><thead><tr><th scope="col">評価の軸</th><th scope="col">確認する内容</th></tr></thead><tbody><tr><th scope="row">文書と根拠</th><td>短文・長文、検索が必要な問い、原文にない問いを含め、根拠の位置と誤回答を記録する。</td></tr><tr><th scope="row">実行の条件</th><td>文書長・同時実行数・推論モードを記録し、待ち時間とメモリ使用量を比較する。</td></tr><tr><th scope="row">承認と運用</th><td>人の確認、ツール権限、失敗時の停止、ログと保守担当を定める。</td></tr></tbody></table></div><p class="source-line">出典・位置付け：編集部提案（公式要件ではありません）</p></div><aside class="sowhat"><span class="tag">読み方</span><p>公開モデルを試すことと、本番で任せることは別段階。<strong>評価の合格条件と、残る課題を先に決める。</strong></p></aside></div></section>
+</div>
+<section class="prompt-panel" aria-label="導入評価用の依頼文"><div class="prompt-heading"><label for="task-prompt">自分の業務に書き換える依頼文</label><button id="copy-prompt" type="button">依頼文をコピー</button></div><textarea id="task-prompt" readonly>本号の情報を使って、Kolibri-1が自社の業務に合うか評価してください。
+対象業務と利用言語：[ ]
+利用する文書・正解・根拠位置：[ ]
+文書長と同時実行数：[ ]
+人の承認とツール権限：[ ]
+予算・期限・保守担当：[ ]
+
+数値を区別：78Bは全体、3.46Bは1トークン当たりの稼働、約78GBはFP8重みだけ。KVキャッシュ等を含む運用メモリは別に見積もる。
+長文の条件：最大1,048,576トークンと、複雑業務・配信効率で推奨される262,144以下を区別する。
+比較する条件：文書長・推論モード・同時実行数を固定して、正答、根拠の一致、誤回答、待ち時間、メモリ使用を記録する。
+日本語性能は未検証として扱う。出力とツールの実行は人が確認する。
+公式情報・未確認事項・編集部提案・実測結果を区別し、導入の合格条件と残る課題を示してください。</textarea><p id="copy-status" role="status" aria-live="polite">コピー後に [ ] を書き換えてください。編集部の評価用ひな形です。</p></section>
+<footer class="sources" id="sources"><h2>出典と、確認した範囲</h2><p>対象ニュース日、公式公開日、情報確認日を区別しています。図解と導入評価用の依頼文は編集部が作成したものです。</p>
+<ol class="source-list"><li><a href="https://huggingface.co/Aleph-Alpha/Kolibri-1">Aleph Alpha：Kolibri-1公式モデルカード</a><small>公開日：2026-10-03／確認日：2026-10-05。パラメータ、メモリ、コンテキスト、用途、ライセンスと制約。</small></li><li><a href="https://aleph-alpha.com/en/blog/kolibri-has-landed-a-sovereign-open-weight-model/">Aleph Alpha：Kolibriの公式技術ブログ</a><small>確認日：2026-10-05。モデルの位置付け。資料間で差のある評価値と言語比率は本号の数値比較に使用していません。</small></li><li><a href="https://aleph-alpha.com/downloads/tech-report.pdf">Aleph Alpha：Kolibri technical report（PDF）</a><small>モデルカードが案内する技術資料。長文処理の詳しい条件を確認するための資料。</small></li><li><a href="https://aleph-alpha.com/en/news/kolibri-sovereign-ai-made-in-germany/">Aleph Alpha：Kolibri公式発表</a><small>調査担当が確認した公式発表。独英を中心とする自社ホストの位置付け。</small></li></ol>
+<p class="source-line">形式参考：<a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_03.html">10/3号</a>。本号ではモデルを実行せず、独立ベンチマーク、日本語性能、速度、費用の実測を行っていません。モデルカードは更新される可能性があります。</p></footer>
+<nav class="bottom-nav" aria-label="スライド案内"><a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_03.html">← 前日 10/3</a><a href="https://visionhub.jp/presentations/day_slides_index.html">一覧</a><a href="https://visionhub.jp/">ホーム</a></nav></main>
+<dialog class="zoom" id="board-dialog" aria-labelledby="board-dialog-title"><div class="dialog-tools"><b id="board-dialog-title">本号の要点図</b><div><button id="board-size" type="button" aria-pressed="false">原寸で見る</button> <button id="close-board" type="button">閉じる</button></div></div><div class="image-scroll" id="zoom-content"></div><p class="hint">Escキーで閉じます。原寸表示では縦横にスクロールできます。</p></dialog>
+<script>
+const dialog = document.getElementById('board-dialog');
+const openButton = document.getElementById('open-board');
+const wideBoard = document.querySelector('.board-desktop').cloneNode(true);
+wideBoard.classList.remove('board-svg','board-desktop');
+wideBoard.querySelectorAll('[id]').forEach(el => { el.id = 'z-' + el.id; });
+wideBoard.querySelectorAll('[fill]').forEach(el => { const fill = el.getAttribute('fill'); if(fill.startsWith('url(#')) el.setAttribute('fill',fill.replace('url(#','url(#z-')); });
+wideBoard.setAttribute('aria-labelledby','z-d-title z-d-desc');
+document.getElementById('zoom-content').appendChild(wideBoard);
+openButton.addEventListener('click', () => dialog.showModal());
+document.getElementById('close-board').addEventListener('click', () => dialog.close());
+const sizeButton = document.getElementById('board-size');
+sizeButton.addEventListener('click', () => { const enlarged = dialog.classList.toggle('enlarged'); sizeButton.setAttribute('aria-pressed',String(enlarged)); sizeButton.textContent = enlarged ? '画面に合わせる' : '原寸で見る'; });
+dialog.addEventListener('click', e => { if(e.target === dialog) { const r = dialog.getBoundingClientRect(); if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialog.close(); } });
+document.getElementById('copy-prompt').addEventListener('click', async () => { const field = document.getElementById('task-prompt'); const status = document.getElementById('copy-status'); try { await navigator.clipboard.writeText(field.value); status.textContent = 'コピーしました。[ ] を書き換えて使ってください。'; } catch { field.focus(); field.select(); status.textContent = document.execCommand('copy') ? 'コピーしました。[ ] を書き換えて使ってください。' : '依頼文を選択しました。Ctrl+C または端末のコピー操作をご利用ください。'; } });
+const progress = document.querySelector('.progress');
+function updateProgress() { const h = document.documentElement; const total = h.scrollHeight - h.clientHeight; progress.style.width = (total > 0 ? h.scrollTop / total * 100 : 0) + '%'; }
+addEventListener('scroll',updateProgress,{passive:true}); addEventListener('resize',updateProgress); updateProgress();
+const links = [...document.querySelectorAll('.jump a')];
+if('IntersectionObserver' in window) { const observer = new IntersectionObserver(entries => { for(const e of entries) if(e.isIntersecting) links.forEach(a => { const active = a.hash === '#' + e.target.id; a.classList.toggle('on',active); if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); }); },{rootMargin:'-15% 0px -65% 0px'}); document.querySelectorAll('.slide').forEach(s => observer.observe(s)); }
+</script></body></html>
