@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>コードも録音も、意味で探す。EmbeddingGemma 2 | VisionHub 2026-10-07</title>
+<meta name="description" content="2026年10月7日編集号。EmbeddingGemma 2が、関数名を知らないエンジニアや分散した資料・デモ録音を探すPMの検索をどう変えるか。仕組み、提供元評価、端末内構成の条件と小さな比較試行を解説。">
+<meta name="robots" content="index,follow,max-image-preview:large"><link rel="icon" href="data:,">
+<meta property="og:type" content="article"><meta property="og:site_name" content="VisionHub"><meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="コードも録音も、意味で探す。EmbeddingGemma 2"><meta property="og:description" content="2026-10-07編集号。誰の検索課題をどう解くか、端末内構成の条件まで。">
+<style>
+    :root {
+      --bg:#04090c; --panel:#081418; --panel2:rgba(9,25,30,.72);
+      --ink:#eefcfb; --muted:#95b3b0; --line:rgba(90,220,200,.20);
+      --accent:#2fc6b2; --gold:#ffc94d; --alert:#ff8f7a; --glow:rgba(47,198,178,.28);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 520px at 88% -4%, rgba(47,198,178,.13), transparent 60%),
+        radial-gradient(820px 460px at -8% 34%, rgba(47,198,178,.06), transparent 55%),
+        var(--bg);
+      font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+    }
+    a { color:inherit; }
+    .progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),#b7fff2); z-index:60; transition:width .1s linear; }
+
+    /* ---- text-led hero ---- */
+    .hero { position:relative; overflow:hidden; border-bottom:1px solid var(--line); background:
+      linear-gradient(rgba(90,220,200,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(90,220,200,.05) 1px, transparent 1px),
+      radial-gradient(900px 420px at 78% -10%, rgba(47,198,178,.16), transparent 62%),
+      #04090c;
+      background-size:44px 44px, 44px 44px, auto, auto; }
+    .hero-inner { position:relative; z-index:2; width:min(1200px, 100% - 40px); margin:0 auto; padding:22px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:center; color:#c4dedb; font-size:13px; }
+    .topbar a { color:#bff2e9; text-decoration:none; border-bottom:1px solid rgba(191,242,233,.35); padding-bottom:1px; }
+    .hero-body { padding-top:clamp(48px, 9vh, 110px); max-width:980px; }
+    .kicker { display:inline-flex; align-items:center; gap:10px; color:#06201b; background:var(--accent); font-weight:700; font-size:12px; letter-spacing:.14em; padding:7px 14px; border-radius:3px; margin-bottom:18px; }
+    .eyebrow { font:800 clamp(15px,2vw,21px)/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.3em; color:#9df2e2; margin:0 0 14px; text-shadow:0 0 24px var(--glow); }
+    h1 { font-size:clamp(34px,5.2vw,66px); line-height:1.16; margin:0 0 18px; font-weight:600; letter-spacing:-.02em; text-wrap:balance; }
+    .lead { color:#c7ded9; font-size:clamp(15px,1.5vw,17px); margin:0; line-height:2; max-width:920px; }
+    .lead strong, p strong, li strong { color:var(--ink); font-weight:600; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .hero-meta span { border:1px solid rgba(157,242,226,.4); background:rgba(4,16,14,.55); color:#d2f2ec; font-size:12.5px; padding:7px 14px; border-radius:20px; }
+
+    .shell { width:min(1200px, 100% - 40px); margin:0 auto; padding-bottom:70px; }
+
+    /* ---- stats ---- */
+    .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:11px; margin:28px 0 40px; position:relative; z-index:5; }
+    .stat-card { border:1px solid var(--line); background:linear-gradient(180deg, rgba(13,33,31,.94), rgba(6,17,16,.94)); padding:16px 17px 14px; border-radius:6px; box-shadow:0 18px 44px rgba(1,8,7,.55); }
+    .stat-num { font:700 27px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .stat-num.gold { color:var(--gold); }
+    .stat-label { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.6; }
+    .stat-label b { color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+
+    /* ---- sticky jump ---- */
+    .jump { position:sticky; top:0; z-index:40; display:flex; gap:7px; overflow-x:auto; padding:11px 0; margin-bottom:34px; background:rgba(4,9,12,.92); backdrop-filter:blur(14px); scrollbar-width:thin; border-bottom:1px solid rgba(90,220,200,.14); }
+    .jump a { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 13px; border:1px solid var(--line); border-radius:19px; color:var(--muted); text-decoration:none; font-size:12px; white-space:nowrap; }
+    .jump a b { font:700 11px/1 ui-monospace,monospace; color:var(--accent); }
+    .jump a.on, .jump a:hover, .jump a:focus-visible { border-color:var(--accent); color:var(--ink); background:rgba(47,198,178,.12); outline:none; }
+
+    /* ---- deck sections ---- */
+    .slides { display:grid; gap:52px; }
+    section.slide { scroll-margin-top:70px; min-width:0; }
+    .slide-head { display:flex; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .no { flex:0 0 auto; font:800 clamp(38px,4.6vw,58px)/0.9 ui-monospace,SFMono-Regular,monospace; color:transparent; -webkit-text-stroke:1.5px rgba(47,198,178,.75); letter-spacing:-.03em; padding-top:4px; }
+    .slide-kicker { color:var(--accent); font:700 11px/1 ui-monospace,monospace; letter-spacing:.22em; margin:0 0 9px; }
+    h2 { font-size:clamp(21px,2.7vw,31px); line-height:1.35; margin:0; font-weight:600; letter-spacing:-.01em; text-wrap:balance; }
+    .shot { margin:0 0 18px; position:relative; border:1px solid rgba(90,220,200,.30); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 24px 70px rgba(2,22,18,.6), 0 0 0 1px rgba(2,10,8,.6); }
+    .shot img { width:100%; height:auto; display:block; cursor:zoom-in; transition:opacity .25s; }
+    .shot img:hover { opacity:.94; }
+    .shot .zoom-badge { position:absolute; right:12px; bottom:12px; pointer-events:none; background:rgba(3,14,12,.78); border:1px solid rgba(157,242,226,.4); color:#d2f2ec; font-size:11px; padding:5px 11px; border-radius:14px; backdrop-filter:blur(4px); }
+    .notes { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; align-items:start; }
+    .notes.single { grid-template-columns:minmax(0,1fr); }
+    .notes-main { min-width:0; }
+    p { color:var(--muted); line-height:1.95; margin:0 0 12px; font-size:15px; }
+    ul { margin:0 0 12px; padding-left:1.25em; color:var(--muted); line-height:1.9; font-size:14.5px; }
+    li { margin-bottom:7px; }
+    li::marker { color:var(--accent); }
+    .sowhat { border:1px solid rgba(255,201,77,.45); background:linear-gradient(180deg, rgba(255,201,77,.09), rgba(255,201,77,.04)); border-radius:8px; padding:16px 18px; position:sticky; top:70px; }
+    .sowhat .tag { display:inline-block; color:#1a1403; background:var(--gold); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.18em; padding:5px 10px; border-radius:3px; margin-bottom:11px; }
+    .sowhat p { color:#e9e0c4; font-size:13.8px; line-height:1.85; margin:0; }
+    .sowhat p strong { color:#ffe6a8; }
+    .quote { border-left:3px solid var(--accent); background:rgba(47,198,178,.07); padding:14px 18px; margin:14px 0; color:#d6efe9; font-size:14.5px; line-height:1.9; font-style:italic; border-radius:0 6px 6px 0; }
+    .quote small { display:block; margin-top:8px; color:var(--muted); font-style:normal; font-size:12px; }
+    .warn { border-left:3px solid var(--alert); background:rgba(255,143,122,.07); padding:12px 16px; margin:14px 0; border-radius:0 6px 6px 0; }
+    .warn p { margin:0; font-size:13.8px; color:#f3d8d0; }
+    .warn strong { color:#ffb3a3; }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin:14px 0; }
+    .vs-card { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .vs-card h4 { margin:0 0 10px; font-size:15px; color:var(--ink); }
+    .vs-card h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; margin-bottom:7px; color:var(--muted); }
+    .vs-card.now { border-color:rgba(47,198,178,.45); }
+    .vs-card.now h4 span { color:var(--accent); }
+    .vs-card ul { font-size:13.8px; margin-bottom:0; }
+    .checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:9px; }
+    .checks li { border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:12px 15px 12px 44px; position:relative; font-size:13.8px; color:var(--muted); line-height:1.75; margin:0; }
+    .checks li::before { content:"✓"; position:absolute; left:15px; top:11px; color:var(--gold); font-weight:800; font-size:15px; }
+    .checks b { color:var(--ink); }
+    .loop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:16px 0 6px; }
+    .loop .step { border:1px solid rgba(90,220,200,.35); background:rgba(47,198,178,.08); color:var(--ink); font-size:13px; font-weight:600; padding:9px 14px; border-radius:20px; white-space:nowrap; }
+    .loop .step small { display:block; font:700 9.5px/1 ui-monospace,monospace; color:var(--accent); letter-spacing:.14em; margin-bottom:3px; }
+    .loop .arr { color:var(--accent); font-weight:800; }
+    .loop-note { display:inline-flex; align-items:center; gap:8px; border:1px dashed rgba(255,201,77,.5); color:#ffe6a8; font-size:12.5px; padding:8px 14px; border-radius:20px; margin-top:8px; }
+    .scroll-x { overflow-x:auto; max-width:100%; }
+    table.cmp { width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0; min-width:600px; }
+    .cmp th { text-align:left; color:var(--accent); font-weight:600; font-size:12px; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .cmp td { color:var(--muted); padding:10px 12px; border-bottom:1px solid rgba(149,179,176,.12); line-height:1.7; vertical-align:top; }
+    .cmp td b { color:var(--ink); }
+    .cmp tr td:first-child { color:var(--ink); font-weight:600; }
+    .st-ok { color:#7ddb8a; font-weight:600; white-space:nowrap; }
+    .st-mid { color:var(--gold); font-weight:600; white-space:nowrap; }
+
+    /* ---- finale ---- */
+    .finale { margin-top:56px; border:1px solid rgba(47,198,178,.35); border-radius:10px; padding:clamp(26px,4vw,46px); text-align:center; background:radial-gradient(640px 300px at 50% -30%, rgba(47,198,178,.15), transparent 70%), var(--panel); }
+    .finale .eyebrow { letter-spacing:.3em; margin-bottom:16px; }
+    .finale blockquote { margin:0 auto; max-width:880px; font-size:clamp(19px,2.6vw,28px); line-height:1.7; color:var(--ink); font-weight:600; text-wrap:balance; }
+    .finale blockquote em { color:var(--gold); font-style:normal; }
+    .finale p { margin:16px 0 0; font-size:13.5px; }
+
+    /* ---- lightbox ---- */
+    dialog.zoom { max-width:min(96vw,1560px); width:auto; border:1px solid rgba(157,242,226,.4); border-radius:10px; background:#0a1114; padding:10px; }
+    dialog.zoom::backdrop { background:rgba(1,6,5,.88); backdrop-filter:blur(8px); }
+    dialog.zoom img { max-width:100%; max-height:86vh; display:block; cursor:zoom-out; border-radius:4px; }
+    dialog.zoom .hint { color:var(--muted); font-size:11.5px; text-align:center; margin:8px 0 0; }
+
+    @media (max-width:880px) {
+      .hero-body { padding-top:40px; }
+      .notes { grid-template-columns:minmax(0,1fr); }
+      .sowhat { position:static; }
+      .slide-head { gap:13px; }
+      .shell { width:min(1200px, 100% - 24px); }
+      .hero-inner { width:min(1200px, 100% - 24px); }
+    }
+
+    /* ---- labeled boards (no photos) ---- */
+    .board { border:1px solid rgba(90,220,200,.30); border-radius:8px; padding:18px 18px 16px; margin:14px 0 18px; background:linear-gradient(180deg, rgba(13,33,31,.55), rgba(6,17,16,.72)); box-shadow:0 18px 44px rgba(1,8,7,.35); }
+    .board-label { display:inline-block; color:#06201b; background:var(--accent); font:800 10.5px/1 ui-monospace,monospace; letter-spacing:.16em; padding:5px 10px; border-radius:3px; margin-bottom:12px; }
+    .board-title { margin:0 0 14px; font-size:16px; color:var(--ink); font-weight:600; line-height:1.5; }
+    .board-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch; }
+    .board-col { border:1px solid var(--line); background:var(--panel2); border-radius:8px; padding:16px 18px; }
+    .board-col.win { border-color:rgba(47,198,178,.5); }
+    .board-col.gold { border-color:rgba(255,201,77,.45); }
+    .board-col.alert { border-color:rgba(255,143,122,.45); }
+    .board-col h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    .board-col h4 span { display:block; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; color:var(--accent); margin-bottom:6px; }
+    .board-col.gold h4 span { color:var(--gold); }
+    .board-col.alert h4 span { color:var(--alert); }
+    .board-col .big { font:700 28px/1.05 ui-monospace,SFMono-Regular,monospace; color:var(--accent); letter-spacing:-.01em; }
+    .board-col .big.gold { color:var(--gold); }
+    .board-col .sub { color:var(--muted); font-size:13px; margin:8px 0 0; line-height:1.75; }
+    .board-vs { display:flex; align-items:center; justify-content:center; color:var(--accent); font:800 13px/1 ui-monospace,monospace; letter-spacing:.14em; padding:0 4px; }
+    .board-foot { margin:14px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .xarr { color:var(--alert); font-weight:800; }
+
+    @media (max-width:880px) {
+      .board-row { grid-template-columns:minmax(0,1fr); }
+      .board-vs { padding:6px 0; }
+    }
+
+
+    a { text-underline-offset:3px; }
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+    .skip-link { position:absolute; top:-80px; left:12px; z-index:100; padding:10px; background:var(--accent); color:#04120e; }
+    .skip-link:focus { top:12px; }
+    .hero-body { max-width:1050px; }
+    .hero-subtitle { display:block; font-size:clamp(19px,2.5vw,29px); line-height:1.55; color:#b8dcd4; margin-top:18px; }
+    .hero-meta span { font-size:12px; }
+    .stat-card { text-decoration:none; }
+    .stat-num { font-size:23px; overflow-wrap:anywhere; }
+    .status { font-size:12px; color:#abd4cd; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .source-line { font-size:11.8px; line-height:1.8; margin-top:16px; color:#8ebbb2; overflow-wrap:anywhere; }
+    .source-line a, .sources a { color:#9ae8d8; }
+    .cmp caption { text-align:left; font-size:12px; color:var(--muted); padding:6px 12px; }
+    .cmp th[scope=row] { color:var(--ink); font-size:13px; line-height:1.7; white-space:normal; letter-spacing:0; }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    h3 { font-size:16px; line-height:1.6; margin:0 0 12px; }
+    .vs-card p { font-size:14px; }
+    code { overflow-wrap:anywhere; color:#c4eee4; }
+    .metric-row { display:grid; grid-template-columns:1fr auto; gap:6px; margin:14px 0 19px; font-size:13px; }
+    .metric-row b { color:var(--accent); font:700 19px/1 ui-monospace,monospace; }
+    .bar-track { grid-column:1 / -1; height:7px; background:#18302c; border-radius:1px; }
+    .bar-track i { display:block; height:100%; background:var(--accent); }
+    .metric-row.gold b { color:var(--gold); }
+    .metric-row.gold .bar-track i { background:var(--gold); }
+    .action-list { padding-left:24px; color:var(--muted); font-size:15px; line-height:1.9; }
+    .action-list li { padding-left:6px; margin:14px 0; }
+    .action-list b { color:var(--ink); }
+    .editor-note { margin-top:20px; border:1px solid var(--line); padding:15px 18px; border-radius:6px; }
+    .editor-note summary { cursor:pointer; color:#bcece1; font-size:13px; }
+    .editor-note p { margin:12px 0 0; font-size:13px; }
+    .sources { margin-top:42px; padding:28px 0; border-top:1px solid var(--line); }
+    .sources ol { padding-left:22px; color:var(--muted); font-size:12px; line-height:1.8; }
+    .sources li { margin-bottom:12px; overflow-wrap:anywhere; }
+    .sources small { display:block; }
+    .bottom-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:24px 0 0; padding-top:24px; border-top:1px solid var(--line); }
+    .bottom-nav a { min-height:44px; display:inline-flex; align-items:center; padding:8px 16px; border:1px solid var(--line); border-radius:24px; text-decoration:none; font-size:13px; }
+    @media(max-width:640px) { .topbar { align-items:flex-start; font-size:11px; } .topbar span { text-align:right; } .eyebrow { letter-spacing:.12em; } .grid-2 { grid-template-columns:minmax(0,1fr); } .stats-bar { grid-template-columns:repeat(2,minmax(0,1fr)); } .stat-card:last-child { grid-column:1/-1; } .hero-body { padding-top:38px; } .hero-inner { padding-bottom:30px; } .slides { gap:40px; } .loop .step { white-space:normal; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; animation:none!important; } }
+    @media print { body { background:white; color:#142820; } .progress,.jump,.bottom-nav,.skip-link { display:none; } .hero,.board,.vs-card,.board-col,.sowhat,.finale,.stat-card { background:white; box-shadow:none; } :root { --ink:#142820; --muted:#34544a; --accent:#007663; --gold:#725400; --line:#acc8be; } .hero-inner,.shell { width:100%; } .hero-body { padding-top:20px; } h1 { font-size:36px; } section.slide { break-inside:avoid; } .lead,.hero-subtitle,.topbar,.status { color:#234c40; } }
+
+    .timeline { list-style:none; padding:0; margin:20px 0; }
+    .timeline li { display:grid; grid-template-columns:102px minmax(0,1fr); gap:14px; margin:0; padding:16px 0; border-bottom:1px solid var(--line); }
+    .timeline time { font:700 13px/1.7 ui-monospace,monospace; color:var(--accent); }
+    .timeline b { color:var(--ink); font-size:14px; }
+    .timeline p { margin:4px 0 0; font-size:13.5px; }
+    .pitfalls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .pitfalls h3 { font-size:17px; }
+    .pitfalls p { margin:0; }
+    .mini-label { display:block; font:700 11px/1.6 ui-monospace,monospace; color:var(--accent); margin:0 0 12px; letter-spacing:.1em; }
+    .effort-scale { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); margin:22px 0; border:1px solid var(--line); border-radius:7px; overflow:hidden; }
+    .effort-scale span { padding:18px 5px; text-align:center; font:700 16px/1.5 ui-monospace,monospace; border-right:1px solid var(--line); background:var(--panel); }
+    .effort-scale span:last-child { border-right:0; }
+    .effort-scale .candidate { background:rgba(47,198,178,.15); color:#b4ffed; }
+    .effort-scale small { display:block; font:11px/1.5 sans-serif; color:var(--muted); }
+    .reset-banner { border:1px solid rgba(255,201,77,.45); border-radius:8px; padding:22px; background:rgba(255,201,77,.065); margin-bottom:18px; }
+    .reset-banner .mini-label { color:var(--gold); }
+    .reset-banner p:last-child { margin-bottom:0; }
+    .prompt-panel { padding:20px; background:var(--panel); border:1px solid var(--line); border-radius:8px; margin:24px 0 16px; }
+    .prompt-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .prompt-heading label { color:var(--ink); font-size:15px; font-weight:600; }
+    button { font:inherit; cursor:pointer; min-height:44px; border:1px solid var(--accent); color:#c5fff2; background:rgba(47,198,178,.12); border-radius:5px; padding:9px 14px; }
+    button:hover { background:rgba(47,198,178,.25); }
+    button:focus-visible,textarea:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+    textarea { width:100%; min-height:370px; resize:vertical; font:14px/1.9 'Yu Gothic',sans-serif; color:#cae3dc; background:#040c0e; border:1px solid var(--line); border-radius:4px; padding:16px; }
+    #copy-status { font-size:12px; margin:8px 0 0; min-height:24px; }
+    .board-foot { font-size:12px; line-height:1.85; }
+    .stat-num { font-size:clamp(16px,1.5vw,23px); }
+    .hero-body { max-width:1120px; }
+    @media(max-width:850px) { .pitfalls { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:640px) { .pitfalls { grid-template-columns:minmax(0,1fr); } .timeline li { grid-template-columns:85px minmax(0,1fr); gap:10px; } .timeline time { font-size:11px; } .effort-scale span { font-size:12px; } .prompt-heading { align-items:flex-start; flex-direction:column; } .prompt-panel { padding:15px; } textarea { min-height:550px; font-size:13px; } .desktop-break { display:none; } }
+
+    #audit-prompt { min-height:230px; }
+    @media(max-width:640px) { #audit-prompt { min-height:330px; } }
+
+  .topbar { flex-wrap:wrap; }
+  .source-line a, .source-list a, code { overflow-wrap:anywhere; }
+  .workflow-stack { display:grid; gap:12px; margin:20px 0; }
+  .workflow { display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; padding:20px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
+  .workflow-name { grid-row:span 2; } .workflow-name b { display:block; color:var(--accent); font:700 23px/1.3 ui-monospace,monospace; }
+  .workflow-name span { color:var(--muted); font-size:12px; }
+  .workflow p { font-size:13px; margin:0; }
+  .flow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .flow span { padding:10px 13px; border:1px solid var(--line); border-radius:5px; font-size:13px; color:var(--ink); }
+  .flow b { color:var(--accent); } .flow .result { border-color:rgba(255,201,77,.5); color:#ffe6a8; }
+  .shot { background:#f5f6f0; } .shot button { display:block; width:100%; padding:0; border:0; border-radius:0; background:none; min-height:0; cursor:zoom-in; }
+  .shot button:focus-visible { outline:3px solid var(--gold); outline-offset:-4px; }
+  .shot figcaption { background:#06120f; color:#b8d7cf; padding:10px 15px; font-size:12px; }
+  dialog.zoom { width:min(96vw,1640px); }
+  dialog.zoom .dialog-tools { display:flex; justify-content:space-between; align-items:center; gap:10px; color:#d2f2ec; font-size:13px; margin-bottom:8px; }
+  dialog.zoom .image-scroll { max-height:79vh; overflow:auto; }
+  dialog.zoom img { max-height:none; min-width:100%; cursor:default; }
+  dialog.zoom.enlarged img { max-width:none; width:1600px; }
+  .source-list { color:var(--muted); line-height:1.8; padding-left:1.3em; }
+  .source-list small { display:block; font-size:12px; }
+  .cmp td { min-width:130px; } code { font:13px/1.8 ui-monospace,monospace; color:#b2f8e8; }
+  @media(max-width:640px) { .eyebrow { letter-spacing:.12em; } .stats-bar { grid-template-columns:repeat(2,minmax(0,1fr)); } .workflow { grid-template-columns:minmax(0,1fr); padding:16px; gap:12px; } .workflow-name { grid-row:auto; } .workflow p { grid-column:1; } .stat-card { padding:14px 12px; } .stat-num { font-size:17px; } .grid-2 { grid-template-columns:minmax(0,1fr); } .topbar { font-size:11px; } }
+  @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *, *::before, *::after { transition:none!important; } }
+@media(max-width:640px) { h1 { font-size:clamp(28px,8.2vw,34px); line-height:1.28; } }
+
+.notes-main pre {white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;line-height:1.8} .notes-main p:last-child {margin-bottom:0} dialog.zoom.enlarged img {width:1672px}
+
+/* Responsive editorial SVG and interaction styling. */
+.review-state{border:1px solid var(--line);background:var(--panel);color:#bde4dc;padding:10px 14px;margin:22px 0 0;font-size:12px;line-height:1.8}
+.board-figure{margin:22px 0 42px;border:1px solid #31685e;border-radius:12px;overflow:hidden;box-shadow:0 24px 70px #01171580;background:#031115}
+.board-open{display:block;width:100%;padding:0;border:0;border-radius:0;background:none;cursor:zoom-in;min-height:0;text-align:left}
+.board-open:hover{background:none}.board-svg{display:block;width:100%;height:auto}.board-mobile{display:none}
+.board-figure figcaption{padding:12px 18px;color:#abcac2;font-size:12px;line-height:1.85;border-top:1px solid var(--line)}
+.board-caption-top{display:flex;justify-content:space-between;gap:16px;color:#c8eee1}
+.board-caption-top b{font-weight:600}.board-caption-top span{color:var(--gold);white-space:nowrap}
+.sources p{max-width:100%}.bottom-nav{margin-bottom:32px}.notes-main{overflow-wrap:anywhere}.jump a{max-width:95vw;overflow:hidden;text-overflow:ellipsis}
+.zoom .image-scroll{overflow:auto;max-height:78vh}.zoom svg{width:100%;height:auto;display:block}.zoom.enlarged svg{width:1672px;max-width:none}
+.zoom .dialog-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#d2f2ec;margin-bottom:10px}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}.prompt-panel textarea{min-height:390px}
+.metric-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.board-desktop{display:none}.board-mobile{display:block}.board-figure{margin:18px 0 32px}.board-caption-top{display:block}.board-caption-top span{display:block;margin-top:4px}.board-figure figcaption{padding:12px;font-size:11px}.stat-num{font-size:clamp(17px,4.8vw,23px)}.stats-bar .stat-card:last-child{grid-column:auto}.sowhat{padding:14px}.prompt-panel textarea{min-height:600px}.zoom{padding:7px}.zoom .dialog-tools{font-size:12px}}
+@media print{.review-state,.board-open span,.prompt-heading button,dialog{display:none}.board-figure{break-inside:avoid;box-shadow:none}.board-desktop{display:block}.board-mobile{display:none}.board-caption-top span{display:none}.prompt-panel textarea{min-height:380px;color:#142820;background:#fff}a{color:#165f51}.source-line{color:#234c40}}
+
+/* This issue uses the existing VisionHub deck layout. */
+.hero h1{max-width:1100px;font-size:clamp(32px,4.8vw,60px);line-height:1.3}
+.kicker{max-width:100%;line-height:1.5;letter-spacing:.08em}.hero-subtitle{margin-top:10px}.board-section{scroll-margin-top:75px}.board-section>p{margin-top:12px}
+.try-steps{list-style:none;padding:0;counter-reset:trial}.try-steps li{position:relative;padding:0 0 20px 42px;counter-increment:trial;border-left:1px solid var(--line);margin-left:14px}
+.try-steps li:last-child{padding-bottom:0}.try-steps li:before{content:counter(trial);position:absolute;left:-14px;top:0;width:28px;height:28px;border:1px solid var(--accent);border-radius:50%;background:#071b17;color:#8de3cb;text-align:center;font:700 14px/27px ui-monospace,monospace}
+.try-steps b{display:block;color:var(--ink);margin-bottom:4px}.try-steps p{font-size:14px;margin:0}
+.cue{padding:14px 16px;border-left:3px solid var(--accent);background:rgba(47,198,178,.07);margin:18px 0;color:#ceeadf;line-height:1.9;font-size:14px}
+.controls{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:18px 0}.control-row{display:grid;grid-template-columns:155px minmax(0,1fr);gap:14px;padding:13px 15px;border:1px solid var(--line);border-radius:6px;background:var(--panel2)}
+.control-row code{font-size:14px;color:#a9f4db}.control-row span{font-size:14px;line-height:1.8;color:var(--muted)}
+.checklist{padding-left:22px}.checklist b{color:var(--ink)}.sources h2{margin-bottom:16px}.board-open{color:inherit}.zoom.enlarged svg{width:var(--board-natural-width,1600px)}
+.source-list li{padding-bottom:8px}.source-list small{margin-top:4px}.jump{max-width:100%}.notes,.slide-head,.topbar,.prompt-heading,.dialog-tools{min-width:0}
+.slide-head>div,.topbar>span{min-width:0;overflow-wrap:anywhere}.board-section h2{margin-bottom:10px}
+@media(max-width:640px){.hero h1{font-size:clamp(30px,8vw,38px)}.control-row{grid-template-columns:minmax(0,1fr);gap:5px}.review-state{font-size:12px}.dialog-tools>div{display:flex;gap:7px;flex-wrap:wrap}.board-section>p{font-size:14px}.try-steps li{padding-left:28px}.stat-num{font-size:17px}.board-caption-top b{font-size:12px}.prompt-panel textarea{min-height:500px}}
+
+
+/* 10/7 issue: inherited palette and editorial deck, isolated self-contained draft. */
+:root{--anchor-offset:90px}
+html{scroll-padding-top:0}section.slide,.board-section,.sources{scroll-margin-top:var(--anchor-offset)}
+.hero .eyebrow{letter-spacing:.16em}.hero h1{font-size:clamp(32px,4.5vw,61px);max-width:1140px}
+.hero-subtitle{max-width:960px;font-size:clamp(18px,2vw,25px);font-weight:500}
+.source-line{font-size:12px;line-height:1.9;margin-top:16px;color:#abc8bd}
+.hero-meta{gap:8px}.hero-meta span{border-radius:4px}.stats-bar{margin-bottom:27px}
+.stat-card{box-shadow:none}.stat-num{font-size:23px}.stat-label{font-size:12.5px}
+.board-section>p{max-width:960px}.board-figure{border-radius:8px}
+.board-caption-top span{color:var(--gold)}.board-mobile{display:none}
+.notes p{font-size:16px}.sowhat{position:static}.sowhat p{font-size:14px}
+.usecase{margin:18px 0;padding:0 0 14px;border-bottom:1px solid var(--line)}
+.usecase h3{font-size:18px;margin:0 0 8px;color:#d8f5ec}.usecase p{margin:0}
+.flow-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;padding:0;gap:16px;margin:22px 0}
+.flow-list li{padding:14px 0;border-top:2px solid var(--accent);margin:0;font-size:14px;min-width:0}
+.flow-list b{display:block;color:var(--ink);margin-bottom:8px}.flow-list span{color:var(--muted)}
+.formula{font:700 23px/1.65 ui-monospace,monospace;color:#c5fff2;margin:18px 0}
+.bench-note{font-size:13px!important;color:#d0dcca}.scroll-x{scrollbar-width:thin;scrollbar-gutter:stable}
+table.cmp{margin:10px 0;min-width:610px;font-size:14px}.cmp caption{text-align:left;color:#d9f6ec;font-size:14px;padding:6px 0 10px;line-height:1.8}
+.cmp th{font-size:13px}.cmp td{min-width:90px}.cmp td:last-child{color:#d9f6ec}
+.table-wrap{margin:18px 0;border:1px solid var(--line);border-radius:6px;padding:12px 16px;min-width:0}
+.table-wrap h3{margin:0 0 8px;font-size:18px;color:var(--ink)}
+.try-steps{margin:20px 0}.try-steps p{font-size:15px;line-height:1.9}.try-steps li{font-size:16px}
+.setup-details{border:1px solid var(--line);padding:16px 18px;margin:20px 0;background:var(--panel);border-radius:6px}
+.setup-details summary{cursor:pointer;font-size:15px;color:#c5fff2}.setup-details ul{margin:14px 0 0;font-size:14px}
+.setup-details li{margin-bottom:12px}.setup-details code{font-size:13px}.setup-details p{font-size:14px;margin-top:16px}
+.decision-list{display:grid;gap:0;margin:20px 0}.decision-row{display:grid;grid-template-columns:175px minmax(0,1fr);gap:18px;padding:16px 0;border-bottom:1px solid var(--line)}
+.decision-row h3{margin:0;font-size:16px;color:var(--ink)}.decision-row p{margin:0;font-size:15px}
+.footer-note{margin-top:22px;font-size:13px}.sources h2{font-size:27px}.source-list{font-size:14px}.source-list small{font-size:13px}
+dialog.zoom{padding:14px;color:var(--ink);max-height:calc(100dvh - 30px);max-width:96vw;width:min(96vw,1640px);overflow:hidden}
+dialog.zoom[open]{display:flex;flex-direction:column;gap:0}
+.zoom .dialog-tools{flex-shrink:0;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.zoom .dialog-tools b{font-size:14px;line-height:1.6;flex:1 1 180px}
+.zoom .dialog-tools>div{display:flex;gap:8px;flex-wrap:wrap}
+.zoom .image-scroll{overflow:auto;max-height:calc(100dvh - 175px);min-height:0;flex:1 1 auto;scrollbar-gutter:stable}
+.zoom svg{display:block;width:100%;height:auto;max-width:100%}.zoom.enlarged svg{width:var(--board-natural-width);max-width:none}
+.zoom .hint{flex-shrink:0;margin-top:10px;line-height:1.8;font-size:12px;color:var(--muted)}
+body.board-is-open{overflow:hidden}.zoom .image-scroll:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
+.sources:focus{outline:none}section[tabindex]:focus{outline:none}
+@media(max-width:880px){.flow-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.hero .eyebrow{font-size:14px;letter-spacing:.07em}.hero h1{font-size:clamp(30px,8vw,38px)}.hero-subtitle{font-size:19px;line-height:1.6}.lead{font-size:16px}.hero-body{padding-top:34px}.hero-inner{padding-bottom:36px}.hero-meta span{font-size:11.5px;padding:6px 10px}.stats-bar{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat-card{padding:14px 12px}.stat-num{font-size:21px}.stat-label{font-size:12px}.board-desktop{display:none}.board-mobile{display:block}.board-caption-top{display:block}.board-caption-top span{display:block;margin-top:6px}.notes p{font-size:16px}.flow-list{grid-template-columns:minmax(0,1fr)}.flow-list li{padding:12px 0}.decision-row{grid-template-columns:minmax(0,1fr);gap:6px}.table-wrap{padding:10px 12px}.zoom .dialog-tools b{flex-basis:100%}.zoom .dialog-tools>div{width:100%;justify-content:space-between}.zoom .image-scroll{max-height:calc(100dvh - 208px)}.sources h2{font-size:24px}}
+@media print{.board-mobile{display:none}.board-desktop{display:block}dialog.zoom,.setup-details{display:none}.sources{break-before:page}.hero-meta span,.lead,.source-line,.bench-note,.formula{color:#14372d}table.cmp{min-width:0}}
+</style>
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_07.html">
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/1007/cover.jpg">
+<meta name="twitter:title" content="コードも録音も、意味で探す。EmbeddingGemma 2">
+<meta name="twitter:description" content="2026年10月7日編集号。EmbeddingGemma 2が、関数名を知らないエンジニアや分散した資料・デモ録音を探すPMの検索をどう変えるか。仕組み、提供元評価、端末内構成の条件と小さな比較試行を解説。">
+<!-- SEO_META_INJECTED v1 -->
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_07.html" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/1007/cover.jpg" />
+<!-- JSONLD_INJECTED v1 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "コードも録音も、意味で探す。EmbeddingGemma 2",
+  "datePublished": "2026-10-07",
+  "dateModified": "2026-10-07",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og-image.png"
+    }
+  },
+  "image": "https://visionhub.jp/presentations/day_slides/images/1007/cover.jpg",
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_07.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_07.html",
+  "inLanguage": "ja",
+  "isAccessibleForFree": true,
+  "articleSection": "Semantic Search / Multimodal Models",
+  "description": "2026年10月7日編集号。EmbeddingGemma 2が、関数名を知らないエンジニアや分散した資料・デモ録音を探すPMの検索をどう変えるか。仕組み、提供元評価、端末内構成の条件と小さな比較試行を解説。",
+  "temporalCoverage": "2026-10-07"
+}
+</script>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head><body>
+<a class="skip-link" href="#main">本文へスキップ</a><div class="progress" aria-hidden="true"></div>
+<header class="hero"><div class="hero-inner"><nav class="topbar" aria-label="ページ案内"><a href="https://visionhub.jp/presentations/day_slides_index.html">全日スライド</a><span>2026-10-07 / Semantic Search</span></nav>
+<div class="hero-body"><span class="kicker">今日の深掘り — 名前や媒体に縛られない検索へ</span><p class="eyebrow">GOOGLE / EMBEDDINGGEMMA 2</p>
+<h1>関数名を知らなくても、<br>コード・画像・音声を端末内で探す<span class="hero-subtitle">検索文と資料を、共通の意味ベクトルへ。</span></h1>
+<p class="lead">探したい内容は分かる。名前や場所が分からない。そんなエンジニアやPMに向けて、<strong>EmbeddingGemma 2</strong>が検索の対象をコードから画像・音声・動画へ広げる。どの課題をどう解き、導入前に何を測るべきかを整理する。</p>
+<div class="hero-meta"><span>掲載対象：2026-10-07編集号</span><span>Google公式公開日：2026-10-06</span><span>公開時刻：公式ページ未記載</span></div></div></div></header>
+<main class="shell" id="main" tabindex="-1">
+<div class="stats-bar"><a class="stat-card" href="#s5"><div class="stat-num">+9.92pt</div><div class="stat-label"><b>コードMTEBの改善</b>Google・全精度・768次元評価</div></a><a class="stat-card" href="#s6"><div class="stat-num">270M</div><div class="stat-label"><b>テキスト・コード構成</b>全エンコーダーは740M</div></a><a class="stat-card" href="#s4"><div class="stat-num">768d</div><div class="stat-label"><b>共通の意味ベクトル</b>テキスト・画像・音声・動画</div></a><a class="stat-card" href="#s7"><div class="stat-num gold">8,192</div><div class="stat-label"><b>入力トークンの上限</b>100以上の言語に対応</div></a></div>
+<nav class="jump" aria-label="章を選ぶ"><a href="#brief"><b>00</b>一枚で見る</a><a href="#s1"><b>01</b>概要</a><a href="#s2"><b>02</b>誰の課題</a><a href="#s3"><b>03</b>検索の難しさ</a><a href="#s4"><b>04</b>仕組み</a><a href="#s5"><b>05</b>変化</a><a href="#s6"><b>06</b>構成と品質</a><a href="#s7"><b>07</b>小さな試行</a><a href="#s8"><b>08</b>導入の判断</a><a href="#sources">出典</a></nav>
+<section class="board-section" id="brief" aria-labelledby="brief-title" tabindex="-1"><p class="slide-kicker">ONE-PAGE BRIEF</p><h2 id="brief-title">探し物の内容を言葉にし、近い候補から元資料へ戻る</h2><p>対象となる二つの検索課題と、仕組み・評価・構成の要点を一枚にまとめた。</p>
+<figure class="board-figure"><button class="board-open" id="open-board" type="button" aria-haspopup="dialog" aria-controls="board-dialog" aria-label="EmbeddingGemma 2の一枚ボードを拡大"><svg class="board-svg board-desktop" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 1080" role="img" aria-labelledby="desktop-title desktop-desc" font-family="'Yu Gothic','Meiryo',sans-serif"><title id="desktop-title">EmbeddingGemma 2を一枚で見る</title><desc id="desktop-desc">編集部の概念図。関数名を知らないエンジニアと、分散した資料やデモ録音を探すPMが対象。検索文と対象を共通の意味ベクトルに変換し、近い候補から元資料へ戻る。回答生成は別モデル。Googleの全精度768次元評価でコードMTEBは68.76から78.68へ9.92ポイント改善。テキストとコードは270M、全構成は740M。次元削減は容量と検索品質の比較が必要。公式発表2026年10月6日。独立追試と日本語業務精度は未確認。</desc><rect width="1672" height="1080" fill="#061416"/><defs><linearGradient id="desktop-glow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#133d3b"/><stop offset="1" stop-color="#071619"/></linearGradient><marker id="desktop-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#75e0c5"/></marker></defs><rect width="1672" height="228" fill="url(#desktop-glow)"/><text x="60" y="58" fill="#8fe5cf" font-size="22" font-weight="700" >VISIONHUB / 2026.10.07</text><text x="1110" y="58" fill="#b2d1c7" font-size="20" font-weight="500" >公式発表：10/6（公開時刻未記載）</text><text x="60" y="135" fill="#eefcfb" font-size="60" font-weight="650" >コードも録音も、意味で探す</text><text x="62" y="188" fill="#b9d8cf" font-size="27" font-weight="500" >EmbeddingGemma 2  /  端末内の検索をつくる埋め込みモデル</text><text x="62" y="280" fill="#8fe5cf" font-size="22" font-weight="700" >誰の、どんな探し物か</text><rect x="60" y="302" width="758" height="181" rx="12" fill="#0b2427" stroke="#31675e"/><text x="88" y="344" fill="#8fe5cf" font-size="21" font-weight="700" >ENGINEER</text><text x="88" y="389" fill="#eefcfb" font-size="33" font-weight="600" >関数名は不明。処理の内容は分かる。</text><text x="88" y="439" fill="#b9d8cf" font-size="25" font-weight="500" >架空例「失敗した送信を、間隔を空けて再試行する処理」</text><rect x="842" y="302" width="770" height="181" rx="12" fill="#0b2427" stroke="#31675e"/><text x="870" y="344" fill="#8fe5cf" font-size="21" font-weight="700" >PM / 検索担当</text><text x="870" y="389" fill="#eefcfb" font-size="33" font-weight="600" >資料・画面・デモ録音が散らばる。</text><text x="870" y="439" fill="#b9d8cf" font-size="25" font-weight="500" >架空例「保存に失敗した場面を説明する資料や録音」</text><text x="62" y="534" fill="#8fe5cf" font-size="22" font-weight="700" >検索の仕組み</text><rect x="60" y="555" width="320" height="146" rx="12" fill="#0b2427" stroke="#31675e"/><text x="83" y="601" fill="#eefcfb" font-size="30" font-weight="650" >検索文と対象</text><text x="83" y="643" fill="#b9d8cf" font-size="23" font-weight="500" >コード・文書・画像</text><text x="83" y="677" fill="#b9d8cf" font-size="23" font-weight="500" >録音・動画の区間</text><rect x="461" y="555" width="310" height="146" rx="12" fill="#0b2427" stroke="#31675e"/><text x="484" y="601" fill="#eefcfb" font-size="30" font-weight="650" >意味ベクトル</text><text x="484" y="643" fill="#b9d8cf" font-size="23" font-weight="500" >同じ空間へ変換</text><text x="484" y="677" fill="#b9d8cf" font-size="23" font-weight="500" >共通768次元</text><rect x="852" y="555" width="310" height="146" rx="12" fill="#0b2427" stroke="#31675e"/><text x="875" y="601" fill="#eefcfb" font-size="30" font-weight="650" >近い候補を検索</text><text x="875" y="643" fill="#b9d8cf" font-size="23" font-weight="500" >類似度で順位付け</text><text x="875" y="677" fill="#b9d8cf" font-size="23" font-weight="500" >検索用の索引が必要</text><rect x="1243" y="555" width="369" height="146" rx="12" fill="#26271c" stroke="#a78f45"/><text x="1266" y="601" fill="#ffdb83" font-size="30" font-weight="650" >元資料・場面へ</text><text x="1266" y="643" fill="#b9d8cf" font-size="23" font-weight="500" >内容を開いて確かめる</text><text x="1266" y="677" fill="#b9d8cf" font-size="23" font-weight="500" >回答生成は別モデル</text><path d="M392 628 L444 628" fill="none" stroke="#75e0c5" stroke-width="3" marker-end="url(#desktop-arrow)"/><path d="M783 628 L835 628" fill="none" stroke="#75e0c5" stroke-width="3" marker-end="url(#desktop-arrow)"/><path d="M1174 628 L1226 628" fill="none" stroke="#75e0c5" stroke-width="3" marker-end="url(#desktop-arrow)"/><line x1="60" y1="739" x2="1612" y2="739" stroke="#295b55"/><line x1="560" y1="768" x2="560" y2="931" stroke="#295b55"/><line x1="1090" y1="768" x2="1090" y2="931" stroke="#295b55"/><text x="62" y="785" fill="#8fe5cf" font-size="21" font-weight="700" >コード検索の提供元評価</text><text x="62" y="850" fill="#eefcfb" font-size="52" font-weight="700" >+9.92</text><text x="272" y="850" fill="#eefcfb" font-size="28" font-weight="600" >ポイント</text><text x="62" y="895" fill="#b9d8cf" font-size="24" font-weight="500" >MTEB Code v1：68.76 → 78.68</text><text x="590" y="785" fill="#8fe5cf" font-size="21" font-weight="700" >必要なエンコーダーだけを使う</text><text x="590" y="850" fill="#eefcfb" font-size="52" font-weight="700" >270M</text><text x="784" y="850" fill="#eefcfb" font-size="28" font-weight="600" >から</text><text x="590" y="895" fill="#b9d8cf" font-size="24" font-weight="500" >テキスト・コード。全構成は740M</text><text x="1120" y="785" fill="#ffc94d" font-size="21" font-weight="700" >容量と検索品質の比較</text><text x="1120" y="850" fill="#ffdb83" font-size="48" font-weight="700" >768 / 256 / 128</text><text x="1120" y="895" fill="#b9d8cf" font-size="24" font-weight="500" >短いベクトルは軽い。品質は実測。</text><line x1="60" y1="952" x2="1612" y2="952" stroke="#295b55"/><text x="62" y="981" fill="#abc8bd" font-size="20" font-weight="500" >Googleの全精度・768次元評価。独立追試／日本語の業務精度は未確認。モデル導入だけで完全ローカルにはならない。</text><text x="62" y="1018" fill="#8fe5cf" font-size="19" font-weight="500" >https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/</text><text x="62" y="1050" fill="#abc8bd" font-size="18" font-weight="500" >https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2</text></svg><svg class="board-svg board-mobile" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1815" role="img" aria-labelledby="mobile-title mobile-desc" font-family="'Yu Gothic','Meiryo',sans-serif"><title id="mobile-title">EmbeddingGemma 2を一枚で見る（スマートフォン用）</title><desc id="mobile-desc">編集部の概念図。関数名を知らないエンジニアと、分散した資料やデモ録音を探すPMが対象。検索文と対象を共通の意味ベクトルに変換し、近い候補から元資料へ戻る。回答生成は別モデル。Googleの全精度768次元評価でコードMTEBは68.76から78.68へ9.92ポイント改善。テキストとコードは270M、全構成は740M。次元削減は容量と検索品質の比較が必要。公式発表2026年10月6日。独立追試と日本語業務精度は未確認。</desc><rect width="800" height="1815" fill="#061416"/><defs><linearGradient id="mobile-glow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#133d3b"/><stop offset="1" stop-color="#071619"/></linearGradient><marker id="mobile-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#75e0c5"/></marker></defs><rect width="800" height="254" fill="url(#mobile-glow)"/><text x="40" y="54" fill="#8fe5cf" font-size="25" font-weight="700" >VISIONHUB / 2026.10.07</text><text x="40" y="123" fill="#eefcfb" font-size="48" font-weight="650" >コードも録音も、</text><text x="40" y="184" fill="#eefcfb" font-size="48" font-weight="650" >意味で探す</text><text x="40" y="238" fill="#b9d8cf" font-size="28" font-weight="500" >EmbeddingGemma 2  /  端末内検索</text><text x="40" y="276" fill="#8fe5cf" font-size="25" font-weight="700" >誰の、どんな探し物か</text><rect x="40" y="295" width="720" height="162" rx="12" fill="#0b2427" stroke="#31675e"/><text x="66" y="335" fill="#8fe5cf" font-size="25" font-weight="700" >ENGINEER</text><text x="66" y="380" fill="#eefcfb" font-size="34" font-weight="600" >関数名は不明。処理の内容は分かる。</text><text x="66" y="421" fill="#b9d8cf" font-size="26" font-weight="500" >架空例「失敗した送信を間隔を空けて再試行」</text><rect x="40" y="479" width="720" height="162" rx="12" fill="#0b2427" stroke="#31675e"/><text x="66" y="519" fill="#8fe5cf" font-size="25" font-weight="700" >PM / 検索担当</text><text x="66" y="564" fill="#eefcfb" font-size="34" font-weight="600" >資料・画面・デモ録音が散らばる。</text><text x="66" y="605" fill="#b9d8cf" font-size="26" font-weight="500" >架空例「保存の失敗を説明する資料や録音」</text><text x="40" y="698" fill="#8fe5cf" font-size="25" font-weight="700" >検索の仕組み</text><rect x="40" y="720" width="720" height="94" rx="12" fill="#0b2427" stroke="#31675e"/><text x="65" y="760" fill="#8fe5cf" font-size="28" font-weight="700" >01</text><text x="123" y="760" fill="#eefcfb" font-size="32" font-weight="600" >検索文と対象</text><text x="123" y="796" fill="#b9d8cf" font-size="26" font-weight="500" >コード・文書・画像・録音・動画の区間</text><path d="M400 818 L400 834" fill="none" stroke="#75e0c5" stroke-width="3" marker-end="url(#mobile-arrow)"/><rect x="40" y="838" width="720" height="94" rx="12" fill="#0b2427" stroke="#31675e"/><text x="65" y="878" fill="#8fe5cf" font-size="28" font-weight="700" >02</text><text x="123" y="878" fill="#eefcfb" font-size="32" font-weight="600" >意味ベクトル</text><text x="123" y="914" fill="#b9d8cf" font-size="26" font-weight="500" >同じ空間へ変換。共通768次元</text><path d="M400 936 L400 952" fill="none" stroke="#75e0c5" stroke-width="3" marker-end="url(#mobile-arrow)"/><rect x="40" y="956" width="720" height="94" rx="12" fill="#0b2427" stroke="#31675e"/><text x="65" y="996" fill="#8fe5cf" font-size="28" font-weight="700" >03</text><text x="123" y="996" fill="#eefcfb" font-size="32" font-weight="600" >近い候補を検索</text><text x="123" y="1032" fill="#b9d8cf" font-size="26" font-weight="500" >類似度で順位付け。検索用の索引が必要</text><path d="M400 1054 L400 1070" fill="none" stroke="#75e0c5" stroke-width="3" marker-end="url(#mobile-arrow)"/><rect x="40" y="1074" width="720" height="94" rx="12" fill="#26271c" stroke="#a78f45"/><text x="65" y="1114" fill="#8fe5cf" font-size="28" font-weight="700" >04</text><text x="123" y="1114" fill="#ffdb83" font-size="32" font-weight="600" >元資料・場面へ</text><text x="123" y="1150" fill="#b9d8cf" font-size="26" font-weight="500" >開いて確かめる。回答生成は別モデル</text><line x1="40" y1="1204" x2="760" y2="1204" stroke="#295b55"/><text x="40" y="1247" fill="#8fe5cf" font-size="25" font-weight="700" >コード検索の提供元評価</text><text x="40" y="1306" fill="#eefcfb" font-size="49" font-weight="700" >+9.92 ポイント</text><text x="40" y="1357" fill="#b9d8cf" font-size="26" font-weight="500" >MTEB Code v1：68.76 → 78.68</text><line x1="40" y1="1387" x2="760" y2="1387" stroke="#295b55"/><text x="40" y="1427" fill="#8fe5cf" font-size="25" font-weight="700" >必要なエンコーダーだけを使う</text><text x="40" y="1486" fill="#eefcfb" font-size="46" font-weight="700" >270M から / 全構成740M</text><text x="40" y="1531" fill="#ffdb83" font-size="26" font-weight="600" >768 / 256 / 128次元。容量と品質を比較。</text><line x1="40" y1="1564" x2="760" y2="1564" stroke="#295b55"/><text x="40" y="1605" fill="#abc8bd" font-size="25" font-weight="500" >公式発表：2026-10-06（公開時刻未記載）</text><text x="40" y="1643" fill="#abc8bd" font-size="24" font-weight="500" >Google / 全精度・768次元評価。独立追試と</text><text x="40" y="1677" fill="#abc8bd" font-size="24" font-weight="500" >日本語の業務精度は未確認。完全ローカルは別途設計。</text><text x="40" y="1720" fill="#8fe5cf" font-size="24" font-weight="500" >https://blog.google/innovation-and-ai/</text><text x="40" y="1754" fill="#8fe5cf" font-size="24" font-weight="500" >technology/developers-tools/</text><text x="40" y="1788" fill="#8fe5cf" font-size="24" font-weight="500" >embeddinggemma-2/</text></svg></button><figcaption><div class="board-caption-top"><b>検索文と対象を数値化し、意味の近い候補を返す</b><span>タップして拡大 ↗</span></div>編集部の概念図。業務例は架空。検索結果や実測の効率を示す図ではない。数値はGoogleの提供元評価。<a href="https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/">公式発表（10/6）</a> ・ <a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">評価条件とモデルカード</a></figcaption></figure></section>
+<div class="slides"><section class="slide" id="s1" aria-labelledby="h1" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">01</span><div><p class="slide-kicker">WHAT IT IS</p><h2 id="h1">コード・画像・音声・動画を、端末内で探すモデル</h2></div></div><div class="notes"><div class="notes-main">
+ <p><strong>EmbeddingGemma 2は、情報を意味の近さで探すための埋め込みモデル</strong>。テキストとコードに加え、画像・音声・動画の入力を共通の数値表現に変える。Google DeepMindがGemma 4をベースに開発し、Apache 2.0で公開した。</p>
+ <p>検索アプリの中では、資料を索引に入れる処理と、検索文を変換する処理を担当する。検索結果から回答文を作る場合は、別の生成モデルを組み合わせる。</p>
+ <p>公式ブログの公開日は<strong>2026-10-06</strong>。本ページは<strong>10/7編集号</strong>であり、公式ページに正確な公開時刻は記載がない。</p><p class="source-line">一次出典：<a href="https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/">[1] 発表</a> ・ <a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a> ・ <a href="https://ai.google.dev/gemma/apache_2">[7] ライセンス</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>端末内検索の部品を提供するモデル。ファイルの取り込み、検索用の索引、権限管理や回答生成は、アプリ側で組み合わせる。</p></aside></div></section>
+<section class="slide" id="s2" aria-labelledby="h2" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">02</span><div><p class="slide-kicker">WHO THIS HELPS</p><h2 id="h2">関数名を知らない人と、資料の場所を忘れた人へ</h2></div></div><div class="notes"><div class="notes-main">
+ <div class="usecase"><h3>エンジニア：処理の内容から関連コードを探す</h3><p>「失敗した送信を、間隔を空けて再試行する処理」は分かるが、関数名やファイル名が分からない。自然言語の説明とコード片を照合する検索の候補になる。</p></div>
+ <div class="usecase"><h3>PM・検索担当：媒体をまたいで説明や場面を探す</h3><p>「保存に失敗した場面を説明していた資料やデモ録音」を、文書・画面画像・音声・動画の区間から探す。見つけた候補を元資料や対応する場面で確かめる。</p></div>
+ <p class="bench-note">上記は編集部が作った架空の業務例。実際の検索結果や、導入後の時間短縮を示すものではない。</p><p class="source-line">一次出典：<a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a> ・ <a href="https://developers.googleblog.com/google-ai-edge-with-embeddinggemma-2/">[5] AI Edge</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>探したい内容は言えるが、名前・場所・媒体が分からない場面が中心。検索の担当者は、資料の区切り方と正解候補の作成も担う。</p></aside></div></section>
+<section class="slide" id="s3" aria-labelledby="h3" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">03</span><div><p class="slide-kicker">THE PROBLEM</p><h2 id="h3">完全一致と媒体ごとの検索だけでは、探し方が限られる</h2></div></div><div class="notes"><div class="notes-main">
+ <p>キーワード検索は、関数名・ID・製品名を正確に指定する場面に強い。一方、検索文と対象の言い回しが違うと、必要な情報を見逃すことがある。埋め込み検索は<strong>意味の近さから候補を拾う手段</strong>を加える。</p>
+ <p>文書・画像・録音が別の検索機能に分散している場合、共通のベクトル空間を使う設計で、媒体をまたぐ候補検索を組み立てられる。媒体別の取り込みや、原本への参照は引き続き必要だ。</p>
+ <p>埋め込み計算を端末内に置けば、その処理の外部送信と通信依存を減らせる。完全にオフラインで使うには、検索の索引や回答生成、ログも含めた構成を確認する。</p><p class="source-line">一次出典：<a href="https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/">[1] 発表</a> ・ <a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a> ・ <a href="https://developers.googleblog.com/google-ai-edge-with-embeddinggemma-2/">[5] AI Edge</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>完全一致を補う検索として考える。関数名やIDが分かっているときは、キーワード検索との併用が有効な比較候補になる。</p></aside></div></section>
+<section class="slide" id="s4" aria-labelledby="h4" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">04</span><div><p class="slide-kicker">HOW SEARCH WORKS</p><h2 id="h4">検索文と対象を変換し、近い候補から元資料へ戻る</h2></div></div><div class="notes"><div class="notes-main">
+ <ol class="flow-list"><li><b>1　検索文と対象</b><span>コードは関数やファイル、文書は段落、音声・動画は区間など、検索して開き直せる単位にする。</span></li><li><b>2　意味ベクトル</b><span>検索文と各対象を同じモデル空間の数値列に変換する。標準の出力は768次元。</span></li><li><b>3　近い候補</b><span>検索用の索引に保存したベクトルと照合し、類似度で候補を順位付けする。</span></li><li><b>4　元資料・場面</b><span>ファイルや対応する時間の区間を開いて内容を確かめる。回答文が必要なら別モデルを使う。</span></li></ol>
+ <p>検索文と資料では、役割に合う指示名を使う。通常の検索は<code>SearchQuery</code>と<code>Document</code>、コード検索の質問には<code>CodeRetrieval</code>を使う。画像・音声・動画の入力にテキスト用の接頭辞を付けない。</p>
+ <p class="bench-note">この説明と図は編集部の概念図。EmbeddingGemma 2による検索を、このページでは実行していない。</p><p class="source-line">一次出典：<a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a> ・ <a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a> ・ <a href="https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers">[4] 推論ガイド</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>ベクトルが近いことは、事実の正しさやファイルの閲覧権限の保証にならない。候補を元資料で確認し、アプリ側で対象の権限を保つ。</p></aside></div></section>
+<section class="slide" id="s5" aria-labelledby="h5" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">05</span><div><p class="slide-kicker">WHAT CHANGED</p><h2 id="h5">コード評価は改善。多言語テキストはほぼ横ばい</h2></div></div><div class="notes"><div class="notes-main">
+ <p>Googleの提供元評価では、EmbeddingGemma 1から2への変化は<strong>コード検索の改善と、画像・音声・動画への拡張</strong>が目立つ。多言語テキストの総合評価は小幅な変化だった。</p>
+ <div class="table-wrap"><div class="scroll-x" tabindex="0" role="region" aria-label="768次元の提供元評価。狭い画面では横スクロール"><table class="cmp"><caption>Google提供元評価／全精度チェックポイント／768次元</caption><thead><tr><th scope="col">同じベンチマーク内の比較</th><th scope="col">EmbeddingGemma 1</th><th scope="col">EmbeddingGemma 2</th><th scope="col">変化</th></tr></thead><tbody><tr><th scope="row">MTEB Code v1<br>NDCG@10のタスク平均</th><td>68.76</td><td>78.68</td><td>+9.92ポイント</td></tr><tr><th scope="row">MTEB multilingual v2<br>複数指標のタスク平均</th><td>61.15</td><td>61.36</td><td>+0.21ポイント</td></tr></tbody></table></div></div>
+ <p class="bench-note">この数値はGoogleの評価報告。独立追試と、日本語の業務データでの精度は未確認。コードと多言語テキストの行は異なる評価であり、行同士の数値から性能の優劣は判断できない。</p><p class="source-line">一次出典：<a href="https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/">[1] 発表</a> ・ <a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>コード検索の再評価には理由がある。旧モデルでテキスト検索が足りている場合は、移行でどれだけ検索結果が変わるかを測る。</p></aside></div></section>
+<section class="slide" id="s6" aria-labelledby="h6" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">06</span><div><p class="slide-kicker">SIZE AND QUALITY</p><h2 id="h6">270Mから740M。短いベクトルは容量と品質の交換になる</h2></div></div><div class="notes"><div class="notes-main">
+ <p>必要な入力に応じて、エンコーダーを省略できる。テキストとコードだけなら<strong>270M</strong>、画像を加える構成は<strong>440M</strong>、音声を加える構成は<strong>570M</strong>、全構成は<strong>740M</strong>パラメータ。Mは百万を表す。</p>
+ <p>全構成の内訳は、テキスト・コード270M、画像170M、音声300M。<strong>パラメータ数は必要RAMを表す値ではない</strong>。実際のメモリー使用量は、数値精度、実行環境、入力と索引を含む構成で変わる。</p>
+ <p>MRLは、768次元のベクトルを<strong>512・256・128次元</strong>へ短くする仕組み。同じ数値型なら、256次元のベクトル本体は768次元の1/3、128次元は1/6になる。索引の管理情報やモデルの重みまで同じ比率で減るとは限らない。</p>
+ <div class="table-wrap"><div class="scroll-x" tabindex="0" role="region" aria-label="次元ごとの提供元評価。狭い画面では横スクロール"><table class="cmp"><caption>Google提供元評価／全精度／同じ評価内で次元を比較</caption><thead><tr><th scope="col">出力次元</th><th scope="col">ベクトル本体の比率</th><th scope="col">MMEB v2 Overall</th><th scope="col">MTEB multilingual v2</th></tr></thead><tbody><tr><th scope="row">768</th><td>1</td><td>59.01</td><td>61.36</td></tr><tr><th scope="row">256</th><td>1/3</td><td>56.24</td><td>60.41</td></tr><tr><th scope="row">128</th><td>1/6</td><td>45.65</td><td>57.89</td></tr></tbody></table></div></div>
+ <p class="bench-note">MMEBとMTEBは別のベンチマーク。列をまたいで同じ「精度」として比較しない。独立追試は未実施。128次元でのマルチモーダル品質の低下も、選択時に考慮する。</p><p class="source-line">一次出典：<a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a> ・ <a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p><strong>256次元は、容量に課題がある場合の比較候補</strong>。最適な設定との保証はない。質問と資料を同じ次元にそろえ、切り詰めた後に再正規化する。</p></aside></div></section>
+<section class="slide" id="s7" aria-labelledby="h7" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">07</span><div><p class="slide-kicker">A SMALL TRIAL</p><h2 id="h7">同じ質問と正解候補で、既存検索と比べる</h2></div></div><div class="notes"><div class="notes-main">
+ <p>最初は架空の資料とコードで、小さな比較を設計する。以下は編集部の試行案。モデルの実行結果や測定値を含まない。</p>
+ <ol class="try-steps"><li><b>質問と正解候補を先にそろえる</b><p>言い換えで探す質問、関数名・IDで探す質問を用意する。正解のコード片や資料を、人が先に決める。</p></li><li><b>同じ対象で検索方式を比較する</b><p>キーワード検索、既存の埋め込みモデル、EmbeddingGemma 2を比べる。テキスト・コードの索引から始め、媒体を追加する際も同じ評価用の質問と正解候補を使う。</p></li><li><b>検索品質と端末の負荷を記録する</b><p>正解が上位候補に入る質問の割合、待ち時間、RAM使用量を測る。初回の取り込み・索引作成と、普段の検索の待ち時間を分ける。</p></li><li><b>容量が問題になったら次元を比較する</b><p>まず768次元を基準にする。256次元などとの品質差を、同じ質問・候補数・対象端末で測る。検索ヒット率の定義と候補数も記録する。</p></li></ol>
+ <details class="setup-details"><summary>実装前に読む公式の設定条件（説明用・未実行）</summary><ul><li>開発ガイドは<strong>Sentence Transformers 6.1.0以降</strong>を案内。バージョンと実行環境を確認する。</li><li>通常のロードは全エンコーダーを読み込む。テキスト専用は公式設定名<code>config_kwargs={"vision_config": None, "audio_config": None}</code>で、不要な入力のエンコーダーを明示的に無効化する。</li><li>一般検索は<code>SearchQuery</code>、資料は<code>Document</code>。コード検索の質問は<code>CodeRetrieval</code>。Documentはタイトルなしの形式を付けるため、実際のタイトルを使う場合は公式の書式に合わせる。</li><li>推論の数値精度は<code>bfloat16</code>または<code>float32</code>。<code>float16</code>は使わない。</li><li>次元を短くした後はL2正規化し、質問と資料を同じ次元にする。公式は<code>truncate_dim</code>と<code>normalize_embeddings=True</code>を案内。</li><li>入力の上限は共通の<strong>8,192トークン</strong>。媒体を混在させる場合も、この枠を共有する。</li></ul><p>ここに示した設定名は公式資料の説明用。インストール、モデルのダウンロード、推論は本ページでは実行していない。</p><p class="source-line">一次出典：<a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a> ・ <a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a> ・ <a href="https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers">[4] 推論ガイド</a></p></details><p class="source-line">一次出典：<a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a> ・ <a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>自社の判断に使うのは、同じ条件での検索結果と端末の負荷。提供元ベンチマークの改善が、そのまま業務の改善率になるとは限らない。</p></aside></div></section>
+<section class="slide" id="s8" aria-labelledby="h8" tabindex="-1"><div class="slide-head"><span class="no" aria-hidden="true">08</span><div><p class="slide-kicker">THE DECISION</p><h2 id="h8">完全一致・旧モデル・クラウドAPIとの比較が導入判断になる</h2></div></div><div class="notes"><div class="notes-main">
+ <div class="decision-list"><div class="decision-row"><h3>関数名・IDが分かる</h3><p>キーワード検索を併用する。意味検索だけで識別子の完全一致を置き換えるかは、評価用の質問で確かめる。</p></div><div class="decision-row"><h3>旧EmbeddingGemma 1</h3><p>コード検索や新しい媒体が必要なら、移行効果を測る。テキスト中心の用途では、品質差と索引の移行にかかる手間を比べる。</p></div><div class="decision-row"><h3>クラウドAPI</h3><p>検索品質、通信の待ち時間、API利用料と端末内での運用コストを比べる。モデルのライセンスだけで、総運用費は決まらない。</p></div><div class="decision-row"><h3>完全ローカルの設計</h3><p>ベクトルストア、回答生成モデル、ログ、テレメトリーまで配置と送信先を確認する。埋め込みモデル単体の導入で、プライバシーや規制への適合を保証できない。</p></div></div>
+ <p>Apache 2.0は商用利用を含む利用条件の確認先になる。採用時にはライセンス本文も確認する。AndroidのML Kit経由の提供は、10/6の公式記事では<strong>今後数週間の予定</strong>とされている。</p><p class="source-line">一次出典：<a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">[2] モデルカード</a> ・ <a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">[3] 開発ガイド</a> ・ <a href="https://developers.googleblog.com/google-ai-edge-with-embeddinggemma-2/">[5] AI Edge</a> ・ <a href="https://ai.google.dev/gemma/apache_2">[7] ライセンス</a></p></div><aside class="sowhat"><span class="tag">読み方</span><p>導入の判断は「この探し物を、端末の制約内で正しく見つけられるか」。小さな比較で効果を確認し、検索対象と媒体を広げる。</p></aside></div></section></div>
+<footer class="sources" id="sources" aria-labelledby="sources-title" tabindex="-1"><h2 id="sources-title">一次出典と、確認した範囲</h2>
+<p>本ページは<strong>2026年10月7日編集号</strong>。Google公式ブログは10月6日付で、正確な公開時刻の記載はない。図と業務例、比較試行案は編集部作成。評価値は提供元の報告であり、独立追試・日本語業務精度は未確認。</p>
+<ol class="source-list">
+<li><a href="https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/">Google公式ブログ：EmbeddingGemma 2</a><small>公開日：2026-10-06。モデルの位置付け、Gemma 4、マルチモーダル、構成とコード評価。</small></li>
+<li><a href="https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2">Google AI for Developers：EmbeddingGemma 2 model card</a><small>全精度・768次元での旧モデル比較、次元別評価、8192トークン、指示名と設定条件。異なるベンチマークを同一精度で比較していない。</small></li>
+<li><a href="https://developers.googleblog.com/en/embeddinggemma-2-the-developer-guide/">Google Developers Blog：The Developer Guide</a><small>公開日：2026-10-06。Sentence Transformers 6.1.0以降、媒体ごとのロード、検索の指示と次元削減。</small></li>
+<li><a href="https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers">Google公式：Sentence Transformers推論ガイド</a><small>テキスト専用のエンコーダー省略、数値精度、検索用の設定。説明用の設定名は未実行。</small></li>
+<li><a href="https://developers.googleblog.com/google-ai-edge-with-embeddinggemma-2/">Google Developers Blog：AI EdgeとEmbeddingGemma 2</a><small>公開日：2026-10-06。端末内の検索例。Android ML Kitは今後数週間の提供予定。</small></li>
+<li><a href="https://ollama.com/library/embeddinggemma-2">Ollama：EmbeddingGemma 2の配布一覧</a><small>配布の確認先。配布ファイルの容量を必要RAMとして扱わず、入力上限はGoogleモデルカードの8,192トークンを採用。</small></li>
+<li><a href="https://ai.google.dev/gemma/apache_2">Google公式：Apache License 2.0</a><small>商用利用を含む利用条件の確認先。モデルのライセンスと、検索アプリ全体の運用・データの条件を区別する。</small></li>
+</ol><p class="footer-note">確認範囲：一次資料の調査とHTMLの作成。モデルのインストール・ダウンロード・推論は実施していない。架空例のみを使用。</p></footer>
+<nav class="bottom-nav" aria-label="スライド案内"><a href="https://visionhub.jp/presentations/day_slides_index.html">全日スライド一覧</a><a href="#brief">一枚ボードへ</a><a href="#main">このページの先頭へ</a></nav></main>
+<dialog class="zoom" id="board-dialog" aria-labelledby="board-dialog-title"><div class="dialog-tools"><b id="board-dialog-title">EmbeddingGemma 2 — 編集部の概念図</b><div><button id="board-size" type="button" aria-pressed="false">原寸で見る</button><button id="close-board" type="button">閉じる</button></div></div><div class="image-scroll" id="zoom-content" tabindex="0" role="region" aria-label="拡大ボード。原寸表示では縦横にスクロールできます"></div><p class="hint">Escで閉じる。原寸表示はスクロール可能。開き直すと先頭と画面に合わせた表示に戻る。</p></dialog>
+<script>
+(() => {
+  'use strict';
+  const dialog = document.getElementById('board-dialog');
+  const openButton = document.getElementById('open-board');
+  const sizeButton = document.getElementById('board-size');
+  const closeButton = document.getElementById('close-board');
+  const zoomContent = document.getElementById('zoom-content');
+  let zoomMode = '';
+  let openFrame = 0;
+  function resetZoom() {
+    dialog.classList.remove('enlarged');
+    sizeButton.setAttribute('aria-pressed','false');
+    sizeButton.textContent = '原寸で見る';
+    zoomContent.scrollTo({left:0,top:0,behavior:'instant'});
+  }
+  function loadZoomBoard() {
+    const mode = window.matchMedia('(max-width:640px)').matches ? 'mobile' : 'desktop';
+    if(mode === zoomMode) return;
+    const source = document.querySelector('.board-' + mode);
+    const board = source.cloneNode(true);
+    board.classList.remove('board-svg','board-desktop','board-mobile');
+    board.querySelectorAll('[id]').forEach(el => el.id = 'zoom-' + el.id);
+    board.querySelectorAll('*').forEach(el => {
+      for(const attribute of [...el.attributes]) {
+        if(attribute.value.includes('url(#')) el.setAttribute(attribute.name,attribute.value.replace(/url\(#/g,'url(#zoom-'));
+      }
+    });
+    board.setAttribute('aria-labelledby',source.getAttribute('aria-labelledby').split(/\s+/).map(id => 'zoom-' + id).join(' '));
+    zoomContent.replaceChildren(board);
+    dialog.style.setProperty('--board-natural-width',source.getAttribute('viewBox').split(/\s+/)[2] + 'px');
+    zoomMode = mode;
+    resetZoom();
+  }
+  openButton.addEventListener('click', () => {
+    loadZoomBoard();
+    resetZoom();
+    dialog.showModal();
+    document.body.classList.add('board-is-open');
+    closeButton.focus({preventScroll:true});
+    cancelAnimationFrame(openFrame);
+    openFrame = requestAnimationFrame(() => {if(dialog.open) resetZoom();});
+  });
+  function closeBoard() {if(dialog.open) dialog.close();}
+  closeButton.addEventListener('click',closeBoard);
+  dialog.addEventListener('cancel',event => {event.preventDefault();closeBoard();});
+  document.addEventListener('keydown',event => {
+    if(!dialog.open || event.key !== 'Tab') return;
+    const controls = [...dialog.querySelectorAll('button:not([disabled]),[tabindex="0"],a[href]')];
+    const first = controls[0], last = controls[controls.length-1];
+    const active = document.activeElement;
+    if(event.shiftKey && (active === first || !dialog.contains(active))) {
+      event.preventDefault();last.focus();
+    } else if(!event.shiftKey && (active === last || !dialog.contains(active))) {
+      event.preventDefault();first.focus();
+    }
+  });
+  dialog.addEventListener('close',() => {
+    cancelAnimationFrame(openFrame);
+    resetZoom();
+    document.body.classList.remove('board-is-open');
+    openButton.focus({preventScroll:true});
+  });
+  sizeButton.addEventListener('click',() => {
+    const enlarged = dialog.classList.toggle('enlarged');
+    sizeButton.setAttribute('aria-pressed',String(enlarged));
+    sizeButton.textContent = enlarged ? '画面に合わせる' : '原寸で見る';
+    zoomContent.scrollTo({left:0,top:0,behavior:'instant'});
+  });
+  dialog.addEventListener('click',event => {
+    if(event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if(event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeBoard();
+  });
+  const progress = document.querySelector('.progress');
+  const jump = document.querySelector('.jump');
+  function updateProgress() {
+    const page = document.documentElement;
+    const total = page.scrollHeight - page.clientHeight;
+    progress.style.width = (total > 0 ? page.scrollTop / total * 100 : 0) + '%';
+  }
+  function updateAnchorOffset() {
+    document.documentElement.style.setProperty('--anchor-offset',(Math.ceil(jump.getBoundingClientRect().height)+22) + 'px');
+  }
+  addEventListener('scroll',updateProgress,{passive:true});
+  addEventListener('resize',() => {updateProgress();updateAnchorOffset();if(dialog.open) loadZoomBoard();});
+  if('ResizeObserver' in window) new ResizeObserver(updateAnchorOffset).observe(jump);
+  updateAnchorOffset(); updateProgress();
+  const links = [...jump.querySelectorAll('a')];
+  if('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      for(const entry of entries) if(entry.isIntersecting) links.forEach(a => {
+        const active = a.hash === '#' + entry.target.id;
+        a.classList.toggle('on',active);
+        if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
+      });
+    },{rootMargin:'-12% 0px -67% 0px'});
+    links.forEach(a => {const section = document.getElementById(a.hash.slice(1));if(section) observer.observe(section);});
+  }
+})();
+</script><!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_10_06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body></html>
