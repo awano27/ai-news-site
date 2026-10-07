@@ -1,251 +1,50 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>問い合わせの振り分けに、長い回答はいらない | 2026-10-06</title>
-  <meta name="description" content="OpenAI Decisions APIの公開ベータを、問い合わせの分類と担当振り分けから読む。3種類の判断、既存APIとの使い分け、価格と速度の条件、試行で確かめる指標を整理。">
-  <meta name="theme-color" content="#080d14">
-  <meta property="og:type" content="article">
-  <meta property="og:site_name" content="VisionHub">
-  <meta property="og:title" content="問い合わせの振り分けに、長い回答はいらない">
-  <meta property="og:description" content="OpenAI Decisions API公開ベータ。判断をAPIに任せ、振り分けのルールと確認はアプリと人が持つ。">
-  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_06.html">
-  <meta property="og:locale" content="ja_JP">
-  <meta name="twitter:title" content="問い合わせの振り分けに、長い回答はいらない">
-  <meta name="twitter:description" content="OpenAI Decisions APIの公開ベータを、問い合わせの分類と担当振り分けから読む。3種類の判断、既存APIとの使い分け、価格と速度の条件、試行で確かめる指標を整理。">
-  <link rel="icon" href="data:,">
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg:#080d14; --panel:#111a26; --panel-soft:#0d1520;
-      --ink:#f4f3ed; --muted:#a7b1bf; --line:#2b3544;
-      --accent:#e8bd70; --accent-soft:#f4d69f; --cool:#9dc9d4;
-      --nav-height:64px;
-    }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; scroll-padding-top:calc(var(--nav-height) + 20px); }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif; font-size:16px; line-height:1.9; }
-    a { color:var(--accent-soft); text-decoration-thickness:1px; text-underline-offset:4px; }
-    a:hover { color:white; }
-    button,textarea { font:inherit; }
-    button { cursor:pointer; }
-    button:disabled { cursor:wait; opacity:.65; }
-    :focus-visible { outline:3px solid var(--accent); outline-offset:5px; }
-    ::selection { background:#e8bd70; color:#111820; }
-    .shell { width:min(1200px, calc(100% - 48px)); margin-inline:auto; }
-    .skip { position:fixed; top:12px; left:16px; z-index:100; padding:10px 18px; background:var(--accent); color:#10151c; transform:translateY(-160%); font-weight:700; }
-    .skip:focus { transform:none; }
-    .progress { position:fixed; top:0; left:0; height:3px; background:var(--accent); width:0; z-index:90; pointer-events:none; }
-    .hero { border-bottom:1px solid var(--line); background:radial-gradient(ellipse at 85% 5%,#26313c 0,transparent 55%),linear-gradient(90deg,rgba(232,189,112,.045) 1px,transparent 1px),var(--bg); background-size:auto,80px 80px,auto; }
-    .topbar { display:flex; justify-content:space-between; gap:20px; align-items:center; padding-top:25px; color:var(--muted); font-size:12px; letter-spacing:.06em; }
-    .topbar a { text-decoration:none; color:#dddcd4; }
-    .brand { font-family:ui-monospace,"Cascadia Code",monospace; font-size:15px; letter-spacing:.13em; }
-    .hero-body { padding:76px 0 52px; }
-    .edition { display:inline-block; margin:0 0 20px; padding:5px 13px; border:1px solid var(--accent); color:var(--accent-soft); font-size:12px; letter-spacing:.1em; }
-    .eyebrow { margin:0 0 17px; color:var(--accent); font-family:ui-monospace,"Cascadia Code",monospace; font-size:clamp(13px,1.5vw,18px); letter-spacing:.22em; line-height:1.5; }
-    h1 { margin:0; font-size:clamp(34px,5.2vw,66px); font-weight:700; line-height:1.3; letter-spacing:-.035em; text-wrap:balance; }
-    .hero-sub { margin:24px 0 14px; font-size:clamp(18px,2.1vw,25px); line-height:1.6; font-weight:600; color:var(--accent-soft); }
-    .lead { max-width:970px; margin:0; color:#c5cbd3; line-height:1.95; }
-    .hero-meta { display:flex; flex-wrap:wrap; gap:8px 24px; margin-top:27px; color:var(--muted); font-size:12px; }
-    .hero-meta span { border-left:2px solid #596270; padding-left:10px; }
-    .fact-strip { display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1px solid var(--line); }
-    .fact { padding:24px 30px 24px 0; }
-    .fact + .fact { border-left:1px solid var(--line); padding-left:30px; }
-    .fact small { display:block; color:var(--accent); font:12px/1.5 ui-monospace,"Cascadia Code",monospace; letter-spacing:.12em; }
-    .fact strong { display:block; margin-top:6px; font-size:19px; line-height:1.5; }
-    .fact span { display:block; margin-top:5px; color:var(--muted); font-size:12px; }
-    .jump { position:sticky; top:0; z-index:50; border-bottom:1px solid var(--line); background:rgba(8,13,20,.97); }
-    .jump-inner { display:flex; gap:7px; overflow-x:auto; padding:12px 0; scrollbar-width:thin; scrollbar-color:#6a5c43 transparent; }
-    .jump a { flex:none; padding:7px 14px; border:1px solid transparent; border-radius:4px; color:var(--muted); text-decoration:none; font-size:12px; line-height:1.5; }
-    .jump a b { font:11px/1.5 ui-monospace,"Cascadia Code",monospace; color:var(--accent); margin-right:8px; }
-    .jump a:hover,.jump a[aria-current="location"] { border-color:#6a5c43; color:var(--ink); background:#191c22; }
-    main { padding-top:47px; }
-    .chapter,.brief,.sources { scroll-margin-top:calc(var(--nav-height) + 20px); }
-    .section-kicker { color:var(--accent); margin:0 0 10px; font:11px/1.5 ui-monospace,"Cascadia Code",monospace; letter-spacing:.18em; }
-    h2 { margin:0; font-size:clamp(25px,3vw,34px); line-height:1.5; font-weight:700; text-wrap:balance; letter-spacing:-.02em; }
-    .section-intro { color:var(--muted); margin:12px 0 26px; }
-    .board-frame { margin:0; padding:0; border:1px solid #3b4250; border-radius:10px; overflow:hidden; background:var(--panel); }
-    .board-frame svg { display:block; width:100%; height:auto; font-family:"Noto Sans JP","Yu Gothic",sans-serif; }
-    .board-mobile { display:none!important; }
-    .board-caption { display:flex; gap:18px; justify-content:space-between; align-items:center; padding:17px 22px; border-top:1px solid var(--line); }
-    .board-caption p { margin:0; color:var(--muted); font-size:13px; }
-    .button { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border:1px solid #726246; border-radius:4px; background:#e8bd70; color:#18202b; font-size:13px; font-weight:700; line-height:1.5; text-decoration:none; }
-    .button:hover { background:#f4d69f; color:#18202b; }
-    .button-quiet { background:transparent; color:var(--accent-soft); border-color:#5c5860; }
-    .button-quiet:hover { color:#fff; background:#242631; }
-    .board-transcript { margin-top:17px; color:var(--muted); font-size:13px; }
-    .board-transcript summary { cursor:pointer; width:fit-content; color:var(--accent-soft); padding:5px 0; }
-    .board-transcript ol { margin:14px 0 0; padding-left:24px; }
-    .board-transcript li { margin:6px 0; }
-    .chapter { padding-top:55px; margin-top:48px; border-top:1px solid var(--line); }
-    .chapter-head { display:grid; grid-template-columns:52px minmax(0,1fr); gap:16px; margin-bottom:26px; align-items:start; }
-    .chapter-number { font:34px/1.5 ui-monospace,"Cascadia Code",monospace; color:#7e776a; }
-    .notes { display:grid; grid-template-columns:minmax(0,2fr) minmax(250px,1fr); gap:48px; }
-    .notes p { margin:0 0 16px; }
-    .notes p:last-child { margin-bottom:0; }
-    .note-aside { border-left:3px solid var(--accent); padding:4px 0 4px 22px; color:#c2c8d0; font-size:14px; align-self:start; }
-    .note-aside strong { color:var(--accent-soft); }
-    .note-aside .aside-label { display:block; font-size:12px; color:var(--accent); margin-bottom:11px; }
-    .source-line { color:var(--muted); font-size:12px; margin-top:18px!important; line-height:1.8; }
-    .source-line a { margin-right:8px; white-space:nowrap; }
-    .role-lines { margin:20px 0 0; display:grid; gap:0; }
-    .role-lines div { display:grid; grid-template-columns:155px minmax(0,1fr); gap:20px; padding:17px 0; border-top:1px solid var(--line); }
-    .role-lines dt { color:var(--accent-soft); font-weight:600; }
-    .role-lines dd { margin:0; color:#c5cbd3; }
-    code { font-family:ui-monospace,"Cascadia Code",monospace; color:#eed39e; font-size:.92em; overflow-wrap:anywhere; }
-    .table-wrap { overflow-x:auto; margin:26px 0 20px; border:1px solid var(--line); border-radius:4px; }
-    table { border-collapse:collapse; width:100%; text-align:left; font-size:14px; }
-    caption { text-align:left; padding:15px 20px; color:var(--muted); background:#121922; font-size:12px; }
-    th,td { padding:18px 20px; border-top:1px solid var(--line); vertical-align:top; }
-    th { color:var(--accent-soft); font-weight:600; width:24%; background:#121922; }
-    thead th { font-size:12px; color:var(--muted); }
-    td { color:#c9ced6; }
-    .trial-intro { max-width:970px; }
-    .trial-steps { list-style:none; padding:0; margin:28px 0; counter-reset:trial; }
-    .trial-steps li { counter-increment:trial; display:grid; grid-template-columns:46px minmax(0,1fr); gap:15px; padding:19px 0; border-top:1px solid var(--line); }
-    .trial-steps li::before { content:"0" counter(trial); font:16px/1.8 ui-monospace,"Cascadia Code",monospace; color:var(--accent); }
-    .trial-steps h3 { margin:0 0 5px; font-size:16px; font-weight:700; }
-    .trial-steps p { margin:0; color:var(--muted); font-size:14px; }
-    .measurements { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0; margin:25px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
-    .measurements div { padding:19px 18px 19px 0; }
-    .measurements div + div { border-left:1px solid var(--line); padding-left:18px; }
-    .measurements strong { display:block; font-size:15px; }
-    .measurements span { display:block; color:var(--muted); font-size:12px; margin-top:5px; line-height:1.65; }
-    .prompt-panel { border:1px solid var(--line); padding:24px; border-radius:6px; background:var(--panel-soft); }
-    .prompt-head { display:flex; justify-content:space-between; gap:20px; align-items:center; margin-bottom:16px; }
-    .prompt-head h3 { margin:0; font-size:17px; }
-    .prompt-help { margin:0 0 13px; color:var(--muted); font-size:12px; }
-    textarea { display:block; width:100%; resize:vertical; min-height:275px; padding:18px; border:1px solid #424956; border-radius:3px; color:#dce2ea; background:#080d14; font-size:13px; line-height:1.85; }
-    .copy-status { min-height:24px; margin:12px 0 0; color:var(--accent-soft); font-size:12px; }
-    .pricing { display:grid; grid-template-columns:1fr 1fr; gap:36px; margin:28px 0; }
-    .pricing-panel { border-top:3px solid var(--accent); padding-top:18px; }
-    .pricing-panel:nth-child(2) { border-top-color:var(--cool); }
-    .pricing-label { color:var(--muted); font-size:12px; margin:0 0 12px; }
-    .price { margin:0; font:600 clamp(38px,5vw,60px)/1.2 ui-monospace,"Cascadia Code",monospace; color:var(--accent-soft); letter-spacing:-.04em; }
-    .price-unit { margin:9px 0 15px; font-size:14px; color:#d0d5dc; }
-    .pricing-panel p:not(.price):not(.price-unit):not(.pricing-label) { font-size:14px; color:var(--muted); }
-    .speed { margin:0; font-size:clamp(27px,3.1vw,38px); line-height:1.5; color:var(--cool); font-weight:700; }
-    .spec-list { display:grid; grid-template-columns:150px minmax(0,1fr); margin:26px 0 0; }
-    .spec-list dt,.spec-list dd { padding:17px 0; border-top:1px solid var(--line); font-size:14px; }
-    .spec-list dt { color:var(--accent-soft); font-weight:600; }
-    .spec-list dd { margin:0; color:#c5cbd3; }
-    .conclusion { margin-top:45px; padding:30px 0 3px; border-top:1px solid var(--line); color:#d8d9d5; font-size:clamp(18px,2.2vw,24px); line-height:1.75; }
-    .sources { margin-top:65px; padding:46px 0 58px; border-top:1px solid var(--line); }
-    .sources-intro { color:var(--muted); margin:12px 0 25px; font-size:13px; }
-    .source-list { list-style:none; padding:0; margin:0; }
-    .source-list li { display:grid; grid-template-columns:35px minmax(0,1fr); gap:14px; padding:15px 0; border-top:1px solid var(--line); }
-    .source-list .source-no { color:#827a6d; font:13px/1.8 ui-monospace,"Cascadia Code",monospace; }
-    .source-list a { font-size:14px; font-weight:600; }
-    .source-list p { color:var(--muted); font-size:12px; margin:5px 0 0; line-height:1.7; }
-    .footer-line { display:flex; justify-content:space-between; gap:20px; margin-top:34px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
-    .zoom { width:min(1400px, calc(100vw - 32px)); max-width:none; max-height:calc(100dvh - 32px); margin:auto; padding:0; border:1px solid #6c6558; border-radius:9px; background:#101823; color:var(--ink); overflow:hidden; }
-    .zoom::backdrop { background:rgba(2,5,9,.88); backdrop-filter:blur(5px); }
-    .zoom-layout { display:flex; flex-direction:column; max-height:calc(100dvh - 34px); }
-    .zoom-head { flex:none; display:flex; justify-content:space-between; gap:16px; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); background:#111924; }
-    .zoom-head h2 { font-size:16px; line-height:1.5; }
-    .zoom-actions { display:flex; gap:8px; flex:none; }
-    .zoom-content { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#8c7d63 #111924; }
-    .zoom-content svg { display:block; width:100%; height:auto; font-family:"Noto Sans JP","Yu Gothic",sans-serif; }
-    .zoom-content svg[data-board-layout="mobile"] { width:min(100%,480px); margin-inline:auto; }
-    .zoom.enlarged .zoom-content svg { width:var(--board-natural-width); max-width:none; }
-    .zoom-note { flex:none; margin:0; padding:10px 20px; color:var(--muted); font-size:11px; border-top:1px solid var(--line); }
-    body.dialog-open { overflow:hidden; }
-    @media (max-width:900px) {
-      .notes { grid-template-columns:minmax(0,1fr); gap:24px; }
-      .note-aside { max-width:none; }
-      .measurements { grid-template-columns:repeat(3,minmax(0,1fr)); }
-      .measurements div:nth-child(4) { border-left:0; padding-left:0; }
-      .measurements div:nth-child(n+4) { border-top:1px solid var(--line); }
-    }
-    @media (max-width:980px) {
-      .board-desktop { display:none!important; }
-      .board-mobile { display:block!important; max-width:480px; margin-inline:auto; }
-      .board-caption { align-items:flex-start; flex-direction:column; }
-      .pricing { grid-template-columns:minmax(0,1fr); gap:26px; }
-      .role-lines div { grid-template-columns:minmax(0,1fr); gap:5px; }
-    }
-    @media (max-width:600px) {
-      .shell { width:calc(100% - 32px); }
-      .topbar { align-items:flex-start; gap:16px; font-size:10px; }
-      .topbar span { text-align:right; max-width:180px; }
-      .brand { font-size:13px; }
-      .hero-body { padding:42px 0 30px; }
-      h1 { font-size:clamp(30px,8.2vw,44px); line-height:1.35; }
-      .desktop-break { display:none; }
-      .hero-sub { font-size:18px; margin-top:20px; }
-      .lead { font-size:14px; }
-      .hero-meta { gap:9px; flex-direction:column; font-size:10px; margin-top:21px; }
-      .fact-strip { grid-template-columns:minmax(0,1fr); }
-      .fact { padding:14px 0; display:grid; grid-template-columns:112px minmax(0,1fr); gap:0 12px; }
-      .fact + .fact { border-left:0; padding-left:0; border-top:1px solid var(--line); }
-      .fact small { grid-row:1/3; padding-top:3px; }
-      .fact strong { margin:0; font-size:16px; }
-      .fact span { font-size:11px; margin-top:3px; }
-      .jump-inner { padding:10px 0; }
-      .jump a { padding:7px 10px; font-size:11px; }
-      main { padding-top:32px; }
-      .section-intro { font-size:14px; }
-      .chapter { padding-top:33px; margin-top:34px; }
-      .chapter-head { grid-template-columns:35px minmax(0,1fr); gap:12px; margin-bottom:22px; }
-      .chapter-number { font-size:24px; }
-      h2 { font-size:23px; line-height:1.55; }
-      .notes { font-size:14px; }
-      .board-caption { padding:16px; }
-      .board-caption p { font-size:12px; }
-      .measurements { grid-template-columns:repeat(2,minmax(0,1fr)); }
-      .measurements div:nth-child(odd) { border-left:0; padding-left:0; }
-      .measurements div:nth-child(even) { border-left:1px solid var(--line); padding-left:18px; }
-      .measurements div:nth-child(n+3) { border-top:1px solid var(--line); }
-      .prompt-panel { padding:16px; }
-      .prompt-head { align-items:flex-start; flex-direction:column; gap:12px; }
-      textarea { min-height:380px; font-size:12px; padding:13px; }
-      .spec-list { grid-template-columns:minmax(0,1fr); }
-      .spec-list dt { padding-bottom:4px; }
-      .spec-list dd { border-top:0; padding-top:0; }
-      .table-wrap { margin-inline:0; }
-      th,td { min-width:130px; padding:14px; font-size:12px; }
-      .sources { padding-top:32px; margin-top:46px; }
-      .source-list li { grid-template-columns:25px minmax(0,1fr); gap:10px; }
-      .source-list a { font-size:12px; }
-      .footer-line { flex-direction:column; gap:10px; }
-      .zoom { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); }
-      .zoom-layout { max-height:calc(100dvh - 18px); }
-      .zoom-head { padding:12px; align-items:flex-start; flex-direction:column; gap:10px; }
-      .zoom-actions { justify-content:space-between; width:100%; }
-      .zoom-note { padding:10px 12px; }
-    }
-    @media (prefers-reduced-motion:reduce) {
-      html { scroll-behavior:auto; }
-      *,*::before,*::after { animation:none!important; transition:none!important; }
-    }
-    @media print {
-      :root { --bg:white; --ink:#18202b; --muted:#46505e; --accent:#735313; --accent-soft:#735313; --line:#b5bac0; }
-      body,.hero,.prompt-panel { background:white; }
-      .jump,.progress,.skip,.board-caption button,.zoom,.prompt-head button { display:none!important; }
-      .chapter,.brief { break-inside:avoid; }
-      .shell { width:100%; }
-      .hero-body { padding:25px 0; }
-      .hero-sub,.lead,.hero-meta,.notes,.role-lines dd,.spec-list dd,.conclusion { color:#18202b; }
-      a { color:#735313; }
-      h1 { font-size:34px; }
-      textarea { color:#18202b; background:white; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="OpenAI Decisions APIは誰のどんな課題を解決するのか。問い合わせ振り分け、PMの連絡整理、回答評価、写真確認を具体例で解説。仕組み・限界・費用・日本のデータ処理条件まで一次情報で整理。">
+<meta name="theme-color" content="#122a2e">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+
+<title>全部読む前に、対応すべきものを絞る。｜Decisions APIの使いどころ｜VISIONHUB 2026-10-06</title>
+<style>
+:root{--ink:#183337;--muted:#586c6b;--paper:#f7f8f3;--white:#fff;--line:#dce3dc;--green:#1c6650;--mint:#cbe7c0;--amber:#87612b;--navy:#122a2e;--radius:19px;--max:1160px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:88px}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans CJK JP","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;line-height:1.85;letter-spacing:.015em;-webkit-font-smoothing:antialiased}a{color:var(--green);text-underline-offset:4px}button,input{font:inherit}button,a,input,summary{-webkit-tap-highlight-color:transparent}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #b88125;outline-offset:5px}button:disabled{cursor:default}img{display:block;max-width:100%;height:auto}p{margin:0 0 1em}h1,h2,h3,h4{margin:0;line-height:1.45;letter-spacing:.025em}h1,h2,h3{text-wrap:balance}h2{font-size:clamp(25px,3vw,35px);font-weight:760}h3{font-size:23px}h4{font-size:17px}small{font-size:13px}strong{font-weight:740}code{font-family:ui-monospace,SFMono-Regular,Consolas,"Noto Sans Mono CJK JP",monospace;font-size:.9em;background:#e9eeea;border-radius:4px;padding:2px 5px;overflow-wrap:anywhere}main{display:block}.wrap{max-width:var(--max);margin:auto;padding:0 26px}.skip{position:fixed;left:12px;top:-100px;z-index:100;background:white;padding:10px 18px}.skip:focus{top:10px}.mast{background:var(--navy);color:#fff;border-bottom:1px solid #355054}.mast-inner{max-width:var(--max);margin:auto;padding:20px 26px;display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-size:21px;font-weight:850;letter-spacing:.14em;color:white;text-decoration:none}.brand b{color:var(--mint)}.issue{font-size:12px;letter-spacing:.09em;color:#c8d6d3}.hero{background:var(--navy);color:#fff;padding:44px 0 37px}.eyebrow{font-size:12px;font-weight:760;letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:10px;color:var(--green);margin-bottom:14px}.hero .eyebrow{color:#cbe7c0}.dot{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:48px;align-items:center}.hero h1{font-size:clamp(32px,4.7vw,55px);line-height:1.43;font-weight:800;letter-spacing:.01em}.hero h1 em{font-style:normal;color:var(--mint)}.hero .lead{font-size:16px;line-height:1.95;color:#d7e1dc;max-width:820px;margin:18px 0 14px}.hero code{background:#264247;color:#e7f0e9}.hero .refs a{color:#cbe7c0}.meta{font-size:11px;color:#b5c8c1;display:flex;gap:6px 20px;flex-wrap:wrap}.hero-aside{border-left:1px solid #48615d;padding-left:24px}.hero-aside .label{font-size:12px;color:#cbe7c0;letter-spacing:.05em}.hero-aside p{font-size:21px;font-weight:700;line-height:1.65;margin:10px 0}.hero-aside small{color:#bfceca;display:block;line-height:1.8}.hero-aside .pill{margin-top:18px;display:inline-block}.pill{font-size:11px;line-height:1.6;padding:4px 10px;border:1px solid currentColor;border-radius:30px;font-weight:700;letter-spacing:.035em}.pill.green{color:var(--green);background:#eff6ec;border-color:#c8ddc0}.pill.gold{color:#785720;background:#fff6e6;border-color:#dfcda8}.pill.neutral{color:#526466;background:#eef1ee;border-color:#d5ddd7}.hero .pill{color:#d8eccf;border-color:#5e796a}.nav{background:rgba(247,248,243,.98);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}.nav-inner{max-width:var(--max);margin:auto;padding:0 26px;display:flex;gap:27px;overflow-x:auto;scrollbar-width:thin}.nav a{white-space:nowrap;font-size:13px;font-weight:700;padding:16px 0;text-decoration:none;color:#506564;border-bottom:3px solid transparent}.nav a:hover,.nav a[aria-current="location"]{color:var(--green);border-color:var(--green)}.section{padding:67px 0;border-bottom:1px solid var(--line)}.section-head{display:flex;gap:20px;align-items:flex-start;margin-bottom:27px}.section-num{font-size:13px;font-weight:700;line-height:1.4;color:var(--green);border:1px solid #c7d6ca;border-radius:50%;width:38px;height:38px;flex:0 0 38px;display:flex;align-items:center;justify-content:center;margin-top:4px}.section-head p{color:var(--muted);margin:13px 0 0;max-width:940px;font-size:15px}.overline{color:var(--green);font-size:11px;font-weight:750;letter-spacing:.14em;margin-bottom:7px}.section.compact{padding-top:42px}.refs{display:inline-flex;gap:4px;margin-left:5px;white-space:nowrap;vertical-align:baseline}.refs a{font-size:11px;font-weight:750;text-decoration:none}.refs a:hover{text-decoration:underline}.note{font-size:13px;line-height:1.9;color:var(--muted)}.note strong{color:var(--ink)}.overview-figure{margin:0;background:#f0f5f1;border:1px solid #d4e0d5;border-radius:var(--radius);overflow:hidden}.overview-figure img{width:100%}.figure-bottom{padding:16px 21px;border-top:1px solid #d4e0d5;display:flex;gap:20px;align-items:center;justify-content:space-between;background:#fff}.figure-bottom p{font-size:12px;line-height:1.8;margin:0;color:var(--muted);max-width:790px}.btn{border:1px solid #c7d7ca;color:var(--ink);background:#fff;border-radius:9px;font-size:12px;font-weight:750;padding:10px 16px;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px}.btn:hover{background:#edf3e9;border-color:#8caa91}.btn.primary{background:var(--green);border-color:var(--green);color:white}.btn.primary:hover{background:#154f3e}.takeaway{border-left:4px solid var(--green);padding:16px 21px;background:#ecf2e8;margin-top:22px;font-size:16px}.takeaway p{margin:0}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.use-card{background:white;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.use-card .art{padding:18px 18px 0}.use-card .art img{width:100%}.use-body{padding:22px 26px 25px}.use-top{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;font-weight:750;color:var(--green);margin-bottom:12px}.use-card h3{font-size:23px;margin:0 0 19px}.use-card dl{margin:0}.use-card dl>div{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;margin-top:12px}.use-card dt{font-size:11px;font-weight:750;color:var(--green);padding-top:3px}.use-card dd{margin:0;font-size:14px;line-height:1.9}.use-card .boundary{border-top:1px solid var(--line);margin-top:17px;padding-top:14px;font-size:12px;color:#765a2d;line-height:1.8}.use-card .metric{font-size:12px;font-weight:700;color:#476b4a;margin:16px 0 0}.section-tail{margin-top:21px;color:var(--muted);font-size:13px}.demo-shell{border:1px solid #cddccc;border-radius:var(--radius);background:white;overflow:hidden}.demo-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 23px;background:#eff4eb;border-bottom:1px solid #d6e1d0}.demo-bar p{font-size:12px;margin:0;color:#506a4b}.case-buttons{display:flex;flex-wrap:wrap;gap:8px}.case-buttons button{padding:9px 16px;border-radius:8px;border:1px solid #c6d4c7;background:white;font-size:12px;font-weight:700;min-height:42px;color:var(--ink)}.case-buttons button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}.demo-body{padding:26px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch}.input-pane{background:#f7f8f3;border-radius:14px;padding:23px;display:flex;flex-direction:column;justify-content:space-between}.small-label{font-size:11px;color:var(--green);font-weight:800;letter-spacing:.08em;margin-bottom:11px}.input-pane blockquote{margin:0;font-size:18px;font-weight:650;line-height:1.9}.input-pane .note{margin-top:23px}.answer-line{padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:15px;justify-content:space-between;align-items:center;font-size:14px}.answer-line>span:first-child{color:var(--muted);font-size:12px}.answer-line strong{font-size:16px}.demo-action{background:#fff2d9;border:1px solid #ead8b5;border-radius:11px;margin-top:16px;padding:16px 18px}.demo-action p{margin:0;font-size:14px;font-weight:700}.demo-foot{padding:0 26px 22px;font-size:12px;color:#667268;line-height:1.8}.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.type-card{padding:24px;background:white;border:1px solid var(--line);border-radius:15px}.type-card h3{font-size:24px;font-family:ui-monospace,Consolas,monospace;color:var(--green)}.type-card h4{margin:9px 0 12px}.type-card p{font-size:14px;line-height:1.9;margin-bottom:0}.type-card .output{background:#f1f4ee;padding:9px 12px;border-radius:7px;margin-top:17px;font-size:12px;color:#395d48}.insight-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:23px;margin-top:23px}.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:25px}.panel h3{font-size:20px;margin-bottom:12px}.panel p{font-size:14px}.mini-table,.compare-table,.metric-table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.8}.mini-table th,.mini-table td{border-bottom:1px solid var(--line);padding:10px 7px;text-align:left}.mini-table th{font-size:11px;color:var(--muted);font-weight:700}.mini-table td:not(:first-child){font-variant-numeric:tabular-nums;text-align:center}.mini-table .same{font-weight:800;color:var(--green)}.mini-table caption{text-align:left;font-size:12px;color:var(--muted);margin:8px 0}.panel .note{margin-top:13px;font-size:12px}.simple-flow{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.simple-flow span{border:1px solid #d5e0d3;background:#f1f5ed;padding:7px 11px;border-radius:7px;font-size:12px;font-weight:700}.simple-flow i{font-style:normal;color:#879987;align-self:center}.code-details{margin-top:22px;border:1px solid var(--line);background:white;border-radius:13px;overflow:hidden}.code-details summary{padding:18px 23px;font-size:14px;font-weight:700;cursor:pointer}.code-content{border-top:1px solid var(--line);padding:23px}.code-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px;flex-wrap:wrap}.code-head .note{margin:0}.code-content pre{font-size:12px;line-height:1.8;overflow:auto;max-height:450px;background:#132b2f;color:#dcebdc;border-radius:11px;padding:22px;white-space:pre-wrap;overflow-wrap:anywhere;margin:15px 0}.code-content pre code{font-size:inherit;background:none;color:inherit;padding:0}.code-content .note{max-width:900px}.table-wrap{border:1px solid var(--line);background:#fff;border-radius:14px;overflow-x:auto}.compare-table th{background:#eaf0e5;text-align:left;padding:17px 18px;font-size:12px;white-space:nowrap;color:#42644c}.compare-table td{padding:19px 18px;border-top:1px solid var(--line);vertical-align:top;min-width:150px}.compare-table td:first-child{font-weight:750;min-width:180px}.compare-table tr.highlight td{background:#f1f6ee}.compare-table small{display:block;color:var(--muted);font-size:11px;margin-top:6px}.compare-table .recommended{display:block;font-size:10px;margin-bottom:5px;color:var(--green)}.fit-note{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}.fit-note>div{padding:22px;background:#edf3e8;border-radius:14px}.fit-note>div:last-child{background:#f3efe5}.fit-note h3{font-size:16px;margin-bottom:9px}.fit-note p{font-size:13px;line-height:1.9;margin:0}.cost-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:25px}.price-panel{background:var(--navy);color:white;padding:32px;border-radius:var(--radius)}.price-panel code{background:#29474b;color:#e1efde}.price-panel .overline{color:var(--mint)}.price{font-size:62px;font-weight:800;line-height:1.25;letter-spacing:-.025em;margin:10px 0}.price sub{font-size:14px;letter-spacing:0;font-weight:500;vertical-align:baseline;margin-left:10px;color:#d2ddd2}.price-panel p{color:#d2ddd2;font-size:14px;line-height:1.85}.price-panel .refs a{color:#cbe7c0}.price-panel .divider{height:1px;background:#3c5756;margin:23px 0}.speed-label{font-size:14px;font-weight:700}.speed-label strong{font-size:29px;color:var(--mint);margin-left:10px}.price-panel .fine{font-size:12px;color:#afc6b9;margin-top:8px}.calculator{padding:27px;border:1px solid var(--line);background:#fff;border-radius:var(--radius)}.calculator h3{font-size:21px;margin-bottom:10px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:18px 0}.fields label{font-size:12px;display:block;color:var(--muted);font-weight:700}.fields input{display:block;width:100%;border:1px solid #c3d3c5;border-radius:8px;padding:10px 12px;font-size:20px;color:var(--ink);margin-top:5px;font-variant-numeric:tabular-nums;min-height:48px;background:#fafff8}.result{padding:19px 20px;background:#edf4e8;border-radius:13px}.result span{font-size:12px;font-weight:700;color:#49644c;display:block}.result output{font-size:43px;font-weight:800;line-height:1.45;font-variant-numeric:tabular-nums;letter-spacing:-.025em}.result small{font-size:13px;margin-left:5px}.formula{font-size:11px;color:#536b53;line-height:1.8;margin-top:7px;overflow-wrap:anywhere}.calculator .note{font-size:12px;margin:16px 0 0}.calculator .validation{min-height:20px;font-size:12px;color:#976035;margin-top:6px}.cost-bottom{margin-top:22px;padding:20px 23px;background:#fff;border:1px solid var(--line);border-radius:13px;font-size:14px}.safety-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.safety-card{padding:25px;border-radius:15px;border:1px solid var(--line);background:#fff}.safety-card h3{font-size:19px;margin:10px 0 12px}.safety-card p{font-size:14px;line-height:1.9}.safety-card p:last-child{margin-bottom:0}.safety-card .number{font-size:12px;color:var(--green);font-weight:800;letter-spacing:.1em}.region-row{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.region-row span{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid #d9d9c8;background:#f7f6eb}.alert{margin-top:21px;border:1px solid #dfcea9;background:#faf2e1;border-radius:13px;padding:20px 24px;font-size:14px;color:#6c542c}.alert p{margin:0}.pilot-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;counter-reset:steps}.pilot-step{padding:23px;border:1px solid var(--line);background:#fff;border-radius:14px;counter-increment:steps}.pilot-step:before{content:'0' counter(steps);display:block;font-size:28px;line-height:1;font-weight:800;color:#a1b49d;margin-bottom:20px}.pilot-step h3{font-size:18px;margin-bottom:12px}.pilot-step p{font-size:13px;margin-bottom:0}.metric-table th,.metric-table td{padding:15px 18px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.metric-table th{color:#476246;background:#eaf0e5;font-size:12px}.metric-table td:first-child{font-weight:700;width:170px;min-width:150px}.metric-table caption{text-align:left;font-size:16px;font-weight:750;padding:20px 0 14px}.pilot .takeaway{font-size:15px}.prompt-panel{background:#edf3e8;border-radius:14px;padding:22px 25px;margin-top:23px}.prompt-panel .code-head{margin:0}.prompt-panel h3{font-size:17px}.prompt-text{white-space:pre-wrap;font-size:13px;line-height:1.9;margin:15px 0 0;border-top:1px solid #d1ddce;padding-top:15px;color:#3f5b46}.source-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:25px}.source-group h3{font-size:14px;letter-spacing:.035em;margin-bottom:16px;padding-bottom:11px;border-bottom:1px solid #b6c9b6}.source-item{padding:0 0 17px;font-size:12px;line-height:1.85;scroll-margin-top:90px}.source-item a{display:block;font-weight:700;color:#245842;line-height:1.7}.source-item span{color:var(--muted);display:block;margin-top:4px}.source-item:target{background:#e4efdc;outline:7px solid #e4efdc;border-radius:4px}.sources .section-head p{font-size:13px}.closing{padding:43px 0;background:var(--navy);color:#d1e0d4}.closing .wrap{display:flex;justify-content:space-between;align-items:center;gap:30px}.closing strong{font-size:20px;color:#e2efda}.closing p{font-size:12px;margin:8px 0 0;line-height:1.8;color:#b1c8b9}.footer-nav{display:flex;gap:18px;flex-wrap:wrap}.footer-nav a{font-size:12px;color:#c3dabf;white-space:nowrap}.bottom-foot{font-size:11px;text-align:center;color:#657c6b;padding:21px 25px}.bottom-foot a{color:inherit}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#163d2f;color:white;padding:12px 20px;border-radius:9px;z-index:80;box-shadow:0 7px 30px #163d2f25;font-size:13px;max-width:90vw;pointer-events:none}.toast[hidden]{display:none}dialog{border:1px solid #c5d8c5;border-radius:18px;padding:18px;max-width:min(96vw,1320px);width:96vw;background:#f7faf4;max-height:93vh;box-shadow:0 20px 80px #0004}dialog::backdrop{background:#0b222cd9}dialog .dialog-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;font-size:14px;font-weight:700}dialog .dialog-content{overflow:auto;max-height:77vh}dialog img{width:100%;height:auto}.static-notice{font-size:12px;background:#fff3d5;padding:10px 20px;text-align:center}
+@media(min-width:1450px){.hero h1{font-size:58px}}
+@media(max-width:1000px){.hero-grid{grid-template-columns:minmax(0,1fr) 200px;gap:28px}.hero-aside{padding-left:20px}.nav-inner{gap:22px}.pilot-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.cost-grid{grid-template-columns:1fr 1fr}.types{gap:12px}.type-card{padding:21px}.insight-grid{grid-template-columns:1fr 1fr}.source-groups{gap:20px}.price{font-size:54px}}
+@media(max-width:760px){.wrap{padding:0 20px}.mast-inner{padding:17px 20px}.brand{font-size:18px}.issue{font-size:10px}.hero{padding:34px 0}.hero-grid{grid-template-columns:1fr;gap:22px}.hero-aside{border-left:0;border-top:1px solid #48615d;padding:18px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}.hero-aside .label{grid-column:1}.hero-aside p{font-size:17px;grid-column:1;margin:2px 0}.hero-aside small{grid-column:2;grid-row:1 / span 2;font-size:12px}.hero-aside .pill{display:none}.hero .lead{font-size:14px}.hero h1{font-size:38px}.nav-inner{padding:0 20px;gap:23px}.nav a{font-size:12px;padding:13px 0}.section{padding:45px 0}.section-head{gap:13px}.section-num{width:32px;height:32px;flex-basis:32px;font-size:11px}.section-head p{font-size:14px}.two-col{gap:16px}.use-body{padding:20px}.use-card h3{font-size:20px}.use-top .pill{font-size:9px;padding:3px 7px}.use-card dl>div{grid-template-columns:1fr;gap:0;margin-top:13px}.types{grid-template-columns:1fr}.type-card{display:grid;grid-template-columns:120px 1fr;gap:0 18px}.type-card h3{grid-column:1;grid-row:1}.type-card h4{grid-column:2;grid-row:1;margin:0}.type-card p{grid-column:2}.type-card .output{grid-column:1 / -1;margin-top:12px}.insight-grid{grid-template-columns:1fr}.demo-bar{align-items:flex-start;flex-direction:column}.demo-body{grid-template-columns:1fr}.demo-body{padding:21px;gap:16px}.demo-foot{padding:0 21px 20px}.input-pane blockquote{font-size:17px}.cost-grid{grid-template-columns:1fr}.price-panel{padding:27px}.price{font-size:54px}.price-panel .divider{margin:20px 0}.price-panel .fine{margin-bottom:0}.safety-grid{gap:16px}.safety-card{padding:21px}.source-groups{grid-template-columns:1fr}.source-item{padding-bottom:14px}.source-group{padding-bottom:6px}.closing .wrap{align-items:flex-start;flex-direction:column;gap:20px}.closing strong{font-size:19px}.figure-bottom{flex-direction:column;align-items:stretch;gap:12px}.figure-bottom .btn{align-self:flex-end}.fit-note{gap:14px}.fit-note>div{padding:19px}.overview-figure{border-radius:14px}.overline{font-size:10px}.takeaway{font-size:14px;padding:15px 17px}.panel{padding:22px}}
+@media(max-width:560px){.hero h1{font-size:33px}.hero-aside{grid-template-columns:1fr}.hero-aside small{grid-row:auto;grid-column:1;margin-top:3px}.two-col,.safety-grid,.fit-note{grid-template-columns:1fr}.use-card .art{padding:15px 15px 0}.use-card .art img{max-height:156px}.use-body{padding:20px 22px 23px}.use-card dl>div{grid-template-columns:62px minmax(0,1fr);gap:8px}.use-card h3{font-size:22px}.use-card dd{font-size:14px}.section-head{gap:12px}.section-head h2{font-size:26px}.section-num{margin-top:4px}.section-head .overline{letter-spacing:.08em}.section.compact{padding-top:33px}.demo-bar{padding:17px}.case-buttons{gap:6px;width:100%}.case-buttons button{padding:8px 10px;flex:1;font-size:11px}.demo-body{padding:18px}.input-pane{padding:20px}.answer-line strong{font-size:15px}.demo-foot{padding:0 18px 20px}.fields{gap:12px}.fields input{font-size:18px;padding:10px}.calculator{padding:22px}.result output{font-size:40px}.pilot-steps{grid-template-columns:1fr;gap:12px}.pilot-step{display:grid;grid-template-columns:33px 1fr;gap:4px 15px;padding:20px}.pilot-step:before{grid-row:1 / span 2;font-size:23px;margin:3px 0 0}.pilot-step h3{margin:0;font-size:17px}.pilot-step p{grid-column:2}.table-wrap{border-radius:10px}.mini-table{font-size:12px}.mini-table th,.mini-table td{padding:9px 5px}.section-tail{font-size:12px}.alert{padding:18px 20px;font-size:13px}.metric-table td,.metric-table th{padding:13px 14px}.metric-table td:first-child{min-width:108px;width:112px}.metric-table{font-size:12px}.prompt-panel{padding:20px}.code-content{padding:18px}.code-content pre{font-size:11px;padding:16px}.closing{padding:32px 0}.type-card{grid-template-columns:99px 1fr;padding:20px;gap:0 12px}.type-card h3{font-size:20px}.type-card h4{font-size:16px}.type-card p{font-size:13px}.type-card .output{font-size:11px}.meta{font-size:10px;gap:5px 13px}dialog{padding:12px;max-width:97vw}dialog .dialog-bar{font-size:12px}.panel h3{font-size:19px}.price sub{display:block;margin:3px 0 0}.price-panel .speed-label strong{font-size:27px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media print{.nav,.hero-aside,.btn,.case-buttons,.toast,.footer-nav,.bottom-foot{display:none!important}.hero,.mast,.closing,.price-panel{background:white!important;color:#183337!important}.hero .lead,.meta,.hero .eyebrow,.issue,.brand,.brand b,.hero h1 em,.price-panel p,.price-panel .overline,.price-panel .fine,.speed-label strong{color:#183337!important}.hero{padding:20px 0}.hero h1{font-size:30px}.section{padding:25px 0}.wrap{max-width:none;padding:0}.section-head{margin-bottom:17px}.use-card,.panel,.type-card,.safety-card,.pilot-step,.source-group,.price-panel,.calculator{break-inside:avoid}.code-details{display:none}.two-col,.safety-grid{grid-template-columns:1fr 1fr}.source-groups{grid-template-columns:1fr}.compare-table{font-size:10px}.compare-table td,.compare-table th{padding:9px;min-width:0}.table-wrap{overflow:visible}.overview-figure img{max-height:390px;object-fit:contain}.hero-grid{grid-template-columns:1fr}.section-num{display:none}body{font-size:12px}.closing strong,.closing p{color:#183337!important}a{text-decoration:none}.section-head h2{font-size:23px}}
+</style>
+
+<!-- site-slide-metadata:start -->
 <!-- SEO_META_INJECTED v1 -->
-<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_06.html" />
-<meta property="og:image" content="https://visionhub.jp/assets/og/default.png" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png" />
-<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_06.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="VisionHub">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="全部読む前に、対応すべきものを絞る。">
+<meta property="og:description" content="OpenAI Decisions APIは誰のどんな課題を解決するのか。問い合わせ振り分け、PMの連絡整理、回答評価、写真確認を具体例で解説。仕組み・限界・費用・日本のデータ処理条件まで一次情報で整理。">
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_06.html">
+<meta property="og:image" content="https://visionhub.jp/assets/og/default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="全部読む前に、対応すべきものを絞る。">
+<meta name="twitter:description" content="OpenAI Decisions APIは誰のどんな課題を解決するのか。問い合わせ振り分け、PMの連絡整理、回答評価、写真確認を具体例で解説。仕組み・限界・費用・日本のデータ処理条件まで一次情報で整理。">
+<meta name="twitter:image" content="https://visionhub.jp/assets/og/default.png">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
 <!-- JSONLD_INJECTED v1 -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "NewsArticle",
-  "headline": "問い合わせの振り分けに、長い回答はいらない",
+  "headline": "全部読む前に、対応すべきものを絞る。",
   "datePublished": "2026-10-06",
-  "dateModified": "2026-10-07",
+  "dateModified": "2026-10-07T21:06:21.274819+09:00",
   "author": {
     "@type": "Person",
     "name": "awano27",
@@ -264,464 +63,230 @@
   "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_06.html",
   "inLanguage": "ja",
   "isAccessibleForFree": true,
-  "articleSection": "AI Decision API"
+  "articleSection": "AI Decision API",
+  "description": "OpenAI Decisions APIは誰のどんな課題を解決するのか。問い合わせ振り分け、PMの連絡整理、回答評価、写真確認を具体例で解説。仕組み・限界・費用・日本のデータ処理条件まで一次情報で整理。"
 }
 </script>
-<!-- GA4_INJECTED v1 -->
-<script src="/assets/js/analytics.js" defer></script>
+<!-- site-slide-metadata:end -->
 </head>
-<body>
-<a class="skip" href="#brief">本文へ移動</a>
-<div class="progress" aria-hidden="true"></div>
-<header class="hero" id="top">
-  <div class="shell">
-    <nav class="topbar" aria-label="ページ案内">
-      <a class="brand" href="https://visionhub.jp/presentations/day_slides_index.html">VISIONHUB</a>
-      <span>2026-10-06号 / OpenAI Decisions API</span>
-    </nav>
-    <div class="hero-body">
-      <p class="edition">公開ベータ · 公式発表 2026-10-06</p>
-      <p class="eyebrow">OPENAI / DECISIONS API</p>
-      <h1>問い合わせの振り分けに、<br class="desktop-break">長い回答はいらない</h1>
-      <p class="hero-sub">短い判断を返すAPI。振り分けのルールと確認は、アプリと人が持つ。</p>
-      <p class="lead">「どの窓口が担当するか」「人の確認が必要か」。OpenAIは、こうした分類や評価を専用の型で返すDecisions APIを公開した。窓口を実装する開発者と運用PMの視点で、既存APIとの使い分けと、試行で確かめることを整理する。<a href="#source-1">[1]</a></p>
-      <div class="hero-meta">
-        <span>掲載対象：2026-10-06号</span>
-        <span>公式発表：2026-10-06（時刻・TZ未記載）</span>
-        <span>仕様確認：2026-10-07</span>
-      </div>
-    </div>
-    <div class="fact-strip" aria-label="先に押さえる3点">
-      <div class="fact"><small>STATUS</small><strong>公開ベータ</strong><span>現時点の対応モデルは gpt-6-luna</span></div>
-      <div class="fact"><small>OUTPUT</small><strong>predicate / choice / score</strong><span>問いに合う型で判断を受け取る</span></div>
-      <div class="fact"><small>OWNERSHIP</small><strong>実行と承認はアプリと人へ</strong><span>確率の意味と誤振り分けを評価する</span></div>
-    </div>
-  </div>
-</header>
-<nav class="jump" aria-label="章を選ぶ">
-  <div class="shell jump-inner">
-    <a href="#brief"><b>00</b>一枚で見る</a>
-    <a href="#audience"><b>01</b>誰の課題か</a>
-    <a href="#context"><b>02</b>既存APIとの関係</a>
-    <a href="#trial"><b>03</b>試行の設計</a>
-    <a href="#conditions"><b>04</b>価格と利用条件</a>
-    <a href="#sources">出典</a>
-  </div>
-</nav>
-<main class="shell" id="main">
-  <section class="brief" id="brief" aria-labelledby="brief-title">
-    <p class="section-kicker">ONE-PAGE BRIEF</p>
-    <h2 id="brief-title">問い合わせが届いてから、人が確認するまで</h2>
-    <p class="section-intro">同じ問い合わせに複数の判断を問い、返った値をアプリのルールで扱う。下図は仕組みを説明する架空例です。</p>
-    <figure class="board-frame">
-      <svg class="board-desktop" id="board-desktop" viewBox="0 0 1200 580" role="img" aria-labelledby="desktop-title desktop-description" xmlns="http://www.w3.org/2000/svg">
-        <title id="desktop-title">問い合わせの入力、3種類の判断、アプリと人の確認という流れ</title>
-        <desc id="desktop-description">架空の確認メールに関する問い合わせへ、predicateで条件の真の推定確率、choiceで担当候補、scoreで段階評価を問い、アプリがrefusalと振り分け条件を扱い、人が対応前に確認する。実測数値は示していない。</desc>
-        <rect width="1200" height="580" fill="#111a26"/>
-        <path d="M36 125H1164" stroke="#344050"/>
-        <text x="42" y="48" fill="#e8bd70" font-size="13" letter-spacing="3" font-family="ui-monospace,monospace">DECISION FLOW</text>
-        <text x="42" y="94" fill="#f4f3ed" font-size="29" font-weight="700">短い判断から、振り分けを組み立てる</text>
-        <text x="1160" y="48" text-anchor="end" fill="#a7b1bf" font-size="13">架空例 / 実測数値なし</text>
-        <text x="42" y="157" fill="#a7b1bf" font-size="15">01  問い合わせ</text>
-        <text x="404" y="157" fill="#e8bd70" font-size="15">02  判断をまとめて質問</text>
-        <text x="916" y="157" fill="#a7b1bf" font-size="15">03  アプリのルール</text>
-        <rect x="36" y="182" width="306" height="274" rx="7" fill="#0a111b" stroke="#3d4857"/>
-        <path d="M61 218h23m-23 9h36m-36 9h29" stroke="#e8bd70" stroke-width="2" stroke-linecap="round"/>
-        <text x="112" y="230" fill="#e8bd70" font-size="17">架空の問い合わせ</text>
-        <text x="61" y="282" fill="#f4f3ed" font-size="21">
-          <tspan x="61">ログイン用の</tspan><tspan x="61" dy="35">確認メールが届きません。</tspan><tspan x="61" dy="35">設定の場所を</tspan><tspan x="61" dy="35">教えてください。</tspan>
-        </text>
-        <path d="M348 318H389" stroke="#8d9ba9" stroke-width="2"/><path d="m386 311 9 7-9 7" fill="none" stroke="#8d9ba9" stroke-width="2"/>
-        <rect x="405" y="182" width="455" height="82" rx="5" fill="#1c2632" stroke="#6a5c43"/>
-        <rect x="405" y="278" width="455" height="82" rx="5" fill="#1c2632" stroke="#6a5c43"/>
-        <rect x="405" y="374" width="455" height="82" rx="5" fill="#1c2632" stroke="#6a5c43"/>
-        <text x="428" y="216" fill="#e8bd70" font-size="20" font-family="ui-monospace,monospace">predicate</text>
-        <text x="590" y="216" fill="#f4f3ed" font-size="18">条件が真か</text>
-        <text x="428" y="245" fill="#a7b1bf" font-size="16">真の推定確率を返す</text>
-        <text x="428" y="312" fill="#e8bd70" font-size="20" font-family="ui-monospace,monospace">choice</text>
-        <text x="590" y="312" fill="#f4f3ed" font-size="18">どの担当候補か</text>
-        <text x="428" y="341" fill="#a7b1bf" font-size="16">指定候補の選択と確率分布を返す</text>
-        <text x="428" y="408" fill="#e8bd70" font-size="20" font-family="ui-monospace,monospace">score</text>
-        <text x="590" y="408" fill="#f4f3ed" font-size="18">どの評価段階か</text>
-        <text x="428" y="437" fill="#a7b1bf" font-size="16">段階添字の確率加重平均を返す</text>
-        <path d="M866 318H903" stroke="#8d9ba9" stroke-width="2"/><path d="m900 311 9 7-9 7" fill="none" stroke="#8d9ba9" stroke-width="2"/>
-        <rect x="916" y="182" width="248" height="274" rx="7" fill="#0a111b" stroke="#3d4857"/>
-        <text x="938" y="219" fill="#9dc9d4" font-size="17">担当者がルールを決める</text>
-        <text x="938" y="267" fill="#f4f3ed" font-size="18">refusalを確認</text>
-        <path d="M938 290H1142" stroke="#344050"/>
-        <text x="938" y="329" fill="#f4f3ed" font-size="18">振り分け条件を適用</text>
-        <path d="M938 352H1142" stroke="#344050"/>
-        <text x="938" y="391" fill="#f4f3ed" font-size="18">人が対応前に確認</text>
-        <text x="938" y="428" fill="#a7b1bf" font-size="14">APIはツールを実行しない</text>
-        <rect x="42" y="489" width="4" height="48" fill="#e8bd70"/>
-        <text x="61" y="509" fill="#e7e7e1" font-size="18">判断の確率は、測定した正解率と別の指標。</text>
-        <text x="61" y="538" fill="#a7b1bf" font-size="16">返金や契約変更など、重大な処理は人が承認する。</text>
-      </svg>
-      <svg class="board-mobile" id="board-mobile" viewBox="0 0 380 1030" role="img" aria-labelledby="mobile-title mobile-description" xmlns="http://www.w3.org/2000/svg">
-        <title id="mobile-title">問い合わせの振り分けを縦に読む説明図</title>
-        <desc id="mobile-description">架空の問い合わせを入力し、predicate、choice、scoreで判断する。アプリがrefusalを確認し、担当者のルールを適用する。重大な処理は人が承認する。図に実測数値はない。</desc>
-        <rect width="380" height="1030" fill="#111a26"/>
-        <text x="25" y="39" fill="#e8bd70" font-size="12" letter-spacing="2" font-family="ui-monospace,monospace">DECISION FLOW</text>
-        <text x="25" y="80" fill="#f4f3ed" font-size="23" font-weight="700"><tspan x="25">短い判断から、</tspan><tspan x="25" dy="32">振り分けを組み立てる</tspan></text>
-        <text x="25" y="144" fill="#a7b1bf" font-size="13">01  問い合わせ / 架空例</text>
-        <rect x="22" y="161" width="336" height="173" rx="6" fill="#0a111b" stroke="#3d4857"/>
-        <text x="44" y="197" fill="#e8bd70" font-size="15">実測数値は示していません</text>
-        <text x="44" y="236" fill="#f4f3ed" font-size="18"><tspan x="44">ログイン用の確認メールが</tspan><tspan x="44" dy="29">届きません。設定の場所を</tspan><tspan x="44" dy="29">教えてください。</tspan></text>
-        <path d="M190 344v27m-7-6 7 9 7-9" fill="none" stroke="#8d9ba9" stroke-width="2"/>
-        <text x="25" y="403" fill="#e8bd70" font-size="13">02  判断をまとめて質問</text>
-        <rect x="22" y="420" width="336" height="79" rx="5" fill="#1c2632" stroke="#6a5c43"/>
-        <text x="42" y="451" fill="#e8bd70" font-size="18" font-family="ui-monospace,monospace">predicate</text>
-        <text x="173" y="451" fill="#f4f3ed" font-size="17">条件が真か</text>
-        <text x="42" y="479" fill="#a7b1bf" font-size="15">真の推定確率を返す</text>
-        <rect x="22" y="510" width="336" height="79" rx="5" fill="#1c2632" stroke="#6a5c43"/>
-        <text x="42" y="541" fill="#e8bd70" font-size="18" font-family="ui-monospace,monospace">choice</text>
-        <text x="173" y="541" fill="#f4f3ed" font-size="17">どの担当候補か</text>
-        <text x="42" y="569" fill="#a7b1bf" font-size="15">指定候補の選択と確率分布を返す</text>
-        <rect x="22" y="600" width="336" height="79" rx="5" fill="#1c2632" stroke="#6a5c43"/>
-        <text x="42" y="631" fill="#e8bd70" font-size="18" font-family="ui-monospace,monospace">score</text>
-        <text x="173" y="631" fill="#f4f3ed" font-size="17">どの評価段階か</text>
-        <text x="42" y="659" fill="#a7b1bf" font-size="15">段階添字の確率加重平均を返す</text>
-        <path d="M190 689v27m-7-6 7 9 7-9" fill="none" stroke="#8d9ba9" stroke-width="2"/>
-        <text x="25" y="748" fill="#a7b1bf" font-size="13">03  アプリのルール</text>
-        <rect x="22" y="765" width="336" height="169" rx="6" fill="#0a111b" stroke="#3d4857"/>
-        <text x="44" y="806" fill="#f4f3ed" font-size="18">refusalを確認する</text>
-        <path d="M44 824H336" stroke="#344050"/>
-        <text x="44" y="856" fill="#f4f3ed" font-size="18">担当者の振り分け条件を適用</text>
-        <path d="M44 873H336" stroke="#344050"/>
-        <text x="44" y="906" fill="#9dc9d4" font-size="18">人が対応前に確認する</text>
-        <text x="25" y="968" fill="#e8bd70" font-size="16">返金・契約変更は人が承認</text>
-        <text x="25" y="997" fill="#a7b1bf" font-size="13">判断の確率と、測定した正解率は別の指標。</text>
-      </svg>
-      <figcaption class="board-caption">
-        <p>図は想定用途の説明です。問い合わせの処理もAPIの実測も行っていません。</p>
-        <button class="button" id="open-board" type="button" aria-haspopup="dialog" aria-controls="board-dialog">図を拡大して読む</button>
-      </figcaption>
-    </figure>
-    <details class="board-transcript">
-      <summary>図の内容をテキストで読む</summary>
-      <ol>
-        <li>架空の問い合わせを共通の入力にする。</li>
-        <li><code>predicate</code>は条件が真である推定確率、<code>choice</code>は指定候補の選択、<code>score</code>は順序を持つ段階の添字を確率で加重した平均を返す。</li>
-        <li>アプリが質問ごとの<code>refusal</code>と判断値を確認し、担当者が定めた振り分け条件を適用する。重大な処理は人が承認する。</li>
-      </ol>
-    </details>
-    <p class="source-line">仕様：<a href="#source-2">[2] Decisionsガイド</a><a href="#source-3">[3] APIリファレンス</a></p>
-  </section>
+<body id="top">
+<a class="skip" href="#main">本文へ移動</a>
+<header class="mast"><div class="mast-inner"><a class="brand" href="https://visionhub.jp/" aria-label="VISIONHUB ホーム">VISION<b>HUB</b></a><span class="issue">2026.10.06 / PRACTICAL AI BRIEF</span></div></header>
+<main id="main">
+<section class="hero" aria-labelledby="page-title"><div class="wrap"><div class="hero-grid"><div>
+<div class="eyebrow"><span class="dot"></span> OPENAI DECISIONS API <span class="pill">公開ベータ</span></div>
+<h1 id="page-title">全部読む前に、<br><em>対応すべきものを絞る。</em></h1>
+<p class="lead">問い合わせ、業務連絡、商品の写真。決まった基準で一次判定し、担当探しと確認待ちを減らすためのAPIです。<strong>自動返信の道具ではなく、「次にどこへ回すか」を決める部品</strong>として、使いどころを整理します。<span class="refs"><a href="#ref-1" aria-label="出典1">[1]</a><a href="#ref-2" aria-label="出典2">[2]</a></span></p>
+<div class="meta"><span>掲載号：2026-10-06</span><span>公式発表：2026-10-06〈時刻・TZ未記載〉</span><span>再調査：2026-10-07</span></div>
+</div><aside class="hero-aside"><span class="label">まず試すなら</span><p>問い合わせの<br>担当振り分け</p><small>候補と「保留先」を決められる仕事から。<br>返金・契約変更の承認は、人に残します。</small><span class="pill">編集部の導入提案</span></aside></div></div></section>
+<nav class="nav" aria-label="ページ内の目次"><div class="nav-inner"><a href="#overview">一枚で理解</a><a href="#use-cases">誰の課題か</a><a href="#demo">具体例</a><a href="#mechanism">仕組み</a><a href="#compare">使い分け</a><a href="#cost">費用</a><a href="#safety">限界と条件</a><a href="#pilot">導入判断</a><a href="#sources">出典</a></div></nav>
+<div class="wrap">
+<section class="section compact" id="overview" aria-labelledby="overview-title">
+<div class="section-head"><div class="section-num">00</div><div><div class="overline">ONE-PAGE BRIEF</div><h2 id="overview-title">AIが仕分け、人は重要な確認に集中する。</h2><p>大事なのは、AIに全部任せることではなく、<strong>人が読む順番と渡す先を整理すること</strong>です。</p></div></div>
+<figure class="overview-figure"><picture><source media="(max-width:620px)" srcset="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MjAiIGhlaWdodD0iMTAzMCIgdmlld0JveD0iMCAwIDcyMCAxMDMwIj48c3R5bGU+dGV4dHtmb250LWZhbWlseTpBcmlhbCwiTm90byBTYW5zIENKSyBKUCIsIkhpcmFnaW5vIEtha3UgR290aGljIFByb04iLE1laXJ5byxzYW5zLXNlcmlmfTwvc3R5bGU+PHJlY3Qgd2lkdGg9IjcyMCIgaGVpZ2h0PSIxMDMwIiByeD0iMjAiIGZpbGw9IiNmMGY1ZjEiLz48dGV4dCB4PSIzNSIgeT0iNTciIGZvbnQtc2l6ZT0iMzMiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPuS7leS6i+OBruWFpeWPo+OBp+OAgeefreOBhOWIpOaWreOCkui/lOOBmTwvdGV4dD48dGV4dCB4PSIzNSIgeT0iMTAxIiBmb250LXNpemU9IjI3IiBmaWxsPSIjNTg2ZDZiIiBmb250LXdlaWdodD0iNTAwIj5BSeOBruWIpOaWreOBqOOAgeS6uuOBruaJv+iqjeOCkuWIhuOBkeOCi+OAgjwvdGV4dD48cmVjdCB4PSIzNSIgeT0iMTM5IiB3aWR0aD0iNjUwIiBoZWlnaHQ9IjE1NCIgcng9IjE4IiBmaWxsPSIjZmZmIiBzdHJva2U9IiNjZmRkZDciLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2MyAxNzcpIHNjYWxlKDEuMikiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE3M2Y0MiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik04IDIzIDE1IDhoMzRsNyAxNXYyOUg4WiIvPjxwYXRoIGQ9Ik04IDMxaDE0bDUgOGgxMGw1LThoMTQiLz48cGF0aCBkPSJNMjQgMTZoMTZtLTE5IDhoMjIiLz48L2c+PHRleHQgeD0iMTYxIiB5PSIxODciIGZvbnQtc2l6ZT0iMjYiIGZpbGw9IiM1ODc5NzAiIGZvbnQtd2VpZ2h0PSI3MDAiPjAxICDlhaXlips8L3RleHQ+PHRleHQgeD0iMTYxIiB5PSIyMzgiIGZvbnQtc2l6ZT0iMzEiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPuWVj+OBhOWQiOOCj+OBm+ODu+alreWLmemAo+e1oeODu+WGmeecnzwvdGV4dD48cGF0aCBkPSJNMzYwIDI5OXYzMW0tMTEtMTAgMTEgMTEgMTEtMTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzczOGY4OSIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHJlY3QgeD0iMzUiIHk9IjM0MyIgd2lkdGg9IjY1MCIgaGVpZ2h0PSIyMDgiIHJ4PSIxOCIgZmlsbD0iIzE3M2Y0MiIvPjx0ZXh0IHg9IjYzIiB5PSIzODkiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiNiOWU3Y2EiIGZvbnQtd2VpZ2h0PSI3MDAiPjAyICBEZWNpc2lvbnMgQVBJPC90ZXh0Pjx0ZXh0IHg9IjYzIiB5PSI0NDMiIGZvbnQtc2l6ZT0iMjciIGZpbGw9IiNmZmYiIGZvbnQtd2VpZ2h0PSI3MDAiPuaLheW9k+OBr++8nyAgLyAg6Kmy5b2T44GZ44KL77yfICAvICDjganjga7nqIvluqbvvJ88L3RleHQ+PHRleHQgeD0iNjMiIHk9IjUwNCIgZm9udC1zaXplPSIyNyIgZmlsbD0iI2I5ZTdjYSIgZm9udC13ZWlnaHQ9IjUwMCI+Y2hvaWNlICAgICAgIHByZWRpY2F0ZSAgICAgICBzY29yZTwvdGV4dD48cGF0aCBkPSJNMzYwIDU1OXYzMW0tMTEtMTAgMTEgMTEgMTEtMTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzczOGY4OSIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHJlY3QgeD0iMzUiIHk9IjYwMiIgd2lkdGg9IjY1MCIgaGVpZ2h0PSIxNTMiIHJ4PSIxOCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjY2ZkZGQ3Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjMgNjQxKSBzY2FsZSgxLjE4KSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTczZjQyIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0ibTMyIDUgMjMgOXYxN2MwIDE1LTIzIDI4LTIzIDI4UzkgNDYgOSAzMVYxNFoiLz48cGF0aCBkPSJtMjEgMzEgOCA4IDE2LTE4Ii8+PC9nPjx0ZXh0IHg9IjE2MSIgeT0iNjQ5IiBmb250LXNpemU9IjI4IiBmaWxsPSIjNTg3OTcwIiBmb250LXdlaWdodD0iNzAwIj4wMyAg6Ieq56S+44Or44O844OrPC90ZXh0Pjx0ZXh0IHg9IjE2MSIgeT0iNzAyIiBmb250LXNpemU9IjI5IiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7mqKnpmZDjg7vkv53nlZnmnaHku7bjg7vmi5LlkKbjgpLnorroqo08L3RleHQ+PHBhdGggZD0iTTM2MCA3NjF2MzFtLTExLTEwIDExIDExIDExLTExIiBmaWxsPSJub25lIiBzdHJva2U9IiM3MzhmODkiIHN0cm9rZS13aWR0aD0iNCIvPjxyZWN0IHg9IjM1IiB5PSI4MDQiIHdpZHRoPSIzMTIiIGhlaWdodD0iMTQzIiByeD0iMTgiIGZpbGw9IiNlMWVlZGYiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2MiA4MzcpIHNjYWxlKDAuOTUpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI1IiB5PSIyMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjIwIiByeD0iNCIvPjxyZWN0IHg9IjQzIiB5PSI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMTciIHJ4PSI0Ii8+PHJlY3QgeD0iNDMiIHk9IjQyIiB3aWR0aD0iMTYiIGhlaWdodD0iMTciIHJ4PSI0Ii8+PHBhdGggZD0iTTIxIDMyaDExVjEzaDExTTMyIDMydjE5aDExIi8+PC9nPjx0ZXh0IHg9IjE0MiIgeT0iODY2IiBmb250LXNpemU9IjMyIiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7mi4XlvZPjgbg8L3RleHQ+PHRleHQgeD0iNjIiIHk9IjkxOCIgZm9udC1zaXplPSIyNiIgZmlsbD0iIzE2MzYzYSIgZm9udC13ZWlnaHQ9IjUwMCI+6YCa5bi444Gu5oyv44KK5YiG44GRPC90ZXh0PjxyZWN0IHg9IjM3MyIgeT0iODA0IiB3aWR0aD0iMzEyIiBoZWlnaHQ9IjE0MyIgcng9IjE4IiBmaWxsPSIjZmZmMGQ4Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzk3IDgzNykgc2NhbGUoMC45NSkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE3M2Y0MiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMTkiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDU2di03YTIwIDIwIDAgMCAxIDQwIDB2N004IDMydi04YTI0IDI0IDAgMCAxIDQ4IDB2OE01MSAzNHY3aC05Ii8+PC9nPjx0ZXh0IHg9IjQ3NyIgeT0iODY2IiBmb250LXNpemU9IjMyIiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7kurrjgYznorroqo08L3RleHQ+PHRleHQgeD0iMzk3IiB5PSI5MTgiIGZvbnQtc2l6ZT0iMjYiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI1MDAiPumHjeimgeODu+abluaYp+ODu+S+i+WkljwvdGV4dD48dGV4dCB4PSIzNSIgeT0iOTk3IiBmb250LXNpemU9IjIzIiBmaWxsPSIjNTg2ZDZiIiBmb250LXdlaWdodD0iNTAwIj7oqK3oqIjkvovjgafjgZnjgILlrp/lsI7lhaXjg7vlrp/muKzntZDmnpzjgafjga/jgYLjgorjgb7jgZvjgpPjgII8L3RleHQ+PC9zdmc+"><img id="overview-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjU2MCIgdmlld0JveD0iMCAwIDEyMDAgNTYwIj48c3R5bGU+dGV4dHtmb250LWZhbWlseTpBcmlhbCwiTm90byBTYW5zIENKSyBKUCIsIkhpcmFnaW5vIEtha3UgR290aGljIFByb04iLE1laXJ5byxzYW5zLXNlcmlmfTwvc3R5bGU+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNTYwIiByeD0iMjIiIGZpbGw9IiNmMGY1ZjEiLz48dGV4dCB4PSI0MCIgeT0iNTQiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPuS7leS6i+OBruWFpeWPo+OBp+OAgeefreOBhOWIpOaWreOCkui/lOOBmTwvdGV4dD48dGV4dCB4PSI0MCIgeT0iODciIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiM1ODZkNmIiIGZvbnQtd2VpZ2h0PSI1MDAiPkFJ44GM5LiA5qyh5Yik5a6a44CC6YGL55So44Or44O844Or44Go5om/6KqN44Gv44CB6Ieq56S+5YG044Gr5q6L44GZ44CCPC90ZXh0PjxkZWZzPjxtYXJrZXIgaWQ9ImEiIG1hcmtlcldpZHRoPSIxMCIgbWFya2VySGVpZ2h0PSIxMCIgcmVmWD0iNyIgcmVmWT0iNCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJtMCAwIDggNC04IDQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzczOGY4OSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9tYXJrZXI+PC9kZWZzPjxnIHN0cm9rZT0iIzczOGY4OSIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBtYXJrZXItZW5kPSJ1cmwoI2EpIj48cGF0aCBkPSJNMjY1IDI5M2g0NSIvPjxwYXRoIGQ9Ik01NzUgMjkzaDQ1Ii8+PHBhdGggZD0iTTg3NSAyOTNoMjdWMTk4aDEzIi8+PHBhdGggZD0iTTkwMiAyOTN2NjhoMTMiLz48L2c+PHJlY3QgeD0iMzUiIHk9IjEyOSIgd2lkdGg9IjIyNSIgaGVpZ2h0PSIzMDIiIHJ4PSIxOCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjY2ZkZGQ3Ii8+PHRleHQgeD0iNTYiIHk9IjE2NiIgZm9udC1zaXplPSIyMSIgZmlsbD0iIzU4Nzk3MCIgZm9udC13ZWlnaHQ9IjcwMCI+MDEgIOWFpeWKmzwvdGV4dD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMTUgMTkwKSBzY2FsZSgxLjA1KSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTczZjQyIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTggMjMgMTUgOGgzNGw3IDE1djI5SDhaIi8+PHBhdGggZD0iTTggMzFoMTRsNSA4aDEwbDUtOGgxNCIvPjxwYXRoIGQ9Ik0yNCAxNmgxNm0tMTkgOGgyMiIvPjwvZz48dGV4dCB4PSI1OSIgeT0iMzA1IiBmb250LXNpemU9IjI4IiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7llY/jgYTlkIjjgo/jgZs8L3RleHQ+PHRleHQgeD0iNTkiIHk9IjM0NiIgZm9udC1zaXplPSIyMyIgZmlsbD0iIzE2MzYzYSIgZm9udC13ZWlnaHQ9IjUwMCI+5qWt5YuZ6YCj57Wh44O75YaZ55yfPC90ZXh0Pjx0ZXh0IHg9IjU5IiB5PSIzODkiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM2NDc5NzAiIGZvbnQtd2VpZ2h0PSI1MDAiPuW/heimgeOBquaDheWgseOBoOOBkea4oeOBmTwvdGV4dD48cmVjdCB4PSIzMjAiIHk9IjEyOSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSIzMDIiIHJ4PSIxOCIgZmlsbD0iIzE3M2Y0MiIvPjx0ZXh0IHg9IjM0MCIgeT0iMTY3IiBmb250LXNpemU9IjIxIiBmaWxsPSIjYjllN2NhIiBmb250LXdlaWdodD0iNzAwIj4wMiAgRGVjaXNpb25zIEFQSTwvdGV4dD48dGV4dCB4PSIzNDAiIHk9IjIyNSIgZm9udC1zaXplPSIyNyIgZmlsbD0iI2ZmZiIgZm9udC13ZWlnaHQ9IjcwMCI+5ouF5b2T44Gv77yfPC90ZXh0Pjx0ZXh0IHg9IjQ4NSIgeT0iMjI1IiBmb250LXNpemU9IjE4IiBmaWxsPSIjYjllN2NhIiBmb250LXdlaWdodD0iNTAwIj5jaG9pY2U8L3RleHQ+PHRleHQgeD0iMzQwIiB5PSIyODkiIGZvbnQtc2l6ZT0iMjciIGZpbGw9IiNmZmYiIGZvbnQtd2VpZ2h0PSI3MDAiPuipsuW9k+OBmeOCi++8nzwvdGV4dD48dGV4dCB4PSI0NzAiIHk9IjMyMSIgZm9udC1zaXplPSIxOCIgZmlsbD0iI2I5ZTdjYSIgZm9udC13ZWlnaHQ9IjUwMCI+cHJlZGljYXRlPC90ZXh0Pjx0ZXh0IHg9IjM0MCIgeT0iMzcwIiBmb250LXNpemU9IjI3IiBmaWxsPSIjZmZmIiBmb250LXdlaWdodD0iNzAwIj7jganjga7nqIvluqbvvJ88L3RleHQ+PHRleHQgeD0iNDkwIiB5PSI0MDEiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiNiOWU3Y2EiIGZvbnQtd2VpZ2h0PSI1MDAiPnNjb3JlPC90ZXh0PjxyZWN0IHg9IjYzMCIgeT0iMTI5IiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjMwMiIgcng9IjE4IiBmaWxsPSIjZmZmIiBzdHJva2U9IiNjZmRkZDciLz48dGV4dCB4PSI2NTAiIHk9IjE2NiIgZm9udC1zaXplPSIyMSIgZmlsbD0iIzU4Nzk3MCIgZm9udC13ZWlnaHQ9IjcwMCI+MDMgIOiHquekvuODq+ODvOODqzwvdGV4dD48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTggMTkxKSBzY2FsZSgxLjApIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJtMzIgNSAyMyA5djE3YzAgMTUtMjMgMjgtMjMgMjhTOSA0NiA5IDMxVjE0WiIvPjxwYXRoIGQ9Im0yMSAzMSA4IDggMTYtMTgiLz48L2c+PHRleHQgeD0iNjUyIiB5PSIzMDYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPuWApOOBqOaoqemZkOOCkueiuuiqjTwvdGV4dD48dGV4dCB4PSI2NTIiIHk9IjM0OCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzE2MzYzYSIgZm9udC13ZWlnaHQ9IjUwMCI+5L+d55WZ5p2h5Lu244KS6YGp55SoPC90ZXh0Pjx0ZXh0IHg9IjY1MiIgeT0iMzkwIiBmb250LXNpemU9IjIwIiBmaWxsPSIjNjQ3OTcwIiBmb250LXdlaWdodD0iNTAwIj7mi5LlkKbjg7vlpLHmlZfjgoLmi77jgYY8L3RleHQ+PHJlY3QgeD0iOTI1IiB5PSIxMjkiIHdpZHRoPSIyNDAiIGhlaWdodD0iMTM5IiByeD0iMTgiIGZpbGw9IiNlMWVlZGYiIHN0cm9rZT0iI2MxZDViYyIvPjx0ZXh0IHg9Ijk0NyIgeT0iMTY2IiBmb250LXNpemU9IjIxIiBmaWxsPSIjNDc2YzQ3IiBmb250LXdlaWdodD0iNzAwIj4wNCAg5rih44GZ5YWIPC90ZXh0PjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk0MyAxODUpIHNjYWxlKDAuNzIpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI1IiB5PSIyMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjIwIiByeD0iNCIvPjxyZWN0IHg9IjQzIiB5PSI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMTciIHJ4PSI0Ii8+PHJlY3QgeD0iNDMiIHk9IjQyIiB3aWR0aD0iMTYiIGhlaWdodD0iMTciIHJ4PSI0Ii8+PHBhdGggZD0iTTIxIDMyaDExVjEzaDExTTMyIDMydjE5aDExIi8+PC9nPjx0ZXh0IHg9IjEwMDMiIHk9IjIyMyIgZm9udC1zaXplPSIyMyIgZmlsbD0iIzE2MzYzYSIgZm9udC13ZWlnaHQ9IjcwMCI+5ouF5b2T44Kt44Ol44O8PC90ZXh0PjxyZWN0IHg9IjkyNSIgeT0iMjkxIiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjE0MCIgcng9IjE4IiBmaWxsPSIjZmZmMGQ4IiBzdHJva2U9IiNkZmNiYTUiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5NDMgMzEwKSBzY2FsZSgwLjcyKSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTczZjQyIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIxOSIgcj0iMTAiLz48cGF0aCBkPSJNMTIgNTZ2LTdhMjAgMjAgMCAwIDEgNDAgMHY3TTggMzJ2LThhMjQgMjQgMCAwIDEgNDggMHY4TTUxIDM0djdoLTkiLz48L2c+PHRleHQgeD0iMTAwMyIgeT0iMzQ5IiBmb250LXNpemU9IjI0IiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7kurrjgYznorroqo08L3RleHQ+PHRleHQgeD0iOTQ3IiB5PSIzOTciIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM3NjVhMzAiIGZvbnQtd2VpZ2h0PSI1MDAiPumHjeimgeODu+abluaYp+ODu+S+i+WkljwvdGV4dD48cmVjdCB4PSIzNSIgeT0iNDYxIiB3aWR0aD0iMTEzMCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjZmZmIi8+PHRleHQgeD0iNTkiIHk9IjUwMSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzE2MzYzYSIgZm9udC13ZWlnaHQ9IjcwMCI+5rib44KJ44GX44Gf44GE44GT44Go77ya5YWo5Lu244Gu6Kqt44G/55u044GX44O75ouF5b2T5o6i44GX44O756K66KqN5b6F44GhPC90ZXh0Pjx0ZXh0IHg9IjkyNiIgeT0iNTAxIiBmb250LXNpemU9IjE3IiBmaWxsPSIjNjY3ZDc1IiBmb250LXdlaWdodD0iNTAwIj7oqK3oqIjkvovvvI/mnKrlrp/muKw8L3RleHQ+PC9zdmc+" width="1200" height="560" fetchpriority="high" alt="問い合わせ・業務連絡・写真を入力し、Decisions APIが担当・条件への該当・程度を判定する。自社ルールで値、権限、保留条件を確認し、通常は担当キューへ、重要・曖昧・例外は人の確認へ渡す。設計例であり実測ではない。"></picture><figcaption class="figure-bottom"><p>図は一次判定を組み込む<strong>設計例</strong>です。実チケット・個人情報は使用していません。担当キューへの登録や承認処理は、別途アプリに実装します。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-3" aria-label="出典3">[3]</a></span></p><button class="btn" id="zoom-open" type="button" aria-haspopup="dialog">図を拡大する ↗</button></figcaption></figure>
+<div class="takeaway"><p><strong>このAPIが担うのは「短い判断」。</strong>情報を集める、業務を実行する、結果に責任を持つ部分は別です。</p></div>
+</section>
 
-  <section class="chapter" id="audience" aria-labelledby="audience-title">
-    <div class="chapter-head">
-      <span class="chapter-number" aria-hidden="true">01</span>
-      <div><p class="section-kicker">WHO HAS THIS PROBLEM</p><h2 id="audience-title">問い合わせの窓口を実装する人と、運用する人へ</h2></div>
-    </div>
-    <div class="notes">
-      <div>
-        <p>問い合わせの文章を読み、「担当部署」「緊急性」「追加調査の程度」を決める。窓口の実装には、こうした判断をアプリの分岐へつなぐ場面がある。</p>
-        <p>Decisions APIは共通の入力へ複数の質問を渡し、質問ごとに型の決まった回答を返す。担当候補や評価段階をあらかじめ定義できる処理が、試す用途になる。<a href="#source-2">[2]</a></p>
-        <dl class="role-lines">
-          <div><dt>窓口の開発者</dt><dd>候補の定義、回答型の処理、<code>refusal</code>時の保留や人への引き継ぎを実装する。</dd></div>
-          <div><dt>運用PM</dt><dd>正しい担当と見逃してはいけない条件を定義し、誤振り分けと人の確認負担を評価する。</dd></div>
-        </dl>
-      </div>
-      <aside class="note-aside">
-        <span class="aside-label">このページの位置付け</span>
-        <p>問い合わせの分類・担当振り分けは<strong>想定用途</strong>です。実導入による時間短縮、人件費削減、日本語精度の改善は確認していません。</p>
-      </aside>
-    </div>
-  </section>
+<section class="section" id="use-cases" aria-labelledby="cases-title">
+<div class="section-head"><div class="section-num">01</div><div><div class="overline">WHO / PAIN / SOLUTION</div><h2 id="cases-title">誰の、どんな手間を減らせるのか。</h2><p>製品機能の一覧ではなく、現場の仕事に置き換えました。以下は公式の用途を基にした<strong>活用設計案</strong>で、導入効果の実績ではありません。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></p></div></div>
+<div class="two-col">
+<article class="use-card"><div class="art"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiB2aWV3Qm94PSIwIDAgNTIwIDE5MCI+PHN0eWxlPnRleHR7Zm9udC1mYW1pbHk6QXJpYWwsIk5vdG8gU2FucyBDSksgSlAiLCJIaXJhZ2lubyBLYWt1IEdvdGhpYyBQcm9OIixNZWlyeW8sc2Fucy1zZXJpZn08L3N0eWxlPjxyZWN0IHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiByeD0iMTYiIGZpbGw9IiNlZGYzZWMiLz48Y2lyY2xlIGN4PSIxNDEiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzODAiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNkNGU2Y2YiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMDkgNDcpIHNjYWxlKDEpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNOCAyMyAxNSA4aDM0bDcgMTV2MjlIOFoiLz48cGF0aCBkPSJNOCAzMWgxNGw1IDhoMTBsNS04aDE0Ii8+PHBhdGggZD0iTTI0IDE2aDE2bS0xOSA4aDIyIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM0OCA0Nykgc2NhbGUoMSkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE3M2Y0MiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxyZWN0IHg9IjUiIHk9IjIyIiB3aWR0aD0iMTYiIGhlaWdodD0iMjAiIHJ4PSI0Ii8+PHJlY3QgeD0iNDMiIHk9IjUiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNyIgcng9IjQiLz48cmVjdCB4PSI0MyIgeT0iNDIiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNyIgcng9IjQiLz48cGF0aCBkPSJNMjEgMzJoMTFWMTNoMTFNMzIgMzJ2MTloMTEiLz48L2c+PHBhdGggZD0iTTIxNSA3OWg5MW0tMTMtMTAgMTMgMTAtMTMgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzc4OTE4OSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48dGV4dCB4PSI4MiIgeT0iMTYwIiBmb250LXNpemU9IjIzIiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7mi4XlvZPmjqLjgZc8L3RleHQ+PHRleHQgeD0iMzA2IiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjMiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPuaMr+OCiuWIhuOBkeahiDwvdGV4dD48L3N2Zz4=" width="520" height="190" loading="lazy" alt="問い合わせの受信箱から担当先へ振り分ける軽量イラスト。"></div><div class="use-body"><div class="use-top"><span>CS・社内ヘルプデスク</span><span class="pill green">最初の試行候補</span></div><h3>「どの部署に回すか」で<br>対応が止まる。</h3><dl><div><dt>困りごと</dt><dd>全件を読み、請求・技術・アカウントなどの担当を探す。誤転送で回答が遅れる。</dd></div><div><dt>どう使う</dt><dd><code>choice</code>で担当候補を選び、<code>predicate</code>で要確認条件を拾う。定義したルールで担当キューへ渡す。</dd></div><div><dt>減らす手間</dt><dd>一次担当者の読み直しと、窓口間の行き来。担当者は内容の解決から着手する。</dd></div></dl><p class="metric">測るもの：担当確定までの時間／誤転送率</p><div class="boundary">人に残す：二重請求の事実確認、返金の可否、顧客への最終回答。</div></div></article>
+<article class="use-card"><div class="art"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiB2aWV3Qm94PSIwIDAgNTIwIDE5MCI+PHN0eWxlPnRleHR7Zm9udC1mYW1pbHk6QXJpYWwsIk5vdG8gU2FucyBDSksgSlAiLCJIaXJhZ2lubyBLYWt1IEdvdGhpYyBQcm9OIixNZWlyeW8sc2Fucy1zZXJpZn08L3N0eWxlPjxyZWN0IHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiByeD0iMTYiIGZpbGw9IiNmN2YwZTMiLz48Y2lyY2xlIGN4PSIxNDEiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzODAiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNmMGRlYmMiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMDkgNDcpIHNjYWxlKDEpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTUgNThWN20xIDBoMzJsLTcgMTEgNyAxMUgxNiIvPjxwYXRoIGQ9Ik04IDU4aDIyIi8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM0OCA0Nykgc2NhbGUoMSkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE3M2Y0MiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMTkiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDU2di03YTIwIDIwIDAgMCAxIDQwIDB2N004IDMydi04YTI0IDI0IDAgMCAxIDQ4IDB2OE01MSAzNHY3aC05Ii8+PC9nPjxwYXRoIGQ9Ik0yMTUgNzloOTFtLTEzLTEwIDEzIDEwLTEzIDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiM3ODkxODkiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHRleHQgeD0iODIiIHk9IjE2MCIgZm9udC1zaXplPSIyMyIgZmlsbD0iIzE2MzYzYSIgZm9udC13ZWlnaHQ9IjcwMCI+6YCj57Wh44KS6Kqt44KAPC90ZXh0Pjx0ZXh0IHg9IjMwNiIgeT0iMTYwIiBmb250LXNpemU9IjIzIiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7opoHnorroqo3jgpLmi77jgYY8L3RleHQ+PC9zdmc+" width="520" height="190" loading="lazy" alt="旗付きの業務連絡から、人が確認すべき項目を拾う軽量イラスト。"></div><div class="use-body"><div class="use-top"><span>PM・チームリーダー</span><span class="pill neutral">連絡整理の設計例</span></div><h3>連絡に埋もれた<br>「今日の判断」を拾いたい。</h3><dl><div><dt>困りごと</dt><dd>チャットやメールを巡回し、承認待ち・作業停止・返信依頼を手作業で探している。</dd></div><div><dt>どう使う</dt><dd>取得済みの連絡と必要な文脈を渡し、「判断依頼があるか」「作業が止まっているか」を別々に判定する。</dd></div><div><dt>減らす手間</dt><dd>全件を同じ注意力で読む負担。PMには確認候補と元の連絡を並べて見せる。</dd></div></dl><p class="metric">測るもの：判断依頼の見逃し／巡回の実作業時間</p><div class="boundary">別途必要：Teams・メールの取得連携、閲覧権限、現在日時や期限の処理。ネイティブ統合の発表ではありません。</div></div></article>
+<article class="use-card"><div class="art"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiB2aWV3Qm94PSIwIDAgNTIwIDE5MCI+PHN0eWxlPnRleHR7Zm9udC1mYW1pbHk6QXJpYWwsIk5vdG8gU2FucyBDSksgSlAiLCJIaXJhZ2lubyBLYWt1IEdvdGhpYyBQcm9OIixNZWlyeW8sc2Fucy1zZXJpZn08L3N0eWxlPjxyZWN0IHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiByeD0iMTYiIGZpbGw9IiNlZGYyZjciLz48Y2lyY2xlIGN4PSIxNDEiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzODAiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNkNGUzZWQiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMDkgNDcpIHNjYWxlKDEpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJtMzIgNiAyNyAxNS0yNyAxNUw1IDIxWiIvPjxwYXRoIGQ9Im01IDMyIDI3IDE1IDI3LTE1TTUgNDNsMjcgMTUgMjctMTUiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzQ4IDQ3KSBzY2FsZSgxKSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTczZjQyIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMjciIGN5PSIyNyIgcj0iMTgiLz48cGF0aCBkPSJtNDEgNDEgMTYgMTZNMTkgMjdoMTZNMjcgMTl2MTYiLz48L2c+PHBhdGggZD0iTTIxNSA3OWg5MW0tMTMtMTAgMTMgMTAtMTMgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzc4OTE4OSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48dGV4dCB4PSI4MiIgeT0iMTYwIiBmb250LXNpemU9IjIzIiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7lm57nrZTjgpLngrnmpJw8L3RleHQ+PHRleHQgeD0iMzA2IiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjMiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPueiuuiqjeWAmeijnOOBuDwvdGV4dD48L3N2Zz4=" width="520" height="190" loading="lazy" alt="複数の回答候補を点検し、確認対象を選ぶ軽量イラスト。"></div><div class="use-body"><div class="use-top"><span>検索・RAG・品質評価の開発者</span><span class="pill neutral">確認候補を絞る</span></div><h3>回答や検索結果を、<br>全部は目視できない。</h3><dl><div><dt>困りごと</dt><dd>検索された文書や生成回答が、質問に合っているかを大量に確認する必要がある。</dd></div><div><dt>どう使う</dt><dd>質問・候補文書・回答を入力し、関連性などの観察可能な条件を判定。低評価や境界例をレビューへ回す。</dd></div><div><dt>減らす手間</dt><dd>点検の優先順位付け。人による評価を置き換えるのではなく、調べる対象を絞る。</dd></div></dl><p class="metric">測るもの：不適切な回答の取り逃し／確認件数</p><div class="boundary">人に残す：「関連している」と「正しい」を分けた評価。関連性の高スコアだけで、事実の正確さを保証しません。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-6" aria-label="出典6">[6]</a></span></div></div></article>
+<article class="use-card"><div class="art"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiB2aWV3Qm94PSIwIDAgNTIwIDE5MCI+PHN0eWxlPnRleHR7Zm9udC1mYW1pbHk6QXJpYWwsIk5vdG8gU2FucyBDSksgSlAiLCJIaXJhZ2lubyBLYWt1IEdvdGhpYyBQcm9OIixNZWlyeW8sc2Fucy1zZXJpZn08L3N0eWxlPjxyZWN0IHdpZHRoPSI1MjAiIGhlaWdodD0iMTkwIiByeD0iMTYiIGZpbGw9IiNmM2VlZWMiLz48Y2lyY2xlIGN4PSIxNDEiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzODAiIGN5PSI3OSIgcj0iNTMiIGZpbGw9IiNlN2Q3Y2UiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMDkgNDcpIHNjYWxlKDEpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI1IiB5PSI5IiB3aWR0aD0iNTQiIGhlaWdodD0iNDUiIHJ4PSI1Ii8+PGNpcmNsZSBjeD0iNDQiIGN5PSIyMiIgcj0iNSIvPjxwYXRoIGQ9Im03IDQ4IDE1LTE3IDEyIDEyIDktOSAxNCAxNSIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNDggNDcpIHNjYWxlKDEpIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNzNmNDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJtMzIgNSAyMyA5djE3YzAgMTUtMjMgMjgtMjMgMjhTOSA0NiA5IDMxVjE0WiIvPjxwYXRoIGQ9Im0yMSAzMSA4IDggMTYtMTgiLz48L2c+PHBhdGggZD0iTTIxNSA3OWg5MW0tMTMtMTAgMTMgMTAtMTMgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzc4OTE4OSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48dGV4dCB4PSI4MiIgeT0iMTYwIiBmb250LXNpemU9IjIzIiBmaWxsPSIjMTYzNjNhIiBmb250LXdlaWdodD0iNzAwIj7lhpnnnJ/jgpLopovjgos8L3RleHQ+PHRleHQgeD0iMzA2IiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjMiIGZpbGw9IiMxNjM2M2EiIGZvbnQtd2VpZ2h0PSI3MDAiPuimgeeiuuiqjeOCkuaLvuOBhjwvdGV4dD48L3N2Zz4=" width="520" height="190" loading="lazy" alt="商品の写真を確認して、損傷が疑われるものをレビューへ回す軽量イラスト。"></div><div class="use-body"><div class="use-top"><span>EC・返品受付・画像点検担当</span><span class="pill neutral">公式に画像の例</span></div><h3>写真を一枚ずつ見て、<br>確認の要否を決めている。</h3><dl><div><dt>困りごと</dt><dd>届いた写真から、へこみ・ひび・破損らしき部分を探し、確認順を決める。</dd></div><div><dt>どう使う</dt><dd>画像と点検基準を渡し、見える損傷の有無や程度を判定。画質不足や疑わしいものを人へ戻す。</dd></div><div><dt>減らす手間</dt><dd>写真点検の一次仕分け。少なくとも「何を先に見るか」の補助として試す。</dd></div></dl><p class="metric">測るもの：損傷の見逃し／画質別の誤判定</p><div class="boundary">人に残す：返品の可否・補償額・原因の確定。画像はインラインのdata URLで渡します。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-3" aria-label="出典3">[3]</a></span></div></div></article>
+</div>
+<p class="section-tail">対象が少ない、ルールだけで正確に分けられる、人による確認負担が減らない――そうした場合は、AIを足さない判断も妥当です。</p>
+</section>
 
-  <section class="chapter" id="context" aria-labelledby="context-title">
-    <div class="chapter-head">
-      <span class="chapter-number" aria-hidden="true">02</span>
-      <div><p class="section-kicker">CHOOSING THE API</p><h2 id="context-title">既存APIでもJSONは返せる。今回は判断の型に注目する</h2></div>
-    </div>
-    <div class="notes">
-      <div>
-        <p>Responses APIのStructured Outputsでも、指定したJSON Schemaに沿う出力を扱える。分類をJSONで返すこと自体には、既存の選択肢がある。<a href="#source-4">[4]</a></p>
-        <p>Decisions APIでは、<code>predicate</code>、<code>choice</code>、<code>score</code>という判断の型を選ぶ。自由な説明文や独自の出力構造も必要なら、ResponsesとStructured Outputsを含む既存APIを検討する。<a href="#source-2">[2]</a></p>
-      </div>
-      <aside class="note-aside">
-        <span class="aside-label">先行する取り組み</span>
-        <p>TypeSafeの<strong>Jev</strong>やCloudflareの<strong>Clef</strong>も、判断を扱うモデルとして先行しています。今回の発表を、判断専用という概念の発明とは位置付けません。<a href="#source-5">[5]</a> <a href="#source-6">[6]</a></p>
-      </aside>
-    </div>
-    <div class="table-wrap" tabindex="0" aria-label="APIの使い分け表。狭い画面では横にスクロールできます">
-      <table>
-        <caption>必要な出力から選ぶ。製品間のAPI互換性や品質の優劣を示す表ではありません。</caption>
-        <thead><tr><th scope="col">必要なこと</th><th scope="col">選択肢</th><th scope="col">確かめる点</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">条件・候補・段階を判断する</th><td>Decisions API</td><td>型の意味、候補と段階の定義、拒否時の処理</td></tr>
-          <tr><th scope="row">説明文や独自構造も扱う</th><td>Responses API / Structured Outputs</td><td>必要な説明、JSON Schema、アプリ側の検証</td></tr>
-          <tr><th scope="row">判断専用の先例を調べる</th><td>Jev / Clef</td><td>それぞれの仕様、条件、同じ評価データでの結果</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="source-line">出典：<a href="#source-2">[2] Decisions</a><a href="#source-4">[4] Structured Outputs</a><a href="#source-5">[5] Jev</a><a href="#source-6">[6] Clef</a></p>
-  </section>
+<section class="section" id="demo" aria-labelledby="demo-title">
+<div class="section-head"><div class="section-num">02</div><div><div class="overline">ONE REQUEST, THREE QUESTIONS</div><h2 id="demo-title">一件の問い合わせが、どう処理されるか。</h2><p>同じ入力に「担当」「業務停止の明示」「影響の程度」を独立した質問として渡す設計です。<strong>型付きの値が返っても、返金や契約変更を自動実行するわけではありません。</strong></p></div></div>
+<div class="demo-shell"><div class="demo-bar"><div class="case-buttons" role="group" aria-label="架空の問い合わせ例を切り替える"><button type="button" data-case="technical" aria-pressed="true">機能の不具合</button><button type="button" data-case="billing" aria-pressed="false">請求の相談</button><button type="button" data-case="unclear" aria-pressed="false">情報不足</button></div><p>固定の架空データ／API呼び出しなし</p></div>
+<div class="demo-body"><div class="input-pane"><div><div class="small-label">問い合わせ本文〈架空〉</div><blockquote id="demo-input">今朝からCSVの出力が止まります。ChromeでもSafariでも失敗します。代替手段がなく、月次処理が進められません。</blockquote></div><p class="note">前処理で利用範囲を確認し、不要な個人情報を除外。ここでは説明用の文章だけを扱っています。</p></div><div aria-live="polite" aria-atomic="true"><div class="small-label">戻り値の表示例〈すべて仮定〉</div><div class="answer-line"><span><code>choice</code> 担当</span><strong id="demo-route">技術サポート</strong></div><div class="answer-line"><span><code>predicate</code> 業務停止の明示</span><strong id="demo-prob">0.94〈推定確率の例〉</strong></div><div class="answer-line"><span><code>score</code> 影響〈0〜2〉</span><strong id="demo-score">1.82 / 2</strong></div><div class="demo-action"><div class="small-label">アプリが適用する運用ルール</div><p id="demo-action">業務停止の疑いとして確認を優先。技術担当が影響範囲と原因を確認します。</p></div></div></div>
+<div class="demo-foot">数値は仕組みを説明するために作った例で、APIの実測・精度・推奨閾値ではありません。情報不足を表す <code>other</code> と、モデルが回答を断る <code>refusal</code> は別です。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-3" aria-label="出典3">[3]</a></span></div></div>
+</section>
 
-  <section class="chapter" id="trial" aria-labelledby="trial-title">
-    <div class="chapter-head">
-      <span class="chapter-number" aria-hidden="true">03</span>
-      <div><p class="section-kicker">AN EDITORIAL TEST PLAN</p><h2 id="trial-title">まずは、同じ問い合わせで誤振り分けと確認負担を比べる</h2></div>
-    </div>
-    <p class="trial-intro">以下は編集側の試行提案です。実施時には、利用範囲を確認したうえで匿名化し、正解ラベルを付けた過去の問い合わせを用いる。本号に載せる入力例はすべて架空で、実チケットや医療個人情報を使用していません。</p>
-    <ol class="trial-steps">
-      <li><div><h3>正解と保留条件を先に決める</h3><p>運用担当者が担当窓口と見逃してはいけない条件を定義する。「その他」や情報不足も含め、候補から無理に担当を選ばせない。</p></div></li>
-      <li><div><h3>既存方式と同じ条件で評価する</h3><p>入力、担当候補、評価対象をそろえる。Responses / Structured Outputsなどの既存方式と、処理時間と判断結果を比較する。</p></div></li>
-      <li><div><h3>refusalと迷う入力を人へ戻す</h3><p>質問単位の拒否を、該当質問の判断値として扱わない。確認が必要な条件と、担当者への引き継ぎ方法をアプリに持たせる。</p></div></li>
-      <li><div><h3>重大な処理を人の承認に残す</h3><p>試行は振り分け案の確認から始める。返金、契約変更などの重要な実行は、判断値だけで自動承認しない。</p></div></li>
-    </ol>
-    <div class="measurements" aria-label="試行で比べる5つの指標">
-      <div><strong>誤振り分け</strong><span>正解の担当と異なる割合</span></div>
-      <div><strong>見逃し</strong><span>要確認の条件を拾えない割合</span></div>
-      <div><strong>p95</strong><span>待ち時間の95パーセンタイル</span></div>
-      <div><strong>人の確認率</strong><span>保留や人への引き継ぎの割合</span></div>
-      <div><strong>費用</strong><span>同じ対象件数で比較する</span></div>
-    </div>
-    <div class="prompt-panel">
-      <div class="prompt-head"><h3 id="prompt-title">試行計画を作る依頼文</h3><button class="button button-quiet" id="copy-prompt" type="button">依頼文をコピー</button></div>
-      <p class="prompt-help" id="prompt-help">架空例で計画を検討するための依頼文です。実データやAPIキーを貼らずに使えます。</p>
-      <textarea id="task-prompt" aria-labelledby="prompt-title" aria-describedby="prompt-help" readonly spellcheck="false">問い合わせ窓口の分類・担当振り分けについて、Decisions APIと既存方式を比較する試行計画を作ってください。
+<section class="section" id="mechanism" aria-labelledby="mechanism-title">
+<div class="section-head"><div class="section-num">03</div><div><div class="overline">MECHANISM, NOT MAGIC</div><h2 id="mechanism-title">「分類」「条件の判定」「段階評価」を分ける。</h2><p>自由な文章ではなく、用途に合う型を選びます。<code>choice</code>・<code>score</code>には候補別の確率と、別項目の <code>confidence</code> も返ります。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-3" aria-label="出典3">[3]</a></span></p></div></div>
+<div class="types"><article class="type-card"><h3>choice</h3><h4>どれに分類する？</h4><p>担当部署のような、順序のない候補から選びます。候補にない内容を受け止める「その他・保留」を設計します。</p><div class="output">例：technical / billing / other</div></article><article class="type-card"><h3>predicate</h3><h4>その条件に当てはまる？</h4><p>条件が真である推定確率を0〜1で返します。「作業が止まっていると明示しているか」など、問いを具体化します。</p><div class="output">例：probability = 0.94〈仮定〉</div></article><article class="type-card"><h3>score</h3><h4>どの程度に当たる？</h4><p>順序付きの段階を定義します。返る値は、0から始まる段階番号を確率で重み付けした平均です。</p><div class="output">例：0＝軽微 / 1＝代替あり / 2＝停止</div></article></div>
+<div class="insight-grid"><article class="panel"><div class="overline">平均だけで決めない</div><h3>同じ「1.0」でも、意味は違う。</h3><p>次の二つは、どちらも平均スコア1.0です。でもBには、最も重い「業務停止」に50%の確率が置かれています。</p><table class="mini-table"><caption>説明用の仮定。APIの実測ではありません。</caption><thead><tr><th scope="col">分布</th><th scope="col">0：軽微</th><th scope="col">1：代替</th><th scope="col">2：停止</th><th scope="col">平均</th></tr></thead><tbody><tr><th scope="row">A</th><td>0%</td><td>100%</td><td>0%</td><td class="same">1.0</td></tr><tr><th scope="row">B</th><td>50%</td><td>0%</td><td>50%</td><td class="same">1.0</td></tr></tbody></table><p class="note"><strong>設計上の示唆：</strong>平均だけで「問題なし」としない。重大条件は個別に問い、最重度への確率も点検します。段階間の重みが業務上等価でないなら、そのまま損失額の計算に使わないでください。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></p></article><article class="panel"><div class="overline">同時に聞ける ≠ 順番に考える</div><h3>一つ前の答えが必要なら、分ける。</h3><p>「担当はどこか」「業務停止が明示されているか」は、共通の入力から独立して評価できます。一方、「担当が決まった後、その部署の処理を選ぶ」は後段の処理です。</p><div class="simple-flow" aria-label="依存する判断は分ける"><span>担当を判定</span><i aria-hidden="true">→</i><span>アプリが結果を確認</span><i aria-hidden="true">→</i><span>必要なら次のリクエスト</span></div><p>公式も、先の回答に依存する判断は別リクエストにするよう説明しています。複数の質問をまとめても、自動で業務フローが実行されるわけではありません。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></p><p class="note"><code>confidence</code> を候補確率の最大値と同じものとして扱わず、用途別のラベル付きデータで閾値を検証します。</p></article></div>
+<details class="code-details"><summary>開発者向け：リクエストの組み立てと、失敗時の扱いを見る</summary><div class="code-content"><div class="code-head"><p class="note"><code>POST /v1/decisions</code> のJSON設計例。<strong>未実行</strong>です。<span class="refs"><a href="#ref-3" aria-label="出典3">[3]</a></span></p><button class="btn" type="button" data-copy="request-json">JSONをコピー</button></div><pre><code id="request-json">{
+  &quot;model&quot;: &quot;gpt-6-luna&quot;,
+  &quot;input&quot;: &quot;今朝からCSVの出力が止まります。ChromeでもSafariでも失敗します。代替手段がなく、月次処理が進められません。&quot;,
+  &quot;questions&quot;: [
+    {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;name&quot;: &quot;department&quot;,
+      &quot;instructions&quot;: &quot;問い合わせを最初に確認する担当を選んでください。特定できなければotherを選んでください。&quot;,
+      &quot;choices&quot;: [
+        {
+          &quot;value&quot;: &quot;technical&quot;,
+          &quot;description&quot;: &quot;機能の故障・エラー・動作不良&quot;
+        },
+        {
+          &quot;value&quot;: &quot;billing&quot;,
+          &quot;description&quot;: &quot;料金・請求・返金に関する照会&quot;
+        },
+        {
+          &quot;value&quot;: &quot;other&quot;,
+          &quot;description&quot;: &quot;情報不足、複数分野、どちらにも当てはまらない内容&quot;
+        }
+      ]
+    },
+    {
+      &quot;type&quot;: &quot;predicate&quot;,
+      &quot;name&quot;: &quot;blocked&quot;,
+      &quot;instructions&quot;: &quot;利用者は業務を完了できず、代替手段もないと明示していますか。&quot;
+    },
+    {
+      &quot;type&quot;: &quot;score&quot;,
+      &quot;name&quot;: &quot;impact&quot;,
+      &quot;instructions&quot;: &quot;本文で確認できる業務への影響を、次の順序付き基準で評価してください。&quot;,
+      &quot;levels&quot;: [
+        {
+          &quot;label&quot;: &quot;影響軽微&quot;,
+          &quot;description&quot;: &quot;機能は使えており、見た目や改善の要望が中心&quot;
+        },
+        {
+          &quot;label&quot;: &quot;代替手段あり&quot;,
+          &quot;description&quot;: &quot;一部機能は使えないが別の手段で業務を継続できる&quot;
+        },
+        {
+          &quot;label&quot;: &quot;業務停止&quot;,
+          &quot;description&quot;: &quot;必要な業務が完了できず代替手段もない&quot;
+        }
+      ]
+    }
+  ]
+}</code></pre><p class="note">各質問に一意の <code>name</code> を付け、返った <code>type</code>・候補値・数値範囲を検証します。質問単位の <code>refusal</code> を通常の判断値として扱わず、必須の回答が欠けたケースは保留へ。HTTPエラー・タイムアウトでも、問い合わせを捨てずに確認キューへ戻す設計にします。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-3" aria-label="出典3">[3]</a></span></p><p class="note">APIキーはサーバー側で管理してください。SDKを使う場合の最低版は、OpenAI Python SDK 3.26.0／JavaScript SDK 7.30.0。<strong>言語ランタイムのバージョンではありません。</strong><span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></p></div></details>
+</section>
 
-この段階では実APIを呼び出さず、実チケットや個人情報を使わないでください。例はすべて架空と明記してください。
+<section class="section" id="compare" aria-labelledby="compare-title">
+<div class="section-head"><div class="section-num">04</div><div><div class="overline">CHOOSE THE SMALLEST SUFFICIENT TOOL</div><h2 id="compare-title">既存のルールやLLMを、全部置き換えない。</h2><p>新しいのは「JSONが返せること」ではありません。<strong>必要な出力と、運用したい場所</strong>から選びます。以下は編集部の使い分け案です。</p></div></div>
+<div class="table-wrap" role="region" aria-label="方式の使い分け比較。狭い画面では横にスクロールできます。" tabindex="0"><table class="compare-table"><thead><tr><th scope="col">方式</th><th scope="col">向いている課題</th><th scope="col">別に必要なこと・注意点</th></tr></thead><tbody><tr><td>ルール・通常のコード</td><td>契約状態、数値条件、明確な文字列一致など、判定条件を厳密に書ける。</td><td>曖昧な文章への対応は別途。まず確定条件をルールで処理する設計を検討する。</td></tr><tr class="highlight"><td><span class="recommended">今回の焦点</span>Decisions API</td><td>候補選択、条件の判定、段階評価。短い判断をアプリの分岐に渡したい。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></td><td>データの取得、実行処理、承認、拒否・保留の処理はアプリ側。<small>ベータ／現時点のモデルは gpt-6-luna</small></td></tr><tr><td>Responses API<br>＋ Structured Outputs</td><td>独自のJSON項目を抽出したい。要約や説明文も一緒に必要。<span class="refs"><a href="#ref-4" aria-label="出典4">[4]</a></span></td><td>JSON Schemaに沿っていても、内容の正しさの評価は必要。道具の呼び出しにはfunction callingを検討する。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-4" aria-label="出典4">[4]</a></span></td></tr><tr><td>Jev / Clef</td><td>判断専用モデルの別の選択肢を比較したい。Clefは公開重みの自社運用も調べられる。<span class="refs"><a href="#ref-8" aria-label="出典8">[8]</a><a href="#ref-9" aria-label="出典9">[9]</a></span></td><td>ClefはApache 2.0で公開。自社運用なら基盤と保守も比較する。Decisionsとの互換性や品質の優劣はここでは未検証。</td></tr></tbody></table></div>
+<div class="fit-note"><div><h3>導入候補になる条件</h3><p>候補・評価基準・保留先を定義でき、同じ判断が繰り返される。人の判定と比較できるデータがある。</p></div><div><h3>無理に使わない条件</h3><p>長い理由説明や事実調査そのものが必要。重大な判断を無監督で確定したい。必要な情報をAPIへ渡せない。</p></div></div>
+<p class="section-tail">JevやClefにも判断専用という先行の取り組みがあります。今回を概念そのものの発明とは位置付けません。また、各社のベンチマーク値を並べただけで、自社の日本語業務における優劣は決めません。<span class="refs"><a href="#ref-8" aria-label="出典8">[8]</a><a href="#ref-9" aria-label="出典9">[9]</a></span></p>
+</section>
 
-架空の入力例：
-「ログイン用の確認メールが届きません。設定の場所を教えてください。」
+<section class="section" id="cost" aria-labelledby="cost-title">
+<div class="section-head"><div class="section-num">05</div><div><div class="overline">COST / LATENCY / TOTAL WORK</div><h2 id="cost-title">API代は試算できる。効果は、現場で測る。</h2><p>「安い・速い」を、そのまま人件費削減に読み替えないこと。判断後の確認や誤判定の修正も含めて比較します。</p></div></div>
+<div class="cost-grid"><article class="price-panel"><div class="overline">公式の基本入力単価</div><div class="price">$0.10<sub>／100万入力トークン</sub></div><p><code>/v1/decisions</code> 向け。出力トークンと、キャッシュ読み取り・書き込みの追加料金はありません。地域処理の割増や長文入力の倍率は別途適用されます。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></p><div class="divider"></div><div class="speed-label">Responses API比 <strong>約10倍高速</strong></div><p class="fine">OpenAIの公表値。比較条件の詳細と、自社用途のp95は別途確認が必要です。本ページでは速度の実測をしていません。<span class="refs"><a href="#ref-1" aria-label="出典1">[1]</a><a href="#ref-2" aria-label="出典2">[2]</a></span></p></article>
+<div class="calculator"><div class="overline">入力値を変えられる概算</div><h3>月10万件 × 1,000トークンなら？</h3><div class="fields"><label for="monthly-cases">月間リクエスト数〈件〉<input type="number" id="monthly-cases" value="100000" min="0" max="1000000000" step="1" inputmode="numeric"></label><label for="tokens-per-case">1件の課金入力〈トークン〉<input type="number" id="tokens-per-case" value="1000" min="1" max="100000" step="1" inputmode="numeric"></label></div><div class="result" aria-live="polite" aria-atomic="true"><span>基本入力料金だけの月額概算</span><output id="cost-result" for="monthly-cases tokens-per-case">$10.00</output><small>USD / 月</small><div class="formula" id="cost-formula">100,000件 × 1,000トークン ÷ 1,000,000 × $0.10</div></div><div class="validation" id="cost-validation" role="status"></div><p class="note">編集部の仮定計算です。<strong>請求額・見積価格ではありません。</strong>質問定義や文脈も含めた課金入力は、実際の <code>usage.input_tokens</code> で確認します。地域割増、長文倍率、税、為替、周辺API・基盤・人件費は含みません。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-3" aria-label="出典3">[3]</a></span></p></div></div>
+<div class="cost-bottom"><strong>採算を見る式：</strong>API費用 ＋ データ取得・保存費用 ＋ 人の確認時間 ＋ 誤判定の修正負担 ＋ 運用保守。<br><span class="note">APIだけ速くなっても、承認待ちがボトルネックなら全体は速くなりません。受付から担当者が着手できるまでを測ります。</span></div>
+</section>
 
-実施時の評価データは、利用範囲を確認して匿名化し、運用担当者が正解ラベルを付けた過去の問い合わせを想定します。
-担当候補、要確認の条件、情報不足時の保留を先に定義してください。
-predicate / choice / scoreの役割と、質問単位のrefusalへの対応を整理してください。
-同じ入力・候補で、誤振り分け、見逃し、p95、人の確認率、費用を比較する設計にしてください。
-確率を実測した正解率や校正の保証と解釈しないでください。
-返金・契約変更などの重要な実行には、人の承認を残してください。
-結果の数値、削減率、未確認の統合機能は作らないでください。</textarea>
-      <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
-    </div>
-  </section>
+<section class="section" id="safety" aria-labelledby="safety-title">
+<div class="section-head"><div class="section-num">06</div><div><div class="overline">BOUNDARIES TO CHECK BEFORE ADOPTION</div><h2 id="safety-title">できることより先に、任せない範囲を決める。</h2><p>元ページの仕様確認を広げ、実装・運用で引っかかりやすい条件まで確認しました。</p></div></div>
+<div class="safety-grid"><article class="safety-card"><span class="number">01 / 判断の確からしさ</span><h3>確率0.9は「実測の正解率90%」ではない。</h3><p>出力されるのはモデルの推定です。自社データで、0.9前後の出力が実際にどれくらい正しいかを検証します。閾値は、見逃しと過剰な確認のどちらが高くつくかで変わります。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a></span></p><p class="note">設計例：重要な条件の取り逃しを先に制約し、その範囲で人の確認率を下げる。精度だけを上げても、全件を人へ戻していては省力化を判断できません。</p></article>
+<article class="safety-card"><span class="number">02 / 入力と実行</span><h3>メール収集や業務操作は、付いてこない。</h3><p>入力はテキストとインライン画像。外部画像URL・ファイル・音声・toolsは非対応で、画像は1リクエスト最大128枚です。PDFを直接渡す用途にはなりません。<span class="refs"><a href="#ref-3" aria-label="出典3">[3]</a></span></p><p class="note">連携アプリで取得・権限確認・必要情報への変換を行い、判断後の登録や通知も別に実装します。重大な処理には承認を残し、入力文中の命令を業務の実行権限として扱わない設計にします。<span class="refs"><a href="#ref-7" aria-label="出典7">[7]</a></span></p></article>
+<article class="safety-card"><span class="number">03 / 日本の利用で重要</span><h3>「日本で保存」と「日本で処理」は別。</h3><div class="region-row"><span>日本リージョン：保存 Yes</span><span>地域内処理：No</span></div><p>データ制御表では、日本の保存対象サービスに <code>/v1/decisions</code> が載りますが、地域内処理は「No」です。一方、Decisionsガイドで地域処理を明記しているのは米国・欧州です。<span class="refs"><a href="#ref-2" aria-label="出典2">[2]</a><a href="#ref-5" aria-label="出典5">[5]</a></span></p><p class="note"><strong>実務上の判断：</strong>国内での推論処理が必須なら、日本の保存先を選ぶだけで要件を満たしたとしないでください。モデル・エンドポイント・契約条件を確認する必要があります。</p></article>
+<article class="safety-card"><span class="number">04 / 保存と機密性</span><h3>「学習に使わない」だけでは、保持ゼロにならない。</h3><p>公式表では学習利用は「No」ですが、標準の不正利用監視ログは最大30日保持。ZDR〈Zero Data Retention〉は適格顧客向けで、条件と例外があります。<span class="refs"><a href="#ref-5" aria-label="出典5">[5]</a></span></p><p class="note">APIには、プロンプトキャッシュや画像入力に関する保持上の注意もあります。ZDRを、自社アプリのログ・連携先・監査用保存まで自動で消える仕組みと解釈しないでください。まず不要な機密情報を送らない設計にします。</p></article></div>
+<div class="alert"><p><strong>このページでは任せない：</strong>返金・契約変更・権限付与などの重要な確定処理。医療用途では診断や治療方針の自動決定を扱わず、ここでの活用例は問い合わせ等の一次整理に限定します。人が元の情報を確認できる状態を残します。<span class="refs"><a href="#ref-7" aria-label="出典7">[7]</a></span></p></div>
+</section>
 
-  <section class="chapter" id="conditions" aria-labelledby="conditions-title">
-    <div class="chapter-head">
-      <span class="chapter-number" aria-hidden="true">04</span>
-      <div><p class="section-kicker">PRICE / SPEED / LIMITS</p><h2 id="conditions-title">入力単価は低い。速度と判断品質は、用途で確かめる</h2></div>
-    </div>
-    <div class="pricing">
-      <div class="pricing-panel">
-        <p class="pricing-label">公式の基本入力価格 / Decisions endpoint</p>
-        <p class="price">US$0.10</p>
-        <p class="price-unit">100万入力トークンあたり</p>
-        <p>出力トークン、キャッシュ読み取り・書き込みの追加料金はない。地域処理の割増と長文入力の倍率は適用される。<a href="#source-2">[2]</a></p>
-      </div>
-      <div class="pricing-panel">
-        <p class="pricing-label">OpenAIによる速度の説明</p>
-        <p class="speed">Responsesとの比較で<br>約10倍の速度</p>
-        <p>OpenAIの公表値。比較条件の詳細は未確認で、このページの独立実測もない。実際の待ち時間は同じ入力でp95まで測る。<a href="#source-2">[2]</a></p>
-      </div>
-    </div>
-    <dl class="spec-list">
-      <dt>公開状況・モデル</dt><dd>公開ベータ。2026-10-07の確認時点では<code>gpt-6-luna</code>のみ。専用エンドポイントは<code>POST /v1/decisions</code>。<a href="#source-2">[2]</a></dd>
-      <dt>入力</dt><dd>テキストとインライン画像。画像はdata URLで渡し、1リクエスト全体で最大128枚。外部画像URL、ファイル、音声、toolsは非対応。<a href="#source-3">[3]</a></dd>
-      <dt>回答の意味</dt><dd><code>predicate</code>は条件が真である推定確率。<code>choice</code>は指定候補を選択。<code>score</code>は評価段階の添字の確率加重平均。確率を測定した正解率や、校正済みの保証とは呼ばない。<a href="#source-2">[2]</a></dd>
-      <dt>拒否への対応</dt><dd>質問単位で<code>refusal</code>が返ることがある。同じリクエストのほかの質問には回答が返り得る。アプリ側で回答型を確認する。<a href="#source-3">[3]</a></dd>
-      <dt>SDKの版</dt><dd>OpenAI <strong>Python SDK 3.26.0</strong>以降、<strong>JavaScript SDK 7.30.0</strong>以降。ここで示すのはSDKの版で、PythonやJavaScriptの言語ランタイムの版ではない。<a href="#source-2">[2]</a></dd>
-      <dt>比較の範囲</dt><dd>価格は<code>/v1/decisions</code>向け。ほかの<code>gpt-6-luna</code>リクエストへこの価格を当てはめない。TeamsやAzureのネイティブ統合、製品間のAPI互換性は今回の確認範囲に含めない。</dd>
-    </dl>
-    <p class="conclusion">最初に比べたいのは、短い判断がどれだけ速く返るかと、<br class="desktop-break">正しい担当へ渡すために、人がどれだけ確かめる必要があるか。</p>
-  </section>
+<section class="section pilot" id="pilot" aria-labelledby="pilot-title">
+<div class="section-head"><div class="section-num">07</div><div><div class="overline">HOW TO DECIDE WHETHER TO ADOPT</div><h2 id="pilot-title">「採用する価値があるか」を、どう確かめるか。</h2><p>次は実証実験の設計案です。公式の評価ガイドを参考に、業務側と開発側の両方が判断できる形にしました。<strong>実験はまだ実施していません。</strong><span class="refs"><a href="#ref-6" aria-label="出典6">[6]</a></span></p></div></div>
+<div class="pilot-steps"><article class="pilot-step"><h3>正解と保留を決める</h3><p>運用担当者がラベルを定義。担当、見逃せない条件、情報不足の保留先を揃えます。正解自体が割れる例も記録します。</p></article><article class="pilot-step"><h3>同じ案件で比べる</h3><p>人手・ルール・既存LLMと比較。調整用と評価用を分け、同一案件の重複や、後で判明した答えの混入を防ぎます。</p></article><article class="pilot-step"><h3>人の判断と並走する</h3><p>まず提案表示だけで実運用と比較。日本語、曖昧な文章、少数の重大案件、画像品質の違いを分けて確認します。</p></article><article class="pilot-step"><h3>限定し、再評価する</h3><p>低リスクの担当振り分けから限定導入。モデル・質問・選択肢・閾値を変えたら再評価。いつでも手動に戻せる状態にします。</p></article></div>
+<table class="metric-table"><caption>速さだけでなく、見逃しと人の負担を一緒に測る。</caption><thead><tr><th scope="col">見る指標</th><th scope="col">数え方・判断への使い方</th></tr></thead><tbody><tr><td>要確認の見逃し率</td><td>「本来は確認が必要だったのに拾えなかった件数」÷「本来は確認が必要な件数」。重大なものは別集計。</td></tr><tr><td>自動振り分けの精度</td><td>「自動で正しい担当へ渡せた件数」÷「自動振り分けした件数」。保留を分母に混ぜて、見かけの精度を作らない。</td></tr><tr><td>人の確認率・時間</td><td>保留や承認へ回った割合と、人の実作業時間。誤判定の修正や再転送も時間に含める。</td></tr><tr><td>受付からのp95</td><td>受付から担当者が着手できるまでの待ち時間の95パーセンタイル。API時間だけでなく連携とキューも測る。</td></tr><tr><td>総費用・失敗率</td><td>API、取得・保存、運用、人の作業負担を比較。タイムアウトや拒否で問い合わせが消えないかも検証する。</td></tr></tbody></table>
+<div class="takeaway"><p><strong>採用基準は「同じ見逃しの上限で、人の手間が減るか」。</strong><br>確認件数が減っても重大な見逃しが増えるなら、条件を見直します。評価件数と区間推定を併記し、少数の試行で事故ゼロだったことを安全の保証にしません。</p></div>
+<div class="prompt-panel"><div class="code-head"><h3>チームで試行計画を作るための依頼文</h3><button class="btn" type="button" data-copy="pilot-prompt">依頼文をコピー</button></div><div id="pilot-prompt" class="prompt-text">問い合わせの担当振り分けについて、Decisions APIと現行方式を比べる実証計画を作ってください。この段階ではAPIを呼び出さず、実チケット・個人情報・APIキーは使わず、すべて架空例で検討してください。
+対象は担当の選択と要確認条件の検知です。運用担当者が定義する正解、保留先、重要処理の承認条件を先に整理してください。独立した質問と、先の回答に依存する質問を分けてください。
+調整用と評価用のデータを分離し、要確認の見逃し、自動振り分けの精度、人の確認率・実作業時間、受付からのp95、総費用を比較してください。数値の確率を正解率の保証と解釈せず、拒否・情報不足・タイムアウト時の戻し先も設計してください。
+日本語や境界例、少数の重大案件を含め、保存地域と処理地域の違い、送信可能なデータと保持条件を確認してください。担当・期限・成功条件・手動へ戻す条件を明記し、未測定の削減率や未確認の製品連携は作らないでください。</div></div>
+</section>
+
+<section class="section sources" id="sources" aria-labelledby="sources-title">
+<div class="section-head"><div class="section-num">08</div><div><div class="overline">PRIMARY SOURCES / CHECKED 2026-10-07</div><h2 id="sources-title">一次出典と、確認した範囲。</h2><p>公式に書かれた仕様、提供元の性能主張、編集部の活用提案、仮定の数値を分けています。ベータ版のため、導入時にはリンク先の最新条件を再確認してください。</p></div></div>
+<div class="source-groups"><div class="source-group"><h3>発表・実装仕様</h3><div class="source-item" id="ref-1"><a href="https://developers.openai.com/api/docs/changelog" target="_blank" rel="noopener noreferrer">[1] OpenAI API Changelog ↗</a><span>2026-10-06のDecisions公開。公式の約10倍高速という説明。発表時刻・TZの記載は未確認。</span></div><div class="source-item" id="ref-2"><a href="https://developers.openai.com/api/docs/guides/decisions" target="_blank" rel="noopener noreferrer">[2] Decisions API guide ↗</a><span>型、複数質問、確率の解釈、SDK、基本価格、対応モデル、地域処理の記載。</span></div><div class="source-item" id="ref-3"><a href="https://developers.openai.com/api/reference/resources/decisions/methods/create" target="_blank" rel="noopener noreferrer">[3] Create a decision / API Reference ↗</a><span>入力形式、画像の制約、回答構造、質問単位のrefusal。</span></div></div>
+<div class="source-group"><h3>評価・データ・安全性</h3><div class="source-item" id="ref-5"><a href="https://developers.openai.com/api/docs/guides/your-data" target="_blank" rel="noopener noreferrer">[5] Data controls ↗</a><span>学習利用、監視ログ、キャッシュ、ZDR、日本の保存と地域処理の違い。個別契約の適否は未判定。</span></div><div class="source-item" id="ref-6"><a href="https://developers.openai.com/api/docs/guides/evaluation-best-practices" target="_blank" rel="noopener noreferrer">[6] Evaluation best practices ↗</a><span>評価目的、データ、指標、比較、継続評価。本ページの試行計画は編集部による具体化。</span></div><div class="source-item" id="ref-7"><a href="https://developers.openai.com/api/docs/guides/safety-best-practices" target="_blank" rel="noopener noreferrer">[7] Safety best practices ↗</a><span>人による確認や原情報へのアクセス。重大な実行を無監督にしない設計の参考。</span></div></div>
+<div class="source-group"><h3>既存方式・他の選択肢</h3><div class="source-item" id="ref-4"><a href="https://developers.openai.com/api/docs/guides/structured-outputs" target="_blank" rel="noopener noreferrer">[4] Structured Outputs ↗</a><span>独自のJSON Schemaに従う出力。型の制約と内容の正確さは区別。</span></div><div class="source-item" id="ref-8"><a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev" target="_blank" rel="noopener noreferrer">[8] TypeSafe / System One &amp; Jev ↗</a><span>型付き・確率付き判断という先行アプローチ。本ページでは速度や精度の横断比較は未実施。</span></div><div class="source-item" id="ref-9"><a href="https://blog.cloudflare.com/clef-decision-models/" target="_blank" rel="noopener noreferrer">[9] Cloudflare / Introducing Clef ↗</a><span>判断モデル、画像対応、公開重み、Apache 2.0。提供元の性能値は本ページの独立実測ではない。</span></div></div></div>
+<p class="section-tail">確認していないもの：独立した日本語精度比較、自社環境での遅延、導入による時間・人件費の削減、Decisionsと他社モデルのAPI互換性、TeamsやAzureへのネイティブ統合。</p>
+</section>
+</div>
+<section class="closing" aria-label="まとめ"><div class="wrap"><div><strong>長い回答より、次に進める短い判断。</strong><p>ただし、判断の品質と業務の責任までAPIに渡さない。<br>最初は「担当振り分け＋保留」の小さな範囲で、人の仕事が本当に減るかを確かめます。</p></div><nav class="footer-nav" aria-label="前後の日のページ"><a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_05.html">← 10/05号</a><a href="#top">ページの先頭 ↑</a><a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_07.html">10/07号 →</a></nav></div></section>
 </main>
-
-<footer class="sources shell" id="sources" aria-labelledby="sources-title">
-  <p class="section-kicker">PRIMARY SOURCES</p>
-  <h2 id="sources-title">一次出典と、確認した範囲</h2>
-  <p class="sources-intro">仕様確認日：2026-10-07。公式記載と編集側の想定・試行提案を区別しています。公開ベータの仕様や価格は、利用前に各出典で再確認してください。</p>
-  <ol class="source-list">
-    <li id="source-1"><span class="source-no">01</span><div><a href="https://developers.openai.com/api/docs/changelog" target="_blank" rel="noopener noreferrer">OpenAI API Changelog</a><p>2026-10-06のDecisions API公開ベータ発表。発表時刻とタイムゾーンの記載は未確認。</p></div></li>
-    <li id="source-2"><span class="source-no">02</span><div><a href="https://developers.openai.com/api/docs/guides/decisions" target="_blank" rel="noopener noreferrer">OpenAI Decisions API guide</a><p>判断の型、対応モデル、SDK、価格、Responsesとの速度比較に関する公式説明。</p></div></li>
-    <li id="source-3"><span class="source-no">03</span><div><a href="https://developers.openai.com/api/reference/resources/decisions/methods/create" target="_blank" rel="noopener noreferrer">OpenAI API Reference: Create a decision</a><p>入力の制約、最大画像枚数、回答構造、質問単位のrefusal。</p></div></li>
-    <li id="source-4"><span class="source-no">04</span><div><a href="https://developers.openai.com/api/docs/guides/structured-outputs" target="_blank" rel="noopener noreferrer">OpenAI Structured Outputs guide</a><p>既存APIでJSON Schemaに沿う出力を扱う選択肢。</p></div></li>
-    <li id="source-5"><span class="source-no">05</span><div><a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev" target="_blank" rel="noopener noreferrer">TypeSafe: Introducing System One Models &amp; Jev</a><p>判断を扱うモデルの先行例。今回の比較実測やAPI互換性の根拠としては用いていません。</p></div></li>
-    <li id="source-6"><span class="source-no">06</span><div><a href="https://blog.cloudflare.com/clef-decision-models/" target="_blank" rel="noopener noreferrer">Cloudflare: Introducing Clef</a><p>判断モデルの先行例。製品間の品質の優劣は、このページでは検証していません。</p></div></li>
-  </ol>
-  <div class="footer-line"><span>VISIONHUB / 2026-10-06号</span><a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_05.html">10/5号を読む</a><a href="#top">ページの先頭へ</a></div>
-</footer>
-
-<dialog class="zoom" id="board-dialog" aria-labelledby="zoom-title" aria-describedby="zoom-note">
-  <div class="zoom-layout">
-    <div class="zoom-head">
-      <h2 id="zoom-title">一枚で見る：問い合わせの振り分け</h2>
-      <div class="zoom-actions">
-        <button class="button button-quiet" type="button" id="size-board" aria-pressed="false">原寸で見る</button>
-        <button class="button" type="button" id="close-board" autofocus>閉じる</button>
-      </div>
-    </div>
-    <div class="zoom-content" id="zoom-content" tabindex="0" role="region" aria-label="拡大した説明図。原寸表示ではスクロールできます"></div>
-    <p class="zoom-note" id="zoom-note">Escでも閉じられます。再び開くと、表示倍率とスクロール位置を初期状態に戻します。</p>
-  </div>
-</dialog>
+<footer class="bottom-foot">VISIONHUB / 2026-10-06号 · 2026-10-07再調査版 ｜ 画像内蔵・外部読込不要 ｜ 図・例示・計算は編集部によるものです。</footer>
+<dialog id="overview-dialog" aria-labelledby="dialog-title"><div class="dialog-bar"><span id="dialog-title">一枚で見る：短い判断を業務につなぐ</span><button class="btn" type="button" id="zoom-close">閉じる ×</button></div><div class="dialog-content" id="dialog-content"></div><p class="note" style="margin:10px 0 0">Escキーでも閉じられます。図は設計例です。</p></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<noscript><p class="static-notice">JavaScriptは無効です。本文と画像はそのまま読めます。具体例の切り替え・拡大・コピー・再計算は利用できません。</p></noscript>
 <script>
+'use strict';
 (() => {
-  "use strict";
-  const nav = document.querySelector(".jump");
-  const dialog = document.getElementById("board-dialog");
-  const content = document.getElementById("zoom-content");
-  const opener = document.getElementById("open-board");
-  const sizeButton = document.getElementById("size-board");
-  const progress = document.querySelector(".progress");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let activeBoard = "";
-  let focusBeforeDialog = null;
-
-  function syncNavHeight() {
-    document.documentElement.style.setProperty("--nav-height", Math.ceil(nav.getBoundingClientRect().height) + "px");
-  }
-  if ("ResizeObserver" in window) new ResizeObserver(syncNavHeight).observe(nav);
-  syncNavHeight();
-
-  function resetPosition() {
-    content.scrollLeft = 0;
-    content.scrollTop = 0;
-    dialog.scrollLeft = 0;
-    dialog.scrollTop = 0;
-  }
-  function resetZoom() {
-    dialog.classList.remove("enlarged");
-    sizeButton.setAttribute("aria-pressed", "false");
-    sizeButton.textContent = "原寸で見る";
-    resetPosition();
-  }
-  function loadBoard() {
-    const boardId = window.matchMedia("(max-width:980px)").matches ? "board-mobile" : "board-desktop";
-    if (activeBoard === boardId && content.firstElementChild) return;
-    const source = document.getElementById(boardId);
-    const clone = source.cloneNode(true);
-    clone.removeAttribute("class");
-    clone.removeAttribute("id");
-    clone.dataset.boardLayout = boardId === "board-mobile" ? "mobile" : "desktop";
-    const remap = new Map();
-    clone.querySelectorAll("[id]").forEach(element => {
-      const originalId = element.id;
-      element.id = "zoom-" + originalId;
-      remap.set(originalId, element.id);
-    });
-    const names = source.getAttribute("aria-labelledby").split(/\s+/).map(id => remap.get(id) || id);
-    clone.setAttribute("aria-labelledby", names.join(" "));
-    content.replaceChildren(clone);
-    const naturalWidth = source.viewBox.baseVal.width;
-    dialog.style.setProperty("--board-natural-width", naturalWidth + "px");
-    activeBoard = boardId;
-    resetPosition();
-  }
-  opener.addEventListener("click", () => {
-    focusBeforeDialog = document.activeElement;
-    activeBoard = "";
-    loadBoard();
-    resetZoom();
-    document.body.classList.add("dialog-open");
-    if (typeof dialog.showModal === "function") dialog.showModal();
-    else dialog.setAttribute("open", "");
-    requestAnimationFrame(() => {
-      resetPosition();
-      document.getElementById("close-board").focus({preventScroll:true});
-    });
-  });
-  function closeBoard() {
-    if (!dialog.hasAttribute("open")) return;
-    if (typeof dialog.close === "function") dialog.close();
-    else dialog.removeAttribute("open");
-    handleClose();
-  }
-  function handleClose() {
-    if (dialog.hasAttribute("open")) return;
-    document.body.classList.remove("dialog-open");
-    resetZoom();
-    content.replaceChildren();
-    activeBoard = "";
-    if (focusBeforeDialog && focusBeforeDialog.isConnected) focusBeforeDialog.focus({preventScroll:true});
-  }
-  document.getElementById("close-board").addEventListener("click", closeBoard);
-  dialog.addEventListener("cancel", event => {
-    event.preventDefault();
-    closeBoard();
-  });
-  dialog.addEventListener("close", handleClose);
-  sizeButton.addEventListener("click", () => {
-    const enlarged = dialog.classList.toggle("enlarged");
-    sizeButton.setAttribute("aria-pressed", String(enlarged));
-    sizeButton.textContent = enlarged ? "画面に合わせる" : "原寸で見る";
-    requestAnimationFrame(resetPosition);
-  });
-  dialog.addEventListener("click", event => {
-    if (event.target !== dialog) return;
-    const bounds = dialog.getBoundingClientRect();
-    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeBoard();
-  });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && dialog.hasAttribute("open") && typeof dialog.showModal !== "function") {
-      event.preventDefault();
-      closeBoard();
+  // This page is a local, illustrative article. It never calls a model or sends user data.
+  const examples = {
+    technical: {input:'今朝からCSVの出力が止まります。ChromeでもSafariでも失敗します。代替手段がなく、月次処理が進められません。',route:'技術サポート',prob:'0.94〈推定確率の例〉',score:'1.82 / 2',action:'業務停止の疑いとして確認を優先。技術担当が影響範囲と原因を確認します。'},
+    billing: {input:'今月の料金が二重に請求されたようです。支払い履歴の確認と返金をお願いしたいです。',route:'請求担当',prob:'0.06〈推定確率の例〉',score:'0.18 / 2',action:'請求担当へ回し、請求履歴と事実を人が確認。返金の実行は別の承認に残します。'},
+    unclear: {input:'あれが変です。前と違うので直してください。',route:'総合窓口・保留〈other〉',prob:'保留のため表示しない',score:'運用上は使用しない',action:'情報不足として人へ戻し、対象の機能や影響を確認。この例ではアプリが確率・スコアを表示せず、判定に使わない設計です。'}
+  };
+  const caseButtons = [...document.querySelectorAll('[data-case]')];
+  caseButtons.forEach(button => button.addEventListener('click', () => {
+    const data = examples[button.dataset.case];
+    if (!data) return;
+    caseButtons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    for (const [key,id] of Object.entries({input:'demo-input',route:'demo-route',prob:'demo-prob',score:'demo-score',action:'demo-action'})) document.getElementById(id).textContent = data[key];
+  }));
+  const count = document.getElementById('monthly-cases');
+  const tokens = document.getElementById('tokens-per-case');
+  const result = document.getElementById('cost-result');
+  const formula = document.getElementById('cost-formula');
+  const validation = document.getElementById('cost-validation');
+  function updateCost() {
+    const n = count.valueAsNumber, t = tokens.valueAsNumber;
+    if (!Number.isFinite(n) || !Number.isFinite(t) || !Number.isInteger(n) || !Number.isInteger(t) || n < 0 || n > 1e9 || t < 1 || t > 100000) {
+      result.textContent = '—';
+      formula.textContent = '入力値を確認してください。';
+      validation.textContent = '件数は0〜10億、トークンは1〜10万の整数で入力してください。';
+      return;
     }
-  });
-
-  document.getElementById("copy-prompt").addEventListener("click", async () => {
-    const field = document.getElementById("task-prompt");
-    const status = document.getElementById("copy-status");
-    let copied = false;
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(field.value);
-        copied = true;
-      }
-    } catch (_) {}
-    if (!copied) {
-      field.focus();
-      field.select();
-      try { copied = document.execCommand("copy"); } catch (_) {}
-    }
-    status.textContent = copied ? "依頼文をコピーしました。" : "依頼文を選択しました。Ctrl+Cまたは端末のコピー操作をご利用ください。";
-  });
-
-  function updateProgress() {
-    const root = document.documentElement;
-    const span = root.scrollHeight - root.clientHeight;
-    progress.style.width = (span > 0 ? Math.min(100, Math.max(0, root.scrollTop / span * 100)) : 0) + "%";
+    const usd = n*t/1000000*0.10;
+    result.textContent = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(usd);
+    formula.textContent = `${n.toLocaleString('ja-JP')}件 × ${t.toLocaleString('ja-JP')}トークン ÷ 1,000,000 × $0.10`;
+    validation.textContent = usd>0 && usd<0.005 ? '小数点以下2桁に丸めて表示しています。' : '';
   }
-  const navLinks = Array.from(nav.querySelectorAll('a[href^="#"]'));
-  const sections = navLinks.map(link => document.getElementById(link.hash.slice(1))).filter(Boolean);
-  function updateCurrentSection() {
-    const threshold = Math.max(0, nav.getBoundingClientRect().bottom) + 120;
-    let current = sections[0];
-    sections.forEach(section => {
-      if (section.getBoundingClientRect().top <= threshold) current = section;
-    });
-    navLinks.forEach(link => {
-      if (current && link.hash === "#" + current.id) link.setAttribute("aria-current", "location");
-      else link.removeAttribute("aria-current");
-    });
-  }
-  let ticking = false;
-  addEventListener("scroll", () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      updateProgress();
-      updateCurrentSection();
-      ticking = false;
-    });
-  }, {passive:true});
-  addEventListener("resize", () => {
-    syncNavHeight();
-    if (dialog.open) {
-      loadBoard();
-      requestAnimationFrame(resetPosition);
+  count.addEventListener('input',updateCost);tokens.addEventListener('input',updateCost);updateCost();
+  const dialog=document.getElementById('overview-dialog');
+  const opener=document.getElementById('zoom-open');
+  opener.addEventListener('click',()=>{
+    const content=document.getElementById('dialog-content');
+    if(!content.firstChild){
+      const copy=document.getElementById('overview-image').closest('picture').cloneNode(true);
+      copy.querySelector('img').removeAttribute('id');
+      content.appendChild(copy);
     }
-    updateProgress();
-    updateCurrentSection();
+    dialog.showModal();content.scrollTo(0,0);
   });
-  if (reducedMotion.matches) document.documentElement.style.scrollBehavior = "auto";
-  updateProgress();
-  updateCurrentSection();
+  document.getElementById('zoom-close').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
+  dialog.addEventListener('close',()=>opener.focus({preventScroll:true}));
+  const toast=document.getElementById('toast');let timer;
+  function notify(message){clearTimeout(timer);toast.textContent=message;toast.hidden=false;timer=setTimeout(()=>{toast.hidden=true;},2800);}
+  async function copyText(text){
+    if(navigator.clipboard && window.isSecureContext){try{await navigator.clipboard.writeText(text);return true;}catch{}}
+    const area=document.createElement('textarea');area.value=text;area.setAttribute('aria-hidden','true');area.style.cssText='position:fixed;top:-10000px;left:-10000px';document.body.appendChild(area);area.select();let ok=false;try{ok=document.execCommand('copy');}catch{}finally{area.remove();}return ok;
+  }
+  document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{
+    const target=document.getElementById(button.dataset.copy);const ok=await copyText(target.textContent);
+    notify(ok?'コピーしました。':'コピーできませんでした。本文を選択してコピーしてください。');button.focus({preventScroll:true});
+  }));
+  // Keep the active section correct even when the hero occupies the viewport.
+  const navLinks=[...document.querySelectorAll('.nav a')];
+  const navSections=navLinks.map(a=>document.querySelector(a.hash)).filter(Boolean);
+  let navFramePending=false;
+  function updateNavigation(){
+    navFramePending=false;
+    let active=navSections[0];
+    const threshold=Math.min(220,innerHeight*.24);
+    for(const section of navSections){if(section.getBoundingClientRect().top<=threshold)active=section;}
+    if(scrollY+innerHeight>=document.documentElement.scrollHeight-4)active=navSections[navSections.length-1];
+    navLinks.forEach(a=>{if(a.hash==='#'+active.id)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
+  }
+  function scheduleNavigation(){if(!navFramePending){navFramePending=true;requestAnimationFrame(updateNavigation);}}
+  addEventListener('scroll',scheduleNavigation,{passive:true});
+  addEventListener('resize',scheduleNavigation,{passive:true});
+  updateNavigation();
 })();
 </script>
 <!-- slide-nav:start -->
-<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_10_05.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_10_06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-10-06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_10_07.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">次日 →</a></nav>
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_10_05.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_10_06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-10-06.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="day_slide_2026_10_07.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">翌日 →</a></nav>
 <!-- slide-nav:end -->
 </body>
 </html>
