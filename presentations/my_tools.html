@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>自作ツール｜kimeru・KaizenLog・dayloop｜VisionHub</title>
+  <meta name="description" content="Windowsでの判断の準備、作業の振り返り、今日のタスクを整える自作ツール。kimeru・KaizenLog・dayloopの対象者、導入条件、データの扱いとGitHubの導入手順を紹介します。">
+  <link rel="canonical" href="https://visionhub.jp/presentations/my_tools.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="自作ツール｜kimeru・KaizenLog・dayloop">
+  <meta property="og:description" content="判断の準備、作業の振り返り、1日の計画。Windows向けの3つの自作ツールを、用途と導入条件から選ぶ。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/my_tools.html">
+  <meta property="og:site_name" content="VisionHub">
+  <meta property="og:locale" content="ja_JP">
+  <link rel="stylesheet" href="../assets/ntt-theme.css">
+  <script src="../assets/js/analytics.js" defer></script>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-padding-top: 88px; }
+    body { margin: 0; line-height: 1.85; }
+    h1, h2, h3, p { margin: 0; }
+    a { text-underline-offset: 4px; }
+    a:focus-visible { outline: 3px solid var(--ntt-yellow); outline-offset: 5px; }
+    .wrap { max-width: var(--ntt-maxw); margin-inline: auto; padding-inline: var(--ntt-pad-x); }
+    .skip-link { position: fixed; top: -100px; left: 20px; z-index: 200; padding: 10px 18px; background: var(--ntt-yellow); color: var(--ntt-navy) !important; }
+    .skip-link:focus { top: 12px; }
+    .tools-hero { padding-block: clamp(42px, 6vw, 80px) 44px; border-bottom: 1px solid var(--ntt-line-2); }
+    .eyebrow { color: var(--ntt-yellow); font-size: 12px; font-weight: 700; letter-spacing: .14em; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: end; margin-top: 18px; }
+    h1 { font-size: clamp(38px, 5.4vw, 68px); line-height: 1.2; letter-spacing: -.025em; }
+    .hero-lead { margin-top: 20px; font-size: clamp(17px, 1.6vw, 21px); max-width: 30em; }
+    .hero-note { padding: 20px 24px; border-left: 3px solid var(--ntt-yellow); background: var(--ntt-navy-2); color: #bdc6d6; font-size: 14px; }
+    .hero-note strong { display: block; margin-bottom: 8px; color: var(--ntt-white); font-size: 15px; }
+    .choose { padding-block: 34px 42px; }
+    .section-title { font-size: clamp(21px, 2.4vw, 28px); line-height: 1.5; }
+    .choose-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 20px; }
+    .choose-link { display: flex; justify-content: space-between; gap: 12px; padding: 18px 0; border-block: 1px solid var(--ntt-line-2); text-decoration: none; }
+    .choose-link:hover { border-color: var(--ntt-yellow); }
+    .choose-link small { display: block; color: #bdc6d6; font-size: 13px; }
+    .choose-link strong { font-size: 18px; }
+    .choose-link .arrow { align-self: center; color: var(--ntt-yellow); font-size: 24px; }
+    .tools-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding-bottom: 54px; }
+    .tool-card { min-width: 0; display: flex; flex-direction: column; background: var(--ntt-navy-2); border: 1px solid var(--ntt-line-2); border-top: 3px solid var(--ntt-yellow); padding: 28px; scroll-margin-top: 18px; }
+    .tool-kind { color: var(--ntt-yellow); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+    .tool-card h2 { font-size: 34px; line-height: 1.2; margin-top: 14px; letter-spacing: -.025em; }
+    .tool-card h3 { font-size: 19px; line-height: 1.6; margin-block: 16px 12px; }
+    .tool-summary { color: #bdc6d6; font-size: 14px; }
+    .tool-details { margin-block: 24px; font-size: 14px; }
+    .tool-details dt { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--ntt-line-2); color: var(--ntt-white); font-weight: 700; }
+    .tool-details dt:first-child { margin-top: 0; }
+    .tool-details dd { margin: 7px 0 0; color: #bdc6d6; overflow-wrap: anywhere; }
+    .tool-note { margin-top: auto; padding: 14px 16px; border-left: 2px solid var(--ntt-yellow); background: var(--ntt-navy-3); color: #d1d8e4; font-size: 13px; }
+    .repo-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; margin-top: 24px; padding-block: 12px; border-bottom: 1px solid var(--ntt-yellow); font-size: 14px; font-weight: 700; text-decoration: none; }
+    .repo-link:hover { color: var(--ntt-yellow); }
+    .repo-link span[aria-hidden] { color: var(--ntt-yellow); font-size: 20px; }
+    .repo-name { display: block; margin-top: 8px; color: #bdc6d6; font-size: 11px; overflow-wrap: anywhere; }
+    .before-start { border-top: 1px solid var(--ntt-line-2); padding-block: 36px 50px; }
+    .start-grid { display: grid; grid-template-columns: .7fr 1.3fr; gap: 40px; }
+    .before-start ol { margin: 0; padding-left: 1.4em; color: #bdc6d6; font-size: 14px; }
+    .before-start li + li { margin-top: 12px; }
+    .before-start li strong { color: var(--ntt-white); }
+    .source-note { margin-top: 26px; color: #bdc6d6; font-size: 12px; }
+    .ntt-footer-row a { min-height: 44px; display: inline-flex; align-items: center; }
+    .ntt-brand { min-height: 44px; }
+    @media (max-width: 1000px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 24px; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .tool-card { padding: 28px; }
+      .start-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+    @media (max-width: 600px) {
+      .choose-grid { grid-template-columns: 1fr; gap: 0; }
+      .choose-link + .choose-link { border-top: 0; }
+      .tool-card { padding: 24px; }
+      .tool-card h2 { font-size: 30px; }
+      .hero-note { padding: 18px 20px; }
+      .ntt-header-row { gap: 10px; }
+      .ntt-nav .ntt-cta { margin-left: 0; padding: 10px 16px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body class="ntt-page">
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <header class="ntt-header">
+    <div class="ntt-header-row">
+      <a class="ntt-brand" href="../index.html" aria-label="VisionHub トップ">
+        <span class="ntt-brand-mark" aria-hidden="true">AI</span>
+        <span class="ntt-brand-text">VisionHub<small>AI INTELLIGENCE HUB</small></span>
+      </a>
+      <nav class="ntt-nav" aria-label="サイト内ナビゲーション">
+        <a class="ntt-cta" href="../index.html#resources">リソースへ戻る</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <section class="tools-hero" aria-labelledby="page-title">
+      <p class="eyebrow">RESOURCE 13 / PERSONAL TOOLS</p>
+      <div class="hero-grid">
+        <div>
+          <h1 id="page-title">自作ツール</h1>
+          <p class="hero-lead">判断の準備、作業の振り返り、今日のタスク。<br>Windows での仕事を整える、3つの道具。</p>
+        </div>
+        <div class="hero-note">
+          <strong>自分の環境に合うものを、GitHub の手順から。</strong>
+          <p>コードを取得して導入する Windows 向けツールです。対象者・導入条件・データの扱いを確認してから試用してください。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="choose" aria-labelledby="choose-title">
+      <h2 id="choose-title" class="section-title">どの場面を整えたいですか</h2>
+      <div class="choose-grid">
+        <a class="choose-link" href="#kimeru"><span><small>届いた依頼の判断を準備する</small><strong>kimeru</strong></span><span class="arrow" aria-hidden="true">↓</span></a>
+        <a class="choose-link" href="#kaizenlog"><span><small>PC 作業を日誌で振り返る</small><strong>KaizenLog</strong></span><span class="arrow" aria-hidden="true">↓</span></a>
+        <a class="choose-link" href="#dayloop"><span><small>今日の予定と残件を整理する</small><strong>dayloop</strong></span><span class="arrow" aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <div class="tools-grid">
+      <article id="kimeru" class="tool-card" aria-labelledby="kimeru-title">
+        <p class="tool-kind">01 / 判断の準備</p>
+        <h2 id="kimeru-title">kimeru</h2>
+        <h3>届いた判断依頼に、<br>次の一手を用意する</h3>
+        <p class="tool-summary">Windows・Teams で働く PM 向け。業務イベントを整理し、判断と承認用の下書きを支援します。</p>
+        <dl class="tool-details">
+          <dt>対象者</dt>
+          <dd>判断依頼の材料と選択肢をそろえてから決めたい、PM・リーダー。</dd>
+          <dt>導入条件</dt>
+          <dd>Windows 10 / 11、Python 3.10 以上、git。Teams の読み取りには Windows の画面操作を使います。</dd>
+          <dt>データの扱い</dt>
+          <dd>判断・ログは PC に保存。相手への返信や業務操作は既定で記録のみです。自分との Teams チャットへの投稿は送信を伴います。判断モデルや文面生成 LLM の設定によって、内容を外部へ送る場合があります。</dd>
+        </dl>
+        <p class="tool-note">実業務での時間短縮や判断精度は、まだ測定されていません。</p>
+        <a class="repo-link" href="https://github.com/awano27/pm-decision" aria-label="kimeruの導入手順・コードを見る（GitHub）">導入手順・コードを見る<span aria-hidden="true">↗</span></a>
+        <small class="repo-name">GitHub / awano27/pm-decision</small>
+      </article>
+
+      <article id="kaizenlog" class="tool-card" aria-labelledby="kaizenlog-title">
+        <p class="tool-kind">02 / 作業の振り返り</p>
+        <h2 id="kaizenlog-title">KaizenLog</h2>
+        <h3>PC 作業の記録を、<br>毎日の振り返りへ</h3>
+        <p class="tool-summary">ActivityWatch の記録から、Obsidian に活動日誌や日報ドラフトを作る Windows 向けツールです。</p>
+        <dl class="tool-details">
+          <dt>対象者</dt>
+          <dd>自分の PC 作業を記録し、日々の振り返りや改善の材料にしたい人。</dd>
+          <dt>導入条件</dt>
+          <dd>Windows 10 / 11、Python 3.11 以上、pipx、ActivityWatch、Obsidian ボールト。</dd>
+          <dt>データの扱い</dt>
+          <dd>集計と日誌の保存はローカルで行います。日誌生成には LLM 不要。改善提案には別途 LLM 設定を使い、その接続先によって外部送信が生じます。</dd>
+        </dl>
+        <p class="tool-note">前景アプリの記録を使う個人向けツールです。勤務時間・集中力・生産性の評価には使わないでください。チーム集計には未対応です。</p>
+        <a class="repo-link" href="https://github.com/awano27/KaizenLog-" aria-label="KaizenLogの導入手順・コードを見る（GitHub）">導入手順・コードを見る<span aria-hidden="true">↗</span></a>
+        <small class="repo-name">GitHub / awano27/KaizenLog-</small>
+      </article>
+
+      <article id="dayloop" class="tool-card" aria-labelledby="dayloop-title">
+        <p class="tool-kind">03 / 1日の計画</p>
+        <h2 id="dayloop-title">dayloop</h2>
+        <h3>今日のタスクを、<br>計画から持ち越し整理まで</h3>
+        <p class="tool-summary">朝の計画、次に取り組む1件、夕方の残件整理をつなぐ Windows 向けツール。判断の履歴をグラフに残します。</p>
+        <dl class="tool-details">
+          <dt>対象者</dt>
+          <dd>その日の予定を決め、未完了タスクの扱いまで整理して1日を閉じたい人。</dd>
+          <dt>導入条件</dt>
+          <dd>Windows 10 / 11、Rust・Cargo。ソースからビルドして試用します。Outlook の読み取りはクラシック版が対象です。</dd>
+          <dt>データの扱い</dt>
+          <dd>台帳は PC に保存。Jev を使う場合は判断材料を外部サービスへ送ります。GitHub・Jira・Teams の取り込みは JSON 入力で、実 API 連携ではありません。</dd>
+        </dl>
+        <p class="tool-note">Jev の接続がなくてもタスクループは動きます。試用前に、接続先と送信設定を利用ガイドで確認してください。</p>
+        <a class="repo-link" href="https://github.com/awano27/dayloop" aria-label="dayloopの導入手順・コードを見る（GitHub）">導入手順・コードを見る<span aria-hidden="true">↗</span></a>
+        <small class="repo-name">GitHub / awano27/dayloop</small>
+      </article>
+    </div>
+
+    <section class="before-start" aria-labelledby="before-title">
+      <div class="start-grid">
+        <h2 id="before-title" class="section-title">試す前に確認すること</h2>
+        <ol>
+          <li><strong>導入手順と現在の状態。</strong>各 GitHub の README・利用ガイドで、対応範囲と必要な設定を確認してください。</li>
+          <li><strong>記録する内容と送信先。</strong>業務データを扱う場合は、保存先・外部サービスへの送信・組織の利用ルールを確認してください。</li>
+          <li><strong>手元の環境での動作。</strong>まず試用用のデータで動作を確認し、生成された下書きや提案は自分で確認してください。</li>
+        </ol>
+      </div>
+      <p class="source-note">紹介内容は各リポジトリの README・利用ガイドに基づきます（確認日：2026年10月7日）。本掲載作業では、各ツールの実行や業務効果の検証は行っていません。</p>
+    </section>
+  </main>
+
+  <footer class="ntt-footer">
+    <div class="ntt-footer-row">
+      <a class="ntt-footer-brand" href="../index.html">VisionHub</a>
+      <a href="../index.html#resources">リソース・ガイドへ戻る →</a>
+      <span class="ntt-footer-meta">自作ツール / awano27</span>
+    </div>
+  </footer>
+</body>
+</html>

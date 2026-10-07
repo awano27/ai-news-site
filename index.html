@@ -2326,7 +2326,7 @@
             <p class="section-note">まず「ツール」カタログで用途別の実務ツールを選び、コーディングエージェント・調査資料・特集ガイド・月次まとめへ進める常設リソース集です。</p>
           </div>
         </div>
-        <div class="res-grid">
+        <div class="res-grid" id="resourcesGrid">
           <a class="res-card" href="/presentations/recommended_tools/">
             <span class="res-num">01</span>
             <span class="res-thumb"><img src="assets/res-01.jpg" alt="おすすめAIツールリストのカバー画像" loading="lazy" /></span>
@@ -2435,8 +2435,28 @@
               <div class="res-go">VIEW DETAIL <span class="arr" aria-hidden="true">→</span></div>
             </div>
           </a>
+          <a class="res-card" href="presentations/my_tools.html">
+            <span class="res-num">13</span>
+            <span class="res-thumb" aria-hidden="true">
+              <svg viewBox="0 0 640 360" width="100%" height="100%" focusable="false">
+                <rect width="640" height="360" fill="#0c1733" />
+                <rect x="112" y="78" width="416" height="208" rx="12" fill="#142042" stroke="#52617d" />
+                <path d="M112 122h416" stroke="#52617d" />
+                <circle cx="137" cy="100" r="4" fill="#FFCC00" />
+                <circle cx="152" cy="100" r="4" fill="#a8b2c3" />
+                <circle cx="167" cy="100" r="4" fill="#a8b2c3" />
+                <path d="m151 163 17 14-17 14m30 0h24" fill="none" stroke="#FFCC00" stroke-width="5" />
+                <path d="M232 177h225M151 222h153m25 0h103M151 246h224" stroke="#a8b2c3" stroke-width="6" />
+              </svg>
+            </span>
+            <div class="res-body">
+              <div class="res-title">自作ツール</div>
+              <div class="res-desc">kimeru・KaizenLog・dayloop。判断の準備、作業の振り返り、今日のタスクを整えるWindows向けツール。</div>
+              <div class="res-go">VIEW DETAIL <span class="arr" aria-hidden="true">→</span></div>
+            </div>
+          </a>
         </div>
-        <button class="res-expand" type="button" aria-expanded="false">すべてのリソースを見る（残り 9 件）</button>
+        <button class="res-expand" type="button" aria-controls="resourcesGrid" aria-expanded="false">すべてのリソースを見る（残り 10 件）</button>
       </div>
     </section>
 
@@ -2495,12 +2515,20 @@
     var resourceGrid = document.querySelector('#resources .res-grid');
     var resourceExpand = document.querySelector('#resources .res-expand');
     if (resourceGrid && resourceExpand) {
-      resourceGrid.classList.add('is-collapsed');
-      resourceExpand.addEventListener('click', function () {
-        resourceGrid.classList.remove('is-collapsed');
-        resourceExpand.setAttribute('aria-expanded', 'true');
+      var resourceCards = resourceGrid.querySelectorAll('.res-card');
+      var remainingResources = Math.max(resourceCards.length - 3, 0);
+      if (remainingResources > 0) {
+        resourceExpand.textContent = 'すべてのリソースを見る（残り ' + remainingResources + ' 件）';
+        resourceGrid.classList.add('is-collapsed');
+        resourceExpand.addEventListener('click', function () {
+          resourceGrid.classList.remove('is-collapsed');
+          resourceExpand.setAttribute('aria-expanded', 'true');
+          resourceCards[3].focus();
+          resourceExpand.hidden = true;
+        });
+      } else {
         resourceExpand.hidden = true;
-      });
+      }
     }
     var slideForDate = function (dateStr) {
       return 'presentations/day_slides/day_slide_' + dateStr.replace(/-/g, '_') + '.html';
