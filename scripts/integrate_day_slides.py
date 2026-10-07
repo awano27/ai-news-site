@@ -214,7 +214,7 @@ def with_featured(page: str, top: list[dict], titles: list[str]) -> str:
 def updated_index(
     page: str, issues: list[dict], slides: list[Slide], title_of: Callable[[str], str], topics: dict[str, str]
 ) -> tuple[str, int]:
-    for slide in reversed(slides):
+    for slide in sorted(slides, key=lambda slide: slide.date):
         if f'{CARD} href="day_slides/{slide.file}"' not in page:
             page = prepend_card(page, slide)
     page = re.sub(r'<details class="month-group"[^>]*data-month="\d{4}-\d{2}">.*?</details>', recount, page, flags=re.S)

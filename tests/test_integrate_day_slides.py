@@ -46,8 +46,8 @@ def slide_page(title: str | None, no: int | None, section: str) -> str:
     )
 
 
-def listed_issue(date: str) -> dict:
-    title, no, section = PAGES[date]
+def listed_issue(date: str, pages=PAGES) -> dict:
+    title, no, section = pages[date]
     cat, cat_label = CURATED_CATS[section]
     stamp = date.replace("-", "_")
     issue = {
@@ -264,7 +264,7 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def make_repo(root: Path, listed=LISTED, pages=PAGES, llms=LLMS_BEFORE) -> Path:
+def make_repo(root: Path, listed=LISTED, pages=PAGES, llms=LLMS_BEFORE, index=INDEX_BEFORE) -> Path:
     (root / "script").mkdir(parents=True)
     shutil.copyfile(REPO / "script" / "build_day_slides_index.py", root / "script" / "build_day_slides_index.py")
     for date, (title, no, section) in pages.items():
@@ -276,11 +276,11 @@ def make_repo(root: Path, listed=LISTED, pages=PAGES, llms=LLMS_BEFORE) -> Path:
         "since": "2026-09-28",
         "latest": "2026-10-01",
         "categories": {"model": 1, "agent": 5, "infra": 1},
-        "issues": [listed_issue(date) for date in listed],
+        "issues": [listed_issue(date, pages) for date in listed],
     }
     write(root / META, json.dumps(meta, ensure_ascii=False, indent=2) + "\n")
     write(root / LIST, json.dumps(LIST_BEFORE, ensure_ascii=False, indent=2) + "\n")
-    write(root / INDEX, INDEX_PAGE.format(**INDEX_BEFORE))
+    write(root / INDEX, INDEX_PAGE.format(**index))
     write(root / LLMS, llms)
     return root
 
@@ -308,6 +308,12 @@ def rewritten(root: Path) -> list[str]:
 
 def slide_cards(root: Path) -> list[str]:
     return re.findall(r'<a class="slide-card" href="day_slides/([^"]+)"', (root / INDEX).read_text(encoding="utf-8"))
+
+
+def month_cards(root: Path, month: str) -> list[str]:
+    page = (root / INDEX).read_text(encoding="utf-8")
+    group = re.search(rf'data-month="{month}">.*?</details>', page, re.S).group(0)
+    return re.findall(r'<a class="slide-card" href="day_slides/day_slide_(\d{4}_\d{2}_\d{2})\.html"', group)
 
 
 @pytest.fixture
@@ -350,6 +356,46 @@ def test_index_gains_cards_in_both_month_formats_and_a_rebuilt_featured_trio(int
     root, _ = integrated
 
     assert (root / INDEX).read_text(encoding="utf-8") == INDEX_PAGE.format(**INDEX_AFTER)
+
+
+PAIR_PAGES = {
+    "2026-09-27": ("九月二十七日号 | 2026-09-27", 29, "AI Agent Operations"),
+    **PAGES,
+    "2026-10-03": ("十月三日号 | 2026-10-03", 35, "Agent Workforce"),
+    "2026-10-04": ("十月四日号 | 2026-10-04", 36, "Desktop Automation"),
+}
+PAIR_LISTED = ("2026-10-02", "2026-10-01", "2026-09-28", "2026-09-27")
+PAIR_INDEX = {
+    **INDEX_BEFORE,
+    "oct_count": 2,
+    "oct_cards": card("2026-10-02", "十月二日号") + card("2026-10-01", "十月一日号"),
+    "sep_count": 2,
+    "sep_cards": card("2026-09-28", "九月二十八日号") + SEP + card("2026-09-27", "九月二十七日号"),
+}
+
+
+@pytest.mark.parametrize("newest_first", [False, True], ids=["discovered-oldest-first", "discovered-newest-first"])
+@pytest.mark.parametrize(
+    ("month", "expected"),
+    [
+        pytest.param("2026-10", ["2026_10_04", "2026_10_03", "2026_10_02", "2026_10_01"], id="one-line"),
+        pytest.param("2026-09", ["2026_09_30", "2026_09_29", "2026_09_28", "2026_09_27"], id="multi-line"),
+    ],
+)
+def test_new_cards_read_newest_first_above_the_existing_ones(
+    tmp_path: Path, monkeypatch, month: str, expected: list[str], newest_first: bool
+) -> None:
+    discover = subject.discover
+    monkeypatch.setattr(
+        subject,
+        "discover",
+        lambda root, meta: sorted(discover(root, meta), key=lambda slide: slide.date, reverse=newest_first),
+    )
+    root = make_repo(tmp_path, listed=PAIR_LISTED, pages=PAIR_PAGES, index=PAIR_INDEX)
+
+    assert subject.main(["--root", str(root)]) == 0
+
+    assert month_cards(root, month) == expected
 
 
 def test_llms_names_the_newest_slide_and_demotes_the_previous_today_line(integrated) -> None:
