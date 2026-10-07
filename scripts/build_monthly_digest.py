@@ -166,6 +166,20 @@ def render_item(item: dict) -> str:
     )
 
 
+def render_months_nav(current: str) -> str:
+    """Link every published monthly digest so the pages are not isolated."""
+    yms = sorted({p.stem for p in OUT_DIR.glob("????-??.html")} | {current}, reverse=True)
+    lis = []
+    for ym in yms:
+        y, m = ym.split("-")
+        label = f"{int(y)}年{int(m)}月"
+        if ym == current:
+            lis.append(f'<li><span aria-current="page">{label}</span></li>')
+        else:
+            lis.append(f'<li><a href="/presentations/digests/{ym}.html">{label}</a></li>')
+    return '<nav class="months" aria-label="月次まとめ一覧"><h2>他の月のまとめ</h2><ul>' + "".join(lis) + "</ul></nav>"
+
+
 def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict]]) -> str:
     y, m = ym.split("-")
     month_title = f"{int(y)}年{MONTH_JP[int(m)]}"
@@ -177,6 +191,7 @@ def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict
     )
     canonical = f"{BASE_URL}/presentations/digests/{ym}.html"
 
+    months_nav = render_months_nav(ym)
     total_shown = len(highlights) + sum(len(v) for v in by_category.values())
     n_cats = sum(1 for v in by_category.values() if v)
 
@@ -274,6 +289,11 @@ def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict
     .btn{{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;background:var(--accent);color:#111;font-weight:800;font-size:14px}}
     .btn.ghost{{background:transparent;border:1px solid var(--line);color:var(--ink)}}
     .btn:hover{{text-decoration:none;filter:brightness(1.08)}}
+    .months{{margin-top:40px;padding-top:20px;border-top:1px solid var(--line)}}
+    .months h2{{font-size:15px;margin:0 0 10px;color:var(--mute2)}}
+    .months ul{{list-style:none;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}}
+    .months a,.months span{{display:inline-block;padding:5px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px}}
+    .months span{{background:var(--accent);color:#111;font-weight:800;border-color:var(--accent)}}
     footer.site-footer{{border-top:1px solid var(--line);padding:28px 0;color:var(--mute);font-size:13px}}
     .footer-row{{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}}
   </style>
@@ -310,6 +330,8 @@ def build_html(ym: str, highlights: list[dict], by_category: dict[str, list[dict
       </section>
 
 {''.join(cat_sections)}
+
+      {months_nav}
 
       <div class="cta-row">
         <a class="btn" href="/">最新スライドへ</a>
@@ -369,7 +391,7 @@ def main() -> int:
         if not args.force and prev == html_out:
             skipped += 1
             continue
-        out.write_text(html_out, encoding="utf-8")
+        out.write_text(html_out, encoding="utf-8", newline="\n")
         produced += 1
         print(f"  wrote {out.relative_to(ROOT)} ({len(files)} source files)")
 
