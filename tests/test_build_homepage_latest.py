@@ -47,7 +47,7 @@ def assert_entry_contract(html):
     assert not [a for t, a in page.elements if a.get("id") == "heroArticleBtn"]
     assert "btn-ghost" in page.by_id("heroNewsBtn")[1].get("class", "").split()
     ids = [attrs.get("id") for tag, attrs in page.elements if tag == "a"]
-    assert ids.index("heroTodayBtn") < ids.index("heroNewsBtn")
+    assert ids.index("heroTodayBtn") < ids.index("dailyReportLink") < ids.index("heroNewsBtn")
     assert page.by_id("heroTwist")[0] == "h3"
     assert page.by_id("heroWhy")[0] == "p"
     return page
@@ -191,3 +191,35 @@ def test_entry_contract_rejects_broken_heading_or_primary_link(old, new):
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     with pytest.raises(AssertionError):
         assert_entry_contract(html.replace(old, new, 1))
+
+
+def test_daily_briefing_independent_dates_and_regeneration(tmp_path):
+    script = tmp_path / "scripts/build-homepage-latest.js"
+    script.parent.mkdir(parents=True)
+    shutil.copy2(ROOT / "scripts/build-homepage-latest.js", script)
+    shutil.copy2(ROOT / "index.html", tmp_path / "index.html")
+    api = tmp_path / "public-pages/api/auto_daily_report/latest.json"
+    api.parent.mkdir(parents=True)
+    report_dir = tmp_path / "presentations/daily_reports"
+    report_dir.mkdir(parents=True)
+    (report_dir / "auto_daily_report_2026_10_07.html").write_text("report")
+    slide_dir = tmp_path / "presentations/day_slides"
+    slide_dir.mkdir()
+    (slide_dir / "day_slide_2026_10_06.html").write_text("<title>図解</title><h1>図解</h1>", encoding="utf-8")
+    for date in ["2026-10-07", "2026-10-08"]:
+        api.write_text(json.dumps({"date": date, "headlines": [
+            {"title": f"AIニュース{i}<script>", "score": i, "tldr": "変更点です。", "impact": "開発者に関係します。"} for i in range(4)]}), encoding="utf-8")
+        result = subprocess.run([shutil.which("node"), str(script)], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        html = (tmp_path / "index.html").read_text(encoding="utf-8")
+        fragment = html.split('id="dailyHeadlines"', 1)[1].split('</ol>', 1)[0]
+        assert fragment.count('<li>') == 3
+        assert '何が変わったか:' in fragment and '誰に関係するか:' in fragment
+        assert '&lt;script&gt;' in fragment and '<script>' not in fragment
+        assert f'id="dailyReportDate">{date}' in html
+        assert 'id="todaySlideDate" class="main-card-date">2026-10-06' in html
+    api.write_text('{}')
+    subprocess.run([shutil.which("node"), str(script)], check=True, capture_output=True)
+    html = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert '主要ニュースは更新待ち' in html
+    assert 'id="dailyReportDate">未確認' in html

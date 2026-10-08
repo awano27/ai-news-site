@@ -686,7 +686,37 @@ function buildSections() {
   return buildSectionsFromAutoDaily();
 }
 
+// Independent dates: report content must not inherit the slide's calendar date.
+function updateDailyBriefing() {
+  if (!fs.existsSync(INDEX_HTML)) return;
+  let html = fs.readFileSync(INDEX_HTML, 'utf8');
+  const report = readJson(AUTO_DAILY_JSON, {});
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(report.date || '') ? report.date : null;
+  const short = (value) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+  const japanese = (value) => /[ぁ-んァ-ヶ一-龯]/.test(value || '');
+  const seen = new Set();
+  const items = (Array.isArray(report.headlines) ? report.headlines : [])
+    .filter(item => item && item.title && !seen.has(item.title) && seen.add(item.title))
+    .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)).slice(0, 3);
+  const reportUrl = date && fs.existsSync(path.join(ROOT, 'presentations', 'daily_reports', `auto_daily_report_${date.replace(/-/g, '_')}.html`))
+    ? `presentations/daily_reports/auto_daily_report_${date.replace(/-/g, '_')}.html` : 'presentations/auto_daily_report.html';
+  const content = date && items.length ? items.map(item => {
+    const change = [item.tldr, item.summary].find(japanese) || '日本語の要約は日次レポートで確認してください。';
+    const impact = japanese(item.impact) ? item.impact : '関係する利用者・分野は日次レポートで確認してください。';
+    return `<li><h3>${escapeHtml(item.title)}</h3><p><strong>何が変わったか:</strong> ${escapeHtml(short(change))}</p><p><strong>誰に関係するか:</strong> ${escapeHtml(short(impact))}</p></li>`;
+  }).join('\n') : '<li>主要ニュースは更新待ちです。日次レポートをご確認ください。</li>';
+  html = html.replace(/<!-- homepage:headlines -->[\s\S]*?<!-- homepage:headlines:end -->/, `<!-- homepage:headlines --><ol id="dailyHeadlines">${content}</ol><!-- homepage:headlines:end -->`);
+  html = replaceElementText(html, 'dailyReportDate', date || '未確認');
+  html = replaceElementText(html, 'dailyReportStatus', date && date !== new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10) ? '（最新掲載分・本日分ではありません）' : '');
+  html = replaceHrefById(html, 'dailyReportLink', reportUrl, 'daily report', false);
+  const archive = readJson(ARCHIVE_INDEX_JSON, []);
+  const newsDate = Array.isArray(archive) ? archive.map(x => x.date).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x || '')).sort().pop() : null;
+  html = replaceElementText(html, 'dailyNewsDate', newsDate || '未確認');
+  fs.writeFileSync(INDEX_HTML, html, 'utf8');
+}
+
 function main() {
+  updateDailyBriefing();
   const slide = newestSlide();
   if (!slide) {
     console.warn(`[build-homepage-latest] no day slides found in ${SLIDES_DIR}; preserving news JSON and writing honest homepage empty state`);
