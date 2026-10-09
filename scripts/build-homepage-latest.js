@@ -720,6 +720,26 @@ function buildSections() {
   return buildSectionsFromAutoDaily();
 }
 
+// Show what date search actually covers; do not imply the index is current.
+function updateSearchCoverage() {
+  const records = readJson(path.join(ROOT, 'public-pages', 'news', 'search_index.json'));
+  function range(slides) {
+    if (!Array.isArray(records)) return '未確認';
+    const dates = records.filter(x => x && (x.type === 'slide') === slides).map(x => x.date)
+      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d || '') && Number.isFinite(Date.parse(d + 'T00:00:00Z')) &&
+        new Date(d + 'T00:00:00Z').toISOString().slice(0, 10) === d).sort();
+    return dates.length ? dates[0] + '〜' + dates[dates.length - 1] : '未収録';
+  }
+  const label = 'ニュース収録: ' + range(false) + ' / スライド収録: ' + range(true);
+  for (const [relative, id] of [['index.html', 'searchArchiveRange'], ['presentations/news_archive.html', 'archiveCoverage']]) {
+    const file = path.join(ROOT, relative);
+    if (!fs.existsSync(file)) continue;
+    const html = fs.readFileSync(file, 'utf8');
+    const updated = replaceElementText(html, id, label);
+    if (updated !== html) fs.writeFileSync(file, updated, 'utf8');
+  }
+}
+
 // Independent dates: report content must not inherit the slide's calendar date.
 function updateDailyBriefing() {
   if (!fs.existsSync(INDEX_HTML)) return;
@@ -751,6 +771,7 @@ function updateDailyBriefing() {
 }
 
 function main() {
+  updateSearchCoverage();
   updateDailyBriefing();
   const slide = newestSlide();
   if (!slide) {

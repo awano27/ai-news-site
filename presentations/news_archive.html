@@ -122,8 +122,8 @@
       <div class="ntt-subhero-eyebrow">News Archive</div>
       <h1 class="ntt-subhero-title">AIニュースアーカイブ</h1>
       <p class="ntt-subhero-lead">
-        最新のAI業界ニュースとトレンド分析を、ビジネス・ツール・研究の3カテゴリで整理した統合プラットフォーム。
-        毎朝07:00に更新される最新情報を、検索・カテゴリフィルタで素早く見つけられます。
+        検索索引に収録済みのニュースとスライドを、キーワード・カテゴリ・日付範囲で探せます。
+        収録範囲は下記をご確認ください。
       </p>
     </div>
   </section>
@@ -133,6 +133,8 @@
       <section class="search-panel" aria-labelledby="searchHeading">
         <h2 id="searchHeading" class="feature-title">ニュースを検索</h2>
         <p class="feature-desc">キーワード、カテゴリ、日付範囲を組み合わせて日次ニュースとスライドを検索できます。</p>
+        <p id="archiveCoverage" class="feature-desc" aria-live="polite">ニュース収録: 2025-01-17〜2026-08-23 / スライド収録: 2025-07-30〜2026-09-28</p>
+        <p class="feature-desc">最新の掲載ニュースは<a href="../daily-news/">Daily News</a>をご覧ください。</p>
         <div class="search-controls">
           <input id="newsQuery" type="search" aria-label="ニュースのキーワード" placeholder="例: Claude">
           <select id="newsCategory" aria-label="カテゴリ"><option value="">すべてのカテゴリ</option><option value="__slide__">スライド</option></select>
@@ -219,11 +221,19 @@
     function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
     function fmt(n){return Number(n).toLocaleString('ja-JP')}
     function slideCount(){return all.filter(function(x){return x.type==='slide'}).length}
+    function coverageLabel(rows){
+      function range(slides){
+        var dates=(Array.isArray(rows)?rows:[]).filter(function(x){return x&&(x.type==='slide')===slides}).map(function(x){return x.date}).filter(function(d){var t=Date.parse(d+'T00:00:00Z');return /^\d{4}-\d{2}-\d{2}$/.test(d||'')&&Number.isFinite(t)&&new Date(t).toISOString().slice(0,10)===d}).sort();
+        return dates.length?dates[0]+'〜'+dates[dates.length-1]:'未収録';
+      }
+      return 'ニュース収録: '+range(false)+' / スライド収録: '+range(true);
+    }
     function corpusLabel(){return fmt(all.length)+'件（うちスライド'+fmt(slideCount())+'件）から検索'}
     function render(){var term=q.value.trim().toLowerCase();filtered=all.filter(function(x){var catOk=!cat.value||(cat.value==='__slide__'?x.type==='slide':x.category===cat.value);return (!term||(x.title+' '+(x.summary||'')+' '+x.source).toLowerCase().indexOf(term)>=0)&&catOk&&(!from.value||x.date>=from.value)&&(!to.value||x.date<=to.value)});var page=filtered.slice(0,shown);results.innerHTML=page.map(function(x){var badge=x.type==='slide'?'<span class="result-badge">SLIDE</span>':'';return '<article class="result-card" data-type="'+(x.type==='slide'?'slide':'news')+'"><div class="result-meta">'+esc(x.date)+' · '+esc(x.category)+' · '+esc(x.source)+badge+'</div><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.title)+'</a>'+(x.summary?'<p class="result-summary">'+esc(x.summary)+'</p>':'')+'</article>'}).join('');status.textContent=filtered.length?filtered.length+'件中 '+page.length+'件を表示 · '+corpusLabel():'条件に一致するニュースはありません。'+corpusLabel();more.style.display=shown<filtered.length?'block':'none'}
     [q,cat,from,to].forEach(function(el){el.addEventListener('input',function(){shown=50;render()})});more.addEventListener('click',function(){shown+=50;render()});
-    fetch('../public-pages/news/search_index.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(data){all=data;Array.from(new Set(all.filter(function(x){return x.type!=='slide'}).map(function(x){return x.category}).filter(Boolean))).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cat.appendChild(o)});try{var initial=new URLSearchParams(location.search).get('q');if(initial)q.value=initial;}catch(e){}render()}).catch(function(){status.textContent='検索データを読み込めませんでした。時間をおいて再度お試しください。'});
+    fetch('../public-pages/news/search_index.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(data){if(!Array.isArray(data))throw new Error('invalid search index');all=data;document.getElementById('archiveCoverage').textContent=coverageLabel(all);Array.from(new Set(all.filter(function(x){return x.type!=='slide'}).map(function(x){return x.category}).filter(Boolean))).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cat.appendChild(o)});try{var initial=new URLSearchParams(location.search).get('q');if(initial)q.value=initial;}catch(e){}render()}).catch(function(){status.textContent='検索データを読み込めませんでした。時間をおいて再度お試しください。'});
   })();
   </script>
 </body>
 </html>
+
