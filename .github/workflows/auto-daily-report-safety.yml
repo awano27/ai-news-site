@@ -1,21 +1,11 @@
-# Safety net for auto_daily_report cron skips.
-#
-# GitHub Actions scheduled workflows are occasionally silently skipped under
-# high runner load. On 2026-04-26 the primary workflow
-# (auto-daily-report-cloud-fallback.yml, cron 0 21 * * * UTC = JST 06:00)
-# never fired, leaving visionhub.jp with yesterday's stale report until a
-# manual `gh workflow run` was invoked. This safety net runs two hours later
-# (JST 11:30 and 13:00) and self-heals by dispatching the primary workflow
-# when today's report has not yet landed.
-
 name: Auto Daily Report — Safety Net
 
+# GitHub schedules are best effort. These later checks verify actual publication,
+# never promise an exact delivery time, and reserve at most two retries per JST day.
 on:
   schedule:
-    # JST 11:30 = UTC 02:30  (first check, ~5.5 h after primary window)
-    - cron: '30 2 * * *'
-    # JST 13:00 = UTC 04:00  (second check, in case first run itself was skipped)
-    - cron: '0 4 * * *'
+    - cron: '30 2 * * *' # 11:30 JST
+    - cron: '0 4 * * *'  # 13:00 JST
   workflow_dispatch: {}
 
 concurrency:
@@ -29,40 +19,37 @@ permissions:
 jobs:
   check-and-heal:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       TZ: Asia/Tokyo
+      GH_TOKEN: ${{ github.token }}
+      NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
+      NVIDIA_PRODUCTION_USE_CONFIRMED: ${{ vars.NVIDIA_PRODUCTION_USE_CONFIRMED }}
     steps:
-      - name: Fetch today's report JSON and check freshness
-        id: freshness
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Verify today's public Japanese publication
+        id: publication
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          echo "today=$TODAY" >> "$GITHUB_OUTPUT"
-
-          if BODY=$(curl -fsSL --max-time 15 https://visionhub.jp/presentations/auto_daily_report.json 2>&1); then
-            REPORT_DATE=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('date',''))" 2>/dev/null || echo "")
-            echo "report_date=$REPORT_DATE" >> "$GITHUB_OUTPUT"
-            if [ "$REPORT_DATE" = "$TODAY" ]; then
-              echo "fresh=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "fresh=false" >> "$GITHUB_OUTPUT"
-              echo "::warning::Report date '$REPORT_DATE' does not match today '$TODAY' — triggering fallback."
-            fi
+          if python scripts/check_daily_publication.py --base-url https://visionhub.jp --date "$(date +%F)" --require-quality; then
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
           else
-            echo "fresh=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Failed to fetch auto_daily_report.json — triggering fallback."
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Today's linked quality-verified publication is unavailable. Recovery eligibility will be checked."
           fi
-
-      - name: Report is fresh — nothing to do
-        if: steps.freshness.outputs.fresh == 'true'
-        run: |
-          echo "Report is fresh (date=${{ steps.freshness.outputs.report_date }}). Nothing to do."
-
-      - name: Trigger primary fallback workflow
-        if: steps.freshness.outputs.fresh != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "Safety net triggered: today=${{ steps.freshness.outputs.today }}, report_date=${{ steps.freshness.outputs.report_date }}"
-          gh workflow run auto-daily-report-cloud-fallback.yml \
-            --repo ${{ github.repository }}
-          echo "Dispatched auto-daily-report-cloud-fallback.yml successfully."
+      - name: Plan bounded recovery
+        if: steps.publication.outputs.healthy != 'true'
+        id: recovery
+        run: python scripts/daily_recovery.py --kind primary --plan
+      - name: Reserve this attempt before dispatch
+        if: steps.recovery.outputs.dispatch == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.recovery.outputs.reservation_name }}
+          path: daily-recovery-state/reservation.json
+          if-no-files-found: error
+          retention-days: 3
+      - name: Dispatch bounded recovery
+        if: steps.recovery.outputs.dispatch == 'true'
+        run: python scripts/daily_recovery.py --kind primary --dispatch

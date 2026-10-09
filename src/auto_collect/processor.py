@@ -13,6 +13,7 @@ from typing import List, Dict, Optional
 
 from .llm_provider import LLMProvider, make_provider
 from .content_integrity import apply_financial_integrity
+from .quality import is_japanese_summary
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,23 @@ class LLMProcessor:
     def __init__(self, provider: Optional[LLMProvider] = None):
         self.provider = provider or make_provider("ollama")
         self.available = self.provider.available
+
+    def _localize_structured(self, rows: List[Dict], *, preserve_names: bool) -> List[Dict]:
+        """Translate descriptive text while retaining source-specific facts."""
+        for row in rows:
+            raw = {"name": row["title"], "description": row.get("summary", ""),
+                   "tagline": row.get("summary", ""), "source": row.get("source", ""),
+                   "links": {"official": row.get("url", "")}}
+            localized = self._process_one(raw)
+            if localized:
+                row["summary"] = localized.get("summary", "")
+                row["processing_status"] = localized.get("processing_status", "fallback")
+                if localized.get("processing_error"):
+                    row["processing_error"] = localized["processing_error"]
+                if not preserve_names:
+                    row["title"] = localized.get("title", row["title"])
+                row.update({k: v for k, v in apply_financial_integrity(row).items()})
+        return rows
 
     def _process_one(self, article: Dict) -> Optional[Dict]:
         try:
@@ -122,7 +140,7 @@ class LLMProcessor:
             }))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
-        return processed
+        return self._localize_structured(processed, preserve_names=True)
 
     def process_benchmarks(self, benchmarks: List[Dict]) -> List[Dict]:
         """Process benchmark/trending model data."""
@@ -160,7 +178,7 @@ class LLMProcessor:
             }))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
-        return processed
+        return self._localize_structured(processed, preserve_names=True)
 
     def process_funding(self, funding_items: List[Dict]) -> List[Dict]:
         """Process funding/M&A news."""
@@ -187,7 +205,7 @@ class LLMProcessor:
             }))
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
-        return processed
+        return self._localize_structured(processed, preserve_names=False)
 
     def _process_with_llm(self, article: Dict) -> Optional[Dict]:
         """Summarize, score, and extract evidence using the configured LLM."""
@@ -204,12 +222,15 @@ class LLMProcessor:
         text = self.provider.chat(prompt)
         if not text:
             logger.warning(f"[{self.provider.name}] no response for '{title[:60]}'")
-            return self._fallback_process(article)
+            return self._fallback_process(article, error=getattr(self.provider, "last_error", "provider_unavailable"))
 
         parsed = self._extract_json(text)
-        if parsed:
+        if (isinstance(parsed, dict) and isinstance(parsed.get("title_ja"), str)
+                and parsed["title_ja"].strip() and is_japanese_summary(parsed.get("summary"))):
             return apply_financial_integrity({
                 "title": parsed.get("title_ja", title),
+                "processing_status": "llm",
+                "published_at": article.get("published_at") or article.get("date") or "",
                 "title_en": title,
                 "tldr": parsed.get("tldr", "")[:80],
                 "summary": parsed.get("summary", ""),
@@ -229,7 +250,7 @@ class LLMProcessor:
             })
 
         logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'")
-        return self._fallback_process(article)
+        return self._fallback_process(article, error="invalid_japanese")
 
     def _extract_json(self, text: str) -> Optional[Dict]:
         """Extract JSON from model response."""
@@ -254,7 +275,7 @@ class LLMProcessor:
 
         return None
 
-    def _fallback_process(self, article: Dict) -> Dict:
+    def _fallback_process(self, article: Dict, *, error: str = "provider_unavailable") -> Dict:
         """Fallback scoring when the LLM provider is unavailable."""
         title = article.get("name", "")
         tagline = article.get("tagline", "")
@@ -283,6 +304,9 @@ class LLMProcessor:
 
         return apply_financial_integrity({
             "title": title,
+            "processing_status": "fallback",
+            "processing_error": error,
+            "published_at": article.get("published_at") or article.get("date") or "",
             "title_en": title,
             "tldr": tagline[:80],
             "summary": tagline[:300],

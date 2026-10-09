@@ -243,7 +243,17 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
     return 0
 
 
-def publish(repo: Path, report_date: date, message: str, *, push: bool = False) -> int:
+def _push_validated_bundle(repo: Path) -> int:
+    """A race requires a fresh generation, never an automatic content overwrite."""
+    result = _git(repo, ("push", "origin", "HEAD:main"), check=False)
+    if result.returncode:
+        print("Validated publication push failed; rerun from current main. No rebase or force push attempted.", file=sys.stderr)
+        return 1
+    return 0
+
+
+def publish(repo: Path, report_date: date, message: str, *, push: bool = False,
+            require_quality: bool = False) -> int:
     try:
         manifest = _load_manifest_from_head(repo, report_date)
         changed_paths = _changed_paths(repo, manifest)
@@ -255,6 +265,21 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
         print("\n".join(errors), file=sys.stderr)
         return 1
 
+    if require_quality:
+        for path in changed_paths:
+            match = re.fullmatch(r"public-pages/news/(?:daily/)?(\d{4}-\d{2}-\d{2})\.json", path)
+            if match and match.group(1) != report_date.isoformat():
+                print(f"strict daily publication cannot rewrite historical news: {path}", file=sys.stderr)
+                return 1
+        check = subprocess.run(
+            [sys.executable, str(Path(__file__).with_name("check_daily_publication.py")),
+             "--root", str(repo), "--date", report_date.isoformat(), "--require-quality"],
+            text=True, encoding="utf-8", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=120,
+        )
+        if check.returncode:
+            print(check.stdout + check.stderr, file=sys.stderr)
+            return 1
     if not changed_paths:
         print("no manifest paths have changed", file=sys.stderr)
         return 1
@@ -271,7 +296,9 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False) 
     except subprocess.CalledProcessError as error:
         print(error.stderr.strip() or "git commit failed", file=sys.stderr)
         return 1
-    return _push_with_one_rebase_retry(repo, report_date) if push else 0
+    if not push:
+        return 0
+    return _push_validated_bundle(repo) if require_quality else _push_with_one_rebase_retry(repo, report_date)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -280,12 +307,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--date", type=date.fromisoformat, required=True)
     parser.add_argument("--message", required=True)
     parser.add_argument("--push", action="store_true")
+    parser.add_argument("--require-quality", action="store_true", help="Validate full Japanese/search bundle and refuse race rebases")
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
-    return publish(args.repo.resolve(), args.date, args.message, push=args.push)
+    return publish(args.repo.resolve(), args.date, args.message, push=args.push, require_quality=args.require_quality)
 
 
 if __name__ == "__main__":

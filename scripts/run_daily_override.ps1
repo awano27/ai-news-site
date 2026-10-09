@@ -176,7 +176,7 @@ try {
     $reportDate = (Get-Date).ToString("yyyy-MM-dd")
     $message = "chore(report): local override $reportDate"
     $publisher = Join-Path $repo "scripts\publish_daily_report.py"
-    $publishCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @($publisher, "--repo", $repo, "--date", $reportDate, "--message", $message, "--push") -Label "publisher"
+    $publishCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @($publisher, "--repo", $repo, "--date", $reportDate, "--message", $message, "--push", "--require-quality") -Label "publisher"
     if ($publishCode -ne 0) {
         throw "Reviewed publication CLI failed."
     }

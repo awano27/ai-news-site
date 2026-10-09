@@ -1,22 +1,10 @@
 name: Auto Daily Report — Cloud Primary
 
-# Cloud-primary: this workflow ALWAYS produces the day's report, so the
-# public site has fresh content every morning regardless of the user's PC
-# state. The local Ollama run (src/auto_collect/run_daily.sh) is the
-# secondary path — when the PC is on, it pulls Cloud's commit, regenerates
-# with the local LLM (which also includes X bookmarks from the Obsidian
-# vault), and pushes the override. Result:
-#
-#   06:30 JST   Cloud commit lands → site shows fresh report (no X tab)
-#   ~08:00 JST  PC up → local run overrides → X tab fills in
-#
-# Outputs (one pipeline → many files):
-#   - presentations/auto_daily_report.html   (Top 15 curated)
-#   - daily-news/index.html                  (full timeline; X tab empty here)
-#
-# X bookmarks live in C:/develop/obsidian/2026/00 Inbox/X-Bookmarks/ on the
-# user's PC and are not exposed to GitHub Actions (vault is private). The
-# local override fills the X tab once the PC catches up.
+# Primary scheduled attempt at 06:00 JST. GitHub cron can be delayed/skipped;
+# a schedule is not a 07:00 publication guarantee. Quality/configuration failures
+# remain failures and preserve the previous publication. A successful completion
+# explicitly triggers Pages via workflow_run, including GITHUB_TOKEN commits.
+# Local authorized overrides may later add private-vault X bookmarks.
 
 on:
   schedule:
@@ -41,6 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 2
 
       - name: Setup Python
@@ -51,14 +40,22 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-daily.txt
           pip install -e .
 
       - name: Run pipeline (NVIDIA NIM)
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
+          NVIDIA_PRODUCTION_USE_CONFIRMED: ${{ vars.NVIDIA_PRODUCTION_USE_CONFIRMED }}
         run: |
           python -m src.auto_collect.main --provider nvidia --force
+
+      - name: Link and verify daily publication before commit
+        run: |
+          python scripts/sync_daily_search.py --root .
+          node scripts/build-homepage-latest.js
+          python scripts/check_daily_publication.py --root . --date "$(date +%F)" --require-quality
 
       - name: Commit & push
         run: |
@@ -68,6 +65,7 @@ jobs:
           python scripts/publish_daily_report.py \
             --repo . \
             --date "$REPORT_DATE" \
+            --require-quality \
             --message "chore(report): cloud primary run $REPORT_DATE" \
             --push
 
@@ -83,3 +81,15 @@ jobs:
           else
             echo "Local override healthy: $recent commit(s) in last 2 days"
           fi
+
+      - name: Retain failure diagnostics without secrets
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-quality-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            logs/auto_collect/daily_quality_*.json
+            logs/auto_collect/daily_candidate_*.json
+          if-no-files-found: warn
+          retention-days: 7
+

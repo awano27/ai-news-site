@@ -9,6 +9,7 @@ Outputs multi-section report to input/day/MMDD.txt.
 
 import argparse
 import logging
+import json
 import subprocess
 import sys
 from datetime import date
@@ -27,6 +28,7 @@ from .formatter import DayFileFormatter
 from .html_report import generate_html_report
 from .daily_news_page import generate_daily_news
 from . import dedup as dedup_mod
+from .quality import validate_articles, failure_reason
 
 
 def setup_logging():
@@ -67,10 +69,16 @@ def build_processor(provider_name: str) -> LLMProcessor:
     provider = make_provider(provider_name)
     if not provider.available:
         logging.getLogger("auto_collect").warning(
-            "[Main] %s provider unavailable; using deterministic heuristic fallback",
+            "[Main] %s provider unavailable; publication will be held",
             provider_name,
         )
     return LLMProcessor(provider=provider)
+
+
+def _quality_log(today: date, payload: dict) -> None:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    (LOG_DIR / f"daily_quality_{today.isoformat()}.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main():
@@ -152,11 +160,28 @@ def main():
         logger.error(f"[Main] Funding failed: {e}")
 
     if not articles and not github_raw:
+        _quality_log(today, {"date": today.isoformat(), "status": "failed",
+                            "failure_reason": "collection_unavailable", "errors": ["No articles collected."]})
         logger.error("[Main] No headline or GitHub articles collected; aborting report generation")
         raise SystemExit(1)
 
+    # Keep public-source observations available even when publication is held.
+    # X bookmarks are deliberately omitted from diagnostic artifacts.
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    (LOG_DIR / f"daily_candidate_{today.isoformat()}.json").write_text(
+        json.dumps({"date": today.isoformat(), "articles": articles,
+                    "github": github_raw, "models": benchmark_raw, "funding": funding_raw},
+                   ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
     # === Phase 2: Process with LLM + Evidence ===
     processor = build_processor(args.provider)
+    if not processor.available:
+        reason = getattr(processor.provider, "last_error", "provider_unavailable")
+        _quality_log(today, {"date": today.isoformat(), "status": "failed",
+                            "provider": args.provider, "failure_reason": reason,
+                            "errors": ["A production-authorized Japanese provider is unavailable."]})
+        logger.error("[Main] Publication held: %s", reason)
+        raise SystemExit(1)
 
     processed = processor.process_batch(articles)
     logger.info(f"[Main] Processed {len(processed)} news articles")
@@ -194,6 +219,17 @@ def main():
             f"github {before[3]}->{after[3]}"
         )
 
+    all_news = processed + github_processed + benchmark_processed + funding_processed
+    quality = validate_articles(all_news, min_articles=3, min_sources=2)
+    quality.update({"date": today.isoformat(), "provider": args.provider,
+                    "model": getattr(getattr(processor.provider, "config", None), "model", "")})
+    if quality["status"] != "passed":
+        quality["failure_reason"] = failure_reason(all_news, quality)
+        _quality_log(today, quality)
+        logger.error("[Main] Publication held: %s", "; ".join(quality["errors"]))
+        raise SystemExit(1)
+    _quality_log(today, quality)
+
     # === Phase 3: Write multi-section report ===
     formatter = DayFileFormatter()
     formatter.write(
@@ -203,40 +239,31 @@ def main():
         funding_articles=funding_processed,
     )
 
-    # === Phase 4: Update archive ===
-    archive_script = PROJECT_ROOT / "update_news_archive.py"
-    if archive_script.exists():
-        try:
-            subprocess.run(
-                [sys.executable, str(archive_script)],
-                cwd=str(PROJECT_ROOT), timeout=60,
-            )
-            logger.info("[Main] Archive updated")
-        except Exception as e:
-            logger.warning(f"[Main] Archive update failed: {e}")
-
-    # === Phase 5: Generate HTML report (auto_daily_report — Top15 curated) ===
+    # Rendering and indexing are required stages. Never log-and-continue a
+    # failed stage or rewrite historical dates through legacy mtime guessing.
     try:
         html_path = generate_html_report(output_path)
-        if html_path:
-            logger.info(f"[Main] HTML report: {html_path}")
-    except Exception as e:
-        logger.warning(f"[Main] HTML report generation failed: {e}")
-
-    # === Phase 6: Generate daily-news/ page (full timeline incl. X bookmarks) ===
-    try:
+        if not html_path:
+            raise RuntimeError("HTML report not generated")
         dn_path = generate_daily_news(
-            today,
-            articles=processed,
-            github_articles=github_processed,
-            benchmark_articles=benchmark_processed,
-            funding_articles=funding_processed,
-            x_articles=x_articles,
+            today, articles=processed, github_articles=github_processed,
+            benchmark_articles=benchmark_processed, funding_articles=funding_processed,
+            x_articles=x_articles, quality=quality,
         )
-        if dn_path:
-            logger.info(f"[Main] daily-news page: {dn_path}")
-    except Exception as e:
-        logger.warning(f"[Main] daily-news generation failed: {e}")
+        if not dn_path:
+            raise RuntimeError("Daily News not generated")
+        for command in (
+            [sys.executable, "scripts/sync_daily_search.py", "--root", str(PROJECT_ROOT)],
+            ["node", "scripts/build-homepage-latest.js"],
+            [sys.executable, "scripts/check_daily_publication.py", "--root", str(PROJECT_ROOT),
+             "--date", today.isoformat(), "--require-quality"],
+        ):
+            subprocess.run(command, cwd=str(PROJECT_ROOT), check=True, timeout=120)
+    except Exception as error:
+        quality.update(status="failed", failure_reason="render_or_validation_failed",
+                       errors=[f"Required publication stage failed: {type(error).__name__}"])
+        _quality_log(today, quality)
+        raise
 
     total = len(processed) + len(github_processed) + len(benchmark_processed) + len(funding_processed) + len(x_articles)
     logger.info(f"[Main] Done: {total} total items -> {output_path}")

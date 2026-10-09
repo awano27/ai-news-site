@@ -119,7 +119,7 @@ def test_required_manifest_entry_rejects_a_glob(tmp_path: Path) -> None:
 
 def test_regenerated_historical_news_json_publishes_with_the_day(tmp_path: Path) -> None:
     repo, manifest = create_repo(tmp_path)
-    today_path = "public-pages/news/2026-07-18.json"
+    today_path = "public-pages/news/daily/2026-07-18.json"
     historical_path = "public-pages/news/2026-06-07.json"
     assert today_path in manifest.required
     (repo / today_path).write_text("today\n", encoding="utf-8")
@@ -316,3 +316,30 @@ def test_publish_stages_the_single_validated_status_snapshot(monkeypatch, tmp_pa
 
     assert result == 0
     assert add_calls == [("add", "-f", "--", validated_path)]
+
+
+def test_manifest_requires_synced_search_and_homepage():
+    manifest = load_manifest(MANIFEST_PATH, REPORT_DATE)
+    for path in ('public-pages/news/daily/2026-07-18.json', 'public-pages/news/search_index.json',
+                 'index.html', 'news/latest.json', 'presentations/news_archive.html'):
+        assert path in manifest.required
+
+
+def test_strict_publication_fails_before_commit_if_bundle_is_invalid(tmp_path):
+    repo, manifest = create_repo(tmp_path)
+    (repo / manifest.required[0]).write_text('updated\n')
+    before = git(repo, 'rev-parse', 'HEAD').stdout
+    result = publish_daily_report.publish(repo, REPORT_DATE, 'publish', require_quality=True)
+    assert result == 1
+    assert git(repo, 'rev-parse', 'HEAD').stdout == before
+    assert not git(repo, 'diff', '--cached', '--name-only').stdout
+
+
+def test_strict_push_never_rebases_or_overwrites_remote(monkeypatch, tmp_path):
+    calls=[]
+    def reject(_repo,args,**kwargs):
+        calls.append(tuple(args))
+        return subprocess.CompletedProcess(args,1,'','non-fast-forward')
+    monkeypatch.setattr(publish_daily_report,'_git',reject)
+    assert publish_daily_report._push_validated_bundle(tmp_path)==1
+    assert calls==[('push','origin','HEAD:main')]

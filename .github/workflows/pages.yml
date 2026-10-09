@@ -1,12 +1,15 @@
 name: Deploy to GitHub Pages
 
-# Triggers on push to main, plus manual dispatch and a daily safety-net
-# cron (08:00 UTC = 17:00 JST) so the live site self-heals once a day
-# even if an external workflow partially broke it.
+# workflow_run explicitly deploys successful bot-generated daily commits.
+# Push/manual/cron remain general structural deployments of current main.
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Auto Daily Report — Cloud Primary']
+    types: [completed]
+    branches: [main]
   schedule:
     - cron: '0 8 * * *'
 
@@ -17,10 +20,13 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    outputs:
+      revision: ${{ steps.revision.outputs.sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -31,6 +37,12 @@ jobs:
       # data-only workflow auto-committed news JSON.
       - name: Checkout (full tree)
         uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Record exact build revision
+        id: revision
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Check corrected technical claims before packaging
         # Static guard only: warnings still need editorial source review.
@@ -42,12 +54,23 @@ jobs:
         # Legacy articles without metadata and external link outages are not gates.
         run: python scripts/check_claim_evidence.py
 
-      - name: Strip server-side / dev-only paths before deploy
-        # Keep the artifact small + avoid leaking local helpers to the CDN.
+      - name: Refresh linked search and homepage, then verify
+        env:
+          STRICT_DAILY: ${{ github.event_name == 'workflow_run' }}
         run: |
+          python scripts/sync_daily_search.py --root .
+          python scripts/build_search_index.py --root .
           python scripts/refresh_slide_indexes.py
           node scripts/build-homepage-latest.js
           python scripts/build_sitemap.py
+          REPORT_DATE=$(python -c "import json; print(json.load(open('daily-news/data.json'))['date'])")
+          QUALITY_FLAG=()
+          if [ "$STRICT_DAILY" = "true" ]; then QUALITY_FLAG+=(--require-quality); fi
+          python scripts/check_daily_publication.py --root . --date "$REPORT_DATE" "${QUALITY_FLAG[@]}"
+
+      - name: Strip server-side / dev-only paths before deploy
+        # Keep the artifact small + avoid leaking local helpers to the CDN.
+        run: |
           if [ -f input/day/0514.pdf ]; then
             mkdir -p .deploy-keep/input/day
             cp input/day/0514.pdf .deploy-keep/input/day/0514.pdf
@@ -87,10 +110,10 @@ jobs:
             .gitignore \
             .gitattributes \
             .editorconfig \
-            .vercelignore || true
+            .vercelignore
           # Remove large PNG screenshots at repo root (dev captures)
           rm -f index-*.png live-*.png verify-*.png nttdata-*.png \
-                antigravity_*.png *.bak *.bak.* || true
+                antigravity_*.png *.bak *.bak.*
           if [ -f .deploy-keep/input/day/0514.pdf ]; then
             mkdir -p input/day
             cp .deploy-keep/input/day/0514.pdf input/day/0514.pdf
@@ -117,3 +140,22 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+
+  verify:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact published revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.revision }}
+      - name: Verify deployed content against the built repository
+        env:
+          STRICT_DAILY: ${{ github.event_name == 'workflow_run' }}
+        run: |
+          REPORT_DATE=$(python -c "import json; print(json.load(open('daily-news/data.json'))['date'])")
+          QUALITY_FLAG=()
+          if [ "$STRICT_DAILY" = "true" ]; then QUALITY_FLAG+=(--require-quality); fi
+          python scripts/check_daily_publication.py --root . --base-url https://visionhub.jp \
+            --date "$REPORT_DATE" --check-urls --attempts 6 --delay 15 "${QUALITY_FLAG[@]}"

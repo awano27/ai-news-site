@@ -1,54 +1,56 @@
 name: Pages self-heal
 
-# Hourly safety-net: probes a handful of critical URLs and, if any
-# returns 404, fires a fresh Pages build. Keeps the live site resilient
-# against GitHub Pages partial-deploy glitches and Fastly cached 404s.
+# Verify content identity as well as critical URLs. A redeploy cannot repair a
+# missing provider entitlement; daily quality/freshness belongs to the safety net.
 on:
   schedule:
-    - cron: '17 * * * *'   # every hour at :17
-  workflow_dispatch:
+    - cron: '17 * * * *'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
+  actions: write
+
+concurrency:
+  group: pages-self-heal
+  cancel-in-progress: false
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Probe critical URLs
-        id: probe
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Compare public site with latest repository publication
+        id: publication
         run: |
-          set +e
-          URLS=(
-            "https://visionhub.jp/"
-            "https://visionhub.jp/about.html"
-            "https://visionhub.jp/contact.html"
-            "https://visionhub.jp/privacy-policy.html"
-            "https://visionhub.jp/credits.html"
-            "https://visionhub.jp/404.html"
-            "https://visionhub.jp/ads.txt"
-            "https://visionhub.jp/robots.txt"
-            "https://visionhub.jp/sitemap.xml"
-            "https://visionhub.jp/assets/js/analytics.js"
-            "https://visionhub.jp/assets/hero-planck.jpg"
-            "https://visionhub.jp/assets/og/default.png"
-          )
-          FAILED=0
-          for u in "${URLS[@]}"; do
-            CODE=$(curl -sS -o /dev/null -w "%{http_code}" -H "Cache-Control: no-cache" "$u")
-            echo "$CODE  $u"
-            if [ "$CODE" != "200" ]; then
-              FAILED=$((FAILED + 1))
-            fi
-          done
-          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Trigger Pages rebuild if any failure
-        if: steps.probe.outputs.failed != '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "::warning::${{ steps.probe.outputs.failed }} URL(s) failed — triggering Pages rebuild"
-          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+          REPORT_DATE=$(python -c "import json; print(json.load(open('daily-news/data.json'))['date'])")
+          QUALITY_FLAG=()
+          if python -c "import json,sys; sys.exit(json.load(open('daily-news/data.json')).get('quality',{}).get('status') != 'passed')"; then
+            QUALITY_FLAG+=(--require-quality)
+          fi
+          if python scripts/check_daily_publication.py --root . --base-url https://visionhub.jp --date "$REPORT_DATE" --check-urls "${QUALITY_FLAG[@]}"; then
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Public content differs from repository or a critical URL failed."
+          fi
+      - name: Plan bounded recovery
+        if: steps.publication.outputs.healthy != 'true'
+        id: recovery
+        run: python scripts/daily_recovery.py --kind pages --plan
+      - name: Reserve this attempt before dispatch
+        if: steps.recovery.outputs.dispatch == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.recovery.outputs.reservation_name }}
+          path: daily-recovery-state/reservation.json
+          if-no-files-found: error
+          retention-days: 3
+      - name: Dispatch bounded recovery
+        if: steps.recovery.outputs.dispatch == 'true'
+        run: python scripts/daily_recovery.py --kind pages --dispatch

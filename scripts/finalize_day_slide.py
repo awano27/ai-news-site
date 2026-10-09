@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import subprocess
 from datetime import date
 from pathlib import Path
 
@@ -41,11 +42,30 @@ def run_injectors(slide: Path, dry_run: bool) -> None:
     _log(3, 9, "inject_analytics", AnalyticsInjector().process_file(slide, False, dry_run))
 
 
+def run_search_and_home(dry_run: bool) -> int:
+    import build_search_index
+    try:
+        if dry_run:
+            build_search_index.build_index(ROOT)
+        else:
+            build_search_index.write_index(ROOT)
+            subprocess.run(["node", str(ROOT / "scripts/build-homepage-latest.js")],
+                           cwd=ROOT, check=True, timeout=120)
+    except (ValueError, OSError, subprocess.SubprocessError) as error:
+        print(f"[finalize_day_slide] search/home refresh failed: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def run_nav_home_feed_sitemap(dry_run: bool) -> int:
     import build_feed
     import build_sitemap
     import inject_slide_nav
     import update_home_fallback
+
+    rc_search = run_search_and_home(dry_run)
+    if rc_search:
+        return rc_search
 
     nav_argv = ["--dry-run"] if dry_run else []
     rc_nav = inject_slide_nav.main(nav_argv)

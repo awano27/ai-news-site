@@ -232,6 +232,7 @@ def test_runner_invokes_the_reviewed_publisher_with_exact_arguments(tmp_path: Pa
         "--message",
         f"chore(report): local override {report_date}",
         "--push",
+        "--require-quality",
     ]
 
 
@@ -304,7 +305,7 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
     assert "- cron: '0 21 * * *'" in workflow
     assert "workflow_dispatch: {}" in workflow
     assert "permissions:\n  contents: write" in workflow
-    assert "concurrency:\n  group: auto-daily-report-publish\n  cancel-in-progress: false" in workflow
+    assert "concurrency:\n  group: repo-push\n  cancel-in-progress: false" in workflow
     assert "primary:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30" in workflow
     assert "env:\n      TZ: Asia/Tokyo" in workflow
     assert "python -m src.auto_collect.main --provider nvidia --force" in workflow
@@ -316,6 +317,7 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
             "python scripts/publish_daily_report.py \\",
             "            --repo . \\",
             '            --date "$REPORT_DATE" \\',
+            '            --require-quality \\',
             '            --message "chore(report): cloud primary run $REPORT_DATE" \\',
             "            --push",
         )

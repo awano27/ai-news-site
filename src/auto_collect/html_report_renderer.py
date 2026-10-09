@@ -198,6 +198,7 @@ def _render_model_row(rank: int, item: Dict) -> str:
   <span class="gh-n">{rank:02d}</span>
   <div class="gh-info">
     <div class="gh-name"><a href="{_esc(item.get('url',''))}" target="_blank">{_esc(item.get("title",""))}</a></div>
+    <div class="gh-desc mdl-summary">{_esc(item.get("summary", ""))}</div>
     {f'<div class="gh-desc">{_esc(metrics)}</div>' if metrics else ""}
     {f'<span class="gh-cmd">{_esc(item.get("actionable",""))}</span>' if item.get("actionable") else ""}
   </div>

@@ -88,6 +88,9 @@ class DayFileFormatter:
 
         # Write file
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Each element is one typed transport line. Untrusted model/source
+        # newlines must not manufacture a new article, section, or URL field.
+        lines = [" ".join(line.splitlines()) for line in lines]
         output_path.write_text("\n".join(lines), encoding="utf-8")
         logger.info(f"[Formatter] Wrote report to {output_path}")
 
@@ -178,6 +181,8 @@ class DayFileFormatter:
         license_str = evidence.get("license", "")
 
         lines.append(f"■ {title}")
+        if repo.get("source"):
+            lines.append(f"  ソース: {repo['source']}")
         if summary:
             lines.append(f"  {summary}")
         if metrics_str:
@@ -210,12 +215,16 @@ class DayFileFormatter:
         metrics_str = " / ".join(metrics) if metrics else ""
 
         lines.append(f"■ {title}")
+        if model.get("source"):
+            lines.append(f"  ソース: {model['source']}")
+        if model.get("summary"):
+            lines.append(f"  {model['summary']}")
         if metrics_str:
             lines.append(f"  📊 {metrics_str}")
 
         impact = evidence.get("impact_ja", "")
         if impact:
-            lines.append(f"  {impact}")
+            lines.append(f"  🇯🇵 影響: {impact}")
 
         actionable = evidence.get("actionable", "")
         if actionable:

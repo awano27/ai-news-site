@@ -31,6 +31,7 @@ def install_deterministic_pipeline(monkeypatch, tmp_path, *, headlines, github):
     )
     monkeypatch.setattr(auto_collect_main, "INPUT_DAY_DIR", tmp_path)
     monkeypatch.setattr(auto_collect_main, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(auto_collect_main, "LOG_DIR", tmp_path / "logs")
 
     monkeypatch.setattr(
         auto_collect_main, "RSSAutoCollector", lambda: StaticCollector(headlines)
@@ -63,7 +64,7 @@ def install_deterministic_pipeline(monkeypatch, tmp_path, *, headlines, github):
     return captured_writes
 
 
-def test_unavailable_nvidia_uses_heuristic_fallback(monkeypatch, tmp_path):
+def test_unavailable_nvidia_blocks_before_any_public_output(monkeypatch, tmp_path):
     writes = install_deterministic_pipeline(
         monkeypatch,
         tmp_path,
@@ -81,12 +82,12 @@ def test_unavailable_nvidia_uses_heuristic_fallback(monkeypatch, tmp_path):
         auto_collect_main, "make_provider", lambda _name: UnavailableNvidiaProvider()
     )
 
-    auto_collect_main.main()
-
-    assert len(writes) == 1
-    headline_items, _sections = writes[0]
-    assert headline_items[0]["title"] == "New GPT model released"
-    assert headline_items[0]["score"] == 60
+    with pytest.raises(SystemExit) as exc:
+        auto_collect_main.main()
+    assert exc.value.code == 1
+    assert writes == []
+    assert list((tmp_path / "logs").glob("daily_quality_*.json"))
+    assert list((tmp_path / "logs").glob("daily_candidate_*.json"))
 
 
 def test_empty_headline_and_github_sources_exit_before_provider(monkeypatch, tmp_path):

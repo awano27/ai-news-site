@@ -765,7 +765,16 @@ function updateDailyBriefing() {
   html = replaceElementText(html, 'dailyReportStatus', date && date !== new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10) ? '（最新掲載分・本日分ではありません）' : '');
   html = replaceHrefById(html, 'dailyReportLink', reportUrl, 'daily report', false);
   const archive = readJson(ARCHIVE_INDEX_JSON, []);
-  const newsDate = Array.isArray(archive) ? archive.map(x => x.date).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x || '')).sort().pop() : null;
+  const legacyDate = Array.isArray(archive) ? archive.map(x => x.date).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x || '')).sort().pop() : null;
+  const dailyPath = path.join(ROOT, 'daily-news', 'data.json');
+  const daily = readJson(dailyPath, {});
+  const dailyStamp = Date.parse((daily.date || '') + 'T00:00:00Z');
+  const validDaily = /^\d{4}-\d{2}-\d{2}$/.test(daily.date || '') && Number.isFinite(dailyStamp) &&
+    new Date(dailyStamp).toISOString().slice(0, 10) === daily.date &&
+    Array.isArray(daily.items) && daily.items.length > 0 && daily.total === daily.items.length;
+  // The per-day legacy aggregate index is no longer the daily timeline clock.
+  // If a current payload exists but is invalid, show unknown rather than lie.
+  const newsDate = fs.existsSync(dailyPath) ? (validDaily ? daily.date : null) : legacyDate;
   html = replaceElementText(html, 'dailyNewsDate', newsDate || '未確認');
   fs.writeFileSync(INDEX_HTML, html, 'utf8');
 }

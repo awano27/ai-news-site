@@ -42,21 +42,13 @@ case "${1:-daily}" in
         python3 -m src.auto_collect.main --force >> "$LOG_FILE" 2>&1
         echo "$(date): Daily collection complete" >> "$LOG_FILE"
 
-        # Push the local override. Same path set as the Cloud workflow.
-        if [ -n "$(git status --porcelain)" ]; then
-            git add input/day/*.txt presentations/auto_daily_report.html \
-                    presentations/auto_daily_report.json \
-                    presentations/daily_reports/ \
-                    public-pages/api/auto_daily_report/ \
-                    public-pages/news/ daily-news/ 2>/dev/null || true
-            git add -A presentations/ input/ public-pages/ daily-news/ 2>/dev/null || true
-            git commit -m "chore(report): local override $(date +%F)" >> "$LOG_FILE" 2>&1
-            git push >> "$LOG_FILE" 2>&1 && \
-                echo "$(date): Pushed local override" >> "$LOG_FILE" || \
-                echo "$(date): Push failed (manual resolution needed)" >> "$LOG_FILE"
-        else
-            echo "$(date): No changes after local run (Cloud's output already current)" >> "$LOG_FILE"
-        fi
+        # Publish exactly the same validated bundle as Cloud and Windows.
+        # set -e propagates a rejected/racing push; never claim success after it.
+        python3 scripts/publish_daily_report.py \
+            --repo . --date "$(date +%F)" \
+            --message "chore(report): local override $(date +%F)" \
+            --require-quality --push >> "$LOG_FILE" 2>&1
+        echo "$(date): Pushed validated local override" >> "$LOG_FILE"
         ;;
     weekly)
         echo "$(date): Generating weekly report" >> "$LOG_FILE"

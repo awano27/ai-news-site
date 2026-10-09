@@ -1,7 +1,7 @@
 """Hacker News AI-filtered auto-collector."""
 
 import logging
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from typing import List, Dict, Optional
 
 from scripts.collectors.hn import HackerNewsCollector, HN_API_BASE, ITEM_URL, TOP_STORIES_URL
@@ -21,14 +21,13 @@ class HNAutoCollector(HackerNewsCollector):
         if target_date is None:
             target_date = date.today()
 
-        # Wider date range (28 hours back)
-        start_ts = datetime.combine(
-            target_date - __import__('datetime').timedelta(hours=4),
-            datetime.min.time()
-        ).replace(tzinfo=timezone.utc).timestamp()
-        end_ts = datetime.combine(
-            target_date, datetime.max.time()
-        ).replace(tzinfo=timezone.utc).timestamp()
+        # The previous implementation computed but never applied its window.
+        # Bound both sides in UTC, with historical edition boundaries in JST.
+        jst = timezone(timedelta(hours=9))
+        edition_end = datetime.combine(target_date + timedelta(days=1),
+                                       datetime.min.time()).replace(tzinfo=jst)
+        end_ts = min(datetime.now(timezone.utc).timestamp(), edition_end.timestamp())
+        start_ts = end_ts - 28 * 60 * 60
 
         logger.info(f"[HN] Collecting AI stories for {target_date}")
 
@@ -56,6 +55,8 @@ class HNAutoCollector(HackerNewsCollector):
                     url = item.get("url", "")
                     score = item.get("score", 0)
                     item_time = item.get("time", 0)
+                    if not isinstance(item_time, (int, float)) or not start_ts <= item_time <= end_ts:
+                        continue
 
                     # Filter: AI keywords + score + date
                     text_lower = (title + " " + url).lower()
@@ -79,6 +80,7 @@ class HNAutoCollector(HackerNewsCollector):
                         extra_links={"hn": hn_url}
                     )
                     tool["hn_score"] = score
+                    tool["published_at"] = datetime.fromtimestamp(item_time, timezone.utc).isoformat()
                     tools.append(tool)
 
                 except Exception as e:

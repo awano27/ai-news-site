@@ -76,3 +76,13 @@ def test_javascript_rejects_malformed_editorial_registry(tmp_path,corruption):
     (config/'reviewed_news_summaries.json').write_text(json.dumps(payload))
     with pytest.raises(AssertionError,match='reviewed summaries'):
         build(tmp_path,[{'title':'Original title','url':key,'score':70}])
+
+
+def test_daily_news_date_follows_actual_timeline_on_next_day_rollover(tmp_path):
+    daily=tmp_path/'daily-news';daily.mkdir()
+    (daily/'data.json').write_text(json.dumps({'date':'2026-10-10','total':1,'items':[{'title':'翌日の実記事'}]}))
+    news=tmp_path/'public-pages/news';news.mkdir(parents=True)
+    (news/'archive_index.json').write_text(json.dumps([{'date':'2026-10-09'}]))
+    html,_=build(tmp_path,[{'title':'ニュース','summary':'日本語の説明','score':70}])
+    assert re.search(r'id="dailyNewsDate"[^>]*>2026-10-10<',html)
+    assert re.search(r'id="dailyReportDate"[^>]*>2026-10-09<',html)

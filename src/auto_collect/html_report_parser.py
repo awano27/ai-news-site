@@ -39,25 +39,25 @@ def parse_daily_txt(txt_path: Path) -> Dict:
 
     for line in lines:
         # Section headers
-        if "ヘッドライン速報" in line:
+        if re.match(r"^(?:📰\s*)?ヘッドライン速報(?:[（(]|$)", line):
             if current_item:
                 result[current_section].append(current_item)
                 current_item = None
             current_section = "headlines"
             continue
-        elif "市場・資金動向" in line:
+        elif re.match(r"^(?:💰\s*)?市場・資金動向(?:[（(]|$)", line):
             if current_item:
                 result[current_section].append(current_item)
                 current_item = None
             current_section = "funding"
             continue
-        elif "GitHub Trending" in line:
+        elif re.match(r"^(?:🔥\s*)?GitHub Trending(?:\b|[（(])", line):
             if current_item:
                 result[current_section].append(current_item)
                 current_item = None
             current_section = "github"
             continue
-        elif "HuggingFace注目モデル" in line:
+        elif re.match(r"^(?:🤗\s*)?HuggingFace注目モデル(?:[（(]|$)", line):
             if current_item:
                 result[current_section].append(current_item)
                 current_item = None

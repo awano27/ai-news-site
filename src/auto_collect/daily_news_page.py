@@ -19,7 +19,7 @@ import json
 import logging
 import re
 from collections import Counter
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -94,6 +94,8 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
         score = int(a.get("score", 0) or 0)
         out.append({
             "type": "news",
+            "processing_status": a.get("processing_status", "unverified"),
+            "published_at": a.get("published_at") or a.get("date") or "",
             "title": title,
             "url": url,
             "summary": a.get("summary") or a.get("description") or a.get("tagline") or "",
@@ -253,7 +255,15 @@ def _is_recent(item: Dict, today: date) -> bool:
         if not val:
             continue
         try:
-            return date.fromisoformat(str(val)[:10]) >= cutoff
+            stamp = str(val)
+            if len(stamp) > 10:
+                published = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                if published.tzinfo:
+                    published = published.astimezone(timezone(timedelta(hours=9)))
+                day = published.date()
+            else:
+                day = date.fromisoformat(stamp)
+            return cutoff <= day <= today
         except ValueError:
             continue
     return True
@@ -266,6 +276,7 @@ def generate_daily_news(
     benchmark_articles: Optional[List[Dict]] = None,
     funding_articles: Optional[List[Dict]] = None,
     x_articles: Optional[List[Dict]] = None,
+    quality: Optional[Dict] = None,
 ) -> Optional[Path]:
     """Build daily-news/index.html from collector output."""
     DAILY_NEWS_DIR.mkdir(parents=True, exist_ok=True)
@@ -316,6 +327,9 @@ def generate_daily_news(
         "sources": top_sources,
         "items": timeline,
     }
+
+    if quality is not None:
+        report_data["quality"] = dict(quality)
 
     existing_path = DAILY_NEWS_DIR / "data.json"
     if existing_path.exists():
