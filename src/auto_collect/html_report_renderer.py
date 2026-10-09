@@ -15,6 +15,7 @@ from .ogp_generator import render as _ogp_render
 from . import trend_tracker
 from . import dedup as _dedup
 from .claim_evidence import render_evidence, require_valid_evidence
+from .reviewed_summaries import apply_reviewed_summary, load_reviewed_summaries
 
 TEMPLATE_PATH = Path(__file__).parent / "report_template.html"
 
@@ -228,6 +229,14 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
         headlines=headlines, funding=funding, models=models, github=github,
     )
 
+    # Keep dedup/ranking based on source records, then share the same reviewed
+    # wording between visible rows, Top 3 cards and both JSON report mirrors.
+    reviewed_summaries = load_reviewed_summaries()
+    headlines, funding, github, models = (
+        [apply_reviewed_summary(item, reviewed_summaries) for item in items]
+        for items in (headlines, funding, github, models)
+    )
+
     total = len(headlines) + len(funding) + len(github) + len(models)
     high_score = len([h for h in headlines if h.get("score", 0) >= 80])
     categories: Dict[str, int] = {}
@@ -338,3 +347,4 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
         html = html.replace("{{OG_IMAGE}}", default_og_image)
 
     return html, report_data
+

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Finish a day slide: SEO / JSON-LD / analytics / nav / home / feed / sitemap.
+"""Finish a day slide: SEO / JSON-LD / analytics / indexes / nav / home / feed / sitemap.
 
     py -3 scripts/finalize_day_slide.py 0913
     py -3 scripts/finalize_day_slide.py 0913 --year 2026 --dry-run
@@ -36,9 +36,9 @@ def run_injectors(slide: Path, dry_run: bool) -> None:
     from inject_newsarticle_jsonld import JsonLdInjector
     from inject_seo_meta import SeoMetaInjector
 
-    _log(1, 8, "inject_seo_meta", SeoMetaInjector().process_file(slide, False, dry_run))
-    _log(2, 8, "inject_newsarticle_jsonld", JsonLdInjector().process_file(slide, False, dry_run))
-    _log(3, 8, "inject_analytics", AnalyticsInjector().process_file(slide, False, dry_run))
+    _log(1, 9, "inject_seo_meta", SeoMetaInjector().process_file(slide, False, dry_run))
+    _log(2, 9, "inject_newsarticle_jsonld", JsonLdInjector().process_file(slide, False, dry_run))
+    _log(3, 9, "inject_analytics", AnalyticsInjector().process_file(slide, False, dry_run))
 
 
 def run_nav_home_feed_sitemap(dry_run: bool) -> int:
@@ -49,19 +49,19 @@ def run_nav_home_feed_sitemap(dry_run: bool) -> int:
 
     nav_argv = ["--dry-run"] if dry_run else []
     rc_nav = inject_slide_nav.main(nav_argv)
-    _log(4, 8, "inject_slide_nav", "dry-run" if dry_run else f"exit {rc_nav}")
+    _log(5, 9, "inject_slide_nav", "dry-run" if dry_run else f"exit {rc_nav}")
 
     home_argv = ["--dry-run"] if dry_run else []
     rc_home = update_home_fallback.main(home_argv)
-    _log(5, 8, "update_home_fallback", "dry-run" if dry_run else f"exit {rc_home}")
+    _log(6, 9, "update_home_fallback", "dry-run" if dry_run else f"exit {rc_home}")
 
     feed_argv = ["--dry-run"] if dry_run else []
     rc_feed = build_feed.main(feed_argv)
-    _log(6, 8, "build_feed", f"exit {rc_feed}")
+    _log(7, 9, "build_feed", f"exit {rc_feed}")
 
     sm_argv = ["--dry-run"] if dry_run else []
     rc_sm = build_sitemap.main(sm_argv)
-    _log(7, 8, "build_sitemap", f"exit {rc_sm}")
+    _log(8, 9, "build_sitemap", f"exit {rc_sm}")
     return rc_nav or rc_home or rc_feed or rc_sm
 
 
@@ -72,7 +72,7 @@ def run_checks(slide: Path) -> int:
     rc_seo = check_slide_seo.main([str(slide)])
     rc_cov = check_analytics_coverage.main()
     cov_rc = 1 if rc_cov else 0
-    _log(8, 8, "check_slide_seo+check_analytics_coverage", f"seo={rc_seo} coverage={cov_rc}")
+    _log(9, 9, "check_slide_seo+check_analytics_coverage", f"seo={rc_seo} coverage={cov_rc}")
     return rc_seo or cov_rc
 
 
@@ -103,11 +103,18 @@ def finalize(
         return 1
     print(f"[finalize_day_slide] {stamp} dry_run={dry_run}")
     run_injectors(slide, dry_run)
+    import refresh_slide_indexes
+
+    index_argv = ["--root", str(ROOT)] + (["--dry-run"] if dry_run else [])
+    rc = refresh_slide_indexes.main(index_argv)
+    _log(4, 9, "refresh_slide_indexes", f"exit {rc}")
+    if rc:
+        return rc
     rc = run_nav_home_feed_sitemap(dry_run)
     if checks:
         rc = rc or run_checks(slide)
     else:
-        print("[8/8] checks: skipped")
+        print("[9/9] checks: skipped")
     if indexnow:
         rc = rc or run_indexnow(slide, dry_run)
     return rc
@@ -125,3 +132,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

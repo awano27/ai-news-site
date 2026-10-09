@@ -134,6 +134,53 @@ function readJson(filePath, fallback = null) {
   }
 }
 
+// Explicit editorial copy is reusable by report and homepage regeneration.
+// Unknown URLs remain untouched; this is not an automatic translation service.
+function normalizedArticleUrl(value) {
+  if (typeof value !== 'string') return null;
+  value = value.trim();
+  if (!value || /[\x00-\x20\x7f\\]/.test(value)) return null;
+  const parts = /^(https?):\/\/([^/?#]+)([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/i.exec(value);
+  if (!parts || parts[2].includes('@')) return null;
+  try { new URL(value); } catch (_) { return null; } // Validate hostname/port only.
+  // Keep explicit ports and dot segments distinct, as Python urlsplit does.
+  return parts[1].toLowerCase() + '://' + parts[2].toLowerCase() + parts[3].replace(/\/$/, '') +
+    (parts[4] ? '?' + parts[4] : '') + (parts[5] ? '#' + parts[5] : '');
+}
+let reviewedSummaries;
+function loadReviewedSummaries() {
+  if (reviewedSummaries) return reviewedSummaries;
+  const file = path.join(ROOT, 'config', 'reviewed_news_summaries.json');
+  if (!fs.existsSync(file)) return (reviewedSummaries = new Map());
+  const fail = message => { throw new Error('reviewed summaries: ' + message); };
+  let registry;
+  try { registry = JSON.parse(fs.readFileSync(file, 'utf8')); }
+  catch (_) { fail('invalid JSON registry'); }
+  if (!registry || registry.version !== 1 || !registry.articles || Array.isArray(registry.articles) || typeof registry.articles !== 'object') fail('unsupported registry schema');
+  const records = new Map();
+  const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  for (const [key, copy] of Object.entries(registry.articles)) {
+    const url = normalizedArticleUrl(key);
+    if (!url || records.has(url)) fail('unsafe or duplicate source URL');
+    if (!copy || !['title', 'tldr', 'summary', 'impact', 'source_url', 'source_date', 'reviewed_at', 'review_method', 'publisher']
+      .every(field => typeof copy[field] === 'string' && copy[field].trim())) fail('nonempty copy and source metadata required');
+    if (normalizedArticleUrl(copy.source_url) !== url) fail('source URL must match its registry key');
+    if (!validDate(copy.source_date) || !validDate(copy.reviewed_at) || copy.reviewed_at < copy.source_date) fail('valid source/review dates required');
+    records.set(url, copy);
+  }
+  return (reviewedSummaries = records);
+}
+function reviewedSummary(item) {
+  const registry = loadReviewedSummaries();
+  if (!item || item.claim_evidence != null) return item;
+  const copy = registry.get(normalizedArticleUrl(item.url || (item.source && item.source.url)));
+  if (!copy) return item;
+  return { ...item, title: copy.title, tldr: copy.tldr, summary: copy.summary, impact: copy.impact,
+    reviewed_summary: { source_url: copy.source_url, source_date: copy.source_date,
+      reviewed_at: copy.reviewed_at, review_method: copy.review_method } };
+}
+
 function escapeHtml(value) {
   return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;',
@@ -195,16 +242,6 @@ function scoreOf(item) {
 
 function collectRankingItems(data, slideUrl) {
   const pool = [];
-  if (data && data.highlight && data.highlight.title) {
-    pool.push({
-      title: data.highlight.title,
-      category: data.highlight.category || '本日のスライド',
-      stars: data.highlight.stars || 5,
-      source: sourceName(data.highlight),
-      url: sourceUrl(data.highlight, slideUrl),
-    });
-  }
-
   const sections = data && data.sections ? data.sections : {};
   for (const [category, items] of Object.entries(sections)) {
     if (!Array.isArray(items)) continue;
@@ -226,24 +263,18 @@ function collectRankingItems(data, slideUrl) {
 }
 
 function rankingCardHtml(item, index) {
-  const score = scoreOf(item);
-  const pct = Math.round((score / 5) * 100);
   const href = escapeHtml(item.url || '#');
   const rel = href.startsWith('http') ? ' target="_blank" rel="noopener noreferrer"' : '';
   const category = escapeHtml(item.category || 'NEWS');
-  const title = escapeHtml(item.title || '最新ランキングを開く');
+  const title = escapeHtml(item.title || 'ニュース一覧を開く');
   const source = escapeHtml(item.source || 'AI Intelligence Hub');
   return [
-    `          <a class="ranking-card" href="${href}"${rel} aria-label="${escapeHtml(index + 1)}位: ${title}">`,
-    `            <div class="rc-rank">${String(index + 1).padStart(2, '0')}</div>`,
+    `          <a class="ranking-card" href="${href}"${rel} aria-label="${title}">`,
+
     '            <div class="rc-body">',
     `              <span class="rc-tag">${category}</span>`,
     `              <h3 class="rc-title">${title}</h3>`,
     `              <span class="rc-source">${source}</span>`,
-    '              <div class="rc-foot">',
-    `                <div class="rc-bar"><div class="rc-fill" style="width:${pct}%"></div></div>`,
-    `                <span class="rc-score">${score.toFixed(1)} / 5</span>`,
-    '              </div>',
     '            </div>',
     '          </a>',
   ].join('\n');
@@ -458,9 +489,12 @@ function updateHomepage(data, slide, slideUrl) {
   html = replaceElementText(html, 'heroTwist', heroTwist, 'hero twist', false);
   html = replaceElementText(html, 'heroWhy', heroWhy, 'hero explanation', false);
 
+  html = replaceElementText(html, 'rankingNewsDate', data.news_date || '未確認');
+  const newsArchive = data.news_date && `daily-news/archive/${data.news_date}.html`;
+  html = replaceHrefById(html, 'rankingNewsLink', newsArchive && fs.existsSync(path.join(ROOT, newsArchive)) ? newsArchive : 'daily-news/', 'news picks link', false);
   const rankingFallback = rankingItems.length
     ? rankingItems.map(rankingCardHtml).join('\n')
-    : `          <a class="ranking-card" href="presentations/ai_ranking_report_latest.html">\n            <div class="rc-rank">--</div>\n            <div class="rc-body"><h3 class="rc-title">最新ランキングを開く</h3><span class="rc-source">AI Intelligence Hub</span></div>\n          </a>`;
+    : `          <a class="ranking-card" href="daily-news/">\n            <div class="rc-body"><h3 class="rc-title">ニュース一覧を開く</h3><span class="rc-source">AI Intelligence Hub</span></div>\n          </a>`;
   html = replaceGrid(
     html,
     'rankingGrid',
@@ -473,7 +507,7 @@ function updateHomepage(data, slide, slideUrl) {
   html = replaceGrid(
     html,
     'catGrid',
-    `        <div id="catGrid" class="cat-grid">\n${catFallback}\n          <noscript>\n            <div class="cat-card"><div class="cat-label">LATEST</div><div class="cat-title">${escapeHtml(heroTitle)}</div><div class="cat-source"><a href="${slideUrl}">今日のスライドを見る →</a></div></div>\n          </noscript>\n        </div>`
+    `        <div id="catGrid" class="cat-grid" data-news-date="${escapeHtml(data.news_date || '')}">\n${catFallback}\n          <noscript>\n            <div class="cat-card"><div class="cat-label">LATEST</div><div class="cat-title">${escapeHtml(heroTitle)}</div><div class="cat-source"><a href="${slideUrl}">今日のスライドを見る →</a></div></div>\n          </noscript>\n        </div>`
   );
 
   html = replaceFirst(
@@ -622,7 +656,7 @@ function buildSectionsFromAutoDaily() {
 
   const sections = {};
 
-  const headlines = Array.isArray(data.headlines) ? data.headlines.slice() : [];
+  const headlines = Array.isArray(data.headlines) ? data.headlines.map(reviewedSummary) : [];
   headlines.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
   for (const h of headlines) {
     const bucket = CATEGORY_MAP[h.category] || 'tech';
@@ -695,15 +729,16 @@ function updateDailyBriefing() {
   const short = (value) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 180);
   const japanese = (value) => /[ぁ-んァ-ヶ一-龯]/.test(value || '');
   const seen = new Set();
-  const items = (Array.isArray(report.headlines) ? report.headlines : [])
+  const items = (Array.isArray(report.headlines) ? report.headlines : []).map(reviewedSummary)
     .filter(item => item && item.title && !seen.has(item.title) && seen.add(item.title))
     .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)).slice(0, 3);
   const reportUrl = date && fs.existsSync(path.join(ROOT, 'presentations', 'daily_reports', `auto_daily_report_${date.replace(/-/g, '_')}.html`))
     ? `presentations/daily_reports/auto_daily_report_${date.replace(/-/g, '_')}.html` : 'presentations/auto_daily_report.html';
   const content = date && items.length ? items.map(item => {
-    const change = [item.tldr, item.summary].find(japanese) || '日本語の要約は日次レポートで確認してください。';
-    const impact = japanese(item.impact) ? item.impact : '関係する利用者・分野は日次レポートで確認してください。';
-    return `<li><h3>${escapeHtml(item.title)}</h3><p><strong>何が変わったか:</strong> ${escapeHtml(short(change))}</p><p><strong>誰に関係するか:</strong> ${escapeHtml(short(impact))}</p></li>`;
+    const change = [item.tldr, item.summary].find(japanese) || '日本語要約は未作成です。原文の出典をご確認ください。';
+    const impact = japanese(item.impact) ? item.impact : '影響対象は未確認です。';
+    const sourceLink = /^https?:\/\//i.test(item.url || '') ? ` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">出典を読む →</a>` : '';
+    return `<li><h3>${escapeHtml(item.title)}</h3><p><strong>何が変わったか:</strong> ${escapeHtml(short(change))}</p><p><strong>誰に関係するか:</strong> ${escapeHtml(short(impact))}</p>${sourceLink}</li>`;
   }).join('\n') : '<li>主要ニュースは更新待ちです。日次レポートをご確認ください。</li>';
   html = html.replace(/<!-- homepage:headlines -->[\s\S]*?<!-- homepage:headlines:end -->/, `<!-- homepage:headlines --><ol id="dailyHeadlines">${content}</ol><!-- homepage:headlines:end -->`);
   html = replaceElementText(html, 'dailyReportDate', date || '未確認');
@@ -744,15 +779,19 @@ function main() {
       publishedNews.sections && !Array.isArray(publishedNews.sections) &&
       Object.values(publishedNews.sections).every(Array.isArray) &&
       Object.values(publishedNews.sections).some((items) => items.length > 0)) {
-    latestNews.sections = publishedNews.sections;
+    latestNews.sections = Object.fromEntries(Object.entries(publishedNews.sections).map(([key, items]) => [key,
+      items.map(item => {
+        const reviewed = reviewedSummary(item);
+        return reviewed === item ? item : { ...reviewed, blurb: reviewed.tldr };
+      })]));
   }
 
   const data = {
     generated_at: toJstIso(slide.date),
     news_date: latestNews.dailyDate,
+    slide_date: slide.date,
     highlight: {
-      category: '本日のスライド',
-      stars: 5,
+      category: '最新のスライド',
       title,
       summary,
       sources: [
@@ -772,3 +811,4 @@ function main() {
 }
 
 main();
+

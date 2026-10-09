@@ -45,6 +45,7 @@ jobs:
       - name: Strip server-side / dev-only paths before deploy
         # Keep the artifact small + avoid leaking local helpers to the CDN.
         run: |
+          python scripts/refresh_slide_indexes.py
           node scripts/build-homepage-latest.js
           python scripts/build_sitemap.py
           if [ -f input/day/0514.pdf ]; then
@@ -115,3 +116,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
