@@ -16,9 +16,37 @@ else:
 INPUT_DAY_DIR = PROJECT_ROOT / "input" / "day"
 LOG_DIR = PROJECT_ROOT / "logs" / "auto_collect"
 
-# Ollama
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_CHAT_URL = "http://localhost:11434/v1/chat/completions"
+# Ollama. Use IPv4 loopback, not "localhost": on the owner's Windows PC,
+# localhost resolves to [::1], and wslrelay forwards that to an old Ollama
+# inside WSL that never answers. The Windows daemon listens on 127.0.0.1.
+_DEFAULT_OLLAMA_ORIGIN = "http://127.0.0.1:11434"
+
+
+def ollama_origin() -> str:
+    """Client origin for Ollama. OLLAMA_BASE_URL wins over OLLAMA_HOST."""
+    raw = (os.environ.get("OLLAMA_BASE_URL") or os.environ.get("OLLAMA_HOST") or "").strip()
+    if not raw:
+        return _DEFAULT_OLLAMA_ORIGIN
+    if "://" not in raw:
+        raw = "http://" + raw
+    raw = raw.rstrip("/")
+    for suffix in ("/v1/chat/completions", "/api/generate", "/api/tags", "/v1", "/api"):
+        if raw.endswith(suffix):
+            raw = raw[: -len(suffix)].rstrip("/")
+            break
+    return raw or _DEFAULT_OLLAMA_ORIGIN
+
+
+def ollama_generate_url() -> str:
+    return ollama_origin() + "/api/generate"
+
+
+def ollama_chat_url() -> str:
+    return ollama_origin() + "/v1/chat/completions"
+
+
+OLLAMA_URL = ollama_generate_url()
+OLLAMA_CHAT_URL = ollama_chat_url()
 OLLAMA_MODEL = "gemma3:4b"
 OLLAMA_TIMEOUT = 120
 

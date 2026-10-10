@@ -481,3 +481,38 @@ def test_anthropic_news_rss_is_not_collected():
     from src.auto_collect.config import EN_RSS_FEEDS, JP_RSS_FEEDS
     urls=[feed['url'] for feed in EN_RSS_FEEDS+JP_RSS_FEEDS]
     assert 'https://www.anthropic.com/news/rss.xml' not in urls
+
+
+def _ollama_provider(monkeypatch):
+    monkeypatch.setattr(llm_provider.LLMProvider, '_health_check', lambda self: True)
+    return llm_provider.make_provider('ollama')
+
+
+def test_ollama_defaults_to_ipv4_loopback_not_localhost(monkeypatch):
+    monkeypatch.delenv('OLLAMA_HOST', raising=False)
+    monkeypatch.delenv('OLLAMA_BASE_URL', raising=False)
+    from src.auto_collect.config import ollama_origin, ollama_generate_url, ollama_chat_url
+    assert ollama_origin()=='http://127.0.0.1:11434'
+    assert ollama_generate_url()=='http://127.0.0.1:11434/api/generate'
+    assert ollama_chat_url()=='http://127.0.0.1:11434/v1/chat/completions'
+    provider=_ollama_provider(monkeypatch)
+    assert provider.config.base_url=='http://127.0.0.1:11434/v1'
+    assert 'localhost' not in provider.config.base_url
+
+
+def test_ollama_base_url_overrides_host(monkeypatch):
+    monkeypatch.setenv('OLLAMA_HOST', '10.0.0.2:11434')
+    monkeypatch.setenv('OLLAMA_BASE_URL', 'http://10.0.0.8:11434/v1/')
+    from src.auto_collect.config import ollama_origin, ollama_generate_url, ollama_chat_url
+    assert ollama_origin()=='http://10.0.0.8:11434'
+    assert ollama_generate_url()=='http://10.0.0.8:11434/api/generate'
+    assert ollama_chat_url()=='http://10.0.0.8:11434/v1/chat/completions'
+    assert _ollama_provider(monkeypatch).config.base_url=='http://10.0.0.8:11434/v1'
+
+
+def test_ollama_host_without_scheme_is_an_http_origin(monkeypatch):
+    monkeypatch.delenv('OLLAMA_BASE_URL', raising=False)
+    monkeypatch.setenv('OLLAMA_HOST', '192.168.1.9:11434')
+    from src.auto_collect.config import ollama_origin
+    assert ollama_origin()=='http://192.168.1.9:11434'
+    assert _ollama_provider(monkeypatch).config.base_url=='http://192.168.1.9:11434/v1'

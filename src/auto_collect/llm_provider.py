@@ -5,7 +5,7 @@ single client class with different base_url / api_key / model values handles
 both:
 
   * Ollama (local, free):
-      base_url = http://localhost:11434/v1
+      base_url = http://127.0.0.1:11434/v1
       requires Ollama daemon running with OLLAMA_MODEL pulled
   * NVIDIA NIM (cloud, separately verified production entitlement required):
       base_url = https://integrate.api.nvidia.com/v1
@@ -24,7 +24,7 @@ from threading import Lock, local
 
 import requests
 
-from .config import OLLAMA_MODEL, OLLAMA_TIMEOUT
+from .config import OLLAMA_MODEL, OLLAMA_TIMEOUT, ollama_origin
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +258,7 @@ def make_provider(name: str = "ollama") -> LLMProvider:
     if name == "ollama":
         cfg = ProviderConfig(
             name="ollama",
-            base_url="http://localhost:11434/v1",
+            base_url=ollama_origin() + "/v1",
             api_key="ollama",
             model=OLLAMA_MODEL,
             timeout=OLLAMA_TIMEOUT,
