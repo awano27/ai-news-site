@@ -173,6 +173,21 @@ def validate_quality(daily):
         require(is_japanese_summary(item.get('summary')), 'Japanese daily summary missing')
         if narrative_title(item):
             require(is_japanese(item.get('title')), 'Japanese daily headline missing')
+    # excluded_item_count is the normalizer's drop count (invalid URL, title,
+    # type, or date) and must stay 0. Quality-gate omissions are a different
+    # record: quality.excluded. They are not copied into excluded_item_count,
+    # and a listed exclusion that is still present in items fails here.
+    excluded_rows = quality.get('excluded') or []
+    require(isinstance(excluded_rows, list), 'quality.excluded must be a list when present')
+    require(quality.get('excluded_count', len(excluded_rows)) == len(excluded_rows), 'quality.excluded_count does not match excluded entries')
+    published = {canonical_url(item.get('url')) for item in articles}
+    for row in excluded_rows:
+        require(isinstance(row, dict), 'quality.excluded entries must be objects')
+        reasons = row.get('errors')
+        require(isinstance(reasons, list) and any(isinstance(reason, str) and reason.strip() for reason in reasons), 'excluded article is missing a reason')
+        url = canonical_url(row.get('url') or '')
+        if url:
+            require(url not in published, 'excluded article was still published')
 
 
 def signature(items):

@@ -102,3 +102,113 @@ def test_empty_headline_and_github_sources_exit_before_provider(monkeypatch, tmp
         auto_collect_main.main()
 
     assert exc_info.value.code == 1
+
+
+GOOD_SUMMARIES = {
+    "voice": "音声モデルが新たに公開されました",
+    "pricing": "画像生成の料金が改定されました",
+    "benchmark": "評価指標の改定が発表されました",
+    "capacity": "推論基盤の増強が発表されました",
+}
+
+
+class ScriptedProvider:
+    available = True
+    name = "ollama"
+    last_error = ""
+
+    def __init__(self):
+        self.config = SimpleNamespace(model="gemma3:4b")
+
+    def chat(self, prompt):
+        if "BROKENJSON" in prompt:
+            return "not json"
+        for key, title in GOOD_SUMMARIES.items():
+            if key in prompt:
+                return (
+                    '{"title_ja":"%s", "summary":"新しいモデルを公開しました。公式サイトで確認できます。", "score":80}'
+                    % title
+                )
+        raise AssertionError("unexpected prompt")
+
+
+def headline(name, url, source):
+    return {
+        "name": name,
+        "tagline": "English source text",
+        "source": source,
+        "rss_source": source,
+        "links": {"official": url},
+    }
+
+
+def test_main_publishes_after_excluding_one_failed_article(monkeypatch, tmp_path, caplog):
+    import json
+    from datetime import date
+
+    writes = install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+            headline("A lab expands inference capacity", "https://example.com/capacity", "Other"),
+        ],
+        github=[{
+            "name": "BROKENJSON owner/tool",
+            "url": "https://github.com/owner/broken",
+            "tagline": "english only",
+            "stars": 10,
+        }],
+    )
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: ScriptedProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", lambda *_args, **_kwargs: tmp_path / "daily.html")
+    with caplog.at_level("WARNING"):
+        auto_collect_main.main()
+    articles, sections = writes[0]
+    assert {row["url"] for row in articles} == {
+        "https://example.com/voice",
+        "https://example.com/pricing",
+        "https://example.com/benchmark",
+        "https://example.com/capacity",
+    }
+    assert sections["github_articles"] == []
+    assert sections["benchmark_articles"] == []
+    assert sections["funding_articles"] == []
+    quality = json.loads((tmp_path / "logs" / f"daily_quality_{date.today().isoformat()}.json").read_text(encoding="utf-8"))
+    assert quality["status"] == "passed"
+    assert quality["article_count"] == 4
+    assert quality["excluded_count"] == 1
+    assert quality["excluded"][0]["url"] == "https://github.com/owner/broken"
+    assert quality["excluded"][0]["errors"]
+    assert "Excluded 1/5 articles" in caplog.text
+
+
+def test_main_holds_publication_when_too_many_articles_fail(monkeypatch, tmp_path):
+    import json
+    from datetime import date
+
+    writes = install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("Quantum chip bulletin BROKENJSON", "https://example.com/bad-1", "Official"),
+            headline("Robotics vendor note BROKENJSON", "https://example.com/bad-2", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+        ],
+        github=[],
+    )
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: ScriptedProvider())
+    with pytest.raises(SystemExit) as exc:
+        auto_collect_main.main()
+    assert exc.value.code == 1
+    assert writes == []
+    quality = json.loads((tmp_path / "logs" / f"daily_quality_{date.today().isoformat()}.json").read_text(encoding="utf-8"))
+    assert quality["status"] == "failed"
+    assert quality["excluded_count"] == 2
+    assert quality["failure_reason"] == "japanese_quality_failed"
+    assert any("too many excluded" in err for err in quality["errors"])

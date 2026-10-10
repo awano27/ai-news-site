@@ -26,7 +26,7 @@ OLLAMA_TIMEOUT = 120
 EN_RSS_FEEDS = [
     {"name": "OpenAI", "url": "https://openai.com/news/rss.xml", "category": "AI Research", "priority": 1},
     {"name": "Google AI", "url": "https://blog.google/technology/ai/rss/", "category": "AI Research", "priority": 1},
-    {"name": "Anthropic", "url": "https://www.anthropic.com/news/rss.xml", "category": "AI Research", "priority": 1},
+    # Anthropic's /news/rss.xml returns 404. A replacement feed is a follow-up.
     {"name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml", "category": "Open Source", "priority": 2},
     {"name": "TechCrunch AI", "url": "https://techcrunch.com/category/artificial-intelligence/feed/", "category": "AI News", "priority": 2},
     {"name": "The Verge AI", "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", "category": "AI News", "priority": 2},
