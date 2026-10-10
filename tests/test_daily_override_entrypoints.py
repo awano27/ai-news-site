@@ -27,6 +27,12 @@ def test_wsl_override_uses_strict_manifest_and_propagates_push_failure(tmp_path)
     assert 'git add -A' not in source
 
 
+def test_wsl_ollama_healthcheck_uses_ipv4_loopback():
+    text=(ROOT/'src/auto_collect/run_daily.sh').read_text(encoding='utf-8')
+    assert 'http://localhost:11434' not in text
+    assert '127.0.0.1:11434' in text
+
+
 def test_windows_override_selects_nvidia_only_after_confirmation():
     text=(ROOT/'scripts/run_daily_override.ps1').read_text(encoding='utf-8')
     assert 'src.auto_collect.provider_selection' in text

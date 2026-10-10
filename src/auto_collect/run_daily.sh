@@ -19,8 +19,14 @@ LOG_FILE="${LOG_DIR}/$(date +%Y%m%d).log"
 
 mkdir -p "$LOG_DIR"
 
-# Ensure Ollama is running
-if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+# Ensure Ollama is running. 127.0.0.1 avoids a localhost -> [::1] relay.
+_ollama_origin="${OLLAMA_BASE_URL:-${OLLAMA_HOST:-http://127.0.0.1:11434}}"
+case "${_ollama_origin}" in
+    http://*|https://*) ;;
+    *) _ollama_origin="http://${_ollama_origin}" ;;
+esac
+_ollama_origin="${_ollama_origin%/}"
+if ! curl -s "${_ollama_origin}/api/tags" > /dev/null 2>&1; then
     echo "$(date): Starting Ollama..." >> "$LOG_FILE"
     OLLAMA_HOST=0.0.0.0:11434 nohup ollama serve >> /tmp/ollama.log 2>&1 &
     sleep 5
