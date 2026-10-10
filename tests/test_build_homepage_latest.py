@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,7 +29,35 @@ class Homepage(HTMLParser):
         return matches[0]
 
 
+def assert_archive_at_page_end(html):
+    page = BeautifulSoup(html, "html.parser")
+    main = page.find("main", id="main")
+    archive = page.find("section", id="archive")
+    assert archive is not None and archive.parent is main
+    assert main.find_all(recursive=False)[-1] is archive
+    assert archive.find_previous_sibling("section").get("id") == "resources"
+    assert main.find_next_sibling().name == "footer"
+    assert len(page.select("#archive")) == 1
+    assert archive.find("h2").get_text(strip=True) == "過去のすべてのAIニュースを、ここから。"
+    assert {a["href"] for a in archive.find_all("a")} == {
+        "presentations/news_archive.html", "presentations/day_slides_index.html",
+        "presentations/daily_reports_archive.html", "presentations/ai_ranking_report_latest.html",
+    }
+    assert all(a.get_text(strip=True) for a in archive.find_all("a"))
+    for elem_id in ("statSlides", "statItems", "statUpdated"):
+        assert len(page.select("#" + elem_id)) == 1
+    search = main.select_one(".home-search")
+    assert search.find("h2", id="searchHeading") is not None
+    assert {a["href"] for a in search.find_all("a")} == {"daily-news/", "presentations/news_archive.html"}
+    assert list(main.children).index(search) < list(main.children).index(archive)
+
+
+def test_archive_is_last_main_content_with_accessible_search_links():
+    assert_archive_at_page_end((ROOT / "index.html").read_text(encoding="utf-8"))
+
+
 def assert_entry_contract(html):
+    assert_archive_at_page_end(html)
     page = Homepage(html)
     assert [a.get("id") for t, a in page.elements if t == "h1"] == ["heroIdentity"]
     assert page.by_id("heroDescription")[0] == "p"
