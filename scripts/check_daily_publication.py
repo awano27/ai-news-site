@@ -162,6 +162,10 @@ def narrative_title(item):
 
 def validate_quality(daily):
     quality = daily.get('quality') or {}
+    if quality.get('mode') == 'editorial_review':
+        from scripts.publish_editorial_recovery import validate_editorial_quality
+        validate_editorial_quality(daily)
+        return
     require(quality.get('status') == 'passed', 'quality.status must be passed; legacy/missing or degraded quality is not fresh')
     require(bool(quality.get('provider')) and bool(quality.get('model')), 'quality provider/model provenance is missing')
     articles = [item for item in daily['items'] if item.get('type') != 'x']
@@ -188,6 +192,18 @@ def validate_quality(daily):
         url = canonical_url(row.get('url') or '')
         if url:
             require(url not in published, 'excluded article was still published')
+
+
+def validate_editorial_notice(page, items, label):
+    from scripts.publish_editorial_recovery import NOTICE
+    text = page.elements.get('editorial-publication-notice', '')
+    require(NOTICE in text and '自動収集は未復旧' in text, f'{label} editorial notice missing or hidden')
+    notices = [node for node in page.nodes if node['id'] == 'editorial-publication-notice' and not node['hidden']]
+    require(len(notices) == 1, f'{label} requires one visible editorial notice')
+    for item in items:
+        require(any(node['tag'] == 'li' and not node['hidden'] and canonical_url(item['url']) in node['links']
+                    and f"原文掲載日: {item['published_at']}" in node['text']
+                    for node in notices[0]['descendants']), f'{label} source-linked publication date missing')
 
 
 def signature(items):
@@ -252,7 +268,10 @@ def verify(source, expected_date, require_quality=False, expected=None, check_ur
                 if section not in {'github', 'models'}:
                     require(is_japanese(item.get('title')), f'Japanese report {section} title missing')
     for relative, data, label in [('daily-news/index.html', daily, 'daily HTML'), ('presentations/auto_daily_report.html', report, 'report HTML')]:
-        page = Page(source.text(relative))
+        page_text = source.text(relative)
+        page = Page(page_text)
+        if require_quality and (daily.get('quality') or {}).get('mode') == 'editorial_review':
+            validate_editorial_notice(page, daily['items'], label)
         require(page.meta.get('report:date') == expected_date, f'{label} date mismatch')
         require(page.meta.get('report:total') == str(data.get('total')), f'{label} total mismatch')
         wanted = data.get('items', report_items)
@@ -263,7 +282,16 @@ def verify(source, expected_date, require_quality=False, expected=None, check_ur
             else:
                 for name, rows in sections.items():
                     validate_rendered(page, rows, False, name)
-    homepage = Page(source.text('index.html'))
+    home_text = source.text('index.html')
+    homepage = Page(home_text)
+    if require_quality and (daily.get('quality') or {}).get('mode') == 'editorial_review':
+        from scripts.publish_editorial_recovery import CONTENT_FIELDS, validate_editorial_quality
+        validate_editorial_notice(homepage, daily['items'], 'homepage')
+        validate_editorial_quality({'date': report['date'], 'total': report['total'], 'items': report_items, 'quality': report.get('quality')})
+        require(report.get('quality') == daily['quality'] == api.get('quality'), 'report editorial provenance mismatch')
+        for item in report_items:
+            original = daily_rows[canonical_url(item['url'])]
+            require(all(item.get(key) == original.get(key) for key in CONTENT_FIELDS + ('editorial_review', 'processing_status')), 'report editorial source/copy mismatch')
     require(homepage.elements.get('dailyReportDate', '').strip() == expected_date, 'homepage dailyReportDate mismatch')
     require(homepage.elements.get('dailyNewsDate', '').strip() == expected_date, 'homepage dailyNewsDate mismatch')
     first = headlines[0]
@@ -284,6 +312,8 @@ def verify(source, expected_date, require_quality=False, expected=None, check_ur
         for relative in ['about.html', 'contact.html', 'privacy-policy.html', 'credits.html', '404.html', 'ads.txt', 'robots.txt', 'sitemap.xml', 'assets/js/analytics.js', 'assets/hero-planck.jpg', 'assets/og/default.png']:
             require(bool(source.read(relative).strip()), f'critical URL {relative} is empty')
     mode = 'quality and content passed' if require_quality else 'structural checks passed; publication quality not certified'
+    if require_quality and (daily.get('quality') or {}).get('mode') == 'editorial_review':
+        mode = 'editorial source review and content passed; automatic collection not recovered'
     return f"{expected_date}: {len(items)} daily items, {len(search_rows)} searchable news rows; excluded={normalized_daily.get('excluded_item_count', 0)}, duplicates={normalized_daily.get('duplicate_item_count', 0)}; {mode}"
 
 

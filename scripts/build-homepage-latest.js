@@ -665,7 +665,9 @@ function buildSectionsFromAutoDaily() {
       blurb: blurbFor(h),
       category: bucket,
       date: reportDate || '',
-      stars: starsForScore(h.score, h.importance),
+      stars: h.score_status === 'unscored' ? null : starsForScore(h.score, h.importance),
+      ...(h.published_at ? { published_at: h.published_at } : {}),
+      ...(h.score_status ? { score_status: h.score_status } : {}),
       source: normalizeSource(h, h.source),
       ...claimEvidenceFor(h, reportDate),
     });
@@ -776,6 +778,14 @@ function updateDailyBriefing() {
   // If a current payload exists but is invalid, show unknown rather than lie.
   const newsDate = fs.existsSync(dailyPath) ? (validDaily ? daily.date : null) : legacyDate;
   html = replaceElementText(html, 'dailyNewsDate', newsDate || '未確認');
+  // The edition owns this notice. Remove it as soon as automatic news returns.
+  html = html.replace(/<aside\b[^>]*\bid=["']editorial-publication-notice["'][^>]*>[\s\S]*?<\/aside>/g, '');
+  if (report.quality && report.quality.mode === 'editorial_review') {
+    const sourceDates = (report.headlines || []).map(item =>
+      `<li><a href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">${escapeHtml(item.title || '')}</a> — 原文掲載日: ${escapeHtml(item.published_at || '未確認')}</li>`).join('');
+    const notice = `<aside id="editorial-publication-notice" style="margin:1rem auto;padding:1rem;max-width:1200px;border:1px solid #e5ad54;background:#18212e;color:#f4e5c6;line-height:1.8"><strong>編集確認済み・3件の暫定版</strong><br>アシスタントが原文を読み、出典と掲載日を確認した暫定版です。発表元の主張を独立検証したものではありません。自動収集は未復旧です。重要度スコアは未評価です。<br>版の日付: ${escapeHtml(date || '')}<ul>${sourceDates}</ul></aside>`;
+    html = html.replace(/(<body\b[^>]*>)/i, '$1' + notice);
+  }
   fs.writeFileSync(INDEX_HTML, html, 'utf8');
 }
 

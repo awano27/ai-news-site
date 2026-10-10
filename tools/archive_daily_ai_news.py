@@ -23,6 +23,7 @@ import re
 from pathlib import Path
 from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / 'public-pages' / 'news'
@@ -205,6 +206,20 @@ def parse_items_clean(html: str) -> list[dict]:
 # Override to use cleaned parser
 parse_items = parse_items_clean
 
+def usable_items(html: str) -> list[dict]:
+    """Ignore empty layout cards and require an article source link."""
+    def valid_url(value):
+        try:
+            parts = urlsplit(str(value or ''))
+            return parts.scheme in ('http', 'https') and bool(parts.hostname)
+        except ValueError:
+            return False
+
+    return [item for item in parse_items(html)
+            if str(item.get('title') or '').strip()
+            and (valid_url(item.get('url'))
+                 or any(valid_url(link.get('href')) for link in item.get('links', [])))]
+
 def main():
     if len(sys.argv) > 1:
         try:
@@ -218,12 +233,16 @@ def main():
         day = dt.datetime.now(tz=jst).date()
 
     html, source_url = fetch_remote()
-    items = parse_items(html)
+    items = usable_items(html)
     # Fallback to local file if remote parsing yields no items
     if len(items) == 0 and LOCAL_FALLBACK.exists():
         html = LOCAL_FALLBACK.read_text(encoding='utf-8', errors='ignore')
-        items = parse_items(html)
+        items = usable_items(html)
         source_url = str(LOCAL_FALLBACK)
+
+    if not items:
+        print('No news items found; existing snapshots and indexes were preserved.', file=sys.stderr)
+        return 1
 
     date_str = day.isoformat()
     # Write snapshot HTML and JSON
@@ -252,4 +271,5 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main() or 0)
+
 

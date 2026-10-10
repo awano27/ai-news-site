@@ -393,7 +393,7 @@
           <button class="filter-btn" data-role="pm" type="button">企画・PM</button>
           <button class="filter-btn" data-role="dev" type="button">開発</button>
         </div>
-        <p class="result-meta" id="resultMeta">表示件数: 0件</p>
+        <p class="result-meta" id="resultMeta">表示ツール: 0件（0カード）</p>
       </div>
     </section>
 
@@ -2743,6 +2743,7 @@
         const query = (searchInput.value || '').toLowerCase().trim();
         const tokens = query ? query.split(/\s+/).filter(Boolean) : [];
         let count = 0;
+        const visibleToolNames = new Set();
 
         cards.forEach((card) => {
           const tags = (card.dataset.tags || '').split(',').map((t) => t.trim());
@@ -2757,7 +2758,11 @@
 
           const visible = matchPurpose && matchRole && matchSearch;
           card.style.display = visible ? 'block' : 'none';
-          if (visible) count += 1;
+          if (visible) {
+            count += 1;
+            // Featured and category cards can refer to the same tool.
+            visibleToolNames.add(card.querySelector('h3').textContent.trim());
+          }
         });
 
         document.querySelectorAll('.cards[data-group]').forEach((section) => {
@@ -2772,7 +2777,7 @@
           section.style.display = visibleCount === 0 ? 'none' : '';
         });
 
-        resultMeta.textContent = '表示件数: ' + count + '件';
+        resultMeta.textContent = '表示ツール: ' + visibleToolNames.size + '件（' + count + 'カード）';
         emptyState.style.display = count === 0 ? 'block' : 'none';
       }
 

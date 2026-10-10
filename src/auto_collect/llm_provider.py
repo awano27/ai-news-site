@@ -96,6 +96,8 @@ class LLMProvider:
         if getattr(self, "_pace_lock", None) is None:
             self._pace_lock = Lock()
             self._next_allowed = 0.0
+            self._dispatch_after = 0.0
+            self._cooldown_until = 0.0
             self._waited = 0.0
 
     def _env_float(self, name: str) -> Optional[float]:
@@ -127,31 +129,44 @@ class LLMProvider:
             configured = 600.0
         return max(0.0, configured)
 
-    def _await_interval(self) -> bool:
-        """Reserve the next call slot under the lock, then sleep outside it."""
+    def _await_interval(self, minimum_wait: float = 0.0) -> bool:
+        """Reserve a paced slot, rechecking shared cooldowns after sleeping."""
         self._ensure_pace()
         interval = self._min_interval()
-        with self._pace_lock:
-            now = monotonic()
-            start = max(now, self._next_allowed)
-            delay = start - now
-            if self._waited + delay > self._max_total_wait() + 1e-9:
-                return False
-            self._waited += delay
-            self._next_allowed = start + interval
-        if delay > 0:
-            sleep(delay)
-        return True
+        while True:
+            with self._pace_lock:
+                now = monotonic()
+                start = max(now, self._next_allowed, self._cooldown_until)
+                delay = max(minimum_wait, start - now)
+                start = now + delay
+                if self._waited + delay > self._max_total_wait() + 1e-9:
+                    return False
+                self._waited += delay
+                self._next_allowed = start + interval
+            if delay > 0:
+                sleep(delay)
+            minimum_wait = 0.0
+            with self._pace_lock:
+                # Sleep has reached at least the reserved start. Use the
+                # actual wake time if scheduling delayed this worker further.
+                now = max(start, monotonic())
+                if start >= self._cooldown_until and now >= self._dispatch_after:
+                    self._dispatch_after = now + interval
+                    self._next_allowed = max(self._next_allowed, self._dispatch_after)
+                    return True
+                # A cooldown or a late worker invalidated this slot. Reserve
+                # another rather than releasing sleeping workers in a burst.
 
     def _consume_wait(self, seconds: float) -> bool:
+        """Publish backoff for every worker; charge its sleep in _await_interval."""
         self._ensure_pace()
         seconds = max(0.0, float(seconds))
         with self._pace_lock:
+            # Publish even when this caller cannot retry, so other workers
+            # cannot bypass a Retry-After that exceeds the remaining budget.
+            self._cooldown_until = max(self._cooldown_until, monotonic() + seconds)
             if self._waited + seconds > self._max_total_wait() + 1e-9:
                 return False
-            self._waited += seconds
-        if seconds > 0:
-            sleep(seconds)
         return True
 
     def _retry_delay(self, response, attempt: int) -> float:
@@ -181,8 +196,9 @@ class LLMProvider:
                    "Authorization": f"Bearer {self.config.api_key}"}
         attempts = self._max_attempts()
         retryable = {429, 500, 502, 503, 504}
+        delay = 0.0
         for attempt in range(attempts):
-            if not self._await_interval():
+            if not self._await_interval(delay):
                 self.last_error = "wait_budget_exceeded"
                 logger.warning("[%s] wait budget exceeded before request", self.name)
                 return None
@@ -191,9 +207,11 @@ class LLMProvider:
                                          timeout=timeout or self.config.timeout)
             except (requests.Timeout, requests.ConnectionError):
                 self.last_error = "network_error"
-                if attempt < attempts - 1 and self._consume_wait(self._retry_delay(None, attempt)):
-                    logger.warning("[%s] retrying after network error (attempt %s)", self.name, attempt + 1)
-                    continue
+                if attempt < attempts - 1:
+                    delay = self._retry_delay(None, attempt)
+                    if self._consume_wait(delay):
+                        logger.warning("[%s] retrying after network error (attempt %s)", self.name, attempt + 1)
+                        continue
                 logger.warning("[%s] request failed (%s)", self.name, self.last_error)
                 return None
             if response.status_code != 200:
@@ -201,12 +219,14 @@ class LLMProvider:
                 # Do not log response bodies or exception strings: either may
                 # contain credentials, prompt fragments, or private content.
                 logger.warning("[%s] HTTP %s", self.name, response.status_code)
-                if response.status_code in retryable and attempt < attempts - 1:
+                if response.status_code in retryable and (attempt < attempts - 1 or response.status_code == 429):
                     delay = self._retry_delay(response, attempt)
-                    if self._consume_wait(delay):
+                    can_wait = self._consume_wait(delay)
+                    if can_wait and attempt < attempts - 1:
                         logger.warning("[%s] retrying after %.1fs (attempt %s)", self.name, delay, attempt + 1)
                         continue
-                    logger.warning("[%s] wait budget exceeded during retry", self.name)
+                    if not can_wait:
+                        logger.warning("[%s] wait budget exceeded during retry", self.name)
                 return None
             try:
                 choice = response.json()["choices"][0]
@@ -257,3 +277,4 @@ def make_provider(name: str = "ollama") -> LLMProvider:
     else:
         raise ValueError(f"unknown provider: {name}")
     return LLMProvider(cfg)
+

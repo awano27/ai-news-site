@@ -5,14 +5,20 @@ on:
     branches: [main]
     paths:
       - 'requirements-daily.txt'
+      - 'config/editorial_recovery_*.json'
       - 'src/auto_collect/**'
+      - 'tools/archive_daily_ai_news.py'
+      - 'presentations/recommended_tools/index.html'
       - 'scripts/**'
       - 'tests/**'
       - '.github/workflows/**'
   pull_request:
     paths:
       - 'requirements-daily.txt'
+      - 'config/editorial_recovery_*.json'
       - 'src/auto_collect/**'
+      - 'tools/archive_daily_ai_news.py'
+      - 'presentations/recommended_tools/index.html'
       - 'scripts/**'
       - 'tests/**'
       - '.github/workflows/**'
@@ -42,6 +48,10 @@ jobs:
       - name: Run deterministic publication regressions
         run: |
           python -m pytest -q \
+            tests/test_legacy_news_nonempty.py \
+            tests/test_editorial_recovery.py \
+            tests/test_llm_shared_cooldown.py \
+            tests/test_tool_catalog_integrity.py \
             tests/test_daily_quality.py \
             tests/test_daily_source_freshness.py \
             tests/test_daily_override_entrypoints.py \

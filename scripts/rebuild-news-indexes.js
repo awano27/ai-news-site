@@ -15,10 +15,9 @@ function readJson(filePath) {
 }
 
 function getCount(data) {
-  if (typeof data.count === 'number') return data.count;
+  // Count the payload, not stale metadata that can advertise empty snapshots.
   if (Array.isArray(data.items)) return data.items.length;
   if (Array.isArray(data.articles)) return data.articles.length;
-  if (typeof data?.metadata?.total_articles === 'number') return data.metadata.total_articles;
   return 0;
 }
 
@@ -63,6 +62,10 @@ function buildIndexes() {
     }
 
     const count = getCount(data);
+    if (count === 0) {
+      console.warn(`Skipping empty news snapshot: ${name}`);
+      continue;
+    }
     const isDaily = name.endsWith('_daily.json');
     const entryDate = isDaily ? effectiveDailyDate(data, date) : date;
     const entry = { date: entryDate, file: name, count };

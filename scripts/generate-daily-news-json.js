@@ -120,27 +120,22 @@ function loadDailySnapshots() {
     entries = readJson(indexPath);
   } else {
     entries = fs.readdirSync(NEWS_DIR)
-      .filter(name => /^\d{4}-\d{2}-\d{2}_daily\.json$/.test(name))
-      .map(file => ({ date: file.replace('_daily.json', ''), file }));
+      .filter(name => /^\d{4}-\d{2}-\d{2}(?:_daily)?\.json$/.test(name))
+      .map(file => ({ date: file.slice(0, 10), file }));
   }
 
   const seenDates = new Set();
 
   return entries
     .filter(entry => entry && entry.date && entry.file)
-    .sort((a, b) => b.date.localeCompare(a.date))
+    .sort((a, b) => b.date.localeCompare(a.date)
+      || Number(b.file.endsWith('_daily.json')) - Number(a.file.endsWith('_daily.json'))
+      || a.file.localeCompare(b.file))
     .map(entry => {
       const filePath = path.join(NEWS_DIR, entry.file);
       if (!fs.existsSync(filePath)) {
-        return {
-          date: entry.date,
-          filename: entry.file,
-          file: entry.file,
-          title: `Daily AI News ${entry.date}`,
-          summary: '',
-          count: entry.count || 0,
-          items: [],
-        };
+        console.warn(`Skipping missing news snapshot: ${entry.file}`);
+        return null;
       }
 
       let data;
@@ -148,15 +143,7 @@ function loadDailySnapshots() {
         data = readJson(filePath);
       } catch (error) {
         console.error(`Error reading ${entry.file}:`, error.message);
-        return {
-          date: entry.date,
-          filename: entry.file,
-          file: entry.file,
-          title: `Daily AI News ${entry.date}`,
-          summary: '',
-          count: entry.count || 0,
-          items: [],
-        };
+        return null;
       }
 
       // Old *_daily.json snapshots carry {articles: [...]}; the current
@@ -164,6 +151,9 @@ function loadDailySnapshots() {
       const articles = Array.isArray(data.articles)
         ? data.articles
         : (Array.isArray(data.items) ? data.items : []);
+      // An empty extraction is not a publication and must not hide a valid
+      // older or same-source-date snapshot, even if index metadata is nonzero.
+      if (articles.length === 0) return null;
       const effectiveDate = effectiveDailyDate(data, entry.date);
       if (seenDates.has(effectiveDate)) return null;
       seenDates.add(effectiveDate);
@@ -174,9 +164,11 @@ function loadDailySnapshots() {
         snapshotDate: entry.date,
         filename: entry.file,
         file: entry.file,
+        publicationMode: data.publication_mode || undefined,
+        notice: data.notice || undefined,
         title: first ? first.title : `Daily AI News ${effectiveDate}`,
         summary: first ? first.summary : '',
-        count: entry.count || articles.length,
+        count: articles.length,
         items: articles.slice(0, 3).map(article => articleToNewsItem(article, effectiveDate, entry.file)),
       };
     })
