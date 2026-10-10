@@ -120,6 +120,20 @@ function heroTodayLabel(slideDate) {
   return slideDate === todayJstIso() ? '今日のスライドを読む' : '最新のスライドを読む';
 }
 
+// Use the actual news generation instant; a slide calendar date is not a clock.
+function dailyGenerationTime(editionDate, slideDate) {
+  const daily = readJson(path.join(ROOT, 'daily-news', 'data.json'), {});
+  const stamp = daily && daily.generated_iso;
+  const instant = typeof stamp === 'string' ? Date.parse(stamp) : NaN;
+  if (daily.date === editionDate && typeof stamp === 'string' &&
+      /^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(stamp) &&
+      Number.isFinite(instant) &&
+      new Date(instant + 9 * 3600000).toISOString().slice(0, 10) === editionDate) {
+    return stamp;
+  }
+  return toJstIso(slideDate);
+}
+
 function toJstIso(date) {
   return `${date}T09:00:00.000000+09:00`;
 }
@@ -206,6 +220,11 @@ function dateLabel(date) {
 }
 
 function jstTimeFromIso(iso) {
+  if (typeof iso === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(iso)) {
+    const instant = Date.parse(iso);
+    if (!Number.isFinite(instant)) return '';
+    return new Date(instant + 9 * 3600000).toISOString().slice(0, 16).replace('T', ' ') + ' JST';
+  }
   const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(iso || '');
   if (!m) return '';
   return `${m[1]} ${m[2]}:${m[3]} JST`;
@@ -827,7 +846,7 @@ function main() {
   }
 
   const data = {
-    generated_at: toJstIso(slide.date),
+    generated_at: dailyGenerationTime(latestNews.dailyDate, slide.date),
     news_date: latestNews.dailyDate,
     slide_date: slide.date,
     highlight: {

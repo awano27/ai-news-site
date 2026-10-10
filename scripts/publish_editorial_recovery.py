@@ -9,7 +9,7 @@ strictly validated before selected output files replace current local files.
 from __future__ import annotations
 import argparse
 from collections import Counter
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import html
 import json
@@ -29,7 +29,7 @@ MODE='editorial_review'
 STATUS='editorial_reviewed'
 NOTICE='編集確認済み・3件の暫定版'
 EXPLANATION='アシスタントが原文を読み、出典と掲載日を確認した暫定版です。発表元の主張を独立検証したものではありません。自動収集は未復旧です。重要度スコアは未評価です。'
-CONTENT_FIELDS=('title','summary','url','source','published_at')
+CONTENT_FIELDS=('title','summary','impact','url','source','published_at')
 REVIEW_FIELDS=('source_url','source_date','reviewed_at','review_method','reviewer','scope')
 
 
@@ -53,6 +53,7 @@ def prepare_editorial(manifest,edition):
         _require(isinstance(row,dict),'article must be an object')
         _require(all(isinstance(row.get(k),str) and row[k].strip() for k in CONTENT_FIELDS),'copy and source metadata must be nonempty text')
         _require(is_japanese_summary(row['summary']) and re.search(r'[ぁ-ゖァ-ヺ一-鿿]',row['title']),'Japanese title and substantive summary required')
+        _require(is_japanese_summary(row['impact']),'reviewed Japanese audience text required')
         key=canonical_url(row['url'])
         _require(key and key not in seen,'unsafe or duplicate article URL');seen.add(key)
         published=date.fromisoformat(row['published_at'])
@@ -65,7 +66,7 @@ def prepare_editorial(manifest,edition):
         reviewed=date.fromisoformat(review['reviewed_at'])
         _require(reviewed.isoformat()==review['reviewed_at'] and published<=reviewed<=day,'invalid review date')
         article={k:row[k] for k in CONTENT_FIELDS}
-        article.update(type='news',category='記事',score=0,score_status='unscored',processing_status=STATUS,
+        article.update(evidence={'impact_ja':row['impact']},type='news',category='記事',score=0,score_status='unscored',processing_status=STATUS,
                        editorial_review={k:review[k] for k in REVIEW_FIELDS})
         article['editorial_review']['content_sha256']=fingerprint(article)
         articles.append(article)
@@ -102,9 +103,11 @@ def _write_json(path,value):
     path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(json_bytes(value))
 
 
-def _decorate(text,*,kind,edition,articles):
+def _decorate(text,*,kind,edition,articles,generated_iso):
     description=f'{edition} {NOTICE}。{EXPLANATION}'
-    sources=''.join(f'<li><a href="{html.escape(a["url"],quote=True)}" target="_blank" rel="noopener">{html.escape(a["title"])}</a> — 原文掲載日: {a["published_at"]}</li>' for a in articles)
+    generated_jst=datetime.fromisoformat(generated_iso).astimezone(timezone(timedelta(hours=9))).strftime('%Y-%m-%d %H:%M JST')
+    text=re.sub(r'Generated:?\s+[^<]*',f'Generated: {generated_jst}',text)
+    sources=''.join(f'<li><a href="{html.escape(a["url"],quote=True)}" target="_blank" rel="noopener">{html.escape(a["title"])}</a> — 原文掲載日: {a["published_at"]}<br>対象: {html.escape(a["impact"])}</li>' for a in articles)
     notice=f'<aside id="editorial-publication-notice" style="margin:1rem auto;padding:1rem;max-width:1200px;border:1px solid #e5ad54;background:#18212e;color:#f4e5c6;line-height:1.8"><strong>{NOTICE}</strong><br>{EXPLANATION}<br>版の日付: {edition}<ul>{sources}</ul></aside>'
     if kind=='homepage':
         # Homepage identity and styling are independent of the daily edition.
@@ -116,7 +119,6 @@ def _decorate(text,*,kind,edition,articles):
     text=re.sub(r'(<body\b[^>]*>)',lambda m:m[1]+notice,text,count=1)
     if kind=='daily':
         text=re.sub(r'<p class="hero-lead">.*?</p>',f'<p class="hero-lead">{NOTICE}。{EXPLANATION}</p>',text,count=1,flags=re.S)
-        text=text.replace('Top 15 レポート','暫定レポート')
         # Do not present an uncomputed importance metric as a measured result.
         text=text.replace('<div class="metric-num">0</div><div class="metric-label">見逃せない</div>','<div class="metric-num">—</div><div class="metric-label">重要度未評価</div>')
     elif kind=='report':
@@ -157,6 +159,7 @@ def _copy_inputs(root,stage):
 
 def publish_editorial(root,manifest,edition):
     root=Path(root).resolve();articles,quality=prepare_editorial(manifest,edition)
+    generated_iso=datetime.now(timezone.utc).isoformat()
     current=root/'daily-news/data.json'
     if current.exists():
         existing=json.loads(current.read_text())
@@ -182,7 +185,8 @@ def publish_editorial(root,manifest,edition):
             item.update({k:original[k] for k in ('type','published_at','processing_status','score_status','editorial_review')})
         report_html,report=generate_html(parsed,stage/'presentations/daily_reports','https://visionhub.jp/presentations/daily_reports/og/default.png')
         report['quality']=quality
-        report_html=_decorate(report_html,kind='report',edition=edition,articles=articles)
+        report['generated_iso']=generated_iso
+        report_html=_decorate(report_html,kind='report',edition=edition,articles=articles,generated_iso=generated_iso)
         report_dir=stage/'presentations';report_dir.mkdir(exist_ok=True)
         (report_dir/'auto_daily_report.html').write_text(report_html)
         _write_json(report_dir/'auto_daily_report.json',report)
@@ -195,13 +199,13 @@ def publish_editorial(root,manifest,edition):
             daily_news_page.DAILY_NEWS_DIR=stage/'daily-news';daily_news_page.ARCHIVE_DIR=stage/'daily-news/archive'
             daily_news_page.generate_daily_news(day,articles,quality=quality)
         finally:daily_news_page.DAILY_NEWS_DIR,daily_news_page.ARCHIVE_DIR=saved
-        daily_path=stage/'daily-news/data.json';daily=json.loads(daily_path.read_text())
+        daily_path=stage/'daily-news/data.json';daily=json.loads(daily_path.read_text());daily['generated_iso']=generated_iso
         for item in daily['items']:
-            original=byurl[item['url']];item.update(score_status='unscored',editorial_review=original['editorial_review'])
+            original=byurl[item['url']];item.update(impact=original['impact'],score_status='unscored',editorial_review=original['editorial_review'])
         _write_json(daily_path,daily)
         daily_html=(stage/'daily-news/index.html').read_text()
         daily_html=re.sub(r'(<script id="report-data" type="application/json">).*?(</script>)',lambda m:m[1]+json.dumps(daily,ensure_ascii=False).replace('<','\\u003c')+m[2],daily_html,flags=re.S)
-        daily_html=_decorate(daily_html,kind='daily',edition=edition,articles=articles)
+        daily_html=_decorate(daily_html,kind='daily',edition=edition,articles=articles,generated_iso=generated_iso)
         (stage/'daily-news/index.html').write_text(daily_html);(stage/f'daily-news/archive/{edition}.html').write_text(daily_html)
         sync_daily_search(stage)
         search=json.loads((stage/'public-pages/news/search_index.json').read_text())

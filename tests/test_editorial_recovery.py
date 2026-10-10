@@ -18,7 +18,7 @@ def manifest():
     articles=[]
     for i in range(3):
         url=f'https://example.com/source-{i}'
-        articles.append({'title':['企業が新しい安全対策を公開','開発者向けの計算環境を拡充','研究チームが日本語音声を評価'][i],'summary':'公式資料で公開された新しい取り組みを紹介します。効果は発表元の報告として扱います。','url':url,'source':'Publisher A' if i==0 else 'Publisher B','published_at':'2026-10-09','review':{'source_url':url,'source_date':'2026-10-09','reviewed_at':DAY,'review_method':'ai_document_review','reviewer':'assistant','scope':'Primary source and publication date read; claims attributed to publisher.'}})
+        articles.append({'title':['企業が新しい安全対策を公開','開発者向けの計算環境を拡充','研究チームが日本語音声を評価'][i],'summary':'公式資料で公開された新しい取り組みを紹介します。効果は発表元の報告として扱います。','impact':'開発や運用を担当するチーム向けの公開情報です。','url':url,'source':'Publisher A' if i==0 else 'Publisher B','published_at':'2026-10-09','review':{'source_url':url,'source_date':'2026-10-09','reviewed_at':DAY,'review_method':'ai_document_review','reviewer':'assistant','scope':'Primary source and publication date read; claims attributed to publisher.'}})
     return {'version':1,'edition_date':DAY,'articles':articles}
 
 def test_editorial_mode_is_distinct_and_retains_original_dates():
@@ -165,3 +165,66 @@ def test_checked_in_editorial_manifests_pass_their_edition_contract():
         module.validate_editorial_quality({'date':data['edition_date'],'total':len(articles),'items':articles,'quality':quality})
         tampered=deepcopy(data);tampered['articles'][0]['review']['source_date']='2000-01-01'
         with pytest.raises(ValueError):module.prepare_editorial(tampered,data['edition_date'])
+
+def test_reviewed_audience_is_fingerprinted_and_rejected_if_changed():
+    module=publisher();data=manifest();articles,quality=module.prepare_editorial(data,DAY)
+    assert [a.get('impact') for a in articles]==[a['impact'] for a in data['articles']]
+    assert articles[0]['evidence']['impact_ja']==data['articles'][0]['impact']
+    articles[0]['impact']='別の利用者を対象とした説明に変更しています。'
+    with pytest.raises(ValueError,match='fingerprint'):
+        module.validate_editorial_quality({'date':DAY,'total':3,'items':articles,'quality':quality})
+
+def test_actual_reviewed_audiences_render_on_all_daily_surfaces(tmp_path):
+    data=json.loads((ROOT/'config/editorial_recovery_2026-10-10.json').read_text())
+    expected=['セキュリティ運用・脅威調査を担うチーム向けの事例です。','AWS上でAIアプリケーションやエージェントを開発するチームに関係する更新です。','APIツールやAIエージェントを開発するチーム向けの設計事例です。']
+    root,_=fixture_root(tmp_path);publisher().publish_editorial(root,data,DAY)
+    from scripts.check_daily_publication import Page
+    for relative in ['index.html','daily-news/index.html','presentations/auto_daily_report.html']:
+        page=Page((root/relative).read_text());visible=' '.join(n['text'] for n in page.nodes if not n['hidden'])
+        assert all(audience in visible for audience in expected)
+    daily=json.loads((root/'daily-news/data.json').read_text());report=json.loads((root/'presentations/auto_daily_report.json').read_text())
+    assert [a.get('impact') for a in daily['items']]==[a.get('impact') for a in report['headlines']]==expected
+    homepage_audiences=Page((root/'index.html').read_text()).elements['dailyHeadlines']
+    assert all(audience in homepage_audiences for audience in expected)
+    assert '影響対象は未確認です。' not in homepage_audiences
+    report_page=Page((root/'presentations/auto_daily_report.html').read_text())
+    impact_values=[node['text'] for node in report_page.nodes if 'd-ev-v' in node['classes'] and not node['hidden']]
+    assert all(audience in impact_values for audience in expected)
+    daily_html=(root/'daily-news/index.html').read_text()
+    assert '>日次レポート</a>' in daily_html and 'Top 15' not in daily_html
+    template=(ROOT/'src/auto_collect/daily_news_template.html').read_text()
+    assert 'Top 15' not in template and 'トップ15' not in template
+
+def test_editorial_generation_timestamp_is_timezone_qualified(tmp_path):
+    from datetime import datetime
+    root,_=fixture_root(tmp_path);publisher().publish_editorial(root,manifest(),DAY)
+    daily=json.loads((root/'daily-news/data.json').read_text())
+    assert datetime.fromisoformat(daily['generated_iso'].replace('Z','+00:00')).tzinfo is not None
+
+
+def test_homepage_reuses_actual_matching_edition_generation_time(tmp_path):
+    import subprocess
+    root,_=fixture_root(tmp_path);publisher().publish_editorial(root,manifest(),DAY)
+    path=root/'daily-news/data.json';daily=json.loads(path.read_text());daily['generated_iso']='2026-10-10T07:04:00+00:00';path.write_text(json.dumps(daily,ensure_ascii=False))
+    for _ in range(2):
+        subprocess.run(['node',str(root/'scripts/build-homepage-latest.js')],check=True,capture_output=True)
+        latest=json.loads((root/'news/latest.json').read_text())
+        assert latest['generated_at']=='2026-10-10T07:04:00+00:00'
+        assert latest['news_date']==DAY and latest['slide_date']=='2026-10-09'
+        from scripts.check_daily_publication import Page
+        assert Page((root/'index.html').read_text()).elements['statUpdated']=='16:04'
+        assert all(a['published_at']=='2026-10-09' for a in daily['items'])
+
+@pytest.mark.parametrize('stamp,edition',[('not-a-date',DAY),('2026-10-10T16:04:00',DAY),('2026-10-10T07:04:00+00:00','2026-10-09')])
+def test_homepage_does_not_borrow_invalid_or_other_edition_timestamps(tmp_path,stamp,edition):
+    import subprocess
+    root,_=fixture_root(tmp_path);publisher().publish_editorial(root,manifest(),DAY)
+    path=root/'daily-news/data.json';daily=json.loads(path.read_text());daily.update(date=edition,generated_iso=stamp);path.write_text(json.dumps(daily,ensure_ascii=False))
+    subprocess.run(['node',str(root/'scripts/build-homepage-latest.js')],check=True,capture_output=True)
+    latest=json.loads((root/'news/latest.json').read_text())
+    assert latest['generated_at']=='2026-10-09T09:00:00.000000+09:00'
+
+@pytest.mark.parametrize('impact',['','Unknown audience',None])
+def test_editorial_audience_must_be_reviewed_japanese_text(impact):
+    data=manifest();data['articles'][0]['impact']=impact
+    with pytest.raises(ValueError):publisher().prepare_editorial(data,DAY)
