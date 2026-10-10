@@ -56,7 +56,30 @@ def test_archive_is_last_main_content_with_accessible_search_links():
     assert_archive_at_page_end((ROOT / "index.html").read_text(encoding="utf-8"))
 
 
+def assert_comparison_promo_removed(html):
+    page = BeautifulSoup(html, "html.parser")
+    assert page.select_one("#newsComparisonCard") is None
+    assert page.select_one(".news-comparison-feature") is None
+    assert page.select_one("#news-comparison-title") is None
+    assert "news-comparison-card" not in html
+    assert page.select_one("#featured-reports").find_next_sibling().get("id") == "daily-briefing"
+
+
+def test_comparison_promo_is_removed_without_an_empty_section():
+    assert_comparison_promo_removed((ROOT / "index.html").read_text(encoding="utf-8"))
+
+
+def test_dated_comparison_article_and_sitemap_entry_remain_available():
+    article_path = "presentations/ai-news-comparison-2026-10-07.html"
+    article = BeautifulSoup((ROOT / article_path).read_text(encoding="utf-8"), "html.parser")
+    assert "10/7 AIニュース厳選5件・通常版との比較" in article.title.get_text()
+    assert article.find("h1") is not None
+    sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
+    assert "https://visionhub.jp/" + article_path in sitemap
+
+
 def assert_entry_contract(html):
+    assert_comparison_promo_removed(html)
     assert_archive_at_page_end(html)
     page = Homepage(html)
     assert [a.get("id") for t, a in page.elements if t == "h1"] == ["heroIdentity"]
