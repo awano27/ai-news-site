@@ -160,3 +160,324 @@ def test_quality_uses_rendered_source_attribution():
     from src.auto_collect.quality import validate_articles
     result=validate_articles([article(source='TechCrunch',source_attribution='TechCrunch（Bloomberg報道）')])
     assert result['sources']==['TechCrunch（Bloomberg報道）']
+
+
+def _numbered(count, *, bad_at=()):
+    rows=[]
+    for i in range(count):
+        row=article(url=f'https://example.com/n{i}', source='Official' if i % 2 == 0 else 'Other', title=f'記事{i}の見出し')
+        if i in bad_at:
+            row.update(summary='English fallback', processing_status='fallback', processing_error='invalid_japanese', title=f'bad {i}')
+        rows.append(row)
+    return rows
+
+
+def test_two_of_seventy_five_fallbacks_are_excluded_and_the_day_passes():
+    from src.auto_collect.quality import filter_publishable
+    rows=_numbered(75, bad_at={72, 73})
+    before=deepcopy(rows)
+    kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert rows==before
+    assert quality['status']=='passed'
+    assert quality['excluded_count']==2
+    assert quality['input_count']==75
+    assert quality['article_count']==73
+    assert quality['japanese_count']==73
+    assert round(quality['excluded_ratio'], 3)==round(2/75, 3)
+    assert [row['index'] for row in quality['excluded']]==[73, 74]
+    assert quality['excluded'][0]['url']=='https://example.com/n72'
+    assert quality['excluded'][0]['title']=='bad 72'
+    assert any('fallback' in err for err in quality['excluded'][0]['errors'])
+    assert any('Japanese' in err for err in quality['excluded'][0]['errors'])
+    assert all(row.get('processing_status')=='llm' for row in kept)
+
+
+def test_exclusion_ratio_above_twenty_percent_holds_the_day():
+    from src.auto_collect.quality import filter_publishable
+    rows=_numbered(100, bad_at=set(range(79, 100)))
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert any(err=='too many excluded articles: 21/100 > 20%' for err in quality['errors'])
+
+
+def test_exclusion_ratio_of_exactly_twenty_percent_still_publishes():
+    from src.auto_collect.quality import filter_publishable
+    rows=_numbered(10, bad_at={8, 9})
+    kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='passed'
+    assert len(kept)==8
+    assert quality['excluded_count']==2
+
+
+def test_exclusion_that_drops_below_source_minimum_holds_the_day():
+    from src.auto_collect.quality import filter_publishable
+    rows=[article(url=f'https://example.com/only{i}', source='Official') for i in range(4)]
+    rows.append(article(url='https://example.com/other', source='Other', summary='English fallback', processing_status='fallback'))
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert any('source' in err for err in quality['errors'])
+    assert not any('too many excluded' in err for err in quality['errors'])
+
+
+def test_clean_articles_match_validate_articles_and_record_no_exclusions():
+    from src.auto_collect.quality import filter_publishable, validate_articles
+    rows=[article(), article(url='https://other.example/a', source='Other')]
+    kept, quality=filter_publishable(rows, min_articles=1, min_sources=1)
+    base=validate_articles(rows, min_articles=1, min_sources=1)
+    for key in ('status', 'article_count', 'japanese_count', 'sources', 'errors'):
+        assert quality[key]==base[key]
+    assert kept==rows
+    assert quality['excluded']==[]
+    assert quality['excluded_count']==0
+    assert quality['input_count']==2
+
+
+def test_non_dict_article_is_excluded_without_a_title_or_url():
+    from src.auto_collect.quality import filter_publishable
+    rows=_numbered(4)+['not-an-article']
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='passed'
+    assert quality['excluded']==[{'index': 5, 'title': None, 'url': None, 'errors': ['invalid object']}]
+
+
+def test_rate_limit_exclusions_remain_transient_when_the_day_is_held():
+    from src.auto_collect.quality import failure_reason, filter_publishable
+    rows=_numbered(8)
+    rows+=[article(url=f'https://example.com/rate{i}', source='Official' if i % 2 == 0 else 'Other', summary='English fallback', processing_status='fallback', processing_error='http_429') for i in range(3)]
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert failure_reason(rows, quality)=='transient_generation_failed'
+
+
+def test_wait_budget_exclusions_remain_transient_when_the_day_is_held():
+    from src.auto_collect.quality import failure_reason, filter_publishable
+    rows=_numbered(8)
+    rows+=[article(url=f'https://example.com/wait{i}', source='Official' if i % 2 == 0 else 'Other', summary='English fallback', processing_status='fallback', processing_error='wait_budget_exceeded') for i in range(3)]
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert failure_reason(rows, quality)=='transient_generation_failed'
+
+
+def test_structural_exclusions_are_not_classified_as_transient():
+    from src.auto_collect.quality import failure_reason, filter_publishable
+    rows=_numbered(8)
+    rows.append(article(url='javascript:alert(1)', source='Official', summary='English fallback', processing_status='fallback', processing_error='http_429'))
+    rows+=[article(url=f'https://example.com/rate{i}', source='Other', summary='English fallback', processing_status='fallback', processing_error='http_429') for i in range(3)]
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert failure_reason(rows, quality)=='japanese_quality_failed'
+
+
+def test_processor_retries_unparseable_json_once_then_accepts_japanese():
+    calls=[]
+    class Provider:
+        available=True
+        name='test'
+        last_error=''
+        def chat(self, _prompt):
+            calls.append(_prompt)
+            if len(calls)==1:
+                return 'not json at all'
+            return '{"title_ja":"新モデルを公開", "summary":"新しいモデルを公開しました。公式サイトで確認できます。", "score":70}'
+    row=processor.LLMProcessor(Provider())._process_one({'name':'New Model','tagline':'Original English','links':{'official':'https://example.com/a'}})
+    assert len(calls)==2
+    assert row.get('processing_status')=='llm'
+
+
+def test_processor_stops_after_one_json_retry():
+    calls=[]
+    class Provider:
+        available=True
+        name='test'
+        last_error=''
+        def chat(self, _prompt):
+            calls.append(1)
+            return 'still not json'
+    row=processor.LLMProcessor(Provider())._process_one({'name':'New Model','tagline':'Original English','links':{'official':'https://example.com/a'}})
+    assert len(calls)==2
+    assert row.get('processing_status')=='fallback'
+    assert row.get('processing_error')=='invalid_japanese'
+
+
+def test_processor_does_not_retry_json_when_the_provider_returns_nothing():
+    calls=[]
+    class Provider:
+        available=True
+        name='test'
+        last_error='http_429'
+        def chat(self, _prompt):
+            calls.append(1)
+            return None
+    row=processor.LLMProcessor(Provider())._process_one({'name':'New Model','tagline':'Original English','source':'Official','links':{'official':'https://example.com/a'}})
+    assert calls==[1]
+    assert row.get('processing_error')=='http_429'
+
+
+def _ok_response():
+    return SimpleNamespace(status_code=200, headers={}, json=lambda: {'choices':[{'message':{'content':'ok'},'finish_reason':'stop'}]})
+
+
+def _http(code, headers=None):
+    return SimpleNamespace(status_code=code, headers=headers or {}, text='secret body')
+
+
+def test_provider_retries_429_with_exponential_backoff(monkeypatch):
+    sleeps=[]
+    seq=[_http(429), _http(429), _http(429), _ok_response()]
+    monkeypatch.setattr(llm_provider.random, 'uniform', lambda _a, _b: 0)
+    monkeypatch.setattr(llm_provider, 'sleep', lambda seconds: sleeps.append(seconds))
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: seq.pop(0))
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('test','https://example.com/v1','unit-test-key','model')
+    assert p._call([{'role':'user','content':'hello'}])=='ok'
+    assert sleeps==[2, 4, 8]
+    assert seq==[]
+
+
+def test_provider_honors_retry_after_on_each_429(monkeypatch):
+    sleeps=[]
+    seq=[_http(429, {'Retry-After':'5'}), _http(429, {'Retry-After':'5'}), _ok_response()]
+    monkeypatch.setattr(llm_provider, 'sleep', lambda seconds: sleeps.append(seconds))
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: seq.pop(0))
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('test','https://example.com/v1','unit-test-key','model')
+    assert p._call([{'role':'user','content':'hello'}])=='ok'
+    assert sleeps==[5, 5]
+
+
+def test_provider_stops_after_the_retry_budget(monkeypatch):
+    calls=[]
+    monkeypatch.setenv('LLM_MAX_RETRIES', '4')
+    monkeypatch.setattr(llm_provider.random, 'uniform', lambda _a, _b: 0)
+    monkeypatch.setattr(llm_provider, 'sleep', lambda _seconds: None)
+    def post(*_a, **_k):
+        calls.append(1)
+        return _http(429)
+    monkeypatch.setattr(llm_provider.requests, 'post', post)
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('test','https://example.com/v1','unit-test-key','model')
+    assert p._call([{'role':'user','content':'hello'}]) is None
+    assert calls==[1, 1, 1, 1, 1]
+    assert p.last_error=='http_429'
+
+
+def test_nvidia_paces_by_default_and_ollama_does_not(monkeypatch):
+    sleeps=[]
+    clock={'now': 10.0}
+    monkeypatch.delenv('LLM_MIN_INTERVAL_SEC', raising=False)
+    monkeypatch.setattr(llm_provider, 'monotonic', lambda: clock['now'])
+    def sleep(seconds):
+        sleeps.append(seconds)
+        clock['now'] += seconds
+    monkeypatch.setattr(llm_provider, 'sleep', sleep)
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: _ok_response())
+    nvidia=object.__new__(llm_provider.LLMProvider)
+    nvidia.config=llm_provider.ProviderConfig('nvidia','https://example.com/v1','unit-test-key','model')
+    assert nvidia._call([{'role':'user','content':'a'}])=='ok'
+    assert nvidia._call([{'role':'user','content':'b'}])=='ok'
+    ollama=object.__new__(llm_provider.LLMProvider)
+    ollama.config=llm_provider.ProviderConfig('ollama','http://localhost/v1','ollama','gemma3:4b')
+    assert ollama._call([{'role':'user','content':'a'}])=='ok'
+    assert ollama._call([{'role':'user','content':'b'}])=='ok'
+    assert sleeps==[1.5]
+
+
+def test_provider_waits_for_the_minimum_interval_between_calls(monkeypatch):
+    clock={'now': 1000.0}
+    sleeps=[]
+    monkeypatch.setenv('LLM_MIN_INTERVAL_SEC', '1.5')
+    monkeypatch.setattr(llm_provider, 'monotonic', lambda: clock['now'])
+    def sleep(seconds):
+        sleeps.append(seconds)
+        clock['now']+=seconds
+    monkeypatch.setattr(llm_provider, 'sleep', sleep)
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: _ok_response())
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('nvidia','https://example.com/v1','unit-test-key','model')
+    assert p._call([{'role':'user','content':'hello'}])=='ok'
+    assert p._call([{'role':'user','content':'hello'}])=='ok'
+    assert sleeps==[1.5]
+    assert not p._pace_lock.locked()
+
+
+def test_provider_interval_sleep_is_outside_the_lock(monkeypatch):
+    monkeypatch.setenv('LLM_MIN_INTERVAL_SEC', '1.5')
+    monkeypatch.setattr(llm_provider, 'monotonic', lambda: 50.0)
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('test','https://example.com/v1','unit-test-key','model')
+    def sleep(seconds):
+        assert seconds==1.5
+        assert not p._pace_lock.locked()
+    monkeypatch.setattr(llm_provider, 'sleep', sleep)
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: _ok_response())
+    p._call([{'role':'user','content':'one'}])
+    p._call([{'role':'user','content':'two'}])
+
+
+def test_provider_does_not_wait_once_the_total_budget_is_exhausted(monkeypatch):
+    sleeps=[]
+    clock={'now': 0.0}
+    monkeypatch.setenv('LLM_MIN_INTERVAL_SEC', '1.5')
+    monkeypatch.setenv('LLM_MAX_TOTAL_WAIT_SEC', '1')
+    monkeypatch.setattr(llm_provider, 'monotonic', lambda: clock['now'])
+    def sleep(seconds):
+        sleeps.append(seconds)
+        clock['now']+=seconds
+    monkeypatch.setattr(llm_provider, 'sleep', sleep)
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: _ok_response())
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('test','https://example.com/v1','unit-test-key','model')
+    assert p._call([{'role':'user','content':'hello'}])=='ok'
+    assert p._call([{'role':'user','content':'hello'}]) is None
+    assert sleeps==[]
+    assert p.last_error=='wait_budget_exceeded'
+
+
+def test_retry_backoff_stops_without_sleeping_past_the_wait_budget(monkeypatch):
+    calls=[]
+    sleeps=[]
+    monkeypatch.setenv('LLM_MAX_TOTAL_WAIT_SEC', '3')
+    monkeypatch.setattr(llm_provider.random, 'uniform', lambda _a, _b: 0)
+    monkeypatch.setattr(llm_provider, 'sleep', lambda seconds: sleeps.append(seconds))
+    def post(*_a, **_k):
+        calls.append(1)
+        return _http(429)
+    monkeypatch.setattr(llm_provider.requests, 'post', post)
+    p=object.__new__(llm_provider.LLMProvider)
+    p.config=llm_provider.ProviderConfig('test','https://example.com/v1','unit-test-key','model')
+    assert p._call([{'role':'user','content':'hello'}]) is None
+    assert sleeps==[2]
+    assert calls==[1, 1]
+    assert p.last_error=='http_429'
+
+
+def test_nvidia_override_requires_a_confirmed_key_and_hides_the_secret():
+    from src.auto_collect.provider_selection import select_daily_provider
+    provider, note=select_daily_provider('nvapi-unit-test-secret', None)
+    assert provider=='ollama'
+    assert "NVIDIA_PRODUCTION_USE_CONFIRMED is not 'true'" in note
+    assert 'nvapi-unit-test-secret' not in note
+    assert select_daily_provider('nvapi-unit-test-secret', 'true')==('nvidia', None)
+    assert select_daily_provider('NVAPI-unit-test-secret', 'True')[0]=='ollama'
+    assert select_daily_provider('', 'true')==('ollama', None)
+    assert select_daily_provider('sk-other', 'true')==('ollama', None)
+
+
+def test_provider_selection_cli_prints_provider_not_the_key():
+    import os
+    import subprocess
+    import sys
+    env=dict(os.environ)
+    env['NVIDIA_API_KEY']='nvapi-unit-test-secret'
+    env['NVIDIA_PRODUCTION_USE_CONFIRMED']='false'
+    result=subprocess.run([sys.executable, '-m', 'src.auto_collect.provider_selection'], capture_output=True, text=True, env=env)
+    assert result.returncode==0
+    assert 'provider=ollama' in result.stdout
+    assert 'nvapi-unit-test-secret' not in result.stdout + result.stderr
+    assert "not 'true'" in result.stdout
+
+
+def test_anthropic_news_rss_is_not_collected():
+    from src.auto_collect.config import EN_RSS_FEEDS, JP_RSS_FEEDS
+    urls=[feed['url'] for feed in EN_RSS_FEEDS+JP_RSS_FEEDS]
+    assert 'https://www.anthropic.com/news/rss.xml' not in urls

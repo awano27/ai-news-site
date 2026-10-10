@@ -25,3 +25,10 @@ def test_wsl_override_uses_strict_manifest_and_propagates_push_failure(tmp_path)
     assert 'publish_daily_report.py' in commands
     assert '--require-quality' in commands and '--push' in commands
     assert 'git add -A' not in source
+
+
+def test_windows_override_selects_nvidia_only_after_confirmation():
+    text=(ROOT/'scripts/run_daily_override.ps1').read_text(encoding='utf-8')
+    assert 'src.auto_collect.provider_selection' in text
+    assert 'LLM provider selection failed; using ollama.' in text
+    assert 'StartsWith("nvapi-"' not in text

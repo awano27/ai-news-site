@@ -164,8 +164,35 @@ try {
 
     Set-Location -LiteralPath $repo
     $provider = "ollama"
-    if ($env:NVIDIA_API_KEY -and $env:NVIDIA_API_KEY.StartsWith("nvapi-", [System.StringComparison]::OrdinalIgnoreCase)) {
-        $provider = "nvidia"
+    $selectionOutput = $null
+    $selectionCode = 0
+    try {
+        $selectionOutput = & $PythonPath -m src.auto_collect.provider_selection
+        $selectionCode = $LASTEXITCODE
+    }
+    catch {
+        $selectionCode = 1
+    }
+    if ($selectionCode -ne 0) {
+        Write-RunnerLog "LLM provider selection failed; using ollama."
+    }
+    else {
+        $note = ""
+        foreach ($line in @($selectionOutput)) {
+            $text = ([string]$line).Trim()
+            if ($text.StartsWith("provider=")) {
+                $chosen = $text.Substring(9).Trim()
+                if ($chosen -eq "ollama" -or $chosen -eq "nvidia") {
+                    $provider = $chosen
+                }
+            }
+            elseif ($text.StartsWith("note=")) {
+                $note = $text.Substring(5)
+            }
+        }
+        if ($note) {
+            Write-RunnerLog $note
+        }
     }
     Write-RunnerLog "Running pipeline with provider=$provider."
     $pipelineCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @("-m", "src.auto_collect.main", "--provider", $provider, "--force") -Label "pipeline"

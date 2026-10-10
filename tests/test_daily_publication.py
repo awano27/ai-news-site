@@ -60,6 +60,30 @@ def change_json(root, path, change):
     write_json(root, path, data)
 
 
+def test_strict_verifier_rejects_a_published_article_that_was_marked_excluded(tmp_path):
+    root = fixture_site(tmp_path)
+    change_json(root, 'daily-news/data.json', lambda d: d['quality'].update(
+        excluded_count=1,
+        excluded=[{'index': 9, 'title': '落ちた記事', 'url': ITEM['url'], 'errors': ['fallback or unverified processing']}],
+    ))
+    result = run_check(root, '--require-quality')
+    assert result.returncode != 0
+    assert 'excluded' in (result.stderr + result.stdout).lower()
+
+
+def test_strict_verifier_accepts_exclusion_metadata_for_articles_that_were_not_published(tmp_path):
+    root = fixture_site(tmp_path)
+    change_json(root, 'daily-news/data.json', lambda d: d['quality'].update(
+        excluded_count=1,
+        input_count=2,
+        excluded_ratio=0.5,
+        excluded=[{'index': 2, 'title': '落ちた記事', 'url': 'https://example.com/dropped', 'errors': ['Japanese summary missing or invalid', 'fallback or unverified processing']}],
+    ))
+    result = run_check(root, '--require-quality')
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert 'excluded=0' in result.stdout
+
+
 def test_complete_linked_publication_passes_with_previous_day_slide(tmp_path):
     result = run_check(fixture_site(tmp_path), '--require-quality')
     assert result.returncode == 0, result.stderr + result.stdout
@@ -373,6 +397,73 @@ def test_next_day_real_formatter_renderer_search_homepage_strict_end_to_end(tmp_
     assert result.returncode == 0, result.stdout + result.stderr
     assert '2026-10-10' in result.stdout and '4 daily items' in result.stdout
     assert '<time id="dailyNewsDate">2026-10-10</time>' in (repo / 'index.html').read_text()
+
+
+def test_failed_articles_are_omitted_and_strict_publication_still_passes(tmp_path, monkeypatch):
+    """Kept articles must satisfy --require-quality; exclusions stay in quality metadata."""
+    from datetime import date
+    import shutil
+    from scripts.sync_daily_search import sync_daily_search
+    from src.auto_collect import daily_news_page
+    from src.auto_collect.formatter import DayFileFormatter
+    from src.auto_collect.html_report_parser import parse_daily_txt
+    from src.auto_collect.html_report_renderer import generate_html
+    from src.auto_collect.quality import filter_publishable
+
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    source_root = SCRIPT.parents[1]
+    (repo / 'scripts').mkdir()
+    shutil.copy(source_root / 'scripts/build-homepage-latest.js', repo / 'scripts')
+    shutil.copy(source_root / 'index.html', repo / 'index.html')
+    write_json(repo, 'public-pages/news/archive_index.json', [{'date': DATE, 'count': 150}])
+    write_json(repo, 'public-pages/news/search_index.json', [])
+    slide = repo / 'presentations/day_slides/day_slide_2026_10_09.html'
+    slide.parent.mkdir(parents=True)
+    slide.write_text('<title>前日の独立したスライド</title><meta name="description" content="前日のスライドです。"><h1>前日の独立したスライド</h1>')
+    day = date(2026, 10, 10)
+    summary = '日本語でニュースの要点を説明します。'
+    def good(title, url, source):
+        return dict(ITEM, title=title, url=url, source=source, summary=summary, category='Product', score=80, evidence={}, published_at='2026-10-10')
+    rows = [
+        good('翌日の新しい技術ニュース', 'https://example.com/new-day', 'Official'),
+        good('別の研究チームが評価を公開', 'https://example.com/research', 'Other'),
+        good('開発者が試せる新しい道具', 'https://example.com/tool-news', 'Official'),
+        good('国内向けの推論サービスが開始', 'https://example.com/service', 'Other'),
+        good('画像モデルの更新点が判明', 'https://example.com/image', 'Official'),
+        good('音声認識の精度が改善', 'https://example.com/speech', 'Other'),
+        good('小型モデルが端末で動く', 'https://example.com/edge', 'Official'),
+        good('企業が導入手順を公開', 'https://example.com/rollout', 'Other'),
+        dict(ITEM, title='Broken one', url='https://example.com/bad-1', source='Official', summary='English fallback', processing_status='fallback', processing_error='invalid_japanese'),
+        dict(ITEM, title='Broken two', url='https://example.com/bad-2', source='Other', summary='English fallback', processing_status='fallback', processing_error='invalid_japanese'),
+    ]
+    kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status'] == 'passed' and quality['excluded_count'] == 2
+    quality = dict(quality, provider='test', model='test-model', date=day.isoformat())
+    transport = repo / 'input/day/1010.txt'
+    DayFileFormatter().write(kept, transport, day)
+    parsed = parse_daily_txt(transport)
+    html, report = generate_html(parsed, repo / 'presentations/daily_reports', 'https://example.com/og.png')
+    assert report['total'] == 8
+    assert all(item['url'] not in {'https://example.com/bad-1', 'https://example.com/bad-2'} for item in report['headlines'])
+    write_json(repo, 'presentations/auto_daily_report.json', report)
+    write_json(repo, 'public-pages/api/auto_daily_report/latest.json', report)
+    (repo / 'presentations/auto_daily_report.html').write_text(html)
+    monkeypatch.setattr(daily_news_page, 'DAILY_NEWS_DIR', repo / 'daily-news')
+    monkeypatch.setattr(daily_news_page, 'ARCHIVE_DIR', repo / 'daily-news/archive')
+    daily_news_page.generate_daily_news(day, kept, quality=quality)
+    sync_daily_search(repo)
+    build = subprocess.run(['node', str(repo / 'scripts/build-homepage-latest.js')], capture_output=True, text=True)
+    assert build.returncode == 0, build.stderr
+    result = subprocess.run([sys.executable, str(SCRIPT), '--root', str(repo), '--date', day.isoformat(), '--require-quality'], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'excluded=0' in result.stdout
+    published = json.loads((repo / 'daily-news/data.json').read_text(encoding='utf-8'))
+    assert published['quality']['article_count'] == 8
+    assert published['quality']['excluded_count'] == 2
+    assert {row['url'] for row in published['quality']['excluded']} == {'https://example.com/bad-1', 'https://example.com/bad-2'}
+    assert all(item['url'] not in {'https://example.com/bad-1', 'https://example.com/bad-2'} for item in published['items'])
+    assert all(item.get('processing_status') in {'llm', 'source_japanese'} for item in published['items'])
 
 
 @pytest.mark.parametrize('field,value', [('summary', 'Stale English summary'), ('source', 'Wrong source'), ('category', 'Wrong category'), ('published_at', '2020-01-01')])

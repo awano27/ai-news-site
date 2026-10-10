@@ -16,10 +16,11 @@ from __future__ import annotations
 
 import logging
 import os
+import random
 from dataclasses import dataclass
 from typing import List, Optional
-from time import sleep
-from threading import local
+from time import monotonic, sleep
+from threading import Lock, local
 
 import requests
 
@@ -48,6 +49,7 @@ class LLMProvider:
     def __init__(self, config: ProviderConfig):
         self.config = config
         self.last_error = ""
+        self._ensure_pace()
         self.available = self._health_check()
 
     @property
@@ -90,6 +92,77 @@ class LLMProvider:
             timeout=self.config.timeout,
         )
 
+    def _ensure_pace(self) -> None:
+        if getattr(self, "_pace_lock", None) is None:
+            self._pace_lock = Lock()
+            self._next_allowed = 0.0
+            self._waited = 0.0
+
+    def _env_float(self, name: str) -> Optional[float]:
+        raw = os.environ.get(name)
+        if raw is None or not str(raw).strip():
+            return None
+        try:
+            return float(raw)
+        except ValueError:
+            return None
+
+    def _max_attempts(self) -> int:
+        raw = os.environ.get("LLM_MAX_RETRIES", "4")
+        try:
+            retries = int(raw)
+        except (TypeError, ValueError):
+            retries = 4
+        return max(0, retries) + 1
+
+    def _min_interval(self) -> float:
+        configured = self._env_float("LLM_MIN_INTERVAL_SEC")
+        if configured is not None:
+            return max(0.0, configured)
+        return 1.5 if self.name == "nvidia" else 0.0
+
+    def _max_total_wait(self) -> float:
+        configured = self._env_float("LLM_MAX_TOTAL_WAIT_SEC")
+        if configured is None:
+            configured = 600.0
+        return max(0.0, configured)
+
+    def _await_interval(self) -> bool:
+        """Reserve the next call slot under the lock, then sleep outside it."""
+        self._ensure_pace()
+        interval = self._min_interval()
+        with self._pace_lock:
+            now = monotonic()
+            start = max(now, self._next_allowed)
+            delay = start - now
+            if self._waited + delay > self._max_total_wait() + 1e-9:
+                return False
+            self._waited += delay
+            self._next_allowed = start + interval
+        if delay > 0:
+            sleep(delay)
+        return True
+
+    def _consume_wait(self, seconds: float) -> bool:
+        self._ensure_pace()
+        seconds = max(0.0, float(seconds))
+        with self._pace_lock:
+            if self._waited + seconds > self._max_total_wait() + 1e-9:
+                return False
+            self._waited += seconds
+        if seconds > 0:
+            sleep(seconds)
+        return True
+
+    def _retry_delay(self, response, attempt: int) -> float:
+        header = response.headers.get("Retry-After") if response is not None else None
+        if header not in (None, ""):
+            try:
+                return max(0.0, min(float(header), 60.0))
+            except (TypeError, ValueError):
+                pass
+        return min((2 ** attempt) * 2, 60) + random.uniform(0, 1)
+
     def _call(
         self,
         messages: List[dict],
@@ -106,23 +179,36 @@ class LLMProvider:
             body.update(reasoning_effort="none", temperature=1, top_p=0.95)
         headers = {"Content-Type": "application/json",
                    "Authorization": f"Bearer {self.config.api_key}"}
-        for attempt in range(2):
+        attempts = self._max_attempts()
+        retryable = {429, 500, 502, 503, 504}
+        for attempt in range(attempts):
+            if not self._await_interval():
+                self.last_error = "wait_budget_exceeded"
+                logger.warning("[%s] wait budget exceeded before request", self.name)
+                return None
             try:
                 response = requests.post(url, json=body, headers=headers,
                                          timeout=timeout or self.config.timeout)
-                if response.status_code != 200:
-                    self.last_error = f"http_{response.status_code}"
-                    # Do not log response bodies or exception strings: either may
-                    # contain credentials, prompt fragments, or private content.
-                    logger.warning("[%s] HTTP %s", self.name, response.status_code)
-                    if attempt == 0 and response.status_code in (429, 500, 502, 503, 504):
-                        try:
-                            delay = float(response.headers.get("Retry-After", "2"))
-                        except (TypeError, ValueError):
-                            delay = 2
-                        sleep(max(1, min(delay, 60)))
+            except (requests.Timeout, requests.ConnectionError):
+                self.last_error = "network_error"
+                if attempt < attempts - 1 and self._consume_wait(self._retry_delay(None, attempt)):
+                    logger.warning("[%s] retrying after network error (attempt %s)", self.name, attempt + 1)
+                    continue
+                logger.warning("[%s] request failed (%s)", self.name, self.last_error)
+                return None
+            if response.status_code != 200:
+                self.last_error = f"http_{response.status_code}"
+                # Do not log response bodies or exception strings: either may
+                # contain credentials, prompt fragments, or private content.
+                logger.warning("[%s] HTTP %s", self.name, response.status_code)
+                if response.status_code in retryable and attempt < attempts - 1:
+                    delay = self._retry_delay(response, attempt)
+                    if self._consume_wait(delay):
+                        logger.warning("[%s] retrying after %.1fs (attempt %s)", self.name, delay, attempt + 1)
                         continue
-                    return None
+                    logger.warning("[%s] wait budget exceeded during retry", self.name)
+                return None
+            try:
                 choice = response.json()["choices"][0]
                 if choice.get("finish_reason") != "stop":
                     self.last_error = "truncated_response"
@@ -133,11 +219,6 @@ class LLMProvider:
                     return None
                 self.last_error = ""
                 return content
-            except (requests.Timeout, requests.ConnectionError):
-                self.last_error = "network_error"
-                if attempt == 0:
-                    sleep(2)
-                    continue
             except (KeyError, IndexError, TypeError, ValueError):
                 self.last_error = "invalid_response"
             logger.warning("[%s] request failed (%s)", self.name, self.last_error)

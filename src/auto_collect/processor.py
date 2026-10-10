@@ -222,35 +222,47 @@ class LLMProcessor:
         text = self.provider.chat(prompt)
         if not text:
             logger.warning(f"[{self.provider.name}] no response for '{title[:60]}'")
-            return self._fallback_process(article, error=getattr(self.provider, "last_error", "provider_unavailable"))
+            return self._fallback_process(article, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
 
+        parsed = self._accepted_summary(text)
+        if parsed is None:
+            logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'; retrying once")
+            text = self.provider.chat(prompt)
+            if not text:
+                logger.warning(f"[{self.provider.name}] no response for '{title[:60]}'")
+                return self._fallback_process(article, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
+            parsed = self._accepted_summary(text)
+        if parsed is None:
+            logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'")
+            return self._fallback_process(article, error="invalid_japanese")
+        return apply_financial_integrity({
+            "title": parsed.get("title_ja", title),
+            "processing_status": "llm",
+            "published_at": article.get("published_at") or article.get("date") or "",
+            "title_en": title,
+            "tldr": parsed.get("tldr", "")[:80],
+            "summary": parsed.get("summary", ""),
+            "points": parsed.get("points", []),
+            "score": max(20, min(100, int(parsed.get("score", 50)))),
+            "category": parsed.get("category", "AI Technology"),
+            "url": article.get("links", {}).get("official", ""),
+            "source": source,
+            "hn_score": article.get("hn_score"),
+            "evidence": {
+                "metrics": parsed.get("metrics", []),
+                "competitors": parsed.get("competitors", []),
+                "impact_ja": parsed.get("impact_ja", ""),
+                "actionable": parsed.get("actionable", ""),
+                "evidence_label": parsed.get("evidence_label", ""),
+            },
+        })
+
+    def _accepted_summary(self, text: str) -> Optional[Dict]:
         parsed = self._extract_json(text)
         if (isinstance(parsed, dict) and isinstance(parsed.get("title_ja"), str)
                 and parsed["title_ja"].strip() and is_japanese_summary(parsed.get("summary"))):
-            return apply_financial_integrity({
-                "title": parsed.get("title_ja", title),
-                "processing_status": "llm",
-                "published_at": article.get("published_at") or article.get("date") or "",
-                "title_en": title,
-                "tldr": parsed.get("tldr", "")[:80],
-                "summary": parsed.get("summary", ""),
-                "points": parsed.get("points", []),
-                "score": max(20, min(100, int(parsed.get("score", 50)))),
-                "category": parsed.get("category", "AI Technology"),
-                "url": article.get("links", {}).get("official", ""),
-                "source": source,
-                "hn_score": article.get("hn_score"),
-                "evidence": {
-                    "metrics": parsed.get("metrics", []),
-                    "competitors": parsed.get("competitors", []),
-                    "impact_ja": parsed.get("impact_ja", ""),
-                    "actionable": parsed.get("actionable", ""),
-                    "evidence_label": parsed.get("evidence_label", ""),
-                },
-            })
-
-        logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'")
-        return self._fallback_process(article, error="invalid_japanese")
+            return parsed
+        return None
 
     def _extract_json(self, text: str) -> Optional[Dict]:
         """Extract JSON from model response."""

@@ -28,7 +28,7 @@ from .formatter import DayFileFormatter
 from .html_report import generate_html_report
 from .daily_news_page import generate_daily_news
 from . import dedup as dedup_mod
-from .quality import validate_articles, failure_reason
+from .quality import filter_publishable, failure_reason
 
 
 def setup_logging():
@@ -220,7 +220,7 @@ def main():
         )
 
     all_news = processed + github_processed + benchmark_processed + funding_processed
-    quality = validate_articles(all_news, min_articles=3, min_sources=2)
+    kept, quality = filter_publishable(all_news, min_articles=3, min_sources=2)
     quality.update({"date": today.isoformat(), "provider": args.provider,
                     "model": getattr(getattr(processor.provider, "config", None), "model", "")})
     if quality["status"] != "passed":
@@ -228,6 +228,20 @@ def main():
         _quality_log(today, quality)
         logger.error("[Main] Publication held: %s", "; ".join(quality["errors"]))
         raise SystemExit(1)
+    kept_ids = {id(article) for article in kept}
+    processed = [article for article in processed if id(article) in kept_ids]
+    github_processed = [article for article in github_processed if id(article) in kept_ids]
+    benchmark_processed = [article for article in benchmark_processed if id(article) in kept_ids]
+    funding_processed = [article for article in funding_processed if id(article) in kept_ids]
+    if quality.get("excluded_count"):
+        detail = "; ".join(
+            f"article {row.get('index')}: {row.get('title') or ''} ({'; '.join(row.get('errors') or [])})"
+            for row in quality.get("excluded") or []
+        )
+        logger.warning(
+            "[Main] Excluded %d/%d articles: %s",
+            quality["excluded_count"], quality["input_count"], detail,
+        )
     _quality_log(today, quality)
 
     # === Phase 3: Write multi-section report ===
