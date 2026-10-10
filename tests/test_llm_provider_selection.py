@@ -1,17 +1,25 @@
 """PowerShell provider selection for the local daily override."""
 from pathlib import Path
 import os
+import shutil
 import subprocess
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / 'scripts' / 'run_daily_override.ps1'
-PWSH = Path('/tmp/pwsh/pwsh')
+
+
+def _pwsh():
+    for candidate in (os.environ.get('PWSH'), '/tmp/pwsh/pwsh', shutil.which('pwsh')):
+        if candidate and Path(candidate).exists():
+            return Path(candidate)
+    return None
 
 
 def select(key, confirmed):
-    if not PWSH.exists():
+    pwsh = _pwsh()
+    if pwsh is None:
         pytest.skip('pwsh is not available')
     command = (
         f". '{SCRIPT}' -DefineFunctionsOnly; "
@@ -22,7 +30,7 @@ def select(key, confirmed):
     env['SEL_KEY'] = key
     env['SEL_CONFIRMED'] = confirmed
     result = subprocess.run(
-        [str(PWSH), '-NoProfile', '-Command', command],
+        [str(pwsh), '-NoProfile', '-Command', command],
         capture_output=True,
         text=True,
         env=env,
