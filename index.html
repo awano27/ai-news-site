@@ -2422,6 +2422,14 @@
     }
 
     function formatGeneratedClock(iso) {
+      // Qualified timestamps are instants, not an already-local JST clock.
+      if (typeof iso === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(iso)) {
+        var instant = Date.parse(iso);
+        if (!Number.isFinite(instant)) return null;
+        iso = new Date(instant + 9 * 3600000).toISOString();
+      }
+      // Legacy timestamps without a zone are recorded in JST; dates alone
+      // contain no generation time and must leave the verified fallback alone.
       var m = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})/.exec(iso || '');
       if (!m) return null;
       return {

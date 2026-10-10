@@ -17,7 +17,7 @@ function loadData({ latest = null, builtDate = '2026-10-09', slideDate = null } 
   const grid=element({'data-news-date':builtDate}); grid.innerHTML='<a class="cat-card">Verified static card</a>';
   const hero=slideDate ? element({href:'presentations/day_slides/day_slide_'+slideDate.replaceAll('-','_')+'.html'}) : null;
   const doc={ getElementById(id) { return id==='catGrid' ? grid : id==='heroSlideBtn' ? hero : null; }, querySelectorAll() { return []; } };
-  const code=scripts.find(s=>s.includes('var LATEST_JSON')).replace(/\}\)\(\);\s*$/, 'globalThis.api={latestDate,latestForDate,renderCategories};})();');
+  const code=scripts.find(s=>s.includes('var LATEST_JSON')).replace(/\}\)\(\);\s*$/, 'globalThis.api={latestDate,latestForDate,renderCategories,formatGeneratedClock};})();');
   const c={document:doc, fetch:(url)=> latest ? Promise.resolve({ok:true,json:()=>Promise.resolve(url==='news/latest.json'?latest:[]),text:()=>Promise.resolve('')}) : Promise.reject(new Error('offline')), Date, console}; vm.createContext(c);vm.runInContext(code,c);return {api:c.api,grid};
 }
 test('news_date takes priority over slide/generated date',()=>{
@@ -80,4 +80,23 @@ test('integrated rendering uses Oct9 news even with Oct8 generated timestamp and
 test('stale fetched news retains more recent static cards', async()=>{
  const {grid}=loadData({slideDate:'2026-10-09',latest:{news_date:'2026-10-08',sections:{tech:[{title:'Older content',source:{url:'https://example.test'}}]}}});
  await new Promise(setImmediate);assert.ok(grid.innerHTML.includes('Verified static card'));
+});
+
+for (const iso of ['2026-10-10T07:23:33.776284Z', '2026-10-10T07:23:33.776284+00:00', '2026-10-10T16:23:33+09:00', '2026-10-10T02:23:33-05:00']) {
+ test('homepage runtime converts timezone-qualified generation time to JST: '+iso,()=>{
+  const {api}=loadData();const clock=api.formatGeneratedClock(iso);
+  assert.equal(clock.dateTime,'2026-10-10 16:23 JST');assert.equal(clock.time,'16:23');
+ });
+}
+test('homepage runtime converts UTC midnight boundary to JST calendar date',()=>{
+ const {api}=loadData();const clock=api.formatGeneratedClock('2026-10-09T23:23:00Z');
+ assert.equal(clock.dateTime,'2026-10-10 08:23 JST');assert.equal(clock.time,'08:23');
+});
+for (const iso of ['2026-10-10', '', null, 'not-a-date', '2026-99-99T07:23:00Z']) {
+ test('date-only or invalid generation time does not invent a JST clock: '+iso,()=>{
+  const {api}=loadData();assert.equal(api.formatGeneratedClock(iso),null);
+ });
+}
+test('legacy timezone-free timestamp retains its recorded JST clock',()=>{
+ const {api}=loadData();assert.equal(api.formatGeneratedClock('2026-10-10T16:23:00').time,'16:23');
 });
