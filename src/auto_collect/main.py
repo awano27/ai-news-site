@@ -28,7 +28,7 @@ from .formatter import DayFileFormatter
 from .html_report import generate_html_report
 from .daily_news_page import generate_daily_news
 from . import dedup as dedup_mod
-from .quality import validate_articles, failure_reason
+from .quality import failure_reason, filter_publishable
 
 
 def setup_logging():
@@ -220,10 +220,23 @@ def main():
         )
 
     all_news = processed + github_processed + benchmark_processed + funding_processed
-    quality = validate_articles(all_news, min_articles=3, min_sources=2)
+    kept, quality = filter_publishable(all_news, min_articles=3, min_sources=2)
     quality.update({"date": today.isoformat(), "provider": args.provider,
                     "model": getattr(getattr(processor.provider, "config", None), "model", "")})
+    kept_ids = {id(article) for article in kept}
+    processed = [article for article in processed if id(article) in kept_ids]
+    github_processed = [article for article in github_processed if id(article) in kept_ids]
+    benchmark_processed = [article for article in benchmark_processed if id(article) in kept_ids]
+    funding_processed = [article for article in funding_processed if id(article) in kept_ids]
+    if quality["excluded_count"]:
+        details = "; ".join(
+            f"#{row['index']} title={row.get('title')} url={row.get('url')} reasons={', '.join(row['errors'])}"
+            for row in quality["excluded"]
+        )
+        logger.warning("[Main] Excluded %d/%d articles: %s",
+                       quality["excluded_count"], quality["input_count"], details)
     if quality["status"] != "passed":
+        # Transient detection looks at the articles that failed, including exclusions.
         quality["failure_reason"] = failure_reason(all_news, quality)
         _quality_log(today, quality)
         logger.error("[Main] Publication held: %s", "; ".join(quality["errors"]))

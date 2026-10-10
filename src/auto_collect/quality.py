@@ -30,6 +30,28 @@ def valid_article_url(value: object) -> bool:
         return False
 
 
+def article_errors(article: object, index: int) -> list[str]:
+    """Per-article problems. Messages stay identical to validate_articles."""
+    if not isinstance(article, dict):
+        return [f'article {index}: invalid object']
+    errors: list[str] = []
+    if not valid_article_url(article.get('url')):
+        errors.append(f'article {index}: invalid URL')
+    if not _article_source(article):
+        errors.append(f'article {index}: missing source')
+    if not str(article.get('title') or '').strip():
+        errors.append(f'article {index}: missing title')
+    if not is_japanese_summary(article.get('summary')):
+        errors.append(f'article {index}: Japanese summary missing or invalid')
+    if article.get('processing_status') not in ('llm', 'source_japanese'):
+        errors.append(f'article {index}: fallback or unverified processing')
+    return errors
+
+
+def _article_source(article: dict) -> str:
+    return str(article.get('source_attribution') or article.get('rss_source') or article.get('source') or '').strip()
+
+
 def validate_articles(articles: list[dict], *, min_articles: int = 1, min_sources: int = 1) -> dict:
     errors: list[str] = []
     japanese = 0
@@ -37,24 +59,13 @@ def validate_articles(articles: list[dict], *, min_articles: int = 1, min_source
     if not articles:
         errors.append('no articles')
     for i, article in enumerate(articles, 1):
-        if not isinstance(article, dict):
-            errors.append(f'article {i}: invalid object')
-            continue
-        if not valid_article_url(article.get('url')):
-            errors.append(f'article {i}: invalid URL')
-        source = str(article.get('source_attribution') or article.get('rss_source') or article.get('source') or '').strip()
-        if source:
-            sources.add(source)
-        else:
-            errors.append(f'article {i}: missing source')
-        if not str(article.get('title') or '').strip():
-            errors.append(f'article {i}: missing title')
-        if is_japanese_summary(article.get('summary')):
-            japanese += 1
-        else:
-            errors.append(f'article {i}: Japanese summary missing or invalid')
-        if article.get('processing_status') not in ('llm', 'source_japanese'):
-            errors.append(f'article {i}: fallback or unverified processing')
+        errors.extend(article_errors(article, i))
+        if isinstance(article, dict):
+            source = _article_source(article)
+            if source:
+                sources.add(source)
+            if is_japanese_summary(article.get('summary')):
+                japanese += 1
     if len(articles) < min_articles:
         errors.append(f'below minimum article count: {len(articles)} < {min_articles}')
     if len(sources) < min_sources:
@@ -64,7 +75,38 @@ def validate_articles(articles: list[dict], *, min_articles: int = 1, min_source
             'sources': sorted(sources), 'errors': errors}
 
 
-TRANSIENT_ERRORS = {'network_error', 'http_429', 'http_500', 'http_502', 'http_503', 'http_504'}
+MAX_EXCLUDED_RATIO = 0.20
+
+
+def filter_publishable(articles, *, min_articles: int = 1, min_sources: int = 1,
+                       max_excluded_ratio: float = MAX_EXCLUDED_RATIO) -> tuple[list[dict], dict]:
+    """Drop per-article failures, then apply the whole-report gates to what remains."""
+    kept: list[dict] = []
+    excluded: list[dict] = []
+    for index, article in enumerate(articles, 1):
+        errors = article_errors(article, index)
+        if errors:
+            title = article.get('title') if isinstance(article, dict) else None
+            url = article.get('url') if isinstance(article, dict) else None
+            excluded.append({'index': index, 'title': title, 'url': url, 'errors': errors})
+        else:
+            kept.append(article)
+    quality = validate_articles(kept, min_articles=min_articles, min_sources=min_sources)
+    ratio = len(excluded) / len(articles) if articles else 1.0
+    if ratio > max_excluded_ratio:
+        quality['status'] = 'failed'
+        quality['errors'].append(
+            f'too many excluded articles: {len(excluded)}/{len(articles)} > {max_excluded_ratio:.0%}')
+    quality.update({
+        'input_count': len(articles),
+        'excluded_count': len(excluded),
+        'excluded_ratio': round(ratio, 3),
+        'excluded': excluded,
+    })
+    return kept, quality
+
+
+TRANSIENT_ERRORS = {'network_error', 'http_429', 'http_500', 'http_502', 'http_503', 'http_504', 'wait_budget_exhausted'}
 
 
 def failure_reason(articles: list[dict], quality: dict) -> str:

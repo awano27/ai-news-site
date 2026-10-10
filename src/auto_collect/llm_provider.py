@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import logging
 import os
+import random
+import threading
 from dataclasses import dataclass
 from typing import List, Optional
-from time import sleep
+from time import monotonic, sleep
 from threading import local
 
 import requests
@@ -26,6 +28,11 @@ import requests
 from .config import OLLAMA_MODEL, OLLAMA_TIMEOUT
 
 logger = logging.getLogger(__name__)
+
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+DEFAULT_MAX_RETRIES = 4
+DEFAULT_MAX_TOTAL_WAIT_SEC = 600.0
+NVIDIA_MIN_INTERVAL_SEC = 1.5
 
 
 @dataclass
@@ -48,6 +55,7 @@ class LLMProvider:
     def __init__(self, config: ProviderConfig):
         self.config = config
         self.last_error = ""
+        self._ensure_pace()
         self.available = self._health_check()
 
     @property
@@ -90,6 +98,76 @@ class LLMProvider:
             timeout=self.config.timeout,
         )
 
+    _pace_init_lock = threading.Lock()
+
+    def _ensure_pace(self) -> None:
+        if getattr(self, "_pace_ready", False):
+            return
+        with LLMProvider._pace_init_lock:
+            if getattr(self, "_pace_ready", False):
+                return
+            self._pace_lock = threading.Lock()
+            self._next_allowed = 0.0
+            self._waited = 0.0
+            self._budget_exhausted = False
+            retry_raw = os.environ.get("LLM_MAX_RETRIES", "").strip()
+            wait_raw = os.environ.get("LLM_MAX_TOTAL_WAIT_SEC", "").strip()
+            interval_raw = os.environ.get("LLM_MIN_INTERVAL_SEC", "").strip()
+            self._max_retries = int(retry_raw) if retry_raw else DEFAULT_MAX_RETRIES
+            self._max_total_wait = float(wait_raw) if wait_raw else DEFAULT_MAX_TOTAL_WAIT_SEC
+            if interval_raw:
+                self._min_interval = max(0.0, float(interval_raw))
+            elif self.config.name == "nvidia":
+                self._min_interval = NVIDIA_MIN_INTERVAL_SEC
+            else:
+                self._min_interval = 0.0
+            self._pace_ready = True
+
+    def _await_interval(self) -> bool:
+        """Reserve the next call slot. Sleep outside the lock so workers do not queue behind each other."""
+        self._ensure_pace()
+        with self._pace_lock:
+            if self._budget_exhausted:
+                return False
+            now = monotonic()
+            start = max(now, self._next_allowed)
+            wait = start - now
+            if self._waited + wait > self._max_total_wait:
+                self._budget_exhausted = True
+                return False
+            self._waited += wait
+            self._next_allowed = start + self._min_interval
+        if wait > 0:
+            sleep(wait)
+        return True
+
+    def _sleep_within_budget(self, delay: float) -> bool:
+        self._ensure_pace()
+        delay = max(0.0, float(delay))
+        with self._pace_lock:
+            if self._budget_exhausted or self._waited + delay > self._max_total_wait:
+                self._budget_exhausted = True
+                return False
+            self._waited += delay
+        if delay > 0:
+            sleep(delay)
+        return True
+
+    def _retry_delay(self, response, attempt: int) -> float:
+        header = ""
+        try:
+            header = str(response.headers.get("Retry-After") or "").strip()
+        except (AttributeError, TypeError, ValueError):
+            header = ""
+        if header:
+            try:
+                delay = float(header)
+            except (TypeError, ValueError):
+                delay = -1
+            if delay >= 0:
+                return min(delay, 60.0)
+        return min((2 ** attempt) * 2, 60) + random.uniform(0, 1)
+
     def _call(
         self,
         messages: List[dict],
@@ -99,6 +177,7 @@ class LLMProvider:
         if not self.config.api_key:
             self.last_error = "api_key_missing"
             return None
+        self._ensure_pace()
         url = f"{self.config.base_url.rstrip('/')}/chat/completions"
         body = {"model": self.config.model, "messages": messages, "stream": False,
                 "max_tokens": max_tokens if max_tokens is not None else 2048}
@@ -106,21 +185,25 @@ class LLMProvider:
             body.update(reasoning_effort="none", temperature=1, top_p=0.95)
         headers = {"Content-Type": "application/json",
                    "Authorization": f"Bearer {self.config.api_key}"}
-        for attempt in range(2):
+        for attempt in range(self._max_retries + 1):
+            if not self._await_interval():
+                self.last_error = "wait_budget_exhausted"
+                logger.warning("[%s] wait budget exhausted", self.name)
+                return None
             try:
                 response = requests.post(url, json=body, headers=headers,
                                          timeout=timeout or self.config.timeout)
                 if response.status_code != 200:
                     self.last_error = f"http_{response.status_code}"
-                    # Do not log response bodies or exception strings: either may
-                    # contain credentials, prompt fragments, or private content.
-                    logger.warning("[%s] HTTP %s", self.name, response.status_code)
-                    if attempt == 0 and response.status_code in (429, 500, 502, 503, 504):
-                        try:
-                            delay = float(response.headers.get("Retry-After", "2"))
-                        except (TypeError, ValueError):
-                            delay = 2
-                        sleep(max(1, min(delay, 60)))
+                    # Do not log response bodies, exception strings, or keys.
+                    logger.warning("[%s] HTTP %s attempt %s", self.name, response.status_code, attempt + 1)
+                    if response.status_code in RETRYABLE_STATUS and attempt < self._max_retries:
+                        delay = self._retry_delay(response, attempt)
+                        logger.warning("[%s] waiting %.1fs", self.name, delay)
+                        if not self._sleep_within_budget(delay):
+                            self.last_error = "wait_budget_exhausted"
+                            logger.warning("[%s] wait budget exhausted", self.name)
+                            return None
                         continue
                     return None
                 choice = response.json()["choices"][0]
@@ -135,8 +218,8 @@ class LLMProvider:
                 return content
             except (requests.Timeout, requests.ConnectionError):
                 self.last_error = "network_error"
-                if attempt == 0:
-                    sleep(2)
+                logger.warning("[%s] HTTP network attempt %s", self.name, attempt + 1)
+                if attempt == 0 and self._sleep_within_budget(2):
                     continue
             except (KeyError, IndexError, TypeError, ValueError):
                 self.last_error = "invalid_response"
