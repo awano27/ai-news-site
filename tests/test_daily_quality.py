@@ -160,3 +160,114 @@ def test_quality_uses_rendered_source_attribution():
     from src.auto_collect.quality import validate_articles
     result=validate_articles([article(source='TechCrunch',source_attribution='TechCrunch（Bloomberg報道）')])
     assert result['sources']==['TechCrunch（Bloomberg報道）']
+
+
+def _row(i, **changes):
+    base = article(
+        url=f'https://host{i}.example/item-{i}',
+        source='Alpha' if i % 2 == 0 else 'Beta',
+        title=f'記事{i}の見出し',
+    )
+    base.update(changes)
+    return base
+
+
+def test_two_fallbacks_among_seventy_five_are_excluded_and_the_rest_pass():
+    from src.auto_collect.quality import filter_publishable
+    rows = [_row(i) for i in range(75)]
+    rows[10] = _row(10, title='解析できなかった記事', summary='not japanese', processing_status='fallback')
+    rows[40] = _row(40, title='もう一つの失敗', summary='English only', processing_status='fallback')
+    before = deepcopy(rows)
+    kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert rows == before
+    assert quality['status'] == 'passed'
+    assert quality['input_count'] == 75
+    assert quality['excluded_count'] == 2
+    assert quality['excluded_ratio'] == round(2 / 75, 3)
+    assert len(kept) == 73
+    assert quality['article_count'] == 73
+    assert quality['japanese_count'] == 73
+    assert [row['index'] for row in quality['excluded']] == [11, 41]
+    assert [row['url'] for row in quality['excluded']] == [rows[10]['url'], rows[40]['url']]
+    assert quality['excluded'][0]['title'] == '解析できなかった記事'
+    assert any('fallback' in err for err in quality['excluded'][0]['errors'])
+    assert any('Japanese' in err for err in quality['excluded'][0]['errors'])
+    excluded_urls = {row['url'] for row in quality['excluded']}
+    assert excluded_urls.isdisjoint(row['url'] for row in kept)
+
+
+def test_excluded_ratio_above_twenty_percent_fails_publication():
+    from src.auto_collect.quality import filter_publishable
+    rows = []
+    for i in range(100):
+        bad = i < 21
+        rows.append(_row(
+            i,
+            processing_status='fallback' if bad else 'llm',
+            summary='English fallback' if bad else article()['summary'],
+        ))
+    kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert len(kept) == 79
+    assert quality['status'] == 'failed'
+    assert any(err.startswith('too many excluded articles: 21/100 > 20%') for err in quality['errors'])
+
+
+def test_fewer_than_two_sources_after_exclusion_fails():
+    from src.auto_collect.quality import filter_publishable
+    rows = [_row(i, source='Alpha') for i in range(4)]
+    rows.append(_row(4, source='Beta', processing_status='fallback', summary='English fallback'))
+    _kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status'] == 'failed'
+    assert quality['excluded_count'] == 1
+    assert any('source coverage' in err for err in quality['errors'])
+    assert not any('too many excluded' in err for err in quality['errors'])
+
+
+def test_clean_articles_match_validate_articles_and_exclude_nothing():
+    from src.auto_collect.quality import filter_publishable, validate_articles
+    rows = [article(), article(url='https://other.example/a', source='Other')]
+    direct = validate_articles(rows)
+    kept, quality = filter_publishable(rows)
+    assert kept == rows
+    assert quality['excluded'] == []
+    assert quality['excluded_count'] == 0
+    assert quality['input_count'] == 2
+    for key in ('status', 'article_count', 'japanese_count', 'sources', 'errors'):
+        assert quality[key] == direct[key]
+
+
+def test_invalid_object_is_excluded_by_itself():
+    from src.auto_collect.quality import filter_publishable
+    rows = [_row(i) for i in range(9)]
+    rows.insert(3, 'not-an-article')
+    kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status'] == 'passed'
+    assert len(kept) == 9
+    assert quality['excluded'] == [{
+        'index': 4,
+        'title': None,
+        'url': None,
+        'errors': ['article 4: invalid object'],
+    }]
+
+
+def test_transient_exclusions_stay_retryable_when_the_ratio_holds_publication():
+    from src.auto_collect.quality import failure_reason, filter_publishable
+    rows = [_row(i) for i in range(3)]
+    rows.extend(
+        _row(i, processing_status='fallback', processing_error='http_429', summary='English fallback')
+        for i in range(3, 5)
+    )
+    _kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status'] == 'failed'
+    assert failure_reason(rows, quality) == 'transient_generation_failed'
+    for row in rows[3:]:
+        row['processing_error'] = 'invalid_japanese'
+    assert failure_reason(rows, quality) == 'japanese_quality_failed'
+
+
+def test_anthropic_rss_404_url_is_not_collected():
+    from src.auto_collect.config import EN_RSS_FEEDS
+    urls = [feed['url'] for feed in EN_RSS_FEEDS]
+    assert 'https://www.anthropic.com/news/rss.xml' not in urls
+    assert all('sitemap' not in url for url in urls)

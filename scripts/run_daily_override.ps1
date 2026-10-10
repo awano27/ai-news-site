@@ -2,11 +2,41 @@
 param(
     [string]$RepoPath = (Join-Path $PSScriptRoot ".."),
     [string]$PythonPath,
-    [string]$LogPath
+    [string]$LogPath,
+    [switch]$DefineFunctionsOnly
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+function Select-DailyLlmProvider {
+    param(
+        [AllowEmptyString()]
+        [string]$ApiKey = "",
+        [AllowEmptyString()]
+        [string]$Confirmed = ""
+    )
+    $provider = "ollama"
+    $reason = ""
+    $hasNvidiaKey = -not [string]::IsNullOrEmpty($ApiKey) -and $ApiKey.StartsWith("nvapi-", [System.StringComparison]::OrdinalIgnoreCase)
+    # Keep this name distinct from $Confirmed. PowerShell variables are case-insensitive,
+    # and assigning $false back onto the string parameter makes the text "False", which is truthy.
+    $isConfirmed = [string]::Equals($Confirmed, "true", [System.StringComparison]::Ordinal)
+    if ($hasNvidiaKey -and $isConfirmed) {
+        $provider = "nvidia"
+    }
+    elseif ($hasNvidiaKey) {
+        $reason = "NVIDIA key found but NVIDIA_PRODUCTION_USE_CONFIRMED is not 'true'; using ollama."
+    }
+    [pscustomobject]@{
+        Provider = $provider
+        Reason = $reason
+    }
+}
+
+if ($DefineFunctionsOnly) {
+    return
+}
 
 $repo = (Resolve-Path -LiteralPath $RepoPath).Path
 $runtimeMarkerName = "visionhub-daily-news-override-runtime.json"
@@ -163,9 +193,10 @@ try {
     }
 
     Set-Location -LiteralPath $repo
-    $provider = "ollama"
-    if ($env:NVIDIA_API_KEY -and $env:NVIDIA_API_KEY.StartsWith("nvapi-", [System.StringComparison]::OrdinalIgnoreCase)) {
-        $provider = "nvidia"
+    $selection = Select-DailyLlmProvider -ApiKey ([string]$env:NVIDIA_API_KEY) -Confirmed ([string]$env:NVIDIA_PRODUCTION_USE_CONFIRMED)
+    $provider = $selection.Provider
+    if ($selection.Reason) {
+        Write-RunnerLog $selection.Reason
     }
     Write-RunnerLog "Running pipeline with provider=$provider."
     $pipelineCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @("-m", "src.auto_collect.main", "--provider", $provider, "--force") -Label "pipeline"
