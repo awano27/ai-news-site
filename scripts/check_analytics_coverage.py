@@ -3,9 +3,10 @@
 from __future__ import annotations
 import re
 from pathlib import Path
+from inject_analytics import analytics_opted_out
 ROOT=Path(__file__).resolve().parents[1]
 def excluded(path,text):
-    return bool(re.search(r"_bak|\.bak|^test_",path.name,re.I) or re.search(r'<meta\s+[^>]*http-equiv=["\']refresh["\']',text,re.I))
+    return analytics_opted_out(text) or bool(re.search(r"_bak|\.bak|^test_",path.name,re.I) or re.search(r'<meta\s+[^>]*http-equiv=["\']refresh["\']',text,re.I))
 def main():
     files=list(ROOT.glob("*.html"))+list((ROOT/"presentations").rglob("*.html"))
     targets=[]

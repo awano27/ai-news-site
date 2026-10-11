@@ -14,6 +14,50 @@ from bs4 import BeautifulSoup
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_oct11_decision_slide_preserves_qualified_claims_and_accessible_diagrams():
+    article = BeautifulSoup((ROOT / "presentations/day_slides/day_slide_2026_10_11.html").read_text(encoding="utf-8"), "html.parser")
+    assert article.h1.get_text("", strip=True) == "Microsoftの判断専用AI、GPT-6 Sol比で応答速度は約35倍"
+    assert [section.get("id") for section in article.select("section.section")] == ["what", "evidence", "workflow", "limits", "pilot"]
+    text = article.get_text(" ", strip=True)
+    for qualification in ("P50", "自社測定", "本稿では未検証", "編集部提案"):
+        assert qualification in text
+    sources = {link.get("href") for link in article.select("#sources a")}
+    assert "https://commandline.microsoft.com/microsoft-decision-1-model-foundry/" in sources
+    assert "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/how-to/use-foundry-models-microsoft-decision" in sources
+    ids = [element["id"] for element in article.select("[id]")]
+    assert len(ids) == len(set(ids))
+    for anchor in article.select('a[href^="#"]'):
+        assert anchor["href"][1:] in ids
+    assert article.select_one("dialog#board-dialog") is not None
+    assert article.select_one("button#open-board") is not None
+    assert article.select_one("#brief-art") is not None
+    assert article.select_one('label[for="audit-prompt"]') is not None
+    assert article.select_one('#copy-status[aria-live="polite"]') is not None
+
+
+def test_oct11_decision_slide_has_publication_metadata_and_preserved_discovery():
+    path = "presentations/day_slides/day_slide_2026_10_11.html"
+    article = BeautifulSoup((ROOT / path).read_text(encoding="utf-8"), "html.parser")
+    canonical = article.select_one('link[rel="canonical"]')
+    assert canonical is not None
+    assert canonical["href"] == "https://visionhub.jp/" + path
+    assert article.select_one('meta[property="og:image"]')["content"] == "https://visionhub.jp/presentations/day_slides/images/1011/cover.png"
+    assert (ROOT / "presentations/day_slides/images/1011/cover.png").is_file()
+    assert article.select_one('script[src="/assets/js/analytics.js"]') is None
+    assert article.select_one('meta[name="visionhub-analytics"]')["content"] == "off"
+    description = article.select_one('meta[name="description"]')["content"]
+    assert article.select_one('meta[property="og:description"]')["content"] == description
+    assert article.select_one('meta[name="twitter:description"]')["content"] == description
+    homepage = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
+    assert "Microsoft" in homepage.select_one("#sitrepUpdate").get_text()
+    assert "P50" in homepage.select_one("#sitrepDesk").get_text()
+    assert "AMIE" not in homepage.select_one(".sitrep")["aria-label"]
+    metadata = json.loads((ROOT / "presentations/day_slides/meta_index.json").read_text(encoding="utf-8"))
+    assert any(issue["date"] == "2026-10-11" and issue["file"] == "day_slide_2026_10_11.html" for issue in metadata["issues"])
+    curated = BeautifulSoup((ROOT / "presentations/day_slides_index.html").read_text(encoding="utf-8"), "html.parser")
+    assert curated.select_one('a.slide-card[href="day_slides/day_slide_2026_10_11.html"]') is not None
+
+
 class Homepage(HTMLParser):
     def __init__(self, html):
         super().__init__()
@@ -300,3 +344,25 @@ def test_daily_briefing_independent_dates_and_regeneration(tmp_path):
     html = (tmp_path / "index.html").read_text(encoding="utf-8")
     assert '主要ニュースは更新待ち' in html
     assert 'id="dailyReportDate">未確認' in html
+
+
+def test_explicit_analytics_opt_out_survives_injection_without_changing_other_pages(tmp_path):
+    import sys
+    # Exercise the real injector, including --force, on an isolated fixture.
+    no_analytics = tmp_path / "private.html"
+    normal = tmp_path / "normal.html"
+    opted = '<html><head><meta content="off" name="visionhub-analytics"></head><body>offline prompt</body></html>'
+    no_analytics.write_text(opted, encoding="utf-8")
+    normal.write_text('<html><head></head><body>normal</body></html>', encoding="utf-8")
+    for force in ([], ["--force"]):
+        result = subprocess.run([sys.executable, str(ROOT / "scripts/inject_analytics.py"), str(tmp_path), *force], capture_output=True, text=True)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert no_analytics.read_text(encoding="utf-8") == opted
+        assert '/assets/js/analytics.js' in normal.read_text(encoding="utf-8")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    try:
+        from check_analytics_coverage import excluded
+        assert excluded(no_analytics, opted)
+        assert not excluded(normal, normal.read_text(encoding="utf-8"))
+    finally:
+        sys.path.pop(0)

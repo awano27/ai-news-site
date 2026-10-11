@@ -24,6 +24,14 @@ SNIPPET = (
 )
 
 
+def analytics_opted_out(text: str) -> bool:
+    """Honor an explicit page-level no-analytics publishing contract."""
+    return bool(re.search(
+        r'<meta\b(?=[^>]*\bname\s*=\s*[\"\']visionhub-analytics[\"\'])(?=[^>]*\bcontent\s*=\s*[\"\']off[\"\'])[^>]*>',
+        text, re.IGNORECASE,
+    ))
+
+
 class AnalyticsInjector(Injector):
     MARKER = "<!-- GA4_INJECTED v1 -->"
     DESCRIPTION = "Inject GA4 analytics loader into every HTML page."
@@ -41,6 +49,8 @@ class AnalyticsInjector(Injector):
     )
 
     def build_block(self, path: Path, text: str) -> str | None:
+        if analytics_opted_out(text):
+            return None
         if re.search(r'<meta\s+[^>]*http-equiv=["\']refresh["\']', text, re.IGNORECASE):
             return None
         return SNIPPET
