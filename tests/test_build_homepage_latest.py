@@ -69,13 +69,38 @@ def test_comparison_promo_is_removed_without_an_empty_section():
     assert_comparison_promo_removed((ROOT / "index.html").read_text(encoding="utf-8"))
 
 
-def test_dated_comparison_article_and_sitemap_entry_remain_available():
+def test_oct7_comparison_article_is_removed():
     article_path = "presentations/ai-news-comparison-2026-10-07.html"
-    article = BeautifulSoup((ROOT / article_path).read_text(encoding="utf-8"), "html.parser")
-    assert "10/7 AIニュース厳選5件・通常版との比較" in article.title.get_text()
-    assert article.find("h1") is not None
+    assert not (ROOT / article_path).exists()
+
+
+def test_oct7_comparison_has_no_remaining_published_links_or_indexes():
+    article_name = "ai-news-comparison-2026-10-07.html"
+    published = [ROOT / "index.html", ROOT / "sitemap.xml"]
+    for directory in ("presentations", "public-pages", "daily-news", "news", "articles"):
+        published.extend(path for path in (ROOT / directory).rglob("*")
+                         if path.suffix in {".html", ".json", ".xml"})
+    references = [path.relative_to(ROOT).as_posix() for path in published
+                  if article_name.encode("ascii") in path.read_bytes()]
+    assert references == []
+
+
+def test_other_comparison_and_coding_guide_remain_published():
     sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-    assert "https://visionhub.jp/" + article_path in sitemap
+    for article_path in ("presentations/ai-news-comparison-2026-10-03.html",
+                         "presentations/ai_coding_agents_guide.html"):
+        article = BeautifulSoup((ROOT / article_path).read_text(encoding="utf-8"), "html.parser")
+        assert article.find("h1") is not None
+        assert "https://visionhub.jp/" + article_path in sitemap
+
+
+def test_sitemap_regeneration_does_not_restore_oct7_comparison():
+    from scripts.build_sitemap import collect_urls
+
+    urls = {entry["loc"] for entry in collect_urls()}
+    assert "https://visionhub.jp/presentations/ai-news-comparison-2026-10-07.html" not in urls
+    assert "https://visionhub.jp/presentations/ai-news-comparison-2026-10-03.html" in urls
+    assert "https://visionhub.jp/presentations/ai_coding_agents_guide.html" in urls
 
 
 def assert_entry_contract(html):
