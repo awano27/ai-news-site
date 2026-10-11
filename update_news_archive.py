@@ -5,8 +5,10 @@ inputディレクトリから最新ニュースデータを読み込んでアー
 """
 
 import os
+import argparse
 import json
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 import hashlib
@@ -15,6 +17,9 @@ from src.utils import (
     mmdd_to_iso, filename_to_iso,
     INPUT_DAY_DIR, PUBLIC_NEWS_DIR, ARCHIVE_INDEX_FILE, VERSION_FILE,
     read_text, write_json,
+)
+from src.utils.archive_protection import (
+    ArchiveProtectionError, ProtectedArchiveError, guard_legacy_archive_write,
 )
 
 
@@ -30,6 +35,25 @@ def parse_date_from_filename(filename):
 def _is_claim_evidence_metadata_line(line):
     """Keep the optional dayfile transport record out of legacy article text."""
     return line.strip().startswith("🔎 Claim Evidence:")
+
+
+def _trim_unmatched_url_parentheses(url):
+    """Remove wrapping Markdown ')' without damaging literal URL parentheses."""
+    balance = 0
+    trailing_unmatched = 0
+    for char in url:
+        if char == '(':
+            balance += 1
+            trailing_unmatched = 0
+        elif char == ')':
+            if balance:
+                balance -= 1
+                trailing_unmatched = 0
+            else:
+                trailing_unmatched += 1
+        else:
+            trailing_unmatched = 0
+    return url[:-trailing_unmatched] if trailing_unmatched else url
 
 
 def extract_news_content(text):
@@ -49,7 +73,8 @@ def extract_news_content(text):
     urls = []
     url_pattern = re.compile(r'https?://[^\s<>"{}|\\^`\[\]]+')
     for line in lines:
-        urls.extend(url_pattern.findall(line))
+        urls.extend(_trim_unmatched_url_parentheses(url) for url in url_pattern.findall(line))
+    urls = list(dict.fromkeys(urls))
     
     # 主要ポイントを抽出（より詳細な分析）
     points = []
@@ -108,7 +133,7 @@ def extract_news_content(text):
         "content_sections": len([line for line in content_lines if line])
     }
 
-def update_archive():
+def update_archive(*, preserve_reviewed=False):
     """アーカイブデータを更新"""
     input_dir = INPUT_DAY_DIR
     output_dir = PUBLIC_NEWS_DIR
@@ -116,8 +141,6 @@ def update_archive():
     if not input_dir.exists():
         print(f"Input directory not found: {input_dir}")
         return
-
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     # 既存のアーカイブインデックスを読み込み
     index_file = ARCHIVE_INDEX_FILE
@@ -133,10 +156,28 @@ def update_archive():
     new_entries = []
     updated_count = 0
 
-    for txt_file in input_dir.glob("*.txt"):
+    # Preflight the entire batch before any snapshot, index or version write.
+    # A same-day forced update and an older mtime must not bypass protection.
+    candidates = []
+    for txt_file in sorted(input_dir.glob("*.txt")):
         file_date = parse_date_from_filename(txt_file.name)
         if not file_date:
             continue
+        try:
+            guard_legacy_archive_write(output_dir / f"{file_date}.json")
+        except ProtectedArchiveError:
+            if not preserve_reviewed:
+                raise
+            print(f"Preserved reviewed archive: {file_date}")
+            continue
+        candidates.append((txt_file, file_date))
+
+    if preserve_reviewed and not candidates:
+        return False
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for txt_file, file_date in candidates:
 
         # 既存のデータをチェック
         json_file = output_dir / f"{file_date}.json"
@@ -221,7 +262,15 @@ def update_archive():
     return updated_count > 0
 
 if __name__ == "__main__":
-    success = update_archive()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--preserve-reviewed', action='store_true',
+                        help='Skip reviewed snapshots while still refusing malformed existing JSON')
+    args = parser.parse_args()
+    try:
+        success = update_archive(preserve_reviewed=args.preserve_reviewed)
+    except ArchiveProtectionError as error:
+        print(str(error), file=sys.stderr)
+        sys.exit(1)
     if success:
         print("\nArchive updated successfully!")
     else:

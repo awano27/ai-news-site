@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import json
+import argparse
 import sys
 from pathlib import Path
-from typing import Dict, Any
 
 try:
     from ftfy import fix_text  # type: ignore
@@ -16,6 +16,12 @@ import html as _html
 import re as _re
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from src.utils.archive_protection import (
+    ArchiveProtectionError, ProtectedArchiveError, guard_legacy_archive_write,
+)
+
 NEWS_DIR = ROOT / 'public-pages' / 'news'
 
 
@@ -50,8 +56,8 @@ def norm_date(s: str | None) -> str:
 
 def normalize_file(path: Path) -> bool:
     try:
-        data: Dict[str, Any] = json.loads(path.read_text(encoding='utf-8'))
-    except Exception as e:
+        data = guard_legacy_archive_write(path)
+    except ArchiveProtectionError as e:
         print(f"[skip] {path}: {e}")
         return False
     if not isinstance(data, dict):
@@ -77,18 +83,37 @@ def normalize_file(path: Path) -> bool:
     return changed
 
 
-def main() -> int:
+def main(*, preserve_reviewed=False) -> int:
     if not NEWS_DIR.exists():
         print('news dir not found', NEWS_DIR)
         return 1
     any_changed = False
-    skip = {'archive_index.json', 'daily_index.json', 'version.json', 'search_index.json'}
-    for p in sorted(NEWS_DIR.glob('*.json')):
-        if p.name in skip:
-            continue
+    skip = {'archive_index.json', 'daily_index.json', 'version.json', 'search_index.json',
+            'daily_latest.json'}
+    paths = [p for p in sorted(NEWS_DIR.glob('*.json')) if p.name not in skip]
+    # Refuse the whole operation before normalizing any earlier snapshot.
+    writable_paths = []
+    try:
+        for p in paths:
+            try:
+                guard_legacy_archive_write(p)
+            except ProtectedArchiveError:
+                if not preserve_reviewed:
+                    raise
+                print('[preserve]', p, '(reviewed snapshot)')
+                continue
+            writable_paths.append(p)
+    except ArchiveProtectionError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    for p in writable_paths:
         any_changed |= normalize_file(p)
     return 0 if not any_changed else 0
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description='Normalize unreviewed legacy archive text')
+    parser.add_argument('--preserve-reviewed', action='store_true',
+                        help='Skip reviewed snapshots while still refusing malformed existing JSON')
+    args = parser.parse_args()
+    sys.exit(main(preserve_reviewed=args.preserve_reviewed))

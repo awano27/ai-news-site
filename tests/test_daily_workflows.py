@@ -216,3 +216,15 @@ def test_diagnostics_artifacts_match_the_actual_writer_log_directory():
     relative = LOG_DIR.relative_to(PROJECT_ROOT).as_posix()
     assert f'{relative}/daily_quality_*.json' in paths
     assert f'{relative}/daily_candidate_*.json' in paths
+
+
+def test_legacy_archive_workflow_preserves_reviews_and_validates_whole_bundle_before_commit():
+    workflow = (ROOT / '.github/workflows/daily-archive.yml').read_text(encoding='utf-8')
+    assert 'python tools/normalize_archive_json.py --preserve-reviewed' in workflow
+    rebuild = workflow.index('node scripts/rebuild-news-indexes.js')
+    generate = workflow.index('node scripts/generate-daily-news-json.js')
+    verify = workflow.index('python tools/check_legacy_archive_bundle.py --base-ref HEAD')
+    commit = workflow.index('git commit')
+    assert rebuild < generate < verify < commit
+    assert 'git add presentations/api/daily-news.json presentations/api/daily-news-latest.json' in workflow
+    assert 'actions/setup-node@v4' in workflow

@@ -26,8 +26,11 @@ from urllib.error import URLError, HTTPError
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from src.utils.archive_protection import ArchiveProtectionError, guard_legacy_archive_write
+
 OUT_DIR = ROOT / 'public-pages' / 'news'
-OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 REMOTE_CANDIDATES = [
     'https://awano27.github.io/daily-ai-news-pages/latest.html',
@@ -232,6 +235,13 @@ def main():
         jst = dt.timezone(dt.timedelta(hours=9))
         day = dt.datetime.now(tz=jst).date()
 
+    date_str = day.isoformat()
+    try:
+        guard_legacy_archive_write(OUT_DIR / f'{date_str}.json')
+    except ArchiveProtectionError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+
     html, source_url = fetch_remote()
     items = usable_items(html)
     # Fallback to local file if remote parsing yields no items
@@ -244,8 +254,8 @@ def main():
         print('No news items found; existing snapshots and indexes were preserved.', file=sys.stderr)
         return 1
 
-    date_str = day.isoformat()
     # Write snapshot HTML and JSON
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / f'{date_str}.html').write_text(html, encoding='utf-8')
     (OUT_DIR / f'{date_str}.json').write_text(json.dumps({
         'date': date_str,
