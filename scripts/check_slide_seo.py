@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 from slide_seo_limits import MAX_DATA_IMAGE_BYTES, MAX_HTML_BYTES
+from inject_analytics import analytics_opted_out
 
 ROOT = Path(__file__).resolve().parents[1]
 SLIDES = ROOT / "presentations" / "day_slides"
@@ -146,10 +147,11 @@ def check_file(path: Path) -> tuple[list[str], list[str]]:
     elif not any(DATE_PUB_RE.match(p) for p in pubs):
         reasons.append(f"NewsArticle datePublished not YYYY-MM-DD: {pubs[0]!r}")
 
-    if not ANALYTICS_RE.search(text):
-        reasons.append("missing /assets/js/analytics.js")
-    elif not ANALYTICS_DEFER_RE.search(text):
-        reasons.append("analytics.js script is not defer")
+    if not analytics_opted_out(text):
+        if not ANALYTICS_RE.search(text):
+            reasons.append("missing /assets/js/analytics.js")
+        elif not ANALYTICS_DEFER_RE.search(text):
+            reasons.append("analytics.js script is not defer")
 
     size = path.stat().st_size
     if size > MAX_HTML_BYTES:

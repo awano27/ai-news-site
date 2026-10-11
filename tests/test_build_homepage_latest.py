@@ -366,3 +366,23 @@ def test_explicit_analytics_opt_out_survives_injection_without_changing_other_pa
         assert not excluded(normal, normal.read_text(encoding="utf-8"))
     finally:
         sys.path.pop(0)
+
+
+def test_slide_seo_respects_only_explicit_analytics_opt_out(tmp_path):
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    try:
+        from check_slide_seo import check_file
+        source = ROOT / "presentations/day_slides/day_slide_2026_10_11.html"
+        assert check_file(source) == ([], [])
+        ordinary = tmp_path / source.name
+        text = source.read_text(encoding="utf-8").replace('<meta name="visionhub-analytics" content="off">', '')
+        ordinary.write_text(text, encoding="utf-8")
+        errors, _ = check_file(ordinary)
+        assert errors == ["missing /assets/js/analytics.js"]
+        ordinary.write_text(text.replace('</head>', '<script src="/assets/js/analytics.js"></script></head>'), encoding="utf-8")
+        assert check_file(ordinary)[0] == ["analytics.js script is not defer"]
+        ordinary.write_text(text.replace('</head>', '<script src="/assets/js/analytics.js" defer></script></head>'), encoding="utf-8")
+        assert check_file(ordinary) == ([], [])
+    finally:
+        sys.path.pop(0)
