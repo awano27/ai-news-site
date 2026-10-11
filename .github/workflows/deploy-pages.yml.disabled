@@ -29,10 +29,13 @@ jobs:
         with:
           enablement: true
 
+      - name: Stage public site and reject internal paths
+        run: python scripts/stage_pages_site.py --dest "$RUNNER_TEMP/pages-site"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: ${{ runner.temp }}/pages-site
 
       - name: Deploy to GitHub Pages
         id: deployment
