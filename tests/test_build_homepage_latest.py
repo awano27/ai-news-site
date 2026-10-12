@@ -49,8 +49,8 @@ def test_oct11_decision_slide_has_publication_metadata_and_preserved_discovery()
     assert article.select_one('meta[property="og:description"]')["content"] == description
     assert article.select_one('meta[name="twitter:description"]')["content"] == description
     homepage = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
-    assert "Microsoft" in homepage.select_one("#sitrepUpdate").get_text()
-    assert "P50" in homepage.select_one("#sitrepDesk").get_text()
+    assert homepage.select_one("#sitrepUpdate").get_text() == homepage.select_one("#heroTwist").get_text()
+    assert homepage.select_one("#sitrepDesk").get_text() == homepage.select_one("#heroWhy").get_text()
     assert "AMIE" not in homepage.select_one(".sitrep")["aria-label"]
     metadata = json.loads((ROOT / "presentations/day_slides/meta_index.json").read_text(encoding="utf-8"))
     assert any(issue["date"] == "2026-10-11" and issue["file"] == "day_slide_2026_10_11.html" for issue in metadata["issues"])
@@ -225,7 +225,7 @@ def test_build_homepage_accepts_marked_latest_slide_fallbacks(tmp_path: Path) ->
     assert 'href="presentations/day_slides/' + newest_slide.name + '"' in updated
     assert source.split('id="heroIdentity"', 1)[1].split("</h1>", 1)[0] in updated
     generated = json.loads((tmp_path / "news" / "latest.json").read_text(encoding="utf-8"))
-    assert generated["generated_at"].startswith(newest_slide.stem.removeprefix("day_slide_").replace("_", "-"))
+    assert generated["generated_at"] == generated["news_date"]
     assert generated["highlight"]["sources"][0]["url"].endswith(newest_slide.name)
 
 

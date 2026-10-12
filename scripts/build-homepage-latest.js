@@ -131,11 +131,8 @@ function dailyGenerationTime(editionDate, slideDate) {
       new Date(instant + 9 * 3600000).toISOString().slice(0, 10) === editionDate) {
     return stamp;
   }
-  return toJstIso(slideDate);
-}
-
-function toJstIso(date) {
-  return `${date}T09:00:00.000000+09:00`;
+  // A calendar date is known; an unqualified clock is not an instant.
+  return editionDate || slideDate;
 }
 
 function readJson(filePath, fallback = null) {
@@ -143,8 +140,7 @@ function readJson(filePath, fallback = null) {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (err) {
-    console.warn(`[build-homepage-latest] failed to parse ${path.relative(ROOT, filePath)}: ${err.message}`);
-    return fallback;
+    throw new Error(`Invalid JSON in ${path.relative(ROOT, filePath)}: ${err.message}`);
   }
 }
 
@@ -461,7 +457,7 @@ function updateHomepage(data, slide, slideUrl) {
   const generatedAt = jstTimeFromIso(data.generated_at);
   const slideDate = slide.date;
   const fallbackDate = data.news_date || slideDate;
-  const updateTime = generatedAt ? generatedAt.replace(/^\d{4}-\d{2}-\d{2}\s+/, '').replace(' JST', '') : '09:00';
+  const updateTime = generatedAt ? generatedAt.replace(/^\d{4}-\d{2}-\d{2}\s+/, '').replace(' JST', '') : '未記録';
   const slideHtml = fs.readFileSync(slide.filePath, 'utf8');
   const heroTitle = extractTitle(slideHtml, slideDate);
   const heroTwist = extractHeroTwist(slideHtml, heroTitle);
@@ -503,6 +499,9 @@ function updateHomepage(data, slide, slideUrl) {
   html = replaceHrefById(html, 'todaySlideCard', slideUrl, 'today slide card', false);
   html = replaceElementText(html, 'todaySlideDate', slideDate, 'today slide date', false);
   html = replaceHrefById(html, 'sitrepLink', slideUrl, 'sitrep link', false);
+  html = replaceElementText(html, 'sitrepUpdate', heroTwist, 'slide topic', false);
+  html = replaceElementText(html, 'sitrepDesk', heroWhy, 'slide summary', false);
+  html = replaceElementText(html, 'sitrepAction', '出典と確認条件をスライドで確認。', 'slide reading guide', false);
   html = replaceHrefById(html, 'heroTodayBtn', slideUrl, 'hero today CTA', false);
   html = replaceElementText(html, 'heroTodayLabel', heroTodayLabel(slideDate), 'hero today label', false);
   html = replaceElementText(html, 'heroTwist', heroTwist, 'hero twist', false);
@@ -543,8 +542,8 @@ function updateHomepage(data, slide, slideUrl) {
   );
   html = replaceFirst(
     html,
-    /<div class="archive-stat"><span class="archive-stat-num"><em(?: id="statUpdated")?>[\s\S]*?<\/em><\/span><span class="archive-stat-label">(?:Daily Update|Latest Update|最終更新) \(JST\)<\/span><\/div>/,
-    `<div class="archive-stat"><span class="archive-stat-num"><em id="statUpdated">${escapeHtml(updateTime)}</em></span><span class="archive-stat-label">最終更新 (JST)</span></div>`,
+    /<div class="archive-stat"><span class="archive-stat-num"><em(?: id="statUpdated")?>[\s\S]*?<\/em><\/span><span class="archive-stat-label">(?:Daily Update|Latest Update|最終更新|ニュース生成時刻) \(JST\)<\/span><\/div>/,
+    `<div class="archive-stat"><span class="archive-stat-num"><em id="statUpdated">${escapeHtml(updateTime)}</em></span><span class="archive-stat-label">ニュース生成時刻 (JST)</span></div>`,
     'update time stats'
   );
   html = replaceFirst(
@@ -809,6 +808,17 @@ function updateDailyBriefing() {
 }
 
 function main() {
+  if (process.argv.includes('--strict')) {
+    const validDate = date => typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+      Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0, 10) === date;
+    const report = readJson(AUTO_DAILY_JSON, null);
+    const daily = readJson(path.join(ROOT, 'daily-news/data.json'), null);
+    if (!report || !validDate(report.date) || !Array.isArray(report.headlines)) throw new Error('Published report metadata is missing or invalid');
+    if (dataAgeDays(report.date) > MAX_DATA_AGE_DAYS_HARD) throw new Error('Published report metadata is too old; previous TOP is preserved');
+    if (!daily || !validDate(daily.date) || !Array.isArray(daily.items) || !daily.items.length || daily.total !== daily.items.length) throw new Error('Published daily news metadata is missing or invalid');
+    const slide = newestSlide();
+    if (!slide || !validDate(slide.date)) throw new Error('Published slide metadata is missing or invalid');
+  }
   updateSearchCoverage();
   updateDailyBriefing();
   const slide = newestSlide();
@@ -832,6 +842,10 @@ function main() {
   const publishedDate = publishedNews && (publishedNews.news_date ??
     (typeof generatedAt === 'string' && Number.isFinite(Date.parse(generatedAt))
       ? generatedAt.slice(0, 10) : null));
+  const daily = readJson(path.join(ROOT, 'daily-news/data.json'), {});
+  if (daily.date && (!latestNews.dailyDate || daily.date > latestNews.dailyDate) &&
+      Array.isArray(daily.items) && daily.items.length && daily.total === daily.items.length &&
+      publishedDate === daily.date) latestNews.dailyDate = daily.date;
   if (publishedNews && latestNews.dailyDate &&
       publishedDate === latestNews.dailyDate &&
       dataAgeDays(latestNews.dailyDate) <= MAX_DATA_AGE_DAYS_HARD &&
@@ -869,5 +883,66 @@ function main() {
   updateHomepage(data, slide, slideUrl);
 }
 
-main();
+function syncResourcesAndClock() {
+  let html = fs.readFileSync(INDEX_HTML, 'utf8');
+  function resource(relative, description, alt) {
+    const pattern = new RegExp('(<a\\b(?=[^>]*\\bres-card\\b)[^>]*href=["\\\']/?' + relative.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '["\\\'][^>]*>[\\s\\S]*?</a>)');
+    html = html.replace(pattern, block => {
+      block = block.replace(/(<div class="res-desc">)[\s\S]*?(<\/div>)/, '$1' + escapeHtml(description) + '$2');
+      return alt ? block.replace(/(<img\b[^>]*\balt=)["'][^"']*["']/, '$1"' + escapeHtml(alt) + '"') : block;
+    });
+  }
+  const toolsPath = path.join(ROOT, 'presentations/recommended_tools/index.html');
+  if (fs.existsSync(toolsPath)) {
+    const tools = fs.readFileSync(toolsPath, 'utf8');
+    const candidates = (tools.match(/data-evidence="official-info"/g) || []).length;
+    const recorded = (tools.match(/data-evidence="(?:usage-log|notes)"/g) || []).length;
+    resource('presentations/recommended_tools/', `公式情報からの注目候補${candidates}件と利用記録${recorded}件を区別して紹介。過去資料は閉じたアーカイブに保管。`);
+  }
+  const guidePath = path.join(ROOT, 'presentations/ai_tool_optimization_2026_04.html');
+  if (fs.existsSync(guidePath)) {
+    const edition = /<title>[^<]*?(20\d{2}年\d{1,2}月版)/.exec(fs.readFileSync(guidePath, 'utf8'));
+    if (!edition) throw new Error('Optimization guide edition is missing');
+    resource('presentations/ai_tool_optimization_2026_04.html', `AIツールの役割分担とコスト構成を整理した${edition[1]}の保存ガイド。現在の料金・条件は公式情報を確認。`, `AIツール選択最適化ガイド${edition[1]}のカバー画像`);
+  }
+  html = html.replace(/var foot = document\.getElementById\('footerUpdated'\);\s*if \(foot && entries\[0\]\) foot\.textContent = 'UPDATED ' \+ entries\[0\]\.date;/,
+    '// The archive edition is not the homepage update date.');
+  html = html.replace(/<span class="archive-stat-label">最終更新 \(JST\)<\/span>/, '<span class="archive-stat-label">ニュース生成時刻 (JST)</span>');
+  html = html.replace(/(<span class="sitrep-key">)更新は(<\/span>)/, '$1テーマ$2')
+    .replace(/(<span class="sitrep-key">)判断は(<\/span>)/, '$1概要$2')
+    .replace(/(<span class="sitrep-key">)動きは(<\/span>)/, '$1読むときは$2');
+  html = html.replace(/(<aside\b[^>]*class="sitrep"[^>]*aria-label=)["'][^"']*["']/, '$1"最新スライドの要点"');
+  fs.writeFileSync(INDEX_HTML, html, 'utf8');
+  const data = readJson(LATEST_JSON, {});
+  const date = [data.slide_date, data.news_date].filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v || '')).sort().pop();
+  if (date) {
+    html = replaceElementText(html, 'footerUpdated', 'UPDATED ' + date);
+    const knownClock = /(?:Z|[+-]\d{2}:\d{2})$/.test(data.generated_at || '');
+    html = replaceElementText(html, 'heroUpdatedAt', knownClock ? jstTimeFromIso(data.generated_at) : `${data.news_date || date}（生成時刻未記録）`);
+    fs.writeFileSync(INDEX_HTML, html, 'utf8');
+  }
+}
+
+// Roll back all generated outputs if any input or required template fails.
+// A failed build must not commit/publish a partly updated homepage.
+const outputPaths = [INDEX_HTML, LATEST_JSON, path.join(ROOT, 'presentations/news_archive.html')];
+const saved = new Map(outputPaths.map(file => [file, fs.existsSync(file) ? fs.readFileSync(file) : null]));
+try {
+  main();
+  syncResourcesAndClock();
+  if (process.argv.includes('--check')) {
+    const changed = outputPaths.filter(file => {
+      const before = saved.get(file);
+      return before ? !before.equals(fs.readFileSync(file)) : fs.existsSync(file);
+    });
+    if (changed.length) throw new Error('Homepage is out of sync: ' + changed.map(file => path.relative(ROOT, file)).join(', '));
+  }
+} catch (error) {
+  for (const [file, content] of saved) {
+    if (content === null) { if (fs.existsSync(file)) fs.unlinkSync(file); }
+    else if (!fs.existsSync(file) || !content.equals(fs.readFileSync(file))) fs.writeFileSync(file, content);
+  }
+  console.error('[build-homepage-latest] failed; previous generated data preserved: ' + error.message);
+  process.exitCode = 1;
+}
 

@@ -29,6 +29,13 @@ jobs:
           python-version: '3.11'
       - name: Verify newest slide is propagated to index + sitemap (+ no day gaps)
         run: python scripts/check_site_freshness.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify the generated TOP metadata matches the published page
+        run: |
+          node scripts/build-homepage-latest.js --strict
+          python scripts/check_homepage_sync.py --base-url https://visionhub.jp
       - name: Verify no day-slides stranded on unmerged claude/* branches
         run: |
           git fetch origin '+refs/heads/main:refs/remotes/origin/main' '+refs/heads/claude/*:refs/remotes/origin/claude/*'

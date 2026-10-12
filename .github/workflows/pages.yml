@@ -11,7 +11,8 @@ on:
     types: [completed]
     branches: [main]
   schedule:
-    - cron: '0 8 * * *'
+    # 09:15 JST, after the existing 09:00 news JSON update. No extra deploy job.
+    - cron: '15 0 * * *'
 
 permissions:
   contents: read
@@ -61,7 +62,8 @@ jobs:
           python scripts/sync_daily_search.py --root .
           python scripts/build_search_index.py --root .
           python scripts/refresh_slide_indexes.py
-          node scripts/build-homepage-latest.js
+          node scripts/build-homepage-latest.js --strict
+          node scripts/build-homepage-latest.js --strict --check
           python scripts/build_sitemap.py
           REPORT_DATE=$(python -c "import json; print(json.load(open('daily-news/data.json'))['date'])")
           QUALITY_FLAG=()
@@ -109,6 +111,8 @@ jobs:
         env:
           STRICT_DAILY: ${{ github.event_name == 'workflow_run' }}
         run: |
+          node scripts/build-homepage-latest.js --strict
+          python scripts/check_homepage_sync.py --base-url https://visionhub.jp
           REPORT_DATE=$(python -c "import json; print(json.load(open('daily-news/data.json'))['date'])")
           QUALITY_FLAG=()
           if [ "$STRICT_DAILY" = "true" ]; then QUALITY_FLAG+=(--require-quality); fi
