@@ -62,7 +62,7 @@ class ToolCatalogIntegrityTests(unittest.TestCase):
             if "function applyFilters()" in script
         )
 
-    def run_filter(self, query="", purpose="all", role="all"):
+    def run_filter(self, query="", purpose="all", role="all", archive_open=False):
         node = shutil.which("node")
         if node is None:
             self.skipTest("Node.js is required to execute the catalog JavaScript")
@@ -77,8 +77,9 @@ function element() {
     addEventListener(event, callback) { this.handlers[event] = callback; }};
 }
 const ids = Object.fromEntries(['searchInput', 'purposeRow', 'roleRow',
-  'resultMeta', 'emptyState'].map(id => [id, element()]));
+  'resultMeta', 'emptyState', 'pastArchive', 'archiveResultMeta'].map(id => [id, element()]));
 ids.searchInput.value = input.query;
+ids.pastArchive.open = input.archive_open;
 const cards = input.cards.map(card => ({
   textContent: card.text, dataset: {tags: card.tags, roles: card.roles}, style: {},
   querySelector(selector) { return selector === 'h3' ? {textContent: card.name} : null; }
@@ -95,42 +96,63 @@ select('purposeRow', 'filter', input.purpose);
 select('roleRow', 'role', input.role);
 process.stdout.write(JSON.stringify({
   summary: ids.resultMeta.textContent,
+  archiveSummary: ids.archiveResultMeta.textContent,
+  archiveOpen: ids.pastArchive.open,
   emptyDisplay: ids.emptyState.style.display,
+  historicalVisible: cards.filter(card => card.dataset.tags.includes('historical') && card.style.display !== 'none').length,
   visible: cards.filter(card => card.style.display !== 'none').length
 }));
 """
         result = subprocess.run(
             [node, "-e", adapter],
             input=json.dumps({"script": self.script, "cards": self.cards,
-                              "query": query, "purpose": purpose, "role": role}),
-            text=True, capture_output=True, check=True,
+                              "query": query, "purpose": purpose, "role": role,
+                              "archive_open": archive_open}),
+            text=True, encoding="utf-8", capture_output=True, check=True,
         )
         return json.loads(result.stdout)
 
-    def test_badge_matches_distinct_catalog_names(self):
-        badge = re.search(r'class="hero-badge">(\d+)ツール</span>', self.html)
-        self.assertIsNotNone(badge)
-        names = {card["name"].strip() for card in self.cards}
-        self.assertTrue(names)
-        self.assertEqual(int(badge.group(1)), len(names))
+    def test_archive_is_closed_and_catalog_is_preserved(self):
+        details = re.search(r'<details\b[^>]*id="pastArchive"[^>]*>', self.html)
+        self.assertIsNotNone(details)
+        self.assertNotRegex(details.group(0), r'\bopen\b')
+        self.assertNotIn('209ツール', self.html)
+        self.assertIn('直近確認: 5候補', self.html)
+        historical = [card for card in self.cards if 'historical' in card['tags'].split(',')]
+        self.assertEqual(len(historical), 221)
+        self.assertEqual(len({card['name'].strip() for card in historical}), 202)
 
-    def test_all_tools_counts_featured_repeats_once(self):
+    def test_default_shows_only_current_seven(self):
         result = self.run_filter()
-        unique = len({card["name"].strip() for card in self.cards})
-        self.assertEqual(result["visible"], len(self.cards))
-        self.assertEqual(result["summary"], f"表示ツール: {unique}件（{len(self.cards)}カード）")
+        self.assertEqual(result["visible"], 7)
+        self.assertEqual(result['historicalVisible'], 0)
+        self.assertEqual(result["summary"], "表示ツール: 7件（7カード）")
         self.assertEqual(result["emptyDisplay"], "none")
 
     def test_search_counts_repeated_tool_once(self):
-        result = self.run_filter(query="Agent Plugins")
+        result = self.run_filter(query="Agent Plugins", archive_open=True)
         matching = [card for card in self.cards if "agent plugins" in card["text"].lower()]
         unique = len({card["name"].strip() for card in matching})
         self.assertGreater(len(matching), unique)
-        self.assertEqual(result["summary"], f"表示ツール: {unique}件（{len(matching)}カード）")
+        self.assertEqual(result["summary"], "表示ツール: 0件（0カード）")
+        self.assertEqual(result['archiveSummary'], f"表示中: {unique}ツール（{len(matching)}カード）")
+
+    def test_old_search_does_not_open_archive(self):
+        result = self.run_filter(query="Agent Plugins")
+        self.assertEqual(result['visible'], 0)
+        self.assertEqual(result['historicalVisible'], 0)
+        self.assertFalse(result['archiveOpen'])
+        self.assertEqual(result['emptyDisplay'], 'block')
+
+    def test_open_archive_has_separate_counts(self):
+        result = self.run_filter(archive_open=True)
+        self.assertEqual(result['visible'], 228)
+        self.assertEqual(result['summary'], '表示ツール: 7件（7カード）')
+        self.assertEqual(result['archiveSummary'], '表示中: 202ツール（221カード）')
 
     def test_purpose_and_role_filters_keep_real_card_visibility(self):
-        result = self.run_filter(purpose="meeting", role="biz")
-        matching = [card for card in self.cards if "meeting" in card["tags"].split(",")]
+        result = self.run_filter(purpose="docs", role="biz")
+        matching = [card for card in self.cards if "docs" in card["tags"].split(",") and 'historical' not in card['tags'].split(',')]
         unique = len({card["name"].strip() for card in matching})
         self.assertEqual(result["visible"], len(matching))
         self.assertEqual(result["summary"], f"表示ツール: {unique}件（{len(matching)}カード）")
