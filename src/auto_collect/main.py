@@ -128,11 +128,19 @@ def main():
         logger.error(f"[Main] arXiv failed: {e}")
 
     # X bookmarks (Obsidian vault). Summarized and judged with the news provider below.
+    # x_authoritative means this run read bookmarks and can filter them. A missing
+    # vault or a collector error is not authoritative, so a same-day bundle that
+    # already has X posts is kept. An empty window is also not authoritative.
     x_articles = []
+    x_authoritative = False
     try:
-        x_articles = XBookmarksCollector().collect(today)
+        x_collector = XBookmarksCollector()
+        x_articles = x_collector.collect(today)
+        x_authoritative = bool(getattr(x_collector, "vault_available", bool(x_articles))) and bool(x_articles)
     except Exception as e:
         logger.error(f"[Main] X bookmarks failed: {e}")
+        x_articles = []
+        x_authoritative = False
 
     logger.info(f"[Main] Collected {len(articles)} raw articles + {len(x_articles)} X bookmarks")
     articles = deduplicate(articles)
@@ -159,10 +167,10 @@ def main():
     except Exception as e:
         logger.error(f"[Main] Funding failed: {e}")
 
-    if not articles and not github_raw:
+    if not articles and not github_raw and not x_articles:
         _quality_log(today, {"date": today.isoformat(), "status": "failed",
                             "failure_reason": "collection_unavailable", "errors": ["No articles collected."]})
-        logger.error("[Main] No headline or GitHub articles collected; aborting report generation")
+        logger.error("[Main] No headline, GitHub, or X bookmarks collected; aborting report generation")
         raise SystemExit(1)
 
     # Keep public-source observations available even when publication is held.
@@ -274,7 +282,7 @@ def main():
         dn_path = generate_daily_news(
             today, articles=processed, github_articles=github_processed,
             benchmark_articles=benchmark_processed, funding_articles=funding_processed,
-            x_articles=x_processed, quality=quality,
+            x_articles=x_processed, quality=quality, x_authoritative=x_authoritative,
         )
         if not dn_path:
             raise RuntimeError("Daily News not generated")

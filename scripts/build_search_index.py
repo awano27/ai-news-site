@@ -165,6 +165,10 @@ def normalize_daily_payload(data: object) -> dict:
     payload.update(provenance)
     if data.get("generated_iso"):
         payload["generated_iso"] = data["generated_iso"]
+    # Carried so a judged X set can replace a richer same-day snapshot.
+    # Absent on a missing-vault publication, which must not erase curated posts.
+    if data.get("x_authoritative") is True:
+        payload["x_authoritative"] = True
     return payload
 
 

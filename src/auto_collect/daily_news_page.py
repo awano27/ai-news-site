@@ -280,6 +280,7 @@ def generate_daily_news(
     funding_articles: Optional[List[Dict]] = None,
     x_articles: Optional[List[Dict]] = None,
     quality: Optional[Dict] = None,
+    x_authoritative: bool = False,
 ) -> Optional[Path]:
     """Build daily-news/index.html from collector output."""
     DAILY_NEWS_DIR.mkdir(parents=True, exist_ok=True)
@@ -333,6 +334,10 @@ def generate_daily_news(
 
     if quality is not None:
         report_data["quality"] = dict(quality)
+    # True only when this run read X bookmarks and judged them. A cloud run
+    # with no vault leaves the flag unset so a richer same-day bundle survives.
+    if x_authoritative:
+        report_data["x_authoritative"] = True
 
     existing_path = DAILY_NEWS_DIR / "data.json"
     if existing_path.exists():

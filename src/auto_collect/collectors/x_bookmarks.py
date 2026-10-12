@@ -115,7 +115,8 @@ class XBookmarksCollector:
         or unparseable. mtime is used as a cheap pre-filter to avoid YAML-
         parsing files that are obviously too old.
         """
-        if not self.bookmarks_dir.exists():
+        self.vault_available = self.bookmarks_dir.exists()
+        if not self.vault_available:
             logger.info(f"[X] vault not found at {self.bookmarks_dir} — skipping (cloud run?)")
             return []
 

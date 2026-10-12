@@ -8,8 +8,10 @@ from src.auto_collect.publication_priority import prefer_existing
 from tests.test_publish_daily_report import create_repo, git, run_publisher, REPORT_DATE
 
 
-def report(day, x_count):
-    return {"date": day, "items": [{"type": "x"}] * x_count}
+def report(day, x_count, **extra):
+    payload = {"date": day, "items": [{"type": "x"}] * x_count}
+    payload.update(extra)
+    return payload
 
 
 @pytest.mark.parametrize("existing,candidate,expected", [
@@ -20,6 +22,59 @@ def report(day, x_count):
 ])
 def test_priority(existing, candidate, expected):
     assert prefer_existing(existing, candidate) is expected
+
+
+def test_same_day_quality_filter_replaces_a_richer_x_bundle_and_a_missing_vault_does_not():
+    richer = report("2026-10-12", 6)
+    filtered = report("2026-10-12", 2, x_authoritative=True)
+    missing_vault = report("2026-10-12", 0)
+    assert prefer_existing(richer, filtered) is False
+    assert prefer_existing(richer, missing_vault) is True
+    # A newer published day still wins over an older authoritative candidate.
+    assert prefer_existing(report("2026-10-13", 0), filtered) is True
+
+
+def test_authoritative_x_filter_replaces_same_day_bundle(monkeypatch, tmp_path):
+    monkeypatch.setattr(page, "DAILY_NEWS_DIR", tmp_path)
+    monkeypatch.setattr(page, "ARCHIVE_DIR", tmp_path / "archive")
+    day = date(2026, 10, 12)
+    news = {
+        "title": "新しいモデルを公開",
+        "summary": "新しい言語モデルを公開しました。開発者は公式資料を確認できます。",
+        "url": "https://example.com/news",
+        "source": "Official",
+        "processing_status": "llm",
+    }
+    raw = [
+        {"name": "raw one", "url": "https://x.com/a/status/1"},
+        {"name": "raw two", "url": "https://x.com/a/status/2"},
+    ]
+    stale_quality = {
+        "status": "passed", "article_count": 1, "japanese_count": 1,
+        "sources": ["Official"], "provider": "test", "model": "old",
+    }
+    page.generate_daily_news(day, [news], x_articles=raw, quality=stale_quality)
+    kept = {
+        "title": "新しいモデルの発表",
+        "name": "raw one",
+        "url": "https://x.com/a/status/1",
+        "summary": "新しい言語モデルの発表を紹介しています。研究者は公式資料を確認できます。",
+        "processing_status": "llm",
+        "rss_source": "X (@a)",
+        "ai_related": True,
+    }
+    judged = {
+        "status": "passed", "article_count": 2, "japanese_count": 2,
+        "sources": ["Official", "X (@a)"], "provider": "ollama", "model": "gemma",
+    }
+    page.generate_daily_news(day, [news], x_articles=[kept], quality=judged, x_authoritative=True)
+    data = json.loads((tmp_path / "data.json").read_text(encoding="utf-8"))
+    assert data["x_authoritative"] is True
+    assert [item["url"] for item in data["items"] if item.get("type") == "x"] == ["https://x.com/a/status/1"]
+    assert data["quality"]["article_count"] == len(data["items"])
+    page.generate_daily_news(day, [news], x_articles=[], quality=judged)
+    preserved = json.loads((tmp_path / "data.json").read_text(encoding="utf-8"))
+    assert [item["url"] for item in preserved["items"] if item.get("type") == "x"] == ["https://x.com/a/status/1"]
 
 
 def test_delayed_cloud_preserves_bundle_then_next_day_updates(monkeypatch, tmp_path):

@@ -320,3 +320,59 @@ def test_main_summarizes_x_posts_and_drops_failed_or_unrelated_ones(monkeypatch,
     logged = json.loads((tmp_path / "logs" / f"daily_quality_{date.today().isoformat()}.json").read_text(encoding="utf-8"))
     assert logged["excluded_count"] == 2
     assert {row["url"] for row in logged["excluded"]} == set(by_url)
+    assert captured["x_authoritative"] is True
+
+
+def test_missing_x_vault_is_not_authoritative(tmp_path):
+    from datetime import date
+    from src.auto_collect.collectors.x_bookmarks import XBookmarksCollector
+
+    collector = XBookmarksCollector(bookmarks_dir=tmp_path / "missing-vault")
+    assert collector.collect(date.today()) == []
+    assert collector.vault_available is False
+
+
+def test_x_only_collection_reaches_the_shared_quality_gate(monkeypatch, tmp_path):
+    import json
+    from datetime import date
+
+    install_deterministic_pipeline(monkeypatch, tmp_path, headlines=[], github=[])
+    posts = [
+        bookmark("model one", "https://x.com/lab/status/1", "first model note", "lab"),
+        bookmark("model two", "https://x.com/lab/status/2", "second model note", "lab"),
+        bookmark("model three", "https://x.com/other/status/3", "third model note", "other"),
+    ]
+
+    class ReadyVault(StaticCollector):
+        vault_available = True
+
+        def collect(self, today):
+            return posts
+
+    monkeypatch.setattr(auto_collect_main, "XBookmarksCollector", lambda: ReadyVault(posts))
+
+    class AcceptingProvider(ScriptedProvider):
+        def chat(self, _prompt):
+            return (
+                '{"title_ja":"新しいモデルの発表","summary":"%s","ai_related":true}'
+                % X_SUMMARY
+            )
+
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: AcceptingProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    captured = {}
+
+    def capture_daily(*_args, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "daily.html"
+
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", capture_daily)
+    auto_collect_main.main()
+    quality = json.loads((tmp_path / "logs" / f"daily_quality_{date.today().isoformat()}.json").read_text(encoding="utf-8"))
+    assert quality["status"] == "passed"
+    assert quality.get("failure_reason") != "collection_unavailable"
+    assert quality["article_count"] == 3
+    assert quality["input_count"] == 3
+    assert sorted(quality["sources"]) == ["X (@lab)", "X (@other)"]
+    assert {row["url"] for row in captured["x_articles"]} == {post["url"] for post in posts}
+    assert captured["x_authoritative"] is True

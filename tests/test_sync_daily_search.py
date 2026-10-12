@@ -36,6 +36,26 @@ def test_sync_captures_real_articles_counts_and_preserves_legacy_archive(tmp_pat
     assert len(json.loads((tmp_path / "public-pages/news/search_index.json").read_text())) == 3
 
 
+def test_sync_accepts_an_authoritative_x_filter_over_a_richer_snapshot(tmp_path):
+    source = tmp_path / "daily-news/data.json"
+    richer = daily_payload()
+    richer["items"].extend([
+        {"title": "raw one", "url": "https://x.com/a/status/1", "type": "x", "body": "一つ目"},
+        {"title": "raw two", "url": "https://x.com/a/status/2", "type": "x", "body": "二つ目"},
+    ])
+    write_json(source, richer)
+    sync(tmp_path)
+    filtered = daily_payload()
+    filtered["items"].append({"title": "judged", "url": "https://x.com/a/status/1", "type": "x", "summary": "新しい言語モデルの発表を紹介しています。"})
+    filtered["x_authoritative"] = True
+    write_json(source, filtered)
+    sync(tmp_path)
+    captured = json.loads((tmp_path / "public-pages/news/daily/2026-10-09.json").read_text(encoding="utf-8"))
+    assert captured["x_authoritative"] is True
+    assert captured["x_count"] == 1
+    assert [item["url"] for item in captured["items"] if item["type"] == "x"] == ["https://x.com/a/status/1"]
+
+
 def test_sync_is_byte_idempotent_and_preserves_richer_x(tmp_path):
     source = tmp_path / "daily-news/data.json"
     local = daily_payload()
