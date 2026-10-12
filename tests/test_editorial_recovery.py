@@ -222,7 +222,8 @@ def test_homepage_does_not_borrow_invalid_or_other_edition_timestamps(tmp_path,s
     path=root/'daily-news/data.json';daily=json.loads(path.read_text());daily.update(date=edition,generated_iso=stamp);path.write_text(json.dumps(daily,ensure_ascii=False))
     subprocess.run(['node',str(root/'scripts/build-homepage-latest.js')],check=True,capture_output=True)
     latest=json.loads((root/'news/latest.json').read_text())
-    assert latest['generated_at']=='2026-10-09T09:00:00.000000+09:00'
+    assert latest['generated_at'] == latest['news_date']
+    assert 'T' not in latest['generated_at']  # Unknown clocks remain date-only.
 
 @pytest.mark.parametrize('impact',['','Unknown audience',None])
 def test_editorial_audience_must_be_reviewed_japanese_text(impact):
