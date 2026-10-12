@@ -71,6 +71,70 @@ def test_strict_verifier_rejects_a_published_article_that_was_marked_excluded(tm
     assert 'excluded' in (result.stderr + result.stdout).lower()
 
 
+X_ITEM = {
+    'title': 'New model thread',
+    'url': 'https://x.com/example/status/1',
+    'summary': '新しい言語モデルの発表を紹介しています。研究者は公式資料を確認できます。',
+    'body': '新しい言語モデルの発表を紹介しています。研究者は公式資料を確認できます。',
+    'processing_status': 'llm',
+    'source': 'X (@example)',
+    'type': 'x',
+    'category': 'X',
+}
+
+
+def site_with_x(root):
+    fixture_site(root)
+    def add(data):
+        data['items'].append(copy.deepcopy(X_ITEM))
+        data['total'] = 2
+        data['x_count'] = 1
+        data['quality'].update(article_count=2, japanese_count=2, sources=['Example', 'X (@example)'])
+    change_json(root, 'daily-news/data.json', add)
+    refresh_capture(root)
+    page = root / 'daily-news/index.html'
+    html = page.read_text(encoding='utf-8').replace('content="1"', 'content="2"', 1)
+    html += (
+        f'<article class="card x-post"><h2 class="card-title"><a href="{X_ITEM["url"]}">'
+        f'{X_ITEM["title"]}</a></h2><div class="card-body">{X_ITEM["summary"]}</div></article>'
+    )
+    page.write_text(html, encoding='utf-8')
+    return root
+
+
+def test_strict_quality_counts_x_summaries_and_allows_an_english_x_title(tmp_path):
+    result = run_check(site_with_x(tmp_path), '--require-quality')
+    assert result.returncode == 0, result.stderr
+
+
+def test_strict_quality_rejects_a_published_x_post_listed_as_excluded(tmp_path):
+    root = site_with_x(tmp_path)
+    change_json(root, 'daily-news/data.json', lambda d: d['quality'].update(
+        excluded_count=1,
+        excluded=[{'index': 2, 'title': 'New model thread', 'url': X_ITEM['url'], 'errors': ['not AI-related']}],
+    ))
+    result = run_check(root, '--require-quality')
+    assert result.returncode != 0
+    assert 'excluded' in (result.stderr + result.stdout).lower()
+
+
+def test_strict_quality_rejects_an_x_post_without_a_japanese_summary(tmp_path):
+    root = site_with_x(tmp_path)
+    change_json(root, 'daily-news/data.json', lambda d: d['items'][1].update(summary='English tweet with no Japanese summary.'))
+    result = run_check(root, '--require-quality')
+    assert result.returncode != 0
+    assert 'Japanese' in result.stderr
+
+
+def test_strict_quality_checks_the_rendered_x_summary(tmp_path):
+    root = site_with_x(tmp_path)
+    page = root / 'daily-news/index.html'
+    page.write_text(page.read_text(encoding='utf-8').replace(X_ITEM['summary'], 'raw english tweet'), encoding='utf-8')
+    result = run_check(root, '--require-quality')
+    assert result.returncode != 0
+    assert 'rendered' in result.stderr
+
+
 def test_strict_verifier_accepts_exclusion_metadata_for_articles_that_were_not_published(tmp_path):
     root = fixture_site(tmp_path)
     change_json(root, 'daily-news/data.json', lambda d: d['quality'].update(

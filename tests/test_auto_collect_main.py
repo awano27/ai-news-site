@@ -212,3 +212,111 @@ def test_main_holds_publication_when_too_many_articles_fail(monkeypatch, tmp_pat
     assert quality["excluded_count"] == 2
     assert quality["failure_reason"] == "japanese_quality_failed"
     assert any("too many excluded" in err for err in quality["errors"])
+
+
+X_SUMMARY = "新しい言語モデルの発表を紹介しています。研究者は公式資料を確認できます。"
+LUNCH_SUMMARY = "昼ごはんの写真が共有されています。食事の様子が写っています。"
+
+
+def bookmark(name, url, body, author):
+    return {
+        "name": name,
+        "description": body,
+        "tagline": body[:80],
+        "rss_source": f"X (@{author})",
+        "source": "X",
+        "url": url,
+        "links": {"official": url},
+        "x_curated": True,
+        "x_tweet_id": url.rsplit("/", 1)[-1],
+        "bookmark_date": "2026-10-12",
+        "authors": f"@{author}",
+    }
+
+
+class XAwareProvider(ScriptedProvider):
+    def chat(self, prompt):
+        if "NOTAI lunch" in prompt:
+            return (
+                '{"title_ja":"昼ごはんの写真","summary":"%s","ai_related":false}'
+                % LUNCH_SUMMARY
+            )
+        if "BROKENX" in prompt:
+            return "not json"
+        if "AI model launch" in prompt:
+            return (
+                '{"title_ja":"新しいモデルの発表","summary":"%s","ai_related":true}'
+                % X_SUMMARY
+            )
+        extra = {
+            "chip": "推論チップが新たに発表されました",
+            "agent": "業務エージェントが公開されました",
+            "dataset": "学習データセットが更新されました",
+            "policy": "モデル利用方針が改訂されました",
+        }
+        for key, title in extra.items():
+            if key in prompt:
+                return (
+                    '{"title_ja":"%s", "summary":"新しいモデルを公開しました。公式サイトで確認できます。", "score":80}'
+                    % title
+                )
+        return super().chat(prompt)
+
+
+def test_main_summarizes_x_posts_and_drops_failed_or_unrelated_ones(monkeypatch, tmp_path):
+    import json
+    from datetime import date
+
+    writes = install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+            headline("A lab expands inference capacity", "https://example.com/capacity", "Other"),
+            headline("A vendor announces an inference chip", "https://example.com/chip", "Official"),
+            headline("A studio releases a coding agent", "https://example.com/agent", "Other"),
+            headline("A lab refreshes a training dataset", "https://example.com/dataset", "Official"),
+            headline("A company revises model policy", "https://example.com/policy", "Other"),
+        ],
+        github=[],
+    )
+    posts = [
+        bookmark("AI model launch thread", "https://x.com/lab/status/1", "AI model launch details", "lab"),
+        bookmark("Lunch photo", "https://x.com/cafe/status/2", "NOTAI lunch photo", "cafe"),
+        bookmark("BROKENX vendor note", "https://x.com/vendor/status/3", "BROKENX vendor note", "vendor"),
+    ]
+    monkeypatch.setattr(auto_collect_main, "XBookmarksCollector", lambda: StaticCollector(posts))
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: XAwareProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    captured = {}
+
+    def capture_daily(*_args, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "daily.html"
+
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", capture_daily)
+    auto_collect_main.main()
+
+    published = captured["x_articles"]
+    assert [row["url"] for row in published] == ["https://x.com/lab/status/1"]
+    assert published[0]["processing_status"] == "llm"
+    assert published[0]["ai_related"] is True
+    assert X_SUMMARY in published[0]["summary"]
+    dayfile_urls = {row["url"] for row in writes[0][0]}
+    assert "https://x.com/lab/status/1" not in dayfile_urls
+    quality = captured["quality"]
+    assert quality["status"] == "passed"
+    assert quality["input_count"] == 11
+    assert quality["article_count"] == 9
+    assert quality["japanese_count"] == 9
+    assert quality["excluded_count"] == 2
+    assert "X (@lab)" in quality["sources"]
+    by_url = {row["url"]: row["errors"] for row in quality["excluded"]}
+    assert by_url["https://x.com/cafe/status/2"] == ["not AI-related"]
+    assert "fallback or unverified processing" in by_url["https://x.com/vendor/status/3"]
+    assert "Japanese summary missing or invalid" in by_url["https://x.com/vendor/status/3"]
+    logged = json.loads((tmp_path / "logs" / f"daily_quality_{date.today().isoformat()}.json").read_text(encoding="utf-8"))
+    assert logged["excluded_count"] == 2
+    assert {row["url"] for row in logged["excluded"]} == set(by_url)

@@ -120,11 +120,14 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
 def _flatten_x(x_articles: List[Dict]) -> List[Dict]:
     out = []
     for a in x_articles or []:
+        summary = a.get("summary") or ""
         out.append({
             "type": "x",
-            "title": a.get("name") or "",
+            "processing_status": a.get("processing_status") or "unverified",
+            "title": a.get("title") or a.get("name") or "",
             "url": a.get("url") or (a.get("links") or {}).get("official") or "",
-            "body": a.get("description") or a.get("summary") or "",
+            "summary": summary,
+            "body": summary or a.get("description") or "",
             "tldr": a.get("tldr") or "",
             "evidence_label": a.get("evidence_label") or "Curated",
             "category": "X",

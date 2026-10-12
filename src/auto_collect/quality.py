@@ -49,6 +49,14 @@ def article_errors(article) -> list[str]:
         errors.append('Japanese summary missing or invalid')
     if article.get('processing_status') not in ('llm', 'source_japanese'):
         errors.append('fallback or unverified processing')
+    # News items omit ai_related. X posts (x_curated) must be judged, and a
+    # successful summary that is not about AI is still unpublished.
+    if article.get('x_curated') is True and article.get('processing_status') in ('llm', 'source_japanese'):
+        related = article.get('ai_related')
+        if related is False:
+            errors.append('not AI-related')
+        elif related is not True:
+            errors.append('AI relevance judgement missing')
     return errors
 
 
@@ -86,6 +94,13 @@ def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: in
     A few bad summaries no longer fail the day. The day still fails when the
     kept set misses the article or source minimum, or when exclusions exceed
     max_excluded_ratio (the boundary itself is still publishable).
+
+    Callers pass news and X posts in one list. input_count, article_count,
+    japanese_count, sources, the article and source minimums, and the
+    exclusion ratio all use that combined set. There is no separate X budget.
+    A kept X post counts toward the minimums and adds its source. A dropped
+    post is listed in excluded with its reasons. excluded_item_count is not
+    this list; that counter belongs to the daily normalizer.
     """
     kept: list = []
     excluded: list[dict] = []

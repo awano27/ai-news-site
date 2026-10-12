@@ -516,3 +516,269 @@ def test_ollama_host_without_scheme_is_an_http_origin(monkeypatch):
     from src.auto_collect.config import ollama_origin
     assert ollama_origin()=='http://192.168.1.9:11434'
     assert _ollama_provider(monkeypatch).config.base_url=='http://192.168.1.9:11434/v1'
+
+
+X_SUMMARY = '新しい言語モデルの発表を紹介しています。研究者は公式資料を確認できます。'
+LUNCH_SUMMARY = '昼ごはんの写真が共有されています。食事の様子が写っています。'
+
+
+def x_post(**changes):
+    row = {
+        'name': 'New model thread',
+        'description': 'A new language model was announced for researchers.',
+        'tagline': 'A new language model was announced.',
+        'rss_source': 'X (@example)',
+        'source': 'X',
+        'url': 'https://x.com/example/status/1',
+        'links': {'official': 'https://x.com/example/status/1'},
+        'x_curated': True,
+        'x_tweet_id': '1',
+        'x_images': ['https://pbs.twimg.com/media/a.jpg'],
+        'x_note': 'memo',
+        'bookmark_date': '2026-10-12',
+        'authors': '@example',
+    }
+    row.update(changes)
+    return row
+
+
+def x_json(*, related=True, summary=X_SUMMARY, title='新しいモデルの発表'):
+    return '{"title_ja":"%s","summary":"%s","ai_related":%s}' % (title, summary, 'true' if related else 'false')
+
+
+def test_news_without_an_ai_judgement_still_passes_article_checks():
+    from src.auto_collect.quality import article_errors
+    assert article_errors(article()) == []
+    assert 'ai_related' not in article()
+
+
+def test_x_posts_are_summarized_through_provider_chat():
+    prompts = []
+
+    class Provider:
+        available = True
+        name = 'ollama'
+        last_error = ''
+
+        def chat(self, prompt):
+            prompts.append(prompt)
+            return x_json()
+
+    row = processor.LLMProcessor(Provider()).process_x_posts([x_post()])[0]
+    assert prompts and 'ai_related' in prompts[0]
+    assert 'language model was announced' in prompts[0]
+    assert row['processing_status'] == 'llm'
+    assert row['ai_related'] is True
+    assert row['x_curated'] is True
+    assert row['summary'] == X_SUMMARY
+    assert row['url'] == 'https://x.com/example/status/1'
+    assert row['rss_source'] == 'X (@example)'
+    assert row['x_tweet_id'] == '1'
+    assert row['x_images'] == ['https://pbs.twimg.com/media/a.jpg']
+    assert row['bookmark_date'] == '2026-10-12'
+
+
+def test_x_summary_retries_broken_json_once_then_accepts():
+    calls = []
+
+    class Provider:
+        available = True
+        name = 'ollama'
+        last_error = ''
+
+        def chat(self, _prompt):
+            calls.append(1)
+            return 'not json' if len(calls) == 1 else x_json()
+
+    row = processor.LLMProcessor(Provider()).process_x_posts([x_post()])[0]
+    assert calls == [1, 1]
+    assert row['processing_status'] == 'llm'
+    assert row['ai_related'] is True
+
+
+def test_x_summary_does_not_retry_when_the_provider_returns_nothing():
+    calls = []
+
+    class Provider:
+        available = True
+        name = 'ollama'
+        last_error = 'http_429'
+
+        def chat(self, _prompt):
+            calls.append(1)
+            return None
+
+    row = processor.LLMProcessor(Provider()).process_x_posts([x_post()])[0]
+    assert calls == [1]
+    assert row['processing_status'] == 'fallback'
+    assert row['processing_error'] == 'http_429'
+    assert row['url'] == 'https://x.com/example/status/1'
+
+
+def test_failed_x_summary_is_excluded_with_a_reason():
+    from src.auto_collect.quality import filter_publishable
+
+    class Provider:
+        available = True
+        name = 'ollama'
+        last_error = ''
+
+        def chat(self, _prompt):
+            return 'not json'
+
+    broken = processor.LLMProcessor(Provider()).process_x_posts([x_post()])[0]
+    kept, quality = filter_publishable(_numbered(4) + [broken], min_articles=3, min_sources=2)
+    assert quality['status'] == 'passed'
+    assert quality['input_count'] == 5
+    assert quality['article_count'] == 4
+    assert quality['excluded_count'] == 1
+    assert quality['excluded'][0]['url'] == 'https://x.com/example/status/1'
+    assert 'Japanese summary missing or invalid' in quality['excluded'][0]['errors']
+    assert 'fallback or unverified processing' in quality['excluded'][0]['errors']
+    assert all(row.get('url') != 'https://x.com/example/status/1' for row in kept)
+
+
+def test_x_post_judged_not_ai_related_is_excluded_with_that_reason():
+    from src.auto_collect.quality import article_errors, filter_publishable
+
+    class Provider:
+        available = True
+        name = 'ollama'
+        last_error = ''
+
+        def chat(self, _prompt):
+            return x_json(related=False, summary=LUNCH_SUMMARY, title='昼ごはんの写真')
+
+    row = processor.LLMProcessor(Provider()).process_x_posts([x_post(description='NOTAI lunch photo')])[0]
+    assert row['processing_status'] == 'llm'
+    assert row['ai_related'] is False
+    assert article_errors(row) == ['not AI-related']
+    kept, quality = filter_publishable(_numbered(4) + [row], min_articles=3, min_sources=2)
+    assert quality['status'] == 'passed'
+    assert quality['excluded_count'] == 1
+    assert quality['excluded'][0]['errors'] == ['not AI-related']
+    assert all(item.get('ai_related') is not False for item in kept)
+
+
+def test_x_post_without_a_boolean_judgement_is_excluded():
+    from src.auto_collect.quality import article_errors
+    row = article(x_curated=True, url='https://x.com/example/status/9', rss_source='X (@example)', source='X (@example)')
+    assert 'AI relevance judgement missing' in article_errors(row)
+
+
+def test_x_posts_share_one_gate_with_news():
+    """X joins the same input, 20% ratio, article count, and source minimum.
+
+    Six irrelevant posts among 64 combined items stay under 20% and do not
+    hold the day. Kept posts increase article_count and sources. There is
+    no separate X budget, and these drops are quality.excluded, not
+    excluded_item_count.
+    """
+    from src.auto_collect.quality import filter_publishable
+    unrelated = [
+        article(
+            url=f'https://x.com/example/status/{i}',
+            source=f'X (@user{i})',
+            rss_source=f'X (@user{i})',
+            x_curated=True,
+            ai_related=False,
+            title=f'昼ごはん {i}',
+        )
+        for i in range(6)
+    ]
+    kept, quality = filter_publishable(_numbered(58) + unrelated, min_articles=3, min_sources=2)
+    assert quality['status'] == 'passed'
+    assert quality['input_count'] == 64
+    assert quality['excluded_count'] == 6
+    assert quality['excluded_ratio'] == round(6 / 64, 3)
+    assert quality['article_count'] == 58
+    assert quality['japanese_count'] == 58
+    assert 'excluded_item_count' not in quality
+    assert len(kept) == 58
+    assert [row['errors'] for row in quality['excluded']] == [['not AI-related']] * 6
+
+    related = article(
+        url='https://x.com/example/status/kept',
+        source='X (@example)',
+        rss_source='X (@example)',
+        x_curated=True,
+        ai_related=True,
+        title='新しいモデルの発表',
+    )
+    kept, quality = filter_publishable(_numbered(4) + [related], min_articles=3, min_sources=2)
+    assert quality['status'] == 'passed'
+    assert quality['article_count'] == 5
+    assert quality['japanese_count'] == 5
+    assert quality['input_count'] == 5
+    assert quality['excluded_count'] == 0
+    assert 'X (@example)' in quality['sources']
+
+    boundary, boundary_quality = filter_publishable(_numbered(4) + unrelated[:1], min_articles=3, min_sources=2)
+    assert boundary_quality['excluded_count'] == 1
+    assert boundary_quality['input_count'] == 5
+    assert boundary_quality['status'] == 'passed'
+    assert len(boundary) == 4
+    held, held_quality = filter_publishable(_numbered(4) + unrelated[:2], min_articles=3, min_sources=2)
+    assert held_quality['status'] == 'failed'
+    assert any('too many excluded articles: 2/6' in err for err in held_quality['errors'])
+    assert len(held) == 4
+
+
+def test_not_ai_related_exclusions_are_not_transient():
+    from src.auto_collect.quality import failure_reason, filter_publishable
+    rows = _numbered(2) + [
+        article(url=f'https://x.com/example/status/{i}', x_curated=True, ai_related=False, title=f'昼ごはん {i}')
+        for i in range(3)
+    ]
+    _kept, quality = filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status'] == 'failed'
+    assert failure_reason(rows, quality) == 'japanese_quality_failed'
+
+
+def test_x_summary_retries_http_429_through_the_provider(monkeypatch):
+    payload = x_json()
+    seq = [
+        _http(429, {'Retry-After': '5'}),
+        SimpleNamespace(status_code=200, headers={}, json=lambda: {'choices': [{'message': {'content': payload}, 'finish_reason': 'stop'}]}),
+    ]
+    sleeps = []
+    monkeypatch.setattr(llm_provider, 'sleep', lambda seconds: sleeps.append(seconds))
+    monkeypatch.setattr(llm_provider.requests, 'post', lambda *_a, **_k: seq.pop(0))
+    provider = object.__new__(llm_provider.LLMProvider)
+    provider.config = llm_provider.ProviderConfig('ollama', 'http://127.0.0.1:11434/v1', 'ollama', 'gemma3:4b')
+    provider.available = True
+    row = processor.LLMProcessor(provider).process_x_posts([x_post()])[0]
+    assert sleeps == [5]
+    assert seq == []
+    assert row['processing_status'] == 'llm'
+    assert row['ai_related'] is True
+    assert row['summary'] == X_SUMMARY
+
+
+def test_published_x_card_shows_the_japanese_summary(monkeypatch, tmp_path):
+    import json
+    from datetime import date
+    from src.auto_collect import daily_news_page
+    monkeypatch.setattr(daily_news_page, 'DAILY_NEWS_DIR', tmp_path / 'daily-news')
+    monkeypatch.setattr(daily_news_page, 'ARCHIVE_DIR', tmp_path / 'daily-news' / 'archive')
+    day = date(2026, 10, 12)
+    daily_news_page.generate_daily_news(day, [], x_articles=[{
+        'name': 'New model thread',
+        'title': '新しいモデルの発表',
+        'url': 'https://x.com/example/status/1',
+        'summary': X_SUMMARY,
+        'description': 'raw english tweet should not be the card',
+        'processing_status': 'llm',
+        'rss_source': 'X (@example)',
+        'ai_related': True,
+        'bookmark_date': '2026-10-12',
+    }])
+    data = json.loads((tmp_path / 'daily-news' / 'data.json').read_text(encoding='utf-8'))
+    item = data['items'][0]
+    assert item['type'] == 'x'
+    assert item['summary'] == X_SUMMARY
+    assert item['processing_status'] == 'llm'
+    assert item['source'] == 'X (@example)'
+    html = (tmp_path / 'daily-news' / 'index.html').read_text(encoding='utf-8')
+    assert X_SUMMARY in html
+    assert 'raw english tweet should not be the card' not in html

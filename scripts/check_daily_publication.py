@@ -92,14 +92,13 @@ def validate_rendered(page, items, daily, section='headlines'):
     container = 'card' if daily else {'github': 'gh', 'models': 'mdl'}.get(section, 'row')
     title_class = 'card-title' if daily else ('gh-name' if section in {'github', 'models'} else 'row-title')
     for item in items:
-        if daily and item.get('type') == 'x':
-            continue
         url = canonical_url(item.get('url'))
         candidates = [node for node in page.nodes if container in node['classes'] and not node['hidden'] and url in node['links']]
         expected_title = plain(item.get('title'))
         expected_summary = plain(item.get('summary') or item.get('tldr'))
-        if daily and len(expected_summary) > 240:
-            expected_summary = expected_summary[:239] + '…'
+        summary_limit = 600 if daily and item.get('type') == 'x' else 240
+        if daily and len(expected_summary) > summary_limit:
+            expected_summary = expected_summary[:summary_limit - 1] + '…'
         summary_class = 'card-body' if daily else {'github': 'gh-desc', 'models': 'mdl-summary'}.get(section, 'd-summary' if item.get('summary') else 'row-tldr')
         def has_field(node, class_name, expected):
             return any(class_name in child['classes'] and not child['hidden'] and plain(child['text']) == expected for child in node['descendants'])
@@ -168,14 +167,19 @@ def validate_quality(daily):
         return
     require(quality.get('status') == 'passed', 'quality.status must be passed; legacy/missing or degraded quality is not fresh')
     require(bool(quality.get('provider')) and bool(quality.get('model')), 'quality provider/model provenance is missing')
-    articles = [item for item in daily['items'] if item.get('type') != 'x']
+    # News and X share the quality counts. A kept X post is in article_count,
+    # japanese_count, and sources. Its title may stay in the original language;
+    # the Japanese summary and processing_status are still required. Dropped
+    # posts, including unrelated X posts, are quality.excluded and must not
+    # remain in items.
+    articles = list(daily['items'])
     require(quality.get('article_count') == len(articles), 'quality.article_count does not match daily news items')
     require(quality.get('japanese_count') == len(articles), 'quality.japanese_count does not match daily news items')
     require(sorted(quality.get('sources') or []) == sorted({str(item.get('source', '')).strip() for item in articles}), 'quality.sources does not match daily source provenance')
     for item in articles:
         require(item.get('processing_status') in {'llm', 'source_japanese'}, 'quality processing_status must be llm or source_japanese')
         require(is_japanese_summary(item.get('summary')), 'Japanese daily summary missing')
-        if narrative_title(item):
+        if item.get('type') != 'x' and narrative_title(item):
             require(is_japanese(item.get('title')), 'Japanese daily headline missing')
     # excluded_item_count is the normalizer's drop count (invalid URL, title,
     # type, or date) and must stay 0. Quality-gate omissions are a different

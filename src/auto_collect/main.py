@@ -127,7 +127,7 @@ def main():
     except Exception as e:
         logger.error(f"[Main] arXiv failed: {e}")
 
-    # X bookmarks (read from Obsidian vault — pre-curated by the user, no LLM)
+    # X bookmarks (Obsidian vault). Summarized and judged with the news provider below.
     x_articles = []
     try:
         x_articles = XBookmarksCollector().collect(today)
@@ -195,6 +195,9 @@ def main():
     funding_processed = processor.process_funding(funding_raw)
     logger.info(f"[Main] Processed {len(funding_processed)} funding articles")
 
+    x_processed = processor.process_x_posts(x_articles)
+    logger.info(f"[Main] Processed {len(x_processed)} X bookmarks")
+
     # === Phase 2.5: Cross-section dedup (post-LLM) ===
     # Catches canonical-URL leakage across sections, HuggingFace base/quant
     # variants (Qwen/X + unsloth/X-GGUF), and same-story-multi-outlet
@@ -219,7 +222,15 @@ def main():
             f"github {before[3]}->{after[3]}"
         )
 
-    all_news = processed + github_processed + benchmark_processed + funding_processed
+    # News and X share one gate. input_count, article_count, japanese_count,
+    # sources, the minimum of 3 articles and 2 sources, and the 20% exclusion
+    # ratio all use this combined list. A kept X post counts in those totals
+    # and contributes its rss_source (typically "X (@author)"). A dropped post
+    # is quality.excluded with a reason and is not published. There is no
+    # separate X budget. Six unrelated posts among 64 combined items stay
+    # under 20% and do not hold the day. excluded_item_count is the
+    # normalizer's invalid-item counter and is not incremented here.
+    all_news = processed + github_processed + benchmark_processed + funding_processed + x_processed
     kept, quality = filter_publishable(all_news, min_articles=3, min_sources=2)
     quality.update({"date": today.isoformat(), "provider": args.provider,
                     "model": getattr(getattr(processor.provider, "config", None), "model", "")})
@@ -233,6 +244,7 @@ def main():
     github_processed = [article for article in github_processed if id(article) in kept_ids]
     benchmark_processed = [article for article in benchmark_processed if id(article) in kept_ids]
     funding_processed = [article for article in funding_processed if id(article) in kept_ids]
+    x_processed = [article for article in x_processed if id(article) in kept_ids]
     if quality.get("excluded_count"):
         detail = "; ".join(
             f"article {row.get('index')}: {row.get('title') or ''} ({'; '.join(row.get('errors') or [])})"
@@ -262,7 +274,7 @@ def main():
         dn_path = generate_daily_news(
             today, articles=processed, github_articles=github_processed,
             benchmark_articles=benchmark_processed, funding_articles=funding_processed,
-            x_articles=x_articles, quality=quality,
+            x_articles=x_processed, quality=quality,
         )
         if not dn_path:
             raise RuntimeError("Daily News not generated")
@@ -279,7 +291,7 @@ def main():
         _quality_log(today, quality)
         raise
 
-    total = len(processed) + len(github_processed) + len(benchmark_processed) + len(funding_processed) + len(x_articles)
+    total = len(processed) + len(github_processed) + len(benchmark_processed) + len(funding_processed) + len(x_processed)
     logger.info(f"[Main] Done: {total} total items -> {output_path}")
 
 
