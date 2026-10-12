@@ -47,6 +47,21 @@ categoryは AI Model / Business / Research / Product / Hardware のいずれか
 evidence_labelは Fact（公式発表・一次情報） / Claim（企業/関係者の主張） / Rumor（噂・未確認） のいずれか"""
 
 
+X_SUMMARIZE_PROMPT = """次のX投稿を日本語で要約し、AI関連かどうか判定してください。
+
+投稿者: {source}
+本文: {content}
+
+以下のJSON形式のみで回答してください（説明文不要）:
+{{
+  "title_ja": "日本語の短い見出し",
+  "summary": "3文以内の日本語要約",
+  "ai_related": true
+}}
+
+ai_relatedは、AIのモデル・研究・製品・企業・規制・実装に関係する投稿ならtrue、それ以外はfalse。"""
+
+
 class LLMProcessor:
     """Process articles using an LLM for summarization, scoring, and evidence extraction.
 
@@ -179,6 +194,81 @@ class LLMProcessor:
 
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return self._localize_structured(processed, preserve_names=True)
+
+    def process_x_posts(self, posts: List[Dict]) -> List[Dict]:
+        """Summarize X posts through the same provider.chat path as news.
+
+        The provider owns request spacing and HTTP 429 retry. A response that
+        arrives but breaks the summary or judgement format is retried once.
+        Posts are returned either way so the publication gate can record
+        summary failures and ai_related false in quality.excluded.
+        """
+        return [self._process_x_post(post) for post in posts]
+
+    def _process_x_post(self, post: Dict) -> Dict:
+        source = post.get("rss_source") or post.get("source") or "X"
+        content = post.get("description") or post.get("tagline") or ""
+        prompt = X_SUMMARIZE_PROMPT.format(source=source, content=str(content)[:500])
+        if not self.available:
+            return self._x_row(post, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
+        text = self.provider.chat(prompt)
+        if not text:
+            logger.warning("[%s] no response for X post '%s'", self.provider.name, str(post.get("name", ""))[:60])
+            return self._x_row(post, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
+        parsed = self._accepted_x(text)
+        if parsed is None:
+            logger.warning("[%s] could not parse X post JSON; retrying once", self.provider.name)
+            text = self.provider.chat(prompt)
+            if not text:
+                logger.warning("[%s] no response for X post '%s'", self.provider.name, str(post.get("name", ""))[:60])
+                return self._x_row(post, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
+            parsed = self._accepted_x(text)
+        if parsed is None:
+            logger.warning("[%s] could not parse X post JSON", self.provider.name)
+            return self._x_row(post, error="invalid_japanese")
+        return self._x_row(post, parsed=parsed)
+
+    def _accepted_x(self, text: str) -> Optional[Dict]:
+        parsed = self._extract_json(text)
+        if not (isinstance(parsed, dict) and isinstance(parsed.get("title_ja"), str)
+                and parsed["title_ja"].strip() and is_japanese_summary(parsed.get("summary"))):
+            return None
+        if parsed.get("ai_related") is not True and parsed.get("ai_related") is not False:
+            return None
+        return parsed
+
+    def _x_row(self, post: Dict, *, parsed: Optional[Dict] = None, error: str = "") -> Dict:
+        url = post.get("url") or (post.get("links") or {}).get("official") or ""
+        source = post.get("rss_source") or post.get("source") or "X"
+        title = ((parsed or {}).get("title_ja") or post.get("name") or "")
+        summary = (parsed or {}).get("summary") or str(post.get("tagline") or "")[:300]
+        row = {
+            "title": title,
+            "name": post.get("name") or title,
+            "processing_status": "llm" if parsed else "fallback",
+            "title_en": post.get("name") or "",
+            "summary": summary,
+            "tldr": (str(parsed.get("title_ja") or "")[:80] if parsed else str(post.get("tagline") or "")[:80]),
+            "url": url,
+            "source": source,
+            "rss_source": source,
+            "x_curated": True,
+            "x_tweet_id": post.get("x_tweet_id") or "",
+            "x_images": list(post.get("x_images") or []),
+            "x_note": post.get("x_note") or "",
+            "bookmark_date": post.get("bookmark_date") or "",
+            "authors": post.get("authors") or "",
+            "description": post.get("description") or "",
+            "links": post.get("links") or ({"official": url} if url else {}),
+            "score": int(post.get("score") or 75),
+            "category": post.get("category") or "X ポスト",
+            "evidence_label": post.get("evidence_label") or "Curated",
+        }
+        if parsed is not None:
+            row["ai_related"] = parsed.get("ai_related") is True
+        if error:
+            row["processing_error"] = error
+        return apply_financial_integrity(row)
 
     def process_funding(self, funding_items: List[Dict]) -> List[Dict]:
         """Process funding/M&A news."""

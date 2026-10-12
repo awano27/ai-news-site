@@ -6,9 +6,9 @@ The vault is synced by a Playwright script that lives outside this repo
 hourly and drops one .md file per bookmark into 00 Inbox/X-Bookmarks/.
 
 Each file is YAML-frontmatter + body. We parse them into the same article
-shape the rest of the pipeline uses, but we mark them as user-curated so
-downstream code can skip the LLM summarization step (the body is already
-in Japanese, already concise, and re-summarizing degrades it).
+shape the rest of the pipeline uses and mark them x_curated. The daily
+pipeline still summarizes them with the news provider and drops posts that
+are not AI-related or whose summary fails.
 """
 
 from __future__ import annotations
@@ -115,7 +115,8 @@ class XBookmarksCollector:
         or unparseable. mtime is used as a cheap pre-filter to avoid YAML-
         parsing files that are obviously too old.
         """
-        if not self.bookmarks_dir.exists():
+        self.vault_available = self.bookmarks_dir.exists()
+        if not self.vault_available:
             logger.info(f"[X] vault not found at {self.bookmarks_dir} — skipping (cloud run?)")
             return []
 

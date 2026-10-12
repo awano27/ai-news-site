@@ -120,11 +120,14 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
 def _flatten_x(x_articles: List[Dict]) -> List[Dict]:
     out = []
     for a in x_articles or []:
+        summary = a.get("summary") or ""
         out.append({
             "type": "x",
-            "title": a.get("name") or "",
+            "processing_status": a.get("processing_status") or "unverified",
+            "title": a.get("title") or a.get("name") or "",
             "url": a.get("url") or (a.get("links") or {}).get("official") or "",
-            "body": a.get("description") or a.get("summary") or "",
+            "summary": summary,
+            "body": summary or a.get("description") or "",
             "tldr": a.get("tldr") or "",
             "evidence_label": a.get("evidence_label") or "Curated",
             "category": "X",
@@ -277,6 +280,7 @@ def generate_daily_news(
     funding_articles: Optional[List[Dict]] = None,
     x_articles: Optional[List[Dict]] = None,
     quality: Optional[Dict] = None,
+    x_authoritative: bool = False,
 ) -> Optional[Path]:
     """Build daily-news/index.html from collector output."""
     DAILY_NEWS_DIR.mkdir(parents=True, exist_ok=True)
@@ -330,6 +334,10 @@ def generate_daily_news(
 
     if quality is not None:
         report_data["quality"] = dict(quality)
+    # True only when this run read X bookmarks and judged them. A cloud run
+    # with no vault leaves the flag unset so a richer same-day bundle survives.
+    if x_authoritative:
+        report_data["x_authoritative"] = True
 
     existing_path = DAILY_NEWS_DIR / "data.json"
     if existing_path.exists():
