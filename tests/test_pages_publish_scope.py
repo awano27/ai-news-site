@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import date
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -202,6 +204,84 @@ def test_staging_refuses_symlink_inside_a_public_directory(tmp_path):
     (public / "leak.md").symlink_to(outside)
     with pytest.raises(PublishSafetyError, match="symlink"):
         stage_site(root, tmp_path / "site")
+
+
+def test_staging_refuses_repository_and_every_ancestor_before_deleting(tmp_path, monkeypatch):
+    root = tmp_path / "outer" / "inner" / "repo"
+    root.mkdir(parents=True)
+    rmtree = Mock(side_effect=AssertionError("unsafe destination reached deletion"))
+    monkeypatch.setattr("scripts.stage_pages_site.shutil.rmtree", rmtree)
+
+    for dest in (root, root / "site", *root.parents):
+        with pytest.raises(PublishSafetyError, match="staging directory"):
+            stage_site(root, dest)
+        rmtree.assert_not_called()
+    assert root.is_dir()
+    assert not (root / "site").exists()
+
+
+@pytest.mark.parametrize("parent_index", [0, 1])
+def test_staging_refuses_symlink_to_repository_ancestor_before_deleting(
+    tmp_path, monkeypatch, parent_index
+):
+    root = tmp_path / "outer" / "inner" / "repo"
+    root.mkdir(parents=True)
+    dest = tmp_path / "ancestor-link"
+    try:
+        dest.symlink_to(root.parents[parent_index], target_is_directory=True)
+    except OSError as exc:
+        pytest.skip(f"directory symlink unavailable: {exc}")
+    rmtree = Mock(side_effect=AssertionError("ancestor symlink reached deletion"))
+    monkeypatch.setattr("scripts.stage_pages_site.shutil.rmtree", rmtree)
+
+    with pytest.raises(PublishSafetyError, match="staging directory"):
+        stage_site(root, dest)
+    rmtree.assert_not_called()
+    assert dest.is_symlink()
+    assert root.is_dir()
+
+
+def test_staging_refuses_destination_resolving_to_every_ancestor(tmp_path, monkeypatch):
+    root = tmp_path / "outer" / "inner" / "repo"
+    root.mkdir(parents=True)
+    resolved_root = root.resolve()
+    dest = tmp_path / "ancestor-alias"
+    original_resolve = Path.resolve
+    rmtree = Mock(side_effect=AssertionError("resolved ancestor reached deletion"))
+    monkeypatch.setattr("scripts.stage_pages_site.shutil.rmtree", rmtree)
+
+    for ancestor in resolved_root.parents:
+        def resolve_alias(path, *args, **kwargs):
+            if path == dest:
+                return ancestor
+            return original_resolve(path, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "resolve", resolve_alias)
+        with pytest.raises(PublishSafetyError, match="staging directory"):
+            stage_site(root, dest)
+        rmtree.assert_not_called()
+    assert root.is_dir()
+
+
+def test_staging_replaces_existing_separate_directory(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    dest = tmp_path / "pages-site"
+    _required_stubs(root)
+    _write(root, "daily-news/archive/2099-01-01.html", "news")
+    _write(root, "presentations/day_slides/day_slide_2099_01_01.html", "slide")
+    _write(dest, "stale.txt", "stale staging output")
+    assert dest.resolve().is_relative_to(tmp_path.resolve())
+    rmtree = Mock(wraps=shutil.rmtree)
+    monkeypatch.setattr("scripts.stage_pages_site.shutil.rmtree", rmtree)
+
+    copied = stage_site(root, dest)
+
+    rmtree.assert_called_once_with(dest.resolve())
+    assert not (dest / "stale.txt").exists()
+    assert (dest / "index.html").read_text(encoding="utf-8") == "stub"
+    assert (dest / "daily-news/archive/2099-01-01.html").read_text(encoding="utf-8") == "news"
+    assert "presentations/day_slides/day_slide_2099_01_01.html" in copied
+    assert (root / "index.html").read_text(encoding="utf-8") == "stub"
 
 
 def test_repository_sitemap_is_complete_and_internal_trees_stay_out():

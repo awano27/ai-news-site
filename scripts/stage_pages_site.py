@@ -387,8 +387,8 @@ def stage_site(root: Path, dest: Path) -> list[str]:
     """Copy the allowlist to dest, replacing any previous staging directory."""
     root = root.resolve()
     dest = dest.resolve()
-    if dest == root or root in dest.parents:
-        raise PublishSafetyError([f"staging directory must be outside the repository: {dest}"])
+    if dest == root or root in dest.parents or dest in root.parents:
+        raise PublishSafetyError([f"staging directory must be outside the repository and must not contain it: {dest}"])
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
