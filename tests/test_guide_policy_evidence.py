@@ -21,10 +21,7 @@ GUIDE_IDS = {
     "G-USE-01", "G-USE-02", "G-USE-03", "G-USE-04", "G-USE-05",
     "G-USE-06", "G-USE-07", "G-USE-08", "G-USE-09", "G-USE-10",
 }
-ABOUT_IDS = {
-    "G-ABOUT-01", "G-ABOUT-02", "G-ABOUT-03", "G-ABOUT-04",
-    "G-ABOUT-05", "G-ABOUT-06",
-}
+ABOUT_IDS = {"G-ABOUT-02"}
 
 
 class GuidePolicyEvidenceTest(unittest.TestCase):
@@ -87,6 +84,21 @@ class GuidePolicyEvidenceTest(unittest.TestCase):
             "本文全文を保存せず", "何を支えるか（support）",
         ):
             self.assertIn(meaning, text)
+
+    def test_about_keeps_personal_identity_and_reader_contact_without_claimed_credentials(self) -> None:
+        html = ABOUT.read_text(encoding="utf-8")
+        text = visible_text(html)
+        for wording in ("個人で運営する技術情報サイト", "所属組織の公式見解ではありません", "AIツールと自動処理", "返信や修正までの時間はお約束していません"):
+            self.assertIn(wording, text)
+        for unsupported in ("Claudian", "本番サービス", "初日から常用", "毎日数十回", "600日", "8,000+", "毎日 07:00", "24h", "3 営業日", "導入支援", "広告出稿", "会社承認済", "非営利"):
+            self.assertNotIn(unsupported, html)
+        self.assertIn('href="https://github.com/awano27"', html)
+        self.assertIn('href="/contact.html"', html)
+        blocks = re.findall(r'<script type="application/ld\+json">\s*(.*?)\s*</script>', html, re.DOTALL)
+        about = next(json.loads(block) for block in blocks if json.loads(block).get("@type") == "AboutPage")
+        self.assertNotIn("jobTitle", about["mainEntity"])
+        self.assertNotIn("knowsAbout", about["mainEntity"])
+        self.assertEqual(about["mainEntity"]["name"], "awano27")
 
     def _assert_page_contract(self, path: Path, expected_ids: set[str]) -> None:
         html = path.read_text(encoding="utf-8")
