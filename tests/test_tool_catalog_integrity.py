@@ -122,8 +122,8 @@ process.stdout.write(JSON.stringify({
         self.assertEqual(result["emptyDisplay"], "none")
 
     def test_search_counts_repeated_tool_once(self):
-        result = self.run_filter(query="orca")
-        matching = [card for card in self.cards if "orca" in card["text"].lower()]
+        result = self.run_filter(query="Agent Plugins")
+        matching = [card for card in self.cards if "agent plugins" in card["text"].lower()]
         unique = len({card["name"].strip() for card in matching})
         self.assertGreater(len(matching), unique)
         self.assertEqual(result["summary"], f"表示ツール: {unique}件（{len(matching)}カード）")
