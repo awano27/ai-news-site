@@ -117,16 +117,16 @@ process.stdout.write(JSON.stringify({
         self.assertIsNotNone(details)
         self.assertNotRegex(details.group(0), r'\bopen\b')
         self.assertNotIn('209ツール', self.html)
-        self.assertIn('直近確認: 5候補', self.html)
+        self.assertIn('直近確認: 7候補', self.html)
         historical = [card for card in self.cards if 'historical' in card['tags'].split(',')]
         self.assertEqual(len(historical), 221)
         self.assertEqual(len({card['name'].strip() for card in historical}), 202)
 
-    def test_default_shows_only_current_seven(self):
+    def test_default_shows_only_current_nine(self):
         result = self.run_filter()
-        self.assertEqual(result["visible"], 7)
+        self.assertEqual(result["visible"], 9)
         self.assertEqual(result['historicalVisible'], 0)
-        self.assertEqual(result["summary"], "表示ツール: 7件（7カード）")
+        self.assertEqual(result["summary"], "表示ツール: 9件（9カード）")
         self.assertEqual(result["emptyDisplay"], "none")
 
     def test_search_counts_repeated_tool_once(self):
@@ -146,9 +146,21 @@ process.stdout.write(JSON.stringify({
 
     def test_open_archive_has_separate_counts(self):
         result = self.run_filter(archive_open=True)
-        self.assertEqual(result['visible'], 228)
-        self.assertEqual(result['summary'], '表示ツール: 7件（7カード）')
+        self.assertEqual(result['visible'], 230)
+        self.assertEqual(result['summary'], '表示ツール: 9件（9カード）')
         self.assertEqual(result['archiveSummary'], '表示中: 202ツール（221カード）')
+
+    def test_new_candidates_are_searchable_without_archive(self):
+        for name in ['Google Colab', 'Strata']:
+            result = self.run_filter(query=name)
+            self.assertEqual(result['visible'], 1)
+            self.assertEqual(result['historicalVisible'], 0)
+            self.assertFalse(result['archiveOpen'])
+
+    def test_current_candidate_filter_excludes_archive(self):
+        result = self.run_filter(purpose='public-candidate')
+        self.assertEqual(result['visible'], 7)
+        self.assertEqual(result['historicalVisible'], 0)
 
     def test_purpose_and_role_filters_keep_real_card_visibility(self):
         result = self.run_filter(purpose="docs", role="biz")
