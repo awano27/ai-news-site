@@ -111,7 +111,7 @@ def _baseline_snapshots(root, base_ref, errors):
     snapshots = {}
     try:
         base = _git(root, 'rev-parse', '--verify', '--end-of-options', f'{base_ref}^{{commit}}').strip()
-        changes = _git(root, 'diff', '--name-status', '--no-renames', base, '--', str(NEWS))
+        changes = _git(root, 'diff', '--name-status', '--no-renames', base, '--', NEWS.as_posix())
         for line in changes.splitlines():
             status, path = line.split('\t', 1)
             relative = Path(path)
@@ -119,7 +119,7 @@ def _baseline_snapshots(root, base_ref, errors):
                 continue
             snapshots[path] = None if status == 'A' else load_strict_json(_git(root, 'show', f'{base}:{path}'))
         # Producer checks run before git add, so include new untracked roots.
-        untracked = _git(root, 'ls-files', '--others', '--exclude-standard', '--', str(NEWS))
+        untracked = _git(root, 'ls-files', '--others', '--exclude-standard', '--', NEWS.as_posix())
         for path in untracked.splitlines():
             relative = Path(path)
             if relative.parent == NEWS and SNAPSHOT.fullmatch(relative.name):
@@ -170,7 +170,7 @@ def validate_bundle(root, date=None, base_ref=None):
         # Historical unreviewed count metadata was not canonical. Always check
         # derived counts, but only hard-gate this field for reviewed/changed/
         # explicitly requested source snapshots.
-        strict_count = has_review_provenance(data) or str(NEWS / path.name) in baseline or effective == date
+        strict_count = has_review_provenance(data) or (NEWS / path.name).as_posix() in baseline or effective == date
         if strict_count and 'count' in data and (isinstance(data['count'], bool) or data['count'] != len(items)):
             errors.append(f'{NEWS / path.name}.count: {data["count"]} != actual item count {len(items)}')
         if not items:
