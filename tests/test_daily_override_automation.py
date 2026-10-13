@@ -135,6 +135,7 @@ def test_installer_plan_only_emits_the_required_scheduled_task_contract(tmp_path
     assert plan["principal"] == {"logonType": "InteractiveToken"}
     assert plan["settings"] == {
         "startWhenAvailable": True,
+        "wakeToRun": False,
         "multipleInstances": "IgnoreNew",
         "executionTimeLimit": "PT1H",
         "disallowStartIfOnBatteries": False,
@@ -309,7 +310,7 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
         encoding="utf-8"
     )
 
-    assert "- cron: '0 21 * * *'" in workflow
+    assert "- cron: '53 20 * * *'" in workflow
     assert "workflow_dispatch: {}" in workflow
     assert "permissions:\n  contents: write" in workflow
     assert "concurrency:\n  group: repo-push\n  cancel-in-progress: false" in workflow

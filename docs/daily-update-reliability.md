@@ -1,6 +1,6 @@
 # Daily publication reliability
 
-The scheduled news producer is `auto-daily-report-cloud-fallback.yml` (`src/auto_collect`). The 06:00 JST cron is an attempt time, not a 07:00 delivery guarantee. The two legacy `script/build_news.py` workflows are retained as manual deprecation notices; they no longer compete with this producer. Manual slide authoring remains independent and the last real slide date can differ from the news date.
+The scheduled news producer is `auto-daily-report-cloud-fallback.yml` (`src/auto_collect`). This change proposes 05:53 JST instead of 06:00, avoiding GitHub's documented start-of-hour load. This can reduce the chance of delay; it is not a 07:00 delivery guarantee. The two legacy `script/build_news.py` workflows are retained as manual deprecation notices; they no longer compete with this producer. Manual slide authoring remains independent and the last real slide date can differ from the news date.
 
 ## Publication contract
 
@@ -59,8 +59,8 @@ collects candidates, generates Japanese summaries and invokes the strict publish
 with `--require-quality --push`; it is not a harmless diagnostic command. Inspect
 `logs/run_daily_override.log` and the quality report if it stops. Do not run it in
 the authoring checkout, manually change publication dates, or bypass a failed gate.
-PR127's date-filtered quality-count correction is separate and must be integrated
-and tested before trusting that repaired path; this patch does not merge that PR.
+PR127's date-filtered quality-count correction is already merged. The 2026-10-13
+local recovery published 97 items after source review and strict live verification.
 
 For cloud resumption, the operator must verify the exact production-authorized
 NVIDIA model and applicable entitlement, then configure the existing variables
@@ -72,9 +72,71 @@ result with the expected JST time. A successful `workflow_dispatch` is not evide
 that `schedule` fired. GitHub cron is best effort; these changes do not guarantee
 09:15/09:35 delivery or add another automatic retry/dispatch loop.
 
-Observed on 2026-10-13: the existing 08:00 local task selected Ollama and ran
-processing, then stopped with `quality.article_count does not match daily news
-items`. This is distinct from Cloud Primary's missing NVIDIA model/entitlement
-configuration. The local health probe succeeded, but full publication remains
-blocked until the separately reviewed PR127 correction is integrated and the
-strict quality check passes. A passed health probe must not override that error.
+Observed on 2026-10-13: the 08:00 task stopped on the former count mismatch.
+That defect and a headline-only summarization defect were repaired before the
+97-item local recovery. Cloud Primary's missing model/entitlement configuration
+remains a separate blocker. Local recovery is not proof that tomorrow's task will
+run or that cloud production access exists.
+
+## Proposed resilience changes (not enabled before review)
+
+Configuration diagnosis uses the Python standard library and runs before dependency
+installation. Missing settings do not trigger a provider request or collection.
+The existing post-install probe and all publication gates remain mandatory.
+
+Pages writes `publication-revision.json` only into its staged artifact. It records
+the actual build SHA, Pages run ID and the existing edition date; it contains no
+credentials, local paths or user identity. Pages verifies its own SHA and run ID
+after deploy. Freshness Guard separates repository checks from public verification:
+repository checks remain on their existing schedule, while strict public checks
+follow successful Pages completion and resolve the currently public SHA. The SHA
+must belong to `origin/main` before verification in a disposable clone. If a newer deployment supersedes an
+older event, the guard follows the actual public artifact. If publication changes
+during verification, it reselects the public SHA at most three times; stable content
+failures and continuous changes remain failures. Missing or invalid
+identity fails rather than guessing main. These changes prevent comparing new main
+against a publication still deploying; the safety net still independently checks
+today's edition. Repository checks do not claim public verification.
+
+The existing Windows task is Interactive/Limited with StartWhenAvailable enabled
+and WakeToRun disabled. `register_daily_override_task.ps1 -WakeToRun -PlanOnly`
+shows an optional sleep-wake plan without creating a clone or registering a task.
+Enabling it after review retains interactive permissions. Wake timers and firmware
+must support it; it cannot turn on a shut-down PC or provide an interactive login.
+The current task is unchanged until the operator applies an approved plan.
+
+## Exact cloud resumption decision
+
+The technical model candidate is `nvidia/nemotron-3-super-120b-a12b`, currently listed
+with a free prototype endpoint and partner/self-hosted options on its official page:
+https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b
+Its Japanese quality and the account's production access have not been tested.
+Do not treat the candidate as permission to publish through the trial endpoint.
+
+The hosted trial agreement expressly excludes production use of both the API and
+generated content. Agreeing to that trial agreement does not fix production access:
+https://assets.ngc.nvidia.com/products/api-catalog/legal/NVIDIA%20API%20Trial%20Terms%20of%20Service.pdf
+
+The model card links the specific NVIDIA Nemotron Open Model License, permitting
+commercial use of weights subject to its terms:
+https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/
+It does not authorize the hosted trial API for production. Model royalty is not the
+same as hosting/API cost. Production service pricing and this account's subscription
+terms are unconfirmed; no new paid plan or terms acceptance is performed.
+
+For the existing NVIDIA route to resume, the operator must provide confirmation of
+an already-held service entitlement covering the exact endpoint, model and public
+generated news on visionhub.jp, with the applicable service agreement and any cost
+identified. Only then may the existing repository variables be set to the approved
+model and `NVIDIA_PRODUCTION_USE_CONFIRMED=true`, followed by an authorized probe,
+Japanese-quality test and strict publication. The existing secret stays in place.
+If the account only has trial access, there is no settings-only fix under the current
+no-new-billing/no-new-key-placement scope. No blanket "production confirmation" is
+requested and the trial terms are not presented as an agreement that grants it.
+
+PC-independent alternatives require a separately reviewed choice: Japanese-source
+RSS excerpts with explicit coverage/provenance and the same numeric/language/date
+gates, or a production-authorized cloud service. No source-only edition is disguised
+as an LLM run. An independent scheduler can decouple trigger timing from GitHub cron
+but requires an existing permitted always-on service/identity; none is configured by
+this patch. Additional schedules on GitHub would share the same delay risk.

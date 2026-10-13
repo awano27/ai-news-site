@@ -1,6 +1,6 @@
 name: Auto Daily Report — Cloud Primary
 
-# Primary scheduled attempt at 06:00 JST. GitHub cron can be delayed/skipped;
+# Primary scheduled attempt at 05:53 JST. GitHub cron can be delayed/skipped;
 # a schedule is not a 07:00 publication guarantee. Quality/configuration failures
 # remain failures and preserve the previous publication. A successful completion
 # explicitly triggers Pages via workflow_run, including GITHUB_TOKEN commits.
@@ -8,8 +8,9 @@ name: Auto Daily Report — Cloud Primary
 
 on:
   schedule:
-    # JST 06:00 = UTC 21:00 (previous day)
-    - cron: '0 21 * * *'
+    # Avoid the documented start-of-hour load. This is not a delivery guarantee.
+    # JST 05:53 = UTC 20:53 (previous day)
+    - cron: '53 20 * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -36,6 +37,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Diagnose configuration before installing dependencies
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
+          NVIDIA_PRODUCTION_USE_CONFIRMED: ${{ vars.NVIDIA_PRODUCTION_USE_CONFIRMED }}
+        run: |
+          python -m src.auto_collect.provider_preflight --provider nvidia \
+            --output logs/auto_collect/provider_preflight.json
 
       - name: Install deps
         run: |

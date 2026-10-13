@@ -11,6 +11,10 @@ on:
   schedule:
     - cron: '35 0 * * *'
   workflow_dispatch: {}
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
+    branches: [main]
   push:
     paths:
       - 'presentations/day_slides/**'
@@ -18,8 +22,13 @@ on:
       - 'sitemap.xml'
       - 'feed.xml'
 
+permissions:
+  contents: read
+
 jobs:
   check:
+    name: Repository freshness (public comparison follows Pages completion)
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -32,10 +41,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify the generated TOP metadata matches the published page
-        run: |
-          node scripts/build-homepage-latest.js --strict
-          python scripts/check_homepage_sync.py --base-url https://visionhub.jp
+      - name: Report public comparison boundary
+        run: echo 'Public TOP/content comparison is performed after successful Pages completion, against the actual published build. This repository check is not publication verification.'
       - name: Verify no day-slides stranded on unmerged claude/* branches
         run: |
           git fetch origin '+refs/heads/main:refs/remotes/origin/main' '+refs/heads/claude/*:refs/remotes/origin/claude/*'
@@ -56,3 +63,19 @@ jobs:
       - name: Verify feed.xml carries the newest day slide
         if: always()
         run: python scripts/check_feed_freshness.py
+
+  published:
+    name: Strict public content after Pages completion
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify public TOP and strict daily identity
+        run: python scripts/pages_revision.py verify-public --root . --base-url https://visionhub.jp

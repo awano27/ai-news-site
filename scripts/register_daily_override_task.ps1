@@ -4,7 +4,8 @@ param(
     [string]$RepositoryUrl = "https://github.com/awano27/ai-news-site.git",
     [string]$TaskName = "visionhub-daily-news-override",
     [string]$At = "08:00",
-    [switch]$PlanOnly
+    [switch]$PlanOnly,
+    [switch]$WakeToRun
 )
 
 Set-StrictMode -Version Latest
@@ -36,6 +37,7 @@ $plan = [ordered]@{
     principal = [ordered]@{ logonType = "InteractiveToken" }
     settings = [ordered]@{
         startWhenAvailable = $true
+        wakeToRun = [bool]$WakeToRun
         multipleInstances = "IgnoreNew"
         executionTimeLimit = "PT1H"
         disallowStartIfOnBatteries = $false
@@ -75,5 +77,13 @@ if (-not (Test-Path -LiteralPath $gitDirectory -PathType Container)) {
 $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument $actionArguments -WorkingDirectory $checkout
 $trigger = New-ScheduledTaskTrigger -Daily -At $At
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+$settingsArguments = @{
+    StartWhenAvailable = $true
+    MultipleInstances = 'IgnoreNew'
+    ExecutionTimeLimit = (New-TimeSpan -Hours 1)
+    AllowStartIfOnBatteries = $true
+    DontStopIfGoingOnBatteries = $true
+}
+if ($WakeToRun) { $settingsArguments.WakeToRun = $true }
+$settings = New-ScheduledTaskSettingsSet @settingsArguments
 Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null

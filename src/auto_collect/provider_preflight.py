@@ -7,7 +7,10 @@ import json
 import os
 from pathlib import Path
 
-from .llm_provider import make_provider
+def make_provider(name):
+    # Configuration diagnosis must work before third-party dependencies exist.
+    from .llm_provider import make_provider as create
+    return create(name)
 
 
 def inspect_provider(name, env, *, probe=False, factory=make_provider):
