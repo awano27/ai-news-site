@@ -10,13 +10,16 @@ from scripts import pages_revision
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_configuration_preflight_needs_only_standard_library():
+@pytest.mark.parametrize('github_actions', ['true', 'false'])
+def test_configuration_preflight_needs_only_standard_library(github_actions):
     env = {'NVIDIA_MODEL': '', 'NVIDIA_API_KEY': '', 'NVIDIA_PRODUCTION_USE_CONFIRMED': ''}
     import os
     result = subprocess.run([sys.executable, '-S', '-m', 'src.auto_collect.provider_preflight', '--provider', 'nvidia'],
-                            cwd=ROOT, env={**os.environ, **env, 'PYTHONPATH': str(ROOT)}, capture_output=True, text=True)
+                            cwd=ROOT, env={**os.environ, **env, 'PYTHONPATH': str(ROOT), 'GITHUB_ACTIONS': github_actions}, capture_output=True, text=True)
     assert result.returncode == 1
-    assert json.loads(result.stdout)['status'] == 'blocked'
+    payload,end=json.JSONDecoder().raw_decode(result.stdout)
+    assert payload['status'] == 'blocked'
+    assert ('::error::Provider preflight blocked:' in result.stdout[end:]) == (github_actions == 'true')
     assert 'ModuleNotFoundError' not in result.stderr
 
 
