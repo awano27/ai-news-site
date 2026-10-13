@@ -301,13 +301,19 @@ class LLMProcessor:
         """Summarize, score, and extract evidence using the configured LLM."""
         title = article.get("name", "")
         source = article.get("rss_source", article.get("source", ""))
-        content = article.get("description", article.get("tagline", ""))
+        content = str(article.get("description") or article.get("tagline") or "").strip()
+        # A headline is not evidence for a substantive summary. In particular,
+        # HN supplies its title as tagline; never ask the model to fill that gap.
+        normalized = lambda value: " ".join(str(value).split()).casefold()
+        if not content or normalized(content) == normalized(title):
+            return self._fallback_process(article, error="source_context_missing")
 
         prompt = SUMMARIZE_PROMPT.format(
             title=title[:200],
             source=source,
             content=content[:500]
         )
+        prompt += "\n与えたタイトルと本文だけを根拠にしてください。未記載の性能・料金・開発元・導入手順・用途・効果を推測しないでください。情報がない項目は空配列または空文字にし、短い紹介文を詳しい製品評価に膨らませないでください。"
 
         text = self.provider.chat(prompt)
         if not text:
