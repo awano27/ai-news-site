@@ -18,7 +18,8 @@ RUNTIME_MARKER = "visionhub-daily-news-override-runtime.json"
 
 
 def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(args, cwd=cwd, check=check, text=True, capture_output=True)
+    encoding = "oem" if os.name == "nt" and args[0] == POWERSHELL else "utf-8"
+    return subprocess.run(args, cwd=cwd, check=check, text=True, encoding=encoding, capture_output=True)
 
 
 def git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -41,6 +42,12 @@ def write_runtime_files(repo: Path) -> None:
         "from __future__ import annotations\n"
         "import json, pathlib, sys\n"
         "pathlib.Path('pipeline_args.json').write_text(json.dumps(sys.argv[1:]), encoding='utf-8')\n",
+        encoding="utf-8",
+    )
+    (repo / "src" / "auto_collect" / "provider_preflight.py").write_text(
+        "import json, os, pathlib, sys\n"
+        "pathlib.Path('preflight_args.json').write_text(json.dumps(sys.argv[1:]))\n"
+        "raise SystemExit(int(os.environ.get('TASK_PREFLIGHT_EXIT', '0')))\n",
         encoding="utf-8",
     )
     (repo / "base.txt").write_text("base\n", encoding="utf-8")
@@ -341,3 +348,13 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
         "git clean",
     ):
         assert prohibited not in lower_workflow
+
+
+def test_runner_blocks_generation_and_publish_when_preflight_fails(tmp_path, monkeypatch):
+    _, _, runtime = make_runtime(tmp_path)
+    monkeypatch.setenv("TASK_PREFLIGHT_EXIT", "1")
+    result = run_runner(runtime, tmp_path / "blocked.log")
+    assert result.returncode != 0
+    assert (runtime / "preflight_args.json").exists()
+    assert not (runtime / "pipeline_args.json").exists()
+    assert not (runtime / "publisher_args.json").exists()

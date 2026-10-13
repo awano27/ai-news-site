@@ -194,6 +194,11 @@ try {
             Write-RunnerLog $note
         }
     }
+    $preflightPath = Join-Path $repo "logs\auto_collect\provider_preflight.json"
+    $preflightCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @("-m", "src.auto_collect.provider_preflight", "--provider", $provider, "--probe", "--output", $preflightPath) -Label "provider preflight"
+    if ($preflightCode -ne 0) {
+        throw "Provider preflight failed; inspect provider_preflight.json. Publication is held."
+    }
     Write-RunnerLog "Running pipeline with provider=$provider."
     $pipelineCode = Invoke-LoggedCommand -FilePath $PythonPath -Arguments @("-m", "src.auto_collect.main", "--provider", $provider, "--force") -Label "pipeline"
     if ($pipelineCode -ne 0) {

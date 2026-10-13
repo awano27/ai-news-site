@@ -24,6 +24,9 @@ def main() -> int:
         os.environ.get("NVIDIA_API_KEY"),
         os.environ.get("NVIDIA_PRODUCTION_USE_CONFIRMED"),
     )
+    if name == "nvidia" and not os.environ.get("NVIDIA_MODEL", "").strip():
+        name = "ollama"
+        note = "NVIDIA_MODEL is missing; using the existing local ollama configuration."
     print(f"provider={name}")
     if note:
         print(f"note={note}")

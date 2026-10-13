@@ -43,6 +43,15 @@ jobs:
           pip install -r requirements-daily.txt
           pip install -e .
 
+      - name: Verify existing provider before collection
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
+          NVIDIA_PRODUCTION_USE_CONFIRMED: ${{ vars.NVIDIA_PRODUCTION_USE_CONFIRMED }}
+        run: |
+          python -m src.auto_collect.provider_preflight --provider nvidia --probe \
+            --output logs/auto_collect/provider_preflight.json
+
       - name: Run pipeline (NVIDIA NIM)
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
@@ -90,6 +99,7 @@ jobs:
           path: |
             logs/auto_collect/daily_quality_*.json
             logs/auto_collect/daily_candidate_*.json
+            logs/auto_collect/provider_preflight.json
           if-no-files-found: warn
           retention-days: 7
 
