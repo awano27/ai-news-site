@@ -95,9 +95,11 @@ def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: in
     kept set misses the article or source minimum, or when exclusions exceed
     max_excluded_ratio (the boundary itself is still publishable).
 
-    Callers pass news and X posts in one list. input_count, article_count,
-    japanese_count, sources, the article and source minimums, and the
-    exclusion ratio all use that combined set. There is no separate X budget.
+    Callers pass news and X posts in one list, already limited to the daily
+    page's today/yesterday window. input_count, article_count, japanese_count,
+    sources, the article and source minimums, and the exclusion ratio all use
+    that combined set. Older items are omitted before this function and are
+    not exclusions. There is no separate X budget.
     A kept X post counts toward the minimums and adds its source. A dropped
     post is listed in excluded with its reasons. excluded_item_count is not
     this list; that counter belongs to the daily normalizer.

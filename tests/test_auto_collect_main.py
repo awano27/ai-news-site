@@ -376,3 +376,41 @@ def test_x_only_collection_reaches_the_shared_quality_gate(monkeypatch, tmp_path
     assert sorted(quality["sources"]) == ["X (@lab)", "X (@other)"]
     assert {row["url"] for row in captured["x_articles"]} == {post["url"] for post in posts}
     assert captured["x_authoritative"] is True
+
+
+def test_main_leaves_stale_articles_out_of_the_quality_gate(monkeypatch, tmp_path):
+    import json
+    from datetime import date, timedelta
+
+    today = date.today()
+    stale_day = (today - timedelta(days=3)).isoformat()
+    install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+            dict(headline("A lab expands inference capacity", "https://example.com/old-capacity", "Other"), date=stale_day),
+        ],
+        github=[],
+    )
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: ScriptedProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    captured = {}
+
+    def capture_daily(*_args, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "daily.html"
+
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", capture_daily)
+    auto_collect_main.main()
+    quality = captured["quality"]
+    assert quality["status"] == "passed"
+    assert quality["input_count"] == 3
+    assert quality["article_count"] == 3
+    assert quality["excluded_count"] == 0
+    published = {row["url"] for row in captured["articles"]}
+    assert "https://example.com/old-capacity" not in published
+    logged = json.loads((tmp_path / "logs" / f"daily_quality_{today.isoformat()}.json").read_text(encoding="utf-8"))
+    assert logged["article_count"] == 3

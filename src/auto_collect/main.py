@@ -12,7 +12,7 @@ import logging
 import json
 import subprocess
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import List, Dict
 
@@ -26,7 +26,7 @@ from .llm_provider import make_provider
 from .processor import LLMProcessor
 from .formatter import DayFileFormatter
 from .html_report import generate_html_report
-from .daily_news_page import generate_daily_news
+from .daily_news_page import generate_daily_news, within_publication_window
 from . import dedup as dedup_mod
 from .quality import filter_publishable, failure_reason
 
@@ -229,6 +229,26 @@ def main():
             f"funding {before[1]}->{after[1]}, models {before[2]}->{after[2]}, "
             f"github {before[3]}->{after[3]}"
         )
+
+    # The daily page publishes today and yesterday only. Apply that window
+    # before the gate so article_count, the source minimum, and the 20% ratio
+    # describe the items that can actually ship. Older rows are not quality
+    # exclusions and are not part of input_count.
+    def _in_window(rows, *, x=False):
+        kept_rows = [row for row in rows if within_publication_window(row, today, x=x)]
+        dropped = len(rows) - len(kept_rows)
+        if dropped:
+            logger.info(
+                "[Main] Date window: left out %d items older than %s",
+                dropped, today - timedelta(days=1),
+            )
+        return kept_rows
+
+    processed = _in_window(processed)
+    github_processed = _in_window(github_processed)
+    benchmark_processed = _in_window(benchmark_processed)
+    funding_processed = _in_window(funding_processed)
+    x_processed = _in_window(x_processed, x=True)
 
     # News and X share one gate. input_count, article_count, japanese_count,
     # sources, the minimum of 3 articles and 2 sources, and the 20% exclusion

@@ -167,11 +167,13 @@ def validate_quality(daily):
         return
     require(quality.get('status') == 'passed', 'quality.status must be passed; legacy/missing or degraded quality is not fresh')
     require(bool(quality.get('provider')) and bool(quality.get('model')), 'quality provider/model provenance is missing')
-    # News and X share the quality counts. A kept X post is in article_count,
-    # japanese_count, and sources. Its title may stay in the original language;
-    # the Japanese summary and processing_status are still required. Dropped
-    # posts, including unrelated X posts, are quality.excluded and must not
-    # remain in items.
+    # News and X share the quality counts. article_count, japanese_count, and
+    # sources are the published page after the today/yesterday window and the
+    # quality gate, so they must match items exactly. A kept X post is included.
+    # Its title may stay in the original language; the Japanese summary and
+    # processing_status are still required. Quality exclusions, including
+    # unrelated X posts, are quality.excluded and must not remain in items.
+    # Items older than yesterday are not quality exclusions.
     articles = list(daily['items'])
     require(quality.get('article_count') == len(articles), 'quality.article_count does not match daily news items')
     require(quality.get('japanese_count') == len(articles), 'quality.japanese_count does not match daily news items')
