@@ -782,3 +782,87 @@ def test_published_x_card_shows_the_japanese_summary(monkeypatch, tmp_path):
     html = (tmp_path / 'daily-news' / 'index.html').read_text(encoding='utf-8')
     assert X_SUMMARY in html
     assert 'raw english tweet should not be the card' not in html
+
+
+def _eligible(rows, today, *, x=False):
+    from src.auto_collect.daily_news_page import within_publication_window
+    return [row for row in rows if within_publication_window(row, today, x=x)]
+
+
+def test_quality_counts_match_the_published_page_when_stale_items_are_dropped(monkeypatch, tmp_path):
+    """2026-10-13: article_count 115 (122-7) was computed before the page dropped 22 stale items, leaving 93."""
+    import json
+    from datetime import date
+    from src.auto_collect.daily_news_page import generate_daily_news
+    from src.auto_collect.quality import filter_publishable
+    from scripts.check_daily_publication import validate_quality
+
+    today = date(2026, 10, 13)
+    recent_news = [
+        article(url=f'https://example.com/recent/{i}', source='Official' if i % 2 == 0 else 'Other', title=f'新しい見出し{i}', date='2026-10-13')
+        for i in range(82)
+    ]
+    recent_x = [
+        article(
+            url=f'https://x.com/lab/status/{i}', rss_source='X (@lab)', source='X (@lab)',
+            title=f'Model thread {i}', date='', bookmark_date='2026-10-13', x_curated=True, ai_related=True,
+        )
+        for i in range(11)
+    ]
+    stale = [
+        article(url=f'https://example.com/stale/{i}', source='Official', title=f'古い見出し{i}', date='2026-10-10', published_at='2026-10-10')
+        for i in range(22)
+    ]
+    bad = [
+        article(url=f'https://example.com/bad/{i}', source='Other', title=f'失敗{i}', date='2026-10-13', summary='English fallback', processing_status='fallback')
+        for i in range(7)
+    ]
+    assert len(recent_news) + len(recent_x) + len(stale) + len(bad) == 122
+    eligible = _eligible(recent_news + stale + bad, today) + _eligible(recent_x, today, x=True)
+    kept, quality = filter_publishable(eligible, min_articles=3, min_sources=2)
+    quality.update(provider='ollama', model='gemma3:4b')
+    assert quality['status'] == 'passed'
+    assert quality['input_count'] == 100
+    assert quality['excluded_count'] == 7
+    assert quality['excluded_ratio'] == round(7 / 100, 3)
+    assert quality['article_count'] == 93
+    assert quality['japanese_count'] == 93
+    assert all(not str(row.get('url', '')).startswith('https://example.com/stale/') for row in quality['excluded'])
+    news_kept = [row for row in kept if 'x.com' not in row['url']]
+    x_kept = [row for row in kept if 'x.com' in row['url']]
+    monkeypatch.setattr('src.auto_collect.daily_news_page.DAILY_NEWS_DIR', tmp_path / 'daily-news')
+    monkeypatch.setattr('src.auto_collect.daily_news_page.ARCHIVE_DIR', tmp_path / 'daily-news' / 'archive')
+    generate_daily_news(today, news_kept, x_articles=x_kept, quality=quality)
+    data = json.loads((tmp_path / 'daily-news' / 'data.json').read_text(encoding='utf-8'))
+    assert data['total'] == 93
+    assert data['news_count'] == 82
+    assert data['x_count'] == 11
+    assert data['quality']['article_count'] == len(data['items']) == 93
+    validate_quality(data)
+
+
+def test_stale_items_neither_dilute_nor_inflate_the_exclusion_ratio():
+    from datetime import date
+    from src.auto_collect.quality import filter_publishable
+    today = date(2026, 10, 13)
+    stale = [article(url=f'https://example.com/old/{i}', date='2026-10-10') for i in range(20)]
+    held = _eligible(
+        [article(url=f'https://example.com/good/{i}', source='Official' if i % 2 == 0 else 'Other') for i in range(4)]
+        + [article(url=f'https://example.com/bad/{i}', summary='English fallback', processing_status='fallback', source='Other') for i in range(2)]
+        + stale,
+        today,
+    )
+    _kept, quality = filter_publishable(held, min_articles=3, min_sources=2)
+    assert quality['input_count'] == 6
+    assert quality['status'] == 'failed'
+    assert any('too many excluded articles: 2/6' in err for err in quality['errors'])
+    published, ok = filter_publishable(_eligible(
+        [article(url=f'https://example.com/keep/{i}', source='Official' if i % 2 == 0 else 'Other') for i in range(8)]
+        + [article(url='https://example.com/one-bad', summary='English fallback', processing_status='fallback', source='Other')]
+        + stale,
+        today,
+    ), min_articles=3, min_sources=2)
+    assert ok['status'] == 'passed'
+    assert ok['input_count'] == 9
+    assert ok['excluded_count'] == 1
+    assert ok['article_count'] == len(published) == 8

@@ -246,6 +246,20 @@ def _render_timeline(items: List[Dict]) -> str:
     return "\n".join(cards)
 
 
+def within_publication_window(article: Dict, today: date, *, x: bool = False) -> bool:
+    """Whether generate_daily_news would keep this article for `today`.
+
+    The quality gate must see only this window. Items older than yesterday
+    are left out before the gate: they are not quality exclusions and do not
+    enter the 20% ratio. A row the flattener skips for a missing title stays
+    eligible so the gate can record that failure.
+    """
+    flattened = _flatten_x([article]) if x else _flatten_news([article])
+    if not flattened:
+        return True
+    return _is_recent(flattened[0], today)
+
+
 def _is_recent(item: Dict, today: date) -> bool:
     """Allow items from today or yesterday; block items 2+ days old. No-date items pass through.
 
