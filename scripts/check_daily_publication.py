@@ -248,6 +248,10 @@ def verify(source, expected_date, require_quality=False, expected=None, check_ur
     if require_quality:
         require(normalized_daily.get('excluded_item_count', 0) == 0, 'strict publication has excluded unsafe or invalid daily items')
         validate_quality(daily)
+        excluded_urls = {canonical_url(row.get('url', '')) for row in (daily.get('quality') or {}).get('excluded', [])}
+        require(not any(row.get('date') == expected_date and row.get('type') != 'slide'
+                        and canonical_url(row.get('url', '')) in excluded_urls for row in search),
+                'excluded article remains in search index')
         require(snapshot.get('schema_version') == 1, 'strict daily snapshot schema is missing')
         require(normalize_daily_payload(snapshot) == normalized_daily, 'daily snapshot metadata/content differs from normalized daily publication')
         fields = ('date', 'title', 'url', 'type', 'category', 'source', 'published_at', 'summary', 'capture_schema')

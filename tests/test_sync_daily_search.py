@@ -56,6 +56,28 @@ def test_sync_accepts_an_authoritative_x_filter_over_a_richer_snapshot(tmp_path)
     assert [item["url"] for item in captured["items"] if item["type"] == "x"] == ["https://x.com/a/status/1"]
 
 
+def test_quality_exclusions_remove_managed_search_rows_only(tmp_path):
+    source = tmp_path / "daily-news/data.json"
+    original = daily_payload()
+    removed = dict(original['items'][0], title='uncertain', url='https://example.com/uncertain')
+    original['items'].append(removed)
+    write_json(source, original)
+    sync(tmp_path)
+    index_path = tmp_path / 'public-pages/news/search_index.json'
+    stored = json.loads(index_path.read_text(encoding='utf8'))
+    legacy = dict(stored[-1], date='2026-10-08', url=removed['url'])
+    legacy.pop('capture_schema', None)
+    stored.append(legacy)
+    write_json(index_path, stored)
+    filtered = daily_payload()
+    filtered['quality'] = {'excluded': [{'url': removed['url'], 'errors': ['source context missing']}]}
+    write_json(source, filtered)
+    sync(tmp_path)
+    index = json.loads(index_path.read_text(encoding='utf8'))
+    assert not any(row['date']=='2026-10-09' and row['url']==removed['url'] and row.get('capture_schema')==1 for row in index)
+    assert legacy in index
+
+
 def test_sync_is_byte_idempotent_and_preserves_richer_x(tmp_path):
     source = tmp_path / "daily-news/data.json"
     local = daily_payload()

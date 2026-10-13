@@ -306,13 +306,32 @@ def build_index(root: Path = ROOT, *, daily_payload: dict | None = None) -> list
             raise ValueError(f"Snapshot date does not match filename: {path}")
         editions[payload["date"]] = payload
     current = root / "daily-news/data.json"
+    active_day = None
     if daily_payload is not None or current.exists():
         payload = normalize_daily_payload(daily_payload if daily_payload is not None else load_json(current))
+        active_day = payload["date"]
         prior = editions.get(payload["date"])
         if prior is None or not prefer_existing(prior, payload):
             editions[payload["date"]] = payload
     for day in sorted(editions):
         candidates.extend(_daily_rows(editions[day]))
+    # A quality-held item must not survive in the managed search projection of
+    # the active edition. Historical and unowned legacy records stay intact.
+    active_quality = {}
+    if active_day is not None and current.exists():
+        raw_current = load_json(current)
+        if normalize_daily_payload(raw_current) == editions.get(active_day):
+            active_quality = raw_current.get("quality") or {}
+    excluded = {
+        (active_day, canonical_url(row.get("url", "")))
+        for row in active_quality.get("excluded", [])
+        if isinstance(row, dict) and canonical_url(row.get("url", ""))
+    }
+    result = [row for row in result if not (row.get("capture_schema") == 1
+              and row.get("type") != "slide" and (row["date"], canonical_url(row["url"])) in excluded)]
+    legacy_candidates = [row for row in legacy_candidates
+                         if (row["date"], canonical_url(row["url"])) not in excluded]
+    seen = {(row["date"], canonical_url(row["url"]) or row["url"]) for row in result}
     # Only explicitly managed daily records are eligible for metadata refresh.
     # Do not deduplicate an already-published corpus or replace legacy rows.
     managed = {}

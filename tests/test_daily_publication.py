@@ -71,6 +71,19 @@ def test_strict_verifier_rejects_a_published_article_that_was_marked_excluded(tm
     assert 'excluded' in (result.stderr + result.stdout).lower()
 
 
+def test_strict_verifier_rejects_excluded_candidate_in_search_only(tmp_path):
+    root = fixture_site(tmp_path)
+    excluded_url = 'https://example.com/uncertain'
+    change_json(root, 'daily-news/data.json', lambda d: d['quality'].update(
+        excluded_count=1, excluded=[{'url': excluded_url, 'errors': ['source context missing']}]))
+    refresh_capture(root)
+    change_json(root, 'public-pages/news/search_index.json', lambda rows: rows.append(
+        dict(ITEM, date=DATE, title='uncertain', url=excluded_url, capture_schema=1)))
+    result = run_check(root, '--require-quality')
+    assert result.returncode != 0
+    assert 'excluded article remains in search index' in result.stderr
+
+
 X_ITEM = {
     'title': 'New model thread',
     'url': 'https://x.com/example/status/1',
