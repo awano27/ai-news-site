@@ -34,6 +34,15 @@ def article_source(article: dict) -> str:
     return str(article.get('source_attribution') or article.get('rss_source') or article.get('source') or '').strip()
 
 
+def is_japanese(text):
+    return bool(re.search(r'[\u3040-\u30ff\u3400-\u9fff]', str(text)))
+
+
+def narrative_title(item):
+    source = article_source(item).lower()
+    return not ('github' in source or 'huggingface' in source or 'hugging face' in source)
+
+
 def article_errors(article) -> list[str]:
     """Per-article problems. Empty means the article may be published."""
     if not isinstance(article, dict):
@@ -45,6 +54,8 @@ def article_errors(article) -> list[str]:
         errors.append('missing source')
     if not str(article.get('title') or '').strip():
         errors.append('missing title')
+    elif article.get('type') != 'x' and article.get('x_curated') is not True and narrative_title(article) and not is_japanese(article.get('title')):
+        errors.append('Japanese headline missing')
     if not is_japanese_summary(article.get('summary')):
         errors.append('Japanese summary missing or invalid')
     if article.get('processing_status') not in ('llm', 'source_japanese'):

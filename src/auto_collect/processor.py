@@ -13,7 +13,7 @@ from typing import List, Dict, Optional
 
 from .llm_provider import LLMProvider, make_provider
 from .content_integrity import apply_financial_integrity
-from .quality import is_japanese_summary
+from .quality import is_japanese_summary, is_japanese
 
 logger = logging.getLogger(__name__)
 
@@ -316,8 +316,8 @@ class LLMProcessor:
 
         parsed = self._accepted_summary(text)
         if parsed is None:
-            logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'; retrying once")
-            text = self.provider.chat(prompt)
+            logger.warning(f"[{self.provider.name}] response failed JSON/Japanese validation for '{title[:60]}'; retrying once")
+            text = self.provider.chat(prompt + "\n前の応答は必須条件を満たしていません。title_jaは製品名だけでなく日本語で内容を説明し、summaryも日本語で返してください。JSON以外は返さないでください。")
             if not text:
                 logger.warning(f"[{self.provider.name}] no response for '{title[:60]}'")
                 return self._fallback_process(article, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
@@ -350,7 +350,8 @@ class LLMProcessor:
     def _accepted_summary(self, text: str) -> Optional[Dict]:
         parsed = self._extract_json(text)
         if (isinstance(parsed, dict) and isinstance(parsed.get("title_ja"), str)
-                and parsed["title_ja"].strip() and is_japanese_summary(parsed.get("summary"))):
+                and parsed["title_ja"].strip() and is_japanese(parsed["title_ja"])
+                and is_japanese_summary(parsed.get("summary"))):
             return parsed
         return None
 

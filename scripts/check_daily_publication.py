@@ -23,7 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.build_search_index import canonical_url as external_url, normalize_daily_payload, _daily_rows
-from src.auto_collect.quality import is_japanese_summary
+from src.auto_collect.quality import is_japanese_summary, is_japanese, narrative_title
 
 
 class PublicationError(ValueError):
@@ -148,15 +148,6 @@ def rows_by_url(items):
         require(bool(url), 'item URL is missing')
         rows[url] = item
     return rows
-
-
-def is_japanese(text):
-    return bool(re.search(r'[\u3040-\u30ff\u3400-\u9fff]', str(text)))
-
-
-def narrative_title(item):
-    source = str(item.get('source', '')).lower()
-    return not ('github' in source or 'huggingface' in source or 'hugging face' in source)
 
 
 def validate_quality(daily):
