@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light">
+<title>ソースコードがなくても、ソフトの仕組みをAIで調べる「REA」 | 2026-10-12</title><meta name="description" content="REAは、ソースコードが残っていないソフトの調査をAIで進めるための支援ツール。何に使えるのか、公開事例で何が確かめられたのか、導入前に何を確認するのかを解説します。">
+<link rel="icon" href="data:,"><link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_12.html">
+<meta property="og:title" content="ソースコードがなくても、ソフトの仕組みをAIで調べる「REA」"><meta property="og:description" content="REAは、ソースコードが残っていないソフトの調査をAIで進めるための支援ツール。何に使えるのか、公開事例で何が確かめられたのか、導入前に何を確認するのかを解説します。"><meta property="og:type" content="article"><meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_12.html">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="ソースコードがなくても、ソフトの仕組みをAIで調べる「REA」"><meta name="twitter:description" content="REAは、ソースコードが残っていないソフトの調査をAIで進めるための支援ツール。何に使えるのか、公開事例で何が確かめられたのか、導入前に何を確認するのかを解説します。">
+<style>
+:root{--bg:#fbfaf8;--paper:#fff;--ink:#213441;--muted:#526573;--line:#d4dbdc;--accent:#235e76;--tint:#eaf3f5;--warm:#fcf3df;--radius:10px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font-family:"Hiragino Sans","Yu Gothic",Meiryo,"Noto Sans CJK JP",system-ui,sans-serif;font-size:16px;line-height:1.85}a{color:var(--accent);text-underline-offset:3px}a:hover{text-decoration-thickness:2px}a:focus-visible,button:focus-visible,summary:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #ac6600;outline-offset:4px}button{font:inherit;min-height:44px;padding:10px 16px;border:1px solid var(--accent);border-radius:7px;background:var(--paper);color:var(--accent);cursor:pointer}button:hover{background:var(--tint)}.skip-link{position:absolute;top:-90px;left:12px;z-index:90;padding:10px 15px;background:var(--ink);color:#fff}.skip-link:focus{top:8px}.wrap{width:min(1180px,100% - 48px);margin-inline:auto}.hero{border-bottom:1px solid var(--line);background:#f7faf9}.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:20px 0;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.05em}.brand{font-weight:800;letter-spacing:.15em;text-decoration:none;color:var(--ink)}.brand span{color:var(--accent)}.hero-body{padding:46px 0 28px}.eyebrow,.slide-kicker{font-size:12px;line-height:1.5;font-weight:700;letter-spacing:.12em;color:var(--accent);margin:0 0 15px}h1{font-size:clamp(35px,4.35vw,60px);line-height:1.34;letter-spacing:-.045em;text-wrap:balance;margin:0 0 22px;font-weight:750;max-width:1150px}.title-chunk{display:inline-block}h1 em{font-style:normal;color:var(--accent)}.hero-subline{max-width:1080px;color:var(--accent);font-size:19px;font-weight:650;line-height:1.8;margin:0 0 16px}.lead{max-width:1060px;font-size:17px;line-height:1.95;margin:0;color:var(--muted)}.lead+.lead{margin-top:10px}.hero-study{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-block:1px solid var(--line);margin-top:25px}.hero-study>div{padding:18px 22px;border-right:1px solid var(--line);min-width:0}.hero-study>div:first-child{padding-left:0}.hero-study>div:last-child{border-right:0}.hero-study b{display:block;font-size:15px;color:var(--accent);margin-bottom:5px}.hero-study span{display:block;font-size:14px;line-height:1.75}.hero-condition{font-size:13px;margin:14px 0 0;max-width:1090px}.meta{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:18px}.meta span{font-size:11px;color:var(--muted)}.jump{display:flex;gap:7px;overflow-x:auto;position:sticky;top:0;z-index:10;background:#fbfaf8f7;border-bottom:1px solid var(--line);padding:12px 0;margin:0 0 22px;scrollbar-width:thin}.jump a{flex:0 0 auto;padding:7px 12px;border:1px solid var(--line);border-radius:4px;font-size:12px;text-decoration:none;color:var(--muted);white-space:nowrap;min-height:40px;display:flex;align-items:center}.jump a:hover{background:var(--tint);color:var(--accent)}section{scroll-margin-top:86px;min-width:0}h2{font-size:clamp(24px,3vw,35px);line-height:1.5;letter-spacing:-.02em;margin:0 0 15px;text-wrap:balance}h3{font-size:19px;line-height:1.65;margin:0 0 12px}p{margin:0 0 14px;color:var(--muted)}strong{color:var(--ink)}.brief{margin-bottom:45px}.brief-head{display:flex;align-items:start;justify-content:space-between;gap:15px}.brief-head h2{font-size:22px;line-height:1.5;margin:0}.brief-label{font-size:10px;letter-spacing:.14em;color:var(--accent);font-weight:800;margin-bottom:4px}.brief figure{margin:14px 0}.brief button{padding:0;border:1px solid #c0d0d4;border-radius:0;width:100%;display:block;overflow:hidden;cursor:zoom-in;line-height:0;background:#fff}.brief svg{width:100%;height:auto;display:block;aspect-ratio:1440/850}.hint,figcaption,.small{font-size:13px;line-height:1.85;color:var(--muted)}figcaption{margin-top:9px}.transcript{border-bottom:1px solid var(--line);padding-bottom:14px}.transcript summary{cursor:pointer;font-size:14px;color:var(--accent);padding:8px 0;min-height:44px}.transcript p{margin:12px 0 0;font-size:14px}.tag{display:inline-flex;align-items:center;line-height:1.4;padding:5px 9px;font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:4px;vertical-align:middle;background:#fff}.tag.spec{color:#075975;background:#eff7fb;border-color:#b7d3df}.tag.vendor{background:#edf2f8;color:#31527c;border-color:#b8c9db}.tag.proposal{color:#155c67;background:#eaf4f5;border-color:#abcbd0}.tag.untested{color:#794d00;background:var(--warm);border-color:#dbc994}.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.section{padding-top:38px;margin-bottom:50px;border-top:1px solid var(--line)}.section-head{display:grid;grid-template-columns:56px minmax(0,1fr);gap:18px;margin-bottom:22px}.section-no{font:500 34px/1.35 ui-monospace,monospace;color:#7894aa}.section-head .slide-kicker{margin-bottom:6px}.section-head h2{margin:0}.section-content{margin-left:74px}.section-content>p{max-width:1040px}.grid-2,.grid-3{display:grid;gap:16px;margin:22px 0}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.card{padding:23px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);min-width:0}.card.accent{border-top:3px solid var(--accent)}.card p:last-child{margin-bottom:0}.card .small{font-size:14px}.card .note-label{font-size:12px;margin-bottom:10px;color:var(--accent);font-weight:700}.callout{padding:18px 22px;background:var(--tint);border-left:3px solid var(--accent);border-radius:0 7px 7px 0;margin:22px 0}.callout.warm{background:var(--warm);border-left-color:#b8801b}.callout p:last-child{margin:0}.callout p{font-size:15px}.source-line{font-size:12px;margin:14px 0 0}.cost-total{font-size:clamp(26px,3vw,39px);line-height:1.35;font-weight:750;margin:12px 0;color:var(--accent)}.cost-total small{font-size:16px;margin-left:4px}.technical{padding:14px 0;border-block:1px solid var(--line);margin:20px 0 0}.technical summary{cursor:pointer;min-height:44px;font-size:14px;line-height:1.8;font-weight:650;color:var(--accent);padding:8px 0}.technical p{font-size:14px;margin:10px 0 0}.technical ol,.technical ul{font-size:14px}.evaluation{padding-left:1.35em;margin:18px 0;color:var(--muted)}.evaluation li{margin:0 0 18px;padding-left:3px}.evaluation li strong{display:block;margin-bottom:4px}.evaluation li::marker{color:var(--accent);font-weight:700}.prompt{margin-top:24px}.prompt-heading{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}.prompt-heading label{font-weight:700;font-size:15px}textarea{width:100%;min-height:380px;resize:vertical;padding:18px;font:14px/1.9 "Hiragino Sans","Yu Gothic",Meiryo,"Noto Sans CJK JP",sans-serif;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px}#copy-status{min-height:26px;font-size:12px;margin:8px 0}.copy-note{font-size:12px}.limits h3{margin-top:25px}.limits h3:first-child{margin-top:0}.sources-list{list-style:none;padding:0;margin:16px 0}.sources-list li{margin:0;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;overflow-wrap:anywhere}.sources-list small{display:block;font-size:12px;color:var(--muted);margin-top:4px}.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.actions a,.actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 16px;border:1px solid var(--line);border-radius:24px;font-size:13px;background:white;color:var(--ink);text-decoration:none}.bottom-nav{padding:24px 0;border-top:1px solid var(--line);margin-top:24px}.footer{padding:14px 0 40px;font-size:11px;color:var(--muted)}.footer-line{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}dialog.zoom{width:min(96vw,1740px);max-width:96vw;max-height:95dvh;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);overscroll-behavior:contain}dialog.zoom::backdrop{background:#071a2de0}.dialog-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}.dialog-tools>div{display:flex;gap:6px;flex-wrap:wrap}.image-scroll{max-height:76dvh;overflow:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:6px}.dialog-art{line-height:0}.dialog-art svg{display:block;width:100%;height:auto}.zoom.enlarged .dialog-art svg{width:1440px;min-width:1440px;max-width:none}.zoom .hint{margin:8px 0 0}body.modal-open{overflow:hidden}
+@media(max-width:880px){.wrap{width:calc(100% - 32px)}.hero-body{padding:34px 0}.section-content{margin-left:0}.grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:20px}.section{margin-bottom:38px}.hero-study>div{padding:16px}.hero-subline{font-size:18px}}
+@media(max-width:640px){.wrap{width:calc(100% - 24px)}.topbar{font-size:10px;gap:8px}.hero-body{padding:29px 0 22px}h1{font-size:clamp(33px,8vw,44px);letter-spacing:-.045em;line-height:1.4}.eyebrow{font-size:11px}.hero-subline{font-size:16px;line-height:1.8}.lead{font-size:15px}.hero-study{grid-template-columns:1fr}.hero-study>div,.hero-study>div:first-child,.hero-study>div:last-child{padding:12px 0;border-right:0;border-bottom:1px solid var(--line)}.hero-study>div:last-child{border-bottom:0}.hero-study b{font-size:13px;margin-bottom:2px}.hero-study span{font-size:14px}.hero-condition{font-size:12px}.meta span{font-size:10px}.jump{margin-bottom:26px}.brief{margin-bottom:35px}.brief-head{display:block}.brief-head h2{font-size:20px}.brief-head .tag{margin-top:10px}.section-head{grid-template-columns:38px minmax(0,1fr);gap:10px}.section-no{font-size:26px}.section-head h2{font-size:24px}.grid-2,.grid-3{grid-template-columns:minmax(0,1fr)}.card{padding:20px}.card h3{font-size:18px}.prompt-heading{align-items:start;flex-direction:column}textarea{min-height:620px;font-size:13px;padding:14px}.dialog-tools{align-items:start;flex-direction:column}.dialog-tools button{font-size:12px;padding:8px 10px}.callout{padding:16px 18px}.cost-total{font-size:31px}.tag{white-space:normal}.evaluation li{font-size:15px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{.jump,.actions,.skip-link,dialog,#copy-prompt,#copy-status,.screen-only{display:none!important}body,.hero{background:#fff}.wrap{width:100%}.hero-body{padding:20px 0}h1{font-size:32px}.section-content{margin-left:0}.card{break-inside:avoid}.section-head{break-after:avoid}.brief button{border:0}.technical{display:block}.technical>*{display:block!important}.grid-2,.grid-3{display:block}.card{margin-bottom:12px}textarea{min-height:430px}.sources-list{font-size:12px}}
+</style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "ソースコードがなくても、ソフトの仕組みをAIで調べる「REA」", "datePublished": "2026-10-12T07:00:00+09:00", "dateModified": "2026-10-15", "description": "REAは、ソースコードが残っていないソフトの調査をAIで進めるための支援ツール。何に使えるのか、公開事例で何が確かめられたのか、導入前に何を確認するのかを解説します。", "author": {"@type": "Person", "name": "awano27", "url": "https://visionhub.jp/about.html"}, "publisher": {"@type": "Organization", "name": "AI Intelligence Hub"}, "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_12.html", "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_12.html", "inLanguage": "ja", "isAccessibleForFree": true, "articleSection": "AI News"}</script></head><body>
+<a class="skip-link" href="#main">本文へスキップ</a>
+<header class="hero"><div class="wrap">
+<div class="topbar"><a class="brand" href="https://visionhub.jp/">VISION<span>HUB</span></a><span>DAILY AI BRIEF　2026.10.12</span></div>
+<div class="hero-body">
+<p class="eyebrow">REA｜ソフトの仕組みを調べるためのAI支援ツール</p>
+<h1><span class="title-chunk">ソースコードが</span><span class="title-chunk">なくても、</span><br><span class="title-chunk">ソフトの仕組みを</span><span class="title-chunk">AIで調べる<em>「REA」</em></span></h1>
+<p class="hero-subline">中身が分からなくなった古いソフトの調査を支援。丸ごと自動で復元するツールではありません。</p>
+<p class="lead">古いソフトは動いているのに、作成時のソースコードや設計書が残っていない。<strong>そんなソフトの処理を、手元のファイルから調べるために使うのがREAです。</strong> AIが解析ツールを使い、処理の仕組みを読み解いたり、同じ処理を作り直してテストしたりするのを助けます。<a href="#source-1" aria-label="出典1">[1]</a><a href="#source-2" aria-label="出典2">[2]</a></p>
+<div class="hero-study" aria-label="この記事の要点">
+<div><b>何をする？</b><span>ソフト内の計算や<br>データの受け渡しを調べる。</span></div>
+<div><b>何に使う？</b><span>改修・移行の前に、<br>今の処理を理解するための調査。</span></div>
+<div><b>何に注意する？</b><span>一部が分かっても、<br>ソフト全体を復元できるとは限らない。</span></div>
+</div>
+<p class="hero-condition">用途は使い方の提案です。公開事例で実際に確認された範囲は、本文で分けて説明します。</p>
+<div class="meta"><span>対象：古いソフトの保守・改修・移行を担当する方</span><span>出典再確認・文章改訂：2026-10-15</span><span>当サイトによるREAの実機検証は未実施</span></div>
+</div></div></header>
+<main class="wrap" id="main">
+<nav class="jump" aria-label="目次"><a href="#brief">1枚でつかむ</a><a href="#s1">何に役立つ？</a><a href="#s2">どう使う？</a><a href="#s3">実際の事例</a><a href="#s4">社内で試すには？</a><a href="#s5">注意すること</a><a href="#s6">出典</a></nav>
+<section class="brief" id="brief" aria-labelledby="brief-heading">
+<div class="brief-head"><div><p class="brief-label">ONE-PAGE BRIEF</p><h2 id="brief-heading">調べる → 作り直す → 元と同じか確かめる</h2></div><span class="tag proposal">使い方の整理と、作者の公開事例</span></div>
+<figure><button id="open-board" type="button" aria-label="説明図を拡大する" aria-haspopup="dialog" aria-controls="board-dialog"><svg xmlns="http://www.w3.org/2000/svg" id="brief-art" role="img" aria-labelledby="brief-title brief-desc" width="1440" height="850" viewBox="0 0 1440 850">
+<rect width="1491" height="1055" fill="#fbfaf8"/>
+<title id="brief-title">REAでソフトを調べ、同じ処理を作って確かめる流れ</title>
+<desc id="brief-desc">調べたい処理を決める、手がかりを集める、仕組みを説明する、同じ処理を作り直す、元の結果と比べる、使えるか人が確認する。DX-Ballは一つの計算の再現、Notionはコピー処理の調査の事例。ソフト全体の自動復元ではない。</desc>
+<g font-family="Yu Gothic,Meiryo,Noto Sans CJK JP,sans-serif">
+<text x="61.8" y="58.0" fill="#235e76" font-size="22" letter-spacing="4">REA / ONE-PAGE BRIEF / 2026.10.12</text>
+<text x="61.8" y="115.2" fill="#213441" font-size="42" font-weight="700">ソフトの中身を調べ、作り直した処理を確かめる。</text>
+<text x="61.8" y="155.5" fill="#526573" font-size="23">ソースコードや設計書が残っていないソフトの調査に</text>
+<path d="M61.8 186.1H1378.2" stroke="#d4dbdc"/>
+<text x="61.8" y="224.0" fill="#213441" font-size="25">REAで手がかりを集める → AIが読み解く・作り直す → 人が結果を確認する</text>
+<rect x="61.8" y="256.2" width="418.2" height="116.8" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="83.1" y="288.4" fill="#235e76" font-size="25" font-weight="700">01 調べる処理を決める</text>
+<text x="83.1" y="322.3" fill="#213441" font-size="23">金額の計算など、一つに絞る</text>
+<text x="83.1" y="349.7" fill="#526573" font-size="20">対象のソフトのファイルを用意</text>
+<rect x="505.1" y="256.2" width="418.2" height="116.8" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="526.4" y="288.4" fill="#235e76" font-size="25" font-weight="700">02 手がかりを集める</text>
+<text x="526.4" y="322.3" fill="#213441" font-size="23">計算に使う値や命令を探す</text>
+<text x="526.4" y="349.7" fill="#526573" font-size="20">どこを調べたかも記録する</text>
+<rect x="948.4" y="256.2" width="418.2" height="116.8" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="969.7" y="288.4" fill="#235e76" font-size="25" font-weight="700">03 仕組みを説明する</text>
+<text x="969.7" y="322.3" fill="#213441" font-size="23">どんな処理かAIが読み解く</text>
+<text x="969.7" y="349.7" fill="#526573" font-size="20">分かったことと推測を分ける</text>
+<rect x="61.8" y="392.4" width="418.2" height="116.8" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="83.1" y="424.6" fill="#235e76" font-size="25" font-weight="700">04 同じ処理を作り直す</text>
+<text x="83.1" y="458.4" fill="#213441" font-size="23">AIが新しいコードを書く</text>
+<text x="83.1" y="485.8" fill="#526573" font-size="20">最初からソフト全体は作らない</text>
+<rect x="505.1" y="392.4" width="418.2" height="116.8" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="526.4" y="424.6" fill="#235e76" font-size="25" font-weight="700">05 元の結果と比べる</text>
+<text x="526.4" y="458.4" fill="#213441" font-size="23">同じ入力で、同じ結果か確認</text>
+<text x="526.4" y="485.8" fill="#526573" font-size="20">端の値や不正な入力も試す</text>
+<rect x="948.4" y="392.4" width="418.2" height="116.8" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="969.7" y="424.6" fill="#235e76" font-size="25" font-weight="700">06 使えるか人が確認</text>
+<text x="969.7" y="458.4" fill="#213441" font-size="23">必要な動作を満たすか判断</text>
+<text x="969.7" y="485.8" fill="#526573" font-size="20">調べていない範囲も明記する</text>
+<text x="61.8" y="564.8" fill="#235e76" font-size="22">公開事例で分かったこと（作者による報告）</text>
+<rect x="61.8" y="585.7" width="640.3" height="114.4" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="83.1" y="618.0" fill="#213441" font-size="25">DX-Ball：音の左右を決める計算</text>
+<text x="83.1" y="651.0" fill="#235e76" font-size="26">3,205通りの入力で、元と同じ結果</text>
+<text x="83.1" y="681.6" fill="#526573" font-size="20">一つの計算の検証。ゲーム全体の再現ではない</text>
+<rect x="727.2" y="585.7" width="650.9" height="114.4" rx="8" fill="#eaf3f5" stroke="#d4dbdc"/>
+<text x="748.5" y="618.0" fill="#213441" font-size="25">Notion：コピーした内容の渡し方</text>
+<text x="748.5" y="651.0" fill="#235e76" font-size="26">文字や書式が渡される経路を調査</text>
+<text x="748.5" y="681.6" fill="#526573" font-size="20">保存したコードの調査。実画面の操作記録ではない</text>
+<path d="M61.8 728.3H1378.2" stroke="#d4dbdc"/>
+<text x="61.8" y="767.0" fill="#213441" font-size="25">まずは、小さな処理を一つ選んで試す。ソフト全体の自動復元ではない。</text>
+<text x="61.8" y="801.7" fill="#526573" font-size="21">社内で試す前に、解析の許可と、AIへのデータ送信範囲を確認する。</text>
+</g></svg></button>
+<figcaption>調査の流れをまとめた説明図です。画像を押すと拡大できます。REAの役割と事例の出典：<a href="#source-1">[1]</a><a href="#source-3">[3]</a><a href="#source-4">[4]</a></figcaption></figure>
+<details class="transcript"><summary>図の内容を文章で読む</summary><p>まず調べたい処理を一つ決めます。AIがREAを通じてファイル内の命令や値を調べ、どんな処理かを説明します。その結果をもとに同じ処理を作り直し、元のソフトと同じ入力を与えて、同じ結果になるかを確かめます。最後に、業務で使えるかを人が判断します。</p><p>DX-Ballでは一つの計算について3,205通りの入力で結果の一致が報告されています。Notionでは、コピーした内容がPCのクリップボードへ渡される経路が調べられています。どちらも、ソフト全体を自動で復元できるという証明ではありません。<a href="#source-3">[3]</a><a href="#source-4">[4]</a></p></details>
+<div class="legend"><span class="tag spec">公式が説明する機能</span><span class="tag vendor">作者が報告した検証結果</span><span class="tag proposal">社内での使い方の提案</span></div>
+</section>
+<section class="section" id="s1" aria-labelledby="s1-heading">
+<div class="section-head"><div class="section-no">01</div><div><p class="slide-kicker">何に役立つ？</p><h2 id="s1-heading">「動いているが、中身が分からない」ソフトを調べる</h2></div></div>
+<div class="section-content">
+<p>たとえば、古い社内ソフトを新しいシステムに移す場面を考えてください。設計書がなく、計算方法を知っている担当者もいない。それでも、今と同じ結果を出す必要があります。</p>
+<div class="callout"><p><strong>使い方の例：金額の端数処理を調べる。</strong><br>「小数点以下を切り捨てているのか、四捨五入しているのか」を、ファイル内の処理と実際の出力から確かめる。分かったことを、新しいシステムの仕様やテスト項目にする、という使い方が考えられます。</p></div>
+<div class="grid-2">
+<article class="card accent"><h3>移行を任されたPM</h3><p>新しいシステムでも変えてはいけない計算や出力を整理するための調査に使う。分かった仕様と未確認の部分を分け、移行範囲や確認項目を決める材料にします。</p></article>
+<article class="card accent"><h3>保守・開発担当者</h3><p>「なぜこの値になるのか」「どこでデータを書き換えているのか」を調べる。処理を作り直す場合は、元の動作と比較するためのテストも用意します。</p></article>
+</div>
+<p class="small">この業務例は、使い方を説明するための提案です。REAによる導入実績や、作業時間の削減を示すものではありません。</p>
+</div></section>
+<section class="section" id="s2" aria-labelledby="s2-heading">
+<div class="section-head"><div class="section-no">02</div><div><p class="slide-kicker">どう使う？</p><h2 id="s2-heading">REAが調査を助け、AIが処理を読み解く</h2></div></div>
+<div class="section-content">
+<p><strong>REAはAIそのものではありません。</strong> ソフトを解析する道具を、AIから使えるようにするツールです。REAが調査結果を返し、AIエージェントがそれを読んで、追加の調査・説明・コードの作成・テストを進めます。<a href="#source-1">[1]</a><a href="#source-2">[2]</a></p>
+<p>調査から動作確認までの流れを、次の6つに分けると分かりやすくなります。</p>
+<div class="grid-3">
+<article class="card"><h3>01 調べる処理を決める</h3><p class="small">「金額の計算」「ファイルへの出力」など、知りたいことを一つに絞り、対象ファイルを用意します。</p></article>
+<article class="card"><h3>02 手がかりを集める</h3><p class="small">REAを使って、処理に使われる命令や値を探します。後から確認できるよう、調べた場所も残します。</p></article>
+<article class="card"><h3>03 仕組みを説明する</h3><p class="small">AIが調査結果を読み解き、どんな処理かを説明します。確認できたことと、まだ推測のことを分けます。</p></article>
+<article class="card"><h3>04 同じ処理を作り直す</h3><p class="small">必要に応じて、AIが同じ処理をするコードを書きます。最初からソフト全体を作ろうとはしません。</p></article>
+<article class="card"><h3>05 元の結果と比べる</h3><p class="small">元の処理と新しい処理に同じ入力を与えます。通常の値だけでなく、上限・下限や不正な入力も比べます。</p></article>
+<article class="card"><h3>06 使えるか人が確認</h3><p class="small">必要な動作が保たれているかを確認します。結果が違う場合や未確認の部分は、そのまま採用しません。</p></article>
+</div>
+<p class="small">6つの手順は編集部による整理です。REAが単独で、すべてを自動実行するという意味ではありません。</p>
+<details class="technical"><summary>技術者向け：接続方式と解析ツール</summary>
+<p>REAは、AIと外部ツールをつなぐMCPに対応しています。ターミナルからCLIとして使うこともできます。ネイティブの実行ファイルの詳しい解析では、Ghidra・Hopper・IDAなどの既存ツールを利用します。JavaScriptや.NETのファイルを実行せずに調べる機能もあります。対応するOSやファイル形式は、解析方法によって異なります。<a href="#source-1">[1]</a><a href="#source-2">[2]</a></p>
+</details>
+</div></section>
+<section class="section" id="s3" aria-labelledby="s3-heading">
+<div class="section-head"><div class="section-no">03</div><div><p class="slide-kicker">実際の事例</p><h2 id="s3-heading">公開事例では、何が分かったのか？</h2></div></div>
+<div class="section-content">
+<p>公式サイトには、計算を再現した事例と、データが渡される経路を調べた事例が掲載されています。いずれも作者による報告で、当サイトが再検証した結果ではありません。</p>
+<div class="grid-2">
+<article class="card accent">
+<p class="note-label">事例1｜一つの計算を作り直して比較</p>
+<h3>DX-Ball：音を左右のどちらから鳴らすかを決める計算</h3>
+<p>古いゲーム「DX-Ball」で、画面上の位置から音の左右の出方を決める処理を調査。解析結果をもとに、C言語で同じ計算を書き直す流れが示されています。<a href="#source-3">[3]</a></p>
+<div class="cost-total">3,205<small>通りの入力</small></div>
+<p>作者は、この範囲で<strong>元の処理と新しい処理の計算結果が一致した</strong>と報告しています。ゲーム全体の動作を確認した数字ではありません。<a href="#source-3">[3]</a></p>
+<details class="technical"><summary>数字の意味を詳しく見る</summary>
+<p>画面の横位置0〜640の641通りを、5つの倍率で試した合計が3,205通りです。比較したのは一つの計算処理の戻り値です。</p>
+<p>さらに、指定のVC4.0コンパイラを使い、参照先の値とアドレス調整を確認した条件で、コンパイル後の63バイトも元の関数と一致したと報告されています。「元のソースコードそのものが取り戻せた」という意味ではありません。<a href="#source-3">[3]</a></p>
+</details>
+</article>
+<article class="card accent">
+<p class="note-label">事例2｜コピー処理の流れを調査</p>
+<h3>Notion：コピーした文字や書式は、どこへ渡されるのか？</h3>
+<p>コピーした内容が、ソフト内のどの処理を通ってPCのクリップボードに渡るのかを調査。コピーの入口から、実際に書き込む処理までをコードからたどっています。<a href="#source-4">[4]</a></p>
+<p><strong>こちらは、情報の受け渡しを調べた事例です。</strong> Notion全体を作り直した事例ではありません。</p>
+<details class="technical"><summary>何を使って調べたのか？</summary>
+<p>対象はNotion Desktop 7.6.1の配布ファイルと、保存されたWeb側のコードです。掲載されたREAの調査結果は4.1.0によるものです。</p>
+<p>文字や書式の受け渡しに加え、Notionのブロック情報やMarkdownについて、一部のコードを取り出したテストも紹介されています。実際のデスクトップ画面の操作を記録したものではありません。<a href="#source-4">[4]</a></p>
+</details>
+</article>
+</div>
+<div class="callout"><p><strong>この事例から言えること：</strong>ソフトの一部を調べ、処理を再現したり、データの流れを説明したりした例はあります。ただし、この2例だけで「どんなソフトでも同じように解析できる」とは言えません。</p></div>
+</div></section>
+<section class="section" id="s4" aria-labelledby="s4-heading">
+<div class="section-head"><div class="section-no">04</div><div><p class="slide-kicker">社内で試すには？</p><h2 id="s4-heading">まずは、小さな処理を一つ選んで試す</h2></div></div>
+<div class="section-content">
+<p class="small"><span class="tag proposal">使い方の提案</span> 以下は社内評価の進め方です。今回、REAの導入や試験は実施していません。</p>
+<ol class="evaluation">
+<li><strong>調べてよいファイルを用意する。</strong>解析の許可と契約条件を確認します。対象のバージョンを記録し、本番に影響を与えない検証環境を用意します。</li>
+<li><strong>知りたい処理を一つ決める。</strong>たとえば「金額の端数処理」や「出力ファイルの作り方」です。何を入力すると何が出るか、元のソフトの動作を記録します。</li>
+<li><strong>AIに、理由が分かる形で説明させる。</strong>「どの命令や値を見て、そう考えたのか」も示してもらいます。確認できたこと、推測、分からないことを分けます。</li>
+<li><strong>作り直した処理を、元の処理と比べる。</strong>同じ入力で、同じ計算結果・エラー・ファイル出力になるかを確認します。通常の値だけでなく、上限・下限や不正な入力も試します。</li>
+<li><strong>使えるかを人が判断する。</strong>必要なテストに通り、結果の違いを説明できることを確認します。未確認の部分が残る場合は、追加調査するか、採用を見送ります。</li>
+</ol>
+<p><strong>「AIの説明がもっともらしい」ことより、「元の処理と比べて確かめた」ことが重要です。</strong></p>
+<div class="prompt"><div class="prompt-heading"><label for="audit-prompt">REAが使えるAIエージェントへの依頼文</label><button id="copy-prompt" type="button">依頼文をコピー</button></div>
+<textarea id="audit-prompt" spellcheck="false">調べる対象：[ファイル名・バージョン]
+知りたい処理：[例：金額の端数をどう処理しているか]
+
+このファイルを調べる許可があることと、AIへのデータ送信範囲を確認したうえで、REAを使って上記の処理を調べてください。
+
+・どんな処理かを、まず短い文章で説明してください。
+・どの命令、値、コードの場所を見て分かったのかも示してください。
+・確認できたこと、推測、まだ分からないことを分けてください。
+・同じ処理を作り直す場合に必要なテスト案を出してください。
+・元の処理と新しい処理に同じ入力を与え、計算結果、エラー、出力ファイルなどを比べる計画にしてください。
+・通常の値に加え、上限・下限や不正な入力も対象にしてください。
+
+まずは調査結果とテスト案までを提示してください。本番環境の変更や、許可のないファイルの実行はしないでください。</textarea>
+<p id="copy-status" role="status" aria-live="polite"></p>
+<p class="copy-note">このボタンは依頼文をコピーするだけです。このHTMLからAIへ自動送信する機能はありません。</p></div>
+</div></section>
+<section class="section" id="s5" aria-labelledby="s5-heading">
+<div class="section-head"><div class="section-no">05</div><div><p class="slide-kicker">注意すること</p><h2 id="s5-heading">一部を調べられても、ソフト全体が分かるとは限らない</h2></div></div>
+<div class="section-content limits">
+<div class="callout warm"><p><strong>REAは、ソフトを丸ごと自動復元するツールではありません。</strong><br>手元のファイルに含まれないサーバー側の処理や、テストしていない入力への反応まで、今回の事例で確かめられたわけではありません。</p></div>
+<h3>解析できる範囲は、ソフトや環境によって違う。</h3>
+<p>対応するファイル形式やOS、必要な解析ツールは対象によって異なります。導入前に、自分が調べたいファイルが対応しているかを確認します。<a href="#source-1">[1]</a></p>
+<h3>自社のファイルでも、権限と契約を確認する。</h3>
+<p>REA自体はMITライセンスですが、他のソフトを解析したり、作り直したりする許可まで得られるわけではありません。解析対象と、利用する解析ツールの権限・契約条件を確認します。<a href="#source-1">[1]</a></p>
+<h3>手元で解析しても、結果がAIへ送られることがある。</h3>
+<p>REAの解析はローカルで行われます。ただし、解析結果はAIエージェントに渡り、その扱いは利用するAIサービスのデータ方針にも依存します。社内コードや機密データを扱う前に、何が外部へ送られるかを確認します。<a href="#source-1">[1]</a><a href="#source-2">[2]</a></p>
+<details class="technical"><summary>この号で取り上げるバージョンについて</summary>
+<p>元記事が取り上げたREA 6.4.0は、2026年10月11日に公開された既存プロジェクトの更新です。10月12日に新しく登場したツールという意味ではありません。公開事例は、6.4.0の性能を測定した結果ではありません。<a href="#source-5">[5]</a></p>
+<p>この記事は10月12日号の文章を読みやすく改訂したものです。最新バージョンの紹介ではないため、導入時には公式の案内を確認してください。</p>
+</details>
+</div></section>
+<section class="section" id="s6" aria-labelledby="s6-heading">
+<div class="section-head"><div class="section-no">06</div><div><p class="slide-kicker">出典</p><h2 id="s6-heading">説明のもとにした公式資料</h2></div></div>
+<div class="section-content">
+<p class="small">2026年10月15日に出典を再確認し、文章を改訂しました。数字は作者が報告した値です。当サイトでは解析結果の再検証や、業務での効果測定は行っていません。</p>
+<ul class="sources-list">
+<li id="source-1"><a href="https://github.com/morluto/rea">[1] REA公式GitHub：機能・使い方・ライセンス</a><small>REAとAIの役割、解析対象、外部ツール、データの扱い、利用条件を確認。</small></li>
+<li id="source-2"><a href="https://rea.tools/faq/">[2] REA公式FAQ：仕組みと導入時の確認事項</a><small>REAが返す結果とAIの役割、ローカル解析とモデル提供者のデータ方針を確認。公式READMEにも同内容の説明があります。</small></li>
+<li id="source-3"><a href="https://rea.tools/showcase/dx-ball/">[3] DX-Ballの事例：音の左右を決める計算</a><small>一つの計算について、3,205通りの入力とコンパイル後の63バイトを比較した作者報告。</small></li>
+<li id="source-4"><a href="https://rea.tools/showcase/notion/">[4] Notionの事例：コピー処理の流れ</a><small>配布ファイルの調査と、取り出した一部のコードのテスト。実際の画面操作を記録したものではありません。</small></li>
+<li id="source-5"><a href="https://github.com/morluto/rea/releases/tag/rea-agents-6.4.0">[5] REA 6.4.0のリリースノート</a><small>2026年10月11日の公開を確認。この記事の事例を、このバージョンの性能測定とは扱いません。</small></li>
+</ul>
+</div></section>
+<nav class="bottom-nav actions" aria-label="記事の操作"><button id="save-html" type="button">このHTMLを保存</button><a href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_11.html">← 10月11日号</a><a href="https://visionhub.jp/presentations/day_slides_index.html">スライド一覧</a><a href="#main">先頭へ ↑</a></nav>
+<footer class="footer"><div class="footer-line"><span>VISIONHUB / DAILY AI BRIEF / 2026.10.12</span><span>文章改訂：2026.10.15｜図・スタイル・操作を内蔵した単一HTML</span></div></footer>
+</main>
+<dialog class="zoom" id="board-dialog" aria-labelledby="dialog-title"><div class="dialog-tools"><strong id="dialog-title">ONE-PAGE BRIEF</strong><div><button id="board-size" type="button" aria-pressed="false">原寸で見る</button><button id="close-board" type="button" autofocus>閉じる ×</button></div></div><div class="image-scroll"><div id="dialog-art" class="dialog-art"></div></div><p class="hint">原寸表示では図の中を縦横にスクロールできます。Escキーでも閉じられます。</p></dialog>
+<script>(() => {
+'use strict';
+const dialog=document.getElementById('board-dialog');
+const opener=document.getElementById('open-board');
+const size=document.getElementById('board-size');
+const holder=document.getElementById('dialog-art');
+opener.addEventListener('click',()=>{
+ if(!holder.firstChild){const art=document.getElementById('brief-art').cloneNode(true);art.removeAttribute('id');art.querySelectorAll('[id]').forEach(el=>{el.id='zoom-'+el.id;});art.setAttribute('aria-labelledby','zoom-brief-title zoom-brief-desc');holder.appendChild(art);}
+ if(!dialog.open)dialog.showModal();document.body.classList.add('modal-open');
+});
+document.getElementById('close-board').addEventListener('click',()=>dialog.close());
+dialog.addEventListener('close',()=>{document.body.classList.remove('modal-open');dialog.classList.remove('enlarged');size.setAttribute('aria-pressed','false');size.textContent='原寸で見る';opener.focus({preventScroll:true});});
+dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)dialog.close();});
+size.addEventListener('click',()=>{const expanded=dialog.classList.toggle('enlarged');size.setAttribute('aria-pressed',String(expanded));size.textContent=expanded?'画面に合わせる':'原寸で見る';});
+document.getElementById('copy-prompt').addEventListener('click',async()=>{const field=document.getElementById('audit-prompt');const status=document.getElementById('copy-status');try{await navigator.clipboard.writeText(field.value);status.textContent='コピーしました。';}catch{field.focus();field.select();field.setSelectionRange(0,field.value.length);status.textContent='依頼文を選択しました。Ctrl+C（Macは⌘C）、または端末のコピー操作を使ってください。';}});
+document.getElementById('save-html').addEventListener('click',()=>{const copy=document.documentElement.cloneNode(true);copy.querySelector('#dialog-art').replaceChildren();copy.querySelector('#board-dialog').removeAttribute('open');copy.querySelector('#board-dialog').classList.remove('enlarged');copy.querySelector('body').classList.remove('modal-open');copy.querySelector('#board-size').setAttribute('aria-pressed','false');copy.querySelector('#board-size').textContent='原寸で見る';copy.querySelector('#copy-status').textContent='';copy.querySelector('#audit-prompt').textContent=document.getElementById('audit-prompt').value;const url=URL.createObjectURL(new Blob(['<!doctype html>\n',copy.outerHTML],{type:'text/html;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='day_slide_2026_10_12.html';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);});
+})();</script></body></html>
