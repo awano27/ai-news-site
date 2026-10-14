@@ -23,7 +23,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .config import PROJECT_ROOT
+from .config import PROJECT_ROOT, X_LOOKBACK_HOURS
 from .publication_priority import prefer_existing
 from .content_integrity import apply_financial_integrity
 from .claim_evidence import render_evidence, require_valid_evidence
@@ -246,12 +246,28 @@ def _render_timeline(items: List[Dict]) -> str:
     return "\n".join(cards)
 
 
+def log_publication_window_drops(target_logger, *, news_dropped: int, x_dropped: int, cutoff: date, source: str = "Main") -> None:
+    """Record date-window drops separately. X removals are a warning."""
+    if not news_dropped and not x_dropped:
+        return
+    target_logger.info(
+        "[%s] Date window: left out %d news items and %d X posts older than %s",
+        source, news_dropped, x_dropped, cutoff.isoformat(),
+    )
+    if x_dropped:
+        target_logger.warning(
+            "[%s] Date window removed %d X posts; collection already limits bookmarks to %s hours",
+            source, x_dropped, X_LOOKBACK_HOURS,
+        )
+
+
 def within_publication_window(article: Dict, today: date, *, x: bool = False) -> bool:
     """Whether generate_daily_news would keep this article for `today`.
 
-    The quality gate must see only this window. Items older than yesterday
-    are left out before the gate: they are not quality exclusions and do not
-    enter the 20% ratio. A row the flattener skips for a missing title stays
+    News older than yesterday is left out before the quality gate. Those rows
+    are not quality exclusions and do not enter the 20% ratio. X bookmarks are
+    already limited by X_LOOKBACK_HOURS at collection, so this window does not
+    drop them again. A row the flattener skips for a missing title stays
     eligible so the gate can record that failure.
     """
     flattened = _flatten_x([article]) if x else _flatten_news([article])
@@ -261,11 +277,16 @@ def within_publication_window(article: Dict, today: date, *, x: bool = False) ->
 
 
 def _is_recent(item: Dict, today: date) -> bool:
-    """Allow items from today or yesterday; block items 2+ days old. No-date items pass through.
+    """Allow news from today or yesterday; block news 2+ days old.
 
     The 7:00 JST daily job collects articles published the previous day,
     so yesterday's date is intentional content — only older dates are stale.
+    X posts skip this cutoff. XBookmarksCollector already keeps bookmarks
+    inside X_LOOKBACK_HOURS, and a 02:49 run can legally hold posts whose
+    bookmark_date is two calendar days back.
     """
+    if item.get("type") == "x":
+        return True
     cutoff = today - timedelta(days=1)
     for key in ("bookmark_date", "date"):
         val = item.get(key, "")
@@ -307,11 +328,21 @@ def generate_daily_news(
     timeline.extend(_flatten_news(funding_articles or [], tag="ビジネス"))
     timeline.extend(_flatten_x(x_articles or []))
 
-    before = len(timeline)
-    timeline = [item for item in timeline if _is_recent(item, today)]
-    dropped = before - len(timeline)
-    if dropped:
-        logger.info(f"[daily-news] date filter: dropped {dropped} items older than {today - timedelta(days=1)}")
+    kept_timeline = []
+    news_dropped = 0
+    x_dropped = 0
+    for item in timeline:
+        if _is_recent(item, today):
+            kept_timeline.append(item)
+        elif item.get("type") == "x":
+            x_dropped += 1
+        else:
+            news_dropped += 1
+    timeline = kept_timeline
+    log_publication_window_drops(
+        logger, news_dropped=news_dropped, x_dropped=x_dropped,
+        cutoff=today - timedelta(days=1), source="daily-news",
+    )
 
     # Sort by date desc first (stable), then by score desc — Python sort is
     # stable, so within each score bucket items remain in date-desc order.

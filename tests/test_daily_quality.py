@@ -841,6 +841,62 @@ def test_quality_counts_match_the_published_page_when_stale_items_are_dropped(mo
     validate_quality(data)
 
 
+def test_overnight_x_bookmarks_stay_while_stale_news_is_windowed(monkeypatch, tmp_path, caplog):
+    """10/15 02:49: 19 X bookmarks dated 10/13 were all removed as older than 10/14."""
+    import json
+    import logging
+    from datetime import date
+    from src.auto_collect.daily_news_page import generate_daily_news, log_publication_window_drops
+    from src.auto_collect.quality import filter_publishable
+    from scripts.check_daily_publication import validate_quality
+
+    today = date(2026, 10, 15)
+    news = [
+        article(url='https://example.com/fresh', source='Official', title='今日の見出し', date='2026-10-15'),
+        article(url='https://example.com/yesterday', source='Other', title='昨日の見出し', date='2026-10-14'),
+        article(url='https://example.com/stale', source='Official', title='古い見出し', date='2026-10-13'),
+    ]
+    x_posts = [
+        article(
+            url=f'https://x.com/lab/status/{i}', rss_source='X (@lab)', source='X (@lab)',
+            title=f'Thread {i}', bookmark_date='2026-10-13', x_curated=True, ai_related=True,
+        )
+        for i in range(19)
+    ]
+    eligible_news = _eligible(news, today)
+    assert [row['url'] for row in eligible_news] == [
+        'https://example.com/fresh', 'https://example.com/yesterday',
+    ]
+    assert _eligible(x_posts, today, x=True) == x_posts
+    kept, quality = filter_publishable(eligible_news + x_posts, min_articles=3, min_sources=2)
+    quality.update(provider='ollama', model='gemma3:4b')
+    assert quality['status'] == 'passed'
+    assert quality['article_count'] == 21
+    assert quality['excluded_count'] == 0
+    monkeypatch.setattr('src.auto_collect.daily_news_page.DAILY_NEWS_DIR', tmp_path / 'daily-news')
+    monkeypatch.setattr('src.auto_collect.daily_news_page.ARCHIVE_DIR', tmp_path / 'daily-news' / 'archive')
+    with caplog.at_level(logging.INFO):
+        generate_daily_news(
+            today,
+            [row for row in kept if row['url'].startswith('https://example.com/')],
+            x_articles=[row for row in kept if 'x.com' in row['url']],
+            quality=quality,
+        )
+    data = json.loads((tmp_path / 'daily-news' / 'data.json').read_text(encoding='utf-8'))
+    assert data['news_count'] == 2
+    assert data['x_count'] == 19
+    assert data['total'] == 21
+    assert data['quality']['article_count'] == len(data['items']) == 21
+    assert 'https://example.com/stale' not in {item['url'] for item in data['items']}
+    assert not any(record.levelno >= logging.WARNING and 'X posts' in record.message for record in caplog.records)
+    validate_quality(data)
+    caplog.clear()
+    with caplog.at_level(logging.INFO):
+        log_publication_window_drops(logging.getLogger('test.date-window'), news_dropped=4, x_dropped=19, cutoff=date(2026, 10, 14))
+    assert any('4 news' in record.message and '19 X posts' in record.message for record in caplog.records)
+    assert any(record.levelno >= logging.WARNING and '19' in record.message for record in caplog.records)
+
+
 def test_stale_items_neither_dilute_nor_inflate_the_exclusion_ratio():
     from datetime import date
     from src.auto_collect.quality import filter_publishable
