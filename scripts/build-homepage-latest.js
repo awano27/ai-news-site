@@ -897,7 +897,7 @@ function syncResourcesAndClock() {
     const tools = fs.readFileSync(toolsPath, 'utf8');
     const candidates = (tools.match(/data-evidence="official-info"/g) || []).length;
     const recorded = (tools.match(/data-evidence="(?:usage-log|notes)"/g) || []).length;
-    resource('presentations/recommended_tools/', `公式情報からの注目候補${candidates}件と利用記録${recorded}件を区別して紹介。過去資料は閉じたアーカイブに保管。`);
+    resource('presentations/recommended_tools/', `公式情報からの注目候補${candidates}件と利用記録${recorded}件を上部に紹介。以前の掲載分も一覧・検索で探せます。掲載時点と最新情報の確認状況を表示。`);
   }
   const guidePath = path.join(ROOT, 'presentations/ai_tool_optimization_2026_04.html');
   if (fs.existsSync(guidePath)) {

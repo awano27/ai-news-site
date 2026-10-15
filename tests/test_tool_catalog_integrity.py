@@ -62,7 +62,7 @@ class ToolCatalogIntegrityTests(unittest.TestCase):
             if "function applyFilters()" in script
         )
 
-    def run_filter(self, query="", purpose="all", role="all", archive_open=False):
+    def run_filter(self, query="", purpose="all", role="all"):
         node = shutil.which("node")
         if node is None:
             self.skipTest("Node.js is required to execute the catalog JavaScript")
@@ -77,9 +77,8 @@ function element() {
     addEventListener(event, callback) { this.handlers[event] = callback; }};
 }
 const ids = Object.fromEntries(['searchInput', 'purposeRow', 'roleRow',
-  'resultMeta', 'emptyState', 'pastArchive', 'archiveResultMeta'].map(id => [id, element()]));
+  'resultMeta', 'emptyState', 'recentTools', 'catalogHistory', 'historyResultMeta'].map(id => [id, element()]));
 ids.searchInput.value = input.query;
-ids.pastArchive.open = input.archive_open;
 const cards = input.cards.map(card => ({
   textContent: card.text, dataset: {tags: card.tags, roles: card.roles}, style: {},
   querySelector(selector) { return selector === 'h3' ? {textContent: card.name} : null; }
@@ -96,8 +95,9 @@ select('purposeRow', 'filter', input.purpose);
 select('roleRow', 'role', input.role);
 process.stdout.write(JSON.stringify({
   summary: ids.resultMeta.textContent,
-  archiveSummary: ids.archiveResultMeta.textContent,
-  archiveOpen: ids.pastArchive.open,
+  historySummary: ids.historyResultMeta.textContent,
+  historyDisplay: ids.catalogHistory.style.display,
+  recentDisplay: ids.recentTools.style.display,
   emptyDisplay: ids.emptyState.style.display,
   historicalVisible: cards.filter(card => card.dataset.tags.includes('historical') && card.style.display !== 'none').length,
   visible: cards.filter(card => card.style.display !== 'none').length
@@ -106,56 +106,61 @@ process.stdout.write(JSON.stringify({
         result = subprocess.run(
             [node, "-e", adapter],
             input=json.dumps({"script": self.script, "cards": self.cards,
-                              "query": query, "purpose": purpose, "role": role,
-                              "archive_open": archive_open}),
+                              "query": query, "purpose": purpose, "role": role}),
             text=True, encoding="utf-8", capture_output=True, check=True,
         )
         return json.loads(result.stdout)
 
-    def test_archive_is_closed_and_catalog_is_preserved(self):
-        details = re.search(r'<details\b[^>]*id="pastArchive"[^>]*>', self.html)
-        self.assertIsNotNone(details)
-        self.assertNotRegex(details.group(0), r'\bopen\b')
+    def test_catalog_is_preserved_in_a_normal_visible_section(self):
+        self.assertNotIn('<details', self.html)
+        self.assertRegex(self.html, r'<section\b[^>]*id="catalogHistory"[^>]*>')
         self.assertNotIn('209ツール', self.html)
         self.assertIn('直近確認: 7候補', self.html)
+        self.assertIn('全211種類・230カード', self.html)
         historical = [card for card in self.cards if 'historical' in card['tags'].split(',')]
         self.assertEqual(len(historical), 221)
         self.assertEqual(len({card['name'].strip() for card in historical}), 202)
+        self.assertEqual(len(self.cards), 230)
+        self.assertEqual(len({card['name'].strip() for card in self.cards}), 211)
+        for card in historical:
+            self.assertIn('掲載時点: 2026年8月 ／ 最新情報は未確認', card['text'])
 
-    def test_default_shows_only_current_nine(self):
+    def test_default_shows_all_tools(self):
         result = self.run_filter()
-        self.assertEqual(result["visible"], 9)
-        self.assertEqual(result['historicalVisible'], 0)
-        self.assertEqual(result["summary"], "表示ツール: 9件（9カード）")
+        self.assertEqual(result["visible"], 230)
+        self.assertEqual(result['historicalVisible'], 221)
+        self.assertEqual(result["summary"], "表示ツール: 211種類（230カード）")
         self.assertEqual(result["emptyDisplay"], "none")
+        self.assertEqual(result['historyDisplay'], '')
+        self.assertEqual(result['recentDisplay'], '')
 
     def test_search_counts_repeated_tool_once(self):
-        result = self.run_filter(query="Agent Plugins", archive_open=True)
+        result = self.run_filter(query="Agent Plugins")
         matching = [card for card in self.cards if "agent plugins" in card["text"].lower()]
         unique = len({card["name"].strip() for card in matching})
         self.assertGreater(len(matching), unique)
-        self.assertEqual(result["summary"], "表示ツール: 0件（0カード）")
-        self.assertEqual(result['archiveSummary'], f"表示中: {unique}ツール（{len(matching)}カード）")
+        self.assertEqual(result["summary"], f"表示ツール: {unique}種類（{len(matching)}カード）")
+        self.assertEqual(result['historySummary'], f"この一覧の表示: {unique}種類（{len(matching)}カード）")
 
-    def test_old_search_does_not_open_archive(self):
+    def test_old_search_finds_results_without_an_extra_action(self):
         result = self.run_filter(query="Agent Plugins")
-        self.assertEqual(result['visible'], 0)
-        self.assertEqual(result['historicalVisible'], 0)
-        self.assertFalse(result['archiveOpen'])
-        self.assertEqual(result['emptyDisplay'], 'block')
+        self.assertGreater(result['visible'], 0)
+        self.assertEqual(result['historicalVisible'], result['visible'])
+        self.assertEqual(result['historyDisplay'], '')
+        self.assertEqual(result['recentDisplay'], 'none')
+        self.assertEqual(result['emptyDisplay'], 'none')
 
-    def test_open_archive_has_separate_counts(self):
-        result = self.run_filter(archive_open=True)
-        self.assertEqual(result['visible'], 230)
-        self.assertEqual(result['summary'], '表示ツール: 9件（9カード）')
-        self.assertEqual(result['archiveSummary'], '表示中: 202ツール（221カード）')
+    def test_history_count_distinguishes_tool_names_and_cards(self):
+        result = self.run_filter()
+        self.assertEqual(result['historySummary'], 'この一覧の表示: 202種類（221カード）')
 
-    def test_new_candidates_are_searchable_without_archive(self):
+    def test_new_candidates_remain_searchable(self):
         for name in ['Google Colab', 'Strata']:
             result = self.run_filter(query=name)
             self.assertEqual(result['visible'], 1)
             self.assertEqual(result['historicalVisible'], 0)
-            self.assertFalse(result['archiveOpen'])
+            self.assertEqual(result['historyDisplay'], 'none')
+            self.assertEqual(result['recentDisplay'], '')
 
     def test_current_candidate_filter_excludes_archive(self):
         result = self.run_filter(purpose='public-candidate')
@@ -164,14 +169,14 @@ process.stdout.write(JSON.stringify({
 
     def test_purpose_and_role_filters_keep_real_card_visibility(self):
         result = self.run_filter(purpose="docs", role="biz")
-        matching = [card for card in self.cards if "docs" in card["tags"].split(",") and 'historical' not in card['tags'].split(',')]
+        matching = [card for card in self.cards if "docs" in card["tags"].split(",")]
         unique = len({card["name"].strip() for card in matching})
         self.assertEqual(result["visible"], len(matching))
-        self.assertEqual(result["summary"], f"表示ツール: {unique}件（{len(matching)}カード）")
+        self.assertEqual(result["summary"], f"表示ツール: {unique}種類（{len(matching)}カード）")
 
     def test_unmatched_search_shows_zero_and_empty_state(self):
         result = self.run_filter(query="not-a-real-tool-catalog-fixture-2026")
-        self.assertEqual(result["summary"], "表示ツール: 0件（0カード）")
+        self.assertEqual(result["summary"], "表示ツール: 0種類（0カード）")
         self.assertEqual(result["visible"], 0)
         self.assertEqual(result["emptyDisplay"], "block")
 
