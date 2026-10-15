@@ -1,4 +1,4 @@
-"""The permanent article must stay bound and reachable after a daily rebuild."""
+"""The permanent article remains bound and reachable from About after a daily rebuild."""
 import json
 from pathlib import Path
 import re
@@ -19,15 +19,13 @@ def test_article_is_in_preflight_and_changed_body_is_rejected():
     assert any("body text differs" in error for error in render_static_page(changed)[1])
 
 
-def test_article_entries_survive_existing_homepage_generation(tmp_path):
+def test_article_stays_off_homepage_and_linked_from_about_after_generation(tmp_path):
     node = shutil.which("node")
     assert node, "Node is required to verify the existing homepage generator"
     index = (ROOT / "index.html").read_text(encoding="utf-8")
     about = (ROOT / "about.html").read_text(encoding="utf-8")
-    for entry_id in ("implementationCard",):
-        assert re.search(rf'<a id="{entry_id}"[^>]+href="{ARTICLE}"', index)
+    assert ARTICLE not in index
     assert 'id="heroArticleBtn"' not in index
-    assert re.search(rf'<a href="{ARTICLE}" data-cta="footer-article">', index)
     assert about.count(f'href="/{ARTICLE}"') == 1
     resources = re.search(r'<section id="resources".*?</section>', index, re.S).group()
     scripts = tmp_path / "scripts"
@@ -47,4 +45,5 @@ def test_article_entries_survive_existing_homepage_generation(tmp_path):
     result = subprocess.run([node, "--require", str(clock), str(scripts / "build-homepage-latest.js")], cwd=tmp_path, capture_output=True, text=True, encoding="utf-8")
     assert result.returncode == 0, result.stdout + result.stderr
     after = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert ARTICLE not in after
     assert re.search(r'<section id="resources".*?</section>', after, re.S).group() == resources

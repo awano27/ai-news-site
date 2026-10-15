@@ -149,6 +149,7 @@ def test_sitemap_regeneration_does_not_restore_oct7_comparison():
 
 def assert_entry_contract(html):
     assert_comparison_promo_removed(html)
+    assert "articles/claim-evidence-design.html" not in html
     assert_archive_at_page_end(html)
     page = Homepage(html)
     assert [a.get("id") for t, a in page.elements if t == "h1"] == ["heroIdentity"]
@@ -156,7 +157,6 @@ def assert_entry_contract(html):
     for elem_id, destination in {
         "heroNewsBtn": "daily-news/",
         "comparisonCard": "presentations/ai_coding_agents_guide.html",
-        "implementationCard": "articles/claim-evidence-design.html",
     }.items():
         tag, attrs = page.by_id(elem_id)
         assert tag == "a"
@@ -300,7 +300,7 @@ def test_build_homepage_recovers_empty_state_when_a_slide_returns(tmp_path: Path
     assert "今日のスライドを読む" not in updated
     assert 'href="presentations/day_slides/day_slide_2026_09_05.html"' in updated
     assert 'href="daily-news/"' in updated
-    assert 'href="articles/claim-evidence-design.html"' in updated
+    assert 'href="articles/claim-evidence-design.html"' not in updated
 
 
 @pytest.mark.parametrize("old,new", [
