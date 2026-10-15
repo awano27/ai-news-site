@@ -349,8 +349,9 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
     html = html.replace("{{MODELS_SECTION}}", models_section)
     html = html.replace("{{TOP3_SECTION}}", top3_html)
     html = html.replace("{{HL_COUNT}}", str(len(headlines)))
-    html = html.replace("{{DASHBOARD}}", _dash.render_dashboard(dashboard))
-    html = html.replace("{{BRIEF}}", _esc(_dash.brief_sentence(dashboard)))
+    watch = _dash.load_watch(report_date)
+    html = html.replace("{{DASHBOARD}}", _dash.render_dashboard(dashboard, watch))
+    html = html.replace("{{BRIEF}}", _esc(_dash.brief_sentence(dashboard, watch)))
     html = html.replace(
         "{{REPORT_DATA_JSON}}",
         json.dumps(chart_payload, ensure_ascii=False).replace("</", "<\\/"),
