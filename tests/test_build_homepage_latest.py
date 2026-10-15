@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_oct11_decision_slide_preserves_qualified_claims_and_accessible_diagrams():
     article = BeautifulSoup((ROOT / "presentations/day_slides/day_slide_2026_10_11.html").read_text(encoding="utf-8"), "html.parser")
     headline = article.h1.get_text("", strip=True)
-    assert "Microsoft" in headline and "判断専用AI" in headline
+    assert headline == "Microsoft、問い合わせの仕分けに使える「判断専用AI」を公開"
     text = article.get_text(" ", strip=True)
     for qualification in ("中央値", "自社試験", "業務全体", "未検証"):
         assert qualification in text
