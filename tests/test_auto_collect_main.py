@@ -414,3 +414,66 @@ def test_main_leaves_stale_articles_out_of_the_quality_gate(monkeypatch, tmp_pat
     assert "https://example.com/old-capacity" not in published
     logged = json.loads((tmp_path / "logs" / f"daily_quality_{today.isoformat()}.json").read_text(encoding="utf-8"))
     assert logged["article_count"] == 3
+
+
+def test_main_keeps_x_bookmarks_outside_the_news_date_window(monkeypatch, tmp_path, caplog):
+    import logging
+    from datetime import date, timedelta
+
+    real_date = date
+
+    class FrozenDate(real_date):
+        @classmethod
+        def today(cls):
+            return real_date(2026, 10, 15)
+
+    monkeypatch.setattr(auto_collect_main, "date", FrozenDate)
+    posts = [
+        bookmark(f"AI model launch {i}", f"https://x.com/lab/status/{i}", "AI model launch details", "lab")
+        for i in range(19)
+    ]
+    for post in posts:
+        post["bookmark_date"] = "2026-10-13"
+    install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            dict(headline("OpenAI ships a voice model", "https://example.com/voice", "Official"), date="2026-10-15"),
+            dict(headline("Google changes image pricing", "https://example.com/pricing", "Other"), date="2026-10-14"),
+            dict(headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"), date="2026-10-13"),
+        ],
+        github=[],
+    )
+
+    class ReadyVault(StaticCollector):
+        vault_available = True
+
+    monkeypatch.setattr(auto_collect_main, "XBookmarksCollector", lambda: ReadyVault(posts))
+
+    class AcceptingX(XAwareProvider):
+        def chat(self, prompt):
+            if "X投稿" in prompt:
+                return (
+                    '{"title_ja":"新しいモデルの発表","summary":"%s","ai_related":true}'
+                    % X_SUMMARY
+                )
+            return super().chat(prompt)
+
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: AcceptingX())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    captured = {}
+
+    def capture_daily(*_args, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "daily.html"
+
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", capture_daily)
+    with caplog.at_level(logging.INFO):
+        auto_collect_main.main()
+    quality = captured["quality"]
+    assert quality["status"] == "passed"
+    assert quality["article_count"] == 21
+    assert {row["url"] for row in captured["x_articles"]} == {post["url"] for post in posts}
+    assert "https://example.com/benchmark" not in {row["url"] for row in captured["articles"]}
+    assert any("news items" in record.message and "X posts" in record.message for record in caplog.records)
+    assert not any(record.levelno >= logging.WARNING and "X posts" in record.message for record in caplog.records)

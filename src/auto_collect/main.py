@@ -26,7 +26,7 @@ from .llm_provider import make_provider
 from .processor import LLMProcessor
 from .formatter import DayFileFormatter
 from .html_report import generate_html_report
-from .daily_news_page import generate_daily_news, within_publication_window
+from .daily_news_page import generate_daily_news, log_publication_window_drops, within_publication_window
 from . import dedup as dedup_mod
 from .quality import filter_publishable, failure_reason
 
@@ -230,25 +230,25 @@ def main():
             f"github {before[3]}->{after[3]}"
         )
 
-    # The daily page publishes today and yesterday only. Apply that window
-    # before the gate so article_count, the source minimum, and the 20% ratio
-    # describe the items that can actually ship. Older rows are not quality
-    # exclusions and are not part of input_count.
-    def _in_window(rows, *, x=False):
-        kept_rows = [row for row in rows if within_publication_window(row, today, x=x)]
-        dropped = len(rows) - len(kept_rows)
-        if dropped:
-            logger.info(
-                "[Main] Date window: left out %d items older than %s",
-                dropped, today - timedelta(days=1),
-            )
-        return kept_rows
+    # News publishes today and yesterday only. Apply that window before the
+    # gate so article_count and the 20% ratio match the page. X bookmarks are
+    # already limited by X_LOOKBACK_HOURS at collection; applying this cutoff
+    # again drops an entire overnight batch (for example every 10/13 bookmark
+    # on a 10/15 02:49 run). Older news rows are not quality exclusions.
+    def _in_window(rows):
+        kept_rows = [row for row in rows if within_publication_window(row, today)]
+        return kept_rows, len(rows) - len(kept_rows)
 
-    processed = _in_window(processed)
-    github_processed = _in_window(github_processed)
-    benchmark_processed = _in_window(benchmark_processed)
-    funding_processed = _in_window(funding_processed)
-    x_processed = _in_window(x_processed, x=True)
+    processed, dropped_news = _in_window(processed)
+    github_processed, dropped_github = _in_window(github_processed)
+    benchmark_processed, dropped_models = _in_window(benchmark_processed)
+    funding_processed, dropped_funding = _in_window(funding_processed)
+    log_publication_window_drops(
+        logger,
+        news_dropped=dropped_news + dropped_github + dropped_models + dropped_funding,
+        x_dropped=0,
+        cutoff=today - timedelta(days=1),
+    )
 
     # News and X share one gate. input_count, article_count, japanese_count,
     # sources, the minimum of 3 articles and 2 sources, and the 20% exclusion
