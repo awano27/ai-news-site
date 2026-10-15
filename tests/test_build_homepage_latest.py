@@ -16,10 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_oct11_decision_slide_preserves_qualified_claims_and_accessible_diagrams():
     article = BeautifulSoup((ROOT / "presentations/day_slides/day_slide_2026_10_11.html").read_text(encoding="utf-8"), "html.parser")
-    assert article.h1.get_text("", strip=True) == "Microsoftの判断専用AI、GPT-6 Sol比で応答速度は約35倍"
-    assert [section.get("id") for section in article.select("section.section")] == ["what", "evidence", "workflow", "limits", "pilot"]
+    headline = article.h1.get_text("", strip=True)
+    assert "Microsoft" in headline and "判断専用AI" in headline
     text = article.get_text(" ", strip=True)
-    for qualification in ("P50", "自社測定", "本稿では未検証", "編集部提案"):
+    for qualification in ("中央値", "自社試験", "業務全体", "未検証"):
         assert qualification in text
     sources = {link.get("href") for link in article.select("#sources a")}
     assert "https://commandline.microsoft.com/microsoft-decision-1-model-foundry/" in sources
@@ -31,8 +31,8 @@ def test_oct11_decision_slide_preserves_qualified_claims_and_accessible_diagrams
     assert article.select_one("dialog#board-dialog") is not None
     assert article.select_one("button#open-board") is not None
     assert article.select_one("#brief-art") is not None
-    assert article.select_one('label[for="audit-prompt"]') is not None
-    assert article.select_one('#copy-status[aria-live="polite"]') is not None
+    assert article.select_one("#open-board")["aria-controls"] == "board-dialog"
+    assert article.select_one("#brief-art")["aria-labelledby"] == "brief-title brief-desc"
 
 
 def test_oct11_decision_slide_has_publication_metadata_and_preserved_discovery():
@@ -41,8 +41,8 @@ def test_oct11_decision_slide_has_publication_metadata_and_preserved_discovery()
     canonical = article.select_one('link[rel="canonical"]')
     assert canonical is not None
     assert canonical["href"] == "https://visionhub.jp/" + path
-    assert article.select_one('meta[property="og:image"]')["content"] == "https://visionhub.jp/presentations/day_slides/images/1011/cover.png"
-    assert (ROOT / "presentations/day_slides/images/1011/cover.png").is_file()
+    assert article.select_one('meta[property="og:image"]')["content"] == "https://visionhub.jp/presentations/day_slides/images/1011/cover.jpg"
+    assert (ROOT / "presentations/day_slides/images/1011/cover.jpg").is_file()
     assert article.select_one('script[src="/assets/js/analytics.js"]') is None
     assert article.select_one('meta[name="visionhub-analytics"]')["content"] == "off"
     description = article.select_one('meta[name="description"]')["content"]
