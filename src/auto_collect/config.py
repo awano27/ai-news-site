@@ -97,3 +97,28 @@ _default_vault = "C:/develop/obsidian/2026" if os.name == "nt" else os.path.expa
 OBSIDIAN_VAULT_PATH = Path(os.environ.get("OBSIDIAN_VAULT_PATH", _default_vault))
 X_BOOKMARKS_DIR = OBSIDIAN_VAULT_PATH / "00 Inbox" / "X-Bookmarks"
 X_LOOKBACK_HOURS = 36
+
+# X Scout: verified topic JSON written by the Grok bot on the data branch.
+# The branch is not created by the daily pipeline. Fetch is unauthenticated.
+# X_SCOUT_ENABLED defaults off, so a normal run neither fetches nor publishes it.
+X_SCOUT_BRANCH = "data/x-scout"
+X_SCOUT_URL_TEMPLATE = (
+    "https://raw.githubusercontent.com/awano27/ai-news-site/{branch}/x_scout/{date}.json"
+)
+X_SCOUT_MAX_ITEMS = 5
+X_SCOUT_MAX_AGE_HOURS = 24
+X_SCOUT_TIMEOUT = 20
+
+
+def _env_flag(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() == "true"
+
+
+def x_scout_enabled() -> bool:
+    """True only when X_SCOUT_ENABLED=true. Otherwise skip fetch and publication."""
+    return _env_flag("X_SCOUT_ENABLED")
+
+
+def x_scout_dry_run() -> bool:
+    """Score accepted posts and log quality counts, without publishing them."""
+    return _env_flag("X_SCOUT_DRY_RUN")
