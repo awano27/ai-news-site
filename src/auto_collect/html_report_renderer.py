@@ -14,6 +14,7 @@ from typing import List, Dict
 from .ogp_generator import render as _ogp_render
 from . import trend_tracker
 from . import dedup as _dedup
+from . import report_dashboard as _dash
 from .claim_evidence import render_evidence, require_valid_evidence
 from .reviewed_summaries import apply_reviewed_summary, load_reviewed_summaries
 
@@ -71,20 +72,27 @@ def _label_class(label: str) -> str:
     return ""
 
 
-def _render_top3(headlines: List[Dict]) -> str:
+def _render_top3(headlines: List[Dict], themes: List[str]) -> str:
     if not headlines:
         return ""
-    top = sorted(headlines, key=lambda h: h.get("score", 0), reverse=True)[:3]
+    # Best item per theme first, so three same-story rows cannot fill the slot.
+    ranked = sorted(enumerate(headlines, 1), key=lambda p: p[1].get("score", 0), reverse=True)
+    top, seen = [], set()
+    for n, h in ranked:
+        if themes[n - 1] not in seen:
+            top.append((n, h))
+            seen.add(themes[n - 1])
+    top = (top + [p for p in ranked if p not in top])[:3]
     cards = []
-    for i, h in enumerate(top, 1):
+    for i, (n, h) in enumerate(top, 1):
         title = _esc(h.get("title", ""))
         tldr = h.get("tldr") or h.get("summary", "")
         tldr_short = tldr[:90] + ("…" if len(tldr) > 90 else "")
         score = h.get("score", 0)
         source = _esc(h.get("source", ""))
-        cat = _esc(h.get("category", ""))
+        cat = _esc(_dash.theme_label(themes[n - 1]))
         cards.append(
-            f"""<a class="top3-card" href="#headlines">
+            f"""<a class="top3-card" href="#sig-{n:02d}">
   <div class="top3-rank">{i:02d}</div>
   <div class="top3-title">{title}</div>
   <div class="top3-tldr">{_esc(tldr_short)}</div>
@@ -96,14 +104,14 @@ def _render_top3(headlines: List[Dict]) -> str:
 </a>"""
         )
     return f"""<section class="top3" id="top3">
-  <div class="top3-h">Top 3 of the day</div>
+  <div class="top3-h">まず読む3本 <small>テーマ別の最上位</small></div>
   <div class="top3-grid">
     {"".join(cards)}
   </div>
 </section>"""
 
 
-def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
+def _render_news_row(rank: int, item: Dict, trend: str = None, theme: str = None) -> str:
     score = item.get("score", 0)
     cat = item.get("category", "")
     label = item.get("evidence_label") or (item.get("evidence", {}) or {}).get("evidence_label", "")
@@ -156,10 +164,13 @@ def _render_news_row(rank: int, item: Dict, trend: str = None) -> str:
         short = item["url"].replace("https://", "").replace("http://", "")[:70]
         url_html = f'<div class="d-url"><a href="{_esc(item["url"])}" target="_blank">{_esc(short)}</a></div>'
 
-    return f"""<div class="row">
+    row_attrs = f' id="sig-{rank:02d}" data-theme="{theme}"' if theme else ""
+    theme_html = f'<span class="row-theme t-{theme}">{_esc(_dash.theme_label(theme))}</span>' if theme else ""
+    return f"""<div class="row"{row_attrs}>
   <div class="row-head">
     <span class="row-n">{rank:02d}</span>
     <span class="row-title">{_esc(item.get("title",""))}</span>
+    {theme_html}
     {trend_html}
     {label_html}
     <span class="row-cat {_cat_class(cat)}">{_esc(cat)}</span>
@@ -238,6 +249,8 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
         for items in (headlines, funding, github, models)
     )
 
+    themes = [_dash.classify_theme(item) for item in headlines]
+
     total = len(headlines) + len(funding) + len(github) + len(models)
     high_score = len([h for h in headlines if h.get("score", 0) >= 80])
     categories: Dict[str, int] = {}
@@ -251,18 +264,19 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
         today_iso=report_date,
     )
 
+    dashboard = _dash.build_dashboard(
+        report_date, headlines, themes, trend_map, tools_count=len(github) + len(models),
+    )
+
     # Read template
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M JST")
 
-    cat_tags = "".join(
-        f'<span class="tag">{_esc(cat)} <b>{cnt}</b></span>'
-        for cat, cnt in sorted(categories.items(), key=lambda x: -x[1])
-    )
+    cat_tags = _dash.render_theme_tags(dashboard)
 
     headlines_html = "\n".join(
-        _render_news_row(i, item, trend=trend_map.get(item.get("title", "")))
+        _render_news_row(i, item, trend=trend_map.get(item.get("title", "")), theme=themes[i - 1])
         for i, item in enumerate(headlines, 1)
     )
     funding_html = "\n".join(_render_news_row(i, item) for i, item in enumerate(funding, 1))
@@ -299,10 +313,11 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
         else ""
     )
 
-    top3_html = _render_top3(headlines)
+    top3_html = _render_top3(headlines, themes)
     report_data = build_report_data(
         report_date, headlines, funding, github, models, categories, total
     )
+    report_data["dashboard"] = dashboard
     # Strip heavy content from the in-page script — only chart-relevant fields.
     chart_payload = {
         "date": report_data["date"],
@@ -310,6 +325,7 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
         "categories": report_data["categories"],
         "score_buckets": report_data["score_buckets"],
         "trend": report_data["trend"],
+        "dashboard": dashboard,
     }
 
     # Replace placeholders in template
@@ -332,6 +348,9 @@ def generate_html(data: Dict, archive_dir: Path, default_og_image: str, canonica
     html = html.replace("{{GITHUB_SECTION}}", github_section)
     html = html.replace("{{MODELS_SECTION}}", models_section)
     html = html.replace("{{TOP3_SECTION}}", top3_html)
+    html = html.replace("{{HL_COUNT}}", str(len(headlines)))
+    html = html.replace("{{DASHBOARD}}", _dash.render_dashboard(dashboard))
+    html = html.replace("{{BRIEF}}", _esc(_dash.brief_sentence(dashboard)))
     html = html.replace(
         "{{REPORT_DATA_JSON}}",
         json.dumps(chart_payload, ensure_ascii=False).replace("</", "<\\/"),

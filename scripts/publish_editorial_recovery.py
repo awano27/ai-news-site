@@ -124,10 +124,10 @@ def _decorate(text,*,kind,edition,articles,generated_iso):
     elif kind=='report':
         text=re.sub(r'<p class="hero-sub">.*?</p>',f'<p class="hero-sub">{NOTICE}。{EXPLANATION}</p>',text,count=1,flags=re.S)
         text=text.replace('自動収集レポート',NOTICE).replace('情報源: RSS / Hacker News / GitHub / HuggingFace &mdash; ローカルLLM: Ollama gemma3:4b','情報源: 記載した原文。処理: アシスタントによる原文確認・日本語編集')
-        text=text.replace('Top 3 of the day','今回確認した3件')
+        text=text.replace('Top 3 of the day','今回確認した3件').replace('まず読む3本 <small>テーマ別の最上位</small>','今回確認した3件')
         text=text.replace('<div class="kpi-n">0</div><div class="kpi-l">重要記事</div>','<div class="kpi-n">—</div><div class="kpi-l">重要度未評価</div>')
         # Scores and historical automatic/full-feed counts are not comparable.
-        text=text.replace('</head>','<style>#charts .chart-cell:nth-child(2),#charts .chart-cell:nth-child(3){display:none}</style></head>',1)
+        text=text.replace('</head>','<style>#charts .chart-cell:nth-child(2),#charts .chart-cell:nth-child(3),#dashboard .dl,#dashboard .tc-avg,#dashboard .spark,#dashboard .dash-side{display:none}</style></head>',1)
     return text
 
 
