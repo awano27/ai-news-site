@@ -22,6 +22,7 @@ from .collectors.github_trending import GitHubTrendingCollector
 from .collectors.benchmark_collector import BenchmarkCollector
 from .collectors.funding_collector import FundingCollector
 from .collectors.arxiv_collector import ArxivCollector
+from .collectors import model_watch
 from .llm_provider import make_provider
 from .processor import LLMProcessor
 from .formatter import DayFileFormatter
@@ -292,6 +293,13 @@ def main():
         benchmark_articles=benchmark_processed,
         funding_articles=funding_processed,
     )
+
+    # Model watch is supplementary: a vendor outage must not block the report,
+    # the dashboard simply omits the panel when no snapshot exists.
+    try:
+        model_watch.collect(today)
+    except Exception as e:
+        logger.warning(f"[Main] Model watch failed (continuing): {e}")
 
     # Rendering and indexing are required stages. Never log-and-continue a
     # failed stage or rewrite historical dates through legacy mtime guessing.

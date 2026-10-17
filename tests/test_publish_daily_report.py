@@ -85,6 +85,7 @@ def test_manifest_expands_all_date_formats_and_optional_ogp() -> None:
     assert "presentations/daily_reports/auto_daily_report_2026_07_18.html" in manifest.required
     assert manifest.optional == (
         "presentations/daily_reports/og/2026_07_18.png",
+        "presentations/model_watch/2026-07-18.json",
         "public-pages/news/*.json",
     )
 

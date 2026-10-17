@@ -11,6 +11,7 @@ computed from the rendered archive, so regenerating a past day is stable.
 from __future__ import annotations
 
 import html as _html
+import json
 import re
 from datetime import date, timedelta
 from pathlib import Path
@@ -168,7 +169,7 @@ def build_dashboard(
     }
 
 
-def brief_sentence(dash: Dict) -> str:
+def brief_sentence(dash: Dict, watch: Optional[Dict] = None) -> str:
     """One plain-text sentence summarising the day, used as hero-sub."""
     themes = {t["key"]: t for t in dash["themes"]}
     if not dash["lead"]:
@@ -181,6 +182,8 @@ def brief_sentence(dash: Dict) -> str:
     if others:
         parts.append("次いで" + "・".join(f"{t['label']} {t['count']}件" for t in others))
     parts.append(f"一次情報・論文は {dash['primary']}/{dash['total']}件")
+    if watch:
+        parts.append(watch_summary(watch))
     return "。".join(parts) + "。"
 
 
@@ -212,7 +215,7 @@ def _delta_html(t: Dict, history_days: int) -> str:
     return '<span class="dl dl-flat">平常</span>'
 
 
-def render_dashboard(dash: Dict) -> str:
+def render_dashboard(dash: Dict, watch: Optional[Dict] = None) -> str:
     themes = {t["key"]: t for t in dash["themes"]}
     lead = themes.get(dash["lead"]) if dash["lead"] else None
     total = max(dash["total"], 1)
@@ -279,6 +282,7 @@ def render_dashboard(dash: Dict) -> str:
 
     return f"""<section class="dash" id="dashboard" aria-label="今日のダッシュボード">
   <div class="dash-kpi">{kpi_html}</div>
+  {render_model_watch(watch) if watch else ""}
   <div class="dash-h"><span>テーマ・ボード</span><small>件数 · 直近{dash['history_days']}日平均との差 · 推移</small></div>
   <div class="tc-grid">{''.join(cards)}</div>
   <div class="dash-side">
@@ -300,3 +304,85 @@ def theme_label(key: str) -> str:
         if k == key:
             return label
     return key
+
+
+# ---------------------------------------------------------------------------
+# Frontier model watch (snapshot written by collectors/model_watch.py)
+# ---------------------------------------------------------------------------
+
+WATCH_DIR = Path(__file__).resolve().parents[2] / "presentations" / "model_watch"
+_WATCH_STATUS = {
+    "launch": ("新モデル", "mw-launch"),
+    "update": ("更新あり", "mw-update"),
+    "quiet": ("動きなし", "mw-quiet"),
+    "error": ("取得失敗", "mw-error"),
+}
+
+
+def load_watch(report_date: str, watch_dir: Path = WATCH_DIR) -> Optional[Dict]:
+    path = watch_dir / f"{report_date}.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def watch_summary(watch: Dict) -> str:
+    names = lambda st: [v["label"] for v in watch["vendors"] if v["status"] == st]  # noqa: E731
+    launch, update = names("launch"), names("update")
+    if launch:
+        text = f"モデル監視：{'・'.join(launch)} に新モデル"
+        return text + (f"、{'・'.join(update)} に更新" if update else "")
+    if update:
+        return f"モデル監視：{'・'.join(update)} に更新（新モデルなし）"
+    return "モデル監視：主要4社に新モデル・更新なし"
+
+
+def _days_ago(iso: str, today: str) -> str:
+    try:
+        n = (date.fromisoformat(today) - date.fromisoformat(iso)).days
+    except ValueError:
+        return iso
+    return "今日" if n <= 0 else f"{n}日前"
+
+
+def render_model_watch(watch: Dict) -> str:
+    today = watch["date"]
+    cards = []
+    for v in watch["vendors"]:
+        label, cls = _WATCH_STATUS.get(v["status"], _WATCH_STATUS["quiet"])
+        rows = []
+        for m in v.get("new_models", [])[:3]:
+            rows.append(f'<li class="mw-ev mw-ev-launch"><span class="mw-d">{_esc(m["date"][5:])}</span>'
+                        f'<span>モデル一覧に追加: <code>{_esc(m["id"])}</code></span></li>')
+        for e in v.get("events", [])[:3]:
+            title = _esc(e["title"])
+            if e.get("url"):
+                title = f'<a href="{_esc(e["url"])}" target="_blank" rel="noopener">{title}</a>'
+            tag = '<b class="mw-new">NEW</b>' if e.get("launch") else ""
+            rows.append(f'<li class="mw-ev{" mw-ev-launch" if e.get("launch") else ""}">'
+                        f'<span class="mw-d">{_esc(e["date"][5:])}</span><span>{tag}{title}</span></li>')
+        if not rows:
+            last = v.get("last_model_news")
+            rows.append('<li class="mw-ev mw-none">直近2日のモデル関連発表なし'
+                        + (f'<span class="mw-last">最後の発表: {_esc(last["title"][:60])}（{_days_ago(last["date"], today)}）</span>' if last else "")
+                        + "</li>")
+        latest = v.get("latest_model")
+        latest_html = (
+            f'<div class="mw-latest">最新モデル <code>{_esc(latest["id"].split("/", 1)[-1])}</code>'
+            f' <span>{_days_ago(latest["date"], today)}</span></div>' if latest else ""
+        )
+        err = (f'<div class="mw-err" title="{_esc("; ".join(v["errors"]))}">一部の情報源を取得できませんでした</div>'
+               if v.get("errors") else "")
+        srcs = " · ".join(f'<a href="{_esc(s["url"])}" target="_blank" rel="noopener">{_esc(s["label"])}</a>'
+                          for s in v.get("sources", []))
+        cards.append(
+            f'<div class="mw {cls}"><div class="mw-top"><span class="mw-name">{_esc(v["label"])}</span>'
+            f'<span class="mw-st">{label}</span></div><ul class="mw-list">{"".join(rows)}</ul>'
+            f'{latest_html}{err}<div class="mw-src">{srcs}</div></div>'
+        )
+    w = watch.get("window", {})
+    return f"""<div class="dash-h" id="model-watch"><span>フロンティアモデル監視</span><small>OpenAI・Anthropic・Google・xAI の公式発表と OpenRouter のモデル一覧 · {_esc(w.get("from", "")[5:])}〜{_esc(w.get("to", "")[5:])}</small></div>
+  <div class="mw-grid">{''.join(cards)}</div>"""
