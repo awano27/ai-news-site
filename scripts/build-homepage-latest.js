@@ -25,6 +25,21 @@ const CATEGORY_LABELS = {
   tech: 'TECH · 技術',
 };
 
+// Source reviewed on 2026-10-18: this article covers an outdoor event, not AI.
+// Exclude only this URL from homepage promotion; retain the source archives.
+const HOMEPAGE_NEWS_EXCLUSIONS = new Set([
+  'https://gigazine.net/news/20261017-sauna-camp-machiasobi31',
+]);
+
+function isHomepageNews(item) {
+  try {
+    const url = new URL(item && (item.url || sourceUrl(item)));
+    return !HOMEPAGE_NEWS_EXCLUSIONS.has(url.origin + url.pathname.replace(/\/+$/, ''));
+  } catch (_) {
+    return true;
+  }
+}
+
 const NAMED_ENTITIES = {
   amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
   nbsp: ' ', mdash: '—', ndash: '–',
@@ -435,6 +450,33 @@ function replaceGrid(html, id, replacement) {
   return html.slice(0, lineStart) + replacement + html.slice(end);
 }
 
+function weekFallback(slide, metadata) {
+  const anchor = Date.parse(`${slide.date}T12:00:00Z`);
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const titles = new Map((Array.isArray(metadata && metadata.issues) ? metadata.issues : [])
+    .filter(issue => issue && typeof issue.title === 'string').map(issue => [issue.date, issue.title]));
+  const cards = [];
+  for (let offset = 0; offset < 7; offset++) {
+    const day = new Date(anchor - offset * 86400000);
+    const stamp = day.toISOString().slice(0, 10);
+    const filename = `day_slide_${stamp.replace(/-/g, '_')}.html`;
+    const file = path.join(SLIDES_DIR, filename);
+    const exists = fs.existsSync(file) && fs.statSync(file).isFile();
+    const title = exists ? (offset > 0 && titles.get(stamp)) || extractTitle(fs.readFileSync(file, 'utf8'), stamp) : '';
+    const latest = offset === 0 && exists;
+    const tag = exists ? 'a' : 'div';
+    const href = exists ? ` href="presentations/day_slides/${filename}"` : '';
+    const classes = 'week-card' + (latest ? ' is-today' : '') + (exists ? '' : ' is-empty');
+    cards.push(`          <${tag} class="${classes}"${href}>` +
+      (latest ? '<span class="today-flag">LATEST</span>' : '') +
+      `<span class="week-day">${months[day.getUTCMonth()]} · ${WEEKDAY_JP[day.getUTCDay()]}曜</span>` +
+      `<div class="week-date">${String(day.getUTCDate()).padStart(2, '0')}</div>` +
+      `<div class="week-title">${escapeHtml(title)}</div>` +
+      `<span class="week-go">${exists ? 'スライドを読む →' : '更新なし'}</span></${tag}>`);
+  }
+  return `\n        <div id="weekGrid" class="week-grid">\n${cards.join('\n')}\n        </div>\n        `;
+}
+
 function updateHomepage(data, slide, slideUrl) {
   if (!fs.existsSync(INDEX_HTML)) {
     console.warn(`[build-homepage-latest] index.html not found at ${INDEX_HTML}`);
@@ -490,9 +532,9 @@ function updateHomepage(data, slide, slideUrl) {
   if (wasEmpty) {
     html = replaceAnchorLabel(html, 'latestSlideHeroBtn', '最新スライド →');
     html = replaceAnchorLabel(html, 'heroSlideBtn', '最新スライドを読む →');
-    html = html.replace(/(<!-- fallback:this-week -->)[\s\S]*?(<!-- fallback:end -->)/i,
-      `$1<div id="weekGrid" class="week-grid"><a class="week-card is-today" href="${slideUrl}"><span class="today-flag">LATEST</span><span class="week-day">${slideDate}</span><div class="week-title">${escapeHtml(heroTitle)}</div><span class="week-go">スライドを読む →</span></a></div>$2`);
   }
+  html = replaceFirst(html, /(<!-- fallback:this-week -->)[\s\S]*?(<!-- fallback:end -->)/i,
+    (_match, start, end) => start + weekFallback(slide, slideMeta) + end, 'weekly slide fallback');
   html = replaceHrefById(html, 'heroSlideBtn', slideUrl, 'hero slide button');
   // todaySlideCard was the old wrapper ID. Keep compatibility while allowing
   // the new trends card to own the slide link directly.
@@ -525,7 +567,7 @@ function updateHomepage(data, slide, slideUrl) {
   html = replaceGrid(
     html,
     'catGrid',
-    `        <div id="catGrid" class="cat-grid" data-news-date="${escapeHtml(data.news_date || '')}">\n${catFallback}\n          <noscript>\n            <div class="cat-card"><div class="cat-label">LATEST</div><div class="cat-title">${escapeHtml(heroTitle)}</div><div class="cat-source"><a href="${slideUrl}">今日のスライドを見る →</a></div></div>\n          </noscript>\n        </div>`
+    `        <div id="catGrid" class="cat-grid" data-news-date="${escapeHtml(data.news_date || '')}" data-excluded-news-urls="${escapeHtml(JSON.stringify([...HOMEPAGE_NEWS_EXCLUSIONS]))}">\n${catFallback}\n          <noscript>\n            <div class="cat-card"><div class="cat-label">LATEST</div><div class="cat-title">${escapeHtml(heroTitle)}</div><div class="cat-source"><a href="${slideUrl}">今日のスライドを見る →</a></div></div>\n          </noscript>\n        </div>`
   );
 
   html = replaceFirst(
@@ -770,7 +812,7 @@ function updateDailyBriefing() {
   const japanese = (value) => /[ぁ-んァ-ヶ一-龯]/.test(value || '');
   const seen = new Set();
   const items = (Array.isArray(report.headlines) ? report.headlines : []).map(reviewedSummary)
-    .filter(item => item && item.title && !seen.has(item.title) && seen.add(item.title))
+    .filter(item => item && item.title && isHomepageNews(item) && !seen.has(item.title) && seen.add(item.title))
     .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)).slice(0, 3);
   const reportUrl = date && fs.existsSync(path.join(ROOT, 'presentations', 'daily_reports', `auto_daily_report_${date.replace(/-/g, '_')}.html`))
     ? `presentations/daily_reports/auto_daily_report_${date.replace(/-/g, '_')}.html` : 'presentations/auto_daily_report.html';
@@ -874,7 +916,8 @@ function main() {
         },
       ],
     },
-    sections: latestNews.sections,
+    sections: Object.fromEntries(Object.entries(latestNews.sections).map(([key, items]) =>
+      [key, items.filter(isHomepageNews)])),
   };
 
   fs.mkdirSync(NEWS_DIR, { recursive: true });

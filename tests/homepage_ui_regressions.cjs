@@ -13,12 +13,28 @@ function element(attrs = {}) {
     querySelectorAll() { return []; }, contains(el) { return el===this; }
   };
 }
-function loadData({ latest = null, builtDate = '2026-10-09', slideDate = null } = {}) {
-  const grid=element({'data-news-date':builtDate}); grid.innerHTML='<a class="cat-card">Verified static card</a>';
+function loadData({ latest = null, builtDate = '2026-10-09', slideDate = null, excludedUrls = [] } = {}) {
+  const grid=element({'data-news-date':builtDate,'data-excluded-news-urls':JSON.stringify(excludedUrls)}); grid.innerHTML='<a class="cat-card">Verified static card</a>';
   const hero=slideDate ? element({href:'presentations/day_slides/day_slide_'+slideDate.replaceAll('-','_')+'.html'}) : null;
   const doc={ getElementById(id) { return id==='catGrid' ? grid : id==='heroSlideBtn' ? hero : null; }, querySelectorAll() { return []; } };
   const code=scripts.find(s=>s.includes('var LATEST_JSON')).replace(/\}\)\(\);\s*$/, 'globalThis.api={latestDate,latestForDate,renderCategories,formatGeneratedClock};})();');
-  const c={document:doc, fetch:(url)=> latest ? Promise.resolve({ok:true,json:()=>Promise.resolve(url==='news/latest.json'?latest:[]),text:()=>Promise.resolve('')}) : Promise.reject(new Error('offline')), Date, console}; vm.createContext(c);vm.runInContext(code,c);return {api:c.api,grid};
+  const c={document:doc, fetch:(url)=> latest ? Promise.resolve({ok:true,json:()=>Promise.resolve(url==='news/latest.json'?latest:[]),text:()=>Promise.resolve('')}) : Promise.reject(new Error('offline')), Date, URL, console}; vm.createContext(c);vm.runInContext(code,c);return {api:c.api,grid};
+}
+
+for (const suffix of ['', '/', '/?utm_source=feed#summary']) {
+ test('cached news cannot reintroduce an explicitly excluded article: '+suffix,()=>{
+  const excluded='https://gigazine.net/news/20261017-sauna-camp-machiasobi31';
+  const {api,grid}=loadData({excludedUrls:[excluded]});
+  const latest={sections:{tools:[
+   {title:'Excluded camp article',source:{url:excluded+suffix}},
+   {title:'Useful AI article from the same publisher',source:{url:'https://gigazine.net/news/20261017-agentsview'}}
+  ]}};
+  const before=JSON.stringify(latest);
+  api.renderCategories(latest);
+  assert.ok(!grid.innerHTML.includes('Excluded camp article'));
+  assert.ok(grid.innerHTML.includes('Useful AI article from the same publisher'));
+  assert.equal(JSON.stringify(latest),before);
+ });
 }
 test('news_date takes priority over slide/generated date',()=>{
  const {api}=loadData();assert.equal(api.latestDate({news_date:'2026-10-09',generated_at:'2026-10-08T09:00:00+09:00'}),'2026-10-09');
