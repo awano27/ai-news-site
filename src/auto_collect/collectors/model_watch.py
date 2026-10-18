@@ -92,9 +92,11 @@ def parse_rss(xml: str) -> List[Dict]:
 def parse_dated_html(page: str, base_url: str = "") -> List[Dict]:
     """Entries from pages that print "Month D, YYYY" next to each item.
 
-    The title is the first heading/bold text after the date (changelogs, card
-    lists); if the stretch up to the next date has none, the nearest heading
-    before the date (featured cards put the headline above the date).
+    Changelogs list several items under one date heading, so each <li> after
+    the date is its own entry, titled by a leading bold label ("<strong>Gemini
+    4 Argon GA</strong>: ...") or else its text. Card lists have no <li>: the
+    title is the first heading after the date, or the nearest heading before
+    it (featured cards put the headline above the date).
     """
     matches = list(_STANDALONE_DATE_RE.finditer(page))
     entries, seen = [], set()
@@ -103,29 +105,62 @@ def parse_dated_html(page: str, base_url: str = "") -> List[Dict]:
         if not day:
             continue
         end = matches[i + 1].start() if i + 1 < len(matches) else len(page)
-        window = page[m.end():min(end, m.end() + 4000)]
-        title = ""
-        heads = [_text(h.group(2)) for h in _HEAD_RE.finditer(window)]
-        heads = [h for h in heads if h and not _DATE_RE.fullmatch(h)]
-        if heads:
-            title = heads[0]
-        else:
-            items = [_text(li) for li in _LI_RE.findall(window)]
-            if items and items[0]:
-                title = items[0]
-            else:
+        start = m.end(1)  # the match also consumes the "<" opening the next tag
+        window = page[start:min(end, start + 12000)]
+        listing = _LIST_AFTER_DATE_RE.match(window)
+        block = _top_level_items(window[listing.end():]) if listing else []
+        titles = [t for t in (_li_title(li) for li in block) if t]
+        if not titles:
+            heads = [_text(h.group(2)) for h in _HEAD_RE.finditer(window)]
+            heads = [h for h in heads if h and not _DATE_RE.fullmatch(h)]
+            if not heads:
                 before = [_text(h.group(2)) for h in _HEAD_RE.finditer(page[max(0, m.start() - 1500):m.start()])]
-                before = [h for h in before if h and not _DATE_RE.fullmatch(h)]
-                title = before[-1] if before else ""
-        if not title:
-            continue
-        title = title[:160]
-        key = (day, title)
-        if key in seen:
-            continue
-        seen.add(key)
-        entries.append({"date": day.isoformat(), "title": title, "url": base_url})
+                heads = [h for h in before if h and not _DATE_RE.fullmatch(h)][-1:]
+            titles = heads[:1]
+        for title in titles:
+            title = title[:160]
+            key = (day, title)
+            if key in seen:
+                continue
+            seen.add(key)
+            entries.append({"date": day.isoformat(), "title": title, "url": base_url})
     return entries
+
+
+# The date heading is followed directly by its item list (only closing tags,
+# empty spans and the heading's copy-link button in between). A list further
+# away, such as the footer navigation, does not belong to the date.
+_LIST_AFTER_DATE_RE = re.compile(
+    r"(?:\s|</[a-z0-9]+>|<span\b[^>]*>|<button\b.*?</button>|<!--.*?-->)*<[uo]l\b[^>]*>", re.S | re.I
+)
+_LEAD_BOLD_RE = re.compile(r"^(?:\s|<p\b[^>]*>|<span\b[^>]*>\s*</span>)*<(strong|b)\b[^>]*>(.*?)</\1>", re.S | re.I)
+
+
+_LIST_TAG_RE = re.compile(r"<(/?)(ul|ol|li)\b[^>]*>", re.I)
+
+
+def _top_level_items(html_after_list_open: str) -> List[str]:
+    """Inner HTML of each top-level <li> until the list closes (nested lists
+    stay inside their parent item)."""
+    items, depth, item_start = [], 0, None
+    for tag in _LIST_TAG_RE.finditer(html_after_list_open):
+        closing, name = tag.group(1) == "/", tag.group(2).lower()
+        if name in ("ul", "ol"):
+            if closing and depth == 0:
+                break
+            depth += -1 if closing else 1
+        elif depth == 0:
+            if not closing:
+                item_start = tag.end()
+            elif item_start is not None:
+                items.append(html_after_list_open[item_start:tag.start()])
+                item_start = None
+    return items
+
+
+def _li_title(li: str) -> str:
+    lead = _LEAD_BOLD_RE.match(li)
+    return _text(lead.group(2)) if lead else _text(li)
 
 
 def parse_openrouter(payload: Dict, prefix: str) -> List[Dict]:

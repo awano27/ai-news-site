@@ -27,6 +27,22 @@ def test_rss_and_dated_html_parsers():
     assert [e["title"] for e in mw.parse_dated_html(CARDS)] == ["Featured headline", "Introducing Grok Voice 3.0"]
 
 
+GROUPED_NOTES = """<h3 id="october-15-2026">October 15, 2026<span><button>copy</button></span></h3> <ul>
+<li>The Compliance API now returns <strong>Instructions for Claude</strong>.</li>
+<li><a href="/fast-mode">Fast mode</a> is out of research preview for Claude Opus 5.5.<ul><li>nested detail</li></ul></li>
+</ul><h3>October 14, 2026</h3><ul><li>OpenTelemetry export in beta.</li></ul>
+<footer><ul><li>Products</li><li>Claude Code</li></ul></footer>"""
+
+
+def test_every_item_under_one_date_heading_is_an_entry_and_footers_are_not():
+    entries = [(e["date"], e["title"]) for e in mw.parse_dated_html(GROUPED_NOTES)]
+    assert entries == [
+        ("2026-10-15", "The Compliance API now returns Instructions for Claude ."),
+        ("2026-10-15", "Fast mode is out of research preview for Claude Opus 5.5. nested detail"),
+        ("2026-10-14", "OpenTelemetry export in beta."),
+    ]
+
+
 def test_launch_needs_a_model_name_and_customer_stories_are_ignored():
     assert mw.is_model_news("Introducing GPT-7")
     assert not mw.is_model_news("Amp puts AI agents to work with OpenAI models")
