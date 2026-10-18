@@ -78,7 +78,7 @@ def assert_archive_at_page_end(html):
     main = page.find("main", id="main")
     archive = page.find("section", id="archive")
     assert archive is not None and archive.parent is main
-    assert main.find_all(recursive=False)[-1] is archive
+    assert main.find_all("section", recursive=False)[-1] is archive
     assert archive.find_previous_sibling("section").get("id") == "resources"
     assert main.find_next_sibling().name == "footer"
     assert len(page.select("#archive")) == 1
@@ -106,7 +106,8 @@ def assert_comparison_promo_removed(html):
     assert page.select_one(".news-comparison-feature") is None
     assert page.select_one("#news-comparison-title") is None
     assert "news-comparison-card" not in html
-    assert page.select_one("#featured-reports").find_next_sibling().get("id") == "daily-briefing"
+    assert page.select_one("#featured-reports").find_parent("section", class_="hero") is not None
+    assert page.select_one(".hero").find_next_sibling("section").get("id") == "daily-briefing"
 
 
 def test_comparison_promo_is_removed_without_an_empty_section():
@@ -169,7 +170,7 @@ def assert_entry_contract(html):
     assert "btn-ghost" in page.by_id("heroNewsBtn")[1].get("class", "").split()
     ids = [attrs.get("id") for tag, attrs in page.elements if tag == "a"]
     assert ids.index("heroTodayBtn") < ids.index("dailyReportLink") < ids.index("heroNewsBtn")
-    assert page.by_id("heroTwist")[0] == "h3"
+    assert page.by_id("heroTwist")[0] == "h2"
     assert page.by_id("heroWhy")[0] == "p"
     return page
 
@@ -291,7 +292,7 @@ def test_build_homepage_recovers_empty_state_when_a_slide_returns(tmp_path: Path
     assert restored.returncode == 0, restored.stdout + restored.stderr
     updated = index.read_text(encoding="utf-8")
     assert_entry_contract(updated)
-    assert "復帰した日次見出し</h3>" in updated
+    assert "復帰した日次見出し</h2>" in updated
     assert "復帰後の要点です。</p>" in updated
     assert "公開スライドなし" not in updated
     assert "最新スライドを読む" in updated
@@ -335,7 +336,8 @@ def test_daily_briefing_independent_dates_and_regeneration(tmp_path):
         html = (tmp_path / "index.html").read_text(encoding="utf-8")
         fragment = html.split('id="dailyHeadlines"', 1)[1].split('</ol>', 1)[0]
         assert fragment.count('<li>') == 3
-        assert '何が変わったか:' in fragment and '誰に関係するか:' in fragment
+        assert '出典の要約:' in fragment and '運営者の見方:' in fragment
+        assert '開発者に関係します。' not in fragment
         assert '&lt;script&gt;' in fragment and '<script>' not in fragment
         assert f'id="dailyReportDate">{date}' in html
         assert 'id="todaySlideDate" class="main-card-date">2026-10-06' in html

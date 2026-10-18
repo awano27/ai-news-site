@@ -30,8 +30,24 @@ const CATEGORY_LABELS = {
 const HOMEPAGE_NEWS_EXCLUSIONS = new Set([
   'https://gigazine.net/news/20261017-sauna-camp-machiasobi31',
 ]);
+const HOMEPAGE_EDITORIAL_JSON = path.join(ROOT, 'config', 'homepage_editorial.json');
+
+// Keep promotion conservative: archive data may contain unrelated products,
+// events, maps, or security stories. A title/summary that names an AI system,
+// model, agent, or established AI term remains eligible.
+const AI_RELEVANT_SHORT = /(?<![A-Za-z])(?:AI|AIs|LLM|LLMs|GPT|AGI|NLP|MoE|HBM|GPU|GPUs|RAG|MCP|NVIDIA|LTX)(?![A-Za-z])/i;
+const AI_RELEVANT_NAME = /ChatGPT|OpenAI|Anthropic|DeepSeek|Gemini|Claude|Grok|Copilot|DeepMind|Gemma|Hugging\s*Face|Llama|Qwen|Mistral|xAI|Transformer/i;
+const AI_RELEVANT_PHRASE = /人工知能|生成AI|機械学習|深層学習|言語モデル|生成モデル|ディープラーニング|超知能|AIエージェント|プロンプト(?:エンジニアリング)?|ファインチューニング|AIベンチマーク|AI向け(?:データセンター|半導体)|基盤モデル|オープンモデル/i;
+
+function isAiRelevantItem(item) {
+  if (item && item.reviewed_summary) return true;
+  const text = [item && item.title, item && item.blurb, item && item.summary,
+    item && item.tldr].filter(Boolean).join(' ');
+  return AI_RELEVANT_SHORT.test(text) || AI_RELEVANT_NAME.test(text) || AI_RELEVANT_PHRASE.test(text);
+}
 
 function isHomepageNews(item) {
+  if (!isAiRelevantItem(item)) return false;
   try {
     const url = new URL(item && (item.url || sourceUrl(item)));
     return !HOMEPAGE_NEWS_EXCLUSIONS.has(url.origin + url.pathname.replace(/\/+$/, ''));
@@ -270,13 +286,18 @@ function scoreOf(item) {
   return clamp(Number(item && item.stars) || 0, 0, 5);
 }
 
-function collectRankingItems(data, slideUrl) {
+function collectRankingItems(data, slideUrl, excludeUrls = []) {
   const pool = [];
   const sections = data && data.sections ? data.sections : {};
+  const blockedUrls = new Set(excludeUrls.map(normalizedArticleUrl).filter(Boolean));
+  const seenTitles = new Set();
   for (const [category, items] of Object.entries(sections)) {
     if (!Array.isArray(items)) continue;
     for (const item of items) {
-      if (!item || !item.title) continue;
+      if (!item || !item.title || !isHomepageNews(item)) continue;
+      const url = sourceUrl(item);
+      if (blockedUrls.has(normalizedArticleUrl(url)) || seenTitles.has(item.title)) continue;
+      seenTitles.add(item.title);
       pool.push({
         title: item.title,
         category: item.category || category,
@@ -322,7 +343,7 @@ function collectCategoryItems(data, excludeUrls) {
     seen.add(key);
     const list = sections[key];
     if (!Array.isArray(list) || !list.length) continue;
-    const item = list.find((x) => x && x.title && !blocked.has(sourceUrl(x)));
+    const item = list.find((x) => x && x.title && isHomepageNews(x) && !blocked.has(sourceUrl(x)));
     if (!item) continue;
     items.push({
       label: CATEGORY_LABELS[key] || key.toUpperCase(),
@@ -444,9 +465,20 @@ function replaceGrid(html, id, replacement) {
   const start = html.indexOf(`<div id="${id}"`);
   if (start === -1) throw new Error(`Missing #${id} in index.html`);
   const lineStart = html.lastIndexOf('\n', start) + 1;
-  const endMarker = '\n      </div>\n    </section>';
-  const end = html.indexOf(endMarker, start);
-  if (end === -1) throw new Error(`Could not find closing section after #${id}`);
+  const tagPattern = /<\/?div\b[^>]*>/gi;
+  tagPattern.lastIndex = start;
+  let depth = 0;
+  let end = -1;
+  let match;
+  while ((match = tagPattern.exec(html))) {
+    if (match[0][1] === '/') depth -= 1;
+    else depth += 1;
+    if (depth === 0) {
+      end = match.index + match[0].length;
+      break;
+    }
+  }
+  if (end === -1) throw new Error(`Could not find closing div after #${id}`);
   return html.slice(0, lineStart) + replacement + html.slice(end);
 }
 
@@ -504,14 +536,15 @@ function updateHomepage(data, slide, slideUrl) {
   const heroTitle = extractTitle(slideHtml, slideDate);
   const heroTwist = extractHeroTwist(slideHtml, heroTitle);
   const heroWhy = extractHeroWhy(slideHtml, heroTitle);
-  const rankingItems = collectRankingItems(data, slideUrl);
+  const briefingSelection = homepageBriefingSelection(readJson(AUTO_DAILY_JSON, {}));
+  const rankingItems = collectRankingItems(data, slideUrl, briefingSourceUrls(briefingSelection));
   const categoryItems = collectCategoryItems(data, rankingItems.map((item) => item.url));
   let html = fs.readFileSync(INDEX_HTML, 'utf8');
 
-  html = html.replace(/<meta http-equiv="Content-Security-Policy"[\s\S]*?\/>\n\s*/i, '');
+  html = html.replace(/<meta http-equiv="Content-Security-Policy"[\s\S]*?\/>\r?\n\s*/gi, '');
   html = replaceFirst(
     html,
-    /(<meta name="referrer" content="strict-origin-when-cross-origin" \/>\n)/,
+    /(<meta name="referrer" content="strict-origin-when-cross-origin" \/>\r?\n)/,
     `$1  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; font-src https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com; form-action 'self'; upgrade-insecure-requests" />\n`,
     'CSP meta'
   );
@@ -728,6 +761,7 @@ function buildSectionsFromAutoDaily() {
       stars: h.score_status === 'unscored' ? null : starsForScore(h.score, h.importance),
       ...(h.published_at ? { published_at: h.published_at } : {}),
       ...(h.score_status ? { score_status: h.score_status } : {}),
+      ...(h.reviewed_summary ? { reviewed_summary: h.reviewed_summary } : {}),
       source: normalizeSource(h, h.source),
       ...claimEvidenceFor(h, reportDate),
     });
@@ -802,26 +836,143 @@ function updateSearchCoverage() {
   }
 }
 
+function validCalendarDate(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    Number.isFinite(Date.parse(`${value}T00:00:00Z`)) &&
+    new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+}
+
+function nonemptyText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+// The editorial file is an optional, human-authored layer over the current
+// report. A malformed or stale file never becomes homepage content.
+function loadHomepageEditorial(report) {
+  if (!fs.existsSync(HOMEPAGE_EDITORIAL_JSON)) return { status: 'missing', items: [] };
+  let config;
+  try {
+    config = readJson(HOMEPAGE_EDITORIAL_JSON, null);
+  } catch (error) {
+    console.warn(`[build-homepage-latest] homepage editorial config ignored: ${error.message}`);
+    return { status: 'invalid', items: [] };
+  }
+  if (!config || !validCalendarDate(config.report_date) ||
+      !Array.isArray(config.articles) || config.articles.length > 3) {
+    console.warn('[build-homepage-latest] homepage editorial config ignored: report date or article list is invalid');
+    return { status: 'invalid', items: [] };
+  }
+  if (config.report_date !== report.date) {
+    console.warn('[build-homepage-latest] homepage editorial config ignored: report date is stale');
+    return { status: 'stale', items: [] };
+  }
+
+  const candidates = new Map();
+  for (const item of Array.isArray(report.headlines) ? report.headlines : []) {
+    const key = normalizedArticleUrl(item && item.url);
+    if (key && !candidates.has(key)) candidates.set(key, item);
+  }
+  const seen = new Set();
+  const items = [];
+  for (const article of config.articles) {
+    const url = normalizedArticleUrl(article && article.url);
+    const source = url && candidates.get(url);
+    const sourceDate = article && article.source_date;
+    const primaryUrl = article && article.primary_url;
+    const primaryDate = article && article.primary_date;
+    const primaryLabel = article && article.primary_label;
+    const validPrimaryUrl = primaryUrl === null || primaryUrl === undefined || normalizedArticleUrl(primaryUrl);
+    const validPrimaryDate = primaryDate === null || primaryDate === undefined || validCalendarDate(primaryDate);
+    const validSourceDate = sourceDate === null || sourceDate === undefined || validCalendarDate(sourceDate);
+    if (!url || seen.has(url) || !source || !isHomepageNews(source) ||
+        !['title', 'change', 'relevance', 'caution', 'evidence_label'].every(field => nonemptyText(article && article[field])) ||
+        !validSourceDate || !validPrimaryUrl || !validPrimaryDate ||
+        (primaryUrl && !nonemptyText(primaryLabel))) {
+      console.warn('[build-homepage-latest] homepage editorial config ignored: article does not match the current report');
+      return { status: 'invalid', items: [] };
+    }
+    seen.add(url);
+    items.push({
+      ...article,
+      url,
+      sourceItem: source,
+      report_date: report.date,
+      primary_url: primaryUrl ? normalizedArticleUrl(primaryUrl) : null,
+      source_date: sourceDate || null,
+      primary_date: primaryDate || null,
+      primary_label: primaryLabel || null,
+    });
+  }
+  return { status: 'valid', items };
+}
+
+function genericBriefingItems(report) {
+  const seen = new Set();
+  return (Array.isArray(report.headlines) ? report.headlines : [])
+    .map(reviewedSummary)
+    .filter(item => item && item.title && isHomepageNews(item) && !seen.has(item.title) && seen.add(item.title))
+    .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
+    .slice(0, 3);
+}
+
+function homepageBriefingSelection(report) {
+  const editorial = loadHomepageEditorial(report);
+  if (editorial.status === 'valid') return { items: editorial.items, editorial: true };
+  if (editorial.status === 'invalid') return { items: [], editorial: false };
+  return { items: genericBriefingItems(report), editorial: false };
+}
+
+function briefingSourceUrls(selection) {
+  return selection.items.map(item => item.url || sourceUrl(item)).filter(Boolean);
+}
+
+function renderEditorialBriefingItem(item) {
+  const sourceUrlValue = normalizedArticleUrl(item.url);
+  const primaryUrl = item.primary_url;
+  const sourceLink = sourceUrlValue
+    ? ` <a href="${escapeHtml(sourceUrlValue)}" target="_blank" rel="noopener noreferrer">原文を読む →</a>` : '';
+  const primaryLink = primaryUrl
+    ? ` <a href="${escapeHtml(primaryUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.primary_label)} →</a>` : '';
+  const primaryLabel = primaryUrl
+    ? `${item.primary_label}（${item.primary_date || '日付未確認'}）`
+    : '未確認';
+  const editorialText = value => String(value || '').replace(/\s+/g, ' ').trim();
+  return `<li><h3>${escapeHtml(item.title)}</h3>` +
+    `<p><strong>${escapeHtml(item.evidence_label)}:</strong> ${escapeHtml(editorialText(item.change))}</p>` +
+    `<p><strong>運営者の見方:</strong> ${escapeHtml(editorialText(item.relevance))}</p>` +
+    `<p><strong>利用前に:</strong> ${escapeHtml(editorialText(item.caution))}</p>` +
+    `<p class="article-dates"><strong>当サイト掲載:</strong> ${escapeHtml(item.report_date || '未確認')} · <strong>原文掲載:</strong> ${escapeHtml(item.source_date || '未確認')} · ` +
+    `<strong>一次資料:</strong> ${escapeHtml(primaryLabel)}${sourceLink}${primaryLink}` +
+    `</p></li>`;
+}
+
+function shortBriefingText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+}
+
+function renderGenericBriefingItem(item) {
+  const title = item && item.title ? item.title : '主要ニュース';
+  const change = item ? [item.tldr, item.summary].find(value => /[ぁ-んァ-ヶ一-龯]/.test(value || '')) : '';
+  const sourceLink = item && /^https?:\/\//i.test(item.url || '')
+    ? ` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">出典を読む →</a>` : '';
+  return `<li><h3>${escapeHtml(title)}</h3>` +
+    `<p><strong>出典の要約:</strong> ${escapeHtml(shortBriefingText(change) || '日本語要約は未作成です。原文の出典をご確認ください。')}${sourceLink}</p>` +
+    '<p><strong>運営者の見方:</strong> 未確認です。影響対象は未確認です。</p>' +
+    '<p><strong>利用前に:</strong> 運営者は未検証で、一次資料は未確認です。</p></li>';
+}
+
 // Independent dates: report content must not inherit the slide's calendar date.
 function updateDailyBriefing() {
   if (!fs.existsSync(INDEX_HTML)) return;
   let html = fs.readFileSync(INDEX_HTML, 'utf8');
   const report = readJson(AUTO_DAILY_JSON, {});
   const date = /^\d{4}-\d{2}-\d{2}$/.test(report.date || '') ? report.date : null;
-  const short = (value) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 180);
-  const japanese = (value) => /[ぁ-んァ-ヶ一-龯]/.test(value || '');
-  const seen = new Set();
-  const items = (Array.isArray(report.headlines) ? report.headlines : []).map(reviewedSummary)
-    .filter(item => item && item.title && isHomepageNews(item) && !seen.has(item.title) && seen.add(item.title))
-    .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)).slice(0, 3);
+  const selection = homepageBriefingSelection(report);
   const reportUrl = date && fs.existsSync(path.join(ROOT, 'presentations', 'daily_reports', `auto_daily_report_${date.replace(/-/g, '_')}.html`))
     ? `presentations/daily_reports/auto_daily_report_${date.replace(/-/g, '_')}.html` : 'presentations/auto_daily_report.html';
-  const content = date && items.length ? items.map(item => {
-    const change = [item.tldr, item.summary].find(japanese) || '日本語要約は未作成です。原文の出典をご確認ください。';
-    const impact = japanese(item.impact) ? item.impact : '影響対象は未確認です。';
-    const sourceLink = /^https?:\/\//i.test(item.url || '') ? ` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">出典を読む →</a>` : '';
-    return `<li><h3>${escapeHtml(item.title)}</h3><p><strong>何が変わったか:</strong> ${escapeHtml(short(change))}</p><p><strong>誰に関係するか:</strong> ${escapeHtml(short(impact))}</p>${sourceLink}</li>`;
-  }).join('\n') : '<li>主要ニュースは更新待ちです。日次レポートをご確認ください。</li>';
+  const content = date && selection.items.length
+    ? selection.items.map(item => selection.editorial ? renderEditorialBriefingItem(item) : renderGenericBriefingItem(item)).join('\n')
+    : date ? renderGenericBriefingItem(null) : '<li>主要ニュースは更新待ちです。日次レポートをご確認ください。</li>';
   html = html.replace(/<!-- homepage:headlines -->[\s\S]*?<!-- homepage:headlines:end -->/, `<!-- homepage:headlines --><ol id="dailyHeadlines">${content}</ol><!-- homepage:headlines:end -->`);
   html = replaceElementText(html, 'dailyReportDate', date || '未確認');
   html = replaceElementText(html, 'dailyReportStatus', date && date !== new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10) ? '（最新掲載分・本日分ではありません）' : '');

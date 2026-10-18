@@ -87,10 +87,10 @@ def test_newer_published_news_is_preserved_when_report_lags(tmp_path):
     report.write_text(json.dumps({'date': '2026-10-11', 'headlines': []}), encoding='utf-8')
     (root / 'daily-news').mkdir()
     (root / 'daily-news/data.json').write_text(json.dumps({'date': '2026-10-12', 'items': [{'title': 'published'}], 'total': 1}), encoding='utf-8')
-    items = [{'title': 'published news %d' % n, 'url': 'https://example.com/%d' % n} for n in range(64)]
+    items = [{'title': 'published AI news %d' % n, 'url': 'https://example.com/%d' % n} for n in range(64)]
     (root / 'news/latest.json').write_text(json.dumps({'news_date': '2026-10-12', 'sections': {'AI': items}}), encoding='utf-8')
     assert run(root, '--strict').returncode == 0
     data = json.loads((root / 'news/latest.json').read_text(encoding='utf-8'))
     assert data['news_date'] == '2026-10-12'
     assert len(data['sections']['AI']) == 64
-    assert data['sections']['AI'][0]['title'] == 'published news 0'
+    assert data['sections']['AI'][0]['title'] == 'published AI news 0'

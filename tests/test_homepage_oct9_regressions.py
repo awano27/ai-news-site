@@ -59,10 +59,10 @@ import pytest
 def test_reviewed_copy_does_not_cross_url_identity_boundaries(tmp_path,url):
     config=tmp_path/'config';config.mkdir()
     shutil.copy2(ROOT/'config/reviewed_news_summaries.json',config)
-    _,data=build(tmp_path,[{'title':'Original title','url':url,'score':70}])
+    _,data=build(tmp_path,[{'title':'Original AI title','url':url,'score':70}])
     from src.auto_collect.reviewed_summaries import apply_reviewed_summary
-    expected=apply_reviewed_summary({'title':'Original title','url':url,'score':70})
-    assert data['sections']['tech'][0]['title']==expected['title']=='Original title'
+    expected=apply_reviewed_summary({'title':'Original AI title','url':url,'score':70})
+    assert data['sections']['tech'][0]['title']==expected['title']=='Original AI title'
 
 @pytest.mark.parametrize('corruption',['date','publisher','duplicate','version'])
 def test_javascript_rejects_malformed_editorial_registry(tmp_path,corruption):
@@ -75,7 +75,7 @@ def test_javascript_rejects_malformed_editorial_registry(tmp_path,corruption):
     config=tmp_path/'config';config.mkdir()
     (config/'reviewed_news_summaries.json').write_text(json.dumps(payload))
     with pytest.raises(AssertionError,match='reviewed summaries'):
-        build(tmp_path,[{'title':'Original title','url':key,'score':70}])
+        build(tmp_path,[{'title':'Original AI title','url':key,'score':70}])
 
 
 def test_daily_news_date_follows_actual_timeline_on_next_day_rollover(tmp_path):

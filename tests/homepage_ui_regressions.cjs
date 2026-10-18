@@ -44,7 +44,7 @@ test('failed or rejected fetch retains verified static category cards',()=>{
  api.renderCategories({sections:{}});assert.equal(grid.innerHTML,before);
 });
 test('category source attributes are escaped',()=>{
- const {api,grid}=loadData();api.renderCategories({sections:{tech:[{title:'ニュース',source:{url:'https://example.org/" onclick="alert(1)',name:'出典'}}]}});
+ const {api,grid}=loadData();api.renderCategories({sections:{tech:[{title:'AIニュース',source:{url:'https://example.org/" onclick="alert(1)',name:'出典'}}]}});
  assert.ok(!grid.innerHTML.includes('href="https://example.org/" onclick="'));assert.ok(grid.innerHTML.includes('&quot;'));
 });
 function loadMenu(width=1180) {
@@ -90,7 +90,7 @@ for (const newsDate of ['2026-99-99','2026-02-30','not-a-date',null]) {
  });
 }
 test('integrated rendering uses Oct9 news even with Oct8 generated timestamp and Oct10 slide', async()=>{
- const {grid}=loadData({slideDate:'2026-10-10',latest:{news_date:'2026-10-09',generated_at:'2026-10-08T09:00:00+09:00',sections:{tech:[{title:'Verified Oct9 news',source:{url:'https://example.test'}}]}}});
+ const {grid}=loadData({slideDate:'2026-10-10',latest:{news_date:'2026-10-09',generated_at:'2026-10-08T09:00:00+09:00',sections:{tech:[{title:'AI: Verified Oct9 news',source:{url:'https://example.test'}}]}}});
  await new Promise(setImmediate);assert.ok(grid.innerHTML.includes('Verified Oct9 news'));
 });
 test('stale fetched news retains more recent static cards', async()=>{
@@ -115,4 +115,15 @@ for (const iso of ['2026-10-10', '', null, 'not-a-date', '2026-99-99T07:23:00Z']
 }
 test('legacy timezone-free timestamp retains its recorded JST clock',()=>{
  const {api}=loadData();assert.equal(api.formatGeneratedClock('2026-10-10T16:23:00').time,'16:23');
+});
+
+
+test('cached category labels alone cannot promote unrelated articles',()=>{
+ const {api,grid}=loadData();
+ api.renderCategories({sections:{tools:[
+  {title:'サウナとキャンプ場',category:'AI Model',source:{url:'https://example.org/camp'}},
+  {title:'AIエージェントの実行記録を検索',source:{url:'https://example.org/ai'}}
+ ]}});
+ assert.ok(!grid.innerHTML.includes('サウナ'));
+ assert.ok(grid.innerHTML.includes('AIエージェント'));
 });
