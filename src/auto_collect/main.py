@@ -16,8 +16,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import List, Dict
 
-from .config import PROJECT_ROOT, INPUT_DAY_DIR, LOG_DIR
-from .collectors import RSSAutoCollector, HNAutoCollector, JPCollector, XBookmarksCollector
+from .config import PROJECT_ROOT, INPUT_DAY_DIR, LOG_DIR, x_scout_dry_run, x_scout_enabled
+from .collectors import RSSAutoCollector, HNAutoCollector, JPCollector, XBookmarksCollector, XScoutCollector
 from .collectors.github_trending import GitHubTrendingCollector
 from .collectors.benchmark_collector import BenchmarkCollector
 from .collectors.funding_collector import FundingCollector
@@ -64,6 +64,24 @@ def parse_args():
         help="Regenerate even if today's output already exists",
     )
     return p.parse_args()
+
+
+def _log_x_scout_dry_run(processor: LLMProcessor, scout_items: List[Dict], logger: logging.Logger) -> None:
+    """Score X Scout for the log only. Nothing from this list is published."""
+    if not scout_items:
+        logger.info("[X Scout] dry-run quality input=0 article_count=0 excluded=0")
+        return
+    if not processor.available:
+        logger.warning("[X Scout] dry-run skipped quality counts; provider unavailable")
+        return
+    _kept, quality = filter_publishable(processor.process_x_posts(scout_items), min_articles=3, min_sources=2)
+    logger.info(
+        "[X Scout] dry-run quality input=%d article_count=%d excluded=%d status=%s",
+        quality.get("input_count", 0),
+        quality.get("article_count", 0),
+        quality.get("excluded_count", 0),
+        quality.get("status", ""),
+    )
 
 
 def build_processor(provider_name: str) -> LLMProcessor:
@@ -143,6 +161,22 @@ def main():
         x_articles = []
         x_authoritative = False
 
+    # X Scout is a separate verified feed. It stays off unless X_SCOUT_ENABLED=true.
+    # Accepted rows join x_articles and then the same summary and quality gate.
+    # Their primary_date window is applied here, at collection, and is not applied
+    # again later (same rule as X bookmarks after the 36-hour lookback).
+    scout_items = []
+    if x_scout_enabled():
+        try:
+            scout_items = XScoutCollector().collect(today)
+        except Exception as e:
+            logger.warning("[Main] X Scout failed: %s", e)
+            scout_items = []
+        if x_scout_dry_run():
+            logger.info("[Main] X Scout dry-run: %d accepted posts, not published", len(scout_items))
+        else:
+            x_articles.extend(scout_items)
+
     logger.info(f"[Main] Collected {len(articles)} raw articles + {len(x_articles)} X bookmarks")
     articles = deduplicate(articles)
     logger.info(f"[Main] {len(articles)} after dedup")
@@ -169,6 +203,8 @@ def main():
         logger.error(f"[Main] Funding failed: {e}")
 
     if not articles and not github_raw and not x_articles:
+        if x_scout_enabled() and x_scout_dry_run():
+            _log_x_scout_dry_run(build_processor(args.provider), scout_items, logger)
         _quality_log(today, {"date": today.isoformat(), "status": "failed",
                             "failure_reason": "collection_unavailable", "errors": ["No articles collected."]})
         logger.error("[Main] No headline, GitHub, or X bookmarks collected; aborting report generation")
@@ -206,6 +242,8 @@ def main():
 
     x_processed = processor.process_x_posts(x_articles)
     logger.info(f"[Main] Processed {len(x_processed)} X bookmarks")
+    if x_scout_enabled() and x_scout_dry_run():
+        _log_x_scout_dry_run(processor, scout_items, logger)
 
     # === Phase 2.5: Cross-section dedup (post-LLM) ===
     # Catches canonical-URL leakage across sections, HuggingFace base/quant
@@ -233,9 +271,10 @@ def main():
 
     # News publishes today and yesterday only. Apply that window before the
     # gate so article_count and the 20% ratio match the page. X bookmarks are
-    # already limited by X_LOOKBACK_HOURS at collection; applying this cutoff
-    # again drops an entire overnight batch (for example every 10/13 bookmark
-    # on a 10/15 02:49 run). Older news rows are not quality exclusions.
+    # already limited by X_LOOKBACK_HOURS at collection, and X Scout is limited
+    # by primary_date in the collector. Applying this cutoff again drops an
+    # entire overnight batch (for example every 10/13 bookmark on a 10/15
+    # 02:49 run). Older news rows are not quality exclusions.
     def _in_window(rows):
         kept_rows = [row for row in rows if within_publication_window(row, today)]
         return kept_rows, len(rows) - len(kept_rows)

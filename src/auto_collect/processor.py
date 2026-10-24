@@ -264,6 +264,12 @@ class LLMProcessor:
             "category": post.get("category") or "X ポスト",
             "evidence_label": post.get("evidence_label") or "Curated",
         }
+        if post.get("x_url"):
+            row["x_url"] = post["x_url"]
+        if post.get("x_scout") is True:
+            row["x_scout"] = True
+        if isinstance(post.get("caveat"), str) and post["caveat"].strip():
+            row["caveat"] = post["caveat"].strip()
         if parsed is not None:
             row["ai_related"] = parsed.get("ai_related") is True
         if error:
