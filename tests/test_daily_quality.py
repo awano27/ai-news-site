@@ -200,6 +200,17 @@ def test_exclusion_ratio_above_twenty_percent_holds_the_day():
     assert any(err=='too many excluded articles: 21/100 > 20%' for err in quality['errors'])
 
 
+def test_thin_day_tolerates_the_usual_exclusion_count_but_not_a_provider_failure():
+    from src.auto_collect.quality import filter_publishable
+    # 2026-10-25 (Sunday): 20 of 78 excluded, the same count as a normal day.
+    _kept, quality=filter_publishable(_numbered(78, bad_at=set(range(58, 78))), min_articles=3, min_sources=2)
+    assert quality['status']=='passed'
+    assert quality['max_excluded_ratio']==0.30
+    _kept, quality=filter_publishable(_numbered(78, bad_at=set(range(48, 78))), min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert any(err=='too many excluded articles: 30/78 > 30%' for err in quality['errors'])
+
+
 def test_exclusion_ratio_of_exactly_twenty_percent_still_publishes():
     from src.auto_collect.quality import filter_publishable
     rows=_numbered(10, bad_at={8, 9})
@@ -243,7 +254,7 @@ def test_non_dict_article_is_excluded_without_a_title_or_url():
 def test_rate_limit_exclusions_remain_transient_when_the_day_is_held():
     from src.auto_collect.quality import failure_reason, filter_publishable
     rows=_numbered(8)
-    rows+=[article(url=f'https://example.com/rate{i}', source='Official' if i % 2 == 0 else 'Other', summary='English fallback', processing_status='fallback', processing_error='http_429') for i in range(3)]
+    rows+=[article(url=f'https://example.com/rate{i}', source='Official' if i % 2 == 0 else 'Other', summary='English fallback', processing_status='fallback', processing_error='http_429') for i in range(4)]
     _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
     assert quality['status']=='failed'
     assert failure_reason(rows, quality)=='transient_generation_failed'
@@ -252,7 +263,7 @@ def test_rate_limit_exclusions_remain_transient_when_the_day_is_held():
 def test_wait_budget_exclusions_remain_transient_when_the_day_is_held():
     from src.auto_collect.quality import failure_reason, filter_publishable
     rows=_numbered(8)
-    rows+=[article(url=f'https://example.com/wait{i}', source='Official' if i % 2 == 0 else 'Other', summary='English fallback', processing_status='fallback', processing_error='wait_budget_exceeded') for i in range(3)]
+    rows+=[article(url=f'https://example.com/wait{i}', source='Official' if i % 2 == 0 else 'Other', summary='English fallback', processing_status='fallback', processing_error='wait_budget_exceeded') for i in range(4)]
     _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
     assert quality['status']=='failed'
     assert failure_reason(rows, quality)=='transient_generation_failed'
