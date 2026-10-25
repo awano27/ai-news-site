@@ -76,7 +76,8 @@ def parse_day_txt(content: str, date_str: str) -> List[Dict]:
                 )
 
             # Parse new item
-            match = re.match(r"■ (.+?)（(.+?) / スコア: (\d+)）", line)
+            # Titles may contain full-width parentheses; anchor on the suffix.
+            match = re.match(r"■ (.+)（([^（）]+?) / スコア: (\d+)）\s*$", line)
             if match:
                 current_title = match.group(1)
                 current_category = match.group(2)

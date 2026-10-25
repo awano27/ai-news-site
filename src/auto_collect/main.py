@@ -253,7 +253,8 @@ def main():
 
     # News and X share one gate. input_count, article_count, japanese_count,
     # sources, the minimum of 3 articles and 2 sources, and the 20% exclusion
-    # ratio all use this combined list. A kept X post counts in those totals
+    # ratio (30% below 100 inputs, see quality.excluded_ratio_limit) all use
+    # this combined list. A kept X post counts in those totals
     # and contributes its rss_source (typically "X (@author)"). A dropped post
     # is quality.excluded with a reason and is not published. There is no
     # separate X budget. Six unrelated posts among 64 combined items stay

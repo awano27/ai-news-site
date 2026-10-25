@@ -32,3 +32,20 @@ def test_parse_daily_txt_keeps_last_item_in_its_section_at_section_boundary(
     assert [item["title"] for item in parsed["github"]] == ["GitHub item"]
     assert [item["title"] for item in parsed["models"]] == ["Model item"]
     assert sum(len(parsed[section]) for section in ("headlines", "funding", "github", "models")) == 4
+
+
+def test_title_keeps_its_own_full_width_parentheses(tmp_path: Path) -> None:
+    """2026-10-24: a lazy match published "Meta" and failed the verifier."""
+    report = tmp_path / "1024.txt"
+    report.write_text(
+        "2026年10月24日 AIニュース\n"
+        "ヘッドライン速報\n"
+        "■ Meta（メタ）がAI学習用スクレイピング条件の施行を遅延（Business / スコア: 75）\n"
+        "summary\n",
+        encoding="utf-8",
+    )
+
+    item = parse_daily_txt(report)["headlines"][0]
+
+    assert (item["title"], item["category"], item["score"]) == (
+        "Meta（メタ）がAI学習用スクレイピング条件の施行を遅延", "Business", 75)

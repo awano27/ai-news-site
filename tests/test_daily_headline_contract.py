@@ -21,9 +21,16 @@ def test_english_news_headline_is_rejected_before_rendering():
     assert report["excluded"][0]["errors"] == ["Japanese headline missing"]
 
 
-@pytest.mark.parametrize("source", ["GitHub Trending", "HuggingFace Trending", "Hugging Face"])
+@pytest.mark.parametrize("source", ["GitHub Trending", "HuggingFace Trending"])
 def test_repository_and_model_names_keep_the_existing_exception(source):
     assert article_errors(row(title="owner/model-id", source=source)) == []
+
+
+@pytest.mark.parametrize("source", ["Hugging Face", "GitHub Blog"])
+def test_narrative_feeds_from_github_or_hugging_face_need_a_japanese_headline(source):
+    # These land in the report's headlines section, which the publication
+    # verifier requires to be Japanese; the gate must drop them first.
+    assert "Japanese headline missing" in article_errors(row(title="Introducing a new model", source=source))
 
 
 def test_x_original_title_keeps_the_existing_exception_and_relevance_gate():

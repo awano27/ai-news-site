@@ -38,9 +38,15 @@ def is_japanese(text):
     return bool(re.search(r'[\u3040-\u30ff\u3400-\u9fff]', str(text)))
 
 
+# Repository and model listings are titled by their identifier ("owner/repo"),
+# so they keep English titles. Match the listing sources exactly: a substring
+# test also exempted narrative feeds such as the Hugging Face blog, whose
+# English headlines then passed this gate but failed the report verifier.
+LISTING_SOURCES = frozenset({'github trending', 'huggingface trending', 'github_trending', 'hf_trending'})
+
+
 def narrative_title(item):
-    source = article_source(item).lower()
-    return not ('github' in source or 'huggingface' in source or 'hugging face' in source)
+    return article_source(item).lower() not in LISTING_SOURCES
 
 
 def article_errors(article) -> list[str]:
@@ -96,6 +102,18 @@ def validate_articles(articles: list[dict], *, min_articles: int = 1, min_source
 
 
 MAX_EXCLUDED_RATIO = 0.20
+# Exclusions run at a steady ~15-30 items a day whatever the volume, so on a
+# thin day (weekends: ~80 inputs instead of 110-180) the same count crosses
+# 20% without anything being wrong. Below SMALL_DAY_INPUTS the ratio limit is
+# relaxed; a provider-wide failure still excludes far more than this.
+SMALL_DAY_INPUTS = 100
+SMALL_DAY_MAX_EXCLUDED_RATIO = 0.30
+
+
+def excluded_ratio_limit(total: int, max_excluded_ratio: float = MAX_EXCLUDED_RATIO) -> float:
+    if total < SMALL_DAY_INPUTS:
+        return max(max_excluded_ratio, SMALL_DAY_MAX_EXCLUDED_RATIO)
+    return max_excluded_ratio
 
 
 def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: int = 1,
@@ -131,14 +149,16 @@ def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: in
             kept.append(article)
     quality = validate_articles(kept, min_articles=min_articles, min_sources=min_sources)
     ratio = (len(excluded) / total) if total else 1.0
-    if ratio > max_excluded_ratio:
+    limit = excluded_ratio_limit(total, max_excluded_ratio)
+    if ratio > limit:
         quality['status'] = 'failed'
         quality['errors'].append(
-            f'too many excluded articles: {len(excluded)}/{total} > {max_excluded_ratio:.0%}')
+            f'too many excluded articles: {len(excluded)}/{total} > {limit:.0%}')
     quality.update({
         'input_count': total,
         'excluded_count': len(excluded),
         'excluded_ratio': round(ratio, 3),
+        'max_excluded_ratio': limit,
         'excluded': excluded,
     })
     return kept, quality

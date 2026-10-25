@@ -91,7 +91,10 @@ def parse_daily_txt(txt_path: Path) -> Dict:
                 "claim_evidence": None,
             }
 
-            match = re.match(r"■ (.+?)（(.+?) / スコア: (\d+)）", line)
+            # Anchor on the trailing "（Category / スコア: N）": titles may hold
+            # their own full-width parentheses ("Meta（メタ）が…"), which a lazy
+            # title match used to cut at, publishing just "Meta".
+            match = re.match(r"■ (.+)（([^（）]+?) / スコア: (\d+)）\s*$", line)
             if match:
                 base_item.update(
                     {

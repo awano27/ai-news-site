@@ -61,6 +61,8 @@ def install_deterministic_pipeline(monkeypatch, tmp_path, *, headlines, github):
     monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: None)
     monkeypatch.setattr(auto_collect_main, "generate_daily_news", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(auto_collect_main.subprocess, "run", lambda *_args, **_kwargs: None)
+    # The real collector fetches vendor pages and writes presentations/model_watch.
+    monkeypatch.setattr(auto_collect_main.model_watch, "collect", lambda _today: None)
     return captured_writes
 
 
