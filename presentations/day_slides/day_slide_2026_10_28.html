@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><link rel="icon" href="data:,">
+<title>Claude Duet が使えないなら自前で｜OpenDuet の自己ホスト型エージェント | 2026-10-28</title>
+<meta name="description" content="CopilotKit が OpenDuet を公開。Claude Duet のような「先に動き、要るときだけ聞く」エージェントを自前ホストする、と README は説明（未実行）。機能同等かは未確認。">
+<meta property="og:title" content="Claude Duet が使えないなら自前で｜OpenDuet の自己ホスト型エージェント"><meta property="og:description" content="OSS の自己ホスト型エージェント OpenDuet。README の説明は未実行。Claude Duet と機能同等かは未確認。"><meta property="og:type" content="article"><meta property="og:locale" content="ja_JP">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Claude Duet が使えないなら自前で｜OpenDuet の自己ホスト型エージェント", "inLanguage": "ja", "dateCreated": "2026-10-28", "datePublished": "2026-10-28", "dateModified": "2026-10-28", "publisher": {"@type": "Organization", "name": "VisionHub"}, "author": {"@type": "Organization", "name": "VisionHub"}, "articleSection": "AI News", "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_28.html", "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_28.html", "image": ["https://visionhub.jp/presentations/day_slides/images/1028/cover.jpg"], "citation": ["https://github.com/CopilotKit/OpenDuet", "https://x.com/ataiiam/status/2115097056394240293", "https://x.com/claudeai/status/2112984664256241837"], "isAccessibleForFree": true}</script><style>
+
+:root{--bg:#fbfaf8;--paper:#fff;--ink:#203141;--muted:#536171;--line:#d4dce3;--accent:#086b80;--tint:#e8f3f4;--teal:#086b80;--warm:#fbf2df}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.85 "Yu Gothic",Meiryo,"Hiragino Sans",system-ui,sans-serif}a{color:var(--accent);text-underline-offset:4px}button{font:inherit;cursor:pointer;color:var(--accent);background:white;border:1px solid var(--line);border-radius:7px;padding:10px 16px;min-height:44px}button:hover{background:var(--tint)}a:focus-visible,button:focus-visible,[tabindex]:focus-visible,summary:focus-visible{outline:3px solid #a66500;outline-offset:4px}.skip{position:absolute;top:-100px;left:10px;background:white;padding:10px;z-index:99}.skip:focus{top:10px}.wrap{width:min(1180px,100% - 48px);margin:auto}.hero{background:linear-gradient(#225b8905 1px,transparent 1px),linear-gradient(90deg,#225b8905 1px,transparent 1px),#fff;background-size:28px 28px;border-bottom:1px solid var(--line)}.topbar{padding:18px 0;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;border-bottom:1px solid var(--line);font-size:12px}.brand{font-weight:800;letter-spacing:.15em}.brand b{color:var(--teal)}.status{font-size:12px;color:#825800}.hero-body{padding:45px 0 36px}.eyebrow,.role{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--teal);margin:0 0 12px}h1{font-size:clamp(34px,5.2vw,66px);line-height:1.32;letter-spacing:-.04em;margin:0 0 22px;text-wrap:balance}h1 em{font-style:normal;color:var(--teal)}h2{font-size:clamp(25px,3vw,35px);line-height:1.5;margin:0 0 16px;letter-spacing:-.02em;text-wrap:balance}h3{font-size:19px;line-height:1.6;margin:0 0 12px}p{margin:0 0 16px;color:var(--muted)}strong{color:var(--ink)}.lead{font-size:19px;max-width:1000px}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:23px}.meta span{padding:5px 11px;border:1px solid var(--line);border-radius:4px;background:white;font-size:12px}.hero-bottom{margin:18px 0 0;font-size:14px}.jump{display:flex;gap:8px;overflow-x:auto;padding:12px 0;position:sticky;top:0;background:#fbfaf8f7;z-index:5;border-bottom:1px solid var(--line);margin-bottom:35px}.jump a{flex:none;font-size:13px;display:flex;align-items:center;min-height:44px;padding:7px 12px;border:1px solid var(--line);border-radius:5px;text-decoration:none;white-space:nowrap}.brief{margin-bottom:55px;scroll-margin-top:90px}.brief-head{display:flex;justify-content:space-between;align-items:start;gap:16px}.brief-label{font-size:12px;letter-spacing:.15em;font-weight:800;color:var(--accent);margin-bottom:8px}figure{margin:20px 0}.brief-open{padding:0;display:block;width:100%;overflow:hidden;cursor:zoom-in;background:white;line-height:0}.brief-open picture,.brief-open img{display:block;width:100%;height:auto}.enlarge-label{display:block;padding:13px 18px;font-size:14px;line-height:1.4;background:var(--tint);text-align:right}.brief-takeaways{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:18px 0}.brief-takeaways p{margin:0;font-size:15px}.brief-takeaways b{display:block;color:var(--teal);font-size:12px}.caption,figcaption{font-size:13px;color:var(--muted);line-height:1.8;margin:8px 0 0}.transcript{border-bottom:1px solid var(--line);padding-bottom:12px}.transcript summary{font-size:14px;cursor:pointer;color:var(--accent)}.transcript p{margin-top:10px;font-size:14px}.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}.tag{display:inline-block;font-size:12px;line-height:1.5;padding:4px 8px;border:1px solid var(--line);border-radius:4px;vertical-align:middle;margin-right:5px;white-space:nowrap}.spec{background:#edf4fb;color:#225b89}.demo{background:#f3f0f8;color:#665178}.idea{background:#eaf4f1;color:#17675d}.unknown{background:var(--warm);color:#825800}.section{border-top:1px solid var(--line);padding-top:35px;margin-bottom:50px;scroll-margin-top:90px}.section-head{display:grid;grid-template-columns:56px 1fr;gap:18px;margin-bottom:20px}.section-no{font:400 34px/1.4 ui-monospace,monospace;color:#7894aa}.section-head h2{margin:0}.section-head .eyebrow{margin-bottom:6px}.section-content{margin-left:74px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:23px;min-width:0}.card .role{font-size:12px}.card dl{margin:0;font-size:15px}dt{font-weight:700;margin-top:14px}dt:first-child{margin-top:0}dd{margin:4px 0 0;color:var(--muted)}.card p:last-child{margin-bottom:0}.callout{background:var(--tint);border-left:3px solid var(--accent);padding:18px 22px;margin:22px 0;border-radius:0 7px 7px 0}.callout p{font-size:15px;margin:8px 0 0}.warm{background:var(--warm);border-color:#b8801b}.compare{border:1px solid var(--line);border-radius:10px;overflow:hidden}.comparison{padding:22px;background:#fff}.comparison+.comparison{border-top:1px solid var(--line)}.comparison.terra{background:#eaf4f1}.flowline{display:flex;align-items:center;gap:16px}.flowline span{flex:1;font-size:19px;font-weight:700}.flowline b{color:var(--teal)}.demo-row{background:white;border:1px solid var(--line);border-radius:10px;margin-top:18px;padding:22px}.demo-title{display:flex;gap:12px;align-items:center;margin-bottom:16px}.demo-title span{font:24px ui-monospace,monospace;color:#7894aa}.demo-title h3{margin:0}.scenario{display:grid;grid-template-columns:1fr 25px 1fr 25px 1fr;align-items:center;gap:8px}.scenario>div{padding:16px;background:#f4f6f8;border-radius:5px;min-width:0}.scenario>.change{background:#eaf4f1}.scenario small{display:block;font-size:12px;color:var(--muted)}.scenario strong{display:block;font-size:19px;margin:5px 0}.scenario p{font-size:13px;margin:0}.arrow{text-align:center;color:var(--accent)}.question{font-size:14px;margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line)}.scroll-x{overflow:auto;max-width:100%;overscroll-behavior:contain;border:1px solid var(--line);border-radius:8px;background:#f1f5f8}.diagram svg{display:block;width:100%;min-width:850px;height:auto}.compact{padding:20px}.compact p{font-size:15px}.note{padding:16px 20px;background:#fff;border:1px solid var(--line);font-size:14px;margin-top:18px;border-radius:7px}ul{padding-left:1.25em;color:var(--muted);margin:0}li{margin:8px 0}small{font-size:13px}.ref{font-size:12px;margin-left:5px;white-space:nowrap}.cost-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}.cost-main{padding:25px;background:#eaf4f1;border-radius:10px}.equation{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0}.equation span{font-size:19px;font-weight:700}.equation b{color:var(--teal)}.cost-main p:last-child{font-size:15px;margin:0}.trial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.trial-card{padding:20px;background:white;border-top:3px solid var(--teal);border-radius:0 0 8px 8px}.trial-card>span{font-size:12px;color:var(--teal);font-weight:700}.trial-card h3{font-size:18px;margin-top:12px}.trial-card p{font-size:14px;margin:0}.sources{border-top:1px solid var(--line);padding-top:30px;scroll-margin-top:90px}.sources h2{font-size:26px}.sources ol{padding-left:24px}.sources li{font-size:14px;margin:18px 0;overflow-wrap:anywhere}.sources small{display:block;color:var(--muted)}.sources .note{font-size:14px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:25px 0}.actions a{display:inline-flex;align-items:center;text-decoration:none;padding:9px 16px;border:1px solid var(--line);border-radius:7px;background:white;font-size:14px;min-height:44px}.footer{border-top:1px solid var(--line);padding:20px 0 35px;font-size:12px;color:var(--muted)}dialog{width:min(96vw,1500px);max-width:96vw;max-height:95dvh;padding:15px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px}dialog::backdrop{background:#071a2ddd}.dialog-tools{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.dialog-tools>div{display:flex;gap:8px}.image-scroll{overflow:auto;max-height:75dvh;border:1px solid var(--line);overscroll-behavior:contain}.image-scroll img{display:block;width:100%;height:auto}.enlarged .image-scroll img{width:1280px;max-width:none}.enlarged.mobile-art .image-scroll img{width:640px}.modal-open{overflow:hidden}.dialog-hint{font-size:13px;margin:8px 0 0}@media(max-width:900px){.section-content{margin-left:0}.grid2,.cost-grid{grid-template-columns:1fr}.trial-grid{grid-template-columns:1fr}.brief-head{display:block}}@media(max-width:640px){.wrap{width:calc(100% - 24px)}.hero-body{padding:30px 0 25px}h1{font-size:clamp(32px,8.8vw,44px)}h1 br{display:block}.lead{font-size:16px}.topbar{font-size:11px;gap:6px}.meta span{font-size:11px}.hero-bottom{font-size:13px}.jump{margin-bottom:25px}.brief-takeaways{grid-template-columns:1fr;gap:10px}.section-head{grid-template-columns:36px 1fr;gap:10px}.section-no{font-size:25px}.section-head h2{font-size:25px}.section{margin-bottom:35px;padding-top:28px}.card,.demo-row{padding:18px}.flowline{flex-direction:column;gap:8px;align-items:flex-start}.flowline span{font-size:18px}.flowline b{transform:rotate(90deg);margin-left:30px}.scenario{grid-template-columns:1fr}.scenario .arrow{transform:rotate(90deg)}.scenario strong{font-size:20px}.scenario p{font-size:14px}.callout{padding:17px}.dialog-tools{align-items:flex-start;flex-direction:column}.dialog-tools button{font-size:13px}.dialog-tools>div{width:100%;justify-content:space-between}.image-scroll{max-height:68dvh}.brief-head h2{font-size:25px}.caption,figcaption{font-size:12px}.demo-title{align-items:flex-start}.cost-main{padding:20px}.sources h2{font-size:25px}.status{font-size:11px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{.jump,.actions,.skip,dialog,.enlarge-label{display:none!important}.hero,body{background:white}.wrap{width:100%}.hero-body{padding:15px 0}h1{font-size:32px}.section-content{margin-left:0}.section{break-inside:avoid}.brief{break-after:page}.scroll-x{overflow:visible}.diagram svg{min-width:0}.sources{break-before:page}}
+
+table{border-collapse:collapse;width:100%;min-width:650px;background:white;font-size:15px}th,td{text-align:left;padding:15px 18px;border-bottom:1px solid var(--line);vertical-align:top}thead{background:var(--tint)}td strong{white-space:nowrap}.price{font:700 30px/1.4 ui-monospace,monospace;color:var(--teal)}.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.price-cell{padding:20px;background:white;border:1px solid var(--line);border-radius:8px}.price-cell small{display:block}.metric{padding:25px;border-left:3px solid var(--teal);background:#e8f3f4}.metric h3{font-size:25px}.flow{display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;align-items:center;gap:8px}.flow>div{padding:20px;border:1px solid var(--line);background:white;border-radius:8px;min-width:0}.flow b{color:var(--teal)}.flow p{font-size:14px;margin:8px 0 0}.loop-back{border:1px dashed var(--teal);padding:12px;text-align:center;margin-top:14px;color:var(--teal);font-size:14px}.model-name{font-weight:700;color:var(--teal)}code{font-size:.88em;overflow-wrap:anywhere}.section-content>p{max-width:1000px}.enlarged .image-scroll img{width:1280px}.enlarged.mobile-art .image-scroll img{width:640px}.dialog-tools a{font-size:13px;min-height:44px;display:inline-flex;align-items:center}.source-date{font-size:13px}.source-date time{font-weight:700}.print-only{display:none}.topbar .status{padding:2px 8px;background:var(--warm);border-radius:3px}.hero-body{padding-top:36px}h1{font-size:clamp(34px,4.6vw,62px)}.money-example{font-size:17px;font-weight:700;color:var(--ink)}@media(max-width:640px){.price-grid{grid-template-columns:1fr}.price-cell{display:grid;grid-template-columns:1fr 1fr;align-items:center}.price-cell small{grid-column:1/-1}.flow{grid-template-columns:1fr}.flow>b{transform:rotate(90deg);text-align:center}.price{font-size:30px;text-align:right}h1{font-size:clamp(31px,8.7vw,44px)}.metric{padding:20px}}@media print{.brief-open{border:0}.print-only{display:block}.actions{display:none!important}.price-grid{grid-template-columns:repeat(3,1fr)}}
+.h1-part{display:inline-block;white-space:nowrap}h1{text-wrap:initial}
+
+.points{display:grid;grid-template-columns:1fr;gap:12px;margin:18px 0}
+.point{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.point strong{display:block;margin-bottom:6px}
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.checklist{grid-template-columns:1fr}}
+.tag.self{background:#f3f0f8;color:#665178}
+.tag.warn{background:var(--warm);color:#825800}
+
+</style><link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_28.html"><meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_28.html"><meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/1028/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Claude Duet が使えないなら自前で｜OpenDuet の自己ホスト型エージェント"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude Duet が使えないなら自前で｜OpenDuet の自己ホスト型エージェント"><meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/1028/cover.jpg"><!-- SEO_META_INJECTED v1 -->
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head><body>
+<a href="#main" class="skip">本文へスキップ</a>
+<header class="hero"><div class="wrap">
+<div class="topbar"><span class="brand">VISION<b>HUB</b></span><span>DAILY AI BRIEF / 2026.10.28</span><span class="status">2026年10月28日 公開</span></div>
+<div class="hero-body">
+<p class="eyebrow">日本では使えない Claude Duet の代替候補を探している人へ</p>
+<h1>Claude Duet が使えないなら<br><em>自前で。</em></h1>
+<p class="lead"><strong>OpenDuet</strong> は CopilotKit が公開した OSS（MIT）です。Claude Duet のような「先に動いて、要るときだけ人に聞く」エージェントを、自分のマシンで回す、と README は説明しています（<strong>こちらでは未実行</strong>）。<a class="ref" href="#ref-1" aria-label="出典1">[1]</a><a class="ref" href="#ref-2" aria-label="出典2">[2]</a></p>
+<div class="meta">
+<span>掲載日：2026年10月28日</span>
+<span>No.454</span>
+<span>cat：エージェント</span>
+<span><span class="tag warn">READMEの説明・未実行</span></span>
+<span><span class="tag unknown">機能同等は未確認</span></span>
+</div>
+<p class="hero-bottom">この記事で判断すること：自前ホストという方向が出てきたこと。本番前提にしないこと。<strong>Claude Duet と機能同等かは未確認</strong>です。</p>
+</div></div></header>
+
+<main id="main" class="wrap">
+<nav class="jump" aria-label="この記事の目次">
+<a href="#what">何が出たか</a>
+<a href="#shift">崩れる前提</a>
+<a href="#week">今週できること</a>
+<a href="#caution">注意</a>
+<a href="#verify">自己申告と未検証</a>
+<a href="#sources">出典</a>
+</nav>
+
+<section class="section" id="what" aria-labelledby="what-title">
+<div class="section-head"><span class="section-no">01</span><div>
+<p class="eyebrow">何が出たか</p>
+<h2 id="what-title">自分のマシンで回す、と README は説明している</h2>
+</div></div>
+<div class="section-content">
+<p><span class="tag spec">公式リポジトリ</span> CopilotKit が <strong>OpenDuet</strong> を公開しました。OSS・MIT。GitHub でクローンして動かします。<a class="ref" href="#ref-1" aria-label="出典1">[1]</a></p>
+<div class="points">
+<article class="point"><strong><span class="tag warn">READMEの説明・未実行</span> 先に動いて、要るときだけ人に聞く</strong>
+<p>Claude Duet のような「先に動いて、要るときだけ人に聞く」エージェントを、自分のマシンで回す、と README は説明しています（こちらでは未実行）。</p></article>
+<article class="point"><strong><span class="tag warn">READMEの説明・未実行</span> 出す前に内容を見せて承認を待つ</strong>
+<p>送る・払う・署名する・消す前に、内容を見せて承認を待つ、と README は説明しています（未実行）。</p></article>
+<article class="point"><strong><span class="tag warn">READMEの説明・未実行</span> パスワードは会話に出さない</strong>
+<p>パスワードは会話に出さない。ログインはマスク入力、と README は説明しています（未実行）。</p></article>
+</div>
+<p class="note">出典：<a href="https://github.com/CopilotKit/OpenDuet" target="_blank" rel="noopener noreferrer">GitHub CopilotKit/OpenDuet</a> ／ <a href="https://x.com/ataiiam/status/2115097056394240293" target="_blank" rel="noopener noreferrer">発表ポスト</a></p>
+</div>
+</section>
+
+<section class="section" id="shift" aria-labelledby="shift-title">
+<div class="section-head"><span class="section-no">02</span><div>
+<p class="eyebrow">崩れる前提</p>
+<h2 id="shift-title">「先に動く」型を、自前ホストでも持てる方向</h2>
+</div></div>
+<div class="section-content">
+<div class="compare">
+<div class="comparison">
+<p class="role">これまで</p>
+<p>プロアクティブなエージェントは、特定ベンダーのアプリに縛られる。</p>
+</div>
+<div class="comparison terra">
+<p class="role">これから（方向として出てきたこと）</p>
+<p>同じ「先に動く」型を、自前ホスト・モデル選択・承認ルール付きで持てる、という方向が出てきました。</p>
+</div>
+</div>
+<div class="callout">
+<strong>狙いは近い。置き場所が違う</strong>
+<p>人の仕事が「作業」から「出す前の判断」に寄る、という狙い方は Duet と近い。データと承認の置き場所を自分で持てる、という点が違います。</p>
+</div>
+<div class="callout warm">
+<strong><span class="tag unknown">重要</span> Claude Duet と機能同等かは未確認</strong>
+<p>この記事は「機能が同じ」と読んでいません。日本非対応の Duet の代替候補として見ている段階です。</p>
+</div>
+</div>
+</section>
+
+<section class="section" id="week" aria-labelledby="week-title">
+<div class="section-head"><span class="section-no">03</span><div>
+<p class="eyebrow">日本のチームが今週できること</p>
+<h2 id="week-title">承認の線を紙に書き、ローカル起動を試す</h2>
+</div></div>
+<div class="section-content">
+<p><span class="tag idea">記事の提案</span> 本番投入ではなく、方針と実験の入口です。</p>
+<div class="trial-grid">
+<article class="trial-card"><span>STEP 1</span><h3>外に出る操作だけ承認必須</h3><p>送信・課金・削除など、外に出る操作だけ承認必須、とルールを紙に書きます。</p></article>
+<article class="trial-card"><span>STEP 2</span><h3>README の Quick start</h3><p>Docker とモデルキーがあれば、README の Quick start でローカル起動を試します（約30分想定）。</p></article>
+<article class="trial-card"><span>STEP 3</span><h3>社内と外向けで線を引く</h3><p>社内向けは「下書きまでAI」、外向けは「人が読む承認」に線を引きます。</p></article>
+</div>
+</div>
+</section>
+
+<section class="section" id="caution" aria-labelledby="caution-title">
+<div class="section-head"><span class="section-no">04</span><div>
+<p class="eyebrow">注意</p>
+<h2 id="caution-title">early development。本番前提にしない</h2>
+</div></div>
+<div class="section-content">
+<ul>
+<li><strong>README 自身が early development と書いている。</strong>本番前提にしない。</li>
+<li>スレッドとメモリに CopilotKit Intelligence（無料 Developer で可）が必須。サーバーはキーなしでは起動しない。</li>
+<li>ホスト済みのデプロイ手順や OpenDuet 専用イメージは、まだ公式に出ていない（ローカル Quick start が公式のやり方）。</li>
+<li><strong>Claude Duet と機能同等かは未確認。</strong>日本非対応の Duet の代替候補として見ている段階。</li>
+</ul>
+</div>
+</section>
+
+<section class="section" id="verify" aria-labelledby="verify-title">
+<div class="section-head"><span class="section-no">05</span><div>
+<p class="eyebrow">自己申告と未検証</p>
+<h2 id="verify-title">どこまでが README／発表で、どこからが未確認か</h2>
+</div></div>
+<div class="section-content">
+<div class="checklist">
+<article class="card compact"><span class="tag self">自己申告</span><h3>README / 発表</h3><p>「先に動く」「出す前に止まる」「パスワードを見ない」は README / 発表の自己申告。こちらでは<strong>未実行</strong>。</p></article>
+<article class="card compact"><span class="tag unknown">未検証</span><h3>完成度</h3><p>スター数・更新日は 2026-10-28 時点の GitHub API。機能の完成度は<strong>未検証</strong>。</p></article>
+</div>
+<div class="callout warm" style="margin-top:18px">
+<strong>Claude Duet 本体の日本非対応は別途確認済みの前提。</strong>
+<p>OpenDuet が Duet と<strong>機能同等かは未確認</strong>。</p>
+</div>
+</div>
+</section>
+
+<section class="sources" id="sources" aria-labelledby="sources-title">
+<p class="brief-label">SOURCES & NOTES</p>
+<h2 id="sources-title">出典と、確認した範囲</h2>
+<p class="source-date">資料確認：<time datetime="2026-10-28">2026年10月28日 JST</time>。公開チェック bot：OpenDuet 下書き v2 合格（Orchestrator 申告）。</p>
+<ol>
+<li id="ref-1"><a href="https://github.com/CopilotKit/OpenDuet" target="_blank" rel="noopener noreferrer">CopilotKit/OpenDuet README ↗</a><small>OSS・MIT、Quick start、early development、承認・パスワードの説明。</small></li>
+<li id="ref-2"><a href="https://x.com/ataiiam/status/2115097056394240293" target="_blank" rel="noopener noreferrer">Atai Barkai (@ataiiam) 発表ポスト ↗</a><small>2026-10-27 UTC。OpenDuet 公開の発表。</small></li>
+<li id="ref-3"><a href="https://x.com/claudeai/status/2112984664256241837" target="_blank" rel="noopener noreferrer">Claude Duet 研究プレビュー発表 ↗</a><small>引用元。日本非対応の前提確認用。</small></li>
+</ol>
+<p class="note">一次資料（README・発表）を基にした編集記事です。「先に動く」「出す前に止まる」等は自己申告で、こちらでは<strong>未実行</strong>。機能の完成度は<strong>未検証</strong>。<strong>Claude Duet と機能同等かは未確認</strong>。README は <strong>early development</strong> と明記。</p>
+<div class="actions">
+<a href="images/1028/cover.jpg" download>カバー画像を保存</a>
+<a href="day_slide_2026_10_28.html" download>HTML を保存</a>
+<button type="button" id="print-page">記事を印刷 / PDF</button>
+<a href="#main">先頭へ戻る ↑</a>
+</div>
+</section>
+</main>
+<footer class="footer"><div class="wrap">VisionHub · 2026-10-28 · No.454 · OpenDuet（READMEの説明・未実行／機能同等は未確認）</div></footer>
+<script>(()=>{const b=document.getElementById('print-page'); if(b) b.addEventListener('click',()=>window.print());})();</script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_10_27.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_10_28.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-10-28.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body></html>
