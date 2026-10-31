@@ -5,9 +5,15 @@ import json
 from pathlib import Path
 import shutil
 import pytest
+from tests.node_clock import fixed_node_clock
 ROOT=Path(__file__).resolve().parents[1]
 DAY='2026-10-10'
 NOTICE='編集確認済み・3件の暫定版'
+
+@pytest.fixture(autouse=True)
+def pinned_node_clock(monkeypatch,tmp_path):
+    # publish_editorial spawns node itself, so the clock has to travel through the environment.
+    monkeypatch.setenv('NODE_OPTIONS',fixed_node_clock(tmp_path,DAY+'T03:00:00Z'))
 
 def publisher():
     assert importlib.util.find_spec('scripts.publish_editorial_recovery'), 'offline editorial publisher is not implemented'
