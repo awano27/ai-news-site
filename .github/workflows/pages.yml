@@ -121,8 +121,13 @@ jobs:
           BUILD_REVISION: ${{ needs.build.outputs.revision }}
           BUILD_RUN_ID: ${{ github.run_id }}
         run: |
-          python scripts/pages_revision.py resolve --base-url https://visionhub.jp \
-            --expect-revision "$BUILD_REVISION" --expect-run-id "$BUILD_RUN_ID"
+          # Pages can serve the previous identity for a few seconds after deploy.
+          for attempt in 1 2 3 4 5 6; do
+            python scripts/pages_revision.py resolve --base-url https://visionhub.jp \
+              --expect-revision "$BUILD_REVISION" --expect-run-id "$BUILD_RUN_ID" && break
+            [ "$attempt" = 6 ] && exit 1
+            sleep 20
+          done
           node scripts/build-homepage-latest.js --strict
           python scripts/check_homepage_sync.py --base-url https://visionhub.jp
           REPORT_DATE=$(python -c "import json; print(json.load(open('daily-news/data.json'))['date'])")

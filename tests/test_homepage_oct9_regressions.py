@@ -1,8 +1,11 @@
 import json
+import os
 import re
 import shutil
 import subprocess
 from pathlib import Path
+
+from tests.node_clock import fixed_node_clock
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,7 +17,8 @@ def build(tmp_path, headlines):
     (slides/'day_slide_2026_10_09.html').write_text('<title>独立スライド</title><h1>独立スライド</h1>')
     api = tmp_path/'public-pages/api/auto_daily_report'; api.mkdir(parents=True)
     (api/'latest.json').write_text(json.dumps({'date':'2026-10-09','headlines':headlines}))
-    result = subprocess.run(['node',str(scripts/'build-homepage-latest.js')],capture_output=True,text=True)
+    env = {**os.environ, 'NODE_OPTIONS': fixed_node_clock(tmp_path, '2026-10-09T03:00:00Z')}
+    result = subprocess.run(['node',str(scripts/'build-homepage-latest.js')],capture_output=True,text=True,env=env)
     assert result.returncode == 0,result.stderr
     return (tmp_path/'index.html').read_text(),json.loads((tmp_path/'news/latest.json').read_text())
 
