@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude CodeやCodexの利用料を約2〜3割減らすOSS｜Microsoft研究者らのTokenEconomizer | 2026-10-31</title>
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--ink:#14202b;--mut:#5b6b7a;--line:#dbe3ea;--acc:#0b6e6a;--acc-d:#0e2a33;--acc2:#e86a2c;--soft:#eef6f5;--warn:#fff4e8;--r:18px;
+--work:#0b6e6a;--w1:#f4b860;--w2:#e8795a;--w3:#b93a3a;--good:#1d8a4c;--bad:#c0392b}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 56px}
+a{color:var(--acc);overflow-wrap:anywhere}
+code{background:#eef3f6;padding:1px 6px;border-radius:6px;font-size:.9em;overflow-wrap:anywhere}
+h2{font-size:clamp(21px,3vw,28px);line-height:1.35;margin:4px 0 6px}
+.lead2{color:var(--mut);margin:0 0 16px;font-size:15px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;margin:18px 0}
+.num{font-size:12px;letter-spacing:.16em;color:var(--acc2);font-weight:800}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.06em;padding:3px 10px;border-radius:999px;vertical-align:middle}
+.tag.concept{background:#fdebd8;color:#8a4a0e;border:1px dashed #d98b45}
+.tag.meas{background:#dff2ef;color:#075e58}
+.tag.prop{background:#eceff7;color:#3b4a7a}
+.cap{font-size:13px;color:var(--mut);margin:10px 0 0}
+.src{font-size:.78em;color:var(--acc);font-weight:700;vertical-align:super;line-height:0}
+.src a{text-decoration:none}
+
+/* HERO */
+.hero{background:radial-gradient(120% 140% at 100% 0%,#127d77 0%,#0e2a33 55%,#0a1b22 100%);color:#fff;border-radius:24px;padding:28px 26px 24px;position:relative;overflow:hidden}
+.hero .kicker{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;letter-spacing:.16em;font-weight:800;color:#8fe0d8}
+.hero h1{font-size:clamp(27px,4.6vw,46px);line-height:1.22;margin:14px 0 10px;letter-spacing:.01em}
+.hero h1 .brand{color:#9ff0e6}
+.hero h1 .ph{display:inline-block}
+.hero .subt{font-size:clamp(15px,2vw,19px);color:#d9efec;margin:0 0 20px;max-width:46em}
+.kpi{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:stretch}
+.kpibox{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:18px;padding:18px 20px}
+.kpilabel{font-size:13px;font-weight:700;color:#bfe6e1;letter-spacing:.05em}
+.kpinum{font-size:clamp(46px,7vw,80px);font-weight:900;line-height:1;margin:8px 0 6px;color:#fff;letter-spacing:-.02em;white-space:nowrap}
+.kpinum small{font-size:.42em;font-weight:800;color:#ffb37f;letter-spacing:0}
+.kpinote{font-size:13px;color:#cfe5e2}
+.kpinote b{color:#ffcf9f}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px 14px}
+.chip .v{font-size:22px;white-space:nowrap;font-weight:900;line-height:1.1;color:#9ff0e6}
+.chip .l{font-size:12.5px;color:#d9efec;line-height:1.4;margin-top:3px}
+.timeline{display:flex;gap:0;margin-top:20px;border-top:1px solid rgba(255,255,255,.18);padding-top:16px}
+.tl{flex:1;position:relative;padding-top:18px;font-size:12.5px;color:#d9efec;line-height:1.35;min-width:0}
+.tl::before{content:"";position:absolute;top:5px;left:0;right:0;height:2px;background:rgba(255,255,255,.28)}
+.tl::after{content:"";position:absolute;top:0;left:0;width:12px;height:12px;border-radius:50%;background:#9ff0e6}
+.tl.now::after{background:#ffb37f}
+.tl b{display:block;color:#fff;font-size:14px}
+@media(max-width:760px){
+ .hero{padding:22px 18px 20px;border-radius:20px}
+ .kpi{grid-template-columns:1fr}
+ .chip .v{font-size:19px}
+ .timeline{flex-wrap:wrap;row-gap:14px}
+ .tl{flex:0 0 50%;padding-right:8px}
+}
+
+/* WASTE icons */
+.waste3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.wcard{border-radius:16px;padding:16px;border:1px solid var(--line);background:#fbfcfd;display:flex;gap:12px;align-items:flex-start}
+.wcard svg{flex:0 0 44px}
+.wcard b{display:block;font-size:16px;margin-bottom:2px}
+.wcard p{margin:0;font-size:14px;color:#33475b}
+.wcard.w1{border-top:5px solid var(--w1)}.wcard.w2{border-top:5px solid var(--w2)}.wcard.w3{border-top:5px solid var(--w3)}
+@media(max-width:760px){.waste3{grid-template-columns:1fr}}
+
+/* STACKED BARS */
+.chartwrap{position:relative;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;margin:6px 0 12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px}
+.bars{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(8px,2.4vw,26px);height:260px;align-items:end;padding:0 4px;border-bottom:2px solid #9fb0bf}
+.bar{display:flex;flex-direction:column-reverse;border-radius:8px 8px 0 0;overflow:hidden;position:relative;z-index:1}
+.bar div{width:100%}
+.s-work{background:var(--work)}.s-w1{background:var(--w1)}.s-w2{background:var(--w2)}.s-w3{background:var(--w3)}
+.baseline{position:absolute;left:0;right:0;border-top:2px dashed #33475b;z-index:2;pointer-events:none}
+.baseline span{position:absolute;right:0;top:-24px;font-size:12px;font-weight:700;color:#33475b;background:rgba(255,255,255,.9);padding:0 4px;border-radius:4px}
+.xlab{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(8px,2.4vw,26px);padding:6px 4px 0;text-align:center;font-size:13px}
+.xlab b{display:block;font-size:14px}
+.xlab .ev{display:block;font-size:11.5px;color:var(--mut);line-height:1.3;min-height:2.6em}
+.xlab .ev.hot{color:#8a4a0e;font-weight:700}
+.xlab .sm{display:none}@media(max-width:560px){.xlab .lg{display:none}.xlab .sm{display:inline}.xlab .ev{font-size:11px}}
+.worklabel{position:absolute;left:8px;bottom:8px;z-index:3;color:#fff;font-size:12px;font-weight:700;pointer-events:none}
+
+/* CYCLE */
+.cycle{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr) 40px minmax(0,1fr);align-items:center;gap:0}
+.node{border-radius:16px;padding:16px;text-align:center;border:2px solid var(--acc);background:var(--soft);min-height:118px;display:flex;flex-direction:column;justify-content:center}
+.node .ic{font-size:26px;line-height:1}
+.node b{display:block;font-size:17px;margin:6px 0 2px}
+.node span{font-size:13px;color:#33475b}
+.arr{text-align:center;color:var(--acc);font-size:26px;font-weight:900}
+.arr .d{display:inline}.arr .m{display:none}
+.loopback{margin:6px auto 0;width:84%;height:40px}
+.loopback-txt{text-align:center;font-size:13px;color:var(--acc);font-weight:700;margin-top:-6px}
+@media(max-width:760px){
+ .cycle{grid-template-columns:1fr}
+ .arr{height:30px;line-height:30px}.arr .d{display:none}.arr .m{display:inline}
+ .node{min-height:0}
+ .loopback{display:none}
+ .loopback-txt{margin-top:10px;border:2px dashed var(--acc);border-radius:12px;padding:8px}
+}
+.mech{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.mc{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.mc .hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mc .hd b{font-size:17px}
+.mc .what{font-size:14px;margin:0}
+.sw{font-size:11.5px;font-weight:900;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.sw.on{background:#dff2ef;color:#075e58}.sw.off{background:#eceff3;color:#4a5866;border:1px solid #c4ced8}
+.params{display:flex;flex-wrap:wrap;gap:6px}
+.pm{font-size:12.5px;background:#f2f5f8;border:1px solid #dde5ec;border-radius:8px;padding:3px 8px}
+.pm b{color:var(--acc)}
+.mc .fix{font-size:12.5px;color:var(--mut);margin:auto 0 0}
+@media(max-width:860px){.mech{grid-template-columns:1fr}}
+
+.gate{margin-top:18px;border:2.5px solid var(--acc2);background:var(--warn);border-radius:18px;padding:18px}
+.gate h3{margin:0 0 10px;font-size:19px;color:#8a3a0a;display:flex;align-items:center;gap:8px}
+.gflow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+.gs{flex:1 1 150px;background:#fff;border-radius:12px;padding:10px 12px;font-size:13.5px;border:1px solid #f1cfb2}
+.gs b{display:block;font-size:14.5px}
+.gs.human{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.gs.human b{font-size:17px}
+.garr{align-self:center;color:var(--acc2);font-weight:900;font-size:20px}
+@media(max-width:760px){.gflow{flex-direction:column}.gs{flex:none}.garr{transform:rotate(90deg);align-self:center;line-height:1}}
+
+/* RESULTS */
+.res{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.rhead,.row{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(0,2.2fr) 120px;gap:12px;align-items:center}
+.rhead{font-size:12px;color:var(--mut);font-weight:700;letter-spacing:.04em}
+.row{padding:8px 10px;border-radius:12px}
+.row .who{font-size:14px;line-height:1.3}
+.row .who b{display:block;font-size:14.5px}
+.track{background:#eef2f5;border-radius:8px;height:30px;position:relative}
+.fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#0b6e6a,#18a39a);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-weight:900;font-size:14px;white-space:nowrap}
+.pass{justify-self:start;font-weight:900;font-size:14px;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pass.up{background:#e1f4e8;color:var(--good)}
+.pass.down{background:var(--bad);color:#fff}
+.row.alert{background:#fff1ee;outline:2px solid #f0b7ab}
+.row.alert .fill{background:linear-gradient(90deg,#0b6e6a,#18a39a)}
+.alertnote{font-size:12.5px;color:var(--bad);font-weight:800;display:block;margin-top:2px}
+@media(max-width:640px){
+ .rhead{display:none}
+ .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"who pass" "bar bar";gap:6px 10px}
+ .row .who{grid-area:who}.row .track{grid-area:bar}.row .pass{grid-area:pass;justify-self:end}
+}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
+.st{background:var(--soft);border-radius:14px;padding:14px}
+.st .v{font-size:clamp(24px,3.4vw,32px);font-weight:900;color:var(--acc);line-height:1.1}
+.st .l{font-size:13px;color:#33475b;margin-top:4px;line-height:1.45}
+@media(max-width:860px){.stats{grid-template-columns:1fr 1fr}}
+.note{border-left:5px solid var(--acc2);background:var(--warn);padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0 0;font-size:14.5px}
+
+/* AGENTS */
+.agents{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ag{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfcfd}
+.ag b{display:block;font-size:15px}
+.ag .ver{font-size:12.5px;color:#33475b;margin:2px 0 8px}
+.ag .pr{font-size:12px;border-radius:8px;padding:4px 8px;background:#e7f3f1;color:#075e58;font-weight:700;display:inline-block}
+.ag .pr.no{background:#eceff3;color:#5b6b7a}
+.ag.exp{border-style:dashed}
+@media(max-width:900px){.agents{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.reqrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.req{font-size:13px;background:#f2f5f8;border:1px solid #dde5ec;border-radius:999px;padding:4px 12px}
+
+/* CHECKLIST */
+.check{border:2.5px solid var(--acc);border-radius:20px;padding:22px;background:linear-gradient(180deg,#f4fbfa,#fff)}
+.check h2{display:flex;align-items:center;gap:10px}
+.cl{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:10px}
+.cl li{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.box{width:28px;height:28px;border:2.5px solid var(--acc);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--acc);font-weight:900;font-size:16px}
+.cl b{display:block;font-size:16px}
+.cl span{font-size:14px;color:#33475b}
+.cl.sub li{padding:10px 14px}.cl.sub b{font-size:14.5px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px;counter-reset:s}
+.stp{position:relative;border-radius:14px;padding:14px 14px 14px 56px;background:#f6f8fb;border:1px solid var(--line);font-size:13.5px}
+.stp::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:30px;height:30px;border-radius:50%;background:var(--acc2);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}
+.stp b{display:block;font-size:15px}
+@media(max-width:760px){.steps{grid-template-columns:1fr}.sec,.check{padding:18px}}
+
+/* SOURCES */
+ol.srcs{font-size:14px;padding-left:22px;margin:8px 0}ol.srcs li{margin:7px 0}
+footer{font-size:12.5px;color:var(--mut)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+details.cfg{margin-top:16px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:#fbfcfd;font-size:14px}
+details.cfg summary{cursor:pointer;font-weight:800;color:var(--acc)}
+details.cfg table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px}
+details.cfg th,details.cfg td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+details.cfg th{background:#eef3f6}
+</style>
+<meta name="description" content="同じリポジトリで毎回くり返す無駄を、前回までの作業記録から見つけて省くプラグイン。モデルもエージェントのコードも変えない。v0.1.0は10月27日（JST）に公開された。">
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_31.html"><meta property="og:title" content="Claude CodeやCodexの利用料を約2〜3割減らすOSS｜Microsoft研究者らのTokenEconomizer"><meta property="og:description" content="同じリポジトリで毎回くり返す無駄を、前回までの作業記録から見つけて省くプラグイン。モデルもエージェントのコードも変えない。v0.1.0は10月27日（JST）に公開された。"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Claude CodeやCodexの利用料を約2〜3割減らすOSS｜Microsoft研究者らのTokenEconomizer">
+<!-- SEO_META_INJECTED v1 -->
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_10_31.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/1031/cover.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/1031/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<!-- JSONLD_INJECTED v1 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "Claude CodeやCodexの利用料を約2〜3割減らすOSS｜Microsoft研究者らのTokenEconomizer",
+  "datePublished": "2026-10-31T07:00:00+09:00",
+  "dateModified": "2026-10-31T07:00:00+09:00",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og-image.png"
+    }
+  },
+  "image": "https://visionhub.jp/presentations/day_slides/images/1031/cover.jpg",
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_31.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_10_31.html",
+  "inLanguage": "ja",
+  "isAccessibleForFree": true,
+  "articleSection": "AI News"
+}
+</script>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HERO -->
+<header class="hero">
+ <div class="kicker"><span>visionhub DAILY AI SLIDE</span><span>2026-10-31</span></div>
+ <h1><span class="ph">Claude Codeや</span><span class="ph">Codexの利用料を</span><span class="ph">約2〜3割減らすOSS｜</span><span class="ph">Microsoft研究者らの</span><span class="ph"><span class="brand">TokenEconomizer</span></span></h1>
+ <p class="subt">同じリポジトリで毎回くり返す無駄を、前回までの作業記録から見つけて省くプラグイン。モデルもエージェントのコードも変えない。v0.1.0は10月27日（JST）に公開された。<span class="src"><a href="#s1">[1]</a></span></p>
+ <div class="kpi">
+  <div class="kpibox" role="img" aria-label="平均コスト マイナス18.4から30.9パーセント。SWE-Bench 277タスク、著者測定。">
+   <div class="kpilabel">平均コスト（5つのエージェント×モデル組合せ）</div>
+   <div class="kpinum">−18.4<small>〜</small>30.9<small>%</small></div>
+   <div class="kpinote">SWE-Bench 277タスク・<b>著者測定</b>（第三者の再現はまだ）。プラグイン自身のモデル呼び出しも含む。<span class="src"><a href="#s1">[1]</a><a href="#s2">[2]</a></span></div>
+  </div>
+  <div class="chips">
+   <div class="chip"><div class="v">30通り</div><div class="l">6リポジトリ×5組合せの30通りすべてで安く</div></div>
+   <div class="chip"><div class="v">5中4</div><div class="l">組合せで「1回で解けた割合」が上昇</div></div>
+   <div class="chip"><div class="v">¥0</div><div class="l">Apache 2.0。専用APIキー不要</div></div>
+   <div class="chip"><div class="v">自分のPCだけ</div><div class="l">学んだ内容は自分のPCにだけ保存</div></div>
+  </div>
+ </div>
+ <div class="timeline" role="list" aria-label="時系列：10月13日リポジトリ作成、10月16日論文公開、10月27日v0.1.0リリースと告知、10月31日本稿">
+  <div class="tl" role="listitem"><b>10/13</b>リポジトリ作成</div>
+  <div class="tl" role="listitem"><b>10/16</b>論文公開（arXiv）</div>
+  <div class="tl" role="listitem"><b>10/27</b>v0.1.0リリース・告知</div>
+  <div class="tl now" role="listitem"><b>10/31</b>本稿</div>
+ </div>
+</header>
+
+<!-- 01 PROBLEM -->
+<section class="sec">
+ <div class="num">01 ／ 課題</div>
+ <h2>同じリポジトリでも、毎回同じ無駄に料金を払っている</h2>
+ <p class="lead2">エージェントは毎ターン、指示文・全ツール定義・会話履歴に課金される。同じリポジトリでは、その多くが繰り返しになる。<span class="src"><a href="#s1">[1]</a></span></p>
+ <div class="waste3">
+  <div class="wcard w1">
+   <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#fdf0dc"/><path d="M14 30V14h12l4 4v12z" fill="none" stroke="#c98320" stroke-width="2.4" stroke-linejoin="round"/><path d="M30 26a6 6 0 1 1-2-4.5" fill="none" stroke="#c98320" stroke-width="2.4" stroke-linecap="round"/><path d="M28.5 18.5v3.5H25" fill="none" stroke="#c98320" stroke-width="2.4" stroke-linecap="round"/></svg>
+   <div><b>リポジトリの学び直し</b><p>「<code>pytest</code>ではなく<code>python -m pytest</code>」を毎回調べ直す。</p></div>
+  </div>
+  <div class="wcard w2">
+   <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#fde6df"/><rect x="11" y="12" width="14" height="9" rx="2" fill="none" stroke="#c4553a" stroke-width="2.2"/><rect x="19" y="23" width="14" height="9" rx="2" fill="none" stroke="#c4553a" stroke-width="2.2"/><path d="M33 12l-6 6M27 12l6 6" stroke="#c4553a" stroke-width="2.4" stroke-linecap="round"/></svg>
+   <div><b>使わないツール定義の送信</b><p>一度も使わないツールの定義が、毎リクエスト送られる。</p></div>
+  </div>
+  <div class="wcard w3">
+   <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#f8e0e0"/><path d="M30 22a8 8 0 1 1-3-6.2" fill="none" stroke="#b93a3a" stroke-width="2.6" stroke-linecap="round"/><path d="M28 11v5.5h-5.5" fill="none" stroke="#b93a3a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 19l6 6M25 19l-6 6" stroke="#b93a3a" stroke-width="2.4" stroke-linecap="round"/></svg>
+   <div><b>失敗ループ</b><p>同じエラーに同じ直し方。トークンだけが積み上がる。</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- 02 BEFORE/AFTER -->
+<section class="sec">
+ <div class="num">02 ／ ビフォー・アフター</div>
+ <h2>使う回数が増えるほど、1回あたりのコストが下がる <span class="tag concept">概念図・実測値ではありません</span></h2>
+ <p class="lead2">1セッションのコスト ＝ 本来の作業 ＋ 3種類の無駄。最初の3セッションで1つずつ学び、次のセッションからその無駄が縮む。<span class="src"><a href="#s1">[1]</a></span></p>
+ <div class="legend" aria-hidden="true">
+  <span><i class="s-work"></i>本来の作業</span>
+  <span><i class="s-w1"></i>リポジトリの学び直し</span>
+  <span><i class="s-w2"></i>使わないツール定義の送信</span>
+  <span><i class="s-w3"></i>失敗ループ</span>
+ </div>
+ <figure style="margin:0" role="img" aria-label="概念図。6つのセッションの積み上げ棒グラフ。各棒は本来の作業と3種類の無駄の合計。セッション1の後に学び直しが、セッション2の後に未使用ツールが、セッション3の後に失敗ループが減り、棒は導入なしの破線より下がっていく。高さは説明用で実測値ではない。">
+  <div class="chartwrap">
+   <div class="bars" aria-hidden="true">
+    <div class="baseline" style="bottom:calc(100% * 100 / 108)"><span>導入なしのコスト</span></div>
+    <!-- heights: total/108 of 260px; segments as % of bar -->
+    <div class="bar" style="height:calc(100% * 100 / 108)"><div class="s-work" style="height:60%"></div><div class="s-w1" style="height:14%"></div><div class="s-w2" style="height:13%"></div><div class="s-w3" style="height:13%"></div></div>
+    <div class="bar" style="height:calc(100% * 90 / 108)"><div class="s-work" style="height:66.7%"></div><div class="s-w1" style="height:4.4%"></div><div class="s-w2" style="height:14.4%"></div><div class="s-w3" style="height:14.5%"></div></div>
+    <div class="bar" style="height:calc(100% * 81 / 108)"><div class="s-work" style="height:74.1%"></div><div class="s-w1" style="height:4.9%"></div><div class="s-w2" style="height:4.9%"></div><div class="s-w3" style="height:16.1%"></div></div>
+    <div class="bar" style="height:calc(100% * 72 / 108)"><div class="s-work" style="height:83.3%"></div><div class="s-w1" style="height:5.6%"></div><div class="s-w2" style="height:5.6%"></div><div class="s-w3" style="height:5.5%"></div></div>
+    <div class="bar" style="height:calc(100% * 70 / 108)"><div class="s-work" style="height:85.7%"></div><div class="s-w1" style="height:4.3%"></div><div class="s-w2" style="height:5.7%"></div><div class="s-w3" style="height:4.3%"></div></div>
+    <div class="bar" style="height:calc(100% * 69 / 108)"><div class="s-work" style="height:87%"></div><div class="s-w1" style="height:4.3%"></div><div class="s-w2" style="height:4.4%"></div><div class="s-w3" style="height:4.3%"></div></div>
+   </div>
+   <div class="xlab" aria-hidden="true">
+    <div><b>S1</b><span class="ev hot"><span class="lg">学習：<br>リポジトリの事実</span><span class="sm">事実を<br>学ぶ</span></span></div>
+    <div><b>S2</b><span class="ev hot"><span class="lg">学習：<br>未使用ツール</span><span class="sm">ツールを<br>学ぶ</span></span></div>
+    <div><b>S3</b><span class="ev hot"><span class="lg">学習：<br>失敗ループ</span><span class="sm">ループを<br>学ぶ</span></span></div>
+    <div><b>S4</b><span class="ev"><span class="lg">3つとも<br>効いている</span><span class="sm">3つとも<br>効く</span></span></div>
+    <div><b>S5</b><span class="ev"></span></div>
+    <div><b>S6</b><span class="ev"></span></div>
+   </div>
+  </div>
+  <figcaption class="cap">公式READMEのアニメーション図の構成を、編集部が静止図にした概念図。棒の高さは説明用で、測定値ではない。学び直しの削減は Micro-skills（既定オフ）を有効にした場合。<span class="src"><a href="#s1">[1]</a></span></figcaption>
+ </figure>
+</section>
+
+<!-- 03 MECHANISM -->
+<section class="sec">
+ <div class="num">03 ／ 仕組み</div>
+ <h2>前回までの作業記録から学び、次回の無駄を3つの方法で省く</h2>
+ <p class="lead2">エージェント本体（モデル・重み・コード）は変えない。エージェントが既に読む場所（セッション冒頭の文脈、自前の設定ファイル）を通じて働く。<span class="src"><a href="#s1">[1]</a></span></p>
+ <div role="img" aria-label="循環図。セッション終了、次に学習（~/.tokeneconomizer にローカル保存）、次に次セッションに適用、そしてまたセッション終了へ戻る。">
+  <div class="cycle" aria-hidden="true">
+   <div class="node"><div class="ic">🏁</div><b>セッション終了</b><span>記録が3つの仕組みの学習材料に</span></div>
+   <div class="arr"><span class="d">→</span><span class="m">↓</span></div>
+   <div class="node"><div class="ic">🧠</div><b>学習</b><span><code>~/.tokeneconomizer</code> に<br>ローカル保存</span></div>
+   <div class="arr"><span class="d">→</span><span class="m">↓</span></div>
+   <div class="node"><div class="ic">⚙️</div><b>次セッションに適用</b><span>事実を提示・ツールを外す・<br>ループに介入</span></div>
+  </div>
+  <svg class="loopback" viewBox="0 0 800 40" preserveAspectRatio="none" aria-hidden="true"><path d="M700 2 V26 H100 V6" fill="none" stroke="#0b6e6a" stroke-width="3" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/><path d="M92 14 L100 2 L108 14" fill="none" stroke="#0b6e6a" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>
+  <div class="loopback-txt" aria-hidden="true">↺ 同じリポジトリで、毎セッション繰り返す</div>
+ </div>
+
+ <div class="mech">
+  <div class="mc">
+   <div class="hd"><b>📌 Micro-skills<small style="display:block;font-size:12.5px;font-weight:600;color:#5b6b7a">リポジトリの事実を覚える</small></b><span class="sw off">既定 OFF</span></div>
+   <p class="what">リポジトリ固有の事実を覚え、セッション冒頭に提示する。</p>
+   <p class="what">何度も確かめられた事実だけを使う。後で矛盾したら捨てる。</p>
+   <p class="fix">提案モデルの呼び出しが増えるため既定オフ。<span class="src"><a href="#s1">[1]</a></span></p>
+  </div>
+  <div class="mc">
+   <div class="hd"><b>✂️ Tool pruning<small style="display:block;font-size:12.5px;font-weight:600;color:#5b6b7a">使わないツールを外す</small></b><span class="sw on">既定 ON</span></div>
+   <p class="what">使われないツールの定義を、次セッションから送らない。</p>
+   <p class="what">しばらく使われなかったツールだけが対象。</p>
+   <p class="fix"><code>toolprune restore</code> で戻せる。戻したツールは再び外されない。<span class="src"><a href="#s1">[1]</a></span></p>
+  </div>
+  <div class="mc">
+   <div class="hd"><b>🛟 Loop guard<small style="display:block;font-size:12.5px;font-weight:600;color:#5b6b7a">失敗のくり返しに介入する</small></b><span class="sw on">既定 ON</span></div>
+   <p class="what">同じ失敗をくり返していないか、判定用のモデルが確かめる。</p>
+   <p class="what">「詰まっている」と強く判断したときだけ、別の方法を促す。</p>
+   <p class="fix">進展しているターンには介入しない。<span class="src"><a href="#s1">[1]</a></span></p>
+  </div>
+ </div>
+
+ <div class="gate" role="group" aria-label="人の判断の境界：Loop guard は誘導と通知まで。ターンを止めるのは常に人。">
+  <h3>✋ 作業を止めるのは人。プラグインは自分で止めない</h3>
+  <div class="gflow">
+   <div class="gs"><b>① 詰まりを検知</b>同じ失敗が続く → 判定用モデルが確認</div>
+   <div class="garr" aria-hidden="true">→</div>
+   <div class="gs"><b>② 別の手を促す</b>「別の方法を試して」という短いメモを渡す</div>
+   <div class="garr" aria-hidden="true">→</div>
+   <div class="gs"><b>③ 止め方を伝える</b>まだ詰まっていれば、止め方（例：Esc）を1行で通知</div>
+   <div class="garr" aria-hidden="true">→</div>
+   <div class="gs human"><b>👤 人が止める</b>止めるかどうかは人の判断</div>
+  </div>
+  <p class="cap" style="color:#7a3d12">無人実行（headless）では通知を誰も見ないまま、エージェント側の上限まで走り得る。運用で意識する。<span class="src"><a href="#s1">[1]</a></span></p>
+ </div>
+
+ <details class="cfg">
+  <summary>設定値（既定）を見る</summary>
+  <table>
+   <tr><th>仕組み</th><th>既定の設定</th></tr>
+   <tr><td>Micro-skills（既定オフ）</td><td>事実の提案は3セッションごと（k=3）。3セッションで確かめた事実を採用。矛盾したら破棄</td></tr>
+   <tr><td>Tool pruning（既定オン）</td><td>10プロンプト（p=10）・2セッション以上（m=2）、または5セッション（s=5）使われないツールを外す。<code>toolprune restore</code> で戻す</td></tr>
+   <tr><td>Loop guard（既定オン）</td><td>判定の確信度0.7以上（c=0.7）で誘導。誘導は1ターン1回まで（r=1）</td></tr>
+  </table>
+  <p class="cap">各値は <code>config set</code> で変更できる。<span class="src"><a href="#s1">[1]</a></span></p>
+ </details>
+</section>
+
+<!-- 04 RESULTS -->
+<section class="sec">
+ <div class="num">04 ／ 結果</div>
+ <h2>5組合せすべてで安くなった。Opus 4.8だけ「1回で解けた割合」が低下 <span class="tag meas">著者測定</span></h2>
+ <p class="lead2">SWE-Bench 277タスク・6リポジトリ。各リポジトリは学習ゼロから開始。<span class="src"><a href="#s1">[1]</a><a href="#s2">[2]</a></span></p>
+ <figure style="margin:0" role="img" aria-label="横棒グラフ。平均コスト削減率と「1回で解けた割合」の変化。Claude Code＋Sonnet 5：マイナス23.6%、1回で解けた割合 プラス1.3。Claude Code＋Opus 4.8：マイナス30.9%、1回で解けた割合 マイナス1.0（唯一の低下）。Codex＋GPT-5.6 Terra：マイナス24.7%、プラス0.9。Codex＋GPT-5.6 Sol：マイナス26.1%、プラス1.6。Copilot CLI＋Sonnet 5：マイナス18.4%、プラス2.6。">
+  <div class="res" aria-hidden="true">
+   <div class="rhead"><span>エージェント＋モデル</span><span>平均コスト削減</span><span>1回で解けた割合</span></div>
+   <div class="row"><div class="who"><b>Claude Code</b>Sonnet 5</div><div class="track"><div class="fill" style="width:calc(23.6% / 35 * 100)">−23.6%</div></div><span class="pass up">+1.3</span></div>
+   <div class="row alert"><div class="who"><b>Claude Code</b>Opus 4.8<span class="alertnote">▼ ここだけ「1回で解けた割合」が低下</span></div><div class="track"><div class="fill" style="width:calc(30.9% / 35 * 100)">−30.9%</div></div><span class="pass down">−1.0</span></div>
+   <div class="row"><div class="who"><b>Codex</b>GPT-5.6 Terra</div><div class="track"><div class="fill" style="width:calc(24.7% / 35 * 100)">−24.7%</div></div><span class="pass up">+0.9</span></div>
+   <div class="row"><div class="who"><b>Codex</b>GPT-5.6 Sol</div><div class="track"><div class="fill" style="width:calc(26.1% / 35 * 100)">−26.1%</div></div><span class="pass up">+1.6</span></div>
+   <div class="row"><div class="who"><b>Copilot CLI</b>Sonnet 5</div><div class="track"><div class="fill" style="width:calc(18.4% / 35 * 100)">−18.4%</div></div><span class="pass up">+2.6</span></div>
+  </div>
+  <figcaption class="cap">「1回で解けた割合」の変化はポイント差。コストはキャッシュ価格で請求ベースに算定し、プラグイン自身のモデル呼び出しを含む。リポジトリ別の内訳はプロジェクトページへ。<span class="src"><a href="#s1">[1]</a><a href="#s3">[3]</a></span></figcaption>
+ </figure>
+ <div class="stats">
+  <div class="st"><div class="v">30通り</div><div class="l">6リポジトリ×5組合せの30通りすべてで安く（それぞれ5〜40%減）</div></div>
+  <div class="st"><div class="v">277<small style="font-size:.55em"> タスク</small></div><div class="l">SWE-Bench・6リポジトリ・5組合せ</div></div>
+  <div class="st"><div class="v">16〜21%</div><div class="l">Web-Benchでもコスト減</div></div>
+  <div class="st"><div class="v">6〜20%</div><div class="l">セキュリティ監査系2種。全タスクが新規リポジトリ</div></div>
+ </div>
+ <p class="note"><b>読み方：</b>「安くなった」と「同じだけ解けた」は別の指標。いちばん安くなった Opus 4.8 で、成功率だけが下がっている。</p>
+</section>
+
+<!-- 05 CONDITIONS -->
+<section class="sec">
+ <div class="num">05 ／ 対応範囲</div>
+ <h2>動作を確かめたバージョンが狭い</h2>
+ <p class="lead2">検証済みは下の範囲だけ。新しい版は未検証。ツールを外せる単位もエージェントで違う。<span class="src"><a href="#s1">[1]</a></span></p>
+ <div class="agents">
+  <div class="ag"><b>Claude Code</b><div class="ver">2.1.300〜2.1.310</div><span class="pr">単体ツール単位</span></div>
+  <div class="ag"><b>Codex</b><div class="ver">0.153.1〜0.164.0</div><span class="pr">機能パッケージ単位</span></div>
+  <div class="ag"><b>Copilot CLI</b><div class="ver">1.0.83〜1.0.102</div><span class="pr">MCPサーバー単位</span></div>
+  <div class="ag"><b>Pi</b><div class="ver">1.2.0〜1.3.0</div><span class="pr no">ツール除外なし</span></div>
+  <div class="ag exp"><b>opencode</b><div class="ver">実験的（1.19.5／2.2.0）</div><span class="pr no">ツール除外なし</span></div>
+ </div>
+ <div class="reqrow"><span class="req">Python 3.10+ が PATH 上に必要</span><span class="req">手持ちのプラン／ログインで動作</span><span class="req">プラグインは認証情報を扱わない</span><span class="req">一部が失敗してもセッションは継続</span></div>
+</section>
+
+<!-- 06 CHECKLIST -->
+<section class="sec check" aria-labelledby="chk">
+ <div class="num">06 ／ チームで使う前に</div>
+ <h2 id="chk">✅ チームで導入する前に確かめる3点</h2>
+ <p class="lead2">個人の便利ツールとしてではなく、組織の品質基準で採否を決めるための3点。</p>
+ <ul class="cl">
+  <li><div class="box" aria-hidden="true">1</div><div><b>自社リポジトリで、コストと「1回で解けた割合」を両方測る</b><span>安くなっても成功率が落ちれば損。Opus 4.8の結果がその実例。</span></div></li>
+  <li><div class="box" aria-hidden="true">2</div><div><b><code>~/.tokeneconomizer</code> に溜まるログの扱いを決める</b><span>学習データは各人のマシンに残る。社内規程（保存・持ち出し・削除）に照らして確認する。</span></div></li>
+  <li><div class="box" aria-hidden="true">3</div><div><b>数字は著者自身の測定。第三者の再現はまだ</b><span>「30通りすべてで安く」の強さと「測ったのは著者」の留保は、セットで読む。</span></div></li>
+ </ul>
+ <ul class="cl sub" style="margin-top:12px">
+  <li><div class="box" aria-hidden="true" style="border-style:dashed">＋</div><div><b>あわせて確認</b><span>自分の版が検証範囲内か（<code style="white-space:nowrap">claude --version</code> など）／<code>toolprune restore</code> の戻し方／無人実行での通知の見え方。</span></div></li>
+ </ul>
+ <h3 style="font-size:17px;margin:20px 0 4px">1つのリポジトリで試す3ステップ <span class="tag prop">記事の提案・公式手順ではない</span></h3>
+ <div class="steps">
+  <div class="stp"><b>既定の2つだけ入れる</b>使い慣れた1リポジトリで、Tool pruning と Loop guard のみ。外れて困るツールを先にメモ。</div>
+  <div class="stp"><b>1〜2週間、2指標を記録</b><code>status</code> でコストを見つつ、タスクの成否も同じ表に。ターミナルからのコマンド実行は無料。<span class="src"><a href="#s1">[1]</a></span></div>
+  <div class="stp"><b>Micro-skills を後から足す</b>提示される事実を <code>microskills</code> で確認。悪化したら仕組み単位でオフに。</div>
+ </div>
+</section>
+
+<!-- SOURCES -->
+<section class="sec">
+ <div class="num">SOURCES &amp; NOTES</div>
+ <h2>出典と、確認した範囲</h2>
+ <ol class="srcs">
+  <li id="s1">TokenEconomizer 公式リポジトリ（README）：仕組み3点、既定値、対応版、ベンチマーク結果、ローカル保存、可逆性。<a href="https://github.com/microsoft/TokenEconomizer">https://github.com/microsoft/TokenEconomizer</a></li>
+  <li id="s2">「TokenEconomizer: Experience-Driven Black-Box Cost Control for Coding Agents」arXiv:2610.22732（2026年10月16日 JST 公開）。<a href="https://arxiv.org/abs/2610.22732">https://arxiv.org/abs/2610.22732</a></li>
+  <li id="s3">TokenEconomizer プロジェクトページ：リポジトリ別の内訳チャートと注釈付き実行例。<a href="https://tokeneconomizer.github.io">https://tokeneconomizer.github.io</a></li>
+ </ol>
+ <footer>
+  <p>開発：Microsoft Research・Microsoft Security・UC Berkeleyの研究者ら。時系列：リポジトリ作成 10/13、論文公開 10/16、v0.1.0リリースと著者の告知 10/27（いずれも2026年・JST）。資料確認：2026年10月31日 JST。</p>
+  <p>02の図は公式READMEの図をもとに編集部が作成した概念図で、実測値ではありません。「1回で解けた割合」は論文の指標（Pass@1）。効果の数字はすべて著者自身のベンチマークによるもので、第三者検証・自社リポジトリでの実測は未実施です。06の試行手順は記事の提案です。<strong>本記事の作成にあたり、TokenEconomizerのインストール・実行は行っていません。</strong>仕様や対応版は変更される場合があります。</p>
+  <p>このHTMLは単体で保存でき、本文と図は通信なしで読めます。</p>
+ </footer>
+</section>
+
+</div>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_10_30.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_10_31.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-10-31.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
