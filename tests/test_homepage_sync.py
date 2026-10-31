@@ -1,8 +1,11 @@
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import re
+
+from tests.node_clock import fixed_node_clock
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,7 +23,8 @@ def fixture(tmp_path):
     return tmp_path
 
 def run(root, *args):
-    return subprocess.run(['node', str(root / 'scripts/build-homepage-latest.js'), *args], capture_output=True, text=True, encoding='utf-8')
+    env = {**os.environ, 'NODE_OPTIONS': fixed_node_clock(root, '2026-10-12T03:00:00Z')}
+    return subprocess.run(['node', str(root / 'scripts/build-homepage-latest.js'), *args], capture_output=True, text=True, encoding='utf-8', env=env)
 
 def test_unknown_clock_is_not_synthesized_and_repeat_is_idempotent(tmp_path):
     root = fixture(tmp_path)
