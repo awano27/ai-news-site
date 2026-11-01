@@ -7,7 +7,6 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 from typing import List, Dict, Optional
-from urllib.parse import urlparse
 import re
 
 import requests
@@ -80,25 +79,6 @@ class BaseCollector(ABC):
         """Return the source identifier."""
         pass
 
-    def normalize_url(self, url: str) -> str:
-        """Normalize a URL for deduplication."""
-        if not url:
-            return ""
-
-        parsed = urlparse(url)
-
-        # Remove www. prefix
-        netloc = parsed.netloc.lower()
-        if netloc.startswith("www."):
-            netloc = netloc[4:]
-
-        # Remove trailing slash
-        path = parsed.path.rstrip("/")
-
-        # Remove common tracking parameters
-        # Keep only scheme, netloc, and path
-        return f"{parsed.scheme}://{netloc}{path}"
-
     def generate_id(self, name: str) -> str:
         """Generate a slug ID from a name."""
         # Convert to lowercase
@@ -133,11 +113,14 @@ class BaseCollector(ABC):
         today = date.today().isoformat()
         now = datetime.utcnow().isoformat() + "Z"
 
-        links = {"official": self.normalize_url(official_url)}
+        # Published verbatim: dedup canonicalises at comparison time
+        # (src/auto_collect/dedup.canonical_url). Stripping www./query here
+        # sent itmedia.co.jp links to its top page and broke ?v= / ?id= links.
+        links = {"official": official_url or ""}
         if extra_links:
             for key, url in extra_links.items():
                 if url:
-                    links[key] = self.normalize_url(url)
+                    links[key] = url
 
         tool = {
             "id": tool_id,
