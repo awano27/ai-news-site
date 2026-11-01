@@ -260,7 +260,7 @@ def main():
     # separate X budget. Six unrelated posts among 64 combined items stay
     # under 20% and do not hold the day. A row that arrived without a body
     # (HN, the Hugging Face blog) is excluded and listed but is outside the
-    # ratio: see quality.source_context_missing_count. excluded_item_count is
+    # ratio: see quality.ineligible_count. excluded_item_count is
     # the normalizer's invalid-item counter and is not incremented here.
     all_news = processed + github_processed + benchmark_processed + funding_processed + x_processed
     kept, quality = filter_publishable(all_news, min_articles=3, min_sources=2)

@@ -148,7 +148,7 @@ def test_rows_without_a_source_body_are_excluded_but_outside_the_ratio():
     assert len(kept) == 100 and not any(row.get('processing_error') for row in kept)
     assert quality['input_count'] == 126
     assert quality['excluded_count'] == len(quality['excluded']) == 26
-    assert quality['source_context_missing_count'] == 15
+    assert quality['ineligible_count'] == 15
     assert quality['excluded_ratio'] == round(11 / 111, 3)
     assert quality['max_excluded_ratio'] == 0.20
     listed = {row['url']: row['errors'] for row in quality['excluded']}

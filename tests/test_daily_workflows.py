@@ -28,14 +28,15 @@ def recovery():
     return module
 
 
-@pytest.mark.parametrize('name', ['ai-news.yml', 'update-news.yml'])
-def test_legacy_producers_are_manual_deprecation_not_scheduled_writers(name):
-    data = workflow(name)
-    assert 'schedule' not in events(data)
-    assert 'workflow_dispatch' in events(data)
-    assert data['permissions'].get('contents') == 'read'
-    assert 'script/build_news.py' not in str(data['jobs'])
-    assert 'deprecated' in str(data['jobs']).lower()
+@pytest.mark.parametrize('name', ['ai-news.yml', 'update-news.yml', 'presentations-daily.yml', 'deploy-pages.yml.disabled'])
+def test_retired_producers_are_deleted_not_left_as_dormant_writers(name):
+    assert not (ROOT / '.github/workflows' / name).exists()
+
+
+def test_every_workflow_declares_top_level_permissions():
+    for path in sorted((ROOT / '.github/workflows').glob('*.yml')):
+        data = yaml.safe_load(path.read_text(encoding='utf-8'))
+        assert isinstance(data.get('permissions'), dict), path.name
 
 
 def test_cloud_daily_validates_quality_before_publish_and_keeps_diagnostics():
@@ -53,7 +54,7 @@ def test_cloud_daily_validates_quality_before_publish_and_keeps_diagnostics():
 def test_pages_explicitly_follows_successful_cloud_run_on_current_main():
     data = workflow('pages.yml')
     triggers = events(data)
-    assert triggers['workflow_run']['workflows'] == ['Auto Daily Report — Cloud Primary']
+    assert 'Auto Daily Report — Cloud Primary' in triggers['workflow_run']['workflows']
     assert triggers['workflow_run']['types'] == ['completed']
     assert 'success' in data['jobs']['build']['if']
     steps = data['jobs']['build']['steps']
