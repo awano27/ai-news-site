@@ -77,12 +77,16 @@ JP_AI_KEYWORDS = [
 # Hacker News
 HN_MIN_SCORE = 50
 HN_MAX_STORIES = 50
+# Matched as whole words (optionally plural) by hn_collector, so product names
+# that only contain a keyword (ChatGPT, vLLM, LiteLLM) are listed outright.
 HN_AI_KEYWORDS = [
-    "ai", "gpt", "llm", "claude", "openai", "anthropic", "gemini", "mistral",
+    "ai", "a.i.", "gpt", "chatgpt", "llm", "vllm", "litellm", "claude", "openai",
+    "anthropic", "gemini", "mistral",
     "machine learning", "deep learning", "neural", "transformer", "diffusion",
     "stable diffusion", "midjourney", "copilot", "chatbot", "langchain",
-    "rag", "vector", "embedding", "fine-tun", "inference", "nvidia",
-    "hugging face", "ollama", "llama", "agent", "autonomous",
+    "rag", "vector", "embedding", "fine-tune", "fine-tuning", "fine-tuned",
+    "inference", "nvidia",
+    "hugging face", "ollama", "llama", "agent", "agentic", "autonomous",
 ]
 
 # Collection settings

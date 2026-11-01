@@ -180,7 +180,9 @@ _HARD_TOKENS = ('URL', 'missing title', 'invalid object', 'missing source')
 
 
 def failure_reason(articles: list[dict], quality: dict) -> str:
-    failed = [row for row in articles if isinstance(row, dict) and row.get('processing_status') not in ('llm', 'source_japanese')]
+    failed = [row for row in articles if isinstance(row, dict)
+              and row.get('processing_status') not in ('llm', 'source_japanese')
+              and row.get('processing_error') != 'source_context_missing']
     blobs = list(quality.get('errors') or [])
     for row in quality.get('excluded') or []:
         blobs.extend(row.get('errors') or [])

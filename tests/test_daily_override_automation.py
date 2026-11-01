@@ -285,24 +285,147 @@ def test_runner_discards_a_stale_override_commit_and_completes_the_run(tmp_path:
     assert result.returncode == 0, result.stderr
     assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == "remote change"
     assert (runtime / "publisher_args.json").is_file()
-    assert "Discarding stale override commit" in log_path.read_text(encoding="utf-8")
+    assert "Discarding leftover override commit" in log_path.read_text(encoding="utf-8")
 
 
-def test_runner_keeps_todays_override_commit_instead_of_discarding_it(tmp_path: Path) -> None:
-    _, source, runtime = make_runtime(tmp_path)
-    subject = f"chore(report): local override {date.today().isoformat()}"
-    (runtime / "base.txt").write_text("today override\n", encoding="utf-8")
-    git(runtime, "add", "base.txt")
-    git(runtime, "commit", "-m", subject)
+def write_dated_files(repo: Path, iso_date: str, body: str) -> dict[str, str]:
+    """Create the dated files only that day's run produces."""
+    underscored = iso_date.replace("-", "_")
+    dated = {
+        f"daily-news/archive/{iso_date}.html": f"<p>archive {body}</p>\n",
+        f"input/day/{iso_date[5:].replace('-', '')}.txt": f"input {body}\n",
+        f"presentations/daily_reports/auto_daily_report_{underscored}.html": f"<p>report {body}</p>\n",
+        f"presentations/daily_reports/og/{underscored}.png": f"png {body}\n",
+        f"presentations/model_watch/{iso_date}.json": f'{{"watch": "{body}"}}\n',
+        f"public-pages/news/daily/{iso_date}.json": f'{{"daily": "{body}"}}\n',
+    }
+    for relative, text in dated.items():
+        path = repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    return dated
+
+
+def write_override_files(repo: Path, iso_date: str, body: str) -> dict[str, str]:
+    """Create the dated files a local override adds, plus the shared files it rewrites."""
+    dated = write_dated_files(repo, iso_date, body)
+    (repo / "base.txt").write_text(f"{body} override\n", encoding="utf-8")
+    (repo / "presentations" / "daily_reports" / "index.json").write_text(f'{{"index": "{body}"}}\n', encoding="utf-8")
+    return dated
+
+
+def commit_leftover_override(repo: Path, iso_date: str, body: str) -> tuple[str, dict[str, str]]:
+    dated = write_override_files(repo, iso_date, body)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-m", f"chore(report): local override {iso_date}")
+    return git(repo, "rev-parse", "HEAD").stdout.strip(), dated
+
+
+def commit_leftover_backfill(repo: Path, iso_date: str, body: str) -> tuple[str, dict[str, str]]:
+    dated = write_dated_files(repo, iso_date, body)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-m", f"chore(report): backfill daily-news {iso_date}")
+    return git(repo, "rev-parse", "HEAD").stdout.strip(), dated
+
+
+def committed_paths(repo: Path, rev: str) -> set[str]:
+    return set(git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", rev).stdout.split())
+
+
+def push_conflicting_cloud_run(source: Path, extra: dict[str, str] | None = None) -> None:
     (source / "base.txt").write_text("cloud run\n", encoding="utf-8")
-    git(source, "add", "base.txt")
+    for relative, text in (extra or {}).items():
+        path = source / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    git(source, "add", "-A")
     git(source, "commit", "-m", "remote change")
     git(source, "push")
 
-    result = run_runner(runtime, tmp_path / "runner.log")
 
-    assert result.returncode != 0
-    assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == subject
+def test_runner_rescues_dated_files_of_a_past_override_commit_before_discarding_it(tmp_path: Path) -> None:
+    # 2026-10-29: override b29c8d78 lost the push race, the next morning reset it away,
+    # and the dated archive/report/snapshot files had to be restored by hand (b52b3cf5).
+    origin, source, runtime = make_runtime(tmp_path)
+    leftover_sha, dated = commit_leftover_override(runtime, "2026-10-29", "local")
+    already_restored = "public-pages/news/daily/2026-10-29.json"
+    push_conflicting_cloud_run(source, {already_restored: '{"daily": "hand restored"}\n'})
+    log_path = tmp_path / "runner.log"
+
+    result = run_runner(runtime, log_path)
+
+    assert result.returncode == 0, result.stderr
+    # The backfill must reach origin only inside the publisher's HEAD:main push. Pushed
+    # on its own, its input/day/*.txt triggers generate-daily-news-json.yml, whose bot
+    # commit lands within a minute and rejects that day's strict publish as
+    # non-fast-forward (2026-10-31: b52b3cf5 08:34:56 -> 6ed4228c 08:35:39).
+    assert git(origin, "log", "-1", "--format=%s", "main").stdout.strip() == "remote change"
+    assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == "chore(report): backfill daily-news 2026-10-29"
+    assert git(runtime, "rev-parse", "HEAD~1").stdout == git(origin, "rev-parse", "main").stdout
+    rescued = committed_paths(runtime, "HEAD")
+    assert rescued == set(dated) - {already_restored}
+    for relative in rescued:
+        assert git(runtime, "show", f"HEAD:{relative}").stdout == dated[relative]
+    assert git(runtime, "show", f"HEAD:{already_restored}").stdout == '{"daily": "hand restored"}\n'
+    assert git(runtime, "show", "HEAD:base.txt").stdout == "cloud run\n"
+    assert git(runtime, "show", "HEAD:presentations/daily_reports/index.json", check=False).returncode != 0
+    backup_ref = f"refs/override-backup/2026-10-29-{leftover_sha[:10]}"
+    assert git(runtime, "rev-parse", backup_ref).stdout.strip() == leftover_sha
+    assert backup_ref in log_path.read_text(encoding="utf-8")
+    assert (runtime / "publisher_args.json").is_file()
+
+
+def test_runner_rescues_a_leftover_backfill_again_when_its_publish_never_reached_origin(tmp_path: Path) -> None:
+    # The backfill rides on that day's publisher push, so a failed publish leaves both
+    # the backfill and the override behind. Next morning both are past days: rebuild
+    # them on the new origin/main instead of rebasing (conflict) or dropping (data loss).
+    origin, source, runtime = make_runtime(tmp_path)
+    backfill_sha, backfill_dated = commit_leftover_backfill(runtime, "2026-10-29", "rescued once")
+    override_sha, override_dated = commit_leftover_override(runtime, "2026-10-30", "local")
+    push_conflicting_cloud_run(source)
+    log_path = tmp_path / "runner.log"
+
+    result = run_runner(runtime, log_path)
+
+    assert result.returncode == 0, result.stderr
+    assert git(origin, "log", "-1", "--format=%s", "main").stdout.strip() == "remote change"
+    assert git(runtime, "log", "-3", "--format=%s").stdout.split("\n")[:3] == [
+        "chore(report): backfill daily-news 2026-10-30",
+        "chore(report): backfill daily-news 2026-10-29",
+        "remote change",
+    ]
+    assert git(runtime, "rev-parse", "HEAD~2").stdout == git(origin, "rev-parse", "main").stdout
+    assert committed_paths(runtime, "HEAD~1") == set(backfill_dated)
+    assert committed_paths(runtime, "HEAD") == set(override_dated)
+    for relative, text in {**backfill_dated, **override_dated}.items():
+        assert git(runtime, "show", f"HEAD:{relative}").stdout == text
+    assert git(runtime, "show", "HEAD:base.txt").stdout == "cloud run\n"
+    log = log_path.read_text(encoding="utf-8")
+    for iso_date, sha in (("2026-10-29", backfill_sha), ("2026-10-30", override_sha)):
+        backup_ref = f"refs/override-backup/{iso_date}-{sha[:10]}"
+        assert git(runtime, "rev-parse", backup_ref).stdout.strip() == sha
+        assert backup_ref in log
+    assert (runtime / "publisher_args.json").is_file()
+
+
+def test_runner_backs_up_todays_override_commit_and_regenerates_instead_of_rebasing(tmp_path: Path) -> None:
+    # A same-day rerun after a lost push used to rebase today's leftover onto the
+    # cloud run and throw on the generated-artifact conflict every time.
+    origin, source, runtime = make_runtime(tmp_path)
+    today = date.today().isoformat()
+    leftover_sha, _ = commit_leftover_override(runtime, today, "today")
+    push_conflicting_cloud_run(source)
+    log_path = tmp_path / "runner.log"
+
+    result = run_runner(runtime, log_path)
+
+    assert result.returncode == 0, result.stderr
+    assert git(runtime, "log", "-1", "--format=%s").stdout.strip() == "remote change"
+    assert git(origin, "log", "-1", "--format=%s", "main").stdout.strip() == "remote change"
+    backup_ref = f"refs/override-backup/{today}-{leftover_sha[:10]}"
+    assert git(runtime, "rev-parse", backup_ref).stdout.strip() == leftover_sha
+    assert backup_ref in log_path.read_text(encoding="utf-8")
+    assert (runtime / "publisher_args.json").is_file()
 
 
 def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:

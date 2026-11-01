@@ -258,8 +258,10 @@ def main():
     # and contributes its rss_source (typically "X (@author)"). A dropped post
     # is quality.excluded with a reason and is not published. There is no
     # separate X budget. Six unrelated posts among 64 combined items stay
-    # under 20% and do not hold the day. excluded_item_count is the
-    # normalizer's invalid-item counter and is not incremented here.
+    # under 20% and do not hold the day. A row that arrived without a body
+    # (HN, the Hugging Face blog) is excluded and listed but is outside the
+    # ratio: see quality.ineligible_count. excluded_item_count is
+    # the normalizer's invalid-item counter and is not incremented here.
     all_news = processed + github_processed + benchmark_processed + funding_processed + x_processed
     kept, quality = filter_publishable(all_news, min_articles=3, min_sources=2)
     quality.update({"date": today.isoformat(), "provider": args.provider,
