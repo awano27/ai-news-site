@@ -1,6 +1,7 @@
 """Hacker News AI-filtered auto-collector."""
 
 import logging
+import re
 from datetime import date, datetime, timezone, timedelta
 from typing import List, Dict, Optional
 
@@ -8,6 +9,17 @@ from scripts.collectors.hn import HackerNewsCollector, HN_API_BASE, ITEM_URL, TO
 from ..config import HN_MIN_SCORE, HN_MAX_STORIES, HN_AI_KEYWORDS
 
 logger = logging.getLogger(__name__)
+
+# A substring test let "ai" match jail, railway and Airbnb, and "rag" match
+# storage. Digits may follow (GPT5, AI2) and so may a plural s (LLMs, agents).
+AI_KEYWORD = re.compile(
+    r"(?<![a-z0-9])(?:" + "|".join(re.escape(kw) for kw in HN_AI_KEYWORDS) + r")s?(?![a-z])",
+    re.IGNORECASE,
+)
+
+
+def is_ai_story(title: str, url: str) -> bool:
+    return bool(AI_KEYWORD.search(f"{title} {url}"))
 
 
 class HNAutoCollector(HackerNewsCollector):
@@ -58,10 +70,7 @@ class HNAutoCollector(HackerNewsCollector):
                     if not isinstance(item_time, (int, float)) or not start_ts <= item_time <= end_ts:
                         continue
 
-                    # Filter: AI keywords + score + date
-                    text_lower = (title + " " + url).lower()
-                    is_ai = any(kw in text_lower for kw in HN_AI_KEYWORDS)
-                    if not is_ai:
+                    if not is_ai_story(title, url):
                         continue
                     if score < self.MIN_SCORE:
                         continue

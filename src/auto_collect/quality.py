@@ -116,6 +116,11 @@ def excluded_ratio_limit(total: int, max_excluded_ratio: float = MAX_EXCLUDED_RA
     return max_excluded_ratio
 
 
+def lacks_source_body(article) -> bool:
+    """The collector sent a headline and no body, so no summary was attempted."""
+    return isinstance(article, dict) and article.get('processing_error') == 'source_context_missing'
+
+
 def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: int = 1,
                        max_excluded_ratio: float = MAX_EXCLUDED_RATIO) -> tuple[list, dict]:
     """Drop unverified articles, then apply the day-level gate to what remains.
@@ -132,9 +137,16 @@ def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: in
     A kept X post counts toward the minimums and adds its source. A dropped
     post is listed in excluded with its reasons. excluded_item_count is not
     this list; that counter belongs to the daily normalizer.
+
+    A row whose collector sent no body (HN, the Hugging Face blog feed) is
+    excluded and listed like any other, but it is outside the ratio's
+    numerator and denominator, as the older items are: it was never a
+    generation attempt, and the ratio exists to catch generation failures.
+    source_context_missing_count says how many were set aside this way.
     """
     kept: list = []
     excluded: list[dict] = []
+    without_body = 0
     total = len(articles)
     for index, article in enumerate(articles, 1):
         errs = article_errors(article)
@@ -145,18 +157,22 @@ def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: in
                 'url': article.get('url') if isinstance(article, dict) else None,
                 'errors': errs,
             })
+            without_body += lacks_source_body(article)
         else:
             kept.append(article)
     quality = validate_articles(kept, min_articles=min_articles, min_sources=min_sources)
-    ratio = (len(excluded) / total) if total else 1.0
-    limit = excluded_ratio_limit(total, max_excluded_ratio)
+    attempted = total - without_body
+    failed = len(excluded) - without_body
+    ratio = (failed / attempted) if attempted else 0.0
+    limit = excluded_ratio_limit(attempted, max_excluded_ratio)
     if ratio > limit:
         quality['status'] = 'failed'
         quality['errors'].append(
-            f'too many excluded articles: {len(excluded)}/{total} > {limit:.0%}')
+            f'too many excluded articles: {failed}/{attempted} > {limit:.0%}')
     quality.update({
         'input_count': total,
         'excluded_count': len(excluded),
+        'source_context_missing_count': without_body,
         'excluded_ratio': round(ratio, 3),
         'max_excluded_ratio': limit,
         'excluded': excluded,
@@ -172,7 +188,8 @@ _HARD_TOKENS = ('URL', 'missing title', 'invalid object', 'missing source')
 
 
 def failure_reason(articles: list[dict], quality: dict) -> str:
-    failed = [row for row in articles if isinstance(row, dict) and row.get('processing_status') not in ('llm', 'source_japanese')]
+    failed = [row for row in articles if isinstance(row, dict)
+              and row.get('processing_status') not in ('llm', 'source_japanese') and not lacks_source_body(row)]
     blobs = list(quality.get('errors') or [])
     for row in quality.get('excluded') or []:
         blobs.extend(row.get('errors') or [])
