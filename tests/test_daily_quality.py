@@ -200,6 +200,25 @@ def test_exclusion_ratio_above_twenty_percent_holds_the_day():
     assert any(err=='too many excluded articles: 21/100 > 20%' for err in quality['errors'])
 
 
+def test_headline_only_items_are_unpublished_but_not_counted_as_failures():
+    from src.auto_collect.quality import filter_publishable
+    # 2026-11-01 evening: 20 HN headlines without a body plus 4 real failures
+    # in 105 inputs held the day at 24/105.
+    rows=_numbered(105, bad_at=set(range(101, 105)))
+    for row in rows[:20]:
+        row.update(summary='', processing_status='fallback', processing_error='source_context_missing', title=f'hn {row["url"]}')
+    kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='passed'
+    assert len(kept)==81 and quality['excluded_count']==24 and quality['ineligible_count']==20
+    assert quality['excluded_ratio']==round(4/85, 3)
+    # A provider failure among the eligible items still holds the day.
+    for row in rows[20:46]:
+        row.update(summary='English fallback', processing_status='fallback', processing_error='invalid_japanese', title='bad')
+    _kept, quality=filter_publishable(rows, min_articles=3, min_sources=2)
+    assert quality['status']=='failed'
+    assert 'too many excluded articles: 30/85 > 30%' in quality['errors']
+
+
 def test_thin_day_tolerates_the_usual_exclusion_count_but_not_a_provider_failure():
     from src.auto_collect.quality import filter_publishable
     # 2026-10-25 (Sunday): 20 of 78 excluded, the same count as a normal day.

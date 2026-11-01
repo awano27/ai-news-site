@@ -148,14 +148,22 @@ def filter_publishable(articles: list, *, min_articles: int = 1, min_sources: in
         else:
             kept.append(article)
     quality = validate_articles(kept, min_articles=min_articles, min_sources=min_sources)
-    ratio = (len(excluded) / total) if total else 1.0
-    limit = excluded_ratio_limit(total, max_excluded_ratio)
+    # Headline-only items (HN supplies no body) are never sent to the model,
+    # so they are ineligible rather than failed. They stay unpublished but do
+    # not count toward the ratio, which measures processing failures.
+    ineligible = sum(1 for a in articles if isinstance(a, dict)
+                     and a.get('processing_error') == 'source_context_missing')
+    eligible = total - ineligible
+    failed = len(excluded) - ineligible
+    ratio = (failed / eligible) if eligible else 1.0
+    limit = excluded_ratio_limit(eligible, max_excluded_ratio)
     if ratio > limit:
         quality['status'] = 'failed'
         quality['errors'].append(
-            f'too many excluded articles: {len(excluded)}/{total} > {limit:.0%}')
+            f'too many excluded articles: {failed}/{eligible} > {limit:.0%}')
     quality.update({
         'input_count': total,
+        'ineligible_count': ineligible,
         'excluded_count': len(excluded),
         'excluded_ratio': round(ratio, 3),
         'max_excluded_ratio': limit,
