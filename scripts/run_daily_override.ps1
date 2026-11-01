@@ -71,6 +71,30 @@ function Invoke-LoggedCommand {
     return [int]$LASTEXITCODE
 }
 
+function Get-RescuePaths {
+    # Only files that day's run alone produced: added by the commit, named with its
+    # date, and still absent from origin/main (an operator may have restored some by hand).
+    param(
+        [Parameter(Mandatory = $true)][string]$Sha,
+        [Parameter(Mandatory = $true)][string]$IsoDate
+    )
+    $dayInput = "input/day/{0}.txt" -f $IsoDate.Substring(5).Replace("-", "")
+    $underscored = $IsoDate.Replace("-", "_")
+    $added = @(& git -C $repo diff-tree --no-commit-id --name-only -r --diff-filter=A $Sha)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not list files added by $Sha."
+    }
+    $dated = @($added | Where-Object { $_ -eq $dayInput -or $_.Contains($IsoDate) -or $_.Contains($underscored) })
+    if ($dated.Count -eq 0) {
+        return @()
+    }
+    $existing = @(& git -C $repo ls-tree -r --name-only origin/main -- @dated)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not check origin/main for the dated files of $Sha."
+    }
+    return @($dated | Where-Object { $existing -notcontains $_ })
+}
+
 $mutex = $null
 $mutexHeld = $false
 $exitCode = 1
@@ -120,26 +144,65 @@ try {
     $behind = [int]$Matches[2]
     Write-RunnerLog "Git state ahead=$ahead behind=$behind"
     if ($ahead -gt 0) {
-        # A publish that failed to push leaves its override commit behind. Rebasing it
-        # onto the cloud run conflicts on generated artifacts every morning, which used
-        # to deadlock the runner before it ever collected X bookmarks. The pipeline
-        # regenerates every one of those files below, so a stale override is disposable.
-        $todaySubject = "chore(report): local override {0:yyyy-MM-dd}" -f (Get-Date)
-        $localSubjects = @(& git -C $repo log "--format=%s" "origin/main..HEAD")
+        # A publish that failed to push leaves its validated override commit behind.
+        # Rebasing it onto the cloud run conflicts on generated artifacts every time,
+        # which used to deadlock the runner before it ever collected X bookmarks.
+        # Today's leftover is disposable because the pipeline below regenerates every
+        # file in it. A past day's is not: only that day's run produced its dated
+        # files (2026-10-29 had to be restored by hand), so those are re-committed on
+        # top of origin/main and ride on the publisher's push. Pushing them alone
+        # would trigger generate-daily-news-json.yml (input/day/*.txt), whose bot
+        # commit lands within a minute and rejects the strict publish hours later as
+        # non-fast-forward, every day (2026-10-31: b52b3cf5 -> 6ed4228c in 43s).
+        # A backfill left behind by a failed publish is handled the same way.
+        $today = "{0:yyyy-MM-dd}" -f (Get-Date)
+        $entries = @(& git -C $repo log "--format=%H%x09%s" --reverse "origin/main..HEAD")
         if ($LASTEXITCODE -ne 0) {
             throw "Could not list local commits ahead of origin/main."
         }
-        $stale = $localSubjects.Count -gt 0
-        foreach ($subject in $localSubjects) {
-            if ($subject -notmatch '^chore\(report\): local override \d{4}-\d{2}-\d{2}$' -or $subject -eq $todaySubject) {
-                $stale = $false
+        $leftovers = @()
+        $disposable = $entries.Count -gt 0
+        foreach ($entry in $entries) {
+            $sha, $subject = $entry -split "`t", 2
+            if ($subject -match '^chore\(report\): (?:local override|backfill daily-news) (\d{4}-\d{2}-\d{2})$') {
+                $leftovers += [pscustomobject]@{ Sha = $sha; Date = $Matches[1]; Subject = $subject }
+            }
+            else {
+                $disposable = $false
             }
         }
-        if ($stale) {
-            Write-RunnerLog "Discarding stale override commit(s) the pipeline will regenerate: $($localSubjects -join '; ')"
+        if ($disposable) {
+            foreach ($commit in $leftovers) {
+                $backupRef = "refs/override-backup/$($commit.Date)-$($commit.Sha.Substring(0, 10))"
+                $refCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "update-ref", $backupRef, $commit.Sha) -Label "git update-ref"
+                if ($refCode -ne 0) {
+                    throw "Could not back up leftover commit $($commit.Sha) as $backupRef."
+                }
+                Write-RunnerLog "Backed up leftover commit $($commit.Sha) '$($commit.Subject)' as $backupRef"
+            }
+            Write-RunnerLog "Discarding leftover override commit(s): $(@($leftovers | ForEach-Object { $_.Subject }) -join '; ')"
             $resetCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "reset", "--hard", "origin/main") -Label "git reset"
             if ($resetCode -ne 0) {
-                throw "Could not discard stale override commits."
+                throw "Could not discard leftover override commits."
+            }
+            foreach ($commit in $leftovers) {
+                if ($commit.Date -eq $today) {
+                    continue
+                }
+                $rescue = @(Get-RescuePaths -Sha $commit.Sha -IsoDate $commit.Date)
+                if ($rescue.Count -eq 0) {
+                    Write-RunnerLog "Nothing to rescue from $($commit.Sha): origin/main already has its dated files."
+                    continue
+                }
+                $checkoutCode = Invoke-LoggedCommand -FilePath "git" -Arguments (@("-C", $repo, "checkout", $commit.Sha, "--") + $rescue) -Label "git checkout"
+                $commitCode = 1
+                if ($checkoutCode -eq 0) {
+                    $commitCode = Invoke-LoggedCommand -FilePath "git" -Arguments @("-C", $repo, "commit", "-m", "chore(report): backfill daily-news $($commit.Date)") -Label "git commit"
+                }
+                if ($commitCode -ne 0) {
+                    throw "Could not build the backfill commit for $($commit.Date) from $($commit.Sha)."
+                }
+                Write-RunnerLog "Rescued $($rescue.Count) dated file(s) of $($commit.Date) from $($commit.Sha) onto HEAD for today's publish: $($rescue -join ', ')"
             }
             $ahead = 0
             $behind = 0
