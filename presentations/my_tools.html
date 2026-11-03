@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>自作ツール｜kimeru・KaizenLog・dayloop｜VisionHub</title>
-  <meta name="description" content="判断依頼の整理、PC作業の振り返り、1日の残件整理。生成AIを活用して作るkimeru・KaizenLog・dayloopの課題、仕組み、設計の工夫と公開成果物を紹介します。">
+  <meta name="description" content="PMの判断準備、PC作業の振り返り、残件と相手待ちの管理。個人開発のkimeru・KaizenLog・dayloopを、出力例・設計判断・2026年11月3日に確認した公開コードと検証状況で紹介します。">
   <link rel="canonical" href="https://visionhub.jp/presentations/my_tools.html">
   <meta property="og:type" content="website">
   <meta property="og:title" content="自作ツール｜kimeru・KaizenLog・dayloop">
-  <meta property="og:description" content="誰のどんな手間を、どう整えるか。Windows向けの3つの個人開発を、使う場面・仕組み・公開資料から紹介します。">
+  <meta property="og:description" content="依頼の判断準備、作業の振り返り、残件と相手待ちの管理。3つの個人開発を、出力例・設計判断・最新の公開コードで紹介します。">
   <meta property="og:url" content="https://visionhub.jp/presentations/my_tools.html">
   <meta property="og:site_name" content="VisionHub">
   <meta property="og:locale" content="ja_JP">
@@ -40,7 +40,7 @@
     .choose-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
     .choose-link { position: relative; padding: 22px 24px 24px; background: var(--ntt-navy-2); border: 1px solid var(--ntt-line-2); text-decoration: none; }
     .choose-link:hover { border-color: var(--ntt-yellow); }
-    .choose-link small { display: block; color: #bdc6d6; font-size: 14px; }
+    .choose-link small { display: block; color: #bdc6d6; font-size: 14px; padding-right: 20px; }
     .choose-link strong { display: block; margin-block: 8px; font-size: 27px; line-height: 1.4; }
     .choose-link .arrow { position: absolute; right: 22px; top: 18px; color: var(--ntt-yellow); font-size: 24px; }
     .choose-link p { font-size: 15px; }
@@ -168,6 +168,12 @@
     #kaizenlog h2,#dayloop h2 { font-size:34px; }
     code { overflow-wrap:anywhere; }
     .making p,.making-steps p { font-size:16px; }
+    .update-note { margin-top:26px; padding:22px 24px; border-left:3px solid var(--ntt-yellow); background:var(--ntt-navy-2); }
+    .update-note h3 { font-size:19px; margin-bottom:10px; }
+    .update-note p { color:#d0d7e2; font-size:16px; }
+    .update-note p + p { margin-top:12px; }
+    .version-note { color:#bdc6d6; font-size:14px; margin-top:16px; overflow-wrap:anywhere; }
+    .case-detail p + p { margin-top:14px; }
     @media(max-width:900px){ .featured-grid,.hero-grid { grid-template-columns:1fr; } .output-figure { max-width:620px; } }
     @media(max-width:700px){ .main-flow { grid-template-columns:1fr; gap:16px; } .main-flow li+li::before { content:'↓'; left:50%; top:-22px; } .featured-grid { gap:26px; } .output-story h3 { font-size:21px; } }
   </style>
@@ -192,7 +198,7 @@
         <div class="hero-intro">
           <strong>課題を整理し、人が判断できる道具にする。</strong>
           <p>クラウド・開発基盤を強みとするPMとして、要件定義・設計から、AIを活用した実装、検証・改善まで取り組んでいます。現場の依頼や記録を整理し、人が判断できる形にすることを重視しています。</p>
-          <p class="small-note">3つの個人ツールと、地域向けAIサービスの開発経験を紹介します。</p>
+          <p class="small-note">ここでは3つの個人開発を、出力例・設計判断・公開コードで紹介します。実装とテストの作成には生成AIの支援を用いています。</p>
           <a href="#kimeru">代表作の出力を見る ↓</a>　<a href="#making">開発の進め方 ↓</a>
         </div>
       </div>
@@ -201,38 +207,38 @@
       <div class="choose-grid">
         <a class="choose-link" href="#kimeru"><small>01 / 判断の準備</small><strong>kimeru</strong><p>依頼に返事をする前に、<br>確認事項と次の一手をそろえる。</p><span class="arrow" aria-hidden="true">↓</span></a>
         <a class="choose-link" href="#kaizenlog"><small>02 / 作業の振り返り</small><strong>KaizenLog</strong><p>PC作業の記録を、<br>読み返せる日誌にまとめる。</p><span class="arrow" aria-hidden="true">↓</span></a>
-        <a class="choose-link" href="#dayloop"><small>03 / 1日の計画</small><strong>dayloop</strong><p>今日の予定を決め、<br>残ったタスクの扱いまで整理する。</p><span class="arrow" aria-hidden="true">↓</span></a>
+        <a class="choose-link" href="#dayloop"><small>03 / 残件・相手待ちの管理</small><strong>dayloop</strong><p>今日の仕事と、<br>相手の返答待ちを分けて追う。</p><span class="arrow" aria-hidden="true">↓</span></a>
       </div>
     </nav>
     <article id="kimeru" class="case featured" aria-labelledby="kimeru-title">
-      <p class="tool-kind">01 / 代表作 · 判断の準備 / 公開・検証段階</p>
+      <p class="tool-kind">01 / 代表作 · 判断の準備 / v1.4.0公開・mainで継続開発</p>
       <h2 id="kimeru-title">kimeru</h2>
       <p class="case-tagline">届いた依頼を、<br>人が判断できる材料に整える。</p>
-      <p class="case-summary">Windows・Teamsで働くPMが、返答する前に不足情報と選択肢をそろえるためのツール。届いた依頼から、対応手順と返信の下書きを用意します。日程の判断と送信は、人が担います。</p>
+      <p class="case-summary">Windows・Teamsで働くPM向け。散らばる依頼を読み、対応手順をそろえます。文章生成AIを設定すると、不足情報・選択肢・返信案も用意。PMが修正・承認し、相手へ送るかを決めます。</p>
       <ol class="flow main-flow" aria-label="kimeruの仕組みの図解"><li><strong>1. 入力</strong><small>依頼・チケット・<br>アラート・議事録</small></li><li><strong>2. 下書き</strong><small>不足情報・対応手順・<br>返信案をそろえる</small></li><li><strong>3. 人の確認・承認</strong><small>原文と照合し、<br>修正・承認・保留</small></li><li><strong>4. 記録</strong><small>判断・作業・送信の<br>状態を分けて残す</small></li></ol>
       <div class="featured-grid">
         <figure class="output-figure">
           <a href="assets/my-tools/kimeru-try-report.png" aria-label="kimeruの実出力画像を原寸で開く"><img src="assets/my-tools/kimeru-try-report.png" width="1100" height="1660" alt="架空のリリース延期相談から生成したkimeruレポート。依頼原文、不足情報、対応手順、修正と承認の履歴が並ぶ。画像を開くと原寸で読めます。" loading="lazy"></a>
-          <figcaption>README掲載の実出力画像（架空の相談1件）。<a href="assets/my-tools/kimeru-try-report.png">原寸で読む ↗</a><br>体験の返信案・不足情報は固定文です。AI推論・実Teams接続・外部送信は行いません。</figcaption>
+          <figcaption>架空の相談1件を使った体験モードの実出力。<a href="assets/my-tools/kimeru-try-report.png">原寸で読む ↗</a><br>返信案・不足情報・判断値は台本の固定値。検査・修正・承認の記録を試せます（AI推論・Teams接続・外部送信なし）。</figcaption>
         </figure>
         <div class="output-story">
           <h3>入力から、何が得られるか</h3>
           <p>入力は、QA環境停止による日程変更の相談。出力は「復旧見込み・残りのテスト日数・影響先」の確認事項、対応の5手順、返信案、確認履歴です。</p>
-          <h3>誤った約束を、そのまま送らない</h3>
+          <h3>原文にない約束を、承認前に見つける</h3>
           <p>体験の最初の返信案には、依頼にない「15時」が入っています。日付・数値の検査で注意を出し、修正・承認の流れを台本で再現します。画像はその修正後の記録です。</p>
-          <p class="small-note">検査・承認待ち・修正履歴は実コードの処理。体験の判断値は固定値で、正解確率ではありません。</p>
           <h3>なぜ、人の承認を挟むのか</h3>
           <p>AIの案を決定や送信と取り違えないためです。承認しても作業完了にはしません。重大事象は規則で先に拾い、判断モデルと文章生成を分けて、迷った回答や情報不足に対する確認経路を設けています。</p>
-          <div class="artifact-links"><a class="primary-link" href="https://github.com/awano27/pm-decision#-まず動かす">固定データの体験を試す ↗</a><a href="https://github.com/awano27/pm-decision/blob/main/docs/design.md">設計の理由を読む ↗</a></div>
+          <div class="artifact-links"><a class="primary-link" href="https://github.com/awano27/pm-decision#-まず動かす">体験の実行手順（GitHub）↗</a><a href="https://github.com/awano27/pm-decision/blob/main/docs/design.md">設計の理由を読む ↗</a></div>
           <p class="small-note">Python 3.10以上で <code>python -m kimeru try</code>。APIキー不要。新しく取得したフォルダから試せます。</p>
         </div>
       </div>
+      <div class="update-note"><h3>下書きの事実照合と、前例の参照を強化</h3><p>v1.4.0では、原文にない人名や「対応済み」などの完了表現にも検査を広げました。必要に応じて過去の似た依頼や承認済みの言い回しを参照できます。前例の参照は設定で有効にする機能で、今回の事実確認と承認は引き続き必要です。</p><div class="artifact-links"><a href="https://github.com/awano27/pm-decision/releases/tag/v1.4.0">v1.4.0の公開記録 ↗</a><a href="https://github.com/awano27/pm-decision/blob/main/CHANGELOG.md">変更履歴 ↗</a></div></div>
       <details class="work-details"><summary>kimeruの設計・検証・利用条件を詳しく見る</summary><div class="detail-content">
         <div class="case-bottom">
           <div class="case-detail"><h3>設計と開発の範囲</h3><p>awano27による、生成AIを活用した個人開発。判断の流れ、承認境界、生成文の検査、検証条件をコードと設計資料で公開しています。各工程の人・AIの分担をたどれる資料は<a href="#making">開発の進め方</a>にまとめています。</p><h3>AIに任せる範囲</h3><p>既定の判定はキーワードによる簡易ルール。Kev・Jevを設定すると種類の判断を、writerを設定すると文面生成を担います。writerなしでは対応手順と定型文を返します。Codex writerは現在定型文にフォールバックします。</p></div>
-          <div class="case-detail"><h3>何を確かめたか</h3><p>公開CIにはWindows / Linuxの回帰試験の成功記録があります。承認前の実行抑止、重大事象、情報不足、モデル停止、体験の隔離を対象にしています。架空データの経路試験と、Kev実モデルの評価は別です。開発に未使用のデータでの評価と実業務の効果測定は残っています。</p><p>カードと一覧の返信状態をそろえる<a href="https://github.com/awano27/pm-decision/pull/2">修正PR #2</a>は2026年10月18日にマージ済みです。同じコミットのCIには<a href="https://github.com/awano27/pm-decision/actions/runs/39140945716">成功</a>と<a href="https://github.com/awano27/pm-decision/actions/runs/39142902403">失敗</a>の記録があります。後者はWindows / Python 3.10の単体テストが失敗しており、マージ済みであることと検証結果は分けて確認します。</p></div>
+          <div class="case-detail"><h3>確認した版と検証状況</h3><p>公開版はv1.4.0。確認したmainは<a href="https://github.com/awano27/pm-decision/commit/79d14f7dec28c5341ff07826c42e4caefd955a86"><code>79d14f7</code></a>です。<a href="https://github.com/awano27/pm-decision/actions/runs/41292148089">11月1日のCI</a>はWindowsのPython 3.10〜3.12の3環境とLinuxの1環境、計4ジョブが成功。承認前の実行抑止、重大事象、情報不足、モデル停止、体験の隔離などを確認しています。</p><p>カードと一覧の返信状態をそろえる<a href="https://github.com/awano27/pm-decision/pull/2">修正PR #2</a>は統合済みです。Teams・ADO・一部モデル連携には作者の環境での確認記録があります。実データの判断精度・時間短縮と、開発に未使用のデータでの評価は今後の検証対象です。</p></div>
         </div>
-        <div class="usage"><h3>実環境で使うとき</h3><dl><dt>導入条件</dt><dd>Teams連携はWindows 10 / 11の画面操作です。表示や権限に依存するため、利用環境で確認が必要です。</dd><dt>保存と送信</dt><dd>判断・ログはPCに保存。Jev、設定したwriter、明示許可したリモートKevには材料を送ります。自分とのTeamsチャットへの投稿も送信を伴います。</dd><dt>操作の境界</dt><dd>相手への返信は既定では手動コピー。ADOコメントや相手への送信は、別途有効化・承認・実行操作が必要です。通知や外部接続の実機確認、実データでの評価は利用前に行います。</dd></dl></div>
+        <div class="usage"><h3>実環境で使うとき</h3><dl><dt>導入条件</dt><dd>Teams連携はWindows 10 / 11の画面操作です。表示や権限に依存するため、利用環境で確認します。Teamsの画面切り替えの問題が実機で確認されるまでは、自動運転を使わないようREADMEで案内しています。</dd><dt>保存と送信</dt><dd>判断・ログはPCに保存。Jev、設定したwriter、明示許可したリモートKevには材料を送ります。自分とのTeamsチャットへの投稿も送信を伴います。</dd><dt>操作の境界</dt><dd>相手への返信は既定では手動コピー。ADOコメント・優先度変更・相手への返信は、種類ごとの有効化と承認、実行操作を要します。スマホ受信、相手への送信、ADOへの書き込みなどはテストと実機確認を分けて扱っています。</dd></dl></div>
         <div class="artifact-links"><a href="https://github.com/awano27/pm-decision">README・コード ↗</a><a href="https://github.com/awano27/pm-decision/tree/main/graphs">判断の流れ ↗</a><a href="https://github.com/awano27/pm-decision/blob/main/docs/evaluation.md">評価条件 ↗</a><a href="https://github.com/awano27/pm-decision/blob/main/docs/try-verification.md">体験の検証記録 ↗</a><a href="https://github.com/awano27/pm-decision/blob/main/SECURITY.md">データ・送信設定 ↗</a></div>
       </div></details>
       <p class="case-meta"><span><strong>構成</strong> Python / Windows UI Automation / Kev・Jev / 任意のLLM</span><span><strong>体験</strong> 固定データ・APIキー不要</span></p>
@@ -241,89 +247,92 @@
     <article id="kaizenlog" class="case" aria-labelledby="kaizenlog-title">
       <div class="case-top">
         <div>
-          <p class="tool-kind">02 / 作業の振り返り · ソース公開</p><h2 id="kaizenlog-title">KaizenLog</h2>
+          <p class="tool-kind">02 / 作業の振り返り · 公開main</p><h2 id="kaizenlog-title">KaizenLog</h2>
           <p class="case-tagline">PC作業の記録を、<br>読み返せる日誌にする。</p>
-          <p class="case-summary">日々の作業を振り返りたい人向け。ActivityWatchの記録を集計し、Markdownの活動日誌と日報ドラフトを残します。Obsidianでも読めます。</p>
+          <p class="case-summary">日々の作業を振り返りたい人向け。ActivityWatchの記録から、Markdown日誌・日報の下書き・月次集計を作ります。ローカルのHome画面で成果や次に試すことを記録でき、日誌と集計はLLMなしで動きます。</p>
         </div>
       </div>
-      <div class="example"><dl><dt>入力</dt><dd>ActivityWatchの作業記録と、その日の目標・振り返り。</dd><dt>出力</dt><dd>作業内訳、日報ドラフト、翌日のフォーカスをまとめたMarkdown日誌。</dd></dl><p class="small-note">公開日誌の架空例では「配布物の確認」から「次回はチェックリストへ集約する」という振り返りを掲載。数値や成果は説明用で、実測の実績ではありません。<a href="https://github.com/awano27/KaizenLog-/blob/main/docs/examples/demo_daily_note.md">日誌の全体を見る ↗</a></p></div>
+      <div class="example"><dl><dt>入力例</dt><dd>開発アプリ60分、ブラウザー30分の作業記録。</dd><dt>出力例</dt><dd>「アクティブ時間1時間30分／開発67%・ブラウジング33%」と、本人が書く振り返り欄。</dd></dl><p class="small-note">READMEの架空例です。作業の観測値と、本人が振り返って書く内容を分けて残します。</p><div class="artifact-links"><a class="primary-link" href="https://github.com/awano27/KaizenLog-/blob/main/README.md">出力例・Homeの手順（GitHub）↗</a></div></div>
+      <div class="update-note"><h3>記録を見る操作と、書き換える操作を分ける</h3><p>Home画面の表示は保存済み情報の読み取り。日誌の生成や本人の入力は操作を分けています。10月21日には、AIへの依頼の手間を振り返る<code>prompts --roi</code>も表示専用に修正し、見るだけで台帳や採用状態を変えないようにしました。</p><div class="artifact-links"><a href="https://github.com/awano27/KaizenLog-/commit/364e85af2436172dda2ba87ca0d95d0b6b2b784f">表示専用化の変更とテスト ↗</a></div></div>
       <details class="work-details"><summary>KaizenLogの入力・出力、設計と利用条件を見る</summary><div class="detail-content">
       <div class="case-top"><div>
           <div class="background"><h3>作った背景</h3><p>作業ログがあっても、長い記録を毎日読み返すのは手間です。記録の集計、本人の振り返り、翌日に試すことを、日誌の中で見渡せる形にします。</p></div>
         </div>
         <figure class="scenario">
           <p class="scenario-label">使える場面</p><h3>夕方、今日何をしていたか振り返るとき</h3>
-          <ol class="flow" aria-label="KaizenLogの処理の流れ"><li><strong>1. 記録する</strong><small>ActivityWatch</small></li><li><strong>2. 集計する</strong><small>コードで分類・集計</small></li><li><strong>3. 残す</strong><small>Obsidianの日誌</small></li><li><strong>4. 振り返る</strong><small>手書き・任意のAI提案</small></li></ol>
+          <ol class="flow" aria-label="KaizenLogの処理の流れ"><li><strong>1. 記録する</strong><small>ActivityWatch</small></li><li><strong>2. 集計する</strong><small>コードで分類・集計</small></li><li><strong>3. 残す</strong><small>Markdown日誌</small></li><li><strong>4. 振り返る</strong><small>手書き・任意のAI提案</small></li></ol>
           <div class="example"><dl><dt>日誌</dt><dd>目標、活動の内訳、日報ドラフトをひとつのノートに。</dd><dt>翌日</dt><dd>未完了の改善アクションを再掲し、取り組んだら完了を記録。</dd></dl></div>
           <figcaption>公開サンプルは架空データです。日誌の並びと見せ方を確認できます。</figcaption>
         </figure>
       </div>
       <div class="case-bottom">
-        <div class="case-detail"><h3>設計で工夫したこと</h3><ul><li>観測した事実はコードで集計し、AIによる改善提案とは分ける。日誌だけならLLMは不要。</li><li>ノートは管理する区間だけを更新し、その外の手書きメモを保つ。</li><li>指標を測れない日は「未判定」、取得できない費用やトークンは「不明」として残す。</li></ul></div>
-        <div class="case-detail"><h3>公開している成果物</h3><p>架空データの日誌サンプル、利用ガイド、AIへの開発指示を公開しています。出力例だけでなく、読みやすさや計測の扱いを改善してきた過程も確認できます。</p><div class="artifact-links"><a href="https://github.com/awano27/KaizenLog-/blob/main/docs/examples/demo_daily_note.md">日誌のサンプル <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/KaizenLog-">README・コード <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/KaizenLog-/tree/main/docs/codex-prompts">開発指示の記録 <span aria-hidden="true"> ↗</span></a></div></div>
+        <div class="case-detail"><h3>設計で工夫したこと</h3><ul><li>観測した事実はコードで集計し、任意のAI改善提案とは分ける。</li><li>ノートは管理する区間だけを更新し、その外の手書きメモを保つ。</li><li>指標を測れない日は「未判定」、取得できない費用やトークンは「不明」として残す。</li></ul></div>
+        <div class="case-detail"><h3>公開している成果物</h3><p>日誌・Home画面の利用手順、AIへの依頼文草案をプレビューして明示保存する機能、開発指示と受け入れ条件を公開しています。月次の工数集計には、工数を含む日次統計が必要です。</p><div class="artifact-links"><a href="https://github.com/awano27/KaizenLog-/blob/main/README.md">README・出力例 <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/KaizenLog-/blob/main/src/kaizenlog/home_service.py">Homeの処理 <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/KaizenLog-/tree/main/docs/codex-prompts">開発指示の記録 <span aria-hidden="true"> ↗</span></a></div></div>
       </div>
         <div class="usage"><h3>KaizenLog</h3><dl>
-          <dt>導入条件</dt><dd>Python 3.11以上、ActivityWatch、Markdownの保存先。Windowsでの導入手順を公開。Obsidianは任意です。</dd>
+          <dt>導入条件</dt><dd>Python 3.11以上、ActivityWatch、Markdownの保存先。Windows向けのソース導入手順を公開。Obsidianは任意です。GitHub Releasesでの配布版はありません。</dd>
           <dt>保存と送信</dt><dd>集計と日誌の保存はローカルです。日誌生成にはLLM不要。改善提案を使うときはLLMを設定し、接続先によって外部送信が生じます。送信予定文はdry-runで確認できます。</dd>
           <dt>観測できる範囲</dt><dd>主にPCの前景アプリの記録を使います。勤務時間・集中力・生産性の評価には使わないでください。チーム集計とM365 Copilot改善アシストは未対応です。</dd>
         </dl><a href="https://github.com/awano27/KaizenLog-/blob/main/docs/USAGE.md">導入手順・データの扱い <span aria-hidden="true"> ↗</span></a></div>
-<div class="case-detail"><h3>開発の範囲と検証</h3><p>awano27によるAI支援を用いた個人開発。公開のCodex向け指示には、日誌の課題、守る制約、受け入れ条件が残っています。集計とAI提案を分け、数字を作らないことを仕様にしています。</p><p>テストの対象は重複時間の二重計上、再生成時の重複、表示だけで保存しないこと、更新時の競合処理です。<a href="https://github.com/awano27/KaizenLog-/actions/runs/38681210821">確認時の最新CI</a>は4環境のテストが失敗し、配布検証はスキップ。導入前に失敗内容と現環境での動作を確認する必要があります。</p></div>
+<div class="case-detail"><h3>確認した版と検証状況</h3><p>確認したmainは<a href="https://github.com/awano27/KaizenLog-/commit/edb70245f89697cd445724dc56fac1c6f641bf35"><code>edb7024</code></a>。<a href="https://github.com/awano27/KaizenLog-/actions/runs/41556395612">11月3日のCI</a>はWindows / Ubuntu、Python 3.11 / 3.12の4環境で失敗が残っています。共通のREADME整合性検査6件に加え、Ubuntuでは配布物検証8件が失敗し、配布検証ジョブはスキップされています。</p><p>重複時間の集計、手書きの保全、表示のみの操作、更新競合などをテスト対象にしています。Homeの全操作やPython未導入PCでの導入は、利用環境での確認が残ります。</p></div>
       </div></details>
-      <p class="case-meta"><span><strong>構成</strong> Python / ActivityWatch / Obsidian / 任意のLLM</span><span><strong>未対応</strong> チーム集計・M365 Copilot改善アシスト</span></p>
+      <p class="case-meta"><span><strong>構成</strong> Python / ActivityWatch / Markdown / ローカルHome画面</span><span><strong>AI</strong> 改善提案は任意</span></p>
     </article>
     <article id="dayloop" class="case" aria-labelledby="dayloop-title">
       <div class="case-top">
         <div>
-          <p class="tool-kind">03 / 1日の計画 · ソース公開</p><h2 id="dayloop-title">dayloop</h2>
-          <p class="case-tagline">今日の予定から、<br>残件の扱いまで決める。</p>
-          <p class="case-summary">その日のタスクを整理して終えたい人向け。朝の計画、次に取り組む1件、夕方の残件整理を、ひとつのループにつなぎます。</p>
+          <p class="tool-kind">03 / 残件・相手待ちの管理 · 公開開発版</p><h2 id="dayloop-title">dayloop</h2>
+          <p class="case-tagline">今日の仕事と、<br>相手の返答待ちを分けて追う。</p>
+          <p class="case-summary">朝の計画から夕方の残件整理までをつなぐ、Windows向けのツールです。公開開発版では、依頼内容・相手・次回確認日時を日別タスクとは別の台帳で管理。「返答が来た」と「自分の仕事が終わった」を分け、依頼の変更は本人が確認して履歴に残します。</p>
+          <p class="version-note">紹介対象は<code>codex/requirements-gap</code>の公開開発版（既定のmasterには未統合）です。下のリンクから、この版のREADMEを確認できます。</p>
         </div>
       </div>
-      <div class="example"><dl><dt>入力</dt><dd>「仕様書レビュー」のタスクと、終わらなかった理由「レビュー待ち」。</dd><dt>出力</dt><dd>未完了の状態と理由を台帳に残し、全件の扱いを決めると、その日のMarkdownを書き出す。</dd></dl><p class="small-note">利用ガイドに基づく説明例です。実行画面や実業務の記録ではありません。<a href="https://github.com/awano27/dayloop/blob/master/docs/guide.md">コマンドと出力条件を見る ↗</a></p></div>
+      <div class="example"><dl><dt>入力例</dt><dd>「設計レビューを依頼。水曜15時に返答を確認」。</dd><dt>出力例</dt><dd>相手待ちの台帳に、依頼内容・次回確認の予定・返答や変更の履歴を残す。日次タスクは別に整理し、終了時にMarkdown日誌へ書き出す。</dd></dl><p class="small-note">公開の架空データに基づく説明例です。相手待ちは、1日を閉じても別の台帳に残ります。</p><div class="artifact-links"><a class="primary-link" href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/README.md">開発版README・試用手順（GitHub）↗</a><a href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/docs/plans/commitment-tracking/GUIDE.md">相手待ちの入力と履歴 ↗</a></div><p class="small-note">Jevを使う場合は外部送信と条件付きの自動適用があります。手入力での試用は、外部連携を無効にする手順です。</p></div>
+      <div class="update-note"><h3>過去の完了を、新しい仕事の完了証拠にしない</h3><p>同じ名前のタスクを新しく登録しても、以前の「完了」を自動で再利用しないようにしました。さらに、終了済み日誌を通常の更新から守り、外部取込の失敗・部分取得を「依頼なし」と区別します。</p><div class="artifact-links"><a href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/tests/learned_completion.rs">完了判断の回帰テスト ↗</a><a href="https://github.com/awano27/dayloop/commit/e2b422e60b8bc221fe0586eabb1aa5a3966a7977">日誌保全・取込処理の更新 ↗</a></div></div>
       <details class="work-details"><summary>dayloopの入力・出力、設計と利用条件を見る</summary><div class="detail-content">
       <div class="case-top"><div>
-          <div class="background"><h3>作った背景</h3><p>予定を立てるだけでは、終わらなかった仕事が翌日に残ります。完了・未完了・持ち越し・取り下げのどれかを決めてから、1日を閉じる仕組みです。</p></div>
+          <div class="background"><h3>作った背景</h3><p>自分が動く仕事と相手の返答待ちを同じ一覧で管理すると、待っているだけの項目まで毎日持ち越すことになります。日次タスクの扱いを決めて1日を閉じ、約束は日をまたいで追う仕組みに分けています。</p></div>
         </div>
         <figure class="scenario">
           <p class="scenario-label">使える場面</p><h3>今日の予定を終え、残った仕事を整理するとき</h3>
           <ol class="flow" aria-label="dayloopの1日の流れ"><li><strong>1. 朝の計画</strong><small>plan</small></li><li><strong>2. 次の1件</strong><small>next</small></li><li><strong>3. 未着手の確認</strong><small>check</small></li><li><strong>4. 残件を整理</strong><small>close</small></li></ol>
           <div class="example"><dl><dt>夕方</dt><dd>残ったタスクを、完了・未完了・持ち越し・取り下げに分ける。</dd><dt>翌朝</dt><dd>前日を閉じていなければ、その残件整理から始める。</dd></dl></div>
-          <figcaption>README・利用ガイドにある日次ループを図解。</figcaption>
+          <figcaption>公開開発版のREADMEにある日次ループを図解。</figcaption>
         </figure>
       </div>
       <div class="case-bottom">
-        <div class="case-detail"><h3>設計で工夫したこと</h3><ul><li>扱いの決まらない残件があれば、その日を閉じない。</li><li>選んだ結論と理由を判断グラフに残し、同じ条件の判断に再利用する。変更は履歴を残して差し替える。</li><li>Jevに聞くのは過去の答えがない判断だけ。接続がない場合も、人が選んで進められる。</li></ul></div>
-        <div class="case-detail"><h3>公開している成果物</h3><p>コマンドごとの利用ガイド、判断グラフのコード、残件がある日は閉じられないことなどを確認するテストがあります。実機や外部接続の条件は、以下の利用条件にまとめています。</p><div class="artifact-links"><a href="https://github.com/awano27/dayloop/blob/master/docs/guide.md">利用ガイド <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/dayloop/blob/master/src/graph.rs">判断グラフのコード <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/dayloop/blob/master/tests/invariants.rs">日次ループのテスト <span aria-hidden="true"> ↗</span></a></div></div>
+        <div class="case-detail"><h3>設計で工夫したこと</h3><ul><li>扱いの決まらない残件があれば、その日を閉じない。相手からの返答だけでは自分のタスクを完了にしない。</li><li>依頼変更は本人の確認と版番号を照合し、古い情報による上書きを防ぐ。</li><li>選んだ結論と理由を記録して再利用する一方、過去の完了判断を新しい仕事の完了証拠にはしない。</li></ul></div>
+        <div class="case-detail"><h3>公開している成果物</h3><p>CLIとMCPで扱う約束台帳、日次ループ、判断履歴のコードとテストを公開しています。手入力で試す手順と、外部サービスに接続する手順をREADMEで分けています。</p><div class="artifact-links"><a href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/src/commitment.rs">約束台帳のコード <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/src/graph.rs">判断履歴のコード <span aria-hidden="true"> ↗</span></a><a href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/tests/invariants.rs">日次ループのテスト <span aria-hidden="true"> ↗</span></a></div></div>
       </div>
         <div class="usage"><h3>dayloop</h3><dl>
-          <dt>導入条件</dt><dd>Windows 10 / 11、Rust・Cargo。ソースからビルドします。メール・予定の読み取りはクラシックOutlookが対象で、COM連携の実機確認は未実施です。</dd>
-          <dt>保存と送信</dt><dd>台帳はPCに保存。Jevや外部連携を使うと、設定した接続先や各サービスへの通信が発生します。既知の判断や条件を満たすJevの回答は、人の承認を待たずに自動適用されます。送信内容と採用条件を確認してください。</dd>
-          <dt>連携と確認の範囲</dt><dd>JSONによる試用、実サービスの読み取り、画面からの読み取りは別の経路です。API接続のコードはありますが、実サービスとの疎通や各PCでの動作は、利用環境ごとの検証が必要です。</dd>
-        </dl><a href="https://github.com/awano27/dayloop">README・導入手順 <span aria-hidden="true"> ↗</span></a></div>
-<div class="case-detail"><h3>開発の範囲と検証</h3><p>awano27によるAI支援を用いた個人開発。日次ループ、理由を残す判断グラフ、外部入力の経路とテストを公開しています。</p><p>テストは残件がある日の終了拒否、理由の必須化、持ち越し上限、前日未確定時の計画確定拒否を対象にしています。<a href="https://github.com/awano27/dayloop/actions/runs/36068971331">確認時の最新CI</a>ではLinux・Windowsのビルドとテスト、Windowsの起動確認が成功。WindowsのClippy検査は失敗しています。</p></div>
+          <dt>導入条件</dt><dd>Windows 10 / 11、Rust・Cargo。公開開発ブランチのソースからビルドします。専用GUIやGitHub Releasesでの配布版はありません。</dd>
+          <dt>保存と送信</dt><dd>台帳はPCに保存。通常設定はOutlook取込とJevが有効で、未知の候補・タスクをJevへ送ります。条件を満たす回答は承認を待たずに自動適用されます。手入力だけで試す場合は、READMEの手順で外部連携を無効にします。</dd>
+          <dt>連携と確認の範囲</dt><dd>Outlook COM・Teamsの実機連携、全MCPクライアント、Rust未導入PCでの導入は未確認です。依頼の送信・催促・実際の仕事は本人が行います。</dd>
+        </dl><a href="https://github.com/awano27/dayloop/blob/codex/requirements-gap/README.md">開発版の導入条件 <span aria-hidden="true"> ↗</span></a></div>
+<div class="case-detail"><h3>確認した版と検証状況</h3><p>紹介対象は公開開発版<a href="https://github.com/awano27/dayloop/commit/01d2fc0a2b3a9fb55b8ae133a61fcf289658c62c"><code>01d2fc0</code></a>。<a href="https://github.com/awano27/dayloop/actions/runs/41556535861">11月3日のLinux CI</a>で167テストが成功しています。このCIにはWindowsの実機確認やClippy検査は含まれません。</p><p>既定のmasterは<a href="https://github.com/awano27/dayloop/commit/6dfea5147e9f62904acad82f46af5231e0b86211"><code>6dfea51</code></a>のままで、新しい機能は未統合です。<a href="https://github.com/awano27/dayloop/actions/runs/36068971331">masterのCI</a>ではWindowsのClippy失敗が残っています。</p></div>
       </div></details>
-      <p class="case-meta"><span><strong>構成</strong> Rust / SQLite / Windows / Jev</span><span><strong>実機未検証</strong> クラシックOutlookのCOM連携</span></p>
+      <p class="case-meta"><span><strong>構成</strong> Rust / SQLite / CLI・MCP / Windows向け</span><span><strong>公開範囲</strong> 開発ブランチ</span></p>
     </article>
     <section id="making" class="making" aria-labelledby="making-title">
       <div class="making-head">
         <h2 id="making-title" class="section-title">生成AIを使った開発</h2>
-        <p><strong>制作・公開はawano27。</strong>生成AIを活用した個人開発です。KaizenLogでは、要件・制約・受け入れ条件を具体化した開発指示と、コードの変更履歴を公開しています。何を作り、どう確かめるかもたどれます。</p>
+        <p><strong>制作・公開はawano27。</strong>課題の整理、要件と制約の具体化、検証条件の設計から取り組む個人開発です。実装とテストの作成には生成AIを活用し、開発指示・変更履歴・検証記録を公開しています。</p>
       </div>
-      <p class="case-summary">公開資料でたどれるのは、要件・制約・受け入れ条件の具体化から、AIへの実装指示、レビューによる改善まで。コードとテストの作成には生成AIの支援を用いています。作品ごとの設計判断は、その理由とコードを並べて紹介しています。</p>
+      <p class="case-summary">重視しているのは、AIに任せる処理と、人が判断する箇所を具体的に決めることです。kimeruの承認と実行の分離、KaizenLogの観測と提案の分離、dayloopの返答と完了の分離を、コードとテストで確認できる形にしています。</p>
       <ol class="making-steps">
         <li><h3>1. 要件と制約を具体化する</h3><p>KaizenLogの開発指示には、日誌に出す内容、手書きを守る条件、欠測の扱い、受け入れ条件が書かれています。何を作り、何を守るかを具体化した記録です。</p><a href="https://github.com/awano27/KaizenLog-/tree/main/docs/codex-prompts">要件をまとめた開発指示 <span aria-hidden="true"> ↗</span></a></li>
         <li><h3>2. AIの実装支援と改善を重ねる</h3><p>公開アーカイブには、Codexへの実装指示と、レビューで見つかった課題を次の指示に反映する進め方が残っています。製品コードの変更はGitの履歴でたどれます。</p><a href="https://github.com/awano27/KaizenLog-/blob/main/docs/codex-prompts/README.md">実装支援とレビューの進め方 <span aria-hidden="true"> ↗</span></a></li>
-        <li><h3>3. 確認条件と残る課題を記録する</h3><p>デモやテストに加え、kimeruは架空データでの評価条件、dayloopは実機未検証の箇所を公開しています。実装済みの範囲と、これから確かめることを分けて残しています。</p><a href="https://github.com/awano27/dayloop/blob/master/docs/decisions.md">設計判断・未確認事項 <span aria-hidden="true"> ↗</span></a></li>
+        <li><h3>3. 確認条件と残る課題を記録する</h3><p>デモ・自動テスト・作者の実機確認・業務効果を分けて記録しています。kimeruでは評価データの来歴を示し、開発に使っていないデータで確かめることを次の課題にしています。</p><a href="https://github.com/awano27/pm-decision/blob/main/docs/evaluation.md">評価条件・未確認事項 <span aria-hidden="true"> ↗</span></a></li>
       </ol>
     </section>
     <section id="before-start" class="before-start" aria-labelledby="before-title">
       <div class="before-head"><h2 id="before-title" class="section-title">チームで使うなら、小さく確かめる。</h2><p>導入条件と送信範囲は、各作品の詳細をご確認ください。</p></div>
       <p class="case-summary">まず架空データで出力を読み、保存先・送信先・承認者を決めます。組織の利用ルールを確認したうえで限定した業務に試し、下書きの修正理由、取りこぼし、承認までの時間を記録します。その結果から自動化する範囲を見直す、という導入の提案です。</p>
-      <div class="check-status"><h3>公開資料で確認できたことと、残る確認</h3><ul>
-        <li><strong>公開CI：</strong>最新の結果は<a href="https://github.com/awano27/pm-decision/actions/workflows/ci.yml">kimeru</a>・<a href="https://github.com/awano27/KaizenLog-/actions/workflows/tests.yml">KaizenLog</a>・<a href="https://github.com/awano27/dayloop/actions/workflows/ci.yml">dayloop</a>のGitHub Actionsで確認できます。結果は更新されるため、試用前に直近の実行結果と検証範囲を確認してください。</li>
-        <li><strong>業務での効果：</strong>kimeruの時間短縮・判断精度は未測定です。3ツールの導入効果や利用実績を、このページの図解やサンプルから推定しないでください。</li>
+      <div class="check-status"><h3>このページで紹介している範囲</h3><ul>
+        <li><strong>公開成果物：</strong>個人開発のコード・出力例・設計と検証の記録です。業務での導入効果や時間削減を示すものではなく、本業の実績とは分けています。</li>
+        <li><strong>確認した版：</strong>kimeruとKaizenLogは公開main、dayloopは公開開発ブランチ。各作品の詳細に、確認したコミット・CIの結果・残る検証をまとめています。</li>
       </ul></div>
-      <p class="source-note">確認日：2026年10月19日。3ツールの紹介は公開リポジトリのREADME・利用ガイド・コード・CIの記録に基づきます。</p>
+      <p class="source-note">内容確認：2026年11月3日。公開リポジトリのREADME・コード・変更履歴・CIに基づきます。リンク先は更新されるため、検証結果には確認時の版と日付を併記しています。</p>
     </section>
   </main>
   <footer class="ntt-footer"><div class="ntt-footer-row"><a class="ntt-footer-brand" href="../index.html">VisionHub</a><a href="../index.html#resources">リソース・ガイドへ戻る →</a><span class="ntt-footer-meta">自作ツール / awano27</span></div></footer>
