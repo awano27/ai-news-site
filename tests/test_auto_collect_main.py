@@ -185,6 +185,9 @@ def test_main_publishes_after_excluding_one_failed_article(monkeypatch, tmp_path
     assert quality["excluded_count"] == 1
     assert quality["excluded"][0]["url"] == "https://github.com/owner/broken"
     assert quality["excluded"][0]["errors"]
+    assert quality["translation_retries"]["ok_first"] == 4
+    assert quality["translation_retries"]["dropped"] == 1
+    assert quality["translation_retries"]["recovered"] == 0
     assert "Excluded 1/5 articles" in caplog.text
 
 

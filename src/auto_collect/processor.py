@@ -7,10 +7,14 @@ chat-completions call; this module owns prompt construction and JSON parsing.
 
 import json
 import logging
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Optional
+from threading import Lock
+from time import monotonic
+from typing import Callable, Dict, List, Optional
 
+from .config import ollama_fallback_model
 from .llm_provider import LLMProvider, make_provider
 from .content_integrity import apply_financial_integrity
 from .quality import is_japanese_summary, is_japanese
@@ -61,6 +65,28 @@ X_SUMMARIZE_PROMPT = """次のX投稿を日本語で要約し、AI関連かど�
 
 ai_relatedは、AIのモデル・研究・製品・企業・規制・実装に関係する投稿ならtrue、それ以外はfalse。"""
 
+# Appended only after the first answer fails the same Japanese checks the
+# publication gate uses. The first request is unchanged.
+NEWS_RETRY_SUFFIX = (
+    "\n前の応答は必須条件を満たしていません。title_jaは製品名だけでなく日本語で内容を説明し、"
+    "summaryも日本語で返してください。JSON以外は返さないでください。"
+)
+X_RETRY_SUFFIX = (
+    "\n前の応答は必須条件を満たしていません。title_jaとsummaryは日本語にし、"
+    "ai_relatedはtrueかfalseだけにしてください。JSON以外は返さないでください。"
+)
+# The provider already retries HTTP 429/5xx and network errors. These are
+# output failures, so a new completion can still produce a usable summary.
+CONTENT_RETRYABLE_ERRORS = frozenset({
+    "",
+    "invalid_japanese",
+    "truncated_response",
+    "empty_response",
+    "invalid_response",
+})
+# One stricter retry, then one temperature or fallback-model retry.
+SUMMARY_RETRY_ATTEMPTS = 2
+
 
 class LLMProcessor:
     """Process articles using an LLM for summarization, scoring, and evidence extraction.
@@ -73,6 +99,152 @@ class LLMProcessor:
     def __init__(self, provider: Optional[LLMProvider] = None):
         self.provider = provider or make_provider("ollama")
         self.available = self.provider.available
+        self._retry_lock = Lock()
+        self._stats = {
+            "ok_first": 0,
+            "retried": 0,
+            "recovered": 0,
+            "dropped": 0,
+            "extra_calls": 0,
+            "budget_skipped": 0,
+        }
+        self._additional_calls = 0
+        self._additional_started: Optional[float] = None
+
+    def translation_retry_stats(self) -> Dict[str, int]:
+        with self._retry_lock:
+            return dict(self._stats)
+
+    def log_translation_retry_summary(self, target_logger: Optional[logging.Logger] = None) -> None:
+        stats = self.translation_retry_stats()
+        (target_logger or logger).info(
+            "translation retry summary: ok_first=%d retried=%d recovered=%d dropped=%d extra_calls=%d budget_skipped=%d",
+            stats["ok_first"], stats["retried"], stats["recovered"],
+            stats["dropped"], stats["extra_calls"], stats["budget_skipped"],
+        )
+
+    def _count(self, key: str) -> None:
+        with self._retry_lock:
+            self._stats[key] += 1
+
+    def _additional_budget(self) -> int:
+        raw = os.environ.get("SUMMARY_RETRY_CALL_BUDGET", "24")
+        try:
+            return max(0, int(raw))
+        except (TypeError, ValueError):
+            return 24
+
+    def _additional_seconds(self) -> float:
+        raw = os.environ.get("SUMMARY_RETRY_BUDGET_SEC", "120")
+        try:
+            return max(0.0, float(raw))
+        except (TypeError, ValueError):
+            return 120.0
+
+    def _reserve_additional(self, title: str) -> bool:
+        """Bound the second content retry so the 08:00 run cannot grow without limit."""
+        with self._retry_lock:
+            now = monotonic()
+            if self._additional_started is None:
+                self._additional_started = now
+            over_budget = (
+                self._additional_calls >= self._additional_budget()
+                or now - self._additional_started > self._additional_seconds()
+            )
+            if over_budget:
+                self._stats["budget_skipped"] += 1
+                logger.info(
+                    "[%s] translation retry budget exhausted; not retrying '%s' again",
+                    getattr(self.provider, "name", ""), title[:60],
+                )
+                return False
+            self._additional_calls += 1
+            return True
+
+    def _current_model(self) -> str:
+        return str(getattr(getattr(self.provider, "config", None), "model", "") or "")
+
+    def _provider_error(self) -> str:
+        return getattr(self.provider, "last_error", "") or "provider_unavailable"
+
+    def _retry_request(self, retry_index: int) -> tuple:
+        # Temperature and a second local model apply only to Ollama. NVIDIA
+        # request bodies stay on the provider's existing configuration.
+        if getattr(self.provider, "name", "") != "ollama":
+            return None, None
+        if retry_index >= SUMMARY_RETRY_ATTEMPTS:
+            fallback = ollama_fallback_model(self._current_model())
+            if fallback:
+                return 0.2, fallback
+            return 0.7, None
+        return 0.2, None
+
+    def _invoke(self, prompt: str, *, temperature: Optional[float] = None, model: Optional[str] = None):
+        setter = getattr(self.provider, "set_request_options", None)
+        if callable(setter):
+            setter(temperature=temperature, model=model)
+        return self.provider.chat(prompt)
+
+    def _complete_translation(
+        self,
+        prompt: str,
+        accept: Callable[[str], Optional[Dict]],
+        *,
+        title: str,
+        strict_suffix: str,
+    ) -> tuple:
+        """Return (parsed, error). A still-failing article is not published."""
+        label = title[:60]
+        name = getattr(self.provider, "name", "")
+        text = self._invoke(prompt)
+        parsed = accept(text) if text else None
+        if parsed is not None:
+            self._count("ok_first")
+            return parsed, ""
+        if not text:
+            reason = self._provider_error()
+            if reason not in CONTENT_RETRYABLE_ERRORS:
+                self._count("dropped")
+                logger.warning("[%s] no response for '%s' (%s)", name, label, reason)
+                logger.info("[%s] translation dropped '%s' reason=%s", name, label, reason)
+                return None, reason
+        else:
+            reason = "invalid_japanese"
+
+        self._count("retried")
+        for retry_index in range(1, SUMMARY_RETRY_ATTEMPTS + 1):
+            if retry_index >= SUMMARY_RETRY_ATTEMPTS and not self._reserve_additional(label):
+                break
+            temperature, model = self._retry_request(retry_index)
+            logger.warning(
+                "[%s] translation retry %s/%s for '%s' reason=%s temperature=%s model=%s",
+                name, retry_index, SUMMARY_RETRY_ATTEMPTS, label, reason,
+                "default" if temperature is None else temperature,
+                model or self._current_model(),
+            )
+            self._count("extra_calls")
+            text = self._invoke(prompt + strict_suffix, temperature=temperature, model=model)
+            if not text:
+                reason = self._provider_error()
+                logger.warning(
+                    "[%s] no response for '%s' on translation retry %s (%s)",
+                    name, label, retry_index, reason,
+                )
+                if reason not in CONTENT_RETRYABLE_ERRORS:
+                    break
+                continue
+            parsed = accept(text)
+            if parsed is not None:
+                self._count("recovered")
+                logger.info(
+                    "[%s] translation retry recovered '%s' on attempt %s",
+                    name, label, retry_index,
+                )
+                return parsed, ""
+            reason = "invalid_japanese"
+        self._count("dropped")
+        logger.info("[%s] translation dropped '%s' reason=%s", name, label, reason)
+        return None, reason or "invalid_japanese"
 
     def _localize_structured(self, rows: List[Dict], *, preserve_names: bool) -> List[Dict]:
         """Translate descriptive text while retaining source-specific facts."""
@@ -80,7 +252,7 @@ class LLMProcessor:
             raw = {"name": row["title"], "description": row.get("summary", ""),
                    "tagline": row.get("summary", ""), "source": row.get("source", ""),
                    "links": {"official": row.get("url", "")}}
-            localized = self._process_one(raw)
+            localized = self._process_one(raw, accept_english_title=preserve_names)
             if localized:
                 row["summary"] = localized.get("summary", "")
                 row["processing_status"] = localized.get("processing_status", "fallback")
@@ -91,10 +263,10 @@ class LLMProcessor:
                 row.update({k: v for k, v in apply_financial_integrity(row).items()})
         return rows
 
-    def _process_one(self, article: Dict) -> Optional[Dict]:
+    def _process_one(self, article: Dict, *, accept_english_title: bool = False) -> Optional[Dict]:
         try:
             if self.available:
-                result = self._process_with_llm(article)
+                result = self._process_with_llm(article, accept_english_title=accept_english_title)
             else:
                 result = self._fallback_process(article)
             return result
@@ -199,9 +371,11 @@ class LLMProcessor:
         """Summarize X posts through the same provider.chat path as news.
 
         The provider owns request spacing and HTTP 429 retry. A response that
-        arrives but breaks the summary or judgement format is retried once.
-        Posts are returned either way so the publication gate can record
-        summary failures and ai_related false in quality.excluded.
+        arrives but breaks the summary or judgement format is retried up to
+        twice before the quality gate. A completed judgement that the post is
+        not about AI is not sent again. Posts are returned either way so the
+        publication gate can record summary failures and ai_related false in
+        quality.excluded.
         """
         return [self._process_x_post(post) for post in posts]
 
@@ -211,21 +385,11 @@ class LLMProcessor:
         prompt = X_SUMMARIZE_PROMPT.format(source=source, content=str(content)[:500])
         if not self.available:
             return self._x_row(post, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
-        text = self.provider.chat(prompt)
-        if not text:
-            logger.warning("[%s] no response for X post '%s'", self.provider.name, str(post.get("name", ""))[:60])
-            return self._x_row(post, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
-        parsed = self._accepted_x(text)
+        parsed, error = self._complete_translation(
+            prompt, self._accepted_x, title=str(post.get("name") or ""), strict_suffix=X_RETRY_SUFFIX,
+        )
         if parsed is None:
-            logger.warning("[%s] could not parse X post JSON; retrying once", self.provider.name)
-            text = self.provider.chat(prompt)
-            if not text:
-                logger.warning("[%s] no response for X post '%s'", self.provider.name, str(post.get("name", ""))[:60])
-                return self._x_row(post, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
-            parsed = self._accepted_x(text)
-        if parsed is None:
-            logger.warning("[%s] could not parse X post JSON", self.provider.name)
-            return self._x_row(post, error="invalid_japanese")
+            return self._x_row(post, error=error or "invalid_japanese")
         return self._x_row(post, parsed=parsed)
 
     def _accepted_x(self, text: str) -> Optional[Dict]:
@@ -297,7 +461,7 @@ class LLMProcessor:
         processed.sort(key=lambda x: x.get("score", 0), reverse=True)
         return self._localize_structured(processed, preserve_names=False)
 
-    def _process_with_llm(self, article: Dict) -> Optional[Dict]:
+    def _process_with_llm(self, article: Dict, *, accept_english_title: bool = False) -> Optional[Dict]:
         """Summarize, score, and extract evidence using the configured LLM."""
         title = article.get("name", "")
         source = article.get("rss_source", article.get("source", ""))
@@ -315,22 +479,14 @@ class LLMProcessor:
         )
         prompt += "\n与えたタイトルと本文だけを根拠にしてください。未記載の性能・料金・開発元・導入手順・用途・効果を推測しないでください。情報がない項目は空配列または空文字にし、短い紹介文を詳しい製品評価に膨らませないでください。"
 
-        text = self.provider.chat(prompt)
-        if not text:
-            logger.warning(f"[{self.provider.name}] no response for '{title[:60]}'")
-            return self._fallback_process(article, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
-
-        parsed = self._accepted_summary(text)
+        parsed, error = self._complete_translation(
+            prompt,
+            lambda response: self._accepted_summary(response, require_japanese_title=not accept_english_title),
+            title=title,
+            strict_suffix=NEWS_RETRY_SUFFIX,
+        )
         if parsed is None:
-            logger.warning(f"[{self.provider.name}] response failed JSON/Japanese validation for '{title[:60]}'; retrying once")
-            text = self.provider.chat(prompt + "\n前の応答は必須条件を満たしていません。title_jaは製品名だけでなく日本語で内容を説明し、summaryも日本語で返してください。JSON以外は返さないでください。")
-            if not text:
-                logger.warning(f"[{self.provider.name}] no response for '{title[:60]}'")
-                return self._fallback_process(article, error=getattr(self.provider, "last_error", "") or "provider_unavailable")
-            parsed = self._accepted_summary(text)
-        if parsed is None:
-            logger.warning(f"[{self.provider.name}] could not parse JSON for '{title[:60]}'")
-            return self._fallback_process(article, error="invalid_japanese")
+            return self._fallback_process(article, error=error or "invalid_japanese")
         return apply_financial_integrity({
             "title": parsed.get("title_ja", title),
             "processing_status": "llm",
@@ -353,13 +509,18 @@ class LLMProcessor:
             },
         })
 
-    def _accepted_summary(self, text: str) -> Optional[Dict]:
+    def _accepted_summary(self, text: str, *, require_japanese_title: bool = True) -> Optional[Dict]:
         parsed = self._extract_json(text)
-        if (isinstance(parsed, dict) and isinstance(parsed.get("title_ja"), str)
-                and parsed["title_ja"].strip() and is_japanese(parsed["title_ja"])
-                and is_japanese_summary(parsed.get("summary"))):
-            return parsed
-        return None
+        if not isinstance(parsed, dict) or not is_japanese_summary(parsed.get("summary")):
+            return None
+        # GitHub and Hugging Face listings publish the source identifier as the
+        # title. The quality gate already allows that, so a Japanese summary is
+        # enough. Narrative articles still need a Japanese title_ja.
+        if require_japanese_title:
+            title = parsed.get("title_ja")
+            if not isinstance(title, str) or not title.strip() or not is_japanese(title):
+                return None
+        return parsed
 
     def _extract_json(self, text: str) -> Optional[Dict]:
         """Extract JSON from model response."""
