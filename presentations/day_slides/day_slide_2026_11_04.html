@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>StateBenchで測る、AIが変更履歴から最終値を追う力 | VisionHub</title>
+  <meta name="description" content="途中で値が入れ替わる長文を、AIは最後まで追えるのか。Ai2のStateBenchを、4段階の更新ルールと表計算の例で読み解きます。">
+  <link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_11_04.html">
+  <link rel="icon" href="data:,">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="StateBenchで測る、AIが変更履歴から最終値を追う力">
+  <meta property="og:description" content="途中で値が入れ替わる長文を、AIは最後まで追えるのか。Ai2のStateBenchを、4段階の更新ルールと表計算の例で読み解きます。">
+  <meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_11_04.html">
+  <meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/1104/cover.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="StateBenchの解説。セルAをBにコピーした後でAを緑に変えても、Bには赤が残る。">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="StateBenchで測る、AIが変更履歴から最終値を追う力">
+  <meta name="twitter:description" content="途中で値が入れ替わる長文を、AIは最後まで追えるのか。Ai2のStateBenchを、4段階の更新ルールと表計算の例で読み解きます。">
+  <meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/1104/cover.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": "StateBenchで測る、AIが変更履歴から最終値を追う力",
+    "description": "途中で値が入れ替わる長文を、AIは最後まで追えるのか。Ai2のStateBenchを、4段階の更新ルールと表計算の例で読み解きます。",
+    "datePublished": "2026-11-04T10:37:02+09:00",
+    "dateModified": "2026-11-04T10:37:02+09:00",
+    "inLanguage": "ja",
+    "articleSection": "AI Model Evaluation",
+    "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_11_04.html",
+    "image": "https://visionhub.jp/presentations/day_slides/images/1104/cover.jpg",
+    "author": {"@type": "Organization", "name": "VisionHub"},
+    "publisher": {"@type": "Organization", "name": "VisionHub"}
+  }
+  </script>
+  <!-- SEO_META_INJECTED v1 -->
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <!-- GA4_INJECTED v1 -->
+  <script src="/assets/js/analytics.js" defer></script>
+  <style>
+    :root {
+      --ink: #19363f;
+      --muted: #495e65;
+      --teal: #11695e;
+      --line: #cfdbd6;
+      --paper: #fffefa;
+      --wash: #edf5ef;
+      --sand: #f5f2e9;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 18px; }
+    body {
+      margin: 0;
+      background: #f7f6f0;
+      color: var(--ink);
+      font: 17px/1.85 "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+    a { color: var(--teal); text-underline-offset: 4px; overflow-wrap: anywhere; }
+    :focus-visible { outline: 3px solid #a96512; outline-offset: 4px; }
+    .wrap { width: min(1160px, calc(100% - 52px)); margin-inline: auto; }
+    .skip { position: absolute; left: 10px; top: -90px; padding: 9px 16px; color: white; background: var(--ink); }
+    .skip:focus { top: 10px; }
+    .mast { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 19px 0; border-bottom: 1px solid var(--line); }
+    .brand { color: var(--ink); text-decoration: none; font-size: 23px; letter-spacing: .03em; font-weight: 800; }
+    .brand span { color: var(--teal); }
+    .issue, .eyebrow, .number, .brief-label, .level, .token {
+      font-family: ui-monospace, Consolas, "Yu Gothic", monospace;
+      letter-spacing: .055em;
+      font-weight: 700;
+    }
+    .issue { text-align: right; font-size: 12px; line-height: 1.55; color: var(--muted); }
+    .hero { padding: 38px 0 7px; }
+    .eyebrow, .brief-label, .number { color: var(--teal); font-size: 13px; }
+    .eyebrow { margin: 0 0 12px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(32px, 4.9vw, 58px); letter-spacing: -.045em; line-height: 1.35; margin-bottom: 16px; }
+    h1 span { color: var(--teal); }
+    .lead { font-size: clamp(17px, 2vw, 20px); max-width: 56em; margin-bottom: 12px; }
+    .byline, .cite, .quiet { color: var(--muted); font-size: 14px; }
+    .byline { margin-bottom: 22px; }
+    .brief { margin: 0; background: var(--paper); padding: 18px 22px 15px; border: 1px solid var(--line); border-radius: 13px; }
+    .brief-head, .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brief-head { margin-bottom: 14px; }
+    .brief-label { margin: 0; }
+    button { min-height: 40px; padding: 6px 14px; border: 1px solid #91b2a8; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 700; color: var(--teal); background: var(--paper); cursor: pointer; }
+    button:hover, .toc a:hover { background: var(--wash); }
+    .diagram { display: block; width: 100%; height: auto; }
+    .small-diagram { display: none; }
+    figcaption { font-size: 14px; color: var(--muted); line-height: 1.7; margin-top: 11px; }
+    .toc { display: flex; flex-wrap: wrap; gap: 7px 9px; margin: 21px 0 28px; }
+    .toc a { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 7px 13px; font-size: 14px; text-decoration: none; font-weight: 700; }
+    .slide:not(.hero) { margin: 20px 0; padding: clamp(22px, 3.4vw, 39px); background: var(--paper); border: 1px solid var(--line); border-radius: 13px; }
+    .slide-head { display: flex; gap: 18px; align-items: baseline; padding-bottom: 18px; }
+    .number { white-space: nowrap; border-top: 3px solid var(--teal); padding-top: 5px; }
+    h2 { font-size: clamp(25px, 3vw, 34px); line-height: 1.5; letter-spacing: -.026em; margin: 0; }
+    h3 { font-size: 20px; line-height: 1.6; margin-bottom: 7px; }
+    p { margin-bottom: 14px; }
+    .cite { margin: 18px 0 0; }
+    .cite a + a { margin-left: 12px; }
+    .levels { margin: 21px 0 0; }
+    .levels > div { display: grid; grid-template-columns: minmax(195px, .9fr) 1.3fr 1.05fr; gap: 16px; align-items: center; border-top: 1px solid var(--line); padding: 11px 4px; }
+    .levels > div:last-child { border-bottom: 1px solid var(--line); }
+    .levels dt { font-weight: 800; }
+    .levels dd, .trace-board dd { margin: 0; }
+    .level { color: var(--teal); margin-right: 10px; font-size: 13px; }
+    .formula { display: inline-block; font: 700 15px/1.6 ui-monospace, Consolas, "Yu Gothic", monospace; color: #255159; background: var(--wash); padding: 2px 10px; border-radius: 4px; }
+    .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .panel { background: var(--wash); border: 1px solid var(--line); padding: 19px 22px; border-radius: 8px; }
+    .panel.sand { background: var(--sand); }
+    .panel p, .panel ol { margin-bottom: 0; }
+    .trace-board { margin: 19px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 26px; }
+    .trace-board > div { border-top: 2px solid var(--line); padding: 12px 0; }
+    .trace-board dt { font-weight: 800; color: var(--teal); }
+    .recipe { margin: 3px 0 0; padding: 0; list-style: none; counter-reset: trial; }
+    .recipe li { display: grid; grid-template-columns: 35px 1fr; gap: 8px; counter-increment: trial; padding: 10px 0; border-top: 1px solid var(--line); }
+    .recipe li::before { content: counter(trial, decimal-leading-zero); color: var(--teal); font: 700 15px/2 ui-monospace, monospace; }
+    .recipe strong { display: block; }
+    .sources { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 25px; }
+    .sources li { border-top: 1px solid var(--line); padding: 11px 0; min-width: 0; }
+    .sources a { font-weight: 700; }
+    .sources small { display: block; color: var(--muted); font-size: 14px; }
+    .footer { padding: 2px 0 20px; color: var(--muted); font-size: 13px; }
+    dialog { width: min(1180px, calc(100vw - 32px)); max-height: calc(100dvh - 30px); border: 1px solid var(--line); border-radius: 12px; padding: 18px; color: var(--ink); background: var(--paper); }
+    dialog::backdrop { background: rgb(13 34 40 / .72); }
+    .dialog-head { margin-bottom: 13px; }
+    .dialog-actions { display: flex; gap: 8px; }
+    .zoom-area { max-height: 62vh; overflow: auto; border: 1px solid var(--line); }
+    .zoom-area.original img { width: 1120px; max-width: none; }
+    .zoom-hint { font-size: 13px; margin: 9px 0 0; color: var(--muted); }
+    @media (max-width: 720px) {
+      body { font-size: 16px; }
+      .wrap { width: calc(100% - 28px); }
+      .mast { padding: 14px 0; }
+      .hero { padding-top: 24px; }
+      h1 { font-size: clamp(32px, 8.7vw, 43px); }
+      .brief { padding: 13px; }
+      .brief-label { font-size: 11px; }
+      .brief-head button { flex-shrink: 0; }
+      .brief > .diagram { display: none; }
+      .small-diagram { display: grid; gap: 0; list-style: none; padding: 0; margin: 0; border-block: 1px solid var(--line); }
+      .small-diagram li { display: grid; grid-template-columns: 1fr auto; gap: 5px 7px; align-items: center; padding: 10px 0; }
+      .small-diagram li + li { border-top: 1px dashed var(--line); }
+      .small-diagram .token { color: var(--teal); font-size: 12px; margin-right: 3px; }
+      .small-diagram b { white-space: nowrap; font-size: 14px; background: var(--wash); border-radius: 4px; padding: 1px 6px; }
+      .toc { gap: 7px; margin-block: 17px 21px; }
+      .toc a { font-size: 13px; }
+      .slide:not(.hero) { padding: 20px 16px; }
+      .slide-head { display: block; }
+      .number { display: inline-block; margin-bottom: 6px; font-size: 11px; }
+      .levels > div { grid-template-columns: 1fr; gap: 2px; padding-block: 11px; }
+      .levels dd:last-child { margin-top: 3px; }
+      .pair, .trace-board, .sources { grid-template-columns: 1fr; }
+      .panel { padding: 15px; }
+      .dialog-head { flex-wrap: wrap; }
+      .dialog-actions { flex-wrap: wrap; }
+      dialog { padding: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      @page { size: A4 landscape; margin: 10mm; }
+      body { background: white; color: black; font-size: 11pt; line-height: 1.55; }
+      .wrap { width: 100%; }
+      .mast, .skip, .toc, button, dialog, .footer, nav[aria-label="スライド相互ナビゲーション"] { display: none !important; }
+      .slide { break-before: page; break-inside: avoid; }
+      .slide:first-child { break-before: auto; }
+      .hero, .slide:not(.hero) { padding: 2mm 0; border: none; margin: 0; }
+      h1 { font-size: 26pt; margin-bottom: 3mm; }
+      h2 { font-size: 24pt; }
+      .lead { font-size: 11pt; margin-bottom: 2mm; }
+      .eyebrow, .byline, .brief-label, figcaption, .cite { font-size: 9pt; margin-bottom: 2mm; }
+      .brief { padding: 2mm; }
+      .brief-head { margin-bottom: 1mm; }
+      .brief > .diagram { display: block; height: 65mm; }
+      .small-diagram { display: none; }
+      .pair, .trace-board, .sources { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">本文へ</a>
+  <div class="wrap">
+    <header class="mast">
+      <a class="brand" href="/">Vision<span>Hub</span></a>
+      <small class="issue">DAILY AI SLIDES / No.461<br><time datetime="2026-11-04">2026.11.04 JST</time> / 6 SLIDES</small>
+    </header>
+    <main id="main">
+      <section class="slide hero" id="slide1" aria-labelledby="title">
+        <p class="eyebrow">01 / 06　·　LONG-CONTEXT EVALUATION</p>
+        <h1 id="title"><span>StateBench</span>で測る、<br>AIが変更履歴から最終値を追う力</h1>
+        <p class="lead">表計算で、赤と書かれたセルAの<strong>値だけ</strong>をBに貼り付けます。その後、Aを緑に変えました。Bに残るのは何色でしょう。AIに長い作業記録を渡すときも、答えを出すには、コピーした時点の値を覚えておく必要があります。</p>
+        <p class="byline">変更履歴を扱う開発者・業務担当者向け　／　Ai2の11月3日発表を読む</p>
+        <figure class="brief">
+          <div class="brief-head">
+            <p class="brief-label">ONE-PAGE BRIEF　／　値の行き先を追う</p>
+            <button id="open-brief" type="button" aria-haspopup="dialog" aria-controls="brief-dialog">図を拡大</button>
+          </div>
+          <img class="diagram" src="images/1104/statebench-brief.svg" alt="最初はAが赤、Bが青。Aの値をBに貼り付けてからAを緑に変えると、最終値はAが緑、Bが赤。" width="1120" height="370">
+          <ol class="small-diagram" aria-label="二つのセルの変化">
+            <li><span><span class="token">01</span> 最初の値</span><b>A 赤　B 青</b></li>
+            <li><span><span class="token">02</span> Aの値をBにコピー</span><b>A 赤　B 赤</b></li>
+            <li><span><span class="token">03</span> Aを緑に書き換え</span><b>A 緑　B 赤</b></li>
+          </ol>
+          <figcaption>答えは赤です。Bに入ったのは操作02の時点の値で、操作03で変わるのはAだけです。図はStateBenchの仕組みを説明するために編集部が作った例です。</figcaption>
+        </figure>
+      </section>
+      <nav class="toc" aria-label="スライド目次">
+        <a href="#slide2">02　更新の4段階</a><a href="#slide3">03　比較条件</a><a href="#slide4">04　実験結果</a><a href="#slide5">05　自分の履歴で試す</a><a href="#slide6">06　出典</a>
+      </nav>
+      <section class="slide" id="slide2" aria-labelledby="rules">
+        <div class="slide-head"><span class="number">02 / 06</span><h2 id="rules">値の決まり方を4段階に分ける</h2></div>
+        <p>Ai2の研究チームは、文書に登場する対象の値が途中でどう変わるかを追う能力を調べるため、StateBenchを作りました。「最後に書かれた値を拾う」だけで解けるかどうかで、読むべき範囲が変わります。</p>
+        <dl class="levels">
+          <div><dt><span class="level">01</span>固定値</dt><dd>最初に決まった値を探す。</dd><dd><span class="formula">A は 4 のまま</span>　r-trivial</dd></div>
+          <div><dt><span class="level">02</span>値で上書き</dt><dd>最後に指定された値を拾う。</dd><dd><span class="formula">A ← 2</span>　aperiodic</dd></div>
+          <div><dt><span class="level">03</span>自分の値から更新</dt><dd>それまでの値に、次の操作を適用する。</dd><dd><span class="formula">A ← A + 1</span>　soluble</dd></div>
+          <div><dt><span class="level">04</span>他の値を参照</dt><dd>別の変数がその時点で持つ値を移したり、二つの値を交換したりする。</dd><dd><span class="formula">B ← A</span>　general finite</dd></div>
+        </dl>
+        <p class="cite">分類は論文に基づき、式は各操作の特徴を示した簡略例です。<a href="https://arxiv.org/html/2611.03094v1#S4">論文・StateBenchの構成</a></p>
+      </section>
+      <section class="slide" id="slide3" aria-labelledby="comparison">
+        <div class="slide-head"><span class="number">03 / 06</span><h2 id="comparison">同じ長さの記録でも、必要な手掛かりが違う</h2></div>
+        <p>次の二つは、どちらも最終的にBが赤になります。AIに求める答えは同じでも、そこまでに確認する内容が異なります。</p>
+        <div class="pair">
+          <div class="panel"><h3>値を直接指定する記録</h3><p>「Bを赤にする」と書いてあれば、その後Bが書き換わっていないことを確かめれば足ります。</p></div>
+          <div class="panel sand"><h3>別のセルを参照する記録</h3><p>「BにAの値を入れる」と書いてある場合は、そこで一度Aの履歴に戻ります。コピーの前にAに何が入っていたかで、Bの答えが決まります。</p></div>
+        </div>
+        <p style="margin: 18px 0 0">StateBenchでは、元になる一連の操作から難しさの違う版を作ります。<strong>変数の数、値の種類の数、代入が出てくる位置</strong>をそろえ、操作の種類を変えて比較します。</p>
+        <p class="cite">上の二つの記録は編集部の例です。<a href="https://allenai.org/blog/statebench">Ai2による比較条件の説明</a></p>
+      </section>
+      <section class="slide" id="slide4" aria-labelledby="results">
+        <div class="slide-head"><span class="number">04 / 06</span><h2 id="results">4モデルとも、長い参照の連鎖で正答率が下がった</h2></div>
+        <p>研究チームは <strong>Gemini 3.8 Flash、Claude Opus 5.5、GPT-6 Sol、GPT-6 Luna</strong> に、代入の列を読んで全変数の最終値を生成させました。論文の図6は、入力の長さに応じた、この課題での正答率を示しています。</p>
+        <dl class="trace-board">
+          <div><dt>高い正答率を保った操作</dt><dd>値が固定された問題と、定数で上書きする問題。</dd></div>
+          <div><dt>長くなると難しくなった操作</dt><dd>自分の値を使う更新と、他の変数を参照する更新。どちらも途中の値を引き継ぐ必要があります。</dd></div>
+        </dl>
+        <p>他の変数を参照する問題（general finite）のうち、入力が最も長い条件では、4モデルの正答率はいずれも<strong>13%以下</strong>だったとAi2は報告しています。<a href="https://allenai.org/blog/statebench">Ai2の発表</a></p>
+        <p>この実験では追跡する変数の数が決まっています。会議や問い合わせの途中で新しい案件や人物が次々に加わる場合の精度は、別に調べる必要があります。</p>
+        <p class="cite"><a href="https://arxiv.org/html/2611.03094v1#S6.F6">原論文の図6と生成による評価</a><a href="https://allenai.org/blog/statebench">Ai2の結果と今後の課題</a></p>
+      </section>
+      <section class="slide" id="slide5" aria-labelledby="trial">
+        <div class="slide-head"><span class="number">05 / 06</span><h2 id="trial">自分の変更履歴で、どの操作が抜けるかを確かめる</h2></div>
+        <p>例えば、担当変更の記録から案件ごとの最終担当者をまとめる仕事なら、次の小さなテストを作れます。編集部の試し方です。</p>
+        <ol class="recipe">
+          <li><div><strong>同じ正解になる二通りの履歴を作る</strong>架空の案件AとBを用意し、「Bの担当を佐藤さんに変更」と「Bの担当を今のAと同じ人に変更」を書き分けます。その時点のAは佐藤さんにします。</div></li>
+          <li><div><strong>途中でAの担当だけを変える</strong>変更を順に反映した正解表を用意します。操作の順序と件数をそろえ、二通りの履歴を同じモデルに別々に渡します。</div></li>
+          <li><div><strong>最終担当者を案件ごとに照合する</strong>「正しく答えた案件数 ÷ 全案件数」と、全案件が一致したケース数を記録します。取り違えたら、どの長さ・どの参照操作で誤答が出たかを見比べます。</div></li>
+        </ol>
+        <p class="cite">公開例から始める場合は、研究チームが用意したデータと生成用コードを参照できます。<a href="https://huggingface.co/datasets/allenai/state-bench">データセット</a><a href="https://github.com/allenai/state-bench">公式コード</a></p>
+      </section>
+      <section class="slide" id="slide6" aria-labelledby="sources">
+        <div class="slide-head"><span class="number">06 / 06</span><h2 id="sources">データと評価条件を原典で確かめる</h2></div>
+        <ul class="sources">
+          <li><a href="https://allenai.org/blog/statebench">Ai2の発表（2026年11月3日）</a><small>4段階の狙い、モデル別の評価、変数の数を固定した設定。</small></li>
+          <li><a href="https://arxiv.org/html/2611.03094v1">A Fine-Grained Hierarchy and Benchmark for State Tracking in Language Models</a><small>StateBenchの問題構成、図6の生成評価、付録の入力形式例。</small></li>
+          <li><a href="https://huggingface.co/datasets/allenai/state-bench">研究チームのデータセット</a><small>評価に用いるデータの公開ページ。</small></li>
+          <li><a href="https://github.com/allenai/state-bench">研究チームのGitHubリポジトリ</a><small>操作列の生成ルール、設定、表現形式。</small></li>
+        </ul>
+      </section>
+    </main>
+    <footer class="footer">VisionHub　·　<time datetime="2026-11-04">2026年11月4日</time>　·　全6枚</footer>
+  </div>
+  <dialog id="brief-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-head">
+      <strong id="dialog-title">セルAとBの値を追う</strong>
+      <div class="dialog-actions">
+        <button id="original-size" type="button" aria-pressed="false">原寸表示</button>
+        <button id="close-brief" type="button" autofocus>閉じる</button>
+      </div>
+    </div>
+    <div class="zoom-area" tabindex="0" aria-label="説明図。原寸表示では横にスクロールできます">
+      <img class="diagram" src="images/1104/statebench-brief.svg" width="1120" height="370" alt="コピー時のAは赤。その後Aだけを緑に変えるので、Bには赤が残る。">
+    </div>
+    <p class="zoom-hint">原寸表示の図は横にスクロールできます。Escキーでも閉じられます。</p>
+  </dialog>
+  <script>
+    const opener = document.getElementById('open-brief');
+    const diagramDialog = document.getElementById('brief-dialog');
+    const sizeButton = document.getElementById('original-size');
+    const viewport = diagramDialog.querySelector('.zoom-area');
+    opener.addEventListener('click', () => diagramDialog.showModal());
+    document.getElementById('close-brief').addEventListener('click', () => diagramDialog.close());
+    sizeButton.addEventListener('click', () => {
+      const expanded = viewport.classList.toggle('original');
+      sizeButton.setAttribute('aria-pressed', String(expanded));
+      sizeButton.textContent = expanded ? '幅に合わせる' : '原寸表示';
+    });
+    diagramDialog.addEventListener('close', () => {
+      viewport.classList.remove('original');
+      viewport.scrollLeft = 0;
+      sizeButton.setAttribute('aria-pressed', 'false');
+      sizeButton.textContent = '原寸表示';
+      opener.focus({preventScroll: true});
+    });
+  </script>
+<!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_11_03.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="../daily_reports/auto_daily_report_2026_11_04.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のレポート</a><a href="../../daily-news/archive/2026-11-04.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">同日のニュース</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧へ</a></nav>
+<!-- slide-nav:end -->
+</body>
+</html>
