@@ -92,6 +92,28 @@ class LLMProvider:
             timeout=self.config.timeout,
         )
 
+    def set_request_options(self, *, temperature: Optional[float] = None, model: Optional[str] = None) -> None:
+        """Per-thread completion options. NVIDIA ignores both."""
+        if not hasattr(self, "_request_options"):
+            self._request_options = local()
+        self._request_options.temperature = temperature
+        self._request_options.model = model
+
+    def _request_overrides(self) -> tuple:
+        opts = getattr(self, "_request_options", None)
+        if opts is None or self.name == "nvidia":
+            return None, None
+        temperature = getattr(opts, "temperature", None)
+        model = getattr(opts, "model", None)
+        temperature_value = None
+        if temperature is not None and not isinstance(temperature, bool):
+            try:
+                temperature_value = float(temperature)
+            except (TypeError, ValueError):
+                temperature_value = None
+        model_value = str(model).strip() if isinstance(model, str) and str(model).strip() else None
+        return temperature_value, model_value
+
     def _ensure_pace(self) -> None:
         if getattr(self, "_pace_lock", None) is None:
             self._pace_lock = Lock()
@@ -190,6 +212,13 @@ class LLMProvider:
         url = f"{self.config.base_url.rstrip('/')}/chat/completions"
         body = {"model": self.config.model, "messages": messages, "stream": False,
                 "max_tokens": max_tokens if max_tokens is not None else 2048}
+        temperature, model = self._request_overrides()
+        if model:
+            body["model"] = model
+        if temperature is not None:
+            body["temperature"] = temperature
+        # Applied after any caller override so the NVIDIA body cannot be
+        # rewritten by an Ollama translation retry.
         if self.config.model == "nvidia/nemotron-3-super-120b-a12b":
             body.update(reasoning_effort="none", temperature=1, top_p=0.95)
         headers = {"Content-Type": "application/json",
