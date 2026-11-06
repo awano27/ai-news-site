@@ -186,7 +186,35 @@ def _head_commit_paths(repo: Path) -> tuple[str, ...]:
     return tuple(path for path in result.stdout.split("\0") if path)
 
 
-def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
+def _check_daily_publication(repo: Path, report_date: date) -> list[str]:
+    check = subprocess.run(
+        [sys.executable, str(Path(__file__).with_name("check_daily_publication.py")),
+         "--root", str(repo), "--date", report_date.isoformat(), "--require-quality"],
+        text=True, encoding="utf-8", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        timeout=120,
+    )
+    if check.returncode:
+        return [check.stdout + check.stderr]
+    return []
+
+
+def _strict_bundle_errors(repo: Path, report_date: date, changed_paths: Sequence[str]) -> list[str]:
+    """Errors that make the working tree an unpublishable strict bundle for report_date."""
+    errors = []
+    for path in changed_paths:
+        match = re.fullmatch(r"public-pages/news/(?:daily/)?(\d{4}-\d{2}-\d{2})\.json", path)
+        if match and match.group(1) != report_date.isoformat():
+            errors.append(f"strict daily publication cannot rewrite historical news: {path}")
+    if errors:
+        return errors
+    return _check_daily_publication(repo, report_date)
+
+
+def _push_with_one_rebase_retry(repo: Path, report_date: date, *, require_quality: bool = False) -> int:
+    # The pipeline runs for 30-50 minutes between the morning fast-forward and this
+    # push, and the cloud archive job, slide publishes and bot JSON commits land on
+    # origin/main inside that window several mornings a week. The rejected bundle
+    # is replayed once onto the new tip and validated again; it is never force-pushed.
     initial_push = _git(repo, ("push", "origin", "HEAD:main"), check=False)
     if initial_push.returncode == 0:
         return 0
@@ -233,21 +261,14 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date) -> int:
             return 0
         print("post-rebase publication commit has no changed paths", file=sys.stderr)
         return 1
+    if not errors and require_quality:
+        errors = _strict_bundle_errors(repo, report_date, rebased_paths)
     if errors:
         print("post-rebase publication rejected:\n" + "\n".join(errors), file=sys.stderr)
         return 1
     retry = _git(repo, ("push", "origin", "HEAD:main"), check=False)
     if retry.returncode != 0:
         print(retry.stderr.strip() or "git push retry failed", file=sys.stderr)
-        return 1
-    return 0
-
-
-def _push_validated_bundle(repo: Path) -> int:
-    """A race requires a fresh generation, never an automatic content overwrite."""
-    result = _git(repo, ("push", "origin", "HEAD:main"), check=False)
-    if result.returncode:
-        print("Validated publication push failed; rerun from current main. No rebase or force push attempted.", file=sys.stderr)
         return 1
     return 0
 
@@ -266,19 +287,9 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False,
         return 1
 
     if require_quality:
-        for path in changed_paths:
-            match = re.fullmatch(r"public-pages/news/(?:daily/)?(\d{4}-\d{2}-\d{2})\.json", path)
-            if match and match.group(1) != report_date.isoformat():
-                print(f"strict daily publication cannot rewrite historical news: {path}", file=sys.stderr)
-                return 1
-        check = subprocess.run(
-            [sys.executable, str(Path(__file__).with_name("check_daily_publication.py")),
-             "--root", str(repo), "--date", report_date.isoformat(), "--require-quality"],
-            text=True, encoding="utf-8", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            timeout=120,
-        )
-        if check.returncode:
-            print(check.stdout + check.stderr, file=sys.stderr)
+        strict_errors = _strict_bundle_errors(repo, report_date, changed_paths)
+        if strict_errors:
+            print("\n".join(strict_errors), file=sys.stderr)
             return 1
     if not changed_paths:
         print("no manifest paths have changed", file=sys.stderr)
@@ -298,7 +309,7 @@ def publish(repo: Path, report_date: date, message: str, *, push: bool = False,
         return 1
     if not push:
         return 0
-    return _push_validated_bundle(repo) if require_quality else _push_with_one_rebase_retry(repo, report_date)
+    return _push_with_one_rebase_retry(repo, report_date, require_quality=require_quality)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -307,7 +318,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--date", type=date.fromisoformat, required=True)
     parser.add_argument("--message", required=True)
     parser.add_argument("--push", action="store_true")
-    parser.add_argument("--require-quality", action="store_true", help="Validate full Japanese/search bundle and refuse race rebases")
+    parser.add_argument("--require-quality", action="store_true", help="Validate the full Japanese/search bundle before commit and again after any race rebase")
     return parser.parse_args(argv)
 
 

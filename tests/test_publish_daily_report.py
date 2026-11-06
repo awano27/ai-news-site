@@ -336,11 +336,65 @@ def test_strict_publication_fails_before_commit_if_bundle_is_invalid(tmp_path):
     assert not git(repo, 'diff', '--cached', '--name-only').stdout
 
 
-def test_strict_push_never_rebases_or_overwrites_remote(monkeypatch, tmp_path):
-    calls=[]
-    def reject(_repo,args,**kwargs):
-        calls.append(tuple(args))
-        return subprocess.CompletedProcess(args,1,'','non-fast-forward')
-    monkeypatch.setattr(publish_daily_report,'_git',reject)
-    assert publish_daily_report._push_validated_bundle(tmp_path)==1
-    assert calls==[('push','origin','HEAD:main')]
+def create_remote_with_unrelated_commit(tmp_path: Path, repo: Path) -> Path:
+    """Publish the baseline to a bare origin, then land an unrelated slide on main.
+
+    This is the morning race: the pipeline fast-forwards at 08:00, runs for half
+    an hour, and by push time a slide or the cloud archive job has moved main.
+    """
+    origin = tmp_path / "origin.git"
+    writer = tmp_path / "slide-writer"
+    git(tmp_path, "init", "--bare", str(origin))
+    git(repo, "remote", "add", "origin", str(origin))
+    git(repo, "push", "-u", "origin", "HEAD:main")
+    git(tmp_path, "--git-dir", str(origin), "symbolic-ref", "HEAD", "refs/heads/main")
+    git(tmp_path, "clone", str(origin), str(writer))
+    git(writer, "config", "user.name", "Slide Writer")
+    git(writer, "config", "user.email", "slides@example.com")
+    slide = writer / "presentations" / "day_slides" / "day_slide_2026_07_18.html"
+    slide.parent.mkdir(parents=True, exist_ok=True)
+    slide.write_text("<h1>slide</h1>\n", encoding="utf-8")
+    git(writer, "add", "presentations/day_slides/day_slide_2026_07_18.html")
+    git(writer, "commit", "-m", "feat(slides): publish day slide")
+    git(writer, "push", "origin", "main")
+    return origin
+
+
+def remote_log(tmp_path: Path, origin: Path) -> list[str]:
+    result = git(tmp_path, "--git-dir", str(origin), "log", "--format=%s", "refs/heads/main")
+    return result.stdout.strip().splitlines()
+
+
+def test_strict_push_replays_onto_an_unrelated_remote_commit_and_rechecks_quality(monkeypatch, tmp_path):
+    repo, manifest = create_repo(tmp_path)
+    origin = create_remote_with_unrelated_commit(tmp_path, repo)
+    (repo / manifest.required[0]).write_text("today's report\n", encoding="utf-8")
+    checks: list[Path] = []
+    monkeypatch.setattr(
+        publish_daily_report, "_check_daily_publication", lambda root, _date: checks.append(root) or [],
+        raising=False,
+    )
+
+    result = publish_daily_report.publish(repo, REPORT_DATE, "publish", push=True, require_quality=True)
+
+    assert result == 0
+    assert remote_log(tmp_path, origin) == ["publish", "feat(slides): publish day slide", "baseline"]
+    assert checks == [repo, repo], "quality check must run before commit and again on the rebased tree"
+    pushed_files = git(tmp_path, "--git-dir", str(origin), "ls-tree", "-r", "--name-only", "refs/heads/main").stdout
+    assert "presentations/day_slides/day_slide_2026_07_18.html" in pushed_files
+
+
+def test_strict_push_keeps_remote_untouched_when_the_rebased_bundle_fails_quality(monkeypatch, tmp_path, capsys):
+    repo, manifest = create_repo(tmp_path)
+    origin = create_remote_with_unrelated_commit(tmp_path, repo)
+    (repo / manifest.required[0]).write_text("today's report\n", encoding="utf-8")
+    verdicts = iter([[], ["daily date does not match 2026-07-18"]])
+    monkeypatch.setattr(
+        publish_daily_report, "_check_daily_publication", lambda _root, _date: next(verdicts), raising=False
+    )
+
+    result = publish_daily_report.publish(repo, REPORT_DATE, "publish", push=True, require_quality=True)
+
+    assert result == 1
+    assert "post-rebase publication rejected" in capsys.readouterr().err
+    assert remote_log(tmp_path, origin) == ["feat(slides): publish day slide", "baseline"]
