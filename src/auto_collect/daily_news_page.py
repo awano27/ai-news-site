@@ -141,6 +141,12 @@ def _flatten_x(x_articles: List[Dict]) -> List[Dict]:
             "tag_group": "X",
             "score": int(a.get("score", 75) or 75),
         })
+        if a.get("x_scout") is True:
+            out[-1]["x_scout"] = True
+        if a.get("x_url"):
+            out[-1]["x_url"] = a["x_url"]
+        if isinstance(a.get("caveat"), str) and a["caveat"].strip():
+            out[-1]["caveat"] = a["caveat"].strip()
     return out
 
 
@@ -189,6 +195,8 @@ def _render_x_card(item: Dict) -> str:
     author = _esc(item.get("author", ""))
     url = _esc(item["url"])
     note = item.get("note", "")
+    caveat = item.get("caveat") or ""
+    scout = item.get("x_scout") is True
     images = item.get("images") or []
     images_html = ""
     if images:
@@ -198,21 +206,27 @@ def _render_x_card(item: Dict) -> str:
         )
         images_html = f'<div class="x-images">{imgs}</div>'
     note_html = f'<div class="x-note">{_esc(note)}</div>' if note.strip() else ""
+    caveat_html = f'<div class="x-note">{_esc(caveat)}</div>' if str(caveat).strip() else ""
     title_html = f'<a href="{url}" target="_blank" rel="noopener">{title}</a>' if url else title
-    open_link = f'<a class="open" href="{url}" target="_blank" rel="noopener">X で開く ↗</a>' if url else ""
-    search_text = (item["title"] + " " + (item.get("body") or "") + " " + author).lower()
+    open_label = "一次情報を開く ↗" if scout else "X で開く ↗"
+    open_link = f'<a class="open" href="{url}" target="_blank" rel="noopener">{open_label}</a>' if url else ""
+    label = item.get("evidence_label") or "Curated"
+    label_class = _label_class(label) or "label-curated"
+    search_text = (item["title"] + " " + (item.get("body") or "") + " " + author + " " + str(caveat)).lower()
+    pill = "X Scout" if scout else "X"
 
     return f'''<article class="card x-post" data-cat="X" data-search="{_esc(search_text)}">
   <div class="card-meta">
-    <span class="x-pill">X</span>
+    <span class="x-pill">{pill}</span>
     <span class="source">{author}</span>
   </div>
   <h2 class="card-title">{title_html}</h2>
   <div class="card-body">{body}</div>
   {images_html}
   {note_html}
+  {caveat_html}
   <div class="card-foot">
-    <span class="label-pill label-curated">Curated</span>
+    <span class="label-pill {label_class}">{_esc(label)}</span>
     {open_link}
   </div>
 </article>'''
