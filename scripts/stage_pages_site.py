@@ -18,12 +18,26 @@ import os
 import re
 import shutil
 import sys
+import zlib
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 
 HOSTS = {"visionhub.jp", "www.visionhub.jp"}
 SITEMAP_NAME = "sitemap.xml"
+
+# actions/upload-pages-artifact tars the site, then actions/upload-artifact
+# zips the tar at deflate level 6. actions/deploy-pages reads that stored size
+# and warns above 1 GB; deployments above it stall in syncing_files and abort
+# at the 10 minute timeout (four of five deploys on 2026-11-09). Text files
+# shrink in the zip, images and pptx do not, so the estimate deflates only
+# the text suffixes and counts everything else at full size.
+ARTIFACT_WARN_BYTES = 900_000_000
+ARTIFACT_FAIL_BYTES = 1_000_000_000
+ARTIFACT_DEFLATE_LEVEL = 6
+DEFLATED_SUFFIXES = frozenset({
+    ".css", ".csv", ".htm", ".html", ".js", ".json", ".md", ".svg", ".txt", ".xml",
+})
 
 # Directories copied in full. New daily files appear inside these trees.
 PUBLISH_DIRECTORIES = (
@@ -383,6 +397,65 @@ def validate_publication(
     return errors
 
 
+def estimate_artifact_bytes(site: Path, published: set[str]) -> dict[str, int]:
+    """Return the estimated stored artifact size per top-level directory.
+
+    The returned mapping has one entry per first path segment plus ``""`` for
+    the total. Values approximate the zipped tar that actions/upload-artifact
+    stores: text suffixes deflated, everything else at file size.
+    """
+    sizes: dict[str, int] = {"": 0}
+    for rel in published:
+        path = site / rel
+        if not path.is_file():
+            continue
+        size = path.stat().st_size
+        if Path(rel).suffix.lower() in DEFLATED_SUFFIXES:
+            size = len(zlib.compress(path.read_bytes(), ARTIFACT_DEFLATE_LEVEL))
+        top = rel.split("/", 1)[0] if "/" in rel else "(root files)"
+        sizes[top] = sizes.get(top, 0) + size
+        sizes[""] += size
+    return sizes
+
+
+def check_artifact_size(
+    site: Path,
+    published: set[str],
+    warn_bytes: int | None = None,
+    fail_bytes: int | None = None,
+) -> list[str]:
+    """Print the estimated artifact size and return errors when it is too big.
+
+    Above ``warn_bytes`` the message is a GitHub Actions warning annotation so
+    the size shows on the run summary before a deploy actually stalls. Above
+    ``fail_bytes`` the publication is refused: run
+    ``scripts/compress_site_images.py`` and commit the result.
+    """
+    warn_bytes = ARTIFACT_WARN_BYTES if warn_bytes is None else warn_bytes
+    fail_bytes = ARTIFACT_FAIL_BYTES if fail_bytes is None else fail_bytes
+    sizes = estimate_artifact_bytes(site, published)
+    total = sizes.pop("")
+    breakdown = ", ".join(
+        f"{name} {size / 1_000_000:.0f} MB"
+        for name, size in sorted(sizes.items(), key=lambda item: -item[1])[:5]
+    )
+    summary = f"estimated pages artifact {total / 1_000_000:.0f} MB (largest: {breakdown})"
+    print(summary)
+    if total > fail_bytes:
+        return [
+            f"estimated pages artifact {total:,} bytes exceeds {fail_bytes:,}; "
+            "deploy-pages stalls above 1 GB. Run scripts/compress_site_images.py"
+        ]
+    if total > warn_bytes:
+        prefix = "::warning::" if os.environ.get("GITHUB_ACTIONS") == "true" else "warning: "
+        print(
+            f"{prefix}{summary} is above {warn_bytes / 1_000_000:.0f} MB; "
+            "run scripts/compress_site_images.py before the 1 GB deploy limit",
+            file=sys.stderr,
+        )
+    return []
+
+
 def stage_site(root: Path, dest: Path) -> list[str]:
     """Copy the allowlist to dest, replacing any previous staging directory."""
     root = root.resolve()
@@ -401,6 +474,7 @@ def stage_site(root: Path, dest: Path) -> list[str]:
         copied.append(rel)
     published = set(copied)
     errors = validate_publication(dest, published, source=root)
+    errors.extend(check_artifact_size(dest, published))
     if errors:
         raise PublishSafetyError(errors)
     return copied
@@ -430,11 +504,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     try:
         if args.dest is None:
-            errors = validate_publication(root)
+            selected = publication_paths(root)
+            errors = validate_publication(root, set(selected))
+            errors.extend(check_artifact_size(root, set(selected)))
             if errors:
                 _print_errors(errors)
                 return 1
-            selected = publication_paths(root)
             print(f"pages publication check passed: {len(selected)} files, sitemap included")
             return 0
         if args.check_only:

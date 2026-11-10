@@ -9,10 +9,15 @@ from unittest.mock import Mock
 
 import pytest
 
+import zlib
+
+from scripts import stage_pages_site
 from scripts.stage_pages_site import (
     DENIED_PREFIXES,
     REQUIRED_PUBLISHED_PATHS,
     PublishSafetyError,
+    check_artifact_size,
+    estimate_artifact_bytes,
     loc_to_relative,
     publication_paths,
     should_publish,
@@ -299,6 +304,66 @@ def test_repository_sitemap_is_complete_and_internal_trees_stay_out():
         assert leaked == []
     for prefix in INTERNAL_PREFIXES:
         assert not any(rel.startswith(prefix) for rel in published)
+
+
+def test_artifact_estimate_deflates_text_and_counts_binaries_raw(tmp_path):
+    html = "<p>" + "slide " * 5000 + "</p>"
+    jpeg = bytes(range(256)) * 400
+    _write(tmp_path, "presentations/day_slides/day_slide_2099_01_01.html", html)
+    (tmp_path / "presentations/day_slides/images/0101").mkdir(parents=True)
+    (tmp_path / "presentations/day_slides/images/0101/cover.jpg").write_bytes(jpeg)
+    _write(tmp_path, "index.html", "<p>home</p>")
+
+    sizes = estimate_artifact_bytes(
+        tmp_path,
+        {
+            "presentations/day_slides/day_slide_2099_01_01.html",
+            "presentations/day_slides/images/0101/cover.jpg",
+            "index.html",
+        },
+    )
+
+    deflated_html = len(zlib.compress(html.encode("utf-8"), 6))
+    assert deflated_html < len(html)
+    assert sizes["presentations"] == deflated_html + len(jpeg)
+    assert sizes["(root files)"] == len(zlib.compress(b"<p>home</p>", 6))
+    assert sizes[""] == sizes["presentations"] + sizes["(root files)"]
+
+
+def test_artifact_size_warns_then_fails(tmp_path, capsys, monkeypatch):
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "assets/big.jpg").write_bytes(bytes(range(256)) * 40)
+    published = {"assets/big.jpg"}
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+
+    assert check_artifact_size(tmp_path, published, warn_bytes=20_000, fail_bytes=30_000) == []
+    assert "::warning::" not in capsys.readouterr().err
+
+    assert check_artifact_size(tmp_path, published, warn_bytes=5_000, fail_bytes=30_000) == []
+    captured = capsys.readouterr()
+    assert "::warning::" in captured.err
+    assert "compress_site_images.py" in captured.err
+
+    errors = check_artifact_size(tmp_path, published, warn_bytes=5_000, fail_bytes=8_000)
+    assert len(errors) == 1
+    assert "exceeds 8,000" in errors[0]
+    assert "compress_site_images.py" in errors[0]
+
+
+def test_staging_refuses_an_oversized_artifact(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    _required_stubs(root)
+    _write(root, "daily-news/archive/2099-01-01.html", "news")
+    _write(root, "presentations/day_slides/day_slide_2099_01_01.html", "slide")
+    (root / "presentations/day_slides/images/0101").mkdir(parents=True)
+    (root / "presentations/day_slides/images/0101/cover.jpg").write_bytes(bytes(range(256)) * 40)
+    monkeypatch.setattr(stage_pages_site, "ARTIFACT_WARN_BYTES", 1_000)
+    monkeypatch.setattr(stage_pages_site, "ARTIFACT_FAIL_BYTES", 5_000)
+
+    with pytest.raises(PublishSafetyError) as excinfo:
+        stage_site(root, tmp_path / "site")
+
+    assert any("estimated pages artifact" in error for error in excinfo.value.errors)
 
 
 def test_pages_workflow_uploads_the_staged_site_only():
