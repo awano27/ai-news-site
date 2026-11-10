@@ -479,3 +479,129 @@ def test_main_keeps_x_bookmarks_outside_the_news_date_window(monkeypatch, tmp_pa
     assert "https://example.com/benchmark" not in {row["url"] for row in captured["articles"]}
     assert any("news items" in record.message and "X posts" in record.message for record in caplog.records)
     assert not any(record.levelno >= logging.WARNING and "X posts" in record.message for record in caplog.records)
+
+
+def _scout_post():
+    reference = "AI model launch の参考要約です。これは品質ゲートの要約ではありません。"
+    return {
+        "name": "参考見出し",
+        "description": reference,
+        "tagline": reference,
+        "rss_source": "X Scout (@lab)",
+        "source": "X Scout (@lab)",
+        "url": "https://example.com/scout-primary",
+        "links": {"official": "https://example.com/scout-primary"},
+        "x_curated": True,
+        "x_scout": True,
+        "x_tweet_id": "99",
+        "x_url": "https://x.com/lab/status/99",
+        "bookmark_date": "2026-10-13",
+        "authors": "@lab",
+        "caveat": "料金は発表時点です",
+        "evidence_label": "Fact",
+        "summary": "",
+    }
+
+
+def test_main_skips_x_scout_when_the_flag_is_off(monkeypatch, tmp_path):
+    monkeypatch.delenv("X_SCOUT_ENABLED", raising=False)
+    monkeypatch.delenv("X_SCOUT_DRY_RUN", raising=False)
+    install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+            headline("A lab expands inference capacity", "https://example.com/capacity", "Other"),
+        ],
+        github=[],
+    )
+
+    class Boom:
+        def __init__(self):
+            raise AssertionError("X Scout must not be constructed while disabled")
+
+    monkeypatch.setattr(auto_collect_main, "XScoutCollector", Boom)
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: ScriptedProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", lambda *_args, **_kwargs: tmp_path / "daily.html")
+    auto_collect_main.main()
+
+
+def test_main_publishes_x_scout_through_the_quality_gate_without_a_second_date_filter(monkeypatch, tmp_path):
+    monkeypatch.setenv("X_SCOUT_ENABLED", "true")
+    monkeypatch.delenv("X_SCOUT_DRY_RUN", raising=False)
+    install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+            dict(headline("A lab expands inference capacity", "https://example.com/stale", "Other"), date="2026-01-01"),
+        ],
+        github=[],
+    )
+    monkeypatch.setattr(auto_collect_main, "XScoutCollector", lambda: StaticCollector([_scout_post()]))
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: XAwareProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    captured = {}
+
+    def capture_daily(*_args, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "daily.html"
+
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", capture_daily)
+    auto_collect_main.main()
+    published = captured["x_articles"]
+    assert [row["url"] for row in published] == ["https://example.com/scout-primary"]
+    assert published[0]["bookmark_date"] == "2026-10-13"
+    assert published[0]["x_scout"] is True
+    assert published[0]["caveat"] == "料金は発表時点です"
+    assert published[0]["summary"] == X_SUMMARY
+    assert "参考要約" not in published[0]["summary"]
+    assert published[0]["processing_status"] == "llm"
+    assert "https://example.com/stale" not in {row["url"] for row in captured["articles"]}
+    quality = captured["quality"]
+    assert quality["status"] == "passed"
+    assert quality["article_count"] == 4
+    assert quality["excluded_count"] == 0
+    assert "X Scout (@lab)" in quality["sources"]
+
+
+def test_main_x_scout_dry_run_logs_quality_and_does_not_publish(monkeypatch, tmp_path, caplog):
+    import logging
+
+    monkeypatch.setenv("X_SCOUT_ENABLED", "true")
+    monkeypatch.setenv("X_SCOUT_DRY_RUN", "true")
+    install_deterministic_pipeline(
+        monkeypatch,
+        tmp_path,
+        headlines=[
+            headline("OpenAI ships a voice model", "https://example.com/voice", "Official"),
+            headline("Google changes image pricing", "https://example.com/pricing", "Other"),
+            headline("MIT revises an evaluation benchmark", "https://example.com/benchmark", "Official"),
+            headline("A lab expands inference capacity", "https://example.com/capacity", "Other"),
+        ],
+        github=[],
+    )
+    monkeypatch.setattr(auto_collect_main, "XScoutCollector", lambda: StaticCollector([_scout_post()]))
+    monkeypatch.setattr(auto_collect_main, "make_provider", lambda _name: XAwareProvider())
+    monkeypatch.setattr(auto_collect_main, "generate_html_report", lambda _path: tmp_path / "report.html")
+    captured = {}
+
+    def capture_daily(*_args, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "daily.html"
+
+    monkeypatch.setattr(auto_collect_main, "generate_daily_news", capture_daily)
+    with caplog.at_level(logging.INFO):
+        auto_collect_main.main()
+    assert captured["x_articles"] == []
+    assert "https://example.com/scout-primary" not in {row["url"] for row in captured["articles"]}
+    assert captured["quality"]["article_count"] == 4
+    assert any(
+        "dry-run quality input=1 article_count=1 excluded=0" in record.message
+        for record in caplog.records
+    )
