@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Gemini 4 Hydrogenの役割を図解。Carbonによる計画、Hydrogenによるコード修正とテスト、自動切り替えの仕組み、料金と試し方をわかりやすく整理します。">
+<title>計画するAIと、コードを直すAIが連携する。Gemini 4 Hydrogenを図解｜2026-11-14</title>
+<style>
+:root{--bg:#eef1ef;--paper:#fff;--ink:#132f38;--muted:#53676c;--teal:#087f78;--teal-dark:#06615c;--teal-soft:#edf7f3;--orange:#db692f;--orange-dark:#9b431d;--orange-soft:#fff3e8;--line:#d8e3df;--cream:#f7f8f4;--radius:20px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:20px}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans CJK JP","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:16px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.wrap{width:min(1200px,calc(100% - 48px));margin:28px auto 60px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+a{color:var(--teal-dark);text-underline-offset:3px;text-decoration-thickness:1px}a:hover{text-decoration-thickness:2px}a:focus-visible,summary:focus-visible{outline:3px solid var(--orange);outline-offset:5px}p{margin:0 0 16px}p:last-child{margin-bottom:0}strong{font-weight:800}h1,h2,h3,h4{line-height:1.5;letter-spacing:.015em}h2{font-size:clamp(23px,2.8vw,32px);margin:0 0 16px;font-weight:800}h3{font-size:20px;margin:0 0 10px}h4{font-size:17px;margin:0 0 5px}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9em;background:#edf2f0;border-radius:5px;padding:3px 6px;overflow-wrap:anywhere}sup.ref{font-size:11px;vertical-align:super;margin-left:3px;white-space:nowrap}sup.ref a{text-decoration:none}sup.ref a:hover{text-decoration:underline}
+.cover{margin:0;border-radius:var(--radius);overflow:hidden;background:var(--cream);border:1px solid #d1ded8;box-shadow:0 10px 36px #16352b0a}.cover svg{display:block;width:100%;height:auto}.cover-mobile{display:none}.intro{padding:29px 36px 24px;margin:0 0 18px;background:var(--paper);border:1px solid var(--line);border-top:0;border-radius:0 0 var(--radius) var(--radius)}.intro-lead{font-size:19px;font-weight:600;line-height:1.9}.meta{color:var(--muted);font-size:13px}.diagram-transcript{margin-top:14px;font-size:14px;color:var(--muted)}summary{cursor:pointer;font-weight:700;color:var(--teal-dark)}.diagram-transcript p{padding-top:12px;max-width:960px}.toc{display:flex;flex-wrap:wrap;gap:8px 24px;margin:22px 0 34px;padding:0 6px;font-size:14px}.toc a{text-decoration:none;font-weight:700}.toc a:hover{text-decoration:underline}
+.section{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:32px 36px;margin:20px 0;break-inside:avoid}.section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}.section-no{font-size:14px;font-weight:900;color:var(--teal);letter-spacing:.12em}.section-topic{font-size:14px;font-weight:700;color:var(--muted)}.section p{max-width:1050px}.grid2,.grid3{display:grid;gap:20px;margin:23px 0}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}.role{padding:22px 24px;background:var(--teal-soft);border-radius:13px}.role.orange{background:var(--orange-soft)}.role.neutral{background:#f3f5f5}.role-title{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:800;margin-bottom:9px}.role-title svg{width:36px;height:36px;flex-shrink:0}.role p{font-size:15px}.label{display:inline-block;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:800;margin-right:6px;vertical-align:2px}.label.fact{background:#deefe9;color:#08665d}.label.idea{background:#fff0dc;color:#995018}.note{font-size:13px;color:var(--muted);line-height:1.9}.callout{padding:18px 22px;background:var(--teal-soft);border-left:4px solid var(--teal);margin:22px 0;border-radius:0 10px 10px 0}.callout.orange{background:var(--orange-soft);border-left-color:var(--orange)}.callout p{margin:4px 0 0}.callout strong{font-size:17px}.callout:last-child{margin-bottom:0}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:23px;margin:26px 0}.step{border-top:3px solid var(--line);padding-top:14px}.step-num{color:var(--teal);font-size:12px;letter-spacing:.12em;font-weight:900;margin-bottom:7px}.step h3{font-size:18px}.step p{font-size:15px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:24px 0}.metric{padding:25px 26px}.metric+.metric{border-left:1px solid var(--line)}.metric-label{font-size:14px;font-weight:700}.metric-number{font-size:46px;line-height:1.35;letter-spacing:-.03em;color:var(--teal);font-weight:900;white-space:nowrap}.metric-number small{font-size:20px;letter-spacing:0;margin-left:4px}.metric p{font-size:13px;color:var(--muted);margin-top:8px}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:20px 0}table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.85}th,td{text-align:left;padding:14px 16px;vertical-align:top;border-bottom:1px solid var(--line)}thead th{background:#edf3f0;color:#24474b;font-weight:800}tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}tbody th{font-weight:800;background:#fafbf9}tbody tr:nth-child(even) td{background:#fafbf9}.compare-table{min-width:750px}.technical-table{min-width:560px}.number-table{min-width:600px}.nowrap{white-space:nowrap}.stack{display:block;color:var(--muted);font-size:12px;margin-top:4px}.price{font-weight:800;font-variant-numeric:tabular-nums}.price-example{display:grid;grid-template-columns:1fr auto;align-items:center;gap:24px;background:var(--ink);color:#fff;padding:25px 28px;border-radius:13px;margin-top:24px}.price-example h3{font-size:18px}.price-example p{font-size:14px;color:#e1eae7}.price-total{font-size:44px;font-weight:900;color:#b9ece0;white-space:nowrap}.price-total small{font-size:13px;font-weight:500;color:#e1eae7;display:block;text-align:center}.checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 30px;margin:24px 0}.check{display:grid;grid-template-columns:27px 1fr;gap:10px}.check-mark{color:var(--teal);font-size:24px;font-weight:800;line-height:1.2}.check p{font-size:15px}.closing{background:var(--ink);color:#fff;border-color:var(--ink)}.closing .section-no{color:#a4dbca}.closing .section-topic{color:#c3d7d0}.closing h2{color:#fff}.closing .step{border-color:#46716e}.closing .step-num{color:#a4dbca}.closing .step p{color:#e3edeb}.closing .callout{background:#24474b;border-color:#ed9c62;color:#fff}.closing .note{color:#ceded9}.closing a{color:#b9ece0}.closing code{background:#31565b;color:#fff}
+.sources{background:transparent;border:0;padding-top:25px;padding-bottom:0}.sources h2{font-size:24px}.source-list{list-style:none;counter-reset:source;padding:0;margin:20px 0;font-size:14px}.source-list li{counter-increment:source;display:grid;grid-template-columns:26px 1fr;gap:10px;margin:17px 0;scroll-margin-top:24px}.source-list li:before{content:"[" counter(source) "]";color:var(--teal-dark);font-weight:800}.source-list a{font-weight:700;overflow-wrap:anywhere}.source-list small{display:block;color:var(--muted);font-size:12px;margin-top:3px}footer{border-top:1px solid var(--line);padding:18px 0 0;color:var(--muted);font-size:12px}.footer-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}.footer-brand{letter-spacing:.16em;font-weight:900;color:var(--teal-dark)}
+@media(max-width:900px){.wrap{width:calc(100% - 32px);margin-top:16px}.section{padding:28px}.intro{padding:25px 28px}.metric{padding:23px 18px}.metric-number{font-size:39px}.grid3{gap:14px}.role{padding:20px}.steps{gap:18px}}
+@media(max-width:680px){body{font-size:15px;line-height:1.9}.wrap{width:calc(100% - 24px);margin:12px auto 34px}.cover-desktop{display:none}.cover-mobile{display:block;padding:23px 20px 25px}.mobile-brand{display:flex;justify-content:space-between;color:var(--teal-dark);font-size:11px;letter-spacing:.1em;font-weight:800}.mobile-title{font-size:27px;line-height:1.55;margin:24px 0 10px;letter-spacing:-.02em}.mobile-subtitle{font-size:13px;color:var(--muted)}.mobile-person{display:flex;align-items:center;gap:13px;margin:23px 0 15px}.mobile-person svg{width:49px;height:53px;flex-shrink:0}.mobile-speech{padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:14px;font-size:15px;font-weight:700}.mobile-system{border:1.5px solid #b7d6cb;border-radius:17px;padding:16px;background:#edf7f3}.mobile-system-label{font-size:13px;font-weight:800;color:var(--teal-dark);text-align:center;border-bottom:1px solid #c7ddd5;padding-bottom:11px;margin-bottom:16px}.mobile-role{display:flex;gap:14px;align-items:center}.mobile-role svg{width:64px;height:68px;flex-shrink:0}.mobile-role strong{display:block;font-size:19px}.mobile-role span{font-size:14px}.mobile-down{margin:8px 0 8px 21px;color:var(--teal-dark);font-size:13px;font-weight:700}.mobile-down b{font-size:22px;margin-right:12px}.mobile-loop{font-size:12px;text-align:center;margin:17px 0 0;background:#fff;border-radius:9px;padding:9px}.mobile-result{font-size:14px;text-align:center;margin:17px 0 15px;font-weight:700}.mobile-human{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:0}.mobile-human strong{color:var(--ink)}.intro{padding:23px 21px;margin-bottom:12px}.intro-lead{font-size:16px}.meta{font-size:12px}.toc{margin:20px 0 23px;gap:7px 17px;font-size:12px}.section{padding:25px 21px;margin:14px 0;border-radius:16px}.section-head{gap:11px}.section-topic{font-size:12px}h2{font-size:23px}h3{font-size:18px}.grid2,.grid3,.steps,.checklist{grid-template-columns:1fr;gap:17px;margin:20px 0}.role{padding:19px 20px}.step h3{font-size:18px}.step p{font-size:14px}.metrics{grid-template-columns:1fr;margin:20px 0}.metric{padding:19px 0;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:14px}.metric+.metric{border-left:0;border-top:1px solid var(--line)}.metric-number{font-size:36px}.metric p{grid-column:1/-1;margin:4px 0 0}.metric-label{font-size:14px}.callout{padding:16px 17px;margin:20px 0}.callout strong{font-size:16px}.table-wrap{margin:18px 0}th,td{padding:12px 13px;font-size:13px}.price-example{grid-template-columns:1fr;padding:22px;gap:12px}.price-total{text-align:center;font-size:43px}.checklist{gap:22px}.sources{padding:24px 7px 0}.sources h2{font-size:22px}.source-list{font-size:13px}.note{font-size:12px}.footer-row{font-size:11px}}
+@media print{@page{size:A4 portrait;margin:12mm}body{background:#fff;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wrap{width:100%;margin:0}.cover{border-radius:0;box-shadow:none;break-after:avoid}.cover-desktop{display:block!important}.cover-mobile{display:none!important}.intro{border:0;padding:14px 0}.intro-lead{font-size:11pt}.toc,.diagram-transcript{display:none}.section{padding:18px 20px;margin:14px 0;border-radius:8px;break-inside:auto}.section h2{font-size:18pt;break-after:avoid}.section h3{break-after:avoid}.section .grid2,.section .grid3,.section .steps{break-inside:avoid}.table-wrap{overflow:visible;break-inside:avoid}table{min-width:0!important;font-size:9pt}.table-wrap th,.table-wrap td{padding:8px;font-size:9pt}.section .metrics{break-inside:avoid}.note,.meta{font-size:8pt}.source-list{font-size:9pt}.source-list li{break-inside:avoid}a{color:inherit}.price-example{break-inside:avoid}.closing .steps{grid-template-columns:repeat(3,minmax(0,1fr))}.sources{padding:12px 0}.checklist{break-inside:avoid}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1 class="sr-only">計画するAIと、コードを直すAIが連携する。Gemini 4 Hydrogenの役割</h1>
+<figure class="cover" aria-label="Gemini 4 HydrogenとCarbonが連携する仕組みの図解">
+<div class="cover-desktop"><svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="overview-title overview-desc">
+  <title id="overview-title">計画するAIと、コードを直すAIが連携する。</title>
+  <desc id="overview-desc">依頼者が不具合の修正を頼むと、Carbonが作業の計画を立て、Hydrogenがコードを修正してテストする。AntigravityのOrchestratorが両者の担当を自動で切り替え、必要に応じて計画を見直す。成果として変更内容とテスト結果を受け取る。利用範囲と予算を人が決め、変更内容とテスト結果を人が確かめることは本記事の運用提案。Carbon構成の概念図で、Argon構成もある。</desc>
+  <defs>
+    <marker id="arrow-ink" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#132f38" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="arrow-teal" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#087f78" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      text{font-family:'Noto Sans CJK JP','Noto Sans JP',sans-serif;fill:#132f38}
+      .bold{font-weight:700}
+      .teal{fill:#087f78}
+      .orange{fill:#db692f}
+      .stroke{stroke:#132f38;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+      .arrow{fill:none;stroke:#132f38;stroke-width:3;stroke-linecap:round;marker-end:url(#arrow-ink)}
+    </style>
+  </defs>
+
+  <!-- Title and edition. -->
+  <rect width="1280" height="720" fill="#f7f8f4"/>
+  <rect x="48" y="25" width="10" height="10" rx="2" fill="#db692f"/>
+  <text x="70" y="36" class="bold" font-size="16" letter-spacing="2">VISIONHUB</text>
+  <text x="1232" y="36" font-size="16" text-anchor="end" fill="#526b70">2026.11.14</text>
+  <text x="48" y="98" class="bold" font-size="46">計画するAIと、</text>
+  <text x="48" y="153" class="bold" font-size="46">コードを直すAIが<tspan class="teal">連携する。</tspan></text>
+  <text x="50" y="189" font-size="20" fill="#526b70">Gemini 4 Hydrogen と Antigravity Orchestrator</text>
+
+  <!-- The orchestrator is a system boundary, not a third robot. -->
+  <rect x="278" y="218" width="708" height="347" rx="26" fill="#e7f3ee" stroke="#b8d7ce" stroke-width="1.5"/>
+  <path d="M305 269 H959" fill="none" stroke="#bad9cf" stroke-width="1.2"/>
+  <text x="306" y="250" class="bold teal" font-size="22">Antigravity</text>
+  <path d="M450 234 V254" stroke="#9bc5b9" stroke-width="1.5"/>
+  <text x="469" y="250" class="bold teal" font-size="20">Orchestratorが担当を自動で切り替える</text>
+
+  <!-- Feedback path sits above the two illustrated workers. -->
+  <text x="642" y="298" font-size="18" text-anchor="middle" class="teal bold">行き詰まったら、計画を見直す</text>
+  <path d="M786 340 C786 313 760 316 741 316 H540 C519 316 508 320 508 340" fill="none" stroke="#087f78" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5 6" marker-end="url(#arrow-teal)"/>
+
+  <!-- Requester: person, speech balloon and pointing hand. -->
+  <path d="M48 272 H224 Q238 272 238 286 V322 Q238 336 224 336 H174 L159 352 L159 336 H48 Q34 336 34 322 V286 Q34 272 48 272Z" fill="#fff" stroke="#c9d4d1" stroke-width="1.5"/>
+  <text x="136" y="299" class="bold" font-size="22" text-anchor="middle">この不具合を</text>
+  <text x="136" y="326" class="bold" font-size="22" text-anchor="middle">直して</text>
+  <ellipse cx="142" cy="506" rx="65" ry="8" fill="#e1e7df"/>
+  <path d="M123 414 V434 H158 V414" fill="#e8ae8a"/>
+  <path d="M88 505 V461 C88 441 103 429 124 429 L141 441 L158 429 C180 431 194 444 194 464 V505Z" fill="#087f78"/>
+  <path d="M124 429 L141 441 L131 454 L115 432 M158 429 L141 441 L151 454 L167 432" fill="#d5ece2"/>
+  <path d="M99 462 L82 490" fill="none" stroke="#087f78" stroke-width="23" stroke-linecap="round"/>
+  <path d="M183 458 L206 438 L214 421" fill="none" stroke="#087f78" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M212 425 L220 412 L220 402" fill="none" stroke="#efb791" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M215 415 L228 417" fill="none" stroke="#efb791" stroke-width="9" stroke-linecap="round"/>
+  <ellipse cx="141" cy="384" rx="34" ry="38" fill="#efb791"/>
+  <path d="M108 385 C101 357 115 342 139 343 C163 341 178 357 175 379 L164 376 L160 361 C145 369 126 372 115 368 L115 384Z" fill="#132f38"/>
+  <ellipse cx="109" cy="388" rx="6" ry="10" fill="#efb791"/>
+  <circle cx="130" cy="386" r="2.7" fill="#132f38"/>
+  <circle cx="153" cy="386" r="2.7" fill="#132f38"/>
+  <path d="M137 403 Q143 407 150 401" fill="none" stroke="#995f46" stroke-width="2.2" stroke-linecap="round"/>
+  <text x="141" y="543" class="bold" font-size="23" text-anchor="middle">依頼する人</text>
+
+  <!-- Clear handoff arrow into the system. -->
+  <path d="M243 421 H359" class="arrow"/>
+
+  <!-- Carbon: rounded robot holding a real clipboard. -->
+  <ellipse cx="454" cy="493" rx="81" ry="8" fill="#cce1d7"/>
+  <path d="M428 475 V491 M475 475 V491" fill="none" stroke="#132f38" stroke-width="16" stroke-linecap="round"/>
+  <path d="M405 437 C390 441 388 459 395 471" fill="none" stroke="#087f78" stroke-width="15" stroke-linecap="round"/>
+  <rect x="405" y="422" width="96" height="61" rx="20" fill="#087f78" class="stroke"/>
+  <path d="M450 345 V333" fill="none" stroke="#132f38" stroke-width="3.5"/>
+  <circle cx="450" cy="329" r="6" fill="#db692f"/>
+  <rect x="392" y="372" width="12" height="27" rx="6" fill="#87b8a8" class="stroke"/>
+  <rect x="500" y="372" width="12" height="27" rx="6" fill="#87b8a8" class="stroke"/>
+  <rect x="400" y="347" width="104" height="76" rx="26" fill="#fff" class="stroke"/>
+  <rect x="414" y="367" width="76" height="32" rx="14" fill="#d8eee5"/>
+  <circle cx="435" cy="383" r="5" fill="#132f38"/>
+  <circle cx="469" cy="383" r="5" fill="#132f38"/>
+  <path d="M441 409 H463" fill="none" stroke="#087f78" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="431" cy="446" r="5" fill="#e3f1e9"/>
+  <path d="M447 446 H467" fill="none" stroke="#b6d9cb" stroke-width="4" stroke-linecap="round"/>
+  <g transform="rotate(8 513 451)">
+    <rect x="481" y="413" width="67" height="80" rx="6" fill="#fff" class="stroke"/>
+    <rect x="500" y="408" width="29" height="12" rx="4" fill="#db692f"/>
+    <path d="M491 434 L495 438 L502 429 M491 454 L495 458 L502 449 M491 474 L495 478 L502 469" fill="none" stroke="#087f78" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M511 434 H538 M511 454 H535 M511 474 H532" fill="none" stroke="#8ba59b" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <path d="M492 443 Q504 452 507 462" fill="none" stroke="#087f78" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="508" cy="464" r="8" fill="#bfded1" class="stroke"/>
+  <text x="453" y="519" class="bold teal" font-size="28" text-anchor="middle">Carbon</text>
+  <text x="453" y="547" class="bold" font-size="22" text-anchor="middle">作業の計画を立てる</text>
+
+  <!-- Plan handoff, separated from the feedback loop. -->
+  <text x="616" y="399" class="bold" font-size="18" text-anchor="middle">計画を渡す</text>
+  <path d="M565 421 H667" class="arrow"/>
+
+  <!-- Hydrogen: worker robot operating a computer with visible code. -->
+  <ellipse cx="789" cy="493" rx="104" ry="8" fill="#cce1d7"/>
+  <path d="M762 474 V491 M811 474 V491" fill="none" stroke="#132f38" stroke-width="16" stroke-linecap="round"/>
+  <rect x="740" y="420" width="96" height="64" rx="20" fill="#db692f" class="stroke"/>
+  <path d="M788 345 V333" fill="none" stroke="#132f38" stroke-width="3.5"/>
+  <circle cx="788" cy="329" r="6" fill="#087f78"/>
+  <rect x="728" y="372" width="12" height="27" rx="6" fill="#ecc6a6" class="stroke"/>
+  <rect x="836" y="372" width="12" height="27" rx="6" fill="#ecc6a6" class="stroke"/>
+  <rect x="736" y="347" width="104" height="76" rx="26" fill="#fff" class="stroke"/>
+  <rect x="750" y="367" width="76" height="32" rx="14" fill="#f4e0cd"/>
+  <circle cx="771" cy="383" r="5" fill="#132f38"/>
+  <circle cx="805" cy="383" r="5" fill="#132f38"/>
+  <path d="M777 409 H799" fill="none" stroke="#db692f" stroke-width="3" stroke-linecap="round"/>
+  <path d="M741 438 Q719 449 719 471 M835 438 Q856 449 856 471" fill="none" stroke="#db692f" stroke-width="15" stroke-linecap="round"/>
+  <rect x="711" y="426" width="153" height="60" rx="7" fill="#132f38" stroke="#132f38" stroke-width="3.5"/>
+  <rect x="718" y="433" width="139" height="45" rx="3" fill="#24494d"/>
+  <path d="M738 443 L729 454 L738 465 M751 443 L760 454 L751 465 M748 442 L742 467" fill="none" stroke="#e5f7ea" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M777 443 H816 M777 453 H835 M777 463 H804" fill="none" stroke="#93c9b8" stroke-width="3.3" stroke-linecap="round"/>
+  <path d="M708 486 H867 L876 495 H699Z" fill="#87aba3" stroke="#132f38" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M773 486 H801" stroke="#132f38" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="789" y="519" class="bold orange" font-size="28" text-anchor="middle">Hydrogen</text>
+  <text x="789" y="547" class="bold" font-size="22" text-anchor="middle">コード修正・テスト</text>
+
+  <!-- Output: a change record and test result, not an automatic approval. -->
+  <path d="M903 421 H1022" class="arrow"/>
+  <ellipse cx="1137" cy="491" rx="85" ry="8" fill="#e1e7df"/>
+  <rect x="1063" y="340" width="147" height="149" rx="12" fill="#fff" stroke="#a8beb5" stroke-width="1.8"/>
+  <path d="M1076 360 H1150" stroke="#132f38" stroke-width="5" stroke-linecap="round"/>
+  <path d="M1076 373 H1125" stroke="#a4b7ae" stroke-width="3" stroke-linecap="round"/>
+  <rect x="1076" y="389" width="120" height="36" rx="5" fill="#edf5ee"/>
+  <path d="M1084 399 H1114 M1084 414 H1137" stroke="#c9a590" stroke-width="3" stroke-linecap="round"/>
+  <path d="M1143 399 H1187 M1158 414 H1187" stroke="#087f78" stroke-width="3" stroke-linecap="round"/>
+  <path d="M1081 447 L1086 452 L1095 441 M1081 468 L1086 473 L1095 462" fill="none" stroke="#087f78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1105 447 H1186 M1105 468 H1172" stroke="#9aafa5" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="1192" cy="353" r="24" fill="#087f78" stroke="#f7f8f4" stroke-width="5"/>
+  <path d="M1182 352 L1189 360 L1203 345" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1138" y="519" class="bold" font-size="22" text-anchor="middle">変更内容と</text>
+  <text x="1138" y="547" class="bold" font-size="22" text-anchor="middle">テスト結果</text>
+
+  <!-- Human policy and review are editorial operating recommendations. -->
+  <rect x="48" y="589" width="1184" height="79" rx="18" fill="#132f38"/>
+  <circle cx="79" cy="618" r="5" fill="#f0aa73"/>
+  <text x="95" y="626" class="bold" font-size="24" style="fill:#fff">人が決める：利用範囲と予算</text>
+  <path d="M618 606 V648" stroke="#5b777b" stroke-width="1"/>
+  <circle cx="652" cy="618" r="5" fill="#92c9b2"/>
+  <text x="668" y="626" class="bold" font-size="24" style="fill:#fff">人が確かめる：変更内容とテスト結果</text>
+  <text x="1199" y="651" font-size="14" text-anchor="end" style="fill:#bdd1d1">人の確認は本記事の運用提案</text>
+  <text x="48" y="698" font-size="15" fill="#526b70">Carbon構成の概念図。Argon構成もあります。出典：Google公式資料 [1][3]</text>
+</svg>
+</div>
+<div class="cover-mobile">
+ <div class="mobile-brand"><span>VISIONHUB</span><time datetime="2026-11-14">2026.11.14</time></div>
+ <h2 class="mobile-title">計画するAIと、<br>コードを直すAIが<br>連携する。</h2>
+ <p class="mobile-subtitle">Gemini 4 Hydrogen と<br>Antigravity Orchestrator</p>
+ <div class="mobile-person"><svg viewBox="0 0 54 60" aria-hidden="true"><circle cx="27" cy="17" r="12" fill="#e8bd94"/><path d="M14 17c-4-21 29-23 26 1l-8-7-17 6" fill="#233f47"/><path d="M4 58v-8c0-23 46-23 46 0v8" fill="#315964"/><path d="m18 36 9 12 9-12" fill="#fff"/></svg><span class="mobile-speech">この不具合を直して</span></div>
+ <div class="mobile-system">
+  <div class="mobile-system-label">Antigravity<br>Orchestratorが担当を自動で切り替える</div>
+  <div class="mobile-role"><svg viewBox="0 0 72 76" aria-hidden="true"><path d="M36 5v10" stroke="#087f78" stroke-width="3"/><circle cx="36" cy="5" r="4" fill="#db692f"/><rect x="9" y="15" width="54" height="34" rx="12" fill="#087f78"/><rect x="15" y="21" width="42" height="18" rx="7" fill="#e8f7ef"/><circle cx="27" cy="30" r="3" fill="#132f38"/><circle cx="45" cy="30" r="3" fill="#132f38"/><rect x="18" y="52" width="36" height="24" rx="8" fill="#087f78"/><rect x="37" y="45" width="29" height="29" rx="3" fill="#fff" stroke="#84b7a6" stroke-width="2"/><path d="M43 53h17m-17 7h17m-17 7h12" stroke="#84b7a6" stroke-width="2"/></svg><div><strong>Carbon</strong><span>原因を調べ、計画を立てる</span></div></div>
+  <div class="mobile-down"><b>↓</b>計画を渡す</div>
+  <div class="mobile-role"><svg viewBox="0 0 72 76" aria-hidden="true"><path d="M36 5v10" stroke="#db692f" stroke-width="3"/><circle cx="36" cy="5" r="4" fill="#087f78"/><rect x="9" y="15" width="54" height="34" rx="12" fill="#db692f"/><rect x="15" y="21" width="42" height="18" rx="7" fill="#fff4e8"/><circle cx="27" cy="30" r="3" fill="#132f38"/><circle cx="45" cy="30" r="3" fill="#132f38"/><rect x="18" y="52" width="36" height="24" rx="8" fill="#db692f"/><rect x="7" y="48" width="58" height="25" rx="4" fill="#132f38"/><path d="m27 55-7 6 7 6m18-12 7 6-7 6m-6-13-5 14" fill="none" stroke="#b6e9d8" stroke-width="2.5"/></svg><div><strong>Hydrogen</strong><span>コードを直し、テストする</span></div></div>
+  <p class="mobile-loop">↶ 行き詰まったら、Carbonが計画を見直す</p>
+ </div>
+ <p class="mobile-result">✓ 変更内容とテスト結果を確認</p>
+ <p class="mobile-human"><strong>人が決める：</strong>利用範囲と予算<br><strong>人が確かめる：</strong>変更内容とテスト結果<br>人の確認は本記事の運用提案です。Carbon構成の例で、Argon構成もあります。出典：[1][3]</p>
+</div>
+<figcaption class="sr-only">Carbonが計画を立て、Hydrogenがコードを修正してテストします。問題があれば計画役に戻ります。AntigravityのOrchestratorが切り替えを自動で行います。</figcaption>
+</figure>
+<div class="intro">
+ <p class="intro-lead">Carbonが作業の計画を立て、Hydrogenがコードの修正やテストを進める。<br>AntigravityでOrchestratorを選ぶと、作業に応じて担当のAIが自動で切り替わります。<sup class="ref"><a href="#source-1">[1]</a><a href="#source-3">[3]</a></sup></p>
+ <p class="meta">Googleが2026年11月12日に発表したGemini 4 Hydrogenを解説。情報確認：2026年11月14日（日本時間）。性能値はGoogleの報告に基づき、本記事では実機検証していません。</p>
+ <details class="diagram-transcript"><summary>図の説明をテキストで読む</summary><p>利用者が不具合の修正を依頼すると、計画役のCarbonがコードを調べ、作業の手順をまとめます。実行役のHydrogenはその計画を受け取り、ファイルを修正してテストします。想定外の問題が起きるとCarbonに戻り、計画を見直します。この切り替えを行うのが、AntigravityのOrchestratorです。図はCarbon構成の例で、計画役にArgonを使う構成もあります。人が利用範囲や予算を決め、最後に変更内容とテスト結果を確認する運用は、本記事の提案です。</p></details>
+</div>
+<nav class="toc" aria-label="目次"><a href="#roles">01 役割</a><a href="#mechanism">02 仕組み</a><a href="#performance">03 性能</a><a href="#comparison">04 比較</a><a href="#availability">05 利用条件</a><a href="#pricing">06 料金</a><a href="#operation">07 運用</a><a href="#trial">08 試し方</a></nav>
+
+<section class="section" id="roles">
+ <div class="section-head"><span class="section-no">01</span><span class="section-topic">どんな作業を任せるAIなのか</span></div>
+ <h2>難しい判断と、コード修正・テストを分担する</h2>
+ <p>ソフトウェア開発には、「どの設計で直すか」を考える場面と、「決めた手順でコードを直して確かめる」場面があります。Googleは、CarbonやArgonを難しい判断に強いモデル、Hydrogenを日常の開発作業を速く進めるモデルとして位置づけています。<sup class="ref"><a href="#source-1">[1]</a></sup></p>
+ <div class="grid2">
+  <div class="role"><div class="role-title"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="9" y="6" width="24" height="30" rx="4" stroke="#087f78" stroke-width="2.5"/><rect x="15" y="3" width="12" height="7" rx="2" fill="#087f78"/><path d="m14 18 3 3 5-6m3 4h4m-15 9h15" stroke="#087f78" stroke-width="2.5" stroke-linecap="round"/></svg>計画を立てる</div><h3>Carbon / Argon</h3><p>設計の選択、複雑な不具合の原因調査、作業手順の組み立てなど、難しい判断を担当します。</p></div>
+  <div class="role orange"><div class="role-title"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="4" y="7" width="32" height="23" rx="3" stroke="#b95424" stroke-width="2.5"/><path d="m16 14-5 5 5 5m8-10 5 5-5 5M2 34h36" stroke="#b95424" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>修正して、確かめる</div><h3>Hydrogen</h3><p>コードの読み取り、ファイルの修正、ビルドやテストの実行を担当します。単独で使うこともできます。</p></div>
+ </div>
+ <p>Hydrogen自身も推論でき、考える深さを4段階で選べます。既定は<strong>high</strong>、さらに深く考えさせる設定が<strong>xhigh</strong>です。図の「計画役・実行役」は、組み合わせて使うときの主な役割です。<sup class="ref"><a href="#source-4">[4]</a></sup></p>
+</section>
+
+<section class="section" id="mechanism">
+ <div class="section-head"><span class="section-no">02</span><span class="section-topic">計画・実行・自動切り替えの仕組み</span></div>
+ <h2>Orchestratorが、作業の途中で担当を切り替える</h2>
+ <p><strong>Antigravity</strong>はGoogleのAI開発環境です。その中の<strong>Orchestrator（オーケストレーター）</strong>という機能を選ぶと、計画役と実行役が同じ会話の中で連携します。利用者が毎回モデルを選び直す必要はありません。<sup class="ref"><a href="#source-3">[3]</a></sup></p>
+ <div class="steps">
+  <div class="step"><div class="step-num">STEP 01</div><h3>計画役が手順を考える</h3><p>CarbonまたはArgonがコードを読み、修正方針をまとめます。この計画段階ではファイルを変更しません。</p></div>
+  <div class="step"><div class="step-num">STEP 02</div><h3>Hydrogenが作業する</h3><p>計画に沿ってコードを修正し、ビルドやテストを実行して、結果を確かめます。</p></div>
+  <div class="step"><div class="step-num">STEP 03</div><h3>問題があれば計画を見直す</h3><p>想定外の挙動や未解決の設計判断が出たら、計画役に戻ります。手順を直してから作業を再開します。</p></div>
+ </div>
+ <p class="note">上記は公式の動作を要約したものです。計画役は長い作業の進み具合も確認します。<sup class="ref"><a href="#source-3">[3]</a></sup></p>
+ <div class="callout"><strong>Hydrogen単独と、Orchestratorでは設定が違います。</strong><p>Hydrogen単独では思考レベルを選べます。Orchestratorは固定構成のため、思考レベルを利用者が選ぶことはできません。<sup class="ref"><a href="#source-3">[3]</a></sup></p></div>
+ <p><span class="label idea">本記事の提案</span>人が先に決めておくのは、AIに任せる業務の範囲、扱うデータ、予算、成果物の確認方法です。「モデルが切り替わるたびに人が承認する」という意味ではありません。</p>
+</section>
+
+<section class="section" id="performance">
+ <div class="section-head"><span class="section-no">03</span><span class="section-topic">Googleが報告した性能</span></div>
+ <h2>速さと利用枠の節約に効果。ただし、測定条件の確認が必要</h2>
+ <p><span class="label fact">Googleの報告値</span>次の数値は、Googleが公表した測定結果です。本記事では独立した再現検証を行っていません。<sup class="ref"><a href="#source-1">[1]</a></sup></p>
+ <div class="metrics">
+  <div class="metric"><div class="metric-label">Orchestratorの利用枠消費</div><div class="metric-number">24<small>%減</small></div><p>Carbon単独と比べた平均。タスク成功率はCarbon単独に近いと報告。</p></div>
+  <div class="metric"><div class="metric-label">Orchestratorの作業完了</div><div class="metric-number">19<small>%高速</small></div><p>Carbon単独との比較。Googleの「19% faster」という表記に基づく。</p></div>
+  <div class="metric"><div class="metric-label">Hydrogen単独の処理速度</div><div class="metric-number">2.5<small>倍</small></div><p>既定のhighで、Gemini 3.8 Flashと比較。上の2つとは比較対象が異なる。</p></div>
+ </div>
+ <div class="table-wrap"><table class="number-table"><thead><tr><th scope="col">測定項目</th><th scope="col">Hydrogen</th><th scope="col">比較対象</th><th scope="col">読み取れること</th></tr></thead><tbody>
+  <tr><th scope="row">Terminal-Bench 4.1<span class="stack">端末上の作業を解く評価</span></th><td><strong>57%</strong></td><td>Gemini 3.8 Flash：18.2%</td><td>この評価では、成功率が大きく向上</td></tr>
+  <tr><th scope="row">Artificial Analysis<br>Intelligence Index</th><td><strong>51</strong>（high）<br><strong>54</strong>（xhigh）</td><td>Argon：50</td><td>この指標での比較。すべての仕事での優劣を示すものではない</td></tr>
+  <tr><th scope="row">事実に反する主張の発生</th><td>5分の1未満</td><td>Gemini 3.8 Flash</td><td>誤りがなくなるわけではない</td></tr>
+ </tbody></table></div>
+ <p class="note">出典：[1]。Orchestratorの測定はGoogleの発表ブログではTerminal-Bench 4.0、Antigravityの公式記事では4.1と記載され、版の表記が一致していません。24%・19%という数値は両記事に共通します。<sup class="ref"><a href="#source-1">[1]</a><a href="#source-7">[7]</a></sup></p>
+ <div class="callout orange"><strong>「利用枠24%減」を「API料金24%減」と読み替えない。</strong><p>クォータは、サービスで使える利用枠のことです。APIの請求額はモデルの単価と処理したトークン数で決まるため、この測定値だけでは料金の削減率はわかりません。</p></div>
+</section>
+
+<section class="section" id="comparison">
+ <div class="section-head"><span class="section-no">04</span><span class="section-topic">Carbon・Argon・Flashとの違い</span></div>
+ <h2>任せたい仕事と、実際の処理費用で選ぶ</h2>
+ <p>Hydrogenは日常の開発作業、CarbonやArgonは難しい判断に使う、というのがGoogleの基本的な位置づけです。まず自分のタスクで、必要な品質に届くかを比べます。<sup class="ref"><a href="#source-1">[1]</a><a href="#source-4">[4]</a></sup></p>
+ <div class="table-wrap"><table class="compare-table"><thead><tr><th scope="col">モデル</th><th scope="col">主な使いどころ</th><th scope="col">APIの通常単価<br><span class="stack">入力 / 出力、100万トークンあたり</span></th><th scope="col">選ぶときの注意</th></tr></thead><tbody>
+  <tr><th scope="row">Gemini 4 Hydrogen</th><td>コード修正、テスト、日常の開発作業</td><td><span class="price">$1.50 / $7.50</span><span class="stack">無料枠あり</span></td><td>単独でも利用可能。highで足りない場合はxhighも比較</td></tr>
+  <tr><th scope="row">Gemini 4 Carbon</th><td>複雑な設計、難しい原因調査</td><td><span class="price">$2.00 / $10.00</span><span class="stack">2026年11月30日まで。12月1日から$4.00 / $20.00。無料枠なし</span></td><td>深い判断が必要なタスクで、所要時間と費用を確認</td></tr>
+  <tr><th scope="row">Gemini 4 Argon</th><td>難しい判断と処理効率の両立</td><td><span class="price">$2.00 / $10.00</span><span class="stack">2026年11月30日まで。12月1日から$4.00 / $20.00。無料枠なし</span></td><td>単価がCarbonと同じでも、使うトークン数は異なり得る</td></tr>
+  <tr><th scope="row">Gemini 3.8 Flash</th><td>既存の開発・エージェント処理</td><td><span class="price">$0.75 / $3.75</span><span class="stack">2026年12月31日まで。2027年1月1日から$1.50 / $7.50</span></td><td>移行は価格だけでなく、同じ仕事の成功率と時間も比較</td></tr>
+ </tbody></table></div>
+ <p class="note">料金は2026年11月14日確認。出力単価には思考トークンも含みます。価格改定の予定は公式料金表に基づきます。<sup class="ref"><a href="#source-2">[2]</a></sup></p>
+ <div class="callout"><strong>自分で使い分ける方法と、自動で連携させる方法があります。</strong><p>各モデルを直接選べば、タスクごとの比較や思考レベルの調整ができます。Orchestratorを選べば、計画と実行の引き継ぎを自動化できます。<sup class="ref"><a href="#source-3">[3]</a></sup></p></div>
+</section>
+
+<section class="section" id="availability">
+ <div class="section-head"><span class="section-no">05</span><span class="section-topic">どこで使える？ 無料枠と利用条件</span></div>
+ <h2>Hydrogen単独と、Orchestratorでは利用条件が違う</h2>
+ <div class="table-wrap"><table class="technical-table"><thead><tr><th scope="col">利用場所・機能</th><th scope="col">確認できた条件</th></tr></thead><tbody>
+  <tr><th scope="row">Google AI Studio / Gemini API</th><td>Hydrogenは無料枠・有料枠で利用可能。モデルIDは<code>gemini-4-hydrogen</code>。無料枠の利用上限は、自分のプロジェクトのAI Studio画面で確認します。<sup class="ref"><a href="#source-2">[2]</a><a href="#source-4">[4]</a><a href="#source-5">[5]</a></sup></td></tr>
+  <tr><th scope="row">AntigravityでHydrogen単独</th><td>現行の公式モデル一覧では、Free・Google AI Plusを含む各プランで利用可能です。<sup class="ref"><a href="#source-3">[3]</a></sup></td></tr>
+  <tr><th scope="row">Orchestrator（Carbon）</th><td>Google AI Ultraで利用可能。Carbonが計画し、Hydrogenが作業します。<sup class="ref"><a href="#source-3">[3]</a></sup></td></tr>
+  <tr><th scope="row">Orchestrator（Argon）</th><td>Google AI Ultraと対象のGoogle AI Proで利用可能。Proは有料プラン、または対象プレミアム端末の試用が条件です。<sup class="ref"><a href="#source-3">[3]</a></sup></td></tr>
+ </tbody></table></div>
+ <p class="note">発表ブログにはAntigravityでのHydrogen提供をPro / Ultra向けとする記載がありますが、上表は確認時点の公式モデル一覧を採用しています。Hydrogen単独が使えることと、Orchestratorが使えることは別です。</p>
+ <details class="diagram-transcript"><summary>思考レベル・処理できる情報量・検索機能の詳細</summary><div class="table-wrap"><table class="technical-table"><tbody>
+  <tr><th scope="row">思考レベル</th><td><code>low</code> / <code>medium</code> / <code>high</code>（既定）/ <code>xhigh</code>。xhighは、より深く考える分、時間とトークン消費が増えます。Orchestratorではこの設定を変更できません。<sup class="ref"><a href="#source-3">[3]</a><a href="#source-4">[4]</a></sup></td></tr>
+  <tr><th scope="row">一度に扱える情報量</th><td>入力・思考・出力で合計1,048,576トークンの枠を共有します。トークンは、文章やコードを処理するための単位です。<sup class="ref"><a href="#source-4">[4]</a></sup></td></tr>
+  <tr><th scope="row">出力の上限</th><td>通常の同期処理は65,536トークン。長い出力を生成するlong decodeでは最大約100万トークンまで扱えますが、入力や思考の分も同じ枠を使います。<sup class="ref"><a href="#source-4">[4]</a></sup></td></tr>
+  <tr><th scope="row">キャッシュ</th><td>過去に処理した入力を再利用する機能です。Hydrogenは自動適用の暗黙的キャッシュに対応し、明示的キャッシュには非対応です。<sup class="ref"><a href="#source-2">[2]</a></sup></td></tr>
+  <tr><th scope="row">Google検索との連携</th><td>無料枠では利用不可。有料枠は月5,000件まで無料（Gemini 3以降で共有）、超過分は1,000件あたり$14、1日1,500件の上限があります。1回の依頼で複数の検索が発生する場合があります。<sup class="ref"><a href="#source-2">[2]</a></sup></td></tr>
+ </tbody></table></div></details>
+</section>
+
+<section class="section" id="pricing">
+ <div class="section-head"><span class="section-no">06</span><span class="section-topic">料金は何で決まる？</span></div>
+ <h2>単価が同じでも、読む量・考える量・書く量で総額は増える</h2>
+ <p>料金は、<strong>トークン（文章やコードを処理する単位）</strong>の数で計算します。Hydrogenは、長い入力でもトークンあたりの単価が変わりません。ただし、入力が長くなれば処理するトークン数が増え、料金も増えます。回答を作るための<strong>思考トークン</strong>にも、出力と同じ単価がかかります。<sup class="ref"><a href="#source-1">[1]</a><a href="#source-2">[2]</a></sup></p>
+ <div class="table-wrap"><table><thead><tr><th scope="col">Hydrogenの料金区分</th><th scope="col">入力</th><th scope="col">出力・思考</th></tr></thead><tbody>
+  <tr><th scope="row">Standard<span class="stack">通常の利用</span></th><td class="price">$1.50</td><td class="price">$7.50</td></tr>
+  <tr><th scope="row">Batch / Flex<span class="stack">応答を急がない処理</span></th><td class="price">$0.75</td><td class="price">$3.75</td></tr>
+  <tr><th scope="row">Priority<span class="stack">優先処理</span></th><td class="price">$2.70</td><td class="price">$13.50</td></tr>
+ </tbody></table></div>
+ <p class="note">すべて100万トークンあたりの米ドル価格。Standardのキャッシュ読み取りは$0.075 / 100万トークンです。<sup class="ref"><a href="#source-2">[2]</a></sup></p>
+ <div class="price-example"><div><h3>計算例：入力10万、出力・思考の合計2万トークン</h3><p>Standardなら、入力 $0.15 ＋ 出力・思考 $0.15。<br>キャッシュ割引を適用せず、検索などの追加料金を含めない、1回分の例です。</p></div><div class="price-total">$0.30<small>本記事による試算</small></div></div>
+ <div class="callout orange"><strong>xhighは、必要な場面で比較して使う。</strong><p>既定のhighで必要な品質に届くかを確かめ、足りないタスクでxhighを比較します。料金の見積もりには、モデル、思考レベル、入力・出力・思考の量を記録します。</p></div>
+</section>
+
+<section class="section" id="operation">
+ <div class="section-head"><span class="section-no">07</span><span class="section-topic">業務で使う前に決めておくこと</span></div>
+ <h2>入力するデータと、成果物の確認方法を決める</h2>
+ <p><span class="label idea">本記事の運用提案</span>自動切り替えを使っても、成果物の確認は必要です。次の点をチームで決めておくと、試用結果を本格導入の判断につなげやすくなります。</p>
+ <div class="checklist">
+  <div class="check"><span class="check-mark" aria-hidden="true">✓</span><div><h3>渡せるデータを決める</h3><p>試用には機密を含まないコードを使う。顧客情報や認証情報を扱う前に、契約とデータ利用条件を確認する。</p></div></div>
+  <div class="check"><span class="check-mark" aria-hidden="true">✓</span><div><h3>変更内容とテスト結果を確認する</h3><p>どのモデルが書いたかにかかわらず、変更差分とテスト結果を見て、意図した修正になっているかを判断する。</p></div></div>
+  <div class="check"><span class="check-mark" aria-hidden="true">✓</span><div><h3>使う範囲と予算を決める</h3><p>任せる仕事、使えるデータ、費用や時間の上限を決める。Hydrogen単独の思考レベルも記録する。</p></div></div>
+  <div class="check"><span class="check-mark" aria-hidden="true">✓</span><div><h3>失敗から戻せるようにする</h3><p>変更を小さく分けて記録し、問題があれば戻せる状態にする。モデルの提供条件が変わったときの見直しも予定する。</p></div></div>
+ </div>
+ <div class="callout orange"><strong>「無料か有料か」だけで、データの扱いを判断しない。</strong><p>API料金表では無料枠は製品改善への利用「あり」、通常の有料枠（Standardなど）は「なし」です。一方、招待制のContributorは有料でも利用「あり」です。地域やAI Studioの課金設定による扱いも規約で確認してください。<sup class="ref"><a href="#source-2">[2]</a><a href="#source-6">[6]</a></sup></p></div>
+</section>
+
+<section class="section closing" id="trial">
+ <div class="section-head"><span class="section-no">08</span><span class="section-topic">まず3件で試す</span></div>
+ <h2>同じ仕事で、正しさ・時間・費用を比べる</h2>
+ <p><span class="label idea">本記事の試行案</span>最初は機密を含まない小さなタスクを3件選びます。3件は使い勝手を知るための予備評価です。本格導入の判断には、対象業務を代表するタスクを増やして確かめます。</p>
+ <div class="steps">
+  <div class="step"><div class="step-num">STEP 01</div><h3>正解の条件を先に決める</h3><p>小さな不具合修正、テスト追加、既存コードの説明などを選びます。「何ができれば合格か」を依頼する前に書きます。</p></div>
+  <div class="step"><div class="step-num">STEP 02</div><h3>highとxhighを同じ条件で比べる</h3><p>まずHydrogenのhighで実行。必要なタスクでxhighも試し、正しさ、時間、トークン量、費用を記録します。</p></div>
+  <div class="step"><div class="step-num">STEP 03</div><h3>難しい仕事は他の構成でも試す</h3><p>Hydrogenで不十分だったタスクを、CarbonやArgon、またはOrchestratorでも比較。仕事ごとの使い分けを考えます。</p></div>
+ </div>
+ <p class="note">AI Studioで修正案を生成する評価と、開発環境でファイル編集・テストまで自動実行する評価は分けます。後者は、必要な実行環境と権限を用意して試してください。無料枠の利用可否と上限は、実際のアカウントで確認します。</p>
+ <div class="callout"><strong>導入判断に使うのは、自分の仕事で得た結果。</strong><p>Hydrogen単独で十分か。Orchestratorの連携が役立つか。深い判断をCarbonやArgonに任せるべきか。同じ条件で比較した記録を基に選びます。</p></div>
+</section>
+
+<section class="section sources" id="sources">
+ <h2>出典と、この記事で確認した範囲</h2>
+ <p class="note">公式情報と、本記事による運用・試行の提案を分けて記載しています。価格・提供条件は2026年11月14日時点の確認内容です。性能はGoogleの報告値であり、実際の開発タスクでの効果を保証するものではありません。</p>
+ <ol class="source-list">
+  <li id="source-1"><div><a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-Hydrogen/" target="_blank" rel="noopener noreferrer">Google公式ブログ：Introducing Gemini 4 Hydrogen</a><small>2026年11月12日発表、11月13日更新。モデルの位置づけ、性能値、自動連携の説明。</small></div></li>
+  <li id="source-2"><div><a href="https://aistudio.google.com/docs/pricing" target="_blank" rel="noopener noreferrer">Google公式：Gemini Developer API pricing</a><small>単価、無料枠、検索連携、価格改定予定、製品改善へのデータ利用。旧料金URLからの転送先。</small></div></li>
+  <li id="source-3"><div><a href="https://antigravity.google/docs/models" target="_blank" rel="noopener noreferrer">Antigravity公式：Choose a model</a><small>現行の利用プラン、Carbon / Argon構成、計画と実行の引き継ぎ、思考レベルの設定条件。</small></div></li>
+  <li id="source-4"><div><a href="https://aistudio.google.com/docs/whats-new-gemini-4-hydrogen" target="_blank" rel="noopener noreferrer">Google公式：What's new in Gemini 4 Hydrogen</a><small>モデルID、思考レベル、入力・思考・出力の共有上限、long decodeの条件。</small></div></li>
+  <li id="source-5"><div><a href="https://aistudio.google.com/docs/rate-limits" target="_blank" rel="noopener noreferrer">Google公式：Rate limits</a><small>利用上限はプロジェクト単位。AI Studioで有効な上限を確認する方法。</small></div></li>
+  <li id="source-6"><div><a href="https://aistudio.google.com/docs/terms" target="_blank" rel="noopener noreferrer">Google公式：Gemini API Additional Terms of Service</a><small>無料・有料サービス、地域、AI Studioの課金設定などによるデータの取り扱い。</small></div></li>
+  <li id="source-7"><div><a href="https://antigravity.google/blog/gemini-4-hydrogen-in-google-antigravity" target="_blank" rel="noopener noreferrer">Antigravity公式ブログ：Gemini 4 Hydrogen and Orchestrator</a><small>Orchestratorの説明と測定結果。ベンチマークの版表記はGoogle本体の発表ブログと差があります。</small></div></li>
+ </ol>
+ <footer><p>図は公式資料を基に作成した概念図です。画面の再現や、製品の操作手順を示すものではありません。人による利用範囲の決定・成果物確認、費用の試算、試行手順は本記事の提案です。本記事の作成にあたり、モデルやAPIを実行した性能検証は行っていません。</p><div class="footer-row"><span class="footer-brand">VISIONHUB</span><span>2026.11.14　本文と図はオフラインで閲覧できます。</span></div></footer>
+</section>
+</main>
+</body>
+</html>
