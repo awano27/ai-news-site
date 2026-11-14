@@ -1,6 +1,7 @@
 """Auto-collect configuration."""
 
 import os
+import re
 from pathlib import Path
 
 # Repo root resolution. Order:
@@ -49,6 +50,19 @@ OLLAMA_URL = ollama_generate_url()
 OLLAMA_CHAT_URL = ollama_chat_url()
 OLLAMA_MODEL = "gemma3:4b"
 OLLAMA_TIMEOUT = 120
+# Optional second model already pulled in the same local daemon. Empty means
+# the last translation retry stays on OLLAMA_MODEL. This is not a cloud model
+# and it does not read an API key.
+_LOCAL_MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$")
+
+
+def ollama_fallback_model(current: str = "") -> str:
+    raw = os.environ.get("OLLAMA_FALLBACK_MODEL", "").strip()
+    if not raw or raw == (current or "").strip():
+        return ""
+    if _LOCAL_MODEL_NAME.fullmatch(raw) is None:
+        return ""
+    return raw
 
 # RSS feeds (English)
 EN_RSS_FEEDS = [
