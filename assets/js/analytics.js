@@ -2,7 +2,7 @@
  * analytics.js — visionhub.jp
  * ------------------------------------------------------------
  * Loads Google Analytics 4 (GA4) with a Measurement ID pulled from
- * /config/analytics.json at runtime. This lets us swap / rotate the
+ * /assets/analytics-config.json at runtime. This lets us swap / rotate the
  * ID without touching every HTML page.
  *
  * Behaviour:
@@ -24,7 +24,7 @@
   if (!allowLocal && (host === 'localhost' || host === '127.0.0.1' || host === '')) return;
   if (navigator && navigator.doNotTrack === '1') return;
 
-  fetch('/config/analytics.json', { cache: 'no-store' })
+  fetch('/assets/analytics-config.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (cfg) {
       if (!cfg || !cfg.measurement_id) return;
