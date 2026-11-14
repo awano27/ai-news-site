@@ -25,6 +25,7 @@ from typing import Dict, List, Optional
 
 from .config import PROJECT_ROOT, X_LOOKBACK_HOURS
 from .publication_priority import prefer_existing
+from .reviewed_summaries import apply_reviewed_summary
 from .content_integrity import apply_financial_integrity
 from .claim_evidence import render_evidence, require_valid_evidence
 
@@ -80,7 +81,7 @@ def _flatten_news(articles: List[Dict], tag: str = "記事") -> List[Dict]:
     out = []
     for a in articles or []:
         # A final guard also covers direct callers that did not use LLMProcessor.
-        a = apply_financial_integrity(a)
+        a = apply_reviewed_summary(apply_financial_integrity(a))
         if a.get("claim_evidence") is not None:
             require_valid_evidence(a["claim_evidence"], a)
         title = a.get("title") or a.get("name") or ""

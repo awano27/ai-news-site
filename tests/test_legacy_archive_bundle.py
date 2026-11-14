@@ -337,3 +337,13 @@ def test_untracked_nested_modern_route_is_outside_legacy_baseline(bundle):
     base = commit_baseline(bundle)
     write(bundle, 'public-pages/news/daily/2026-10-11.json', {'count': 99, 'items': [{}]})
     assert checker().validate_bundle(bundle, base_ref=base) == []
+
+
+def test_archive_can_add_verified_nested_editions_without_changing_legacy(bundle):
+    path='public-pages/news/archive_index.json'
+    write(bundle,'public-pages/news/daily/2026-11-14.json',{'date':'2026-11-14','items':[{'title':'new'}]})
+    rows=read(bundle,path)
+    write(bundle,path,[{'date':'2026-11-14','file':'daily/2026-11-14.json','count':1}]+rows)
+    assert checker().validate_bundle(bundle)==[]
+    data=read(bundle,path);data[0]['count']=2;write(bundle,path,data)
+    assert any('count' in error for error in checker().validate_bundle(bundle))

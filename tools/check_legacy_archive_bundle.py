@@ -218,7 +218,35 @@ def validate_bundle(root, date=None, base_ref=None):
         compatibility.append(api_entry)
     for name, expected in [('archive_index.json', archive), ('daily_index.json', daily_index)]:
         path = NEWS / name
-        _compare(_read(root, path, errors), expected, str(path), errors)
+        actual = _read(root, path, errors)
+        if name == 'archive_index.json' and isinstance(actual, list):
+            legacy = []
+            seen = set()
+            for row in actual:
+                if not isinstance(row, dict):
+                    errors.append(f'{path}: index row must be an object')
+                    continue
+                day = row.get('date')
+                if day in seen:
+                    errors.append(f'{path}: duplicate date {day}')
+                seen.add(day)
+                filename = row.get('file', '')
+                if filename.startswith('daily/'):
+                    if not isinstance(day, str) or not DATE.fullmatch(day) or filename != f'daily/{day}.json' or day in selected:
+                        errors.append(f'{path}: invalid nested daily reference {filename}')
+                        continue
+                    source = _read(root, NEWS / filename, errors)
+                    if not isinstance(source, dict) or source.get('date') != day or not isinstance(source.get('items'), list):
+                        errors.append(f'{path}: invalid nested daily snapshot {filename}')
+                    else:
+                        _compare(row, {'date': day, 'file': filename, 'count': len(source['items'])}, f'{path}:{day}', errors)
+                else:
+                    legacy.append(row)
+            if [row.get('date') for row in actual if isinstance(row, dict)] != sorted(seen, reverse=True):
+                errors.append(f'{path}: dates must be unique and descending')
+            _compare(legacy, expected, str(path), errors)
+        else:
+            _compare(actual, expected, str(path), errors)
     latest = selected[max(selected)][1]
     _compare(_read(root, NEWS / 'daily_latest.json', errors), latest, str(NEWS / 'daily_latest.json'), errors)
     compatibility.sort(key=lambda entry: entry['date'], reverse=True)

@@ -28,12 +28,11 @@ def refresh(root):
     root=Path(root)
     entries={}
     public=root/'public-pages/news'
-    # Keep real legacy editions and their existing schema; do not manufacture days.
-    for p in sorted(public.glob('*.json')):
-        if DATE.fullmatch(p.name):
-            data=read(p)
-            count=len(data) if isinstance(data,list) else len(data.get('items',[])) or 1
-            entries[p.stem]={'date':p.stem,'file':p.name,'count':count}
+    # Preserve the legacy selector's reviewed records, counts and precedence.
+    # Legacy producers maintain these rows; nested daily editions only add dates.
+    index=public/'archive_index.json'
+    if index.exists():
+        entries={e['date']:e for e in read(index) if not e.get('file','').startswith('daily/')}
     for p in sorted((public/'daily').glob('*.json')):
         if not DATE.fullmatch(p.name): continue
         data=read(p)
@@ -48,7 +47,8 @@ def refresh(root):
         existing=read(destination) if destination.exists() else {}
         if not existing or existing.get('source_url')=='https://visionhub.jp/public-pages/news/daily/'+p.name:
             write(destination,{'generated_at':p.stem,'news_date':p.stem,'source_url':'https://visionhub.jp/public-pages/news/daily/'+p.name,'highlight':{**evidence(first),'title':first.get('title',''),'summary':first.get('summary',''),'sources':[{'name':first.get('source',''),'url':first.get('url','')}] if first else []},'sections':sections})
-        entries[p.stem]={'date':p.stem,'file':'daily/'+p.name,'count':len(items)}
+        if p.stem not in entries:
+            entries[p.stem]={'date':p.stem,'file':'daily/'+p.name,'count':len(items)}
     write(public/'archive_index.json',[entries[k] for k in sorted(entries,reverse=True)])
     slides=sorted((root/'presentations/day_slides').glob('day_slide_????_??_??.html'),reverse=True)
     if slides:
