@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -13,10 +14,12 @@ from typing import Sequence
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.auto_collect.publication_priority import prefer_existing
+from scripts import build_search_index
 
 
 MANIFEST_PATH = Path(__file__).with_name("daily_report_paths.json")
 MANIFEST_REPO_PATH = "scripts/daily_report_paths.json"
+SEARCH_INDEX_PATH = "public-pages/news/search_index.json"
 
 
 @functools.lru_cache(maxsize=None)
@@ -210,6 +213,31 @@ def _strict_bundle_errors(repo: Path, report_date: date, changed_paths: Sequence
     return _check_daily_publication(repo, report_date)
 
 
+def _merge_search_baselines(local: list[dict], remote: list[dict]) -> list[dict]:
+    """Union preservation rows without duplicating an updated managed identity."""
+    def managed_key(row):
+        if row.get("capture_schema") == 1 and row.get("type") != "slide":
+            return ("daily", row["date"], build_search_index.canonical_url(row["url"]) or row["url"])
+        if row.get("slide_schema") == 1 and row.get("type") == "slide":
+            return ("slide", row["date"], row["url"])
+        return None
+
+    result = list(remote)
+    remaining = Counter(json.dumps(row, sort_keys=True, ensure_ascii=False) for row in remote)
+    remote_managed = {managed_key(row) for row in remote} - {None}
+    for row in local:
+        # The post-rebase sources refresh these rows. Adding the stale local
+        # metadata too would manufacture a duplicate on every retry.
+        if managed_key(row) in remote_managed:
+            continue
+        signature = json.dumps(row, sort_keys=True, ensure_ascii=False)
+        if remaining[signature]:
+            remaining[signature] -= 1
+        else:
+            result.append(row)
+    return result
+
+
 def _push_with_one_rebase_retry(repo: Path, report_date: date, *, require_quality: bool = False) -> int:
     # The pipeline runs for 30-50 minutes between the morning fast-forward and this
     # push, and the cloud archive job, slide publishes and bot JSON commits land on
@@ -226,6 +254,14 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date, *, require_qualit
     # allow a delayed cloud run to erase a local publication's curated X posts.
     protected_paths = []
     try:
+        if require_quality:
+            # Capture both corpora before rebase can choose a whole stale JSON
+            # line. Invalid/missing remote history must never be silently lost.
+            local_search = build_search_index.validate_index_records(json.loads(
+                _git(repo, ("show", f"HEAD:{SEARCH_INDEX_PATH}")).stdout))
+            remote_search = build_search_index.validate_index_records(json.loads(
+                _git(repo, ("show", f"origin/main:{SEARCH_INDEX_PATH}")).stdout))
+            publication_message = _git(repo, ("log", "-1", "--format=%B")).stdout.strip()
         remote_data = _git(repo, ("show", "origin/main:daily-news/data.json"), check=False)
         local_data = _git(repo, ("show", "HEAD:daily-news/data.json"), check=False)
         if remote_data.returncode == 0 and local_data.returncode == 0:
@@ -237,19 +273,50 @@ def _push_with_one_rebase_retry(repo: Path, report_date: date, *, require_qualit
                 archive = f"daily-news/archive/{existing['date']}.html"
                 if archive in _head_commit_paths(repo):
                     protected_paths.append(archive)
-    except (KeyError, TypeError, ValueError) as error:
-        print(f"daily-news priority validation failed: {error}", file=sys.stderr)
+    except (KeyError, TypeError, ValueError, subprocess.CalledProcessError) as error:
+        print(f"pre-rebase publication validation failed: {error}", file=sys.stderr)
         return 1
     rebase = _git(repo, ("rebase", "-X", "theirs", "origin/main"), check=False)
     if rebase.returncode != 0:
         _git(repo, ("rebase", "--abort"), check=False)
         print(rebase.stderr.strip() or "git rebase origin/main failed", file=sys.stderr)
         return 1
-    if protected_paths:
-        _git(repo, ("restore", "--source=origin/main", "--staged", "--worktree", "--", *protected_paths))
-        _git(repo, ("commit", "--amend", "--no-edit", "--allow-empty"))
     try:
         rebased_manifest = _load_manifest_from_head(repo, report_date)
+        if require_quality:
+            replayed = (_git(repo, ("rev-parse", "HEAD")).stdout !=
+                        _git(repo, ("rev-parse", "origin/main")).stdout)
+            planned_paths = (*(_head_commit_paths(repo) if replayed else ()),
+                             *protected_paths, SEARCH_INDEX_PATH)
+            errors = validate_changes(repo, rebased_manifest, changed_paths=planned_paths)
+            if errors:
+                print("post-rebase publication rejected:\n" + "\n".join(errors), file=sys.stderr)
+                return 1
+            if protected_paths:
+                _git(repo, ("restore", "--source=origin/main", "--worktree", "--", *protected_paths))
+            rows = build_search_index.build_index(
+                repo, preservation_baseline=_merge_search_baselines(local_search, remote_search))
+            build_search_index.atomic_write(repo / SEARCH_INDEX_PATH, build_search_index.json_bytes(rows))
+            repaired_paths = _status_paths(repo)
+            if repaired_paths:
+                if any(not rebased_manifest.matches(path) for path in repaired_paths):
+                    raise ValueError("search repair changed paths outside the publication manifest")
+                _git(repo, ("add", "--", *repaired_paths))
+                if replayed:
+                    _git(repo, ("commit", "--amend", "--no-edit", "--allow-empty"))
+                else:
+                    # Rebase may drop an already-applied publication. Never
+                    # amend the remote writer's commit in that case.
+                    _git(repo, ("commit", "-m", publication_message))
+            elif not replayed:
+                errors = _strict_bundle_errors(repo, report_date, ())
+                if errors:
+                    print("post-rebase publication rejected:\n" + "\n".join(errors), file=sys.stderr)
+                    return 1
+                return 0
+        elif protected_paths:
+            _git(repo, ("restore", "--source=origin/main", "--staged", "--worktree", "--", *protected_paths))
+            _git(repo, ("commit", "--amend", "--no-edit", "--allow-empty"))
         rebased_paths = _head_commit_paths(repo)
         errors = validate_changes(repo, rebased_manifest, changed_paths=rebased_paths)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
