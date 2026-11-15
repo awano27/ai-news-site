@@ -37,6 +37,7 @@ PRESENTATION_DIRS = [
     ("presentations/hubs", "weekly", 0.9),
     ("presentations/digests", "monthly", 0.8),
     ("presentations/day_slides", "monthly", 0.6),
+    ("presentations/daily_reports", "monthly", 0.5),
     ("presentations/recommended_tools", "monthly", 0.7),
     ("presentations/antigravity-guide", "monthly", 0.6),
     ("presentations/claude-code-guide", "monthly", 0.6),
@@ -49,7 +50,8 @@ DAILY_NEWS_DIRS = [
     ("daily-news/archive", "daily", 0.7),
 ]
 
-DAY_SLIDE_DATE_RE = re.compile(r"day_slide_(\d{4})_(\d{2})_(\d{2})\.html$")
+DAY_SLIDE_DATE_RE = re.compile(r"^day_slide_(\d{4})_(\d{2})_(\d{2})\.html$")
+DAILY_REPORT_DATE_RE = re.compile(r"^auto_daily_report_(\d{4})_(\d{2})_(\d{2})\.html$")
 DAILY_NEWS_DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})\.html$")
 DIGEST_DATE_RE = re.compile(r"(\d{4})-(\d{2})\.html$")
 
@@ -65,8 +67,22 @@ EXCLUDE_PATTERNS = (
     re.compile(r"og-image-generator"),
 )
 
-# Upper bound: do not list more than this many day slides (most-recent-first).
-DAY_SLIDE_LIMIT = 365
+# A dated snapshot directly under presentations/ (ai_ranking_report_20261114.html,
+# auto_daily_report_2026_04_22.html) repeats the title of its *_latest page and
+# nothing links to it. The latest page is the one to index.
+DATED_SNAPSHOT_RE = re.compile(r"_(\d{8}|\d{4}_\d{2}_\d{2})\.html$")
+
+# Published under presentations/ but not part of the site's subject or still a draft.
+UNLISTED_PRESENTATIONS = frozenset({
+    "dashboard_resn.html",
+    "index_modern.html",
+    "infra_plan_proposal.html",
+    "sp500_trump_chart_2026v2.html",
+})
+
+NOINDEX_RE = re.compile(r"""<meta[^>]+name=["']robots["'][^>]*noindex""", re.IGNORECASE)
+REFRESH_RE = re.compile(r"""<meta[^>]+http-equiv=["']refresh["']""", re.IGNORECASE)
+HEAD_BYTES = 20_000
 
 
 def should_skip(name: str) -> bool:
@@ -75,6 +91,25 @@ def should_skip(name: str) -> bool:
     if lower == "recommended_tools.html":
         return True
     return any(p.search(lower) for p in EXCLUDE_PATTERNS)
+
+
+def opts_out_of_indexing(path: Path) -> bool:
+    """True for a page that tells crawlers to skip it or sends them elsewhere."""
+    with path.open(encoding="utf-8", errors="replace") as fh:
+        head = fh.read(HEAD_BYTES)
+    return bool(NOINDEX_RE.search(head) or REFRESH_RE.search(head))
+
+
+def listed_in(rel_dir: str, path: Path) -> bool:
+    name = path.name
+    if should_skip(name) or opts_out_of_indexing(path):
+        return False
+    if rel_dir == "presentations":
+        return name not in UNLISTED_PRESENTATIONS and not DATED_SNAPSHOT_RE.search(name)
+    if rel_dir == "presentations/day_slides":
+        # Variants (_fixed, _detailed, -gm, ...) duplicate the plain dated slide.
+        return bool(DAY_SLIDE_DATE_RE.match(name))
+    return True
 
 
 def iso_mtime(path: Path) -> str:
@@ -105,8 +140,8 @@ def latest_homepage_date() -> str | None:
     return None
 
 
-def day_slide_lastmod(path: Path) -> str:
-    m = DAY_SLIDE_DATE_RE.search(path.name)
+def dated_lastmod(path: Path) -> str:
+    m = DAY_SLIDE_DATE_RE.match(path.name) or DAILY_REPORT_DATE_RE.match(path.name)
     if m:
         return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
     return iso_mtime(path)
@@ -147,25 +182,12 @@ def collect_urls() -> list[dict]:
         d = ROOT / rel_dir
         if not d.exists():
             continue
-        entries: list[tuple[Path, str]] = []
         for p in sorted(d.glob("*.html")):
-            if should_skip(p.name):
+            if not listed_in(rel_dir, p):
                 continue
-            if rel_dir.endswith("day_slides"):
-                lm = day_slide_lastmod(p)
-            else:
-                lm = iso_mtime(p)
-            entries.append((p, lm))
-
-        # For day_slides, keep most recent N
-        if rel_dir.endswith("day_slides"):
-            entries.sort(key=lambda t: t[1], reverse=True)
-            entries = entries[:DAY_SLIDE_LIMIT]
-
-        for p, lm in entries:
             urls.append({
                 "loc": url_for(p),
-                "lastmod": lm,
+                "lastmod": dated_lastmod(p),
                 "changefreq": freq,
                 "priority": prio,
             })
@@ -175,7 +197,7 @@ def collect_urls() -> list[dict]:
         if not d.exists():
             continue
         for p in sorted(d.glob("*.html"), key=lambda x: x.name, reverse=True):
-            if should_skip(p.name):
+            if not listed_in(rel_dir, p):
                 continue
             urls.append({
                 "loc": url_for(p),

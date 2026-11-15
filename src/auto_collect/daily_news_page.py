@@ -35,6 +35,32 @@ DAILY_NEWS_DIR = PROJECT_ROOT / "daily-news"
 ARCHIVE_DIR = DAILY_NEWS_DIR / "archive"
 TEMPLATE_PATH = Path(__file__).parent / "daily_news_template.html"
 
+LATEST_PAGE_URL = "https://visionhub.jp/daily-news/"
+_CANONICAL_RE = re.compile(r'<link rel="canonical" href="[^"]*">')
+_OG_URL_RE = re.compile(r'<meta property="og:url" content="[^"]*">')
+
+
+def archive_page_html(html: str, report_date: str) -> str:
+    """Point a dated snapshot at its own URL.
+
+    The snapshot is a copy of the latest page, whose canonical names
+    /daily-news/. Left as is, search engines fold every archive day into the
+    latest page.
+    """
+    url = f"{LATEST_PAGE_URL}archive/{report_date}.html"
+    canonical = f'<link rel="canonical" href="{url}">'
+    og_url = f'<meta property="og:url" content="{url}">'
+    html, og_count = _OG_URL_RE.subn(og_url, html, count=1)
+    html, canonical_count = _CANONICAL_RE.subn(canonical, html, count=1)
+    missing = "".join(
+        tag + "\n"
+        for tag, count in ((og_url, og_count), (canonical, canonical_count))
+        if not count
+    )
+    if missing:
+        html = html.replace("</head>", missing + "</head>", 1)
+    return html
+
 
 CATEGORY_ALIASES = {
     "AI Research": "研究",
@@ -415,7 +441,7 @@ def generate_daily_news(
     json_path.write_text(json.dumps(report_data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     archive_path = ARCHIVE_DIR / f"{report_date}.html"
-    archive_path.write_text(html_out, encoding="utf-8")
+    archive_path.write_text(archive_page_html(html_out, report_date), encoding="utf-8")
     logger.info(f"[daily-news] archive: {archive_path}")
 
     return out_path
