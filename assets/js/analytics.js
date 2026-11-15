@@ -78,6 +78,11 @@
     window.dataLayer = window.dataLayer || [];
     window.gtag = function(){window.dataLayer.push(arguments);};
     window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
+    // Apply before initialization: newer Google tags can initialize destinations
+    // before processing per-destination config. Do not rely on config alone.
+    window.gtag('set',{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false,
+      allow_enhanced_conversions:false,page_location:'https://visionhub.jp'+safePath(),
+      page_referrer:'',page_title:'VisionHub',cookie_expires:15552000,cookie_update:false});
     window.gtag('js',new Date());
     window.gtag('config',id,{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false,
       page_location:'https://visionhub.jp'+safePath(),page_referrer:'',page_title:'VisionHub',cookie_expires:15552000,cookie_update:false});
