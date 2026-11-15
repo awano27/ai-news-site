@@ -27,7 +27,7 @@ https://analytics.google.com/ を開いてログイン（Search Console と同�
 - プラットフォーム: **ウェブ**
 - ウェブサイトの URL: `https://visionhub.jp`
 - ストリーム名: `visionhub.jp`
-- **拡張計測機能** は ON のまま（スクロール・ファイル DL 等を自動計測）
+- **拡張計測機能は OFF**。独自イベントとの重複・URL等の自動送信を防止。
 - 「ストリームを作成」
 
 ### 4. Measurement ID をコピー
@@ -67,14 +67,14 @@ https://analytics.google.com/ を開いてログイン（Search Console と同�
 ## セキュリティ上の注意
 
 - `G-XXXXXXXXXX` は**公開情報**です。GitHub にコミットして問題ありません（ブラウザが読む値なので秘匿不可能）
-- Measurement ID は**計測のみ**を行い、**GA4 管理画面にアクセスする権限は与えない**ので、漏洩しても悪用されません
+- Measurement ID は**計測のみ**を行い、**GA4 管理画面にアクセスする権限は与えない**ものではありません。不正な計測データの送信には注意が必要です
 
 ---
 
 ## 追加推奨設定（GA4 画面で後日）
 
 - **データ保持期間**: 管理 → データの設定 → データ保持 → **14ヶ月** に変更（デフォルト2ヶ月だと分析が浅くなる）
-- **Google シグナル**: 管理 → データの収集と変更 → Google シグナル → 有効化（デモグラ分析が取れる）
+- **Google シグナル**: 無効。広告パーソナライズも無効。
 - **Search Console 連携**: 管理 → プロダクトのリンク → Search Console → visionhub.jp と紐付け（検索クエリ分析が統合される）
 
 ---
@@ -88,3 +88,12 @@ py -3 scripts/check_analytics_config.py
 ```
 
 exit 0 なら形式は正しい。placeholder（`REPLACE` / `XXXX`）や `G-` 以外の値なら exit 1。
+
+
+## 2026-11-15 公開設定
+- ポップアップ・国判定なしの自動計測。プライバシーページの停止／再開からブラウザごとの設定が可能。
+- DNT/GPC、停止保存済み、保存設定読取失敗時にはタグを読み込まない。
+- 公開configの旧 measurement_id は null のまま。新loaderは optout_measurement_id だけ読む。旧JSキャッシュの意図しない計測を防ぐ。
+- クエリ・フラグメント・自由入力・完全な外部URLは送らない。広告機能/拡張計測は有効にしない。
+- node --test tests/analytics_consent.cjs で回帰確認。
+- 海外からもアクセス可能。地域別法令への適合を技術設定だけで保証するものではない。

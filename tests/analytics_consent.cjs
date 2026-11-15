@@ -1,0 +1,24 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const code=fs.readFileSync(__dirname+'/../assets/js/analytics.js','utf8');
+function run(opts={}) {
+ const nodes=[],handlers={},store={},cookieWrites=[]; if(opts.denied)store['visionhub.analytics.optout.v1']='denied'; if(opts.choice)store['visionhub.analytics.v1']=JSON.stringify(opts.choice);
+ function el(tag){const e={tag,style:{},children:[],attrs:{},hidden:false,textContent:'',handlers:{},appendChild(n){this.children.push(n);nodes.push(n);return n},setAttribute(k,v){this.attrs[k]=v},addEventListener(k,f){this.handlers[k]=f},focus(){doc.activeElement=this},remove(){this.removed=true}};return e;}
+ const doc={getElementById(){return null},readyState:'complete',cookie:'_ga=old; _ga_X0JJER03G0=old',title:'private title',createElement:el,head:el('head'),body:el('body'),documentElement:{scrollTop:0,scrollHeight:1000,clientHeight:500},addEventListener(k,f){handlers[k]=f}};
+ Object.defineProperty(doc,'cookie',{get:()=> '_ga=old; _ga_X0JJER03G0=old',set:v=>cookieWrites.push(v)});
+ const loc={hostname:'visionhub.jp',origin:'https://visionhub.jp',pathname:opts.path||'/presentations/day_slides/day_slide_2026_11_15.html',search:'?email=secret@example.com',href:'https://visionhub.jp/?email=secret',reload(){loc.reloaded=true}};
+ const win={location:loc,navigator:{doNotTrack:opts.dnt?'1':'0',globalPrivacyControl:!!opts.gpc},innerHeight:500,pageYOffset:0,addEventListener(k,f){handlers[k]=f},localStorage:{getItem(k){if(opts.storageFail)throw Error();return store[k]||null},removeItem(k){delete store[k]},setItem(k,v){if(opts.storageFail||opts.writeFail)throw Error();store[k]=v}},setTimeout(){}};
+ const ctx={window:win,document:doc,location:loc,navigator:win.navigator,localStorage:win.localStorage,URL,Date,fetch:async()=>({ok:true,json:async()=>({measurement_id:null,optout_measurement_id:opts.invalid?'G-REPLACE-ME':'G-X0JJER03G0'})})};vm.createContext(ctx);vm.runInContext(code,ctx);
+ return {win,doc,nodes,handlers,loc,store,cookieWrites,again(){vm.runInContext(code,ctx)},button(t){return nodes.find(n=>n.tag==='button'&&n.textContent===t)},scripts(){return nodes.filter(n=>n.tag==='script')},events(){return (win.dataLayer||[]).map(x=>Array.from(x))}};
+}
+const tick=()=>new Promise(setImmediate);
+
+test('default automatic minimal measurement without popup',async()=>{const a=run();await tick();assert.equal(a.scripts().length,1);assert.equal(a.button('許可する'),undefined);assert.equal(a.nodes.filter(x=>x.tag==='section').length,0);const data=JSON.stringify(a.events());assert.ok(!data.includes('secret'));assert.ok(!data.includes('private title'));a.again();assert.equal(a.scripts().length,1)});
+for(const o of [{denied:true},{dnt:true},{gpc:true},{storageFail:true},{invalid:true}])test('safe blocked state '+JSON.stringify(o),async()=>{const a=run(o);await tick();assert.equal(a.scripts().length,0)});
+test('stop control disables and clears cookies',async()=>{const a=run({path:'/privacy-policy.html'});await tick();a.button('このブラウザで計測を停止する').handlers.click();assert.equal(a.win['ga-disable-G-X0JJER03G0'],true);assert.equal(a.loc.reloaded,true);assert.ok(a.cookieWrites.some(x=>x.startsWith('_ga=; Max-Age=0')));const n=a.events().length;a.handlers.scroll();assert.equal(a.events().length,n)});
+test('resume removes denial for next page',async()=>{const a=run({denied:true,path:'/privacy-policy.html'});await tick();a.button('計測を再開する').handlers.click();assert.equal(a.store['visionhub.analytics.optout.v1'],'enabled');assert.equal(a.loc.reloaded,true)});
+test('legacy refusal remains respected',async()=>{const a=run({choice:{value:'denied',expires:Date.now()+10000}});await tick();assert.equal(a.scripts().length,0)});
+test('cross tab refusal stops events',async()=>{const a=run();await tick();a.store['visionhub.analytics.optout.v1']='denied';a.handlers.storage({key:'visionhub.analytics.optout.v1'});assert.equal(a.win['ga-disable-G-X0JJER03G0'],true)});
+test('unknown pathname sanitized',async()=>{const a=run({path:'/users/secret@example.com'});await tick();assert.ok(!JSON.stringify(a.events()).includes('secret'))});
+test('old loader config remains disabled',()=>{const c=JSON.parse(fs.readFileSync(__dirname+'/../assets/analytics-config.json'));assert.equal(c.measurement_id,null);assert.equal(c.optout_measurement_id,'G-X0JJER03G0')});
+
+test('failed opt-out persistence never reloads into active measurement',async()=>{const a=run({writeFail:true,path:'/privacy-policy.html'});await tick();assert.equal(a.scripts().length,1);a.button('このブラウザで計測を停止する').handlers.click();assert.equal(a.loc.reloaded,undefined);assert.equal(a.win['ga-disable-G-X0JJER03G0'],true);assert.ok(a.nodes.some(x=>x.textContent.includes('保存できませんでした')));const n=a.events().length;a.handlers.scroll();assert.equal(a.events().length,n)});

@@ -59,7 +59,7 @@ def refresh(root):
         llms.write_text(text,encoding='utf-8')
     cfg=read(root/'config/analytics.json');mid=str(cfg.get('measurement_id',''))
     valid=bool(re.fullmatch(r'G-[A-Z0-9]{6,}',mid)) and not re.search('REPLACE|XXXX',mid,re.I)
-    write(root/'assets/analytics-config.json',{'measurement_id':mid if valid else None,'status':'configured' if valid else 'not_configured'})
+    write(root/'assets/analytics-config.json',{'measurement_id':None,'optout_measurement_id':mid if valid else None,'status':'configured' if valid else 'not_configured'})
     print('machine discovery:',len(entries),'editions; analytics:', 'configured' if valid else 'not configured (unchanged)')
 
 if __name__=='__main__':
