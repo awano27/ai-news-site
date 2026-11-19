@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Google LabsのStitch Loopを図解。公開後のデータから改善を提案し、人が変更を決め、効果を確かめる流れ。">
+<title>Stitch Loop｜公開後の数字から、次の改善へ｜VisionHub 2026.11.20</title>
+<style>
+:root{color-scheme:dark;--bg:#09131d;--panel:#112433;--line:#365465;--text:#f1f7f8;--muted:#b7cbd2;--mint:#79f1d0;--blue:#9ed4ff;--gold:#ffd693}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Noto Sans CJK JP",sans-serif;line-height:1.65;overflow-wrap:anywhere}
+a{color:var(--blue);text-underline-offset:.25em}a:focus-visible{outline:2px solid var(--mint);outline-offset:4px}
+.skip{position:absolute;left:1rem;top:-6rem}.skip:focus{top:1rem;background:var(--bg);padding:.5rem;z-index:4}
+.top,main,footer{width:min(1120px,calc(100% - 40px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;padding:19px 0;border-bottom:1px solid var(--line);gap:12px;font-weight:700}.brand,.kicker{color:var(--mint);letter-spacing:.13em}.kicker,.status{font-size:.78rem;font-weight:800}.date{color:var(--muted);font-variant-numeric:tabular-nums}
+section{padding:29px 0;border-bottom:1px solid var(--line)}h1,h2,h3,p,figure{margin:0}h1{font-size:clamp(1.85rem,5.3vw,4rem);line-height:1.15;letter-spacing:-.04em;margin:8px 0 12px}h1 span{display:block;color:var(--mint);font-size:.61em;letter-spacing:0;margin-bottom:7px}h2{font-size:clamp(1.35rem,3vw,2.15rem);line-height:1.35;margin:5px 0 9px}.deck{color:var(--muted);font-size:clamp(.98rem,1.7vw,1.16rem);max-width:54em}
+figure{padding:15px;background:#0d1c29;border:1px solid var(--line);border-radius:19px;margin-top:20px}.scenario{font-size:.85rem;color:var(--muted);margin:0 0 12px}.scenario strong{color:var(--text)}.flow{padding:0;list-style:none;margin:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}.step{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px 11px 12px;min-width:0;position:relative}.step:not(:last-child)::after{content:"›";color:var(--mint);position:absolute;right:-15px;top:35%;font-size:1.65rem;line-height:1;pointer-events:none}.step svg{display:block;width:44px;height:40px;margin:0 0 4px;color:var(--mint)}.step .who{font-size:.73rem;font-weight:800;color:var(--mint);display:block}.step h3{font-size:clamp(.9rem,1.48vw,1.06rem);line-height:1.4;margin:3px 0 5px}.step p{font-size:.84rem;color:var(--muted)}.human{border-color:#937950}.human svg,.human .who{color:var(--gold)}.loopback{display:flex;align-items:center;gap:9px;margin-top:11px;font-weight:700;color:var(--mint);font-size:.82rem}.loopback::before,.loopback::after{content:"";background:var(--line);height:1px;flex:1}
+.fig-note,.source,footer{font-size:.82rem;color:var(--muted)}.fig-note{margin-top:9px}.source{margin-top:10px}.status{color:var(--gold)}.after{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.after p,.eval-note{padding:12px 14px;border-left:3px solid var(--mint);background:var(--panel);font-size:.91rem}.after strong,.eval-note strong{color:var(--mint)}.control{border-left-color:var(--gold)!important}.control strong{color:var(--gold)}.eval-note{margin-top:12px}footer{padding:18px 0 36px}
+@media(max-width:790px){.top,main,footer{width:calc(100% - 28px)}section{padding:23px 0}.flow,.after{grid-template-columns:1fr}.step{display:grid;grid-template-columns:45px minmax(0,1fr);column-gap:10px;align-items:center}.step svg{grid-row:1/4;margin:0}.step:not(:last-child)::after{content:"↓";top:auto;right:calc(50% - .5em);bottom:-17px;font-size:1rem}.step h3{font-size:1rem}.step p{font-size:.86rem}.after{gap:8px}}
+@media print{:root{color-scheme:light;--bg:white;--panel:#edf5f7;--line:#9eb1b9;--text:#102634;--muted:#304b58;--mint:#006d57;--blue:#0b5090;--gold:#784c00}figure{background:#fff}section{break-inside:avoid}.top,main,footer{width:100%}.flow{grid-template-columns:repeat(5,minmax(0,1fr))}.step{display:block}.step:not(:last-child)::after{content:"›";right:-15px;top:35%;bottom:auto}.after{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へ</a>
+<header class="top"><span class="brand">VISIONHUB / AI BRIEF</span><time datetime="2026-11-20" class="date">2026.11.20</time></header>
+<main id="main">
+<section aria-labelledby="headline">
+<div class="kicker">01 / ONE-PAGE BRIEF</div>
+<h1 id="headline"><span>Google Labs / Stitch Loop</span>公開後の数字から、次の改善へ</h1>
+<p class="deck">コードを書き終えても、製品がよくなったかはまだわかりません。Stitch Loopは、コードと利用データをつなぎ、改善の提案から公開後の効果確認までを支援するGoogle Labsの実験です。</p>
+<figure aria-labelledby="flow-label">
+<p id="flow-label" class="scenario"><strong>例：登録フォームの離脱を減らしたい</strong></p>
+<ol class="flow">
+<li class="step">
+<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8v28h35M12 14l9 4 8-2 9 12"/><circle cx="38" cy="28" r="3" fill="var(--panel)"/></svg>
+<span class="who">01 / AI</span><h3>データから提案</h3><p>離脱が増えた入力欄を見つけ、根拠を添えて改善案を出す。</p>
+</li>
+<li class="step human">
+<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 22h11m0 0V10h11m-11 12v12h11"/><circle cx="36" cy="10" r="5"/><path d="m33 10 2 2 4-4"/><circle cx="36" cy="34" r="5" stroke-dasharray="2 3"/></svg>
+<span class="who">02 / 人</span><h3>試す案を選ぶ</h3><p>効果と変更範囲を見て、どの案を試すか決める。</p>
+</li>
+<li class="step">
+<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="38" height="30" rx="5"/><path d="M5 14h38m-26 7-5 4 5 4m14-8 5 4-5 4m-5-10-4 12"/></svg>
+<span class="who">03 / AI</span><h3>修正をPRにする</h3><p>隔離された環境で修正し、GitHubに変更案（PR）を出す。</p>
+</li>
+<li class="step human">
+<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="10" y="6" width="28" height="33" rx="4"/><path d="M16 15h13m-13 6h16m-15 8 4 4 9-9"/></svg>
+<span class="who">04 / 人</span><h3>レビューして判断</h3><p>差分とテストを確認し、取り込んで公開するか判断する。</p>
+</li>
+<li class="step">
+<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M39 17a16 16 0 1 0 0 13m0-20v8h-8M14 29l7-6 5 2 8-9"/></svg>
+<span class="who">05 / AI</span><h3>公開後に再計測</h3><p>登録完了率を追い、改善が続くか、悪化が戻らないかを見る。</p>
+</li>
+</ol>
+<div class="loopback">結果を見て、次の改善を考える</div>
+<figcaption class="fig-note">図はVisionHubによる利用例です。Googleの実績や、改善効果の実測値ではありません。</figcaption>
+</figure>
+<div class="after">
+<p><strong>試すなら：</strong>公開前に「登録完了率」の分母・分子と比較期間をそろえる。エラー率も確認し、完了率だけで成否を決めない。</p>
+<p class="control"><strong>運用の前提：</strong>最初は集計済みの指標だけをつなぎ、リポジトリへの権限を絞る。本番反映は人の判断を残す。</p>
+</div>
+<p class="source"><a href="https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-loop/">Google公式発表（11/18）</a> · <span class="status">世界向けウェイトリスト受付中。一般提供前。</span></p>
+</section>
+<section aria-labelledby="eval">
+<div class="kicker">02 / 開発エージェントの評価</div>
+<h2 id="eval">GitHub Copilot Evals：設定を変えたら、同じ課題でもう一度試す</h2>
+<p class="deck">Stitch Loopが「製品がよくなったか」を見るなら、Copilot Evalsは「開発を任せるAIの振る舞いがよくなったか」を見る機能です。スキルやカスタムエージェント、MCPツールに同じ課題を繰り返し与え、結果とそこまでの手順を確認できます。</p>
+<p class="eval-note"><strong>試すなら：</strong>例えば、修正を頼んだときに既存テストを実行するかを評価項目にする。スキル変更の前後で同じ課題を複数回実行し、見落としが減ったかを見る。</p>
+<p class="source"><a href="https://github.blog/changelog/2026-11-17-github-copilot-evals-is-now-in-public-preview/">GitHub公式発表（11/17、パブリックプレビュー）</a></p>
+</section>
+</main>
+<footer>VisionHub AI Brief · 2026年11月20日号（日本時間）</footer>
+</body>
+</html>
