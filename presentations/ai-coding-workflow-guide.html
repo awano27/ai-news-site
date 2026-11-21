@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AIにコード修正を任せる｜VisionHub 目的別AIガイド</title><meta name="description" content="AIコーディングの始め方。小さな不具合を例に、エージェントへの依頼、テスト、差分レビューまで解説。"><link rel="canonical" href="https://visionhub.jp/presentations/ai-coding-workflow-guide.html"><meta property="og:type" content="article"><meta property="og:title" content="AIにコード修正を任せる｜VisionHub"><meta property="og:description" content="AIに渡す依頼文と、テスト・レビューの確かめ方。"><meta property="og:url" content="https://visionhub.jp/presentations/ai-coding-workflow-guide.html"><meta property="og:locale" content="ja_JP"><link rel="stylesheet" href="/assets/css/ai-task-guide.css"></head>
+<body><a class="skip" href="#main">本文へ</a><header><nav class="wrap" aria-label="サイト情報"><a href="./ai-task-guide.html">← VisionHub ／ 目的別AIガイド</a><a class="small" href="/">VisionHubトップ ↗</a></nav></header>
+<main class="wrap" id="main">
+<div class="hero"><p class="kicker">開発・コード修正</p><h1>AIにコード修正を任せる</h1><p class="lead">直したい動作と、変えてはいけない動作を先に決める。AIに実装とテストを任せ、差分を人が確認する。</p><p class="small">公式資料の確認日：2026年11月22日 ｜ 製品の比較実測：未実施</p></div>
+<section class="paper recommend" aria-labelledby="default"><p class="kicker">迷ったらこの構成</p><h2 id="default">普段のエディターで、小さな不具合を1件直す。</h2><p>既存のテストが動くリポジトリで、会社やチームが承認しているエージェントを使います。VS CodeでGitHub Copilotを使っているなら、まずエディター内のCopilotセッションから。モデルを選び直すより、再現条件と「どうなれば完了か」を先に渡すほうが、修正結果を確認しやすくなります。</p></section>
+<div class="jump" role="navigation" aria-label="このページ内"><a href="#choose">使い分け</a><a href="#steps">始める3ステップ</a><a href="#prompt">依頼文テンプレート</a><a href="#review">レビュー</a><a href="#sources">出典</a></div>
+<section id="choose"><h2>作業する場所で選ぶ</h2><div class="routes">
+<article class="paper"><h3>手元で一緒に直す</h3><p>ローカル環境でしか再現しない不具合や、途中で方針を確認したい作業向け。承認済みのVS Code内CopilotやCLIのエージェントを、専用ブランチで使います。コマンドが手元で動くことと、モデルが端末内で動くことは別です。送信されるデータと権限は別に確認します。<a href="#vscode">[1]</a></p></article>
+<article class="paper"><h3>別環境にまとめて任せる</h3><p>対象のリポジトリと動作条件が明確で、別環境でもテストが回る作業向け。たとえばGitHub上の対象リポジトリでCopilot cloud agentに小さな作業を割り当て、戻ってきたPRを確認。未pushの差分や自分のPCの環境に依存する作業は、手元で行います。<a href="#cloud">[3]</a></p></article></div>
+<details><summary>VS Codeの旧「Local harness」とローカル実行は別です</summary><p>旧「Local harness」はVS Code 1.146で非推奨となり、2027年2月に削除予定です。後継の「Copilot」でも端末でコマンドを動かせます。選択するだけでサンドボックスが有効になるわけではありません。<a href="#harness">[2]</a></p></details></section>
+<section id="steps"><h2>始める3ステップ</h2><ol class="steps">
+<li><strong>ゴールをテストにできる形で書く</strong>「直したい入力」「期待する出力」「変えない動作」を指定。別ブランチを使い、リポジトリの指示ファイルや既存テストを確認してから、変更候補と実行するテストを説明させます。</li>
+<li><strong>失敗を再現してから、最小限だけ直す</strong>不具合を再現するテストを追加し、期待した理由で失敗することを確認。最小限の修正後に同じテストを実行し、これまで動いていたケースも確かめます。再現できない場合は推測で書き換えず、足りない条件を確認します。<a href="#verification">[4]</a></li>
+<li><strong>差分と実行結果を人が確認する</strong>変更点、実際に実行したコマンド、成功・失敗・未実行を分けて報告させます。共有リポジトリではPRにまとめ、CIの実行結果とレビューを通してからマージします。<a href="#azure">[5]</a></li>
+</ol></section>
+<section id="prompt"><h2>コピペ用：既存の挙動を壊さずに修正する</h2><p>架空の表示フォーマッターを直す例です。実際の依頼では対象ファイルとテストコマンドを自分の環境に置き換えてください。</p><details open><summary>エージェントへの依頼文</summary><pre>目的：項目がゼロ件のとき、一覧の表示を「項目なし」にする。
+
+受け入れ条件：
+- [] → 「項目なし」
+- ["A"] → 「A」
+- ["A", "B"] → 「A、B」
+- 関数の名前・引数と、空でない場合の出力は変えない。
+
+進め方：
+1. 既存の実装とテストを読み、変更候補と確認手順を示す。
+2. 空入力のテストを追加し、修正前に期待した理由で失敗することを確認する。
+3. 最小差分で直し、空・1件・複数件をテストする。
+4. 変更ファイル、実行コマンド、結果、未実行の確認項目を報告する。
+
+範囲：実装と対応するテストのみ。依存追加、CI変更、push・デプロイはしない。
+再現できない、または範囲外の変更が必要な場合は、そこで止めて確認する。</pre></details></section>
+<section class="paper" id="review"><h2>マージ前に、ここは人が見る</h2><ul><li>新しいテストは修正前に失敗し、修正後に通ったか。既存ケースも通ったか。</li><li>テストの期待値を緩めたり、無関係なファイルや設定を変えたりしていないか。</li><li>対象環境でCIが動いたか。実行できなかったことを「確認済み」にしていないか。</li></ul><p>たとえばAzure Reposでは、PRのビルド検証と必要なレビュアーをブランチポリシーで設定できます。AIのレビューコメントと、人による承認・CIの結果は分けて扱います。</p></section>
+<section id="sources"><h2>公式資料と関連ガイド</h2><ol><li id="vscode"><a href="https://code.visualstudio.com/docs/agents/run/agent-harnesses">VS Code：エージェントを実行する環境</a></li><li id="harness"><a href="https://github.blog/changelog/2026-11-16-vs-code-retires-the-local-harness-in-february-2027/">GitHub：旧Local harnessの移行案内</a></li><li id="cloud"><a href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github">GitHub Docs：Copilot cloud agentをGitHubで使用する</a></li><li id="verification"><a href="https://code.claude.com/docs/en/best-practices#give-claude-a-check-to-run">Claude Code Docs：検証できる条件を与える</a></li><li id="azure"><a href="https://learn.microsoft.com/azure/devops/repos/git/branch-policies?view=azure-devops">Microsoft Learn：Azure Reposのブランチポリシー</a></li></ol><p><a href="./ai_coding_agents_guide.html">VisionHubのコーディングエージェント比較・設定ガイド →</a></p></section>
+</main><footer><div class="wrap small"><a href="./ai-task-guide.html">← タスク一覧に戻る</a></div></footer></body></html>
