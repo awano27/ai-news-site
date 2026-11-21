@@ -314,7 +314,7 @@ def test_processor_retries_unparseable_json_once_then_accepts_japanese():
     assert row.get('processing_status')=='llm'
 
 
-def test_processor_stops_after_one_json_retry():
+def test_processor_stops_after_two_content_retries():
     calls=[]
     class Provider:
         available=True
@@ -324,7 +324,7 @@ def test_processor_stops_after_one_json_retry():
             calls.append(1)
             return 'still not json'
     row=processor.LLMProcessor(Provider())._process_one({'name':'New Model','tagline':'Original English','links':{'official':'https://example.com/a'}})
-    assert len(calls)==2
+    assert len(calls)==3
     assert row.get('processing_status')=='fallback'
     assert row.get('processing_error')=='invalid_japanese'
 

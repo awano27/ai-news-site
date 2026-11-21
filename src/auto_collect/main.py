@@ -263,9 +263,11 @@ def main():
     # ratio: see quality.ineligible_count. excluded_item_count is
     # the normalizer's invalid-item counter and is not incremented here.
     all_news = processed + github_processed + benchmark_processed + funding_processed + x_processed
+    processor.log_translation_retry_summary(logger)
     kept, quality = filter_publishable(all_news, min_articles=3, min_sources=2)
     quality.update({"date": today.isoformat(), "provider": args.provider,
-                    "model": getattr(getattr(processor.provider, "config", None), "model", "")})
+                    "model": getattr(getattr(processor.provider, "config", None), "model", ""),
+                    "translation_retries": processor.translation_retry_stats()})
     if quality["status"] != "passed":
         quality["failure_reason"] = failure_reason(all_news, quality)
         _quality_log(today, quality)
