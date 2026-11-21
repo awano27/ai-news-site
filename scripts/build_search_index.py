@@ -282,15 +282,21 @@ def _daily_rows(payload: dict) -> list[dict]:
     return result
 
 
-def build_index(root: Path = ROOT, *, daily_payload: dict | None = None) -> list[dict]:
+def validate_index_records(existing: object) -> list[dict]:
+    if not isinstance(existing, list) or any(not isinstance(row, dict) or any(
+        not isinstance(row.get(key), str) or not row[key] for key in ("date", "title", "url")) for row in existing):
+        raise ValueError("Existing search index must be a list of date/title/url records")
+    return existing
+
+
+def build_index(root: Path = ROOT, *, daily_payload: dict | None = None,
+                preservation_baseline: list[dict] | None = None) -> list[dict]:
     """Plan a complete incremental index in memory; do not modify any files."""
     root = Path(root)
     news = root / "public-pages/news"
     output = news / "search_index.json"
-    existing = load_json(output) if output.exists() else []
-    if not isinstance(existing, list) or any(not isinstance(row, dict) or any(
-        not isinstance(row.get(key), str) or not row[key] for key in ("date", "title", "url")) for row in existing):
-        raise ValueError("Existing search index must be a list of date/title/url records")
+    existing = validate_index_records(preservation_baseline if preservation_baseline is not None
+                                      else load_json(output) if output.exists() else [])
     # Keep every stored identity, duplicate and field. Never run historical data
     # through new canonicalization/deduplication or size-driven summary removal.
     result = [dict(row) for row in existing]
