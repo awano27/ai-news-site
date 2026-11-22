@@ -1,10 +1,44 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AIにコード修正を任せる｜VisionHub 目的別AIガイド</title><meta name="description" content="AIコーディングの始め方。小さな不具合を例に、エージェントへの依頼、テスト、差分レビューまで解説。"><link rel="canonical" href="https://visionhub.jp/presentations/ai-coding-workflow-guide.html"><meta property="og:type" content="article"><meta property="og:title" content="AIにコード修正を任せる｜VisionHub"><meta property="og:description" content="AIに渡す依頼文と、テスト・レビューの確かめ方。"><meta property="og:url" content="https://visionhub.jp/presentations/ai-coding-workflow-guide.html"><meta property="og:locale" content="ja_JP"><link rel="stylesheet" href="/assets/css/ai-task-guide.css"></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AIにコード修正を任せる｜VisionHub 目的別AIガイド</title><meta name="description" content="Xで見つけたAIコーディングの実践を、公式資料と照合。完了報告、要件の切り分け、ブラウザでの確認を既存の開発に取り入れる方法。"><link rel="canonical" href="https://visionhub.jp/presentations/ai-coding-workflow-guide.html"><meta property="og:type" content="article"><meta property="og:title" content="AIにコード修正を任せる｜VisionHub"><meta property="og:description" content="Xの公開事例から選んだ、AIに任せる前の要件・マージ前の確認・完了報告の工夫。"><meta property="og:url" content="https://visionhub.jp/presentations/ai-coding-workflow-guide.html"><meta property="og:locale" content="ja_JP"><link rel="stylesheet" href="/assets/css/ai-task-guide.css"></head>
 <body><a class="skip" href="#main">本文へ</a><header><nav class="wrap" aria-label="サイト情報"><a href="./ai-task-guide.html">← VisionHub ／ 目的別AIガイド</a><a class="small" href="/">VisionHubトップ ↗</a></nav></header>
 <main class="wrap" id="main">
-<div class="hero"><p class="kicker">開発・コード修正</p><h1>AIにコード修正を任せる</h1><p class="lead">直したい動作と、変えてはいけない動作を先に決める。AIに実装とテストを任せ、差分を人が確認する。</p><p class="small">公式資料の確認日：2026年11月22日 ｜ 製品の比較実測：未実施</p></div>
-<section class="paper recommend" aria-labelledby="default"><p class="kicker">迷ったらこの構成</p><h2 id="default">普段のエディターで、小さな不具合を1件直す。</h2><p>既存のテストが動くリポジトリで、会社やチームが承認しているエージェントを使います。VS CodeでGitHub Copilotを使っているなら、まずエディター内のCopilotセッションから。モデルを選び直すより、再現条件と「どうなれば完了か」を先に渡すほうが、修正結果を確認しやすくなります。</p></section>
-<div class="jump" role="navigation" aria-label="このページ内"><a href="#choose">使い分け</a><a href="#steps">始める3ステップ</a><a href="#prompt">依頼文テンプレート</a><a href="#review">レビュー</a><a href="#sources">出典</a></div>
+<div class="hero"><p class="kicker">開発・コード修正</p><h1>AIにコード修正を任せる</h1><p class="lead">直したい動作と、変えてはいけない動作を先に決める。AIに実装とテストを任せ、差分を人が確認する。</p><p class="small">掲載情報の確認日：2026年11月22日 ｜ 製品の比較実測：未実施</p></div>
+<section class="paper recommend" aria-labelledby="default"><p class="kicker">迷ったらこの構成</p><h2 id="default">普段のエディターで、小さな不具合を1件直す。</h2><p>既存のテストが動くリポジトリで、会社やチームが承認しているエージェントを使います。VS CodeでGitHub Copilotを使っているなら、まずエディター内のCopilotセッションから。最初に取り入れるなら、再現条件と「どうなれば完了か」に加え、何を確認できなかったかを先に報告するルールを決めます。</p></section>
+<div class="jump" role="navigation" aria-label="このページ内"><a href="#x-practices">Xのおすすめ実践</a><a href="#choose">使い分け</a><a href="#steps">始める3ステップ</a><a href="#prompt">依頼文テンプレート</a><a href="#review">レビュー</a><a href="#sources">出典</a></div>
+<section id="x-practices" aria-labelledby="x-title">
+<h2 id="x-title">Xで見つけた、今取り入れたい3つのやり方</h2>
+<p>選んだ基準は、モデルの人気ではなく「次の修正から手順を変えられるか」。投稿の日付は日本時間です。製品仕様は公式資料、使い方や実績は公開事例として区別しています。</p>
+<div class="grid">
+<article class="card primary">
+<span class="badge">まずこれ · 11月20日</span>
+<h3>1. AIの完了報告を、結論と未確認事項から始める</h3>
+<p>Dan McAteerさんがXで提案したのは、毎回チャットで頼むのではなく、リポジトリの <code>AGENTS.md</code> に報告の型を置く方法です。たとえば「修正済み。単体3件は通過。ブラウザは起動できず未確認なので、画面の確認後にマージを推奨」と先に返させます。</p>
+<p class="small"><a href="https://x.com/daniel_mac8/status/2123744188617380254">元のX投稿</a> ／ <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md">Codex公式：指示ファイル</a> ／ <a href="https://deploymentsafety.openai.com/gpt-6-2-astra-sol/monitoring-in-codex-and-alignment-evaluations#4131-blocker-deception">OpenAIの評価</a></p>
+<p class="small">投稿者の提案。OpenAIの評価は障害の報告漏れを調べたもので、このテンプレートの効果や実運用での発生率を測ったものではありません。</p>
+</article>
+<article class="card">
+<span class="badge">要件が曖昧なとき · 11月21日</span>
+<h3>2. 動く画面で合意し、変更を1件ずつ渡す</h3>
+<p>熊井悠さんのAI駆動PMの事例では、テスト環境の画面を見ながら認識を合わせ、合意した差分をIssueにします。たとえば「検索条件を保持」だけで渡さず、「選択 → 再読み込みでも維持 → 解除で全件表示」まで書けば、実装後に同じ手順で確認できます。</p>
+<p class="small"><a href="https://x.com/qumaiu/status/2123991428191965381">Xのガイドブック紹介</a> ／ <a href="https://qiita.com/kumai_yu/items/831717856fd24981799d">本人の実践記事</a></p>
+<p class="small">Xは書籍の紹介。具体的な流れは本人が公開した実践記事に基づき、検索画面はVisionHubの説明用例です。</p>
+</article>
+<article class="card">
+<span class="badge">画面を変えるとき · 11月21日</span>
+<h3>3. CIの成功とは別に、最新の修正をブラウザで確かめる</h3>
+<p>Runwayの技術チームは、コードレビューと、利用者の操作をブラウザで確かめる工程を分けています。小さく始めるなら、人が決めた操作をテスト環境で1本だけ実行し、対象コミットとスクリーンショット・短い記録をPRに付けます。認証、権限、データ移行などの承認は人に残します。</p>
+<p class="small"><a href="https://x.com/runwayml/status/2123875791566168423">RunwayのX投稿</a> ／ <a href="https://runway.com/news/engineering/building-a-software-factory">技術チームの実践報告</a></p>
+<p class="small">単一チームの公開事例。そのまま自動承認を導入する推奨ではありません。</p>
+</article>
+</div>
+<details><summary>コピペ用：リポジトリに置く報告ルール</summary><pre>最初に、今回できたことを1文で書く。
+作業を止めている問題がある場合は、何が止まっているかを最初に書く。
+人の判断が必要なら、選択肢とおすすめを先に出す。
+実行したテストは、コマンド・結果・対象コミットを報告する。
+実行できなかった確認は、理由とマージ判断への影響を書く。
+未確認の項目を「確認済み」とは書かない。</pre><p class="small">Codexではリポジトリの <code>AGENTS.md</code> に。ほかのツールではチームが使っている指示ファイルを確認してください。守られる保証はないので、重要なテストや承認はCIとブランチ設定で管理します。</p></details>
+<details><summary>補足：PRにブラウザテストの証拠を残す製品例</summary><p>CodeRabbit Verifyは11月19日（日本時間）の<a href="https://x.com/coderabbitai/status/2123086181231739385">X告知</a>にある公開ベータ。テスト環境でシナリオを実行し、対象コミットと証拠をPRに出す構成です。失敗してもそれだけでマージは止まらず、Azure DevOpsは対象外です。Azure Reposなら、既存のテスト・CIと必須レビューを維持するのが先です。</p><p class="small"><a href="https://www.coderabbit.ai/blog/introducing-coderabbit-verify">公式発表</a> ／ <a href="https://docs.coderabbit.ai/verify/pull-requests">PR動作</a> ／ <a href="https://docs.coderabbit.ai/verify/access-and-billing">対応環境</a>。VisionHubでの製品実測は未実施。</p></details>
+</section>
 <section id="choose"><h2>作業する場所で選ぶ</h2><div class="routes">
 <article class="paper"><h3>手元で一緒に直す</h3><p>ローカル環境でしか再現しない不具合や、途中で方針を確認したい作業向け。承認済みのVS Code内CopilotやCLIのエージェントを、専用ブランチで使います。コマンドが手元で動くことと、モデルが端末内で動くことは別です。送信されるデータと権限は別に確認します。<a href="#vscode">[1]</a></p></article>
 <article class="paper"><h3>別環境にまとめて任せる</h3><p>対象のリポジトリと動作条件が明確で、別環境でもテストが回る作業向け。たとえばGitHub上の対象リポジトリでCopilot cloud agentに小さな作業を割り当て、戻ってきたPRを確認。未pushの差分や自分のPCの環境に依存する作業は、手元で行います。<a href="#cloud">[3]</a></p></article></div>
@@ -29,7 +63,7 @@
 4. 変更ファイル、実行コマンド、結果、未実行の確認項目を報告する。
 
 範囲：実装と対応するテストのみ。依存追加、CI変更、push・デプロイはしない。
-再現できない、または範囲外の変更が必要な場合は、そこで止めて確認する。</pre></details></section>
+再現できない、または範囲外の変更が必要な場合は、そこで止めて確認する。</pre></details><p class="small">この架空例のみVisionHubで実行：修正前は空入力の1件だけ失敗、修正後は3件とも成功（Python標準の <code>unittest</code>）。AI製品やブラウザ機能の評価ではありません。</p></section>
 <section class="paper" id="review"><h2>マージ前に、ここは人が見る</h2><ul><li>新しいテストは修正前に失敗し、修正後に通ったか。既存ケースも通ったか。</li><li>テストの期待値を緩めたり、無関係なファイルや設定を変えたりしていないか。</li><li>対象環境でCIが動いたか。実行できなかったことを「確認済み」にしていないか。</li></ul><p>たとえばAzure Reposでは、PRのビルド検証と必要なレビュアーをブランチポリシーで設定できます。AIのレビューコメントと、人による承認・CIの結果は分けて扱います。</p></section>
 <section id="sources"><h2>公式資料と関連ガイド</h2><ol><li id="vscode"><a href="https://code.visualstudio.com/docs/agents/run/agent-harnesses">VS Code：エージェントを実行する環境</a></li><li id="harness"><a href="https://github.blog/changelog/2026-11-16-vs-code-retires-the-local-harness-in-february-2027/">GitHub：旧Local harnessの移行案内</a></li><li id="cloud"><a href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github">GitHub Docs：Copilot cloud agentをGitHubで使用する</a></li><li id="verification"><a href="https://code.claude.com/docs/en/best-practices#give-claude-a-check-to-run">Claude Code Docs：検証できる条件を与える</a></li><li id="azure"><a href="https://learn.microsoft.com/azure/devops/repos/git/branch-policies?view=azure-devops">Microsoft Learn：Azure Reposのブランチポリシー</a></li></ol><p><a href="./ai_coding_agents_guide.html">VisionHubのコーディングエージェント比較・設定ガイド →</a></p></section>
 </main><footer><div class="wrap small"><a href="./ai-task-guide.html">← タスク一覧に戻る</a></div></footer></body></html>
