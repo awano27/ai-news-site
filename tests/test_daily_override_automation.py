@@ -433,7 +433,9 @@ def test_cloud_workflow_uses_the_safe_manifest_publisher() -> None:
         encoding="utf-8"
     )
 
-    assert "- cron: '53 20 * * *'" in workflow
+    # The 05:53 JST schedule is paused until the owner configures the provider.
+    assert "  schedule:" not in workflow.replace("# schedule:", "")
+    assert "#   - cron: '53 20 * * *'" in workflow
     assert "workflow_dispatch: {}" in workflow
     assert "permissions:\n  contents: write" in workflow
     assert "concurrency:\n  group: repo-push\n  cancel-in-progress: false" in workflow
