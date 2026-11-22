@@ -102,6 +102,21 @@ def _newest_dated_file(directory: str, pattern: re.Pattern) -> str | None:
     return best
 
 
+def _newest_news_edition() -> str | None:
+    """Newest date the deployed archive_index.json will list.
+
+    The committed index stops at the last root snapshot (2026-10-10). Pages
+    adds one row per ``daily/YYYY-MM-DD.json`` at deploy time
+    (scripts/refresh_machine_discovery.py), so the committed index alone
+    under-reports what the site serves.
+    """
+    dates = [
+        _json_date("public-pages/news/archive_index.json", "date"),
+        _newest_dated_file("public-pages/news/daily", re.compile(r"^(\d{4})-(\d{2})-(\d{2})\.json$")),
+    ]
+    return max((d for d in dates if d), default=None)
+
+
 def _json_date(path: str, *keys: str) -> str | None:
     full = _p(*path.split("/"))
     if not os.path.exists(full):
@@ -232,7 +247,7 @@ def run(max_lag: int, gap_days: int = 14, strict_analytics: bool = False) -> dic
         ("ranking report", _newest_dated_file("presentations", re.compile(r"ai_ranking_report_(\d{4})(\d{2})(\d{2})"))),
         ("news/latest.json", _json_date("news/latest.json", "date", "last_updated", "generated")),
         ("public-pages version.json", _json_date("public-pages/news/version.json", "last_updated", "date")),
-        ("public-pages archive_index.json", _json_date("public-pages/news/archive_index.json", "date")),
+        ("public-pages news editions", _newest_news_edition()),
     ]
     for name, d in siblings:
         if d is None:
