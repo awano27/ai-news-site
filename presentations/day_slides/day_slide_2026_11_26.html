@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>テスト98%合格でも、本番入力は約4分の1しか一致しなかった｜AnthropicのRust移行｜VisionHub</title>
+<meta name="description" content="AnthropicのMessages APIをPythonからRustへ。テストが通っても本番で差が出たとき、何を比較すれば切り替えを判断できるのか。">
+<link rel="canonical" href="https://visionhub.jp/presentations/day_slides/day_slide_2026_11_26.html">
+<meta name="theme-color" content="#187477">
+<style>*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:#faf7f0;color:#292f3a;font:17px/1.9 "Yu Gothic",Meiryo,system-ui,sans-serif}a{color:#116367;text-underline-offset:4px;overflow-wrap:anywhere}.wrap{width:min(1160px,calc(100% - 64px));margin:auto}header{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:24px 0;border-bottom:1px solid #d9d4c9}header a{font-size:23px;font-weight:800;color:#292f3a;text-decoration:none}time,.small,.source{font-size:13px;color:#62656a}.hero{padding:42px 0 30px}.eyebrow,.label{font-size:13px;font-weight:800;color:#187477;letter-spacing:.05em}.hero h1{font-size:clamp(34px,5.2vw,66px);line-height:1.22;letter-spacing:-.04em;text-wrap:balance;margin:17px 0 23px}.hero h1 span{display:block;color:#187477;font-size:.66em;margin-top:14px;line-height:1.5}.lead{font-size:20px;max-width:920px}.brief{margin:0;background:#eef6f4;border:1px solid #d9d4c9;border-radius:16px;overflow:hidden}.brief img{display:block;width:100%;height:auto}.brief figcaption{background:#fff;padding:16px 24px;font-size:14px}.brief button{margin:0 24px 20px}.jump{display:flex;flex-wrap:wrap;gap:9px;margin:28px 0}.jump a{font-size:13px;text-decoration:none;padding:6px 10px;border-bottom:1px solid #c8b5a5}.chapter{display:grid;grid-template-columns:65px minmax(0,1fr);gap:25px;background:#fff;padding:38px;border:1px solid #e1ddd4;border-radius:16px;margin:24px 0}.chapter>div{min-width:0}.number{font:700 29px/1.3 Consolas,monospace;color:#187477;border-top:3px solid #187477;padding-top:12px}.number small{display:block;font-size:10px;margin-top:5px;color:#62656a}h2{font-size:clamp(25px,3.1vw,36px);line-height:1.5;margin:0 0 20px;letter-spacing:-.03em}p{margin:0 0 18px}p:last-child{margin-bottom:0}.takeaway{border-left:4px solid #187477;background:#edf7f5;padding:17px 21px;font-weight:700}.source{border-top:1px solid #e5e0d8;padding-top:14px;margin-top:24px}.table-wrap{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}td,th{text-align:left;border-bottom:1px solid #ded9d0;padding:16px 13px;vertical-align:top}th{background:#eef6f4}.steps{padding-left:26px}.steps li{padding:9px 0}.steps span{display:block;color:#535b65;font-size:16px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:20px 0 24px}.metrics div{border-top:2px solid #187477;padding-top:14px}.metrics b{display:block;font-size:24px}.metrics span{font-size:14px}.sources{padding:30px 0}.sources li{margin-bottom:14px}footer{border-top:1px solid #d9d4c9;padding:24px 0 40px;font-size:13px;color:#62656a}button{border:1px solid #187477;background:#fff;color:#116367;padding:10px 17px;border-radius:7px;min-height:44px;font:inherit;cursor:pointer}:focus-visible{outline:3px solid #1e7391;outline-offset:4px}dialog{width:min(1450px,96vw);max-height:94vh;border:1px solid #d9d4c9;border-radius:12px;padding:18px}dialog::backdrop{background:#161b23d9}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.zoom{overflow:auto;max-height:75vh;margin-top:15px}.zoom img{width:100%;display:block}.zoom.native img{width:1400px;max-width:none}.proposal{color:#526c7a}@media(max-width:700px){body{font-size:16px}.wrap{width:calc(100% - 32px)}header{align-items:flex-start}header a{font-size:20px}header time{font-size:11px}.hero{padding-top:27px}.hero h1{font-size:37px}.lead{font-size:17px}.chapter{padding:24px 19px;grid-template-columns:1fr;gap:17px}.chapter>div{min-width:0}.number{width:60px;font-size:22px}.number small{display:inline;margin-left:6px}.metrics{grid-template-columns:1fr;gap:12px}.metrics b{font-size:21px}.brief figcaption{padding:14px 17px}.brief button{margin-left:17px}h2{font-size:26px}}@media print{button,.jump,dialog{display:none}.wrap{width:100%}.chapter{break-inside:avoid;border-radius:0;margin:10px 0}.hero{padding-top:0}body{background:#fff}} .hero h1 span{font-size:.53em}.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:22px 0}.compare>div{padding:24px;border:1px solid #cbded9;border-radius:12px}.compare h3{margin:0 0 12px;font-size:22px}.code-example{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef6f4;padding:24px;border-radius:12px;font:15px/1.9 Meiryo,sans-serif}.status{display:inline-block;border:1px solid #187477;border-radius:99px;padding:2px 12px;margin:0 0 14px;color:#187477;font-size:12px;font-weight:800}.source a{margin-right:12px}.brief ul{font-size:14px;padding-left:22px;margin-bottom:0}.brief figcaption{line-height:1.8}.mini{display:block;width:100%;height:auto}.small code{font-size:inherit}@media(max-width:700px){.compare{grid-template-columns:1fr}.hero h1{font-size:36px}.hero h1 span{font-size:23px}.code-example{padding:17px;font-size:14px}}.fact{background:#e9f3ef;color:#155d5d;padding:3px 10px;border-radius:4px;font-size:12px}.big-stat{font-size:clamp(44px,7vw,76px);line-height:1.3;font-weight:800;color:#187477;margin:10px 0}.chart{margin:22px 0;padding:24px;background:#eef6f4;border-radius:12px}.barrow{display:grid;grid-template-columns:100px minmax(0,1fr) 85px;align-items:center;gap:14px;margin:17px 0}.track{height:36px;background:#dce5e2;border-radius:5px;overflow:hidden}.bar{height:100%;background:#789a99}.bar.new{background:#187477}.barrow strong{font-size:23px}.table-wrap table{min-width:540px}.loop{border:1px dashed #7ba39c;padding:20px;border-radius:12px;text-align:center;font-size:21px;font-weight:bold;margin:20px 0}.hero h1{font-size:clamp(34px,4.9vw,60px)}.hero h1 span{font-size:.44em}.endline{font-size:26px;line-height:1.6;font-weight:800}.number small{white-space:nowrap}@media(max-width:700px){.hero h1{font-size:35px}.hero h1 span{font-size:21px}.barrow{grid-template-columns:60px minmax(0,1fr) 64px;gap:8px}.barrow strong{font-size:20px}.chart{padding:18px 14px}.endline{font-size:23px}}br.only-m{display:none}@media(max-width:700px){br.only-m{display:block}}.xtable td:first-child{white-space:nowrap}.xtable td small{display:block;white-space:normal;color:#62656a}@media(max-width:700px){.xtable table{min-width:0;font-size:14px}.xtable td,.xtable th{padding:12px 6px}}
+
+.brief-sheet{padding:clamp(18px,4vw,40px);background:#eaf4ef}.brief-sheet h2{margin:.25em 0 .6em;font-size:clamp(23px,3.3vw,42px);line-height:1.4}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.flow>div{padding:16px;border:1px solid #bad0c9;background:#fffdf8;border-radius:12px;min-width:0}.flow>div:nth-child(2){background:#124d50;color:white}.flow>div:nth-child(2) .label{color:#b8e5d4}.flow h3{line-height:1.5;margin:0}.flow p{font-size:15px;margin:.4em 0 0}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 20px}.score>div{min-width:0;border-top:2px solid #187477;padding-top:7px}.score strong{display:block;color:#124d50;font-size:clamp(29px,5vw,56px);line-height:1.1}.score span{font-size:14px}
+@media(max-width:640px){.flow{grid-template-columns:1fr}}
+@media print{.brief-sheet{print-color-adjust:exact}}
+</style><!-- SEO_META_INJECTED v1 -->
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="AI Intelligence Hub" />
+<meta property="og:title" content="テスト98%合格でも、本番入力は約4分の1しか一致しなかった｜AnthropicのRust移行｜VisionHub" />
+<meta property="og:description" content="VisionHub 2026.11.26 THU · DAILY AI INSIGHTS ONE-PAGE BRIEF ・ AI駆動開発 テスト98%合格でも、本番入力は約4分の1しか一致しなかった Anthropicは…" />
+<meta property="og:url" content="https://visionhub.jp/presentations/day_slides/day_slide_2026_11_26.html" />
+<meta property="og:image" content="https://visionhub.jp/presentations/day_slides/images/1126/cover.jpg" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="テスト98%合格でも、本番入力は約4分の1しか一致しなかった｜AnthropicのRust移行｜VisionHub" />
+<meta name="twitter:description" content="VisionHub 2026.11.26 THU · DAILY AI INSIGHTS ONE-PAGE BRIEF ・ AI駆動開発 テスト98%合格でも、本番入力は約4分の1しか一致しなかった Anthropicは…" />
+<meta name="twitter:image" content="https://visionhub.jp/presentations/day_slides/images/1126/cover.jpg" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<!-- JSONLD_INJECTED v1 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "テスト98%合格でも、本番入力は約4分の1しか一致しなかった｜AnthropicのRust移行｜VisionHub",
+  "datePublished": "2026-11-26T07:00:00+09:00",
+  "dateModified": "2026-11-26T07:00:00+09:00",
+  "author": {
+    "@type": "Person",
+    "name": "awano27",
+    "url": "https://visionhub.jp/about.html"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Intelligence Hub",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://visionhub.jp/assets/og-image.png"
+    }
+  },
+  "image": "https://visionhub.jp/presentations/day_slides/images/1126/cover.jpg",
+  "mainEntityOfPage": "https://visionhub.jp/presentations/day_slides/day_slide_2026_11_26.html",
+  "url": "https://visionhub.jp/presentations/day_slides/day_slide_2026_11_26.html",
+  "inLanguage": "ja",
+  "isAccessibleForFree": true,
+  "articleSection": "AI News"
+}
+</script>
+<!-- GA4_INJECTED v1 -->
+<script src="/assets/js/analytics.js" defer></script>
+</head><body><div class="wrap">
+<header><a href="https://visionhub.jp/">VisionHub</a><time datetime="2026-11-26">2026.11.26 THU · DAILY AI INSIGHTS</time></header>
+<main id="top"><section class="hero"><p class="eyebrow">ONE-PAGE BRIEF ・ AI駆動開発</p>
+<h1>テスト98%合格でも、本番入力は約4分の1しか一致しなかった<span>Anthropicは、稼働中のPython APIをRust版の比較基準にした</span></h1>
+<p class="lead">Claudeが主要なリクエスト処理の初版を書くまで約1週間。それでも、すぐには切り替えられませんでした。Anthropicが選んだのは、本番のPython版と新しいRust版を同じ条件で動かし、差が出た工程を一つずつ突き止める方法です。</p></section>
+<figure class="brief" aria-labelledby="brief-title"><div class="brief-sheet"><p class="label">ANTHROPIC · MESSAGES API</p>
+<h2 id="brief-title">モデルの返答は1回だけ生成し、両APIで使う</h2>
+<div class="score"><div><strong>約98%</strong><span>既存テストの合格率</span></div><div><strong>約25%</strong><span>比較した本番入力の初期一致率</span></div></div>
+<div class="flow"><div><div class="label">01　モデルの前</div><h3>同じリクエストで比較</h3><p>Python版とRust版が、入力をどう検証し、モデルに渡す指示をどう組み立てるかを見る。</p></div>
+<div><div class="label">02　モデル実行</div><h3>返答を1回だけ生成</h3><p>Python版で使った出力をRust版にも渡す。モデルを別々に呼んだときの回答の揺れを除く。</p></div>
+<div><div class="label">03　モデルの後</div><h3>同じ返答で比較</h3><p>配信するデータの形式や利用量の計算を照合する。検証用の処理は顧客への二重請求につなげない。</p></div></div></div>
+<figcaption>比較の仕組みをVisionHubが図解。2つの割合は測定対象も分母も異なります。約25%はモデルの回答品質やAPIの成功率ではありません。<a href="https://www.anthropic.com/research/migrating-api-to-rust">Anthropicの原典を読む</a></figcaption></figure>
+<nav class="jump" aria-label="目次"><a href="#s1">01 テストの限界</a><a href="#s2">02 差分の取り方</a><a href="#s3">03 人の判断</a><a href="#s4">04 性能と範囲</a><a href="#s5">05 現場で試す</a></nav>
+<section class="chapter" id="s1"><div class="number">01<small>TEST</small></div><div><h2>テストを移植すると、合格の意味まで変わり得る</h2><p>Pythonの実装に依存した結合テストは、Rust移行に合わせて書き直す必要がありました。監査では、検証条件が弱くなった箇所が100件超。既存テストは残しつつ、本番で使われる機能の組み合わせを別に確かめました。</p><p class="takeaway">移行側がコードとテストを両方変えるなら、独立した比較基準も用意する。</p></div></section>
+<section class="chapter" id="s2"><div class="number">02<small>DIFF</small></div><div><h2>顧客の本文を読まず、最初に違った場所を特定する</h2><p>入力検証、設定の解決、指示の組み立てなど、複数の地点で旧版と新版を比較します。ログには本文ではなく、差が出た工程、位置、長さなどを記録。似た差をまとめることで、同じ不具合から生まれた多数の記録を一つの修正候補として扱えます。</p><p class="takeaway">一致したかだけでなく、どこから違ったかが分かると修正につながる。</p></div></section>
+<section class="chapter" id="s3"><div class="number">03<small>REVIEW</small></div><div><h2>比較が通っても、出荷してよい修正とは限らない</h2><p>AIは隔離環境で再現例を作り、修正とテストを提案しました。人が変更をレビューし、通った修正は本番リクエストの複製でも確認。たとえば、外部サービスから取得すべき説明文をファイルに固定する案は比較に通っても、運用要件に合わず却下されました。指摘は後続のAIが参照するルールやテストに反映されました。</p><p class="takeaway">機械は一致を確認し、人は修正が運用に耐えるかを決める。</p></div></section>
+<section class="chapter" id="s4"><div class="number">04<small>RESULT</small></div><div><h2>CPU約70%減と、最初の応答約20%短縮は別の測定</h2><p>Anthropicの報告では、リクエスト当たりのCPU使用量は約70%減（単一リージョン）。最初のトークンまでの中央値は約20%短縮（顧客のClaude Codeリクエスト・別の期間）。サービスを止めず段階的に切り替えたとのことです。</p><p class="takeaway">約1週間は主要処理の初版まで。移行、検証、切り替えの全期間ではない。</p></div></section>
+<section class="chapter" id="s5"><div class="number">05<small>TRY</small></div><div><h2>自分のチームなら、更新系ではなく読み取りAPIを1本選ぶ</h2><p>まず、機密情報を含まない入力を用意します。旧版・新版でHTTPの結果、レスポンスの必須項目、空データ時の振る舞いを比べます。外部サービスは固定の応答に置き換え、意図した変更と不具合を人が判定します。</p><p class="takeaway">ここはVisionHubの提案。実トラフィックを複製する前に、個人情報と副作用をどう扱うか決める。</p></div></section>
+<section class="sources" aria-labelledby="sources-title"><h2 id="sources-title">出典と確認範囲</h2><ul><li><a href="https://www.anthropic.com/research/migrating-api-to-rust">Anthropic Engineering：Migrating our Messages API to Rust（2026/11/25公開）</a>。本文・図6・図15を参照。数値はAnthropicの自己報告であり、VisionHubでは再測定していません。</li></ul></section>
+</main><footer><a href="#top">先頭に戻る</a> ・ <a href="/presentations/day_slides_index.html">日次スライド一覧</a></footer></div><!-- slide-nav:start -->
+<nav aria-label="スライド相互ナビゲーション" style="box-sizing:border-box;width:min(100% - 24px,1100px);margin:24px auto;padding:12px;background:rgba(5,12,25,.88);border:1px solid rgba(255,255,255,.22);border-radius:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;overflow:hidden"><a href="day_slide_2026_11_25.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">← 前日</a><a href="../day_slides_index.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">一覧</a><a href="/" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">ホーム</a><a href="day_slide_2026_11_27.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;text-decoration:none;font:600 14px/1.2 sans-serif;white-space:nowrap">翌日 →</a></nav>
+<!-- slide-nav:end -->
+</body></html>
